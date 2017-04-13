@@ -1,4 +1,4 @@
 id;name;refined.id;mode;uiClasses;tag;tagUiClasses
-service:provisioning;Provisioning;;LINK;fa fa-server;technical;fa fa-industry
-service:provisioning:test;Provisioning Test;service:provisioning;LINK;;;
-service:provisioning:test:account;Provisioning Test Account 1;service:provisioning:test;LINK;;;
+service:prov;Provisioning;;LINK;fa fa-server;technical;fa fa-industry
+service:prov:test;Provisioning Test;service:prov;LINK;;;
+service:prov:test:account;Provisioning Test Account 1;service:prov:test;LINK;;;
