@@ -21,7 +21,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_VM_QUOTE_STORAGE")
+@Table(name = "LIGOJ_PROV_QUOTE_STORAGE")
 public class QuoteStorage extends AbstractPersistable<Integer> {
 
 	/**

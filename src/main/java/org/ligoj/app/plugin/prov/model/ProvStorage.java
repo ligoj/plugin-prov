@@ -22,7 +22,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_VM_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "operation", "subscription" }))
+@Table(name = "LIGOJ_PROV_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "operation", "subscription" }))
 public class ProvStorage extends AbstractDescribedEntity<Integer> {
 
 	/**

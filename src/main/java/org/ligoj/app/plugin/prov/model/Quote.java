@@ -22,7 +22,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_VM_QUOTE", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+@Table(name = "LIGOJ_PROV_QUOTE", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Quote extends AbstractNamedAuditedEntity<Integer> {
 
 	/**

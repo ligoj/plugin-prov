@@ -23,7 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_VM_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "instance", "os",
+@Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "instance", "os",
 		"mode" }))
 public class ProvInstancePrice extends AbstractPersistable<Integer> {
 
