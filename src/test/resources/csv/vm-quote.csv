@@ -1,0 +1,12 @@
+subscription.!id;name;description;cost
+1;quote1;quoteD1;0,128
+1;quote2;quoteD2;0,256
+1;quote3;quoteD3;0,384
+1;quote4;quoteD4;0,512
+1;quote5;quoteD5;0,64
+1;quote6;quoteD6;0,768
+1;quote7;quoteD7;0,896
+1;quote8;quoteD8;1,024
+1;quote9;quoteD9;1,152
+1;quote10;quoteD10;1,28
+1;quote11;quoteD11;1,408

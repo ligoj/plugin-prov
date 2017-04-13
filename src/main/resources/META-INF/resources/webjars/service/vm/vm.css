@@ -1,0 +1,30 @@
+#vm-schedules>thead>tr>th:last-child {
+	width: 10px;
+}
+@media (min-width: 769px) {
+	#vm-schedules>thead>tr>th:first-child {
+		width: 100px;
+	}
+}
+#vm-schedules>tbody>tr:not(.scheduled)>td:last-child>.delete {
+	visibility: hidden;
+}
+th.next-execution {
+	width: 150px;
+}
+.masonry-container .node.service-vm.mode-th-list table.subscriptions th.features {
+	width: 145px;
+}
+.masonry-container .node.service-vm.mode-th-large table.subscriptions th.features {
+	width: 128px;
+}
+.masonry-container .node.service-vm table.subscriptions th.features {
+	width: 113px;
+}
+.fa.deployed:after {
+	position: relative;
+	content: "///";
+	color: orange;
+	left: 11px;
+	float: left;
+}

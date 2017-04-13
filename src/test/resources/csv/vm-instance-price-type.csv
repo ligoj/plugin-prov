@@ -1,0 +1,4 @@
+node;name;period
+service:provisioning:test;on-demand1;15
+service:provisioning:test;on-demand2;60
+service:provisioning:test;1y;527040
