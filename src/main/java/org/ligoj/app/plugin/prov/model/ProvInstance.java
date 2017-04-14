@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Node;
@@ -33,14 +32,12 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> {
 	 * Amount of CPU.
 	 */
 	@NotNull
-	@Min(1)
 	private Integer cpu;
 
 	/**
 	 * RAM (Memory) in "Mo" = "Mega Bytes"
 	 */
 	@NotNull
-	@Min(128)
 	private Integer ram;
 
 	/**

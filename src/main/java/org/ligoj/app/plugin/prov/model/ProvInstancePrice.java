@@ -6,12 +6,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.plugin.prov.model.ProvInstance;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
-import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 import lombok.Getter;
@@ -24,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "instance", "os",
-		"mode" }))
+		"type" }))
 public class ProvInstancePrice extends AbstractPersistable<Integer> {
 
 	/**
@@ -36,7 +32,6 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	 * The hourly cost.
 	 */
 	@NotNull
-	@Min(0)
 	private Double cost;
 
 	/**

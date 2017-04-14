@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Node;
@@ -21,7 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+@Table(name = "LIGOJ_PROV_INSTACE_PRICE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
 public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> {
 
 	/**
@@ -33,7 +32,6 @@ public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> {
 	 * Billing period in minutes. Any started period is due.
 	 */
 	@NotNull
-	@Min(1)
 	private Integer period;
 
 	/**

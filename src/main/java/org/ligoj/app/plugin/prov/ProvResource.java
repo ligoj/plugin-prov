@@ -1,7 +1,5 @@
 package org.ligoj.app.plugin.prov;
 
-import java.util.function.Function;
-
 import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -11,7 +9,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.api.ConfigurablePlugin;
 import org.ligoj.app.iam.IamProvider;
-import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.plugin.prov.dao.QuoteRepository;
 import org.ligoj.app.plugin.prov.model.Quote;
 import org.ligoj.app.resource.ServicePluginLocator;
@@ -56,10 +53,6 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 		return SERVICE_KEY;
 	}
 
-	private Function<String, ? extends UserOrg> toUser() {
-		return this.iamProvider[0].getConfiguration().getUserRepository()::toUser;
-	}
-
 	@GET
 	@Path("{subscription:\\d+}")
 	@Override
@@ -82,9 +75,8 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public QuoteLigthVo getSusbcriptionStatus(final int subscription) {
 		final QuoteLigthVo vo = new QuoteLigthVo();
-		final Object[] resultset = repository.getSummary(subscription);
+		final Object[] resultset = repository.getSummary(subscription).get(0);
 		final Quote entity = (Quote) resultset[0];
-		vo.copyAuditData(entity, this.toUser());
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
 		vo.setNbInstances(((Long) resultset[1]).intValue());

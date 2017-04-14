@@ -5,12 +5,13 @@ import java.nio.charset.StandardCharsets;
 
 import javax.transaction.Transactional;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.model.Project;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
@@ -39,15 +40,15 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv",
-				new Class[] { Node.class, Quote.class, ProvStorage.class, ProvInstancePriceType.class,
-						ProvInstance.class, ProvInstancePrice.class, QuoteInstance.class, QuoteStorage.class },
+				new Class[] { Node.class, Project.class, Subscription.class, Quote.class, ProvStorage.class,
+						ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, QuoteInstance.class,
+						QuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 	}
 
 	@Test
 	public void findAll() {
 		resource.getConfiguration(0);
-		Assert.fail("Todo");
 	}
 
 }

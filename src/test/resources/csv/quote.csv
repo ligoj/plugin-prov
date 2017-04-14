@@ -1,4 +1,4 @@
-subscription.!id;name;description;cost
+subscription.id!;name;description;cost
 1;quote1;quoteD1;0,128
 1;quote2;quoteD2;0,256
 1;quote3;quoteD3;0,384
