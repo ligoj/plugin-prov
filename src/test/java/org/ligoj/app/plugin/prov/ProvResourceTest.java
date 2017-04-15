@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import javax.transaction.Transactional;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvResource resource;
 
+	private int subscription;
+
 	@Before
 	public void prepareData() throws IOException {
 		// Only with Spring context
@@ -44,11 +47,22 @@ public class ProvResourceTest extends AbstractAppTest {
 						ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, QuoteInstance.class,
 						QuoteStorage.class },
 				StandardCharsets.UTF_8.name());
+		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 	}
 
 	@Test
-	public void findAll() {
-		resource.getConfiguration(0);
+	public void getSusbcriptionStatus() {
+		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
+		Assert.assertNotNull(status);
+		Assert.assertEquals(0.128, status.getCost(), 0.0001);
+		Assert.assertEquals("quote1", status.getName());
+		Assert.assertEquals("quoteD1", status.getDescription());
+		Assert.assertNotNull(status.getId());
+		Assert.assertEquals(7, status.getNbInstances());
+		Assert.assertEquals(11, status.getTotalCpu());
+		Assert.assertEquals(22000, status.getTotalRam());
+		Assert.assertEquals(3, status.getNbStorages());
+		Assert.assertEquals(81, status.getTotalStorage());
 	}
 
 }

@@ -1,10 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
-import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -42,11 +39,5 @@ public class Quote extends AbstractDescribedEntity<Integer> {
 	@NotNull
 	@ManyToOne
 	private Subscription subscription;
-
-	/**
-	 * Quoted instance.
-	 */
-	@OneToMany(mappedBy = "quote")
-	private Set<QuoteInstance> instances;
 
 }

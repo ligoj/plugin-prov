@@ -12,15 +12,26 @@ import org.springframework.data.jpa.repository.Query;
 public interface QuoteRepository extends RestRepository<Quote, Integer> {
 
 	/**
-	 * Return the quote summary.
+	 * Return the compute quote summary from the related subscription.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The quote with aggregated details.
+	 * @return The quote with aggregated details : Quote, amount of instances,
+	 *         total RAM and total CPU.
 	 */
-	@Query("SELECT q, COUNT(i.id) FROM Quote AS q LEFT JOIN q.instances AS qi"
-			+ " LEFT JOIN qi.instance AS pi LEFT JOIN pi.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
-//	@Query("SELECT q, COUNT(i.id), SUM(i.cpu), SUM(i.ram), SUM(s.size) FROM Quote AS q LEFT JOIN q.instances AS qi LEFT JOIN qi.storages AS s"
-//			+ " LEFT JOIN qi.instance AS pi LEFT JOIN pi.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
-	List<Object[]> getSummary(int subscription);
+	@Query("SELECT q, COUNT(qi.id), SUM(i.cpu), SUM(i.ram) FROM QuoteInstance AS qi INNER JOIN qi.quote AS q"
+			+ " INNER JOIN qi.instance AS pi INNER JOIN pi.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
+	List<Object[]> getComputeSummary(int subscription);
+
+	/**
+	 * Return the storage quote summary from the related subscription.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier linking the quote.
+	 * @return The quote with aggregated details : Quote, amount of storages and
+	 *         total storage.
+	 */
+	@Query("SELECT q, COUNT(qs.id), SUM(qs.size) FROM QuoteStorage AS qs INNER JOIN qs.instance.quote AS q"
+			+ " WHERE q.subscription.id = :subscription GROUP BY q")
+	List<Object[]> getStorageSummary(int subscription);
 }

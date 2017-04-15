@@ -1,16 +1,10 @@
 package org.ligoj.app.plugin.prov.model;
 
-import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.Quote;
-import org.ligoj.app.plugin.prov.model.QuoteStorage;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,11 +40,5 @@ public class QuoteInstance extends AbstractPersistable<Integer> {
 	@ManyToOne
 	@JsonIgnore
 	private Quote quote;
-
-	/**
-	 * Attached storages.
-	 */
-	@OneToMany(mappedBy = "instance")
-	private Set<QuoteStorage> storages;
 
 }

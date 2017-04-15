@@ -1,4 +1,4 @@
-instance.id!;storage.name;quantity
+instance.id!;storage.name;size
 1;storage1;20
 1;storage2;10
-2;storage1;20
+1;storage2;51

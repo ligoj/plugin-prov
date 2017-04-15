@@ -29,7 +29,7 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 	/**
 	 * Plug-in key.
 	 */
-	public static final String SERVICE_URL = BASE_URL + "/provisionning";
+	public static final String SERVICE_URL = BASE_URL + "/prov";
 
 	/**
 	 * Plug-in key.
@@ -75,14 +75,16 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public QuoteLigthVo getSusbcriptionStatus(final int subscription) {
 		final QuoteLigthVo vo = new QuoteLigthVo();
-		final Object[] resultset = repository.getSummary(subscription).get(0);
-		final Quote entity = (Quote) resultset[0];
+		final Object[] compute = repository.getComputeSummary(subscription).get(0);
+		final Object[] storage = repository.getStorageSummary(subscription).get(0);
+		final Quote entity = (Quote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
-		vo.setNbInstances(((Long) resultset[1]).intValue());
-		vo.setTotalCpu(((Long) resultset[2]).intValue());
-		vo.setTotalMemory(((Long) resultset[3]).intValue());
-		vo.setTotalStorage(((Long) resultset[4]).intValue());
+		vo.setNbInstances(((Long) compute[1]).intValue());
+		vo.setTotalCpu(((Long) compute[2]).intValue());
+		vo.setTotalRam(((Long) compute[3]).intValue());
+		vo.setNbStorages(((Long) storage[1]).intValue());
+		vo.setTotalStorage(((Long) storage[2]).intValue());
 		return vo;
 	}
 

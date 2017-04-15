@@ -30,7 +30,7 @@ public class QuoteStorage extends AbstractPersistable<Integer> {
 	 * Size of the storage in "Go" "Giga Bytes"
 	 */
 	@NotNull
-	private Integer quantity;
+	private Integer size;
 
 	/**
 	 * Related storage with the price.

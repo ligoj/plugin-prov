@@ -1,14 +1,13 @@
 package org.ligoj.app.plugin.prov;
 
-import org.ligoj.app.iam.SimpleUserOrg;
-import org.ligoj.bootstrap.core.NamedAuditedBean;
+import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class QuoteLigthVo extends NamedAuditedBean<SimpleUserOrg, Integer> {
+public class QuoteLigthVo extends DescribedBean<Integer> {
 
 	/**
 	 * The amount of instances.
@@ -21,6 +20,11 @@ public class QuoteLigthVo extends NamedAuditedBean<SimpleUserOrg, Integer> {
 	private int totalStorage;
 
 	/**
+	 * The amount of storages devices.
+	 */
+	private int nbStorages;
+
+	/**
 	 * The amount of CPU
 	 */
 	private int totalCpu;
@@ -28,7 +32,7 @@ public class QuoteLigthVo extends NamedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * The amount of memory (MB)
 	 */
-	private int totalMemory;
+	private int totalRam;
 
 	/**
 	 * The computed monthly cost.
