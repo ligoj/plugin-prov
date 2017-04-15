@@ -1,5 +1,9 @@
 package org.ligoj.app.plugin.prov;
 
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -9,13 +13,16 @@ import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.api.ConfigurablePlugin;
 import org.ligoj.app.iam.IamProvider;
-import org.ligoj.app.plugin.prov.dao.QuoteRepository;
-import org.ligoj.app.plugin.prov.model.Quote;
+import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -43,7 +50,7 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 	protected ServicePluginLocator servicePluginLocator;
 
 	@Autowired
-	private QuoteRepository repository;
+	private ProvQuoteRepository repository;
 
 	@Autowired
 	protected IamProvider[] iamProvider;
@@ -53,14 +60,33 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 		return SERVICE_KEY;
 	}
 
+	private Function<String, ? extends UserOrg> toUser() {
+		return iamProvider[0].getConfiguration().getUserRepository()::toUser;
+	}
+
+	private ProvQuoteStorageVo toStorageVo(final ProvQuoteStorage entity) {
+		final ProvQuoteStorageVo vo = new ProvQuoteStorageVo();
+		vo.setId(entity.getId());
+		vo.setInstance(Optional.ofNullable(entity.getInstance()).map(Persistable::getId).orElse(null));
+		vo.setSize(entity.getSize());
+		vo.setStorage(entity.getStorage());
+		return vo;
+	}
+
 	@GET
 	@Path("{subscription:\\d+}")
 	@Override
 	@Transactional
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
+		subscriptionResource.checkVisibleSubscription(subscription);
 		final QuoteVo vo = new QuoteVo();
-		// TODO Add instance & storage details required to build the UI
+		final ProvQuote entity = repository.getCompute(subscription);
+		DescribedBean.copy(entity, vo);
+		vo.copyAuditData(entity, toUser());
+		vo.setInstances(entity.getInstances());
+		vo.setStorages(
+				repository.getStorage(subscription).stream().map(this::toStorageVo).collect(Collectors.toList()));
 		return vo;
 	}
 
@@ -77,7 +103,7 @@ public class ProvResource extends AbstractServicePlugin implements ConfigurableP
 		final QuoteLigthVo vo = new QuoteLigthVo();
 		final Object[] compute = repository.getComputeSummary(subscription).get(0);
 		final Object[] storage = repository.getStorageSummary(subscription).get(0);
-		final Quote entity = (Quote) compute[0];
+		final ProvQuote entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());

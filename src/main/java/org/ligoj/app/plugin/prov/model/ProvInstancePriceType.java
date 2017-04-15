@@ -1,6 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -38,7 +39,7 @@ public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> {
 	 * The related node (VM provider) of this instance.
 	 */
 	@NotNull
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
 

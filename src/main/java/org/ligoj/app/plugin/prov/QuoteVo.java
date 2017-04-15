@@ -1,19 +1,25 @@
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
 import org.ligoj.app.iam.SimpleUserOrg;
-import org.ligoj.bootstrap.core.NamedAuditedBean;
+import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.bootstrap.core.DescribedAuditedBean;
 
-public class QuoteVo extends NamedAuditedBean<SimpleUserOrg, Integer> {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 
 	/**
-	 * Monthly cost, computed during the creation.
+	 * Quoted instance.
 	 */
-	@NotNull
-	@Min(0)
-	private Double cost;
+	private List<ProvQuoteInstance> instances;
 
-	// TODO Add instances, storage,...
+	/**
+	 * Related storages instance.
+	 */
+	private List<ProvQuoteStorageVo> storages;
 }

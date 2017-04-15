@@ -1,6 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -44,7 +45,7 @@ public class ProvStorage extends AbstractDescribedEntity<Integer> {
 	 * The enabled provider.
 	 */
 	@NotNull
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
 

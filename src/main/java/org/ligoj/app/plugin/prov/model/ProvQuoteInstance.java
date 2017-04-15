@@ -1,6 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_INSTANCE")
-public class QuoteInstance extends AbstractPersistable<Integer> {
+public class ProvQuoteInstance extends AbstractPersistable<Integer> {
 
 	/**
 	 * SID
@@ -37,8 +38,8 @@ public class QuoteInstance extends AbstractPersistable<Integer> {
 	 * The parent quote.
 	 */
 	@NotNull
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonIgnore
-	private Quote quote;
+	private ProvQuote quote;
 
 }

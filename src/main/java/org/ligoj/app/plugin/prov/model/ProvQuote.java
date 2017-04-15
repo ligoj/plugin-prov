@@ -1,13 +1,18 @@
 package org.ligoj.app.plugin.prov.model;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Subscription;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
+import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +24,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE")
-public class Quote extends AbstractDescribedEntity<Integer> {
+public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> {
 
 	/**
 	 * SID
@@ -39,5 +44,19 @@ public class Quote extends AbstractDescribedEntity<Integer> {
 	@NotNull
 	@ManyToOne
 	private Subscription subscription;
+
+	/**
+	 * Quoted instance.
+	 */
+	@OneToMany(mappedBy = "quote")
+	@JsonIgnore
+	private List<ProvQuoteInstance> instances;
+
+	/**
+	 * Quoted storages.
+	 */
+	@OneToMany(mappedBy = "quote")
+	@JsonIgnore
+	private List<ProvQuoteStorage> storages;
 
 }

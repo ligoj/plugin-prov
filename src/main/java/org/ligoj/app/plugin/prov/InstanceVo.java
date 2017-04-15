@@ -2,8 +2,8 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.List;
 
-import org.ligoj.app.plugin.prov.model.QuoteInstance;
-import org.ligoj.app.plugin.prov.model.QuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,10 +18,10 @@ public class InstanceVo {
 	/**
 	 * The instance type with pricing options.
 	 */
-	private QuoteInstance instance;
+	private ProvQuoteInstance instance;
 
 	/**
 	 * Storages of this VM.
 	 */
-	private List<QuoteStorage> storages;
+	private List<ProvQuoteStorage> storages;
 }

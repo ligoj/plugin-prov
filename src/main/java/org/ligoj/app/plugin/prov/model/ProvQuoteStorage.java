@@ -1,6 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -13,13 +14,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A storage configuration linked to an instance inside a quote.
+ * A storage configuration inside a quote and optionally linked to an instance.
  */
 @Getter
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_STORAGE")
-public class QuoteStorage extends AbstractPersistable<Integer> {
+public class ProvQuoteStorage extends AbstractPersistable<Integer> {
 
 	/**
 	 * SID
@@ -40,11 +41,18 @@ public class QuoteStorage extends AbstractPersistable<Integer> {
 	private ProvStorage storage;
 
 	/**
-	 * Linked quoted instance.
+	 * The parent quote.
 	 */
 	@NotNull
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonIgnore
-	private QuoteInstance instance;
+	private ProvQuote quote;
+
+	/**
+	 * Optional linked quoted instance.
+	 */
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JsonIgnore
+	private ProvQuoteInstance instance;
 
 }
