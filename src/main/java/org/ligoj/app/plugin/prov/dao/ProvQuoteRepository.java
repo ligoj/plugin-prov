@@ -43,7 +43,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *            The subscription identifier linking the quote.
 	 * @return The compute quote details : Quote, instance details and price details.
 	 */
-	@Query("SELECT q FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi INNER JOIN FETCH qi.instance AS pi "
+	@Query("SELECT q FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.instance AS pi "
 			+ " LEFT JOIN FETCH pi.instance AS i LEFT JOIN FETCH pi.type WHERE q.subscription.id = :subscription")
 	ProvQuote getCompute(int subscription);
 
@@ -55,6 +55,6 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @return The storage quote details with the optional linked instance.
 	 */
 	@Query("SELECT qs FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.storage LEFT JOIN FETCH qs.instance"
-			+ " WHERE qs.quote.subscription.id = :subscription")
+			+ " WHERE qs.configuration.subscription.id = :subscription")
 	List<ProvQuoteStorage> getStorage(int subscription);
 }

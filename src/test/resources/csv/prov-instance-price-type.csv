@@ -1,4 +1,4 @@
-node.id;name;period
-service:prov:test;on-demand1;15
-service:prov:test;on-demand2;60
-service:prov:test;1y;527040
+node.id;name;period;description
+service:prov:test;on-demand1;15;15 minutes fragment
+service:prov:test;on-demand2;60;1 hour fragment
+service:prov:test;1y;527040;1 year fragment

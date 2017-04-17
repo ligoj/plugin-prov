@@ -1,5 +1,5 @@
-instance.id!;storage.name;size;quote.name
-1;storage1;20;quote1
-1;storage2;10;quote1
-1;storage2;51;quote1
-;storage1;13;quote1
+instance.id!;storage.name;size;configuration.name;name;description
+1;storage1;20;quote1;server1-root;server1-rootD
+1;storage2;10;quote1;server1-data;server1-dataD
+1;storage2;51;quote1;server1-temp;server1-tempD
+;storage1;13;quote1;shared-data;shared-dataD1

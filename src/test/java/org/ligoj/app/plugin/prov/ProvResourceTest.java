@@ -22,6 +22,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorage;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.VmStorageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -97,28 +98,42 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(7, instances.size());
 		final ProvQuoteInstance quoteInstance = instances.get(0);
 		Assert.assertNotNull(quoteInstance.getId());
+		Assert.assertEquals("server1", quoteInstance.getName());
+		Assert.assertEquals("serverD1", quoteInstance.getDescription());
 		final ProvInstancePrice instancePrice = quoteInstance.getInstance();
-		Assert.assertEquals(0.1, instancePrice.getCost(), 0.001);
+		Assert.assertEquals(0.2, instancePrice.getCost(), 0.001);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
 		Assert.assertNotNull(instancePrice.getType().getId());
-		Assert.assertEquals("type", instancePrice.getType().getName());
-		Assert.assertEquals(123, instancePrice.getType().getPeriod().intValue());
-		Assert.assertEquals("d", instancePrice.getType().getDescription());
+		Assert.assertEquals(15, instancePrice.getType().getPeriod().intValue());
+		Assert.assertEquals("on-demand1", instancePrice.getType().getName());
+		Assert.assertEquals("15 minutes fragment", instancePrice.getType().getDescription());
 		final ProvInstance instance = instancePrice.getInstance();
-		Assert.assertEquals(1, instance.getId().intValue());
+		Assert.assertNotNull(instance.getId().intValue());
 		Assert.assertEquals("instance1", instance.getName());
 		Assert.assertEquals("instanceD1", instance.getDescription());
 		Assert.assertEquals(1, instance.getCpu().intValue());
-		Assert.assertEquals(1, instance.getRam().intValue());
-		Assert.assertFalse(instance.getConstant());
+		Assert.assertEquals(2000, instance.getRam().intValue());
+		Assert.assertTrue(instance.getConstant());
 
 		// Check storage
 		final List<ProvQuoteStorageVo> storages = vo.getStorages();
 		Assert.assertEquals(4, storages.size());
-		Assert.assertNotNull(storages.get(0).getId());
-		Assert.assertEquals(4, storages.get(0).getSize());
-		Assert.assertNotNull(storages.get(0).getInstance());
-		Assert.assertEquals(0.023, storages.get(0).getStorage().getCost(), 0.001);
+		final ProvQuoteStorageVo quoteStorage = storages.get(0);
+		Assert.assertNotNull(quoteStorage.getId());
+		Assert.assertEquals("server1-root", quoteStorage.getName());
+		Assert.assertEquals("server1-rootD", quoteStorage.getDescription());
+		Assert.assertEquals(20, quoteStorage.getSize());
+		Assert.assertNotNull(quoteStorage.getInstance());
+		final ProvStorage storage = quoteStorage.getStorage();
+		Assert.assertNotNull(storage.getId());
+		Assert.assertEquals(0.21, storage.getCost(), 0.001);
+		Assert.assertEquals("storage1", storage.getName());
+		Assert.assertEquals("storageD1", storage.getDescription());
+		Assert.assertEquals(VmStorageType.HOT, storage.getType());
+
+		// Not attached storage
+		Assert.assertNull(storages.get(3).getInstance());
+
 	}
 
 	@Test
@@ -129,10 +144,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(vo.getId());
 
 		// Check compute
-		Assert.assertEquals(0, vo.getInstances());
+		Assert.assertEquals(0, vo.getInstances().size());
 
 		// Check storage
-		Assert.assertEquals(0, vo.getStorages());
+		Assert.assertEquals(0, vo.getStorages().size());
 	}
 
 }

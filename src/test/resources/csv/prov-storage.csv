@@ -1,3 +1,3 @@
-node.id;name;type;cost
-service:prov:test;storage1;HOT;0,21
-service:prov:test;storage2;COLD;0,15
+node.id;name;type;cost;description
+service:prov:test;storage1;HOT;0.21;storageD1
+service:prov:test;storage2;COLD;0.15;storageD2

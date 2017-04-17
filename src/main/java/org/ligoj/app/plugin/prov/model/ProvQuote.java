@@ -9,6 +9,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.app.model.PluginConfiguration;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 
@@ -24,7 +25,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE")
-public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> {
+public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implements PluginConfiguration {
 
 	/**
 	 * SID
@@ -48,14 +49,14 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> {
 	/**
 	 * Quoted instance.
 	 */
-	@OneToMany(mappedBy = "quote")
+	@OneToMany(mappedBy = "configuration")
 	@JsonIgnore
 	private List<ProvQuoteInstance> instances;
 
 	/**
 	 * Quoted storages.
 	 */
-	@OneToMany(mappedBy = "quote")
+	@OneToMany(mappedBy = "configuration")
 	@JsonIgnore
 	private List<ProvQuoteStorage> storages;
 

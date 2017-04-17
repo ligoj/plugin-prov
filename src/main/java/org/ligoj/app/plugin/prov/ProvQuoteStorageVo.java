@@ -10,26 +10,11 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ProvQuoteStorageVo {
-	
-	/**
-	 * Storage configuration identifier.
-	 */
-	private int id;
-
-	/**
-	 * Size of the storage in "Go" "Giga Bytes"
-	 */
-	private int size;
+public class ProvQuoteStorageVo extends AbstractProvQuoteStorageVo {
 
 	/**
 	 * Related storage with the price.
 	 */
 	private ProvStorage storage;
-
-	/**
-	 * Optional linked quoted instance.
-	 */
-	private Integer instance;
 
 }
