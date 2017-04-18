@@ -16,4 +16,10 @@ public class ProvQuoteInstanceVo extends DescribedBean<Integer> {
 	 */
 	@NotNull
 	private Integer instance;
+	
+	/**
+	 * Related subscription identifier.
+	 */
+	@NotNull
+	private Integer subscription;
 }

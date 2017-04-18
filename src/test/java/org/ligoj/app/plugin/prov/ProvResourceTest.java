@@ -14,6 +14,7 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
@@ -23,10 +24,14 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorage;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.plugin.prov.model.VmStorageType;
+import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.core.JsonParseException;
 
 /**
  * Test class of {@link ProvResource}
@@ -39,6 +44,9 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvResource resource;
+
+	@Autowired
+	private ProvInstancePriceTypeRepository priceTypeRepository;
 
 	private int subscription;
 
@@ -148,6 +156,64 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check storage
 		Assert.assertEquals(0, vo.getStorages().size());
+	}
+
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	public void findInstance() {
+		final ProvInstancePrice pi = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0, 0,
+				false, VmOs.LINUX, null);
+		Assert.assertNotNull(pi.getId());
+		Assert.assertEquals("instance2", pi.getInstance().getName());
+		Assert.assertEquals(1, pi.getInstance().getCpu().intValue());
+		Assert.assertEquals(2000, pi.getInstance().getRam().intValue());
+		Assert.assertEquals(0.14, pi.getCost(), 0.001);
+		Assert.assertEquals(VmOs.LINUX, pi.getOs());
+		Assert.assertEquals("1y", pi.getType().getName());
+	}
+
+	/**
+	 * Advanced case, all requirements.
+	 * 
+	 * @throws IOException
+	 * @throws @throws
+	 *             JsonMappingException
+	 * @throws JsonParseException
+	 */
+	@Test
+	public void findInstanceHighContraints() throws IOException {
+		final ProvInstancePrice pi = new ObjectMapperTrim().readValue(
+				new ObjectMapperTrim()
+						.writeValueAsString(resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3,
+								9, true, VmOs.WINDOWS, priceTypeRepository.findByName("on-demand1").getId())),
+				ProvInstancePrice.class);
+		Assert.assertNotNull(pi.getId());
+		Assert.assertEquals("instance9", pi.getInstance().getName());
+		Assert.assertEquals(4, pi.getInstance().getCpu().intValue());
+		Assert.assertEquals(16000, pi.getInstance().getRam().intValue());
+		Assert.assertTrue(pi.getInstance().getConstant());
+		Assert.assertEquals(5.6, pi.getCost(), 0.001);
+		Assert.assertEquals(VmOs.WINDOWS, pi.getOs());
+		Assert.assertEquals("on-demand1", pi.getType().getName());
+
+		// Not serialized
+		Assert.assertNull(pi.getInstance().getNode());
+		Assert.assertNull(pi.getType().getNode());
+	}
+
+	/**
+	 * Too much requirements
+	 */
+	@Test(expected = ValidationJsonException.class)
+	public void findInstanceNoMatch() {
+		resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false, VmOs.LINUX, null);
+	}
+
+	@Test
+	public void getKey() {
+		Assert.assertEquals("service:prov", resource.getKey());
 	}
 
 }

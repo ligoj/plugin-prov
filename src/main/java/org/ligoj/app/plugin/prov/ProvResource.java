@@ -6,12 +6,14 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.iam.IamProvider;
@@ -20,13 +22,17 @@ import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
@@ -120,15 +126,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * 
 	 * @param vo
 	 *            The quote instance.
-	 * @return The created identifier.
+	 * @return The created instance identifier.
 	 */
 	@POST
 	@PUT
-	@Path("{subscription:\\d+}/instance")
+	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int saveOrUpdate(@PathParam("subscription") final int subscription, final ProvQuoteInstanceVo vo) {
+	public int saveOrUpdate(final ProvQuoteInstanceVo vo) {
 		final ProvQuoteInstance entity = new ProvQuoteInstance();
-		entity.setConfiguration(getQuoteFromSubscription(subscription));
+		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		entity.setInstance(instancePriceRepository.findOneExpected(vo.getInstance()));
 		DescribedBean.copy(vo, entity);
 		return qiRepository.saveAndFlush(entity).getId();
@@ -139,19 +145,55 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * 
 	 * @param vo
 	 *            The quote storage.
-	 * @return The created identifier.
+	 * @return The created storage identifier.
 	 */
 	@POST
 	@PUT
-	@Path("{subscription:\\d+}/storage")
+	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int saveOrUpdate(@PathParam("subscription") final int subscription, final ProvQuoteStorageEditionVo vo) {
+	public int saveOrUpdate(final ProvQuoteStorageEditionVo vo) {
 		final ProvQuoteStorage entity = new ProvQuoteStorage();
-		entity.setConfiguration(getQuoteFromSubscription(subscription));
+		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		entity.setSize(vo.getSize());
 		entity.setInstance(Optional.ofNullable(vo.getInstance()).map(qiRepository::findOneExpected).orElse(null));
 		DescribedBean.copy(vo, entity);
 		return qsRepository.saveAndFlush(entity).getId();
+	}
+
+	/**
+	 * Create the instance inside a quote.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
+	 * @param cpu
+	 *            The amount of required CPU. Default is 1.
+	 * @param ram
+	 *            The amount of required RAM, in MB. Default is 1.
+	 * @param constant
+	 *            When true, the constant constraint is applied.
+	 * @param os
+	 *            The requested OS, default is "LINUX".
+	 * @param type
+	 *            The required price type identifier. May be <code>null</code>.
+	 * @return The lowest price instance configurations matching to the required
+	 *         parameters.
+	 */
+	@GET
+	@Path("instance/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public ProvInstancePrice findInstance(@PathParam("subscription") final int subscription,
+			@DefaultValue(value = "1") @QueryParam("cpu") final int cpu,
+			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
+			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
+			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final Integer type) {
+		// Get the attached node and check the security on this subscription
+		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+
+		// Return only the first matching instance
+		return instancePriceRepository.findLowestPrice(node, cpu, ram, constant, os, type, new PageRequest(0, 1))
+				.stream().findFirst()
+				.orElseThrow(() -> ValidationJsonException.newValidationJsonException("no-match", "cpu"));
 	}
 
 	/**
