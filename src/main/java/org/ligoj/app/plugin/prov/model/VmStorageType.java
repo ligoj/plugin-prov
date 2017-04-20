@@ -6,12 +6,17 @@ package org.ligoj.app.plugin.prov.model;
 public enum VmStorageType {
 
 	/**
-	 * Hot 
+	 * Hot
 	 */
 	HOT,
 	/**
 	 * Cold storage, magnetic
 	 */
-	COLD
+	COLD,
+
+	/**
+	 * Not instance storage type.
+	 */
+	OBJECT
 
 }
