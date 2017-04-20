@@ -21,7 +21,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *         total RAM and total CPU.
 	 */
 	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(i.cpu),0), COALESCE(SUM(i.ram),0) FROM ProvQuote q LEFT JOIN q.instances AS qi"
-			+ " LEFT JOIN qi.instance AS pi LEFT JOIN pi.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
+			+ " LEFT JOIN qi.instancePrice AS ip LEFT JOIN ip.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getComputeSummary(int subscription);
 
 	/**
@@ -43,8 +43,8 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *            The subscription identifier linking the quote.
 	 * @return The compute quote details : Quote, instance details and price details.
 	 */
-	@Query("SELECT q FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.instance AS pi "
-			+ " LEFT JOIN FETCH pi.instance AS i LEFT JOIN FETCH pi.type WHERE q.subscription.id = :subscription")
+	@Query("SELECT q FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.instancePrice AS ip "
+			+ " LEFT JOIN FETCH ip.instance AS i LEFT JOIN FETCH ip.type WHERE q.subscription.id = :subscription")
 	ProvQuote getCompute(int subscription);
 
 	/**
@@ -54,7 +54,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *            The subscription identifier linking the quote.
 	 * @return The storage quote details with the optional linked instance.
 	 */
-	@Query("SELECT qs FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.storage LEFT JOIN FETCH qs.instance"
+	@Query("SELECT qs FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.storage LEFT JOIN FETCH qs.quoteInstance"
 			+ " WHERE qs.configuration.subscription.id = :subscription")
 	List<ProvQuoteStorage> getStorage(int subscription);
 }

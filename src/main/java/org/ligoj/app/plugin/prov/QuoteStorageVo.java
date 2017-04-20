@@ -10,7 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ProvQuoteStorageVo extends AbstractProvQuoteStorageVo {
+public class QuoteStorageVo extends AbstractQuoteStorageVo {
 
 	/**
 	 * Related storage with the price.

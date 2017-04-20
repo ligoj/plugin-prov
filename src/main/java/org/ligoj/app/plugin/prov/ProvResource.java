@@ -1,5 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStorageRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -71,7 +73,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	private ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
+	private ProvStorageRepository storageRepository;
+
+	@Autowired
 	protected IamProvider[] iamProvider;
+
+	/**
+	 * Average hours in one month.
+	 */
+	private static final double HOURS_BY_MONTH = 24 * 30.5;
 
 	@Override
 	public String getKey() {
@@ -82,11 +92,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		return iamProvider[0].getConfiguration().getUserRepository()::toUser;
 	}
 
-	private ProvQuoteStorageVo toStorageVo(final ProvQuoteStorage entity) {
-		final ProvQuoteStorageVo vo = new ProvQuoteStorageVo();
+	private QuoteStorageVo toStorageVo(final ProvQuoteStorage entity) {
+		final QuoteStorageVo vo = new QuoteStorageVo();
 		DescribedBean.copy(entity, vo);
 		vo.setId(entity.getId());
-		vo.setInstance(Optional.ofNullable(entity.getInstance()).map(Persistable::getId).orElse(null));
+		vo.setQuoteInstance(Optional.ofNullable(entity.getQuoteInstance()).map(Persistable::getId).orElse(null));
 		vo.setSize(entity.getSize());
 		vo.setStorage(entity.getStorage());
 		return vo;
@@ -132,12 +142,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@PUT
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int saveOrUpdate(final ProvQuoteInstanceVo vo) {
+	public int updateInstance(final QuoteInstanceEditionVo vo) {
 		final ProvQuoteInstance entity = new ProvQuoteInstance();
-		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
-		entity.setInstance(instancePriceRepository.findOneExpected(vo.getInstance()));
 		DescribedBean.copy(vo, entity);
-		return qiRepository.saveAndFlush(entity).getId();
+
+		// Check the associations
+		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
+		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
+		entity.setInstancePrice(instancePriceRepository.findOneExpected(vo.getInstancePrice()));
+		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
+
+		// Save and update the costs
+		final ProvQuoteInstance instance = qiRepository.saveAndFlush(entity);
+		updatedCost(vo.getSubscription());
+		return instance.getId();
 	}
 
 	/**
@@ -151,13 +169,31 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@PUT
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int saveOrUpdate(final ProvQuoteStorageEditionVo vo) {
+	public int updateStorage(final QuoteStorageEditionVo vo) {
 		final ProvQuoteStorage entity = new ProvQuoteStorage();
-		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
-		entity.setSize(vo.getSize());
-		entity.setInstance(Optional.ofNullable(vo.getInstance()).map(qiRepository::findOneExpected).orElse(null));
 		DescribedBean.copy(vo, entity);
-		return qsRepository.saveAndFlush(entity).getId();
+
+		// Check the associations
+		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
+		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
+		entity.setStorage(checkVisibility(storageRepository.findOneExpected(vo.getStorage()), providerId));
+		entity.setQuoteInstance(
+				Optional.ofNullable(vo.getQuoteInstance()).map(i -> findConfigured(qiRepository, i)).map(i -> {
+					checkVisibility(i.getInstancePrice().getInstance(), providerId);
+					return i;
+				}).orElse(null));
+
+		// Check the limits
+		if (entity.getStorage().getMaximal() != null && vo.getSize() > entity.getStorage().getMaximal()) {
+			// The related storage type does not accept this value
+			throw new ValidationJsonException("size", "Max", entity.getStorage().getMaximal());
+		}
+		entity.setSize(vo.getSize());
+
+		// Save and update the costs
+		final ProvQuoteStorage storage = qsRepository.saveAndFlush(entity);
+		updatedCost(vo.getSubscription());
+		return storage.getId();
 	}
 
 	/**
@@ -218,6 +254,30 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		return vo;
+	}
+
+	/**
+	 * Compute the total cost without transactional/snapshot costs and save it
+	 * into the related quote.
+	 * 
+	 * @param subscription
+	 *            The subscription to compute
+	 * @return the computed cost without transactional/snapshot, support,...
+	 *         costs.
+	 */
+	public double updatedCost(final int subscription) {
+		final ProvQuote entity = repository.getCompute(subscription);
+		final List<ProvQuoteStorage> storages = repository.getStorage(subscription);
+
+		// Compute compute costs
+		final double computeCost = entity.getInstances().stream().mapToDouble(i -> i.getInstancePrice().getCost())
+				.sum();
+		final double storageCost = storages.stream()
+				.mapToDouble(
+						i -> ((double) Math.max(i.getSize(), i.getStorage().getMinimal())) * i.getStorage().getCost())
+				.reduce(0.0, Double::sum);
+		entity.setCost((Math.round(computeCost * 1000) * HOURS_BY_MONTH + Math.round(storageCost * 1000)) / 1000d);
+		return entity.getCost();
 	}
 
 }

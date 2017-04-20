@@ -7,6 +7,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
@@ -22,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvStorage extends AbstractDescribedEntity<Integer> {
+public class ProvStorage extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
 	 * SID
@@ -42,10 +43,26 @@ public class ProvStorage extends AbstractDescribedEntity<Integer> {
 	private VmStorageType type;
 
 	/**
+	 * The minimal disk in "Go".
+	 */
+	@NotNull
+	private Integer minimal;
+
+	/**
+	 * The maximum supported size in "Go". May be <code>null</code>.
+	 */
+	private Integer maximal;
+
+	/**
+	 * The cost per transaction. May be 0.
+	 */
+	private double transactionalCost;
+
+	/**
 	 * The enabled provider.
 	 */
 	@NotNull
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
 

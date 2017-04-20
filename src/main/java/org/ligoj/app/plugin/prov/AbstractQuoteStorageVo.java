@@ -12,7 +12,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AbstractProvQuoteStorageVo extends DescribedBean<Integer> {
+public abstract class AbstractQuoteStorageVo extends DescribedBean<Integer> {
 
 	/**
 	 * Size of the storage in "Go" "Giga Bytes"
@@ -23,6 +23,6 @@ public abstract class AbstractProvQuoteStorageVo extends DescribedBean<Integer> 
 	/**
 	 * Optional linked quoted instance.
 	 */
-	private Integer instance;
+	private Integer quoteInstance;
 
 }

@@ -21,5 +21,5 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * Related storages instance.
 	 */
-	private List<ProvQuoteStorageVo> storages;
+	private List<QuoteStorageVo> storages;
 }

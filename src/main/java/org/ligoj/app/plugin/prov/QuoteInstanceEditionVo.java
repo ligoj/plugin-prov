@@ -2,25 +2,24 @@ package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.bootstrap.core.DescribedBean;
+
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Storage configuration edition.
- */
 @Getter
 @Setter
-public class ProvQuoteStorageEditionVo extends AbstractProvQuoteStorageVo {
+public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 
 	/**
-	 * Related storage with the price.
+	 * Instance price configuration
 	 */
-	private int storage;
+	@NotNull
+	private Integer instancePrice;
 	
 	/**
 	 * Related subscription identifier.
 	 */
 	@NotNull
 	private Integer subscription;
-
 }

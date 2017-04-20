@@ -7,6 +7,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
@@ -22,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvInstance extends AbstractDescribedEntity<Integer> {
+public class ProvInstance extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
 	 * SID

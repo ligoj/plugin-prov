@@ -57,6 +57,6 @@ public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implement
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
-	private ProvQuoteInstance instance;
+	private ProvQuoteInstance quoteInstance;
 
 }

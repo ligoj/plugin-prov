@@ -35,7 +35,7 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	 */
 	@NotNull
 	@ManyToOne
-	private ProvInstancePrice instance;
+	private ProvInstancePrice instancePrice;
 
 	/**
 	 * The parent quote.
