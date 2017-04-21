@@ -127,7 +127,7 @@ BUILD)
 
     mvn clean package jacoco:report sonar:sonar \
           $MAVEN_ARGS \
-          -Pjacoco -Djacoco.includes=org.ligoj.app.plugin.vm.* \
+          -Pjacoco -Djacoco.includes=org.ligoj.app.plugin.prov.* \
           -Dsonar.host.url=$SONAR_HOST_URL \
           -Dsonar.organization=ligoj-github \
           -Dsonar.login=$SONAR_TOKEN \
