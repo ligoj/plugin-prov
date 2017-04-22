@@ -2,6 +2,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -17,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.iam.IamProvider;
+import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
@@ -87,6 +89,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Transform a {@link String} to  {@link UserOrg}
+	 */
+	private Function<String, ? extends UserOrg> toUser() {
+		return iamProvider[0].getConfiguration().getUserRepository()::toUser;
+	}
+
+	/**
 	 * Transform a {@link ProvQuoteStorage} to  {@link QuoteStorageVo}
 	 */
 	private QuoteStorageVo toStorageVo(final ProvQuoteStorage entity) {
@@ -109,7 +118,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		final QuoteVo vo = new QuoteVo();
 		final ProvQuote entity = repository.getCompute(subscription);
 		DescribedBean.copy(entity, vo);
-		vo.copyAuditData(entity, iamProvider[0].getConfiguration().getUserRepository()::toUser);
+		vo.copyAuditData(entity, toUser());
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(
 				repository.getStorage(subscription).stream().map(this::toStorageVo).collect(Collectors.toList()));
