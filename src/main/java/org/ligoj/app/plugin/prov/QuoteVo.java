@@ -2,9 +2,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.List;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-
 import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
