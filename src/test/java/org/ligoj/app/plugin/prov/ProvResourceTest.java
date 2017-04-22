@@ -168,6 +168,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("quote2", vo.getName());
 		Assert.assertEquals("quoteD2", vo.getDescription());
 		Assert.assertNotNull(vo.getId());
+		Assert.assertEquals(0.128, vo.getCost(), 0.00001);
 
 		// Check compute
 		Assert.assertEquals(0, vo.getInstances().size());

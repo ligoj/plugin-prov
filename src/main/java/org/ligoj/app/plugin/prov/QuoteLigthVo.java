@@ -5,6 +5,9 @@ import org.ligoj.bootstrap.core.DescribedBean;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The light view of a quote with aggregated information for display purpose.
+ */
 @Getter
 @Setter
 public class QuoteLigthVo extends DescribedBean<Integer> {

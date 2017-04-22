@@ -116,6 +116,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(
 				repository.getStorage(subscription).stream().map(this::toStorageVo).collect(Collectors.toList()));
+		
+		// Also copy the cost to remove the necessary to compute it at first sight
+		vo.setCost(entity.getCost());
+
 		return vo;
 	}
 
