@@ -4,7 +4,7 @@
 [![Build Status](https://circleci.com/gh/ligoj/plugin-prov.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-prov)
 [![Build Status](https://codeship.com/projects/958a0c70-05c9-0135-aeba-42025f523ab1/status?branch=master)](https://codeship.com/projects/213621)
 [![Build Status](https://semaphoreci.com/api/v1/ligoj/plugin-prov/branches/master/shields_badge.svg)](https://semaphoreci.com/ligoj/plugin-prov)
-[![Build Status](https://ci.appveyor.com/api/projects/status/5926fmf0p5qp9j16/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
+[![Build Status](https://ci.appveyor.com/api/projects/status/u6i3563iv6f0omm7/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/ligoj/plugin-prov/badge.svg?branch=master)](https://coveralls.io/github/ligoj/plugin-prov?branch=master)
 [![Dependency Status](https://www.versioneye.com/user/projects/58caeda8dcaf9e0041b5b978/badge.svg?style=flat)](https://www.versioneye.com/user/projects/58caeda8dcaf9e0041b5b978)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=org.ligoj.plugin:root)](https://sonarqube.com/dashboard/index/org.ligoj.plugin:root)
@@ -15,4 +15,5 @@
 
 [Ligoj](https://github.com/ligoj/ligoj) Provisioning plugin
 Provides the following features :
-- TODO
+- Find the best instance from the given requirement : CPU, RAM, OS and price type
+- Compute the total cost of storage and compute for a set of VM

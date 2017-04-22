@@ -13,4 +13,17 @@
 	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Provisioning</name>
+
+
+	<profiles>
+		<profile>
+			<id>bintray</id>
+			<distributionManagement>
+				<repository>
+					<id>bintray-ligoj-maven-repo</id>
+					<url>https://api.bintray.com/maven/ligoj/maven-repo/plugin-prov/;publish=1</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+	</profiles>
 </project>
