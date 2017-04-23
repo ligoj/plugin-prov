@@ -2,6 +2,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -113,6 +114,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		final QuoteVo vo = resource.getConfiguration(subscription);
 		Assert.assertEquals("quote1", vo.getName());
 		Assert.assertEquals("quoteD1", vo.getDescription());
+		Assert.assertEquals(0.128, vo.getCost(), 0.00001);
 		Assert.assertNotNull(vo.getId());
 		Assert.assertNotNull(vo.getCreatedBy());
 		Assert.assertNotNull(vo.getCreatedDate());
@@ -155,10 +157,14 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(0.21, storage.getCost(), 0.001);
 		Assert.assertEquals("storage1", storage.getName());
 		Assert.assertEquals("storageD1", storage.getDescription());
+		Assert.assertEquals(0, storage.getTransactionalCost(), 0.001);
 		Assert.assertEquals(VmStorageType.HOT, storage.getType());
 
 		// Not attached storage
 		Assert.assertNull(storages.get(3).getQuoteInstance());
+
+		// Check the small transactional cost
+		Assert.assertEquals(0.000000072, storages.get(1).getStorage().getTransactionalCost(), 0.000000001);
 
 	}
 
@@ -168,7 +174,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("quote2", vo.getName());
 		Assert.assertEquals("quoteD2", vo.getDescription());
 		Assert.assertNotNull(vo.getId());
-		Assert.assertEquals(0.128, vo.getCost(), 0.00001);
+		Assert.assertEquals(0, vo.getCost(), 0.00001);
 
 		// Check compute
 		Assert.assertEquals(0, vo.getInstances().size());
@@ -233,6 +239,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void getKey() {
 		Assert.assertEquals("service:prov", resource.getKey());
+		
+		// Only there for coverage of associations required by JPA
+		new ProvQuote().setStorages(null);
+		new ProvQuote().getStorages();
+		new ProvQuote().setInstances(null);
+
 	}
 
 	@Test
@@ -362,5 +374,18 @@ public class ProvResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		Assert.assertEquals(3787.59, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
 		Assert.assertEquals("server1-bis", quoteInstanceRepository.findOneExpected(vo.getId()).getName());
+	}
+
+	@Test
+	public void checkSubscriptionStatus() throws Exception {
+		final QuoteLigthVo quote = (QuoteLigthVo) new ProvServicePlugin() {
+
+			@Override
+			public String getKey() {
+				return "service:prov:sample";
+			}
+		}.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
+		Assert.assertNotNull(quote);
+		Assert.assertEquals(0.128, quote.getCost(), 0.0001);
 	}
 }
