@@ -89,7 +89,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		Assert.assertEquals(0.128, status.getCost(), 0.0001);
 		Assert.assertEquals(7, status.getNbInstances());
-		Assert.assertEquals(11, status.getTotalCpu());
+		Assert.assertEquals(9.5, status.getTotalCpu(),0.0001);
 		Assert.assertEquals(22000, status.getTotalRam());
 		Assert.assertEquals(4, status.getNbStorages());
 		Assert.assertEquals(94, status.getTotalStorage());
@@ -103,7 +103,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		Assert.assertEquals(0, status.getCost(), 0.0001);
 		Assert.assertEquals(0, status.getNbInstances());
-		Assert.assertEquals(0, status.getTotalCpu());
+		Assert.assertEquals(0, status.getTotalCpu(),0.0001);
 		Assert.assertEquals(0, status.getTotalRam());
 		Assert.assertEquals(0, status.getNbStorages());
 		Assert.assertEquals(0, status.getTotalStorage());
@@ -139,7 +139,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(instance.getId().intValue());
 		Assert.assertEquals("instance1", instance.getName());
 		Assert.assertEquals("instanceD1", instance.getDescription());
-		Assert.assertEquals(1, instance.getCpu().intValue());
+		Assert.assertEquals(0.5, instance.getCpu(),0.0001);
 		Assert.assertEquals(2000, instance.getRam().intValue());
 		Assert.assertTrue(instance.getConstant());
 

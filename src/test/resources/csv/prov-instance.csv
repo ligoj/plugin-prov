@@ -1,5 +1,5 @@
 node.id;name;cpu;ram;constant;description
-service:prov:test;instance1;1;2000;true;instanceD1
+service:prov:test;instance1;0.5;2000;true;instanceD1
 service:prov:test;instance2;1;2000;false;instanceD2
 service:prov:test;instance3;2;2000;true;instanceD3
 service:prov:test;instance4;2;2000;false;instanceD4

@@ -34,7 +34,7 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> implements No
 	 * Amount of CPU.
 	 */
 	@NotNull
-	private Integer cpu;
+	private Double cpu;
 
 	/**
 	 * RAM (Memory) in "Mo" = "Mega Bytes"

@@ -37,6 +37,6 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 			+ " WHERE (:node = i.node.id OR node LIKE CONCAT(i.node,'%'))"
 			+ " AND i.cpu>= :cpu AND i.ram>=:ram AND ip.os=:os AND (:constant = false OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestPrice(String node, int cpu, int ram, boolean constant, VmOs os, Integer type,
+	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, boolean constant, VmOs os, Integer type,
 			Pageable pageable);
 }

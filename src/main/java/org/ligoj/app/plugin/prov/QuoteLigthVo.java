@@ -30,7 +30,7 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	/**
 	 * The amount of CPU
 	 */
-	private int totalCpu;
+	private double totalCpu;
 
 	/**
 	 * The amount of memory (MB)

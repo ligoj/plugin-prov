@@ -229,7 +229,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Path("instance/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public ProvInstancePrice findInstance(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("cpu") final int cpu,
+			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
 			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final Integer type) {
@@ -259,7 +259,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
-		vo.setTotalCpu(((Long) compute[2]).intValue());
+		vo.setTotalCpu(((Double) compute[2]));
 		vo.setTotalRam(((Long) compute[3]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
