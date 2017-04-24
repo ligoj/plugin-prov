@@ -37,10 +37,16 @@ public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> impl
 	private Integer period;
 
 	/**
+	 * Minimal billing period in minutes. Any started period is due for this
+	 * minimum. When <code>null</code>, corresponds to the period.
+	 */
+	private Integer minimum;
+
+	/**
 	 * The related node (VM provider) of this instance.
 	 */
 	@NotNull
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
 

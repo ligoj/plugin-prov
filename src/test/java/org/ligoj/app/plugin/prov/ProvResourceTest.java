@@ -133,6 +133,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
 		Assert.assertNotNull(instancePrice.getType().getId());
 		Assert.assertEquals(15, instancePrice.getType().getPeriod().intValue());
+		Assert.assertEquals(60, instancePrice.getType().getMinimum().intValue());
 		Assert.assertEquals("on-demand1", instancePrice.getType().getName());
 		Assert.assertEquals("15 minutes fragment", instancePrice.getType().getDescription());
 		final ProvInstance instance = instancePrice.getInstance();
@@ -142,6 +143,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(0.5, instance.getCpu(),0.0001);
 		Assert.assertEquals(2000, instance.getRam().intValue());
 		Assert.assertTrue(instance.getConstant());
+
+		// No minimal for this instance price
+		Assert.assertNull(instances.get(1).getInstancePrice().getType().getMinimum());
 
 		// Check storage
 		final List<QuoteStorageVo> storages = vo.getStorages();
