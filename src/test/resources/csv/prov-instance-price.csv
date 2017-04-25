@@ -1,4 +1,4 @@
-type.name;cost;instance.name;os
+type.name;cost;instance.name;os;costCpu;costRam
 on-demand1;0.2;instance1;LINUX
 on-demand1;0.35;instance1;WINDOWS
 on-demand2;0.175;instance1;LINUX
@@ -72,3 +72,4 @@ on-demand2;9.12;instance12;WINDOWS
 1y;4.48;instance12;LINUX
 1y;7.68;instance12;WINDOWS
 1y;7.68;instanceX;WINDOWS
+on-demand1;0;dynamic;LINUX;0.033174;0.004446

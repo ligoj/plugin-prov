@@ -11,4 +11,5 @@ service:prov:test;instance9;4;16000;true;instanceD9
 service:prov:test;instance10;4;8000;false;instanceD10
 service:prov:test;instance11;8;16000;true;instanceD11
 service:prov:test;instance12;8;8000;false;instanceD12
+service:prov:test;dynamic;0;0;true;dynamicD
 service:prov:x;instanceX;8;8000;false;instanceDX

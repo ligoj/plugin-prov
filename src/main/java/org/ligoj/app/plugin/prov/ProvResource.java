@@ -64,7 +64,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	private ProvQuoteRepository repository;
 
 	@Autowired
-	private ProvInstancePriceRepository instancePriceRepository;
+	private ProvInstancePriceRepository ipRepository;
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
@@ -89,14 +89,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Transform a {@link String} to  {@link UserOrg}
+	 * Transform a {@link String} to {@link UserOrg}
 	 */
 	private Function<String, ? extends UserOrg> toUser() {
 		return iamProvider[0].getConfiguration().getUserRepository()::toUser;
 	}
 
 	/**
-	 * Transform a {@link ProvQuoteStorage} to  {@link QuoteStorageVo}
+	 * Transform a {@link ProvQuoteStorage} to {@link QuoteStorageVo}
 	 */
 	private QuoteStorageVo toStorageVo(final ProvQuoteStorage entity) {
 		final QuoteStorageVo vo = new QuoteStorageVo();
@@ -122,8 +122,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(
 				repository.getStorage(subscription).stream().map(this::toStorageVo).collect(Collectors.toList()));
-		
-		// Also copy the cost to remove the necessary to compute it at first sight
+
+		// Also copy the cost to remove the necessary to compute it at first
+		// sight
 		vo.setCost(entity.getCost());
 
 		return vo;
@@ -159,7 +160,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		// Check the associations
 		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
-		entity.setInstancePrice(instancePriceRepository.findOneExpected(vo.getInstancePrice()));
+		entity.setInstancePrice(ipRepository.findOneExpected(vo.getInstancePrice()));
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 
 		// Save and update the costs
@@ -223,23 +224,29 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @param type
 	 *            The required price type identifier. May be <code>null</code>.
 	 * @return The lowest price instance configurations matching to the required
-	 *         parameters.
+	 *         parameters for standard instance (if available) and custom
+	 *         instance (if available too) and also the lower instance based
+	 *         price for a weaker requirement if applicable.
 	 */
 	@GET
 	@Path("instance/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public ProvInstancePrice findInstance(@PathParam("subscription") final int subscription,
+	public LowestPrice findInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
 			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final Integer type) {
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		final LowestPrice price = new LowestPrice();
 
 		// Return only the first matching instance
-		return instancePriceRepository.findLowestPrice(node, cpu, ram, constant, os, type, new PageRequest(0, 1))
-				.stream().findFirst()
-				.orElseThrow(() -> ValidationJsonException.newValidationJsonException("no-match", "cpu"));
+		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, type, new PageRequest(0, 1))
+				.stream().findFirst().map(ip -> new ComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
+		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream()
+				.findFirst().map(ip -> new ComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
+				.orElse(null));
+		return price;
 	}
 
 	/**
@@ -259,8 +266,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
-		vo.setTotalCpu(((Double) compute[2]));
-		vo.setTotalRam(((Long) compute[3]).intValue());
+		vo.setTotalCpu((Double) compute[2] + (Double) compute[3]);
+		vo.setTotalRam(((Long) compute[4]).intValue() + ((Long) compute[5]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		return vo;
@@ -280,14 +287,73 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		final List<ProvQuoteStorage> storages = repository.getStorage(subscription);
 
 		// Compute compute costs
-		final double computeCost = entity.getInstances().stream().mapToDouble(i -> i.getInstancePrice().getCost())
-				.sum();
-		final double storageCost = storages.stream()
-				.mapToDouble(
-						i -> ((double) Math.max(i.getSize(), i.getStorage().getMinimal())) * i.getStorage().getCost())
-				.reduce(0.0, Double::sum);
-		entity.setCost((Math.round(computeCost * 1000) * HOURS_BY_MONTH + Math.round(storageCost * 1000)) / 1000d);
+		final double computeCost = entity.getInstances().stream().mapToDouble(this::getComputeCost).sum();
+		final double storageCost = storages.stream().mapToDouble(this::getStorageCost).reduce(0.0, Double::sum);
+
+		// Hour to monthly cost
+		entity.setCost(toMonthly(computeCost) + Math.round(storageCost * 1000) / 1000d);
 		return entity.getCost();
+	}
+
+	private double toMonthly(double cost) {
+		return Math.round(cost * 1000) * HOURS_BY_MONTH / 1000d;
+	}
+
+	/**
+	 * Compute the cost of a quote instance.
+	 * 
+	 * @param quoteInstance
+	 *            The quote to evaluate.
+	 * @return The cost of this instance.
+	 */
+	private double getComputeCost(final ProvQuoteInstance quoteInstance) {
+		// Fixed price + custom price
+		return quoteInstance.getInstancePrice().getCost() + getComputeCustomCost(quoteInstance.getCpu(),
+				quoteInstance.getRam(), quoteInstance.getInstancePrice());
+	}
+
+	/**
+	 * Compute the cost of a custom requested resource.
+	 * 
+	 * @param quoteInstance
+	 *            The quote to evaluate.
+	 * @param required
+	 *            The request resource amount.
+	 * @param cost
+	 *            The cost of one resource.
+	 * @return The cost of this custom instance.
+	 */
+	private double getComputeCustomCost(final Double cpu, final Integer ram, final ProvInstancePrice ip) {
+		// Compute the count of the requested resources
+		return getComputeCustomCost(cpu, ip.getCostCpu(), 1) + getComputeCustomCost(ram, ip.getCostRam(), 1024);
+	}
+
+	/**
+	 * Compute the cost of a custom requested resource.
+	 * 
+	 * @param quoteInstance
+	 *            The quote to evaluate.
+	 * @param required
+	 *            The request resource amount.
+	 * @param cost
+	 *            The cost of one resource.
+	 * @return The cost of this custom instance.
+	 */
+	private double getComputeCustomCost(Number required, Double cost, final double multiplicator) {
+		// Compute the count of the requested resources
+		return required == null ? 0 : Math.ceil(required.doubleValue() / multiplicator) * cost;
+	}
+
+	/**
+	 * Compute the cost of a quote storage.
+	 * 
+	 * @param quoteStorage
+	 *            The quote to evaluate.
+	 * @return The cost of this storage.
+	 */
+	private double getStorageCost(final ProvQuoteStorage quoteStorage) {
+		return Math.max(quoteStorage.getSize(), quoteStorage.getStorage().getMinimal())
+				* quoteStorage.getStorage().getCost();
 	}
 
 }

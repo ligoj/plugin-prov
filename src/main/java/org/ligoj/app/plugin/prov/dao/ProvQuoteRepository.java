@@ -20,7 +20,8 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @return The quote with aggregated details : Quote, amount of instances,
 	 *         total RAM and total CPU.
 	 */
-	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(i.cpu),0), COALESCE(SUM(i.ram),0) FROM ProvQuote q LEFT JOIN q.instances AS qi"
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(i.cpu),0), COALESCE(SUM(qi.cpu),0), COALESCE(SUM(i.ram),0), COALESCE(SUM(qi.ram),0)"
+			+ " FROM ProvQuote q LEFT JOIN q.instances AS qi"
 			+ " LEFT JOIN qi.instancePrice AS ip LEFT JOIN ip.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getComputeSummary(int subscription);
 
@@ -41,7 +42,8 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * 
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The compute quote details : Quote, instance details and price details.
+	 * @return The compute quote details : Quote, instance details and price
+	 *         details.
 	 */
 	@Query("SELECT q FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.instancePrice AS ip "
 			+ " LEFT JOIN FETCH ip.instance AS i LEFT JOIN FETCH ip.type WHERE q.subscription.id = :subscription")

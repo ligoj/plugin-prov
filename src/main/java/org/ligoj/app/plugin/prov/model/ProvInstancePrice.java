@@ -29,11 +29,21 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
-	 * The hourly cost.
+	 * The hourly cost of this instance.
 	 */
 	@NotNull
 	private Double cost;
-
+	
+	/**
+	 * The optional hourly cost of one requested CPU.
+	 */
+	private Double costCpu;
+	
+	/**
+	 * The optional hourly cost of one requested GB memory.
+	 */
+	private Double costRam;
+	
 	/**
 	 * Related instance characteristics.
 	 */

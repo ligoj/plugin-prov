@@ -31,7 +31,7 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> implements No
 	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
-	 * Amount of CPU.
+	 * Amount of CPU. When <code>0</code>, correspond to a custom instance.
 	 */
 	@NotNull
 	private Double cpu;
@@ -52,8 +52,18 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> implements No
 	 * The related node (VM provider) of this instance.
 	 */
 	@NotNull
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
+
+	/**
+	 * Indicates this instance is customizable.
+	 * 
+	 * @return <code>true</code> when this instance is customizable.
+	 */
+	@JsonIgnore
+	public boolean isCustom() {
+		return cpu == 0;
+	}
 
 }

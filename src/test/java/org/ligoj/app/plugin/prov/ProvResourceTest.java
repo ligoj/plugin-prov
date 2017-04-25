@@ -49,6 +49,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 @Transactional
 public class ProvResourceTest extends AbstractAppTest {
 
+	private static final double DELTA = 0.01d;
+
 	@Autowired
 	private ProvResource resource;
 
@@ -89,8 +91,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		Assert.assertEquals(0.128, status.getCost(), 0.0001);
 		Assert.assertEquals(7, status.getNbInstances());
-		Assert.assertEquals(9.5, status.getTotalCpu(),0.0001);
-		Assert.assertEquals(22000, status.getTotalRam());
+		Assert.assertEquals(11.5, status.getTotalCpu(), 0.0001);
+		Assert.assertEquals(44576, status.getTotalRam());
 		Assert.assertEquals(4, status.getNbStorages());
 		Assert.assertEquals(94, status.getTotalStorage());
 	}
@@ -103,7 +105,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		Assert.assertEquals(0, status.getCost(), 0.0001);
 		Assert.assertEquals(0, status.getNbInstances());
-		Assert.assertEquals(0, status.getTotalCpu(),0.0001);
+		Assert.assertEquals(0, status.getTotalCpu(), 0.0001);
 		Assert.assertEquals(0, status.getTotalRam());
 		Assert.assertEquals(0, status.getNbStorages());
 		Assert.assertEquals(0, status.getTotalStorage());
@@ -129,7 +131,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1", quoteInstance.getName());
 		Assert.assertEquals("serverD1", quoteInstance.getDescription());
 		final ProvInstancePrice instancePrice = quoteInstance.getInstancePrice();
-		Assert.assertEquals(0.2, instancePrice.getCost(), 0.001);
+		Assert.assertEquals(0.2, instancePrice.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
 		Assert.assertNotNull(instancePrice.getType().getId());
 		Assert.assertEquals(15, instancePrice.getType().getPeriod().intValue());
@@ -140,7 +142,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(instance.getId().intValue());
 		Assert.assertEquals("instance1", instance.getName());
 		Assert.assertEquals("instanceD1", instance.getDescription());
-		Assert.assertEquals(0.5, instance.getCpu(),0.0001);
+		Assert.assertEquals(0.5, instance.getCpu(), 0.0001);
 		Assert.assertEquals(2000, instance.getRam().intValue());
 		Assert.assertTrue(instance.getConstant());
 
@@ -158,10 +160,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(quoteStorage.getQuoteInstance());
 		final ProvStorage storage = quoteStorage.getStorage();
 		Assert.assertNotNull(storage.getId());
-		Assert.assertEquals(0.21, storage.getCost(), 0.001);
+		Assert.assertEquals(0.21, storage.getCost(), DELTA);
 		Assert.assertEquals("storage1", storage.getName());
 		Assert.assertEquals("storageD1", storage.getDescription());
-		Assert.assertEquals(0, storage.getTransactionalCost(), 0.001);
+		Assert.assertEquals(0, storage.getTransactionalCost(), DELTA);
 		Assert.assertEquals(VmStorageType.HOT, storage.getType());
 
 		// Not attached storage
@@ -192,15 +194,31 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void findInstance() {
-		final ProvInstancePrice pi = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0, 0,
-				false, VmOs.LINUX, null);
+		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0, 0, false,
+				VmOs.LINUX, null);
+
+		// Check the instance result
+		final ProvInstancePrice pi = price.getInstance().getInstance();
 		Assert.assertNotNull(pi.getId());
 		Assert.assertEquals("instance2", pi.getInstance().getName());
 		Assert.assertEquals(1, pi.getInstance().getCpu().intValue());
 		Assert.assertEquals(2000, pi.getInstance().getRam().intValue());
-		Assert.assertEquals(0.14, pi.getCost(), 0.001);
+		Assert.assertEquals(0.14, pi.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, pi.getOs());
 		Assert.assertEquals("1y", pi.getType().getName());
+		Assert.assertEquals(102.48, price.getInstance().getCost(), DELTA);
+
+		// Check the custom instance price
+		final ProvInstancePrice pic = price.getCustom().getInstance();
+		Assert.assertNotNull(pic.getId());
+		Assert.assertEquals("dynamic", pic.getInstance().getName());
+		Assert.assertEquals(0, pic.getInstance().getCpu().intValue());
+		Assert.assertEquals(0, pic.getInstance().getRam().intValue());
+		Assert.assertEquals(0, pic.getCost(), DELTA);
+		Assert.assertEquals(VmOs.LINUX, pi.getOs());
+		Assert.assertEquals("on-demand1", pic.getType().getName());
+		Assert.assertEquals(102.48, price.getInstance().getCost(), DELTA);
+
 	}
 
 	/**
@@ -213,19 +231,21 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void findInstanceHighContraints() throws IOException {
-		final ProvInstancePrice pi = new ObjectMapperTrim().readValue(
+		final LowestPrice price = new ObjectMapperTrim().readValue(
 				new ObjectMapperTrim()
 						.writeValueAsString(resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3,
 								9, true, VmOs.WINDOWS, priceTypeRepository.findByNameExpected("on-demand1").getId())),
-				ProvInstancePrice.class);
+				LowestPrice.class);
+		final ProvInstancePrice pi = price.getInstance().getInstance();
 		Assert.assertNotNull(pi.getId());
 		Assert.assertEquals("instance9", pi.getInstance().getName());
 		Assert.assertEquals(4, pi.getInstance().getCpu().intValue());
 		Assert.assertEquals(16000, pi.getInstance().getRam().intValue());
 		Assert.assertTrue(pi.getInstance().getConstant());
-		Assert.assertEquals(5.6, pi.getCost(), 0.001);
+		Assert.assertEquals(5.6, pi.getCost(), DELTA);
 		Assert.assertEquals(VmOs.WINDOWS, pi.getOs());
 		Assert.assertEquals("on-demand1", pi.getType().getName());
+		Assert.assertFalse(pi.getInstance().isCustom());
 
 		// Not serialized
 		Assert.assertNull(pi.getInstance().getNode());
@@ -233,17 +253,33 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Too much requirements
+	 * Too much requirements for an instance
 	 */
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void findInstanceNoMatch() {
-		resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false, VmOs.LINUX, null);
-	}
+		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
+				VmOs.LINUX, null);
+		Assert.assertNull(price.getInstance());
+
+		// Check the custom instance
+		final ProvInstancePrice pi = price.getCustom().getInstance();
+		Assert.assertNotNull(pi.getId());
+		Assert.assertEquals("dynamic", pi.getInstance().getName());
+		Assert.assertEquals(0, pi.getInstance().getCpu().intValue());
+		Assert.assertEquals(0, pi.getInstance().getRam().intValue());
+		Assert.assertTrue(pi.getInstance().getConstant());
+		Assert.assertEquals(0, pi.getCost(), DELTA);
+		Assert.assertEquals(VmOs.LINUX, pi.getOs());
+		Assert.assertEquals("on-demand1", pi.getType().getName());
+		Assert.assertTrue(pi.getInstance().isCustom());
+
+		Assert.assertEquals(24259.212, price.getCustom().getCost(), DELTA);
+}
 
 	@Test
 	public void getKey() {
 		Assert.assertEquals("service:prov", resource.getKey());
-		
+
 		// Only there for coverage of associations required by JPA
 		new ProvQuote().setStorages(null);
 		new ProvQuote().getStorages();
@@ -266,7 +302,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.updateStorage(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(3828.69, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+		Assert.assertEquals(3844.062, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
 		Assert.assertEquals("server1-root-bis", quoteStorageRepository.findOneExpected(vo.getId()).getName());
 	}
 
@@ -295,7 +331,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.updateStorage(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(3797.97, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+		Assert.assertEquals(3813.342, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
 	}
 
 	@Test(expected = JpaObjectRetrievalFailureException.class)
@@ -376,7 +412,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.updateInstance(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(3787.59, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+		Assert.assertEquals(3802.962, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
 		Assert.assertEquals("server1-bis", quoteInstanceRepository.findOneExpected(vo.getId()).getName());
 	}
 
