@@ -1,0 +1,4 @@
+define({
+	"service:prov" : "Provisionnement"
+
+});

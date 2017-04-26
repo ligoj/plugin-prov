@@ -1,0 +1,52 @@
+<form id="subscribe-configuration-prov" class="hide form-horizontal subscribe-configuration">
+      <fieldset>
+            <legend>
+                  <span class="project-name"></span> / <span class="provider"></span> <input type="text"></input>
+            </legend>
+            <div class="row">
+                  <div class="col-sm-8 col-md-9 col-lg-10">
+                        <div class="form-group">
+                              <label class="control-label col-xs-3 col-lg-2" for="search-user">{{user}}</label>
+                              <div class="col-xs-9 col-sm-5 col-md-6 col-lg-3">
+                                    <div class="input-group">
+                                          <input type="text" id="search-user" class="form-control" required/>
+                                          <span class="input-group-btn" title="{{service:id:add-member}}" data-toggle="tooltip" data-container="#subscribe-configuration-id">
+                                                <button class="btn btn-primary btn-raised" disabled type="button" id="add-user"><i class="fa fa-user-plus"></i></button>
+                                          </span>
+                                    </div>
+                              </div>
+                        </div>
+                  </div>
+                  <div class="col-sm-4 col-md-3 col-lg-2 text-right">
+      			<div class="form-group has-feedback">
+      				<div class="col-xs-12 has-feedback">
+      					<input type="text" class="form-control" placeholder="{{service:prov:instance}},{{server}},..." id="subscribe-configuration-prov-search" aria-controls="table" />
+      					<span class="fa fa-search form-control-feedback"></span>
+      				</div>
+      			</div>
+      		</div>
+            </div>
+            <table id="prov-instances" class="table table-striped table-bordered justified">
+                  <thead>
+                        <tr>
+                              <th>{{name}}</th>
+                              <th>{{os}}</th>
+                              <th>{{cpu}}</th>
+                              <th>{{ram}}</th>
+                              <th>{{usage}}</th>
+                              <th>{{storage}}</th>
+                              <th>{{cost}}</th>
+                              <th></th>
+                        </tr>
+                  </thead>
+                  <tbody>
+                        <tr>
+                              <td class="dataTables_empty" colspan="8">{{loading}}</td>
+                        </tr>
+                  </tbody>
+            </table>
+      </fieldset>
+      <div class="form-actions">
+		<input class="btn btn-link cancel-subscription" type="button" value="{{back}}">
+	</div>
+</form>
