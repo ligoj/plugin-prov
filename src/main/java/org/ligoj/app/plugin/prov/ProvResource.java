@@ -1,5 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -7,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.model.Configurable;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
@@ -32,6 +35,7 @@ import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -170,6 +174,19 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Delete an instance from a quote. The total cost is updated.
+	 * 
+	 * @param id
+	 *            The {@link ProvQuoteInstance}'s identifier to delete.
+	 */
+	@DELETE
+	@Path("instance/{id:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void deleteInstance(final int id) {
+		deleteAndUpdateCost(qiRepository, id);
+	}
+
+	/**
 	 * Create the storage inside a quote.
 	 * 
 	 * @param vo
@@ -208,6 +225,31 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Delete a storage from a quote. The total cost is updated.
+	 * 
+	 * @param id
+	 *            The {@link ProvQuoteStorage}'s identifier to delete.
+	 */
+	@DELETE
+	@Path("storage/{id:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void deleteStorage(final int id) {
+		deleteAndUpdateCost(qsRepository, id);
+	}
+
+	/**
+	 * Delete a configured entity and update the total cost of the associated
+	 * quote.
+	 */
+	private <T extends Configurable<ProvQuote, K>, K extends Serializable> void deleteAndUpdateCost(
+			final RestRepository<T, K> repository, final K id) {
+		final T entity = super.findConfigured(repository, id);
+		final int subscription = entity.getConfiguration().getSubscription().getId();
+		repository.delete(id);
+		updatedCost(subscription);
+	}
+
+	/**
 	 * Create the instance inside a quote.
 	 * 
 	 * @param subscription
@@ -242,11 +284,22 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 		// Return only the first matching instance
 		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, type, new PageRequest(0, 1))
-				.stream().findFirst().map(ip -> new ComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
+				.stream().findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
 		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream()
-				.findFirst().map(ip -> new ComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
+				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
 				.orElse(null));
 		return price;
+	}
+
+	/**
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
+	 * and computed price.
+	 */
+	private ComputedInstancePrice newComputedInstancePrice(final ProvInstancePrice ip, final double cost) {
+		final ComputedInstancePrice result = new ComputedInstancePrice();
+		result.setCost(cost);
+		result.setInstance(ip);
+		return result;
 	}
 
 	/**

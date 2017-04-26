@@ -1,8 +1,12 @@
 package org.ligoj.app.plugin.prov.model;
 
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -54,5 +58,9 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private ProvQuote configuration;
+
+	@JsonIgnore
+	@OneToMany(mappedBy = "quoteInstance", cascade = CascadeType.REMOVE)
+	private List<ProvQuoteStorage> storages;
 
 }

@@ -38,8 +38,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.fasterxml.jackson.core.JsonParseException;
-
 /**
  * Test class of {@link ProvResource}
  */
@@ -58,16 +56,16 @@ public class ProvResourceTest extends AbstractAppTest {
 	private ProvInstancePriceTypeRepository priceTypeRepository;
 
 	@Autowired
-	private ProvQuoteStorageRepository quoteStorageRepository;
+	private ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
-	private ProvQuoteInstanceRepository quoteInstanceRepository;
+	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
 	private ProvStorageRepository storageRepository;
 
 	@Autowired
-	private ProvInstancePriceRepository instancePriceRepository;
+	private ProvInstancePriceRepository ipRepository;
 
 	private int subscription;
 
@@ -223,11 +221,6 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Advanced case, all requirements.
-	 * 
-	 * @throws IOException
-	 * @throws @throws
-	 *             JsonMappingException
-	 * @throws JsonParseException
 	 */
 	@Test
 	public void findInstanceHighContraints() throws IOException {
@@ -256,6 +249,17 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
+	public void findInstanceOnlyCustom() {
+		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
+				VmOs.LINUX, priceTypeRepository.findByNameExpected("1y").getId());
+		Assert.assertNull(price.getInstance());
+		Assert.assertNull(price.getCustom());
+	}
+
+	/**
+	 * Too much requirements for an instance
+	 */
+	@Test
 	public void findInstanceNoMatch() {
 		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
 				VmOs.LINUX, null);
@@ -274,7 +278,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertTrue(pi.getInstance().isCustom());
 
 		Assert.assertEquals(24259.212, price.getCustom().getCost(), DELTA);
-}
+	}
 
 	@Test
 	public void getKey() {
@@ -284,7 +288,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().setStorages(null);
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
-
+		VmStorageType.valueOf(VmStorageType.HOT.name());
+		VmOs.valueOf(VmOs.LINUX.name());
 	}
 
 	@Test
@@ -294,23 +299,23 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
-		vo.setQuoteInstance(quoteInstanceRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		resource.updateStorage(vo);
 
 		// Check the exact new cost
 		Assert.assertEquals(3844.062, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
-		Assert.assertEquals("server1-root-bis", quoteStorageRepository.findOneExpected(vo.getId()).getName());
+		Assert.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
 	}
 
 	@Test(expected = ValidationJsonException.class)
 	public void updateStorageLimitKo() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(1024); // Limit for this storage is 512
@@ -324,7 +329,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(512); // Limit for this storage is 512
@@ -338,7 +343,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void updateStorageUnknownStorage() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(-1);
 		vo.setSize(1);
@@ -352,7 +357,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void updateStorageInvalidStorage() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storageX").getId());
 		vo.setSize(1);
@@ -363,7 +368,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void updateStorageUnknownInstance() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
 		vo.setQuoteInstance(-1);
@@ -378,10 +383,10 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void updateStorageNonVisibleInstance() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteStorageRepository.findByNameExpected("server1-root").getId());
+		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
-		vo.setQuoteInstance(quoteInstanceRepository.findByNameExpected("serverX").getId());
+		vo.setQuoteInstance(qiRepository.findByNameExpected("serverX").getId());
 		vo.setSize(1);
 		resource.updateStorage(vo);
 	}
@@ -393,10 +398,59 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteInstanceRepository.findByNameExpected("server1").getId());
-		vo.setInstancePrice(instancePriceRepository.findBy("instance.name", "instanceX").getId());
+		vo.setId(qiRepository.findByNameExpected("server1").getId());
+		vo.setInstancePrice(ipRepository.findBy("instance.name", "instanceX").getId());
 		vo.setName("server1-bis");
 		resource.updateInstance(vo);
+	}
+
+	@Test
+	public void deleteInstance() {
+		// Check the cost before updated cost (dummy value)
+		Assert.assertEquals(0.128, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+
+		final Integer id = qiRepository.findByNameExpected("server1").getId();
+		final Integer storage1 = qsRepository.findByNameExpected("server1-root").getId();
+		final Integer storage2 = qsRepository.findByNameExpected("server1-data").getId();
+		final Integer storage3 = qsRepository.findByNameExpected("server1-temp").getId();
+		final Integer storageOther = qsRepository.findByNameExpected("shared-data").getId();
+		Assert.assertTrue(qsRepository.exists(storage1));
+		Assert.assertTrue(qsRepository.exists(storage2));
+		Assert.assertTrue(qsRepository.exists(storage3));
+		em.flush();
+		em.clear();
+
+		resource.deleteInstance(id);
+
+		// Check the exact new cost
+		Assert.assertEquals(3436.542, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+		Assert.assertNull(qiRepository.findOne(id));
+
+		// Also check the associated storage is deleted
+		Assert.assertFalse(qsRepository.exists(storage1));
+		Assert.assertFalse(qsRepository.exists(storage2));
+		Assert.assertFalse(qsRepository.exists(storage3));
+		Assert.assertTrue(qsRepository.exists(storageOther));
+	}
+
+	@Test
+	public void deleteStorage() {
+		// Check the cost before updated cost (dummy value)
+		Assert.assertEquals(0.128, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+
+		final Integer id = qsRepository.findByNameExpected("server1-root").getId();
+		Assert.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
+		em.flush();
+		em.clear();
+
+		resource.deleteStorage(id);
+
+		// Check the exact new cost
+		Assert.assertEquals(3736.542, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
+
+		// Check the associations
+		Assert.assertNull(qsRepository.findOne(id));
+		Assert.assertEquals(2, qiRepository.findByNameExpected("server1").getStorages().size());
 	}
 
 	@Test
@@ -406,14 +460,14 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
-		vo.setId(quoteInstanceRepository.findByNameExpected("server1").getId());
-		vo.setInstancePrice(instancePriceRepository.findByExpected("cost", 0.285).getId());
+		vo.setId(qiRepository.findByNameExpected("server1").getId());
+		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.285).getId());
 		vo.setName("server1-bis");
 		resource.updateInstance(vo);
 
 		// Check the exact new cost
 		Assert.assertEquals(3802.962, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
-		Assert.assertEquals("server1-bis", quoteInstanceRepository.findOneExpected(vo.getId()).getName());
+		Assert.assertEquals("server1-bis", qiRepository.findOneExpected(vo.getId()).getName());
 	}
 
 	@Test
