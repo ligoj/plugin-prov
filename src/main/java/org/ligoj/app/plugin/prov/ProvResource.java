@@ -409,4 +409,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 				* quoteStorage.getStorage().getCost();
 	}
 
+	@Override
+	public void create(final int subscription) {
+		// Add an empty quote
+		final ProvQuote configuration = new ProvQuote();
+		configuration.setSubscription(subscriptionRepository.findOne(subscription));
+		configuration.setCost(0d);
+
+		// Associate a default name and description
+		configuration.setName(configuration.getSubscription().getProject().getName());
+		configuration.setDescription(configuration.getSubscription().getProject().getPkey() + "-> "
+				+ configuration.getSubscription().getNode().getName());
+		repository.saveAndFlush(configuration);
+	}
 }

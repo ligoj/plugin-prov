@@ -482,4 +482,20 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(quote);
 		Assert.assertEquals(0.128, quote.getCost(), 0.0001);
 	}
+
+	@Test
+	public void create() {
+		final Subscription subscription = new Subscription();
+		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscription);
+		em.flush();
+		em.clear();
+		resource.create(subscription.getId());
+		final QuoteVo configuration = resource.getConfiguration(subscription.getId());
+		Assert.assertNotNull(configuration);
+		Assert.assertNotNull(configuration.getName());
+		Assert.assertNotNull(configuration.getDescription());
+	}
+
 }
