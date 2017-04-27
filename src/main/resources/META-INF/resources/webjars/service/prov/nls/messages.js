@@ -1,13 +1,14 @@
 define({
 	'root' : {
 		'service:prov' : 'Provisioning',
+		'service:prov:manage' : 'Manage',
 		'service:prov:os' : 'OS',
 		'service:prov:os-title' : 'Operating System',
-		'service:prov:cpu' : 'Operating System',
+		'service:prov:cpu' : 'CPU',
 		'service:prov:ram' : 'RAM',
 		'service:prov:ram-title' : 'Memory, in GB',
-		'service:prov:name' : 'Server',
-		'service:prov:name-title' : 'Logical server name',
+		'service:prov:instance-name' : 'Server',
+		'service:prov:instance-name-title' : 'Logical server name',
 		'service:prov:instance' : 'Instance',
 		'service:prov:instance-title' : 'VM type with predefined resources',
 		'service:prov:instance-custom' : 'Custom instance',
@@ -24,7 +25,8 @@ define({
 		'service:prov:storage-size-title' : 'Block size in GB',
 		'service:prov:cost' : 'Cost',
 		'service:prov:cost-title' : 'Monthly billed',
-		'service:prov:deleted-instance' : 'Instance "{{[0]}}" ({{[0]}}) is deleted'
+		'service:prov:deleted-instance' : 'Instance "{{[0]}}" ({{[0]}}) is deleted',
+		'service:prov:instance-choice' : 'The best instance of the provider is determinated from the provided requirements'
 	},
 	'fr' : true
 });

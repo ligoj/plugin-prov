@@ -1,7 +1,9 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -17,7 +19,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
@@ -28,6 +32,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -35,7 +40,10 @@ import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.dao.PaginationDao;
 import org.ligoj.bootstrap.core.dao.RestRepository;
+import org.ligoj.bootstrap.core.json.PaginationJson;
+import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -82,10 +90,26 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Autowired
 	protected IamProvider[] iamProvider;
 
+	@Autowired
+	private PaginationJson paginationJson;
+
+	@Autowired
+	private PaginationDao pagination;
+
 	/**
 	 * Average hours in one month.
 	 */
 	private static final double HOURS_BY_MONTH = 24 * 30.5;
+
+	/**
+	 * Ordered/mapped columns.
+	 */
+	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
+
+	static {
+		ORM_COLUMNS.put("id", "id");
+		ORM_COLUMNS.put("name", "name");
+	}
 
 	@Override
 	public String getKey() {
@@ -165,6 +189,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
 		entity.setInstancePrice(ipRepository.findOneExpected(vo.getInstancePrice()));
+		entity.setRam(vo.getRam());
+		entity.setCpu(vo.getCpu());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 
 		// Save and update the costs
@@ -289,6 +315,26 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
 				.orElse(null));
 		return price;
+	}
+
+	/**
+	 * Create the instance inside a quote.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The valid price types for the given subscription.
+	 */
+	@GET
+	@Path("price-type/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public TableItem<ProvInstancePriceType> findInstancePriceType(@Context final UriInfo uriInfo) {
+		return paginationJson.applyPagination(uriInfo,
+				pagination.<ProvInstancePriceType>findAll(ProvInstancePriceType.class,
+						paginationJson.getUiPageRequest(uriInfo), ORM_COLUMNS),
+				Function.identity());
 	}
 
 	/**

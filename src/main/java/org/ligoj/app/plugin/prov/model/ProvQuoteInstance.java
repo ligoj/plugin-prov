@@ -42,13 +42,15 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	private ProvInstancePrice instancePrice;
 
 	/**
-	 * The optional requested CPU.
+	 * The requested CPU.
 	 */
+	@NotNull
 	private Double cpu;
 
 	/**
-	 * The optional requested RAM in MB.
+	 * The requested RAM in MB.
 	 */
+	@NotNull
 	private Integer ram;
 
 	/**

@@ -401,6 +401,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setId(qiRepository.findByNameExpected("server1").getId());
 		vo.setInstancePrice(ipRepository.findBy("instance.name", "instanceX").getId());
 		vo.setName("server1-bis");
+		vo.setRam(1);
+		vo.setCpu(0.5);
 		resource.updateInstance(vo);
 	}
 
@@ -463,11 +465,15 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setId(qiRepository.findByNameExpected("server1").getId());
 		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.285).getId());
 		vo.setName("server1-bis");
+		vo.setRam(1024);
+		vo.setCpu(0.5);
 		resource.updateInstance(vo);
 
 		// Check the exact new cost
 		Assert.assertEquals(3802.962, resource.getSusbcriptionStatus(subscription).getCost(), 0.0000000001);
 		Assert.assertEquals("server1-bis", qiRepository.findOneExpected(vo.getId()).getName());
+		Assert.assertEquals(1024, qiRepository.findOneExpected(vo.getId()).getRam().intValue());
+		Assert.assertEquals(0.5, qiRepository.findOneExpected(vo.getId()).getCpu(), DELTA);
 	}
 
 	@Test

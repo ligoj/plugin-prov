@@ -12,7 +12,7 @@ import lombok.Setter;
 public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 
 	/**
-	 * Instance price configuration
+	 * Instance price configuration matching to the requirements.
 	 */
 	@NotNull
 	private Integer instancePrice;
@@ -22,4 +22,16 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 */
 	@NotNull
 	private Integer subscription;
+	
+	/**
+	 * The requested CPU
+	 */
+	@NotNull
+	private Double cpu;
+	
+	/**
+	 * The requested memory in MB.
+	 */
+	@NotNull
+	private Integer ram;
 }
