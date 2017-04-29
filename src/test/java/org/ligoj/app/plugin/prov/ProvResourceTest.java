@@ -31,6 +31,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorage;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.plugin.prov.model.VmStorageType;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
+import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -89,8 +90,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		Assert.assertEquals(0.128, status.getCost(), 0.0001);
 		Assert.assertEquals(7, status.getNbInstances());
-		Assert.assertEquals(11.5, status.getTotalCpu(), 0.0001);
-		Assert.assertEquals(44576, status.getTotalRam());
+		Assert.assertEquals(10.75, status.getTotalCpu(), 0.0001);
+		Assert.assertEquals(43576, status.getTotalRam());
 		Assert.assertEquals(4, status.getNbStorages());
 		Assert.assertEquals(94, status.getTotalStorage());
 	}
@@ -288,6 +289,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().setStorages(null);
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
+		new ProvQuoteInstance().setStorages(null);
 		VmStorageType.valueOf(VmStorageType.HOT.name());
 		VmOs.valueOf(VmOs.LINUX.name());
 	}
@@ -502,6 +504,30 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(configuration);
 		Assert.assertNotNull(configuration.getName());
 		Assert.assertNotNull(configuration.getDescription());
+	}
+
+	@Test
+	public void findInstancePriceType() {
+		final TableItem<ProvInstancePriceType> tableItem = resource.findInstancePriceType(subscription, newUriInfo());
+		Assert.assertEquals(3, tableItem.getRecordsTotal());
+		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+	}
+
+	@Test(expected = JpaObjectRetrievalFailureException.class)
+	public void findInstancePriceTypeNotExistsSubscription() {
+		resource.findInstancePriceType(-1, newUriInfo());
+	}
+
+	@Test
+	public void findInstancePriceTypeAnotherSubscription() {
+		Assert.assertEquals(1, resource.findInstancePriceType(getSubscription("mda", "service:prov:x"), newUriInfo())
+				.getData().size());
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void findInstancePriceTypeNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		resource.findInstancePriceType(subscription, newUriInfo());
 	}
 
 }

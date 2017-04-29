@@ -1,9 +1,9 @@
 configuration.name;instancePrice.id!;name;description;cpu;ram
-quote1;1;server1;serverD1
-quote1;3;server2;serverD2
-quote1;6;server3;serverD3
-quote1;13;server4;serverD4
-quote1;27;server5;serverD5
-quote1;55;server6;serverD6
+quote1;1;server1;serverD1;0.5;2000
+quote1;3;server2;serverD2;0.25;1000
+quote1;6;server3;serverD3;1;2000
+quote1;13;server4;serverD4;1;2000
+quote1;27;server5;serverD5;1;4000
+quote1;55;server6;serverD6;4;8000
 quote1;74;server7;serverD7;3;24576
-quote3;73;serverX;serverDX
+quote3;73;serverX;serverDX;1;2000

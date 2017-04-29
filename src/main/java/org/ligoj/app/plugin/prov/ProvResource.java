@@ -27,6 +27,7 @@ import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -40,10 +41,10 @@ import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
-import org.ligoj.bootstrap.core.dao.PaginationDao;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
+import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -79,6 +80,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	private ProvInstancePriceRepository ipRepository;
 
 	@Autowired
+	private ProvInstancePriceTypeRepository iptRepository;
+
+	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
@@ -92,9 +96,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 	@Autowired
 	private PaginationJson paginationJson;
-
-	@Autowired
-	private PaginationDao pagination;
 
 	/**
 	 * Average hours in one month.
@@ -330,10 +331,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@GET
 	@Path("price-type/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvInstancePriceType> findInstancePriceType(@Context final UriInfo uriInfo) {
-		return paginationJson.applyPagination(uriInfo,
-				pagination.<ProvInstancePriceType>findAll(ProvInstancePriceType.class,
-						paginationJson.getUiPageRequest(uriInfo), ORM_COLUMNS),
+	public TableItem<ProvInstancePriceType> findInstancePriceType(final int subscription,
+			@Context final UriInfo uriInfo) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+		return paginationJson.applyPagination(uriInfo, iptRepository.findAll(subscription,
+				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
 				Function.identity());
 	}
 
@@ -365,8 +367,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.getCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
-		vo.setTotalCpu((Double) compute[2] + (Double) compute[3]);
-		vo.setTotalRam(((Long) compute[4]).intValue() + ((Long) compute[5]).intValue());
+		vo.setTotalCpu((Double) compute[2]);
+		vo.setTotalRam(((Long) compute[3]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		return vo;
@@ -407,8 +409,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 */
 	private double getComputeCost(final ProvQuoteInstance quoteInstance) {
 		// Fixed price + custom price
-		return quoteInstance.getInstancePrice().getCost() + getComputeCustomCost(quoteInstance.getCpu(),
-				quoteInstance.getRam(), quoteInstance.getInstancePrice());
+		return quoteInstance.getInstancePrice().getCost() + (quoteInstance.getInstancePrice().getInstance().isCustom()
+				? getComputeCustomCost(quoteInstance.getCpu(), quoteInstance.getRam(), quoteInstance.getInstancePrice())
+				: 0);
 	}
 
 	/**
@@ -440,7 +443,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 */
 	private double getComputeCustomCost(Number required, Double cost, final double multiplicator) {
 		// Compute the count of the requested resources
-		return required == null ? 0 : Math.ceil(required.doubleValue() / multiplicator) * cost;
+		return Math.ceil(required.doubleValue() / multiplicator) * cost;
 	}
 
 	/**

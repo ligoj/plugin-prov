@@ -18,7 +18,8 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * requirements.
 	 * 
 	 * @param node
-	 *            The requested provider node.
+	 *            The node linked to the subscription. Is a node identifier
+	 *            within a provider.
 	 * @param cpu
 	 *            The minimum CPU.
 	 * @param ram
@@ -33,8 +34,8 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 *            The page control to return few item.
 	 * @return The minimum instance or <code>null</code>.
 	 */
-	@Query("FROM #{#entityName} ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
-			+ " WHERE (:node = i.node.id OR node LIKE CONCAT(i.node,'%'))"
+	@Query("FROM #{#entityName} AS ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
+			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
 			+ " AND i.cpu>= :cpu AND i.ram>=:ram AND ip.os=:os AND (:constant = false OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) AND i.cpu > 0 ORDER BY ip.cost ASC")
 	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, boolean constant, VmOs os, Integer type,
@@ -57,7 +58,7 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * @return The minimum instance or <code>null</code>.
 	 */
 	@Query("FROM #{#entityName} ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
-			+ " WHERE (:node = i.node.id OR node LIKE CONCAT(i.node,'%'))"
+			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
 			+ " AND i.cpu = 0 AND ip.os=:os AND (:constant = false OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) ORDER BY ip.cost ASC")
 	List<ProvInstancePrice> findLowestCustomPrice(String node, boolean constant, VmOs os, Integer type,
