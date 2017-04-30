@@ -81,12 +81,71 @@ define(function () {
 			}
 		},
 		
+		/**
+		 * Return the query parameter name to use to filter the associated input value.
+		 */
 		toQueryName: function($item) {
 			var id = $item.attr('id');
-			if (id.indexOf('instance-') === 0) {
-				return id.substring('instance-'.length);
-			}
-			return id;
+			return id.indexOf('instance-') === 0 && id.substring('instance-'.length);
+		},
+
+		/**
+		 * Check there is at least one instance matching to the requirement
+		 */
+		checkInstance: function() {
+			var queries = [];
+			_('instance-create').attr('disabled', 'disabled').addClass('disabled');
+			
+			// Build the query
+			$('.instance-query').each(function() {
+				var $item = $(this);
+				var value = $item.val();
+				var queryParam = value && current.toQueryName($item);
+				if (queryParam) {
+					// Add as query
+					queries.push(queryParam + '=' + value);
+				}
+			});
+			
+			// Check the availability of this instance for these requirements
+			$.ajax({
+				dataType: 'json',
+				url: REST_PATH + 'service/prov/instance/' + current.model.subscription + '?' + queries.join('&'),
+				type: 'GET',
+				success: function (price) {
+					var instances = [];
+					price.instance && instances.push(price.instance);
+					price.customInstance && instances.push(price.customInstance);
+					if (instances.length) {
+						// There is at least one valid instance
+						_('instance-create').removeAttr('disabled', 'disabled').removeClass('disabled');
+						
+						// For now, renders only the lowest priced instance
+						var lowest;
+						if (instances.length == 1) {
+							lowest = instances[0];
+						} else if (instances[0].cost < instances[1].cost){
+							lowest = instances[0];
+						} else {
+							lowest = instances[1];
+						}
+						current.setInstance(lowest);
+						// TODO Add warning about custom instance
+					} else {
+						// Out of bound requirements
+						traceLog('Out of bounds for this requirement');
+						current.setInstance(null);
+					}
+				}
+			});
+		},
+		
+		/**
+		 * Set the current instance price.
+		 */
+		setInstance: function (lowest) {
+			current.model.lowest = lowest || {};
+			_('instance').val(current.model.lowest.instance ? lowest.instance.instance.name + ' (' + lowest.cost + ' $/m)' : '');
 		},
 
 		initializeForm: function () {
@@ -96,38 +155,8 @@ define(function () {
 				current.table && current.table.fnFilter($(this).val());
 			});
 			
-			$('.instance-query').on('change', function() {
-				var queries = [];
-				_('confirmCreate').attr('disabled', 'disabled');
-				$('.instance-query').each(function() {
-					var $item = $(this);
-					var value = $item.val();
-					if (value) {
-						// Add as query
-						queries.push(current.toQueryName($item) + '=' + value);
-					}
-				});
-				
-				// Check the availability of this instance for these requirements
-				$.ajax({
-					dataType: 'json',
-					url: REST_PATH + 'service/prov/instance/' + current.model.subscription + '?' + queries.join('&'),
-					type: 'GET',
-					success: function (price) {
-						var instances = [];
-						price.instance && instances.push(price.instance);
-						price.customInstance && instances.push(price.customInstance);
-						if (instances.length) {
-							// There is at least one valid instance
-							_('confirmCreate').removeAttr('disabled', 'disabled');
-						} else {
-							// Out of bound requirements
-							traceLog('out of bounds for this requirement');
-						}
-					}
-				});
-				
-			});
+			$('.instance-query').on('change',current.checkInstance);
+			$('.instance-query').on('keyup',current.checkInstance);
 
 			// Data tables tools
 			_('create').on('click', current.showPopup);
@@ -135,15 +164,19 @@ define(function () {
 
 			// Remove the selected user from the current group
 			_('prov-instances').on('click', '.delete', function () {
-				var qi = current.table.fnGetData($(this).closest('tr')[0]);
+				var $tr = $(this).closest('tr');
+				var qi = current.table.fnGetData($tr[0]);
 				$.ajax({
-					dataType: 'json',
-					url: REST_PATH + 'service/prov/' + qi.id,
+					url: REST_PATH + 'service/prov/instance/' + qi.id,
 					type: 'DELETE',
 					success: function () {
-						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:deleted-instance'])([qi.id, qi.name]));
+						// Update the model
 						current.deleteInstance(qi.id);
-						current.table && current.table.api().ajax.reload();
+
+						// Update the UI
+						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:deleted-instance'])([qi.id, qi.name]));
+						$('.tooltip').remove();
+						_('prov-instances').DataTable().row($tr).remove().draw(false);
 					}
 				});
 			});
@@ -158,16 +191,27 @@ define(function () {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
 				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
-				_('confirmCreate').removeAttr('disabled', 'disabled');
+				_('instance-create').removeAttr('disabled', 'disabled').removeClass('disabled');
 				current.fillPopup(uc);
 			});
 			
 			_('instance-os').select2({
-				escapeMarkup: function (m) { return m; },
-				data:[{id:'LINUX',text:'<i class="fa fa-linux"></i> LINUX'},{id:'WINDOWS',text:'<i class="fa fa-windows"></i> WINDOWS'},{id:'RHE',text:'<i class="icon-redhat"></i> Red Hat Enterprise'}]
+				formatSelection: function(o) {
+					return o.html;
+				},
+				formatResult: function(o) {
+					return o.html;
+				},
+				escapeMarkup: function (m, d) { 
+					return m;
+				},
+				data:[
+					{id:'LINUX', text:'LINUX',html: '<i class="fa fa-linux"></i> LINUX'},
+					{id:'WINDOWS',text:'WINDOWS', html : '<i class="fa fa-windows"></i> WINDOWS'},
+					{id:'RHE',text:'RHE', html:'<i class="icon-redhat"></i> Red Hat Enterprise'}
+				]
 			});
 			_('instance-price-type').select2({
-				minimumInputLength: 0,
 				initSelection: function (element, callback) {
 					callback(element.val() && {
 						id: element.val(),
@@ -207,7 +251,7 @@ define(function () {
 						var result = [];
 						$(data.data).each(function () {
 							result.push({
-								id: (idProperty && this[idProperty]) || this.id || this,
+								id: this.id,
 								data: this,
 								text: current.priceTypeToText(this)
 							});
@@ -220,37 +264,56 @@ define(function () {
 				}
 			});
 		},
-		
+
 		priceTypeToText: function(priceType) {
-			debugger;
-			return priceType.name;
+			return priceType.name || priceType.text || priceType;
 		},
 
-		formToObject: function () {
-			return {
+		save: function () {
+			// Selected instanced and OS are ignored since embedded in the instance price
+			var lowest = current.model.lowest;
+			var data = {
+				id: current.currentId,
 				name: (_('instance-name').val() || ''),
 				description: _('instance-description').val() || '',
 				cpu: _('instance-cpu').val() || null,
 				ram: _('instance-ram').val() || null,
-				instancePrice: _('instance-price').val()
+				subscription: current.model.subscription,
+				instancePrice: lowest.instance.id
 			};
-		},
-
-		save: function () {
-			var data = current.formToObject();
 			$.ajax({
-				type: current.currentId ? 'PUT' : 'POST',
+				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/instance',
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
-				success: function () {
+				success: function (id) {
 					if (current.currentId) {
 						notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
 					} else {
 						notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
 					}
-					current.table && current.table.api().ajax.reload();
+					var instance = current.model.configuration.instancesById[id] || { id: id };
+					instance.name = data.name;
+					instance.description = data.description;
+					instance.cpu = data.cpu;
+					instance.ram = data.ram;
+					instance.instancePrice = lowest.instance;
+
+					// Update the model and the total cost
+					if (data.id) {
+						// Update
+						current.model.cost += lowest.cost - instance.cost;
+						instance.cost = lowest.cost;
+						_('prov-instances').DataTable().draw(false);
+					} else {
+						// Create
+						current.model.configuration.instances.push(instance);
+						current.model.configuration.instancesById[id] = instance;
+						current.model.cost += lowest.cost;
+						instance.cost = lowest.cost;
+						_('prov-instances').DataTable().row.add(instance).draw(false);
+					}
 					_('popup-prov').modal('hide');
 				}
 			});
@@ -266,10 +329,10 @@ define(function () {
 			_('instance-name').val(uc.name || '');
 			_('instance-description').val(uc.description || '');
 			_('instance-cpu').val(uc.cpu || '1');
-			_('instance-ram').val(uc.ram || '2');
-			_('instance-os').select2('val', (uc.instancePrice && uc.instancePrice.os) || null);
-			_('instance').select2('val', (uc.instancePrice && uc.instancePrice.instance) || null);
-			_('instance-usage').select2('val', (uc.instancePrice && uc.instancePrice.type) || null);
+			_('instance-ram').val(uc.ram || '2048');
+			_('instance-os').select2('val', (uc.instancePrice && uc.instancePrice.os) || 'LINUX');
+			_('instance-price-type').select2('val', (uc.instancePrice && uc.instancePrice.type) || null);
+			current.setInstance(uc.id && {cost: uc.cost, instance: uc.instancePrice});
 		},
 		
 		/**

@@ -7,7 +7,6 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.model.Configurable;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,7 +23,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implements Configurable<ProvQuote, Integer> {
+public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implements Costed {
 
 	/**
 	 * SID
@@ -36,6 +35,12 @@ public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implement
 	 */
 	@NotNull
 	private Integer size;
+
+	/**
+	 * The computed cost on the create/update time.
+	 */
+	@NotNull
+	private Double cost;
 
 	/**
 	 * Related storage with the price.

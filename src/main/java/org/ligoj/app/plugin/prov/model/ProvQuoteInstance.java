@@ -11,7 +11,6 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.model.Configurable;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,7 +26,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implements Configurable<ProvQuote, Integer> {
+public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implements Costed {
 
 	/**
 	 * SID
@@ -46,6 +45,12 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	 */
 	@NotNull
 	private Double cpu;
+
+	/**
+	 * The computed cost on the create/update time.
+	 */
+	@NotNull
+	private Double cost;
 
 	/**
 	 * The requested RAM in MB.

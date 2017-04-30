@@ -30,7 +30,7 @@
                               <th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
                               <th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
                               <th data-toggle="tooltip" title="{{service:prov:ram-title}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
-                              <th data-toggle="tooltip" title="{{service:prov:usage-title}}"><i class="fa fa-clock-o"></i> {{service:prov:usage}}</th>
+                              <th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
                               <th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-database"></i> {{service:prov:storage}}</th>
                               <th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
                               <th></th>
@@ -64,54 +64,54 @@
 					<div class="form-group required">
 						<label class="control-label col-sm-3" for="instance-name">{{name}}</label>
 						<div class="col-sm-8">
-							<input type="text" id="instance-name" class="instance-query form-control" required maxlength="50" />
+							<input type="text" id="instance-name" class="form-control" required maxlength="50" />
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-3" for="instance-description">{{description}}</label>
 						<div class="col-sm-8">
-							<input type="text" id="instance-description" class="instance-query form-control" maxlength="250" />
+							<input type="text" id="instance-description" class="form-control" maxlength="250" />
 						</div>
 					</div>
 					<div class="form-group required">
 						<label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
 						<div class="col-sm-8">
 							<input type="text" id="instance-os" class="instance-query form-control" required maxlength="100" />
-							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{company-help}}"></i></span>
+							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
 						</div>
 					</div>
 					<div class="form-group required">
 						<label class="control-label col-sm-3" for="instance-cpu" data-toggle="tooltip" title="{{service:prov:cpu-title}}">{{service:prov:cpu}}</label>
 						<div class="col-sm-8">
 							<input type="text" id="instance-cpu" class="instance-query form-control" required maxlength="100" />
-							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{company-help}}"></i></span>
+							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:cpu-help}}"></i></span>
 						</div>
 					</div>
 					<div class="form-group required">
 						<label class="control-label col-sm-3" for="instance-ram" data-toggle="tooltip" title="{{service:prov:ram-title}}">{{service:prov:ram}}</label>
 						<div class="col-sm-8">
 							<input type="text" id="instance-ram" class="instance-query form-control" required maxlength="100" />
-							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{company-help}}"></i></span>
+							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
 						</div>
 					</div>
 					<div class="form-group required">
-						<label class="control-label col-sm-3" for="instance-usage" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
+						<label class="control-label col-sm-3" for="instance-price-type" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type}}</label>
 						<div class="col-sm-8">
-							<input type="text" id="instance-usage" class="instance-query form-control" required maxlength="100" />
-							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{company-help}}"></i></span>
+							<input type="text" id="instance-price-type" class="instance-query form-control" required maxlength="100" />
+							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-help}}"></i></span>
 						</div>
 					</div>
-					<div class="form-group required">
-						<label class="control-label col-sm-3" for="instance-id" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
+					<div class="form-group">
+						<label class="control-label col-sm-3" for="instance" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
 						<div class="col-sm-8">
-							<input type="text" id="instance-id" class="instance-query form-control" required maxlength="100" />
-							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{company-help}}"></i></span>
+							<input type="text" id="instance" class="form-control" required readonly />
+							<span class="input-help"><i class="mode-edition fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="modal-footer">
-				<input type="submit" class="btn btn-primary btn-raised" id="confirmCreate" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+				<input type="submit" class="btn btn-primary btn-raised" id="instance-create" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 				<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">
 					{{cancel}}
 				</button>
