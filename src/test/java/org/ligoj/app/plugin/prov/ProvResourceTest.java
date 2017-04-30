@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -306,7 +307,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		resource.updateStorage(vo);
-		
+
 		// Check the exact new cost
 		Assert.assertEquals(3844.062, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		Assert.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
@@ -332,7 +333,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setDescription("server1-root-bisD");
-		
+
 		// Change the storage type -> storage2 has a minimal to 512
 		vo.setStorage(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(512); // Limit for this storage is 512
@@ -490,7 +491,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	private void refreshCost() {
 		// Check the cost before updated cost (dummy value)
 		Assert.assertEquals(0.128, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
-		
+
 		// Check the cost fully updated and exact actual cost
 		Assert.assertEquals(3740.742, resource.refreshCost(subscription), DELTA);
 		Assert.assertEquals(3740.742, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
@@ -513,22 +514,84 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check the exact new cost
 		Assert.assertEquals(3802.962, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
-		Assert.assertEquals("server1-bis", qiRepository.findOneExpected(vo.getId()).getName());
-		Assert.assertEquals(1024, qiRepository.findOneExpected(vo.getId()).getRam().intValue());
-		Assert.assertEquals(0.5, qiRepository.findOneExpected(vo.getId()).getCpu(), DELTA);
+		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
+		Assert.assertEquals("server1-bis", instance.getName());
+		Assert.assertEquals(1024, instance.getRam().intValue());
+		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assert.assertEquals(208.62, instance.getCost(), DELTA);
+	}
+
+	@Test
+	public void createInstance() {
+		refreshCost();
+
+		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.285).getId());
+		vo.setName("serverZ");
+		vo.setDescription("serverZD");
+		vo.setRam(1024);
+		vo.setCpu(0.5);
+		final int id = resource.createInstance(vo);
+
+		// Check the exact new cost
+		Assert.assertEquals(3949.362, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		final ProvQuoteInstance instance = qiRepository.findOneExpected(id);
+		Assert.assertEquals("serverZ", instance.getName());
+		Assert.assertEquals("serverZD", instance.getDescription());
+		Assert.assertEquals(1024, instance.getRam().intValue());
+		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assert.assertEquals(208.62, instance.getCost(), DELTA);
 	}
 
 	@Test
 	public void checkSubscriptionStatus() throws Exception {
-		final QuoteLigthVo quote = (QuoteLigthVo) new ProvServicePlugin() {
+		final AbstractProvResource res = new AbstractProvResource() {
 
 			@Override
 			public String getKey() {
 				return "service:prov:sample";
 			}
-		}.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
+		};
+		res.provResource = resource;
+		final QuoteLigthVo quote = (QuoteLigthVo) res
+				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
 		Assert.assertNotNull(quote);
 		Assert.assertEquals(0.128, quote.getCost(), 0.0001);
+	}
+
+	@Test
+	public void getInstalledEntities() {
+		Assert.assertTrue(new AbstractProvResource() {
+
+			@Override
+			public String getKey() {
+				return "service:prov:sample";
+			}
+		}.getInstalledEntities().contains(ProvStorage.class));
+	}
+
+	@Test(expected = NotImplementedException.class)
+	public void linkAbstract() throws Exception {
+		new AbstractProvResource() {
+
+			@Override
+			public String getKey() {
+				return "service:prov:sample";
+			}
+		}.link(subscription);
+	}
+
+	@Test
+	public void createAbstract() throws Exception {
+		// Nothing to check
+		new AbstractProvResource() {
+
+			@Override
+			public String getKey() {
+				return "service:prov:sample";
+			}
+		}.create(subscription);
 	}
 
 	@Test
@@ -569,5 +632,4 @@ public class ProvResourceTest extends AbstractAppTest {
 		initSpringSecurityContext("any");
 		resource.findInstancePriceType(subscription, newUriInfo());
 	}
-
 }
