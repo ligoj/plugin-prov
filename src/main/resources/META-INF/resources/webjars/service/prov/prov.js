@@ -34,7 +34,7 @@ define(function () {
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
-			var result = current.$super('renderServicelink')('server', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
+			var result = current.$super('renderServicelink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
 
 			// Help
 			result += current.$super('renderServiceHelpLink')(subscription.parameters, 'service:prov:help');
@@ -45,9 +45,51 @@ define(function () {
 		 * Display the details of the quote
 		 */
 		renderDetailsFeatures: function (subscription) {
-			if (subscription.data.quote) {
-				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + '" class="label label-default">' + subscription.data.quote.cost + '</span>';
+			if (subscription.data.quote && subscription.data.quote.cost) {
+				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + '" class="label label-default">' + current.formatCost(subscription.data.quote.cost) + '$</span>';
 			}
+		},
+
+		/**
+		 * Render provisioning details : cpu, ram, nbVm, storages.
+		 */
+		renderDetailsKey: function (subscription) {
+			var quote = subscription.data.quote;
+			return current.$super('generateCarousel')(subscription, [
+				[
+					'name', quote.name
+				],
+				[
+					'service:prov:resources',
+					  	current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatMemory(quote.totalRam) + ', '
+					  + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU, '
+					  + current.$super('icon')('database', 'service:prov:total-storage') + (current.formatStorage(quote.totalStorage) || '0')
+				],
+				[
+					'service:prov:nb-instances', current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances
+				]
+			], 1);
+		},
+		
+		/**
+		 * Format the cost.
+		 */
+		formatCost: function(cost) {
+			return formatManager.formatCost(cost, 3, '$');
+		},
+		
+		/**
+		 * Format the memory size.
+		 */
+		formatMemory: function(sizeMB) {
+			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
+		},
+		
+		/**
+		 * Format the storage size.
+		 */
+		formatStorage: function(sizeGB) {
+			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
 		
 		/**
@@ -375,14 +417,17 @@ define(function () {
 				}, {
 					data: 'cpu'
 				}, {
-					data: 'ram'
+					data: 'ram',
+					render: current.formatMemory
 				}, {
 					// Usage type for an instance
 					data: 'instancePrice.type.name'
 				}, {
-					data: 'storage'
+					data: 'storage',
+					render: current.formatStorage
 				}, {
-					data: 'cost'
+					data: 'cost',
+					render: current.formatCost
 				}, {
 					data: null,
 					width: '16px',

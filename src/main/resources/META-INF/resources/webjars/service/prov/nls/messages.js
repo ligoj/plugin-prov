@@ -32,7 +32,13 @@ define({
 		'service:prov:cost' : 'Cost',
 		'service:prov:cost-title' : 'Monthly billed',
 		'service:prov:deleted-instance' : 'Instance "{{[0]}}" ({{[0]}}) is deleted',
-		'service:prov:instance-choice' : 'The best instance of the provider is determinated from the provided requirements'
+		'service:prov:instance-choice' : 'The best instance of the provider is determinated from the provided requirements',
+		'service:prov:resources' : 'Resources',
+		'service:prov:total-ram' : 'Total memory',
+		'service:prov:total-cpu' : 'Total CPU',
+		'service:prov:total-storage' : 'Total storage',
+		'service:prov:nb-instances': 'Number of instances',
+		'service:prov:cost-month' : 'Month'
 	},
 	'fr' : true
 });

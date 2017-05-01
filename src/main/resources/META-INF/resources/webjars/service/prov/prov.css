@@ -1,0 +1,9 @@
+.masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
+	width: 80px;
+}
+.masonry-container .node.service-prov.mode-th-large table.subscriptions th.features {
+	width: 58px;
+}
+.masonry-container .node.service-prov table.subscriptions th.features {
+	width: 50px;
+}
