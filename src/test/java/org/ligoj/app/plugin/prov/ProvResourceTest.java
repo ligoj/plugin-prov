@@ -30,7 +30,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorage;
 import org.ligoj.app.plugin.prov.model.VmOs;
-import org.ligoj.app.plugin.prov.model.VmStorageType;
+import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -164,7 +164,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("storage1", storage.getName());
 		Assert.assertEquals("storageD1", storage.getDescription());
 		Assert.assertEquals(0, storage.getTransactionalCost(), DELTA);
-		Assert.assertEquals(VmStorageType.HOT, storage.getType());
+		Assert.assertEquals(ProvStorageType.HOT, storage.getType());
 
 		// Not attached storage
 		Assert.assertNull(storages.get(3).getQuoteInstance());
@@ -291,7 +291,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
 		new ProvQuoteInstance().setStorages(null);
-		VmStorageType.valueOf(VmStorageType.HOT.name());
+		ProvStorageType.valueOf(ProvStorageType.HOT.name());
 		VmOs.valueOf(VmOs.LINUX.name());
 	}
 

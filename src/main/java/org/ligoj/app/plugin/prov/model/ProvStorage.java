@@ -40,7 +40,7 @@ public class ProvStorage extends AbstractDescribedEntity<Integer> implements Nod
 	 * The monthly cost.
 	 */
 	@NotNull
-	private VmStorageType type;
+	private ProvStorageType type;
 
 	/**
 	 * The minimal disk in "Go".

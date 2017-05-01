@@ -1,3 +1,4 @@
+
 package org.ligoj.app.plugin.prov;
 
 import java.math.BigDecimal;
@@ -394,14 +395,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Create the instance inside a quote.
+	 * Return the price type available for a subscription.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the
 	 *            instances from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
-	 * @return The valid price types for the given subscription.
+	 * @return The available price types for the given subscription.
 	 */
 	@GET
 	@Path("price-type/{subscription:\\d+}")
