@@ -93,6 +93,24 @@ define(function () {
 		},
 		
 		/**
+		 * OS key to markup/label mapping.
+		 */
+		os: {
+			'linux' : ['Linux', 'fa fa-linux'],
+			'windows' : ['Windows', 'fa fa-windows'],
+			'suse' : ['Windows', 'icon-suse'],
+			'rhe' : ['Red Hat Enterprise', 'icon-redhat']
+		},
+
+		/**
+		 * Return the HTML markup from the OS key name.
+		 */
+		formatOs: function(os, withText) {
+			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
+			return '<i class="' + cfg[1] + '"></i>' + (withText ? ' ' + cfg[0] : '');
+		},
+		
+		/**
 		 * Associate the storages to the instances
 		 */ 
 		optimizeModel: function () {
@@ -238,19 +256,15 @@ define(function () {
 			});
 			
 			_('instance-os').select2({
-				formatSelection: function(o) {
-					return o.html;
-				},
-				formatResult: function(o) {
-					return o.html;
-				},
+				formatSelection: current.formatOs,
+				formatResult: current.formatOs,
 				escapeMarkup: function (m, d) { 
 					return m;
 				},
 				data:[
-					{id:'LINUX', text:'LINUX',html: '<i class="fa fa-linux"></i> LINUX'},
-					{id:'WINDOWS',text:'WINDOWS', html : '<i class="fa fa-windows"></i> WINDOWS'},
-					{id:'RHE',text:'RHE', html:'<i class="icon-redhat"></i> Red Hat Enterprise'}
+					{id:'LINUX', text:'LINUX'},
+					{id:'WINDOWS',text:'WINDOWS'},
+					{id:'RHE',text:'RHE'}
 				]
 			});
 			_('instance-price-type').select2({
@@ -413,7 +427,10 @@ define(function () {
 					data: 'name',
 					className: 'truncate'
 				}, {
-					data: 'instancePrice.os'
+					data: 'instancePrice.os',
+					render: function (os) {
+						return current.formatOs(os, false);
+					}
 				}, {
 					data: 'cpu'
 				}, {
