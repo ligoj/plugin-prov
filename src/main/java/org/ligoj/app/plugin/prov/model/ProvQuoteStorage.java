@@ -43,11 +43,11 @@ public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implement
 	private Double cost;
 
 	/**
-	 * Related storage with the price.
+	 * Related storage type with the price.
 	 */
 	@NotNull
 	@ManyToOne
-	private ProvStorage storage;
+	private ProvStorageType type;
 
 	/**
 	 * The parent quote.

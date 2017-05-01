@@ -25,6 +25,6 @@ public interface ProvInstancePriceTypeRepository extends RestRepository<ProvInst
 	 */
 	@Query("SELECT ipt FROM ProvInstancePriceType ipt, Subscription s INNER JOIN s.node AS sn INNER JOIN ipt.node AS iptn"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(iptn.id, ':%')"
-			+ " AND :criteria IS NULL OR UPPER(ipt.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%')")
+			+ " AND (:criteria IS NULL OR UPPER(ipt.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
 	Page<ProvInstancePriceType> findAll(int subscription, String criteria, Pageable pageRequest);
 }

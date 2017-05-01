@@ -15,7 +15,7 @@ public class QuoteStorageEditionVo extends AbstractQuoteStorageVo {
 	/**
 	 * Related storage with the price.
 	 */
-	private int storage;
+	private int type;
 	
 	/**
 	 * Related subscription identifier.

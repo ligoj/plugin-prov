@@ -1,23 +1,74 @@
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
+
+import org.ligoj.app.api.NodeScoped;
+import org.ligoj.app.model.Node;
+import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * VM Storage class. Not represented as a table to be able to compare the prices.
+ * Storage type of a provider.
  */
-public enum ProvStorageType {
+@Getter
+@Setter
+@Entity
+@Table(name = "LIGOJ_PROV_STORAGE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+public class ProvStorageType extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
-	 * Hot storage : optimized HDD or SSD
+	 * SID
 	 */
-	HOT,
+	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
-	 * Cold storage, low HDD or low frequency access
+	 * The monthly cost of 1Go (Giga Bytes).
 	 */
-	COLD,
+	@NotNull
+	private Double cost;
 
 	/**
-	 * Not instance storage type.
+	 * The frequency access
 	 */
-	OBJECT
+	@NotNull
+	private ProvStorageFrequency frequency;
+	
+	/**
+	 * Optimized best usage of this storage
+	 */
+	private ProvStorageOptimized optimized;
+
+	/**
+	 * The minimal disk in "Go".
+	 */
+	@NotNull
+	private Integer minimal;
+
+	/**
+	 * The maximum supported size in "Go". May be <code>null</code>.
+	 */
+	private Integer maximal;
+
+	/**
+	 * The cost per transaction. May be 0.
+	 */
+	private double transactionalCost;
+
+	/**
+	 * The enabled provider.
+	 */
+	@NotNull
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	private Node node;
 
 }

@@ -10,15 +10,10 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ComputedInstancePrice {
+public class ComputedInstancePrice extends AbstractComputedPrice {
 
 	/**
 	 * The lowest instance based price. May be <code>null</code>.
 	 */
 	private ProvInstancePrice instance;
-
-	/**
-	 * The computed monthly cost of the related instance.
-	 */
-	private double cost;
 }

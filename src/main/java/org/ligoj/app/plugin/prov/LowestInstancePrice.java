@@ -8,7 +8,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class LowestPrice {
+public class LowestInstancePrice {
 
 	/**
 	 * The lowest instance based price. May be <code>null</code>.

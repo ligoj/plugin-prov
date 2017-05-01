@@ -4,7 +4,12 @@ define(function () {
 		/**
 		 * Instance table
 		 */
-		table: null,
+		instanceTable: null,
+
+		/**
+		 * Storage table
+		 */
+		storageTable: null,
 
 		/**
 		 * Current configuration.
@@ -101,6 +106,23 @@ define(function () {
 			'suse' : ['Windows', 'icon-suse'],
 			'rhe' : ['Red Hat Enterprise', 'icon-redhat']
 		},
+		
+		/**
+		 * Storage type key to markup/label mapping.
+		 */
+		storageFrequency: {
+			'cold' : 'fa fa-snowflake-o text-info',
+			'hot' : 'fa fa-thermometer-full text-danger',
+			'archive' : 'fa fa-archive'
+		},
+		
+		/**
+		 * Storage optimized key to markup/label mapping.
+		 */
+		storageOptimized: {
+			'throughput' : 'fa fa-database',
+			'iops' : 'fa fa-flash'
+		},
 
 		/**
 		 * Return the HTML markup from the OS key name.
@@ -110,6 +132,24 @@ define(function () {
 			return '<i class="' + cfg[1] + '"></i>' + (withText ? ' ' + cfg[0] : '');
 		},
 		
+		/**
+		 * Return the HTML markup from the storage frequency.
+		 */
+		formatStorageFrequency: function(frequency, withText) {
+			var id = (frequency.id || frequency || 'cold').toLowerCase();
+			var clazz = current.storageFrequency[id];
+			return '<i class="' + clazz + '"></i>' + (withText ? ' ' + current.$messages['service:prov:storage-frequency-' + id] : '');
+		},
+
+		/**
+		 * Return the HTML markup from the storage optimized.
+		 */
+		formatStorageOptimized: function(optimized, withText) {
+			var id = (optimized.id || optimized || 'throughput').toLowerCase();
+			var clazz = current.storageOptimized[id];
+			return '<i class="' + clazz + '"></i>' + (withText ? ' ' + current.$messages['service:prov:storage-optimized-' + id] : '');
+		},
+
 		/**
 		 * Associate the storages to the instances
 		 */ 
@@ -144,23 +184,26 @@ define(function () {
 		/**
 		 * Return the query parameter name to use to filter the associated input value.
 		 */
-		toQueryName: function($item) {
+		toQueryName: function(type, $item) {
 			var id = $item.attr('id');
-			return id.indexOf('instance-') === 0 && id.substring('instance-'.length);
+			return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
 		},
 
 		/**
 		 * Check there is at least one instance matching to the requirement
 		 */
-		checkInstance: function() {
+		checkResource: function() {
 			var queries = [];
-			_('instance-create').attr('disabled', 'disabled').addClass('disabled');
+			var type = $(this).closest('[data-prov-type]').data('prov-type');
+			
+			// Disable the submit while checking the resource
+			var $create = _(type + '-create').attr('disabled', 'disabled').addClass('disabled');
 			
 			// Build the query
-			$('.instance-query').each(function() {
+			$('.resource-query').each(function() {
 				var $item = $(this);
 				var value = $item.val();
-				var queryParam = value && current.toQueryName($item);
+				var queryParam = value && current.toQueryName(type, $item);
 				if (queryParam) {
 					// Add as query
 					queries.push(queryParam + '=' + value);
@@ -170,91 +213,117 @@ define(function () {
 			// Check the availability of this instance for these requirements
 			$.ajax({
 				dataType: 'json',
-				url: REST_PATH + 'service/prov/instance/' + current.model.subscription + '?' + queries.join('&'),
+				url: REST_PATH + 'service/prov/' + type +'-lookup/' + current.model.subscription + '?' + queries.join('&'),
 				type: 'GET',
 				success: function (price) {
-					var instances = [];
-					price.instance && instances.push(price.instance);
-					price.customInstance && instances.push(price.customInstance);
-					if (instances.length) {
-						// There is at least one valid instance
-						_('instance-create').removeAttr('disabled', 'disabled').removeClass('disabled');
-						
-						// For now, renders only the lowest priced instance
-						var lowest;
-						if (instances.length == 1) {
-							lowest = instances[0];
-						} else if (instances[0].cost < instances[1].cost){
-							lowest = instances[0];
-						} else {
-							lowest = instances[1];
-						}
-						current.setInstance(lowest);
-						// TODO Add warning about custom instance
-					} else {
-						// Out of bound requirements
-						traceLog('Out of bounds for this requirement');
-						current.setInstance(null);
+					var callbackUi = current[type + 'SetUiPrice'];
+					var valid = current[type + 'ValidatePrice'](price);
+					if (valid) {
+						$create.removeAttr('disabled', 'disabled').removeClass('disabled');
 					}
+					callbackUi(valid);
 				}
 			});
+		},
+		
+		instanceValidatePrice : function (price) {
+			var instances = [];
+			price.instance && instances.push(price.instance);
+			price.customInstance && instances.push(price.customInstance);
+			if (instances.length) {
+				// There is at least one valid instance
+				// For now, renders only the lowest priced instance
+				var lowest;
+				if (instances.length == 1) {
+					lowest = instances[0];
+				} else if (instances[0].cost < instances[1].cost){
+					lowest = instances[0];
+				} else {
+					lowest = instances[1];
+				}
+				// TODO Add warning about custom instance
+				return lowest;
+			}
+			// Out of bound requirements
+			traceLog('Out of bounds for this requirement');
+		},
+
+		storageValidatePrice : function (price) {
+			return price;
+		},
+		
+		/**
+		 * Set the current storage price.
+		 */
+		storageSetUiPrice: function (price) {
+			current.model.storagePrice = price;
+			_('storage').val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
 		},
 		
 		/**
 		 * Set the current instance price.
 		 */
-		setInstance: function (lowest) {
-			current.model.lowest = lowest || {};
-			_('instance').val(current.model.lowest.instance ? lowest.instance.instance.name + ' (' + lowest.cost + ' $/m)' : '');
+		instanceSetUiPrice: function (price) {
+			current.model.instancePrice = price || {};
+			_('instance').val(current.model.instancePrice.instance ? price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
 		},
-
-		initializeForm: function () {
-
-			// Global datatables filter
-			_('subscribe-configuration-prov-search').on('keyup', function () {
-				current.table && current.table.fnFilter($(this).val());
-			});
-			
-			$('.instance-query').on('change',current.checkInstance);
-			$('.instance-query').on('keyup',current.checkInstance);
-
-			// Data tables tools
-			_('create').on('click', current.showPopup);
-			_('upload-new').on('click', current.showPopupImport);
-
-			// Remove the selected user from the current group
-			_('prov-instances').on('click', '.delete', function () {
+		
+		/**
+		 * Initialize data tables and popup event : delete and details
+		 */
+		initializeDataTableEvents : function (type) {
+			// Delete the selected instance from the quote
+			var $table = _('prov-' + type + 's');
+			$table.on('click', '.delete', function () {
 				var $tr = $(this).closest('tr');
-				var qi = current.table.fnGetData($tr[0]);
+				var qi = current.instanceTable.fnGetData($tr[0]);
 				$.ajax({
-					url: REST_PATH + 'service/prov/instance/' + qi.id,
+					url: REST_PATH + 'service/prov/' + type +'/' + qi.id,
 					type: 'DELETE',
 					success: function () {
 						// Update the model
 						current.deleteInstance(qi.id);
-
+	
 						// Update the UI
-						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:deleted-instance'])([qi.id, qi.name]));
+						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
 						$('.tooltip').remove();
-						_('prov-instances').DataTable().row($tr).remove().draw(false);
+						$table.DataTable().row($tr).remove().draw(false);
 					}
 				});
 			});
 
-			// User edition pop-up
-			_('popup-prov').on('shown.bs.modal', function () {
-				_('instance-name').trigger('focus');
+			// Instance edition pop-up
+			var $popup = _('popup-prov-' + type);
+			$popup.on('shown.bs.modal', function () {
+				_(type + '-name').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
-				current.save();
+				current.save(type);
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
-				_('instance-create').removeAttr('disabled', 'disabled').removeClass('disabled');
-				current.fillPopup(uc);
+				var model = ($tr.length && current.instanceTable.fnGetData($tr[0])) || {};
+				_(type + '-create').removeAttr('disabled', 'disabled').removeClass('disabled');
+				current.toUi(type, model);
+			});
+		},
+
+		initializeForm: function () {
+			// Global datatables filter
+			$('.subscribe-configuration-prov-search').on('keyup', function () {
+				var type = $(this).closest('[data-prov-type]').data('prov-type');
+				var table = current[type + 'Table'];
+				table && table.fnFilter($(this).val());
 			});
 			
+			$('.resource-query').on('change',current.checkResource);
+			$('.resource-query').on('keyup',current.checkResource);
+			_('instance-new').on('click', current.showInstancePopup);
+			_('storage-new').on('click', current.showStoragePopup);
+			_('upload-new').on('click', current.showInstancePopupImport);
+			current.initializeDataTableEvents('instance');
+			current.initializeDataTableEvents('storage');
+
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
@@ -267,6 +336,34 @@ define(function () {
 					{id:'RHE',text:'RHE'}
 				]
 			});
+			
+			_('storage-optimized').select2({
+				placeholder: current.$messages['service:prov:storage-optimized-help'],
+				allowClear: true,
+				formatSelection: current.formatStorageOptimized,
+				formatResult: current.formatStorageOptimized,
+				escapeMarkup: function (m, d) { 
+					return m;
+				},
+				data:[
+					{id:'THROUGHPUT', text:'THROUGHPUT'},
+					{id:'IOPS',text:'IOPS'}
+				]
+			});
+			
+			_('storage-frequency').select2({
+				formatSelection: current.formatStorageFrequency,
+				formatResult: current.formatStorageFrequency,
+				escapeMarkup: function (m, d) { 
+					return m;
+				},
+				data:[
+					{id:'COLD', text:'COLD'},
+					{id:'HOT',text:'HOT'},
+					{id:'ARCHIVE',text:'ARCHIVE'}
+				]
+			});
+			
 			_('instance-price-type').select2({
 				initSelection: function (element, callback) {
 					callback(element.val() && {
@@ -284,7 +381,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-							return REST_PATH + 'service/prov/price-type/' + current.model.subscription;
+							return REST_PATH + 'service/prov/instance-price-type/' + current.model.subscription;
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -324,22 +421,83 @@ define(function () {
 		priceTypeToText: function(priceType) {
 			return priceType.name || priceType.text || priceType;
 		},
+		
+		storageCommitToModel: function(data, model, costContext) {
+			model.size = data.size;
+			model.type = costContext.type;
+		},
 
-		save: function () {
-			// Selected instanced and OS are ignored since embedded in the instance price
-			var lowest = current.model.lowest;
+		instanceCommitToModel: function(data, model, costContext) {
+			model.cpu = data.cpu;
+			model.ram = data.ram;
+			model.instancePrice = costContext.instance;
+		},
+
+		storageUiToData: function(data) {
+			data.size = _('storage-size').val() || null;
+			data.type = current.model.storagePrice.type.id;
+			return current.model.storagePrice;
+		},
+
+		instanceUiToData: function(data) {
+			data.cpu = _('instance-cpu').val() || null;
+			data.ram = _('instance-ram').val() || null;
+			data.instancePrice = current.model.instancePrice.instance.id;
+			return current.model.instancePrice;
+		},
+
+		/**
+		 * Fill the popup from the model
+		 * @param {string} type, The entity type (instance/storage)
+		 * @param {Object} model, the entity corresponding to the quote.
+		 */
+		toUi: function (type, model) {
+			validationManager.reset(_('popup-prov-' + type));
+			current.currentId = model.id;
+			_(type + '-name').val(model.name || '');
+			_(type + '-description').val(model.description || '');
+			current[type + 'ToUi'](model);
+		},
+
+		/**
+		 * Fill the instance popup with given entity.
+		 * @param {Object} model, the entity corresponding to the quote.
+		 */
+		instanceToUi: function (model) {
+			_('instance-cpu').val(model.cpu || '1');
+			_('instance-ram').val(model.ram || '2048');
+			_('instance-os').select2('val', (model.instancePrice && model.instancePrice.os) || 'LINUX');
+			_('instance-price-type').select2('val', (model.instancePrice && model.instancePrice.type) || null);
+			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
+		},
+
+		/**
+		 * Fill the storage popup with given entity.
+		 * @param {Object} model, the entity corresponding to the quote.
+		 */
+		storageToUi: function (model) {
+			_('storage-size').val(model.size || '10');
+			_('storage-frequency').select2('val', (model.storagePrice && model.storagePrice.frequency) || 'COLD');
+			_('storage-optimized').select2('val', (model.storagePrice && model.storagePrice.optimized) || null);
+			current.storageSetUiPrice(model.id && model.storagePrice);
+		},
+
+		save: function (type) {
+			var $popup = _('popup-prov-' + type);
+			
+			// Build the playload for business service
 			var data = {
 				id: current.currentId,
-				name: (_('instance-name').val() || ''),
-				description: _('instance-description').val() || '',
-				cpu: _('instance-cpu').val() || null,
-				ram: _('instance-ram').val() || null,
+				name: (_(type + '-name').val() || ''),
+				description: _(type + '-description').val() || '',
 				subscription: current.model.subscription,
-				instancePrice: lowest.instance.id
 			};
+			// Backup the stored context
+			var costContext = current[type + 'UiToData'](data);
+			
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
-				url: REST_PATH + 'service/prov/instance',
+				url: REST_PATH + 'service/prov/' + type,
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
@@ -349,46 +507,31 @@ define(function () {
 					} else {
 						notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
 					}
-					var instance = current.model.configuration.instancesById[id] || { id: id };
-					instance.name = data.name;
-					instance.description = data.description;
-					instance.cpu = data.cpu;
-					instance.ram = data.ram;
-					instance.instancePrice = lowest.instance;
+					
+					// Update the model
+					var model = current.model.configuration[type + 'sById'][id] || { id: id };
+					model.name = data.name;
+					model.description = data.description;
+					current[type + 'CommitToModel'](data, model, costContext);
 
 					// Update the model and the total cost
+					var $table = _('prov-' + type + 's');
 					if (data.id) {
 						// Update
-						current.model.cost += lowest.cost - instance.cost;
-						instance.cost = lowest.cost;
-						_('prov-instances').DataTable().draw(false);
+						current.model.cost += costContext.cost - model.cost;
+						model.cost = costContext.cost;
+						$table.DataTable().draw(false);
 					} else {
 						// Create
-						current.model.configuration.instances.push(instance);
-						current.model.configuration.instancesById[id] = instance;
-						current.model.cost += lowest.cost;
-						instance.cost = lowest.cost;
-						_('prov-instances').DataTable().row.add(instance).draw(false);
+						current.model.configuration[type + 's'].push(instance);
+						current.model.configuration[type + 'sById'][id] = instance;
+						current.model.cost += costContext.cost;
+						model.cost = costContext.cost;
+						$table.DataTable().row.add(model).draw(false);
 					}
-					_('popup-prov').modal('hide');
+					$popup.modal('hide');
 				}
 			});
-		},
-
-		/**
-		 * Fill the popup with given entity.
-		 * @param {Object} uc, the entity corresponding to the quote.
-		 */
-		fillPopup: function (uc) {
-			validationManager.reset(_('popup-prov'));
-			current.currentId = uc.id;
-			_('instance-name').val(uc.name || '');
-			_('instance-description').val(uc.description || '');
-			_('instance-cpu').val(uc.cpu || '1');
-			_('instance-ram').val(uc.ram || '2048');
-			_('instance-os').select2('val', (uc.instancePrice && uc.instancePrice.os) || 'LINUX');
-			_('instance-price-type').select2('val', (uc.instancePrice && uc.instancePrice.type) || null);
-			current.setInstance(uc.id && {cost: uc.cost, instance: uc.instancePrice});
 		},
 		
 		/**
@@ -407,10 +550,13 @@ define(function () {
 			}
 		},
 
-		showPopup: function ($context) {
-			_('popup-prov').modal('show', $context);
+		showInstancePopup: function ($context) {
+			_('popup-prov-instance').modal('show', $context);
 		},
-		showPopupImport: function ($context) {
+		showStoragePopup: function ($context) {
+			_('popup-prov-storage').modal('show', $context);
+		},
+		showInstancePopupImport: function ($context) {
 			_('importPopup-prov').modal('show', $context);
 		},
 
@@ -418,7 +564,7 @@ define(function () {
 		 * Initialize the instance datatables from the whole quote
 		 */
 		initializeDataTable: function () {
-			current.table = _('prov-instances').dataTable({
+			current.instanceTable = _('prov-instances').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				data : current.model.configuration.instances,
 				destroy: true,
@@ -442,6 +588,35 @@ define(function () {
 				}, {
 					data: 'storage',
 					render: current.formatStorage
+				}, {
+					data: 'cost',
+					render: current.formatCost
+				}, {
+					data: null,
+					width: '16px',
+					orderable: false,
+					render: function () {
+						return '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+					}
+				}]
+			});
+			current.storageTable = _('prov-storages').dataTable({
+				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				data : current.model.configuration.storages,
+				destroy: true,
+				searching: true,
+				columns: [{
+					data: 'name',
+					className: 'truncate'
+				}, {
+					data: 'size',
+					render: current.formatStorage
+				}, {
+					data: 'type.frequency'
+				}, {
+					data: 'type.optimized'
+				}, {
+					data: 'type.name'
 				}, {
 					data: 'cost',
 					render: current.formatCost

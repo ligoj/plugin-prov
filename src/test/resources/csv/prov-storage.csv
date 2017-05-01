@@ -1,4 +1,0 @@
-node.id;name;type;cost;description;minimal;maximal;transactionalCost
-service:prov:test;storage1;HOT;0.21;storageD1;0
-service:prov:test;storage2;COLD;0.15;storageD2;512;512;0.000000072
-service:prov:x;storageX;HOT;0.21;storageD1;0

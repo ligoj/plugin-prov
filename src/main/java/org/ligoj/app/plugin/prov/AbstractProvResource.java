@@ -10,7 +10,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
-import org.ligoj.app.plugin.prov.model.ProvStorage;
+import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,7 +37,7 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource {
 	@Override
 	public List<Class<?>> getInstalledEntities() {
 		return Arrays.asList(Node.class, ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class,
-				ProvStorage.class);
+				ProvStorageType.class);
 	}
 
 	@Override

@@ -30,16 +30,21 @@ import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.Costed;
+import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
+import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -48,6 +53,7 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
+import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -90,10 +96,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
+	private ProvInstanceRepository instanceRepository;
+
+	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
-	private ProvStorageRepository storageRepository;
+	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
 	protected IamProvider[] iamProvider;
@@ -137,7 +146,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setId(entity.getId());
 		vo.setQuoteInstance(Optional.ofNullable(entity.getQuoteInstance()).map(Persistable::getId).orElse(null));
 		vo.setSize(entity.getSize());
-		vo.setStorage(entity.getStorage());
+		vo.setStorage(entity.getType());
 		return vo;
 	}
 
@@ -265,7 +274,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 *            The quote storage.
 	 * @return The created storage identifier.
 	 */
-	@PUT
+	@POST
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public int createStorage(final QuoteStorageEditionVo vo) {
@@ -279,7 +288,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 *            The quote storage.
 	 * @return The created storage identifier.
 	 */
-	@POST
+	@PUT
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void updateStorage(final QuoteStorageEditionVo vo) {
@@ -299,7 +308,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		// Check the associations
 		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
-		entity.setStorage(checkVisibility(storageRepository.findOneExpected(vo.getStorage()), providerId));
+		entity.setType(checkVisibility(stRepository.findOneExpected(vo.getType()), providerId));
 		entity.setQuoteInstance(
 				Optional.ofNullable(vo.getQuoteInstance()).map(i -> findConfigured(qiRepository, i)).map(i -> {
 					checkVisibility(i.getInstancePrice().getInstance(), providerId);
@@ -307,9 +316,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 				}).orElse(null));
 
 		// Check the storage limits
-		if (entity.getStorage().getMaximal() != null && vo.getSize() > entity.getStorage().getMaximal()) {
+		if (entity.getType().getMaximal() != null && vo.getSize() > entity.getType().getMaximal()) {
 			// The related storage type does not accept this value
-			throw new ValidationJsonException("size", "Max", entity.getStorage().getMaximal());
+			throw new ValidationJsonException("size", "Max", entity.getType().getMaximal());
 		}
 		entity.setSize(vo.getSize());
 
@@ -373,9 +382,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 *         price for a weaker requirement if applicable.
 	 */
 	@GET
-	@Path("instance/{subscription:\\d+}")
+	@Path("instance-lookup/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public LowestPrice findInstance(@PathParam("subscription") final int subscription,
+	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
 			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
@@ -383,7 +392,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			@QueryParam("price-type") final Integer priceType) {
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
-		final LowestPrice price = new LowestPrice();
+		final LowestInstancePrice price = new LowestInstancePrice();
 
 		// Return only the first matching instance
 		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, priceType, new PageRequest(0, 1))
@@ -405,7 +414,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @return The available price types for the given subscription.
 	 */
 	@GET
-	@Path("price-type/{subscription:\\d+}")
+	@Path("instance-price-type/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstancePriceType> findInstancePriceType(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
@@ -416,6 +425,75 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Return the instance types inside a quote.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The valid instance types for the given subscription.
+	 */
+	@GET
+	@Path("instance/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public TableItem<ProvInstance> findInstance(@PathParam("subscription") final int subscription,
+			@Context final UriInfo uriInfo) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+		return paginationJson.applyPagination(uriInfo, instanceRepository.findAll(subscription,
+				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
+				Function.identity());
+	}
+
+	/**
+	 * Return the storage types the instance inside a quote.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the
+	 *            storages from the associated provider.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The valid storage types for the given subscription.
+	 */
+	@GET
+	@Path("storage-type/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public TableItem<ProvStorageType> findStorageType(@PathParam("subscription") final int subscription,
+			@Context final UriInfo uriInfo) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+		return paginationJson.applyPagination(uriInfo, stRepository.findAll(subscription,
+				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
+				Function.identity());
+	}
+
+	/**
+	 * Return the storage types the instance inside a quote.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the
+	 *            storages from the associated provider.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The valid storage types for the given subscription.
+	 */
+	@GET
+	@Path("storage-lookup/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@OnNullReturn404
+	public ComputedStoragePrice lookupStorage(@PathParam("subscription") final int subscription,
+			@DefaultValue(value = "1") @QueryParam("size") final int size,
+			@QueryParam("frequency") final ProvStorageFrequency frequency,
+			@QueryParam("optimized") final ProvStorageOptimized optimized) {
+
+		// Get the attached node and check the security on this subscription
+		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+
+		// Return only the first matching instance
+		return stRepository.findLowestPrice(node, size, frequency, optimized, new PageRequest(0, 1)).stream()
+				.findFirst().map(st -> newComputedStoragePrice(st, getStorageCost(st, size))).orElse(null);
+	}
+
+	/**
 	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
 	 * and computed price.
 	 */
@@ -423,6 +501,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		final ComputedInstancePrice result = new ComputedInstancePrice();
 		result.setCost(cost);
 		result.setInstance(ip);
+		return result;
+	}
+
+	/**
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
+	 * and computed price.
+	 */
+	private ComputedStoragePrice newComputedStoragePrice(final ProvStorageType st, final double cost) {
+		final ComputedStoragePrice result = new ComputedStoragePrice();
+		result.setCost(cost);
+		result.setType(st);
 		return result;
 	}
 
@@ -567,8 +656,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @return The cost of this storage.
 	 */
 	private double getStorageCost(final ProvQuoteStorage quoteStorage) {
-		return Math.max(quoteStorage.getSize(), quoteStorage.getStorage().getMinimal())
-				* quoteStorage.getStorage().getCost();
+		return getStorageCost(quoteStorage.getType(), quoteStorage.getSize());
+	}
+
+	/**
+	 * Compute the cost of a storage.
+	 * 
+	 * @param storageType
+	 *            The storage to evaluate.
+	 * @param size
+	 *            The requested size in GB.
+	 * @return The cost of this storage.
+	 */
+	private double getStorageCost(final ProvStorageType storageType, final int size) {
+		return Math.max(size, storageType.getMinimal()) * storageType.getCost();
 	}
 
 	@Override

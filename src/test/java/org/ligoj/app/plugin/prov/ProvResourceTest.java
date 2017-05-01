@@ -7,8 +7,10 @@ import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,19 +23,22 @@ import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorage;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
+import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
@@ -64,7 +69,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
-	private ProvStorageRepository storageRepository;
+	private ProvStorageTypeRepository storageRepository;
 
 	@Autowired
 	private ProvInstancePriceRepository ipRepository;
@@ -76,7 +81,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorage.class,
+				new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
 						ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class,
 						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
@@ -158,13 +163,14 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-rootD", quoteStorage.getDescription());
 		Assert.assertEquals(20, quoteStorage.getSize());
 		Assert.assertNotNull(quoteStorage.getQuoteInstance());
-		final ProvStorage storage = quoteStorage.getStorage();
+		final ProvStorageType storage = quoteStorage.getStorage();
 		Assert.assertNotNull(storage.getId());
 		Assert.assertEquals(0.21, storage.getCost(), DELTA);
 		Assert.assertEquals("storage1", storage.getName());
 		Assert.assertEquals("storageD1", storage.getDescription());
 		Assert.assertEquals(0, storage.getTransactionalCost(), DELTA);
-		Assert.assertEquals(ProvStorageType.HOT, storage.getType());
+		Assert.assertEquals(ProvStorageFrequency.HOT, storage.getFrequency());
+		Assert.assertEquals(ProvStorageOptimized.IOPS, storage.getOptimized());
 
 		// Not attached storage
 		Assert.assertNull(storages.get(3).getQuoteInstance());
@@ -193,9 +199,9 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Basic case, almost no requirements.
 	 */
 	@Test
-	public void findInstance() {
-		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0, 0, false,
-				VmOs.LINUX, null);
+	public void lookupInstance() {
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0,
+				0, false, VmOs.LINUX, null);
 
 		// Check the instance result
 		final ProvInstancePrice pi = price.getInstance().getInstance();
@@ -225,12 +231,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	public void findInstanceHighContraints() throws IOException {
-		final LowestPrice price = new ObjectMapperTrim().readValue(
+	public void lookupInstanceHighContraints() throws IOException {
+		final LowestInstancePrice price = new ObjectMapperTrim().readValue(
 				new ObjectMapperTrim()
-						.writeValueAsString(resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3,
+						.writeValueAsString(resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3,
 								9, true, VmOs.WINDOWS, priceTypeRepository.findByNameExpected("on-demand1").getId())),
-				LowestPrice.class);
+				LowestInstancePrice.class);
 		final ProvInstancePrice pi = price.getInstance().getInstance();
 		Assert.assertNotNull(pi.getId());
 		Assert.assertEquals("instance9", pi.getInstance().getName());
@@ -251,9 +257,9 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void findInstanceOnlyCustom() {
-		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
-				VmOs.LINUX, priceTypeRepository.findByNameExpected("1y").getId());
+	public void lookupInstanceOnlyCustom() {
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999,
+				0, false, VmOs.LINUX, priceTypeRepository.findByNameExpected("1y").getId());
 		Assert.assertNull(price.getInstance());
 		Assert.assertNull(price.getCustom());
 	}
@@ -262,9 +268,9 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void findInstanceNoMatch() {
-		final LowestPrice price = resource.findInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
-				VmOs.LINUX, null);
+	public void lookupInstanceNoMatch() {
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999,
+				0, false, VmOs.LINUX, null);
 		Assert.assertNull(price.getInstance());
 
 		// Check the custom instance
@@ -291,7 +297,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
 		new ProvQuoteInstance().setStorages(null);
-		ProvStorageType.valueOf(ProvStorageType.HOT.name());
+		ProvStorageFrequency.valueOf(ProvStorageFrequency.HOT.name());
+		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());
 	}
 
@@ -303,7 +310,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
+		vo.setType(storageRepository.findByNameExpected("storage1").getId());
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		resource.updateStorage(vo);
@@ -319,7 +326,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(storageRepository.findByNameExpected("storage2").getId());
+		vo.setType(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(1024); // Limit for this storage is 512
 		resource.updateStorage(vo);
 	}
@@ -335,7 +342,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setDescription("server1-root-bisD");
 
 		// Change the storage type -> storage2 has a minimal to 512
-		vo.setStorage(storageRepository.findByNameExpected("storage2").getId());
+		vo.setType(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(512); // Limit for this storage is 512
 		resource.updateStorage(vo);
 		em.flush();
@@ -347,7 +354,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-root-bis", storage.getName());
 		Assert.assertEquals("server1-root-bisD", storage.getDescription());
 		Assert.assertEquals(512, storage.getSize().intValue());
-		Assert.assertEquals(vo.getStorage(), storage.getStorage().getId().intValue());
+		Assert.assertEquals(vo.getType(), storage.getType().getId().intValue());
 		Assert.assertEquals(76.8, storage.getCost(), DELTA);
 	}
 
@@ -359,7 +366,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-ter");
 		vo.setDescription("server1-root-terD");
-		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
+		vo.setType(storageRepository.findByNameExpected("storage1").getId());
 		vo.setSize(256);
 		final int id = resource.createStorage(vo);
 		em.flush();
@@ -371,7 +378,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-root-ter", storage.getName());
 		Assert.assertEquals("server1-root-terD", storage.getDescription());
 		Assert.assertEquals(256, storage.getSize().intValue());
-		Assert.assertEquals(vo.getStorage(), storage.getStorage().getId().intValue());
+		Assert.assertEquals(vo.getType(), storage.getType().getId().intValue());
 		Assert.assertEquals(53.76, storage.getCost(), DELTA);
 	}
 
@@ -381,7 +388,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(-1);
+		vo.setType(-1);
 		vo.setSize(1);
 		resource.updateStorage(vo);
 	}
@@ -395,7 +402,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(storageRepository.findByNameExpected("storageX").getId());
+		vo.setType(storageRepository.findByNameExpected("storageX").getId());
 		vo.setSize(1);
 		resource.updateStorage(vo);
 	}
@@ -406,7 +413,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
+		vo.setType(storageRepository.findByNameExpected("storage1").getId());
 		vo.setQuoteInstance(-1);
 		vo.setSize(1);
 		resource.updateStorage(vo);
@@ -421,7 +428,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
-		vo.setStorage(storageRepository.findByNameExpected("storage1").getId());
+		vo.setType(storageRepository.findByNameExpected("storage1").getId());
 		vo.setQuoteInstance(qiRepository.findByNameExpected("serverX").getId());
 		vo.setSize(1);
 		resource.updateStorage(vo);
@@ -568,7 +575,7 @@ public class ProvResourceTest extends AbstractAppTest {
 			public String getKey() {
 				return "service:prov:sample";
 			}
-		}.getInstalledEntities().contains(ProvStorage.class));
+		}.getInstalledEntities().contains(ProvStorageType.class));
 	}
 
 	@Test(expected = NotImplementedException.class)
@@ -616,6 +623,14 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
+	@Test
+	public void findInstancePriceTypeCriteria() {
+		final TableItem<ProvInstancePriceType> tableItem = resource.findInstancePriceType(subscription,
+				newUriInfo("deMand"));
+		Assert.assertEquals(2, tableItem.getRecordsTotal());
+		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+	}
+
 	@Test(expected = JpaObjectRetrievalFailureException.class)
 	public void findInstancePriceTypeNotExistsSubscription() {
 		resource.findInstancePriceType(-1, newUriInfo());
@@ -632,4 +647,126 @@ public class ProvResourceTest extends AbstractAppTest {
 		initSpringSecurityContext("any");
 		resource.findInstancePriceType(subscription, newUriInfo());
 	}
+
+	@Test
+	public void findStorageType() {
+		final TableItem<ProvStorageType> tableItem = resource.findStorageType(subscription, newUriInfo());
+		Assert.assertEquals(2, tableItem.getRecordsTotal());
+		Assert.assertEquals("storage1", tableItem.getData().get(0).getName());
+	}
+
+	@Test
+	public void findStorageTypeCriteria() {
+		final TableItem<ProvStorageType> tableItem = resource.findStorageType(subscription, newUriInfo("rAge2"));
+		Assert.assertEquals(1, tableItem.getRecordsTotal());
+		Assert.assertEquals("storage2", tableItem.getData().get(0).getName());
+	}
+
+	@Test(expected = JpaObjectRetrievalFailureException.class)
+	public void findStorageTypeNotExistsSubscription() {
+		resource.findStorageType(-1, newUriInfo());
+	}
+
+	@Test
+	public void findStorageTypeAnotherSubscription() {
+		Assert.assertEquals(1,
+				resource.findStorageType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void findStorageTypeNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		resource.findStorageType(subscription, newUriInfo());
+	}
+
+	@Test
+	public void findInstance() {
+		final TableItem<ProvInstance> tableItem = resource.findInstance(subscription, newUriInfo());
+		Assert.assertEquals(13, tableItem.getRecordsTotal());
+		Assert.assertEquals("instance1", tableItem.getData().get(0).getName());
+	}
+
+	@Test
+	public void findInstanceCriteria() {
+		final TableItem<ProvInstance> tableItem = resource.findInstance(subscription, newUriInfo("sTance1"));
+		Assert.assertEquals(4, tableItem.getRecordsTotal());
+		Assert.assertEquals("instance1", tableItem.getData().get(0).getName());
+		Assert.assertEquals("instance10", tableItem.getData().get(1).getName());
+	}
+
+	@Test(expected = JpaObjectRetrievalFailureException.class)
+	public void findInstanceNotExistsSubscription() {
+		resource.findInstance(-1, newUriInfo());
+	}
+
+	@Test
+	public void findInstanceAnotherSubscription() {
+		Assert.assertEquals(1,
+				resource.findInstance(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void findInstanceNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		resource.findInstance(subscription, newUriInfo());
+	}
+
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	public void lookupStorage() {
+		final ComputedStoragePrice price = resource.lookupStorage(subscription, 2, null, ProvStorageOptimized.IOPS);
+
+		// Check the storage result
+		final ProvStorageType st = price.getType();
+		Assert.assertNotNull(st.getId());
+		Assert.assertEquals("storage1", st.getName());
+		Assert.assertEquals(0.42, price.getCost(), DELTA);
+	}
+
+	/**
+	 * Advanced case, all requirements.
+	 */
+	@Test
+	public void lookupStorageHighContraints() throws IOException {
+		final ComputedStoragePrice price = new ObjectMapperTrim().readValue(
+				new ObjectMapperTrim().writeValueAsString(
+						resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null)),
+				ComputedStoragePrice.class);
+
+		// Check the storage result
+		final ProvStorageType st = price.getType();
+		Assert.assertNotNull(st.getId());
+		Assert.assertEquals("storage1", st.getName());
+		Assert.assertEquals(215.04, price.getCost(), DELTA);
+
+		// Not serialized
+		Assert.assertNull(st.getNode());
+	}
+
+	/**
+	 * Too much requirements for an instance
+	 */
+	@Test
+	public void lookupStorageNoMatch() {
+		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.HOT, null));
+		Assert.assertNotNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.HOT, null));
+		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.COLD, null));
+		
+		// Out of limits
+		Assert.assertNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.COLD, null));
+	}
+
+	/**
+	 * TODO Add in bootstrap
+	 */
+	protected UriInfo newUriInfo(final String criteria) {
+		final UriInfo uriInfo = Mockito.mock(UriInfo.class);
+		final MetadataMap<String, String> metadataMap = new MetadataMap<String, String>();
+		metadataMap.putSingle(DataTableAttributes.SEARCH, criteria);
+		Mockito.when(uriInfo.getQueryParameters()).thenReturn(metadataMap);
+		return uriInfo;
+	}
+
 }
