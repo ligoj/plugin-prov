@@ -542,6 +542,8 @@ define(function () {
 		 */
 		updateUiCost: function () {
 			$('.cost').text(current.formatCost(current.model.configuration.cost));
+			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
+			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
 		},
 		
 		/**
