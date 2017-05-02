@@ -154,31 +154,31 @@ define(function () {
 		 * Associate the storages to the instances
 		 */ 
 		optimizeModel: function () {
-			var instances = current.model.configuration.instances;
-			current.model.configuration.instancesById = {};
+			var conf = current.model.configuration;
+			var instances = conf.instances;
+			conf.instancesById = {};
 			for (var i = 0; i < instances.length; i++) {
 				var instance = instances[i];
 				// Optimize id access
-				current.model.configuration.instancesById[instance.id] = instance;
-				instance.index = i;
+				conf.instancesById[instance.id] = instance;
 			}
-			current.model.configuration.detachedStorages = [];
-			current.model.configuration.storagesById = {};
-			var storages = current.model.configuration.storages;
+			conf.detachedStorages = [];
+			conf.storagesById = {};
+			var storages = conf.storages;
 			for (i = 0; i < storages.length; i++) {
 				var storage = storages[i];
 				if (storage.quoteInstance) {
 					// Attached storage
-					storage.quoteInstance = current.model.configuration.instancesById[storage.quoteInstance];
+					storage.quoteInstance = conf.instancesById[storage.quoteInstance];
 				} else {
 					// Detached storage
-					current.model.configuration.detachedStorages.push[storage];
+					conf.detachedStorages.push[storage];
 				}
 				
 				// Optimize id access
-				current.model.configuration.storagesById[storage.id] = storage;
-				storage.index = i;
+				conf.storagesById[storage.id] = storage;
 			}
+			current.updateUiCost();
 		},
 		
 		/**
@@ -282,12 +282,13 @@ define(function () {
 					type: 'DELETE',
 					success: function () {
 						// Update the model
-						current.deleteInstance(qi.id);
+						current[type + 'Delete'](qi.id);
 	
 						// Update the UI
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
 						$('.tooltip').remove();
 						$table.DataTable().row($tr).remove().draw(false);
+						current.updateUiCost();
 					}
 				});
 			});
@@ -494,6 +495,7 @@ define(function () {
 			};
 			// Backup the stored context
 			var costContext = current[type + 'UiToData'](data);
+			var conf = current.model.configuration;
 			
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
@@ -509,7 +511,7 @@ define(function () {
 					}
 					
 					// Update the model
-					var model = current.model.configuration[type + 'sById'][id] || { id: id };
+					var model = conf[type + 'sById'][id] || { id: id };
 					model.name = data.name;
 					model.description = data.description;
 					current[type + 'CommitToModel'](data, model, costContext);
@@ -518,34 +520,68 @@ define(function () {
 					var $table = _('prov-' + type + 's');
 					if (data.id) {
 						// Update
-						current.model.cost += costContext.cost - model.cost;
+						conf.cost += costContext.cost - model.cost;
 						model.cost = costContext.cost;
 						$table.DataTable().draw(false);
 					} else {
 						// Create
-						current.model.configuration[type + 's'].push(instance);
-						current.model.configuration[type + 'sById'][id] = instance;
-						current.model.cost += costContext.cost;
+						conf[type + 's'].push(model);
+						conf[type + 'sById'][id] = model;
+						conf.cost += costContext.cost;
 						model.cost = costContext.cost;
 						$table.DataTable().row.add(model).draw(false);
 					}
+					current.updateUiCost();
 					$popup.modal('hide');
 				}
 			});
 		},
 		
 		/**
+		 * Update the total cost of the quote.
+		 */
+		updateUiCost: function () {
+			$('.cost').text(current.formatCost(current.model.configuration.cost));
+		},
+		
+		/**
+		 * Update the model a deleted quote storage
+		 */
+		storageDelete: function (id) {
+			var conf = current.model.configuration;
+			for (var i = 0; i < conf.storages.length; i++) {
+				var storage = conf.storages[i];
+				if (storage.id === id) {
+					conf.storages.slice(i, 1);
+					conf.cost -= storage.cost;
+					break;
+				}
+			}
+		},
+		
+		/**
 		 * Update the model and the association with a deleted quote instance
 		 */
-		deleteInstance: function (id) {
-			current.model.configuration.instances[current.model.configuration.instancesById[id].index] = null;
-			delete current.model.configuration.instancesById[id];
-			for (i = 0; i < current.model.configuration.storages.length; i++) {
-				var storage = storages[i];
-				if (storage.quoteInstance && storage.quoteInstance.id === id) {
-					// Delete the associated storages
-					current.model.configuration.storages[i] = null;
-					delete current.model.configuration.storagesById[storage.id];
+		instanceDelete: function (id) {
+			var conf = current.model.configuration;
+			for (var i = 0; i < conf.instances.length; i++) {
+				var instance = conf.instances[i];
+				if (instance.id === id) {
+					conf.instances.splice(i, 1);
+					conf.cost -= instance.cost;
+					delete conf.instancesById[instance.id];
+
+					// Also delete the related storages
+					for (var s = conf.storages.length; s--> 0;) {
+						var storage = conf.storages[s];
+						if (storage.quoteInstance && storage.quoteInstance.id === id) {
+							// Delete the associated storages
+							conf.storages.splice(s, 1);
+							conf.cost -= storage.cost;
+							delete conf.storagesById[storage.id];
+						}
+					}
+					break;
 				}
 			}
 		},
