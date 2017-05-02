@@ -1,5 +1,7 @@
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.NotNull;
+
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 
 import lombok.Getter;
@@ -13,8 +15,14 @@ import lombok.Setter;
 public class QuoteStorageVo extends AbstractQuoteStorageVo {
 
 	/**
-	 * Related storage with the price.
+	 * Related storage type with the price.
 	 */
-	private ProvStorageType storage;
+	private ProvStorageType type;
+
+	/**
+	 * The computed cost on the create/update time.
+	 */
+	@NotNull
+	private Double cost;
 
 }

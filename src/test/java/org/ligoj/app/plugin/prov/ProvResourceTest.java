@@ -118,10 +118,12 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getConfiguration() {
+		refreshCost();
+
 		final QuoteVo vo = resource.getConfiguration(subscription);
 		Assert.assertEquals("quote1", vo.getName());
 		Assert.assertEquals("quoteD1", vo.getDescription());
-		Assert.assertEquals(0.128, vo.getCost(), 0.00001);
+		Assert.assertEquals(3740.742, vo.getCost(), 0.00001);
 		Assert.assertNotNull(vo.getId());
 		Assert.assertNotNull(vo.getCreatedBy());
 		Assert.assertNotNull(vo.getCreatedDate());
@@ -162,8 +164,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-root", quoteStorage.getName());
 		Assert.assertEquals("server1-rootD", quoteStorage.getDescription());
 		Assert.assertEquals(20, quoteStorage.getSize());
+		Assert.assertEquals(4.2, quoteStorage.getCost(), DELTA);
 		Assert.assertNotNull(quoteStorage.getQuoteInstance());
-		final ProvStorageType storage = quoteStorage.getStorage();
+		final ProvStorageType storage = quoteStorage.getType();
 		Assert.assertNotNull(storage.getId());
 		Assert.assertEquals(0.21, storage.getCost(), DELTA);
 		Assert.assertEquals("storage1", storage.getName());
@@ -176,13 +179,20 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNull(storages.get(3).getQuoteInstance());
 
 		// Check the small transactional cost
-		Assert.assertEquals(0.000000072, storages.get(1).getStorage().getTransactionalCost(), 0.000000001);
+		Assert.assertEquals(0.000000072, storages.get(1).getType().getTransactionalCost(), 0.000000001);
 
 	}
 
 	@Test
 	public void getConfigurationEmpty() {
-		final QuoteVo vo = resource.getConfiguration(getSubscription("mda", ProvResource.SERVICE_KEY));
+		checkEmpty();
+		Assert.assertEquals(0, resource.refreshCost(checkEmpty()), DELTA);
+		checkEmpty();
+	}
+
+	private int checkEmpty() {
+		final int subscription = getSubscription("mda", ProvResource.SERVICE_KEY);
+		final QuoteVo vo = resource.getConfiguration(subscription);
 		Assert.assertEquals("quote2", vo.getName());
 		Assert.assertEquals("quoteD2", vo.getDescription());
 		Assert.assertNotNull(vo.getId());
@@ -193,6 +203,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check storage
 		Assert.assertEquals(0, vo.getStorages().size());
+		return subscription;
 	}
 
 	/**
@@ -731,8 +742,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
 		final ComputedStoragePrice price = new ObjectMapperTrim().readValue(
-				new ObjectMapperTrim().writeValueAsString(
-						resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null)),
+				new ObjectMapperTrim()
+						.writeValueAsString(resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null)),
 				ComputedStoragePrice.class);
 
 		// Check the storage result
@@ -753,7 +764,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.HOT, null));
 		Assert.assertNotNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.HOT, null));
 		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.COLD, null));
-		
+
 		// Out of limits
 		Assert.assertNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.COLD, null));
 	}

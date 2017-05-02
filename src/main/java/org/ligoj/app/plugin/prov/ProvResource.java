@@ -146,7 +146,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setId(entity.getId());
 		vo.setQuoteInstance(Optional.ofNullable(entity.getQuoteInstance()).map(Persistable::getId).orElse(null));
 		vo.setSize(entity.getSize());
-		vo.setStorage(entity.getType());
+		vo.setType(entity.getType());
+		vo.setCost(entity.getCost());
 		return vo;
 	}
 
