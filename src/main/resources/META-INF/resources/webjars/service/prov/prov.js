@@ -26,6 +26,7 @@ define(function () {
 		 */
 		configure: function (subscription) {
 			current.model = subscription;
+			current.initializeD3();
 			current.optimizeModel();
 			current.initializeForm();
 			current.initializeDataTable();
@@ -424,13 +425,13 @@ define(function () {
 		},
 		
 		storageCommitToModel: function(data, model, costContext) {
-			model.size = data.size;
+			model.size = parseInt(data.size, 10);
 			model.type = costContext.type;
 		},
 
 		instanceCommitToModel: function(data, model, costContext) {
-			model.cpu = data.cpu;
-			model.ram = data.ram;
+			model.cpu = parseFloat(data.cpu, 10);
+			model.ram = parseInt(data.ram ,10);
 			model.instancePrice = costContext.instance;
 		},
 
@@ -544,6 +545,32 @@ define(function () {
 			$('.cost').text(current.formatCost(current.model.configuration.cost));
 			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
+			
+			// Update the total resource usage
+			require(['d3'], function(d3) {
+				var usage = current.usageGlobalRate();
+				if (d3.select("#gauge-global").on("valueChanged") && usage.available) {
+					$('#gauge-global').removeClass('hidden');
+					d3.select("#gauge-global").on("valueChanged")(Math.floor(usage.used/usage.available * 100));
+				} else {
+					$('#gauge-global').addClass('hidden');
+				}
+			});
+		},
+		
+		/**
+		 * Compute the global resource usage of this quote.
+		 */
+		usageGlobalRate: function () {
+			var conf = current.model.configuration;
+			var available = 0;
+			var used = 0;
+			for (var i = 0; i < conf.instances.length; i++) {
+				var instance = conf.instances[i];
+				available += instance.instancePrice.instance.ram;
+				used += instance.ram;
+			}
+			return {available: available, used: used}
 		},
 		
 		/**
@@ -596,6 +623,24 @@ define(function () {
 		},
 		showInstancePopupImport: function ($context) {
 			_('importPopup-prov').modal('show', $context);
+		},
+		
+		/**
+		 * Initialize D3 graphics with default empty data.
+		 */
+		initializeD3: function () {
+			require(['d3', '../main/service/prov/lib/liquidFillGauge'], function(d3) {
+			    d3.select("#gauge-global").call(d3.liquidfillgauge, 1, {
+			      textColor: "#FF4444",
+			      textVertPosition: 0.2,
+			      waveAnimateTime: 1200,
+			      waveHeight: 0.9,
+			      backgroundColor: "#e0e0e0"
+			    });
+
+			    // First render
+			    current.updateUiCost();
+		    });
 		},
 
 		/**
