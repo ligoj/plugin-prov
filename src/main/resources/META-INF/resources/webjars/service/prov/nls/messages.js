@@ -55,7 +55,8 @@ define({
 		'service:prov:total-cpu' : 'Total CPU',
 		'service:prov:total-storage' : 'Total storage',
 		'service:prov:nb-instances': 'Number of instances',
-		'service:prov:cost-month' : 'Month'
+		'service:prov:cost-month' : 'Month',
+		'service:prov:efficiency-title' : 'Global efficiency of this quote : CPU, RAM and storage'
 	},
 	'fr' : true
 });

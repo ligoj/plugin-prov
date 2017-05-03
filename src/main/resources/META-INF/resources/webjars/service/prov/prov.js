@@ -29,7 +29,6 @@ define(function () {
 			current.initializeD3();
 			current.optimizeModel();
 			current.initializeForm();
-			current.initializeDataTable();
 			_('subscribe-configuration-prov').removeClass('hide');
 			$('.provider').text(current.model.node.name);
 			_('name-prov').val(current.model.configuration.name);
@@ -67,7 +66,7 @@ define(function () {
 				],
 				[
 					'service:prov:resources',
-					  	current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatMemory(quote.totalRam) + ', '
+					  	current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + ', '
 					  + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU, '
 					  + current.$super('icon')('database', 'service:prov:total-storage') + (current.formatStorage(quote.totalStorage) || '0')
 				],
@@ -87,7 +86,7 @@ define(function () {
 		/**
 		 * Format the memory size.
 		 */
-		formatMemory: function(sizeMB) {
+		formatRam: function(sizeMB) {
 			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 		},
 		
@@ -275,9 +274,10 @@ define(function () {
 		initializeDataTableEvents : function (type) {
 			// Delete the selected instance from the quote
 			var $table = _('prov-' + type + 's');
+			var dataTable = current[type + 'NewTable']();
 			$table.on('click', '.delete', function () {
 				var $tr = $(this).closest('tr');
-				var qi = current.instanceTable.fnGetData($tr[0]);
+				var qi = dataTable.fnGetData($tr[0]);
 				$.ajax({
 					url: REST_PATH + 'service/prov/' + type +'/' + qi.id,
 					type: 'DELETE',
@@ -294,7 +294,7 @@ define(function () {
 				});
 			});
 
-			// Instance edition pop-up
+			// Resource edition pop-up
 			var $popup = _('popup-prov-' + type);
 			$popup.on('shown.bs.modal', function () {
 				_(type + '-name').trigger('focus');
@@ -304,7 +304,7 @@ define(function () {
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var model = ($tr.length && current.instanceTable.fnGetData($tr[0])) || {};
+				var model = ($tr.length && dataTable.fnGetData($tr[0])) || {};
 				_(type + '-create').removeAttr('disabled', 'disabled').removeClass('disabled');
 				current.toUi(type, model);
 			});
@@ -549,9 +549,24 @@ define(function () {
 			// Update the total resource usage
 			require(['d3'], function(d3) {
 				var usage = current.usageGlobalRate();
-				if (d3.select("#gauge-global").on("valueChanged") && usage.available) {
+				var weight = 0;
+				var weightUsage = 0;
+				if (usage.cpu.available) {
+					weightUsage += 50 * usage.cpu.used / usage.cpu.available;
+					weight += 50;
+				}
+				if (usage.ram.available) {
+					weightUsage += 10 * usage.ram.used / usage.ram.available;
+					weight += 10;
+				}
+				if (usage.storage.available) {
+					weightUsage += usage.storage.used / usage.storage.available;
+					weight += 1;
+				}
+				if (d3.select("#gauge-global").on("valueChanged") && weight) {
 					$('#gauge-global').removeClass('hidden');
-					d3.select("#gauge-global").on("valueChanged")(Math.floor(usage.used/usage.available * 100));
+					// Weight average of average...
+					d3.select("#gauge-global").on("valueChanged")(Math.floor(weightUsage * 100 / weight));
 				} else {
 					$('#gauge-global').addClass('hidden');
 				}
@@ -563,14 +578,29 @@ define(function () {
 		 */
 		usageGlobalRate: function () {
 			var conf = current.model.configuration;
-			var available = 0;
-			var used = 0;
+			var ramAvailable = 0;
+			var ramUsed = 0;
+			var cpuAvailable = 0;
+			var cpuUsed = 0;
+			var storageAvailable = 0;
+			var storageUsed = 0;
 			for (var i = 0; i < conf.instances.length; i++) {
 				var instance = conf.instances[i];
-				available += instance.instancePrice.instance.ram;
-				used += instance.ram;
+				cpuAvailable += instance.instancePrice.instance.cpu;
+				cpuUsed += instance.cpu;
+				ramAvailable += instance.instancePrice.instance.ram;
+				ramUsed += instance.ram;
 			}
-			return {available: available, used: used}
+			for (var i = 0; i < conf.storages.length; i++) {
+				var storage = conf.storages[i];
+				storageAvailable += Math.max(storage.size, storage.type.minimal);
+				storageUsed += storage.size;
+			}
+			return {
+				ram: {available: ramAvailable, used: ramUsed},
+				cpu: {available: cpuAvailable, used: cpuUsed},
+				storage: {available: storageAvailable, used: storageUsed}
+			};
 		},
 		
 		/**
@@ -581,7 +611,7 @@ define(function () {
 			for (var i = 0; i < conf.storages.length; i++) {
 				var storage = conf.storages[i];
 				if (storage.id === id) {
-					conf.storages.slice(i, 1);
+					conf.storages.splice(i, 1);
 					conf.cost -= storage.cost;
 					break;
 				}
@@ -646,7 +676,7 @@ define(function () {
 		/**
 		 * Initialize the instance datatables from the whole quote
 		 */
-		initializeDataTable: function () {
+		instanceNewTable: function () {
 			current.instanceTable = _('prov-instances').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				data : current.model.configuration.instances,
@@ -664,7 +694,7 @@ define(function () {
 					data: 'cpu'
 				}, {
 					data: 'ram',
-					render: current.formatMemory
+					render: current.formatRam
 				}, {
 					// Usage type for an instance
 					data: 'instancePrice.type.name'
@@ -683,6 +713,13 @@ define(function () {
 					}
 				}]
 			});
+			return current.instanceTable;
+		},
+
+		/**
+		 * Initialize the storage datatables from the whole quote
+		 */
+		storageNewTable: function () {
 			current.storageTable = _('prov-storages').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				data : current.model.configuration.storages,
@@ -712,6 +749,7 @@ define(function () {
 					}
 				}]
 			});
+			return current.storageTable;
 		}
 	};
 	return current;
