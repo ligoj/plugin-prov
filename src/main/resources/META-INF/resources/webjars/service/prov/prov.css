@@ -1,4 +1,4 @@
-@import url("main/service/prov/font-mfizz.css")
+@import url("font-mfizz.css");
 .masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
 	width: 80px;
 }
