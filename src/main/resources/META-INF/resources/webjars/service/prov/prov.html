@@ -21,8 +21,8 @@
 					<div class="row table-tools">
 						<div class="col-sm-10">
 							<div class="btn-group">
-								<button type="button" id="instance-new" class="btn btn-success btn-raised">{{new}}</button>
-								<button type="button" id="upload-new" class="btn btn-default">{{upload-new}}</button>
+								<button type="button" data-toggle="modal" data-target="#popup-prov-instance" class="btn btn-success btn-raised">{{new}}</button>
+								<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
 							</div>
 						</div>
 						<div class="col-sm-2">
@@ -57,7 +57,7 @@
 					<div class="row table-tools">
 						<div class="col-sm-10">
 							<div class="btn-group">
-								<button type="button" id="storage-new" class="btn btn-success btn-raised">{{new}}</button>
+								<button type="button" data-toggle="modal" data-target="#popup-prov-storage" class="btn btn-success btn-raised">{{new}}</button>
 							</div>
 						</div>
 						<div class="col-sm-2">
@@ -150,7 +150,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<input type="submit" class="btn btn-primary btn-raised" id="instance-create" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>
@@ -206,13 +206,13 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<input type="submit" class="btn btn-primary btn-raised" id="storage-create" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>
 		</div>
 	</form>
-	<form id="importPopup-prov" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post">
+	<form id="popup-prov-instance-import" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">

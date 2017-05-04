@@ -184,9 +184,25 @@ define(function () {
 		/**
 		 * Return the query parameter name to use to filter the associated input value.
 		 */
-		toQueryName: function(type, $item) {
+		toQueryName: function (type, $item) {
 			var id = $item.attr('id');
 			return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
+		},
+		
+		/**
+		 * Disable the create/update button
+		 * @return the related button.
+		 */
+		disableCreate: function (type) {
+			return _('popup-prov-' + type).find('input[type="submit"]').attr('disabled', 'disabled').addClass('disabled');
+		},
+		
+		/**
+		 * Enable the create/update button
+		 * @return the related button.
+		 */
+		enableCreate: function (type) {
+			return _('popup-prov-' + type).find('input[type="submit"]').removeAttr('disabled').removeClass('disabled');
 		},
 
 		/**
@@ -197,7 +213,7 @@ define(function () {
 			var type = $(this).closest('[data-prov-type]').data('prov-type');
 			
 			// Disable the submit while checking the resource
-			var $create = _(type + '-create').attr('disabled', 'disabled').addClass('disabled');
+			current.disableCreate(type);
 			
 			// Build the query
 			$('.resource-query').each(function() {
@@ -219,7 +235,7 @@ define(function () {
 					var callbackUi = current[type + 'SetUiPrice'];
 					var valid = current[type + 'ValidatePrice'](price);
 					if (valid) {
-						$create.removeAttr('disabled', 'disabled').removeClass('disabled');
+						current.enableCreate(type);
 					}
 					callbackUi(valid);
 				}
@@ -305,7 +321,9 @@ define(function () {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
 				var model = ($tr.length && dataTable.fnGetData($tr[0])) || {};
-				_(type + '-create').removeAttr('disabled', 'disabled').removeClass('disabled');
+				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(model.id ? 'btn-primary' : 'btn-success');
+				current.disableCreate(type);
+				model.id && current.enableCreate(type);
 				current.toUi(type, model);
 			});
 		},
@@ -320,9 +338,6 @@ define(function () {
 			
 			$('.resource-query').on('change',current.checkResource);
 			$('.resource-query').on('keyup',current.checkResource);
-			_('instance-new').on('click', current.showInstancePopup);
-			_('storage-new').on('click', current.showStoragePopup);
-			_('upload-new').on('click', current.showInstancePopupImport);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 
@@ -469,7 +484,7 @@ define(function () {
 			_('instance-cpu').val(model.cpu || '1');
 			_('instance-ram').val(model.ram || '2048');
 			_('instance-os').select2('val', (model.instancePrice && model.instancePrice.os) || 'LINUX');
-			_('instance-price-type').select2('val', (model.instancePrice && model.instancePrice.type) || null);
+			_('instance-price-type').select2('data', (model.instancePrice && model.instancePrice.type) || null);
 			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
 		},
 
@@ -645,16 +660,6 @@ define(function () {
 			}
 		},
 
-		showInstancePopup: function ($context) {
-			_('popup-prov-instance').modal('show', $context);
-		},
-		showStoragePopup: function ($context) {
-			_('popup-prov-storage').modal('show', $context);
-		},
-		showInstancePopupImport: function ($context) {
-			_('importPopup-prov').modal('show', $context);
-		},
-		
 		/**
 		 * Initialize D3 graphics with default empty data.
 		 */
@@ -706,10 +711,11 @@ define(function () {
 					render: current.formatCost
 				}, {
 					data: null,
-					width: '16px',
+					width: '32px',
 					orderable: false,
 					render: function () {
-						return '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return '<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>'
+						     + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				}]
 			});
@@ -742,10 +748,11 @@ define(function () {
 					render: current.formatCost
 				}, {
 					data: null,
-					width: '16px',
+					width: '32px',
 					orderable: false,
 					render: function () {
-						return '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return '<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>'
+						     + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				}]
 			});
