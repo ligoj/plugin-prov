@@ -224,7 +224,7 @@ define(function () {
 				var queryParam = value && current.toQueryName(type, $item);
 				if (queryParam) {
 					// Add as query
-					queries.push(queryParam + '=' + value);
+					queries.push(queryParam + '=' + current.cleanData(value));
 				}
 			});
 			
@@ -458,16 +458,20 @@ define(function () {
 		},
 
 		storageUiToData: function(data) {
-			data.size = _('storage-size').val() || null;
+			data.size = current.cleanData(_('storage-size').val());
 			data.type = current.model.storagePrice.type.id;
 			return current.model.storagePrice;
 		},
-
+		
 		instanceUiToData: function(data) {
-			data.cpu = _('instance-cpu').val() || null;
-			data.ram = _('instance-ram').val() || null;
+			data.cpu = current.cleanData(_('instance-cpu').val()) || null;
+			data.ram = current.cleanData(_('instance-ram').val()) || null;
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
+		},
+
+		cleanData: function (data) {
+			return (data && data.replace(',', '.').replace(' ', '')) || null;
 		},
 
 		/**
