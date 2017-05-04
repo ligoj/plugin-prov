@@ -209,16 +209,18 @@ define(function () {
 
 		/**
 		 * Check there is at least one instance matching to the requirement
+		 * @param $form Optional jQuery form holding the resources to filter
 		 */
 		checkResource: function() {
+			var $form = $(this).closest('[data-prov-type]');
 			var queries = [];
-			var type = $(this).closest('[data-prov-type]').data('prov-type');
+			var type = $form.data('prov-type');
 			
 			// Disable the submit while checking the resource
 			current.disableCreate(type);
 			
 			// Build the query
-			$('.resource-query').each(function() {
+			$form.find('.resource-query').each(function() {
 				var $item = $(this);
 				var value = $item.val();
 				var queryParam = value && current.toQueryName(type, $item);
@@ -288,6 +290,9 @@ define(function () {
 				_('instance-price-type').select2('data', price.instance.type);
 			} else {
 				_('instance').val('');
+				
+				// Find now the best instance from the default inputs
+				$.proxy(current.checkResource, _('popup-prov-instance'))();
 			}
 		},
 		
@@ -494,8 +499,8 @@ define(function () {
 		instanceToUi: function (model) {
 			_('instance-cpu').val(model.cpu || '1');
 			_('instance-ram').val(model.ram || '2048');
-			_('instance-os').select2('data', (model.instancePrice && model.instancePrice.os) || 'LINUX');
-			_('instance-price-type').select2('data', (model.instancePrice && model.instancePrice.type) || null);
+			_('instance-os').select2('data', (model.id && model.instancePrice.os) || 'LINUX');
+			_('instance-price-type').select2('data', (model.id && model.instancePrice.type) || null);
 			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
 		},
 
@@ -538,7 +543,7 @@ define(function () {
 					}
 					
 					// Update the model
-					var model = conf[type + 'sById'][id] || { id: id };
+					var model = conf[type + 'sById'][data.id] || { id: data.id };
 					model.name = data.name;
 					model.description = data.description;
 					current[type + 'CommitToModel'](data, model, costContext);
@@ -549,7 +554,7 @@ define(function () {
 						// Update
 						conf.cost += costContext.cost - model.cost;
 						model.cost = costContext.cost;
-						$table.DataTable().draw(false);
+						$table.DataTable().row($table.find('tbody>tr[data-id="' + data.id + '"]').first()[0]).invalidate().draw();
 					} else {
 						// Create
 						conf[type + 's'].push(model);
@@ -698,6 +703,9 @@ define(function () {
 				data : current.model.configuration.instances,
 				destroy: true,
 				searching: true,
+				createdRow: function (nRow, data) {
+					$(nRow).attr('data-id', data.id);
+				},
 				columns: [{
 					data: 'name',
 					className: 'truncate'
@@ -742,6 +750,9 @@ define(function () {
 				data : current.model.configuration.storages,
 				destroy: true,
 				searching: true,
+				createdRow: function (nRow, data) {
+					$(nRow).attr('data-id', data.id);
+				},
 				columns: [{
 					data: 'name',
 					className: 'truncate'
