@@ -741,7 +741,8 @@ define(function () {
 					data: 'type.frequency',
 					render : current.formatStorageFrequency
 				}, {
-					data: 'type.optimized'
+					data: 'type.optimized',
+					render : current.formatStorageOptimized
 				}, {
 					data: 'type.name'
 				}, {
