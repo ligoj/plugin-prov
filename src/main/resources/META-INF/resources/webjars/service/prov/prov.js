@@ -129,7 +129,7 @@ define(function () {
 		 */
 		formatOs: function(os, withText) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
-			return '<i class="' + cfg[1] + '"></i>' + (withText ? ' ' + cfg[0] : '');
+			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' +  cfg[0] + '"></i>' + (withText ? ' ' + cfg[0] : '');
 		},
 		
 		/**
@@ -138,7 +138,8 @@ define(function () {
 		formatStorageFrequency: function(frequency, withText) {
 			var id = (frequency.id || frequency || 'cold').toLowerCase();
 			var clazz = current.storageFrequency[id];
-			return '<i class="' + clazz + '"></i>' + (withText ? ' ' + current.$messages['service:prov:storage-frequency-' + id] : '');
+			var text = current.$messages['service:prov:storage-frequency-' + id];
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
 		},
 
 		/**
@@ -147,7 +148,8 @@ define(function () {
 		formatStorageOptimized: function(optimized, withText) {
 			var id = (optimized.id || optimized || 'throughput').toLowerCase();
 			var clazz = current.storageOptimized[id];
-			return '<i class="' + clazz + '"></i>' + (withText ? ' ' + current.$messages['service:prov:storage-optimized-' + id] : '');
+			var text = current.$messages['service:prov:storage-optimized-' + id];
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
 		},
 
 		/**
