@@ -283,7 +283,12 @@ define(function () {
 		 */
 		instanceSetUiPrice: function (price) {
 			current.model.instancePrice = price || {};
-			_('instance').val(current.model.instancePrice.instance ? price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
+			if (current.model.instancePrice.instance) {
+				_('instance').val(price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)');
+				_('instance-price-type').select2('data', price.instance.type);
+			} else {
+				_('instance').val('');
+			}
 		},
 		
 		/**
