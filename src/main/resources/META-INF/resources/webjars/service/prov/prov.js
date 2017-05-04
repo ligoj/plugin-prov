@@ -738,7 +738,8 @@ define(function () {
 					data: 'size',
 					render: current.formatStorage
 				}, {
-					data: 'type.frequency'
+					data: 'type.frequency',
+					render : current.formatStorageFrequency
 				}, {
 					data: 'type.optimized'
 				}, {
