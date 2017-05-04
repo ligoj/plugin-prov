@@ -494,7 +494,7 @@ define(function () {
 		instanceToUi: function (model) {
 			_('instance-cpu').val(model.cpu || '1');
 			_('instance-ram').val(model.ram || '2048');
-			_('instance-os').select2('val', (model.instancePrice && model.instancePrice.os) || 'LINUX');
+			_('instance-os').select2('data', (model.instancePrice && model.instancePrice.os) || 'LINUX');
 			_('instance-price-type').select2('data', (model.instancePrice && model.instancePrice.type) || null);
 			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
 		},
@@ -505,8 +505,8 @@ define(function () {
 		 */
 		storageToUi: function (model) {
 			_('storage-size').val(model.size || '10');
-			_('storage-frequency').select2('val', (model.storagePrice && model.storagePrice.frequency) || 'COLD');
-			_('storage-optimized').select2('val', (model.storagePrice && model.storagePrice.optimized) || null);
+			_('storage-frequency').select2('data', (model.storagePrice && model.storagePrice.frequency) || 'COLD');
+			_('storage-optimized').select2('data', (model.storagePrice && model.storagePrice.optimized) || null);
 			current.storageSetUiPrice(model.id && model.storagePrice);
 		},
 
