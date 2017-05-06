@@ -91,8 +91,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Plug-in key.
 	 */
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
-	public static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency",
-			"optimized" };
+	public static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
 	public static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency",
 			"optimized", "priceType", "instance" };
 
@@ -804,5 +803,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			createStorage(svo);
 		}
 
+	}
+
+	@Override
+	public void delete(int subscription, boolean remoteData) {
+		repository.delete(repository.findBy("subscription.id", subscription));
 	}
 }

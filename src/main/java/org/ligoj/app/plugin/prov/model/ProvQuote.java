@@ -2,6 +2,7 @@ package org.ligoj.app.plugin.prov.model;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -49,14 +50,14 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	/**
 	 * Quoted instance.
 	 */
-	@OneToMany(mappedBy = "configuration")
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvQuoteInstance> instances;
 
 	/**
 	 * Quoted storages.
 	 */
-	@OneToMany(mappedBy = "configuration")
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvQuoteStorage> storages;
 
