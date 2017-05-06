@@ -23,6 +23,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
@@ -61,6 +62,9 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvResource resource;
+
+	@Autowired
+	private ProvQuoteRepository repository;
 
 	@Autowired
 	private ProvInstancePriceTypeRepository priceTypeRepository;
@@ -394,6 +398,19 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(256, storage.getSize().intValue());
 		Assert.assertEquals(vo.getType(), storage.getType().getId().intValue());
 		Assert.assertEquals(53.76, storage.getCost(), DELTA);
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void createStorageNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		refreshCost();
+
+		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("server1-root-ter");
+		vo.setType(storageRepository.findByNameExpected("storage1").getId());
+		vo.setSize(1);
+		resource.createStorage(vo);
 	}
 
 	@Test(expected = JpaObjectRetrievalFailureException.class)
@@ -810,7 +827,8 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadDefaultPriceType() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true".getBytes("UTF-8")), null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "constant" },
 				priceTypeRepository.findByNameExpected("on-demand2").getId(), "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -851,7 +869,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadOnlyCustomFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;LINUX;true".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;LINUX".getBytes("UTF-8")), null, null,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -863,7 +881,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadCustomLowest() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64000;LINUX;true".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64000;LINUX".getBytes("UTF-8")), null, null,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -875,14 +893,14 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadInstanceNotFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;WINDOWS;true".getBytes("UTF-8")), null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;WINDOWS".getBytes("UTF-8")), null,
 				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
 	}
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadStorageNotFound() throws IOException {
 		resource.upload(subscription,
-				new ByteArrayInputStream("ANY;true;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
+				new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
 				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
 	}
 

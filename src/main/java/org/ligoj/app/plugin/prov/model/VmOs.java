@@ -9,10 +9,16 @@ public enum VmOs {
 	 * Linux like system, no cost
 	 */
 	LINUX,
+
 	/**
 	 * Microsoft Windows
 	 */
 	WINDOWS,
+
+	/**
+	 * Suse
+	 */
+	SUSE,
 
 	/**
 	 * Red Hat Enterprise

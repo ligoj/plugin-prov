@@ -104,7 +104,7 @@ define(function () {
 		os: {
 			'linux' : ['Linux', 'fa fa-linux'],
 			'windows' : ['Windows', 'fa fa-windows'],
-			'suse' : ['Windows', 'icon-suse'],
+			'suse' : ['SUSE', 'icon-suse'],
 			'rhe' : ['Red Hat Enterprise', 'icon-redhat']
 		},
 		
@@ -396,6 +396,7 @@ define(function () {
 				data:[
 					{id:'LINUX', text:'LINUX'},
 					{id:'WINDOWS',text:'WINDOWS'},
+					{id:'SUSE',text:'SUSE'},
 					{id:'RHE',text:'RHE'}
 				]
 			});
