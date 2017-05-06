@@ -29,6 +29,7 @@ define(function () {
 			current.initializeD3();
 			current.optimizeModel();
 			current.initializeForm();
+			current.initializeUpload();
 			_('subscribe-configuration-prov').removeClass('hide');
 			$('.provider').text(current.model.node.name);
 			_('name-prov').val(current.model.configuration.name);
@@ -195,16 +196,16 @@ define(function () {
 		 * Disable the create/update button
 		 * @return the related button.
 		 */
-		disableCreate: function (type) {
-			return _('popup-prov-' + type).find('input[type="submit"]').attr('disabled', 'disabled').addClass('disabled');
+		disableCreate: function ($popup) {
+			return $popup.find('input[type="submit"]').attr('disabled', 'disabled').addClass('disabled');
 		},
 		
 		/**
 		 * Enable the create/update button
 		 * @return the related button.
 		 */
-		enableCreate: function (type) {
-			return _('popup-prov-' + type).find('input[type="submit"]').removeAttr('disabled').removeClass('disabled');
+		enableCreate: function ($popup) {
+			return $popup.find('input[type="submit"]').removeAttr('disabled').removeClass('disabled');
 		},
 
 		/**
@@ -215,9 +216,10 @@ define(function () {
 			var $form = $(this).closest('[data-prov-type]');
 			var queries = [];
 			var type = $form.data('prov-type');
+			var $popup = _('popup-prov-' + type);
 			
 			// Disable the submit while checking the resource
-			current.disableCreate(type);
+			current.disableCreate($popup);
 			
 			// Build the query
 			$form.find('.resource-query').each(function() {
@@ -239,7 +241,7 @@ define(function () {
 					var callbackUi = current[type + 'SetUiPrice'];
 					var valid = current[type + 'ValidatePrice'](price);
 					if (valid) {
-						current.enableCreate(type);
+						current.enableCreate($popup);
 					}
 					callbackUi(valid);
 				}
@@ -334,9 +336,41 @@ define(function () {
 				var $tr = $source.closest('tr');
 				var model = ($tr.length && dataTable.fnGetData($tr[0])) || {};
 				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(model.id ? 'btn-primary' : 'btn-success');
-				current.disableCreate(type);
-				model.id && current.enableCreate(type);
+				current.disableCreate($popup);
+				model.id && current.enableCreate($popup);
 				current.toUi(type, model);
+			});
+		},
+
+		initializeUpload: function () {
+			var $popup = _('popup-prov-instance-import');
+			$popup.on('shown.bs.modal', function () {
+				_('csv-file').trigger('focus');
+			}).on('show.bs.modal', function () {
+				$('.import-summary').addClass('hidden');
+			}).on('submit', function (e) {
+				debugger;
+				$(this).ajaxSubmit({
+					url: REST_PATH + 'service/prov/upload/' + current.model.subscription,
+					type: 'POST',
+					dataType: 'json',
+					beforeSubmit: function () {
+						// Reset the summary
+						current.disableCreate($popup);
+						validationManager.reset($popup);
+						validationManager.mapping.DEFAULT = 'csv-file';
+						$('.import-summary').html('Processing...');
+					},
+					success: function () {
+						$popup.modal('hide');
+					},
+					complete: function (id) {
+						$('.import-summary').html('').addClass('hidden');
+						current.enableCreate($popup);
+					}
+				});
+				e.preventDefault();
+				return false;
 			});
 		},
 
@@ -393,18 +427,18 @@ define(function () {
 				]
 			});
 			
-			_('instance-price-type').select2({
-				initSelection: function (element, callback) {
-					callback(element.val() && {
-						id: element.val(),
-						text: current.priceTypeToText(element.val())
-					});
-				},
+			_('instance-price-type').select2(current.instancePriceTypeSelect2());
+			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
+		},
+		
+		instancePriceTypeSelect2: function(allowClear) {
+			return {
 				formatSelection: current.priceTypeToText,
 				formatResult: current.priceTypeToText,
 				escapeMarkup: function (m) {
 					return m;
 				},
+				allowClear: allowClear,
 				formatSearching: function () {
 					return current.$messages.loading;
 				},
@@ -444,7 +478,7 @@ define(function () {
 						};
 					}
 				}
-			});
+			}
 		},
 
 		priceTypeToText: function(priceType) {

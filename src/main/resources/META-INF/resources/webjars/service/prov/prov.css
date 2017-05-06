@@ -21,3 +21,7 @@
 #prov-dashboard .svg-wrapper {
 	position: relative;
 }
+
+#popup-prov-instance-import code {
+	font-size: 75%;
+}

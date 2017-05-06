@@ -24,7 +24,7 @@ define({
 		'service:prov:instance-choice' : 'The best instance of the provider is determinated from the provided requirements',
 		'service:prov:price-type' : 'Usage',
 		'service:prov:price-type-title' : 'Price condition and usage',
-		'service:prov:price-type-help' : 'Price condition, period and contract. In general, the shorter is the contract, the more expensive is the instance',
+		'service:prov:price-type-help' : 'Price condition, period and contract. In general, the shortest is the contract, the more expensive is the instance',
 		'service:prov:storage' : 'Storage',
 		'service:prov:storage-title' : 'Block Storage, in GB',
 		'service:prov:storage-type' : 'Type',
@@ -56,7 +56,10 @@ define({
 		'service:prov:total-storage' : 'Total storage',
 		'service:prov:nb-instances': 'Number of instances',
 		'service:prov:cost-month' : 'Month',
-		'service:prov:efficiency-title' : 'Global efficiency of this quote : CPU, RAM and storage'
+		'service:prov:efficiency-title' : 'Global efficiency of this quote : CPU, RAM and storage',
+		'service:prov:price-type-lowest' : 'Lowest, auto',
+		'instance-import-message' : 'Import instances from a CSV file, <code> ;</code> as separator',
+		'instance-import-sample' : 'Sample'
 	},
 	'fr' : true
 });

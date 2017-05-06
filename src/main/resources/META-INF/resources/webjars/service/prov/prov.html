@@ -223,38 +223,37 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
-						<div class="btn-group import-options" data-toggle="buttons">
-							<label class="btn btn-default active"> <input type="radio" name="import-options" class="import-options-full" autocomplete="off" checked>{{user-import-full}}
-							</label> <label class="btn btn-default"> <input type="radio" name="import-options" class="import-options-atomic" autocomplete="off">{{user-import-atomic}}
-							</label>
-						</div>
-						<div class="alert alert-info import-options-details import-options-full">
-							{{user-import-full-message}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
+						<div class="alert alert-info import-options-details">
+							{{{instance-import-message}}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
 							<div id="more-import-options-full" class="collapse">
 								<br />Implicit CSV headers
 								<code>
-									lastName;firstName;id;mail;company;groups;department;localId <br> <strong>id</strong> User name <br> <strong>groups</strong> Comma separated group names
+									name;cpu;ram;os;disk;frequency;optimized
 								</code>
-								<br />{{sample}}
-								<code>John;Doe;jdoe897654;given.name897654@fbi.com;fbi;protected,anonymous</code>
-							</div>
-						</div>
-						<div class="alert alert-info import-options-details import-options-atomic hidden">
-							{{user-import-atomic-message}} <a data-toggle="collapse" href="#more-import-options-atomic" aria-controls="more-import-options-atomic"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
-							<div id="more-import-options-atomic" class="collapse">
-								<br />Implicit CSV headers
+								<br />Valid headers
 								<code>
-									user;operation;value <br> <strong>user</strong> User name <br> <strong>operation</strong> firstname, lastname, mail, lock, delete, isolate, restore, department, localid <br> <strong>value</strong> Optional value, only for attribute update
+									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance
 								</code>
-								<br />{{sample}}
-								<code>
-									nminaj;mail;nicki@viveo.com <br>jdaniels;department;Finance <br>jbieber;delete
-								</code>
+								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
+								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
+								<br /><code><strong>constant</strong> [true,(false)] for CPU behavior</code>
+								<br /><code><strong>os</strong> [(LINUX),WINDOWS,..]</code>
+								<br /><code><strong>disk</strong> Optional disk size, in Giga Byte</code>
+								<br /><code><strong>frequency</strong> [HOT, COLD], default is auto</code>
+								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
+								<br /><code><strong>priceType</strong> Price type, case insensitive, default is auto</code>
+								<br /><code><strong>instance</strong> Instance name, case insensitive, default is auto</code>
+								<br />{{instance-import-sample}}
+								<br><code>name;cpu;ram;os;disk;frequency;optimized;constant;instance;priceType</code>
+								<br><code>mysql;1.5:2048;RHE;20;HOT;IOPS;true</code>
+								<br><code>nginx;0.5:1000;LINUX</code>
+								<br><code>jetty;2:2048;LINUX;;;;m1.large;spot</code>
+								<br /><br /><i class="fa fa-info-circle"></i> Trailing columns can be omitted if empty.
 							</div>
 						</div>
 						<div class="form-group required">
-							<label class="control-label" for="csv-file">CSV File</label>
-							<div>
+							<label class="control-label col-sm-3" for="csv-file">CSV File</label>
+							<div class="col-sm-8">
 								<div class="input-group">
 									<input type="text" class="form-control" readonly> <span class="input-group-btn"> <a class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
 									</a>
@@ -263,13 +262,16 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label" for="csv-upload-encoding">{{encoding}}</label>
-							<div>
+							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
+							<div class="col-sm-8">
 								<input type="text" id="csv-upload-encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
 							</div>
 						</div>
-						<div class="progress">
-							<div class="import-progress progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-price-type-upload" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="instance-price-type-upload" class="form-control" placeholder="{{service:prov:price-type-lowest}}" /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-help}}"></i></span>
+							</div>
 						</div>
 						<div class="alert alert-info hide import-summary"></div>
 					</div>
