@@ -26,4 +26,18 @@ public interface ProvInstanceRepository extends RestRepository<ProvInstance, Int
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%')"
 			+ " AND (:criteria IS NULL OR UPPER(i.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
 	Page<ProvInstance> findAll(int subscription, String criteria, Pageable pageRequest);
+
+	/**
+	 * Return the {@link ProvInstance} by it's name, ignoring the case.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier to match.
+	 * @param name
+	 *            The name to match.
+	 * 
+	 * @return The entity or <code>null</code>.
+	 */
+	@Query("SELECT i FROM ProvInstance i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
+			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%') AND UPPER(i.name) = UPPER(:name)")
+	ProvInstance findByName(int subscription, String name);
 }

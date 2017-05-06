@@ -1,10 +1,17 @@
 
 package org.ligoj.app.plugin.prov;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,7 +32,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
@@ -49,10 +59,12 @@ import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
+import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,9 +91,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Plug-in key.
 	 */
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
+	public static final String[] DEFAULT_COLUMNS = { "name", "constant", "cpu", "ram", "os", "disk", "frequency",
+			"optimized" };
+	public static final String[] ACCEPTED_COLUMNS = { "name", "constant", "cpu", "ram", "os", "disk", "frequency",
+			"optimized", "priceType", "instance" };
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
+
+	@Autowired
+	private CsvForBean csvForBean;
 
 	@Autowired
 	private ProvQuoteRepository repository;
@@ -390,17 +409,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
 			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
-			@QueryParam("price-type") final Integer priceType) {
+			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type) {
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 		final LowestInstancePrice price = new LowestInstancePrice();
 
 		// Return only the first matching instance
-		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, priceType, new PageRequest(0, 1))
-				.stream().findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
-		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, priceType, new PageRequest(0, 1))
-				.stream().findFirst()
-				.map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip)))).orElse(null));
+		price.setInstance(ipRepository
+				.findLowestPrice(node, cpu, ram, constant, os, type, instance, new PageRequest(0, 1)).stream()
+				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
+		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream()
+				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
+				.orElse(null));
 		return price;
 	}
 
@@ -530,7 +550,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		final Object[] storage = repository.getStorageSummary(subscription).get(0);
 		final ProvQuote entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
-		vo.setCost(entity.getCost());
+		vo.setCost(round(entity.getCost()));
 		vo.setNbInstances(((Long) compute[1]).intValue());
 		vo.setTotalCpu((Double) compute[2]);
 		vo.setTotalRam(((Long) compute[3]).intValue());
@@ -685,5 +705,104 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		configuration.setDescription(configuration.getSubscription().getProject().getPkey() + "-> "
 				+ configuration.getSubscription().getNode().getName());
 		repository.saveAndFlush(configuration);
+	}
+
+	/**
+	 * Check column's name validity
+	 */
+	private void checkHeaders(final String[] expected, final String... columns) {
+		for (final String column : columns) {
+			if (!ArrayUtils.contains(expected, column.trim())) {
+				throw new BusinessException("Invalid header", column);
+			}
+		}
+	}
+
+	/**
+	 * Upload a file of quote in add mode.
+	 * 
+	 * @param uploadedFile
+	 *            Instance entries files to import. Currently support only CSV
+	 *            format.
+	 * @param columns
+	 *            the CSV header names.
+	 * @param encoding
+	 *            CSV encoding. Default is UTF-8.
+	 */
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Path("upload/{subscription:\\d+}")
+	public void upload(@PathParam("subscription") final int subscription,
+			@Multipart(value = "csv-file") final InputStream uploadedFile,
+			@Multipart(value = "columns", required = false) final String[] columns,
+			@Multipart(value = "priceType", required = false) final Integer defaultPriceType,
+			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
+		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		final Integer priceTypeEntity = Optional.ofNullable(iptRepository.findById(subscription, defaultPriceType))
+				.map(ProvInstancePriceType::getId).orElse(null);
+
+		// Check column's name validity
+		final String[] sanitizeColumns = ArrayUtils.isEmpty(columns) ? DEFAULT_COLUMNS : columns;
+		checkHeaders(ACCEPTED_COLUMNS, sanitizeColumns);
+
+		// Build CSV header from array
+		final String csvHeaders = StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';')
+				+ "\n";
+
+		// Build entries
+		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
+		csvForBean
+				.toBean(InstanceUpload.class, new InputStreamReader(new SequenceInputStream(
+						new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
+				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, node, priceTypeEntity));
+
+	}
+
+	private void persist(final InstanceUpload upload, final int subscription, final String node,
+			final Integer defaultType) {
+		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName(upload.getName());
+		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		vo.setRam(ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		final Boolean constant = ObjectUtils.defaultIfNull(upload.getConstant(), Boolean.FALSE);
+
+		// Instance selection
+		final Integer instance = Optional.ofNullable(instanceRepository.findByName(subscription, upload.getInstance()))
+				.map(ProvInstance::getId).orElse(null);
+		final Integer type = Optional.ofNullable(iptRepository.findByName(subscription, upload.getPriceType()))
+				.map(ProvInstancePriceType::getId).orElse(defaultType);
+		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), constant,
+				upload.getOs(), instance, type);
+
+		// Find the lowest price
+		ComputedInstancePrice lowest = price.getInstance();
+		if (price.getCustom() == null) {
+			lowest = price.getInstance();
+		} else if (price.getInstance() == null || price.getInstance().getCost() > price.getCustom().getCost()) {
+			lowest = price.getCustom();
+		}
+		ValidationJsonException.assertNotnull(lowest, "instance");
+		vo.setInstancePrice(lowest.getInstance().getId());
+		final int qi = createInstance(vo);
+
+		// Storage part
+		final Integer size = Optional.ofNullable(upload.getDisk()).map(Double::intValue).orElse(0);
+		if (size > 0) {
+			// Size is provided
+			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
+
+			// Default the storage name to the instance
+			svo.setName(vo.getName());
+			svo.setQuoteInstance(qi);
+			svo.setSize(size);
+			svo.setSubscription(subscription);
+			final ProvStorageFrequency frequency = upload.getFrequency();
+			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
+			ValidationJsonException.assertNotnull(storagePrice, "storage");
+			svo.setType(storagePrice.getType().getId());
+			createStorage(svo);
+		}
+
 	}
 }

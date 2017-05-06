@@ -29,17 +29,20 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * @param os
 	 *            The requested OS.
 	 * @param type
-	 *            The optional pricing type. May be <code>null</code>.
+	 *            The optional pricing type identifier. May be <code>null</code>.
+	 * @param instance
+	 *            The optional instance identifier. May be <code>null</code>.
 	 * @param pageable
 	 *            The page control to return few item.
 	 * @return The minimum instance or <code>null</code>.
 	 */
 	@Query("FROM #{#entityName} AS ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
+			+ " AND (:instance IS NULL OR i.id = :instance)"
 			+ " AND i.cpu>= :cpu AND i.ram>=:ram AND ip.os=:os AND (:constant = false OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) AND i.cpu > 0 ORDER BY ip.cost ASC")
 	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, boolean constant, VmOs os, Integer type,
-			Pageable pageable);
+			Integer instance, Pageable pageable);
 
 	/**
 	 * Return the lowest custom instance price configuration from the minimal
