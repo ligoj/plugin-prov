@@ -34,6 +34,25 @@ define(function () {
 			$('.provider').text(current.model.node.name);
 			_('name-prov').val(current.model.configuration.name);
 		},
+		
+		reload: function () {
+			// Clear the table
+			var $instances = _('prov-instances').DataTable();
+			var $storages = _('prov-storages').DataTable();
+			$instances.clear().draw();
+			$storages.clear().draw();
+			$.ajax({
+				dataType: 'json',
+				url: REST_PATH + 'subscription/' + current.model.subscription + '/configuration',
+				type: 'GET',
+				success: function (data) {
+					current.model = data;
+					current.optimizeModel();
+					$instances.rows.add(current.model.configuration.instances).draw();
+					$storages.rows.add(current.model.configuration.storages).draw();
+				}
+			});
+		},
 
 		/**
 		 * Render LDAP.
@@ -147,10 +166,12 @@ define(function () {
 		 * Return the HTML markup from the storage optimized.
 		 */
 		formatStorageOptimized: function(optimized, withText) {
-			var id = (optimized.id || optimized || 'throughput').toLowerCase();
-			var clazz = current.storageOptimized[id];
-			var text = current.$messages['service:prov:storage-optimized-' + id];
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
+			if (optimized) {
+				var id = (optimized.id || optimized || 'throughput').toLowerCase();
+				var clazz = current.storageOptimized[id];
+				var text = current.$messages['service:prov:storage-optimized-' + id];
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
+			}
 		},
 
 		/**
@@ -289,7 +310,7 @@ define(function () {
 			current.model.instancePrice = price || {};
 			if (current.model.instancePrice.instance) {
 				_('instance').val(price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)');
-				_('instance-price-type').select2('data', price.instance.type);
+				_('instance-price-type').select2('data', price.instance.type).val(price.instance.type.id);
 			} else {
 				_('instance').val('');
 				
@@ -349,7 +370,6 @@ define(function () {
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
-				debugger;
 				$(this).ajaxSubmit({
 					url: REST_PATH + 'service/prov/upload/' + current.model.subscription,
 					type: 'POST',
@@ -363,6 +383,9 @@ define(function () {
 					},
 					success: function () {
 						$popup.modal('hide');
+
+						// Refresh the data
+						current.reload();
 					},
 					complete: function (id) {
 						$('.import-summary').html('').addClass('hidden');
@@ -381,7 +404,7 @@ define(function () {
 				var table = current[type + 'Table'];
 				table && table.fnFilter($(this).val());
 			});
-			
+
 			$('.resource-query').on('change',current.checkResource);
 			$('.resource-query').on('keyup',current.checkResource);
 			current.initializeDataTableEvents('instance');
@@ -400,7 +423,7 @@ define(function () {
 					{id:'RHE',text:'RHE'}
 				]
 			});
-			
+
 			_('storage-optimized').select2({
 				placeholder: current.$messages['service:prov:storage-optimized-help'],
 				allowClear: true,
@@ -414,7 +437,7 @@ define(function () {
 					{id:'IOPS',text:'IOPS'}
 				]
 			});
-			
+
 			_('storage-frequency').select2({
 				formatSelection: current.formatStorageFrequency,
 				formatResult: current.formatStorageFrequency,
@@ -427,11 +450,11 @@ define(function () {
 					{id:'ARCHIVE',text:'ARCHIVE'}
 				]
 			});
-			
+
 			_('instance-price-type').select2(current.instancePriceTypeSelect2());
 			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
 		},
-		
+
 		instancePriceTypeSelect2: function(allowClear) {
 			return {
 				formatSelection: current.priceTypeToText,
@@ -485,7 +508,7 @@ define(function () {
 		priceTypeToText: function(priceType) {
 			return priceType.name || priceType.text || priceType;
 		},
-		
+
 		storageCommitToModel: function(data, model, costContext) {
 			model.size = parseInt(data.size, 10);
 			model.type = costContext.type;
@@ -502,7 +525,7 @@ define(function () {
 			data.type = current.model.storagePrice.type.id;
 			return current.model.storagePrice;
 		},
-		
+
 		instanceUiToData: function(data) {
 			data.cpu = current.cleanData(_('instance-cpu').val()) || null;
 			data.ram = current.cleanData(_('instance-ram').val()) || null;
@@ -534,7 +557,7 @@ define(function () {
 		instanceToUi: function (model) {
 			_('instance-cpu').val(model.cpu || '1');
 			_('instance-ram').val(model.ram || '2048');
-			_('instance-os').select2('data', (model.id && model.instancePrice.os) || 'LINUX');
+			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-price-type').select2('data', (model.id && model.instancePrice.type) || null);
 			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
 		},
@@ -545,9 +568,13 @@ define(function () {
 		 */
 		storageToUi: function (model) {
 			_('storage-size').val(model.size || '10');
-			_('storage-frequency').select2('data', (model.storagePrice && model.storagePrice.frequency) || 'COLD');
-			_('storage-optimized').select2('data', (model.storagePrice && model.storagePrice.optimized) || null);
-			current.storageSetUiPrice(model.id && model.storagePrice);
+			_('storage-frequency').select2('data', current.select2IdentityData((model.storagePrice && model.storagePrice.frequency) || 'COLD'));
+			_('storage-optimized').select2('data', current.select2IdentityData(model.storagePrice && model.storagePrice.optimized));
+			current.storageSetUiPrice(model.id && {cost: model.cost, type: model.type});
+		},
+		
+		select2IdentityData: function(id) {
+			return id && {id:id, text:id};
 		},
 
 		save: function (type) {
