@@ -786,7 +786,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void upload() throws IOException {
 		resource.upload(subscription, new ClassPathResource("csv/upload.csv").getInputStream(),
-				new String[] { "name", "constant", "cpu", "ram", "disk", "frequency", "os" }, null, "UTF-8");
+				new String[] { "name", "cpu", "ram", "disk", "frequency", "os", "constant" }, null, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(18, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getInstancePrice().getType().getName());
@@ -810,7 +810,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadDefaultPriceType() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;true;0.5;500;LINUX".getBytes("UTF-8")), null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true".getBytes("UTF-8")), null,
 				priceTypeRepository.findByNameExpected("on-demand2").getId(), "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -851,7 +851,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadOnlyCustomFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;true;999;6000;LINUX".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;LINUX;true".getBytes("UTF-8")), null, null,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -863,7 +863,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadCustomLowest() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;true;1;64000;LINUX".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64000;LINUX;true".getBytes("UTF-8")), null, null,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -875,7 +875,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadInstanceNotFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;true;999;6000;WINDOWS".getBytes("UTF-8")), null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;WINDOWS;true".getBytes("UTF-8")), null,
 				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
 	}
 
