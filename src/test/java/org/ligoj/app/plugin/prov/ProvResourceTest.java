@@ -874,7 +874,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void upload() throws IOException {
 		resource.upload(subscription, new ClassPathResource("csv/upload.csv").getInputStream(),
-				new String[] { "name", "cpu", "ram", "disk", "frequency", "os", "constant" }, null, "UTF-8");
+				new String[] { "name", "cpu", "ram", "disk", "frequency", "os", "constant" }, null, 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(18, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getInstancePrice().getType().getName());
@@ -885,7 +885,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadDefaultHeader() throws IOException {
-		resource.upload(subscription, new ClassPathResource("csv/upload-default.csv").getInputStream(), null, null,
+		resource.upload(subscription, new ClassPathResource("csv/upload-default.csv").getInputStream(), null, null, 1,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(18, configuration.getInstances().size());
@@ -900,7 +900,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void uploadDefaultPriceType() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "constant" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), "UTF-8");
+				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand2", configuration.getInstances().get(7).getInstancePrice().getType().getName());
@@ -914,7 +914,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void uploadFixedInstance() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "instance" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), "UTF-8");
+				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand2", configuration.getInstances().get(7).getInstancePrice().getType().getName());
@@ -928,7 +928,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void uploadFixedPriceType() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;on-demand1".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "priceType" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), "UTF-8");
+				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getInstancePrice().getType().getName());
@@ -940,7 +940,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadOnlyCustomFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;LINUX".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6;LINUX".getBytes("UTF-8")), null, null, 1024,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
@@ -952,32 +952,32 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadCustomLowest() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64000;LINUX".getBytes("UTF-8")), null, null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64;LINUX".getBytes("UTF-8")), null, null, 1024,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getInstancePrice().getType().getName());
 		Assert.assertEquals("dynamic", configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
 		Assert.assertEquals(4, configuration.getStorages().size());
-		Assert.assertEquals(448.112, configuration.getCost(), DELTA);
+		Assert.assertEquals(451.04, configuration.getCost(), DELTA);
 	}
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadInstanceNotFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6000;WINDOWS".getBytes("UTF-8")), null,
-				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null,
+				priceTypeRepository.findByNameExpected("on-demand1").getId(), 1024, "UTF-8");
 	}
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadStorageNotFound() throws IOException {
 		resource.upload(subscription,
 				new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
-				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
+				priceTypeRepository.findByNameExpected("on-demand1").getId(), 1, "UTF-8");
 	}
 
 	@Test(expected = BusinessException.class)
 	public void uploadInvalidHeader() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")), new String[] { "any" },
-				priceTypeRepository.findByNameExpected("on-demand1").getId(), "UTF-8");
+				priceTypeRepository.findByNameExpected("on-demand1").getId(), 1, "UTF-8");
 	}
 }

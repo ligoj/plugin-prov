@@ -28,6 +28,8 @@ define({
 		'service:prov:price-type-help' : 'Price condition, period and contract. In general, the shortest is the contract, the more expensive is the instance',
 		'service:prov:price-type-upload': 'Default usage',
 		'service:prov:price-type-upload-help' : 'Price condition, period and contract used when no condition are present in the imported file. In general, the shortest is the contract, the more expensive is the instance',
+		'service:prov:memory-unit-upload' : 'Memory unit',
+		'service:prov:memory-unit-upload-help' : 'Memory unit for RAM within the imported file',
 		'service:prov:storage' : 'Storage',
 		'service:prov:storage-title' : 'Block Storage, in GB',
 		'service:prov:storage-type' : 'Type',

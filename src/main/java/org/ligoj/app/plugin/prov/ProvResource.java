@@ -763,6 +763,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @param uploadedFile
 	 *            Instance entries files to import. Currently support only CSV
 	 *            format.
+	 * @param ramMultiplier
+	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param columns
 	 *            the CSV header names.
 	 * @param encoding
@@ -775,6 +777,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			@Multipart(value = "csv-file") final InputStream uploadedFile,
 			@Multipart(value = "columns", required = false) final String[] columns,
 			@Multipart(value = "priceType", required = false) final Integer defaultPriceType,
+			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
 		subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 		final Integer priceTypeEntity = Optional.ofNullable(iptRepository.findById(subscription, defaultPriceType))
@@ -793,16 +796,19 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		csvForBean
 				.toBean(InstanceUpload.class, new InputStreamReader(new SequenceInputStream(
 						new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
-				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, priceTypeEntity));
+				.stream().filter(Objects::nonNull)
+				.forEach(i -> persist(i, subscription, priceTypeEntity, ramMultiplier));
 
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType) {
+	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType,
+			final Integer ramMultiplier) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName(upload.getName());
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
-		vo.setRam(ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		vo.setRam(
+				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		final Boolean constant = ObjectUtils.defaultIfNull(upload.getConstant(), Boolean.FALSE);
 
 		// Instance selection
