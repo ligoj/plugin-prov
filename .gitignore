@@ -5,3 +5,4 @@
 **/.classpath
 **/dependency-reduced-pom.xml
 /*.exec
+**/node_modules
