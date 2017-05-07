@@ -91,9 +91,19 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Plug-in key.
 	 */
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
-	public static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
-	public static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency",
+	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
+	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency",
 			"optimized", "priceType", "instance" };
+
+	/**
+	 * Average hours in one month.
+	 */
+	private static final double HOURS_BY_MONTH = 24 * 30.5;
+
+	/**
+	 * Ordered/mapped columns.
+	 */
+	private static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
@@ -127,16 +137,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 	@Autowired
 	private PaginationJson paginationJson;
-
-	/**
-	 * Average hours in one month.
-	 */
-	private static final double HOURS_BY_MONTH = 24 * 30.5;
-
-	/**
-	 * Ordered/mapped columns.
-	 */
-	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
 	static {
 		ORM_COLUMNS.put("id", "id");
@@ -736,7 +736,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			@Multipart(value = "columns", required = false) final String[] columns,
 			@Multipart(value = "priceType", required = false) final Integer defaultPriceType,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
-		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 		final Integer priceTypeEntity = Optional.ofNullable(iptRepository.findById(subscription, defaultPriceType))
 				.map(ProvInstancePriceType::getId).orElse(null);
 
@@ -753,11 +753,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		csvForBean
 				.toBean(InstanceUpload.class, new InputStreamReader(new SequenceInputStream(
 						new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
-				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, node, priceTypeEntity));
+				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, priceTypeEntity));
 
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription, final String node,
+	private void persist(final InstanceUpload upload, final int subscription,
 			final Integer defaultType) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -791,14 +791,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			// Size is provided
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
+			// Find the nicest storage
+			final ProvStorageFrequency frequency = upload.getFrequency();
+			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
+			ValidationJsonException.assertNotnull(storagePrice, "storage");
+
 			// Default the storage name to the instance
 			svo.setName(vo.getName());
 			svo.setQuoteInstance(qi);
 			svo.setSize(size);
 			svo.setSubscription(subscription);
-			final ProvStorageFrequency frequency = upload.getFrequency();
-			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
-			ValidationJsonException.assertNotnull(storagePrice, "storage");
 			svo.setType(storagePrice.getType().getId());
 			createStorage(svo);
 		}
