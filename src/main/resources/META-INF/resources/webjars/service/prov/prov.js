@@ -817,7 +817,7 @@ define(function () {
 				}, {
 					data: 'instancePrice.os',
 					render: function (os) {
-						return current.formatOs(os, false);
+						return current.formatOs(os, true);
 					}
 				}, {
 					data: 'cpu'
