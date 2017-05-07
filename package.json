@@ -1,0 +1,82 @@
+{
+  "name": "plugin-prov",
+  "description": "Ligoj Provisioning plugin",
+  "author": "gfi.fr",
+  "keywords": [
+    "bootstrap",
+    "gstack",
+    "SaaS"
+  ],
+  "version": "1.0.0",
+  "homepage": "https://github.com/ligoj/plugin-prov",
+  "engines": {
+    "jetty": "9.4"
+  },
+  "contributors": [
+    "fabrice.daugan@gmail.com"
+  ],
+  "license": "TBD",
+  "bugs": "https://github.com/ligoj/plugin-prov/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ligoj/plugin-prov"
+  },
+  "happiness": {
+    "globals": [
+      "jQuery",
+      "DEBUG_ENABLED",
+      "traceDebug",
+      "traceLog",
+      "window",
+      "define",
+      "_",
+      "REST_PATH",
+      "Handlebars",
+      "momentManager",
+      "applicationManager",
+      "notifyManager",
+      "validationManager",
+      "$",
+      "document",
+      "traceLog",
+      "navigator",
+      "requirejs",
+      "location",
+      "bootbox",
+      "errorManager",
+      "formatManager",
+      "moment",
+      "securityManager"
+    ]
+  },
+  "stylelint": {
+    "rules": {
+      "at-rule-no-unknown": [
+        true,
+        {
+          "ignoreAtRules": [
+            "include",
+            "mixin"
+          ]
+        }
+      ],
+      "indentation": "tab",
+      "selector-combinator-space-before": "never",
+      "selector-combinator-space-after": "never",
+      "selector-list-comma-newline-after": "never-multi-line",
+      "rule-non-nested-empty-line-before": null,
+      "media-feature-no-missing-punctuation": null,
+      "number-leading-zero": "never"
+    }
+  },
+  "private": true,
+  "analyze": true,
+  "devDependencies": {
+    "happiness": ">=7",
+    "jshint": ">=2.9"
+  },
+  "dependencies": {
+    "d3": ">=4",
+    "cascade": "0.0.1"
+  }
+}
