@@ -791,8 +791,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			// Size is provided
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
+			// Default the storage frequency to HOT when not specified
+			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(), ProvStorageFrequency.HOT);
+
 			// Find the nicest storage
-			final ProvStorageFrequency frequency = upload.getFrequency();
 			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
 			ValidationJsonException.assertNotnull(storagePrice, "storage");
 
