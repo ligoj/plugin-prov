@@ -99,8 +99,8 @@ define(function () {
 		/**
 		 * Format the cost.
 		 */
-		formatCost: function (cost) {
-			return formatManager.formatCost(cost, 3, '$');
+		formatCost: function (cost, mode) {
+			return mode === 'sort' ? cost : formatManager.formatCost(cost, 3, '$');
 		},
 
 		/**
