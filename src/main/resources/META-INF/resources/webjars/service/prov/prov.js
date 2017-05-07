@@ -113,8 +113,8 @@ define(function () {
 		/**
 		 * Format the storage size.
 		 */
-		formatStorage: function (sizeGB) {
-			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+		formatStorage: function (sizeGB, mode) {
+			return mode === 'sort' ? sizeGB : formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
