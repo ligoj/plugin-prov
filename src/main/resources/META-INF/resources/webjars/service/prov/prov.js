@@ -15,7 +15,7 @@ define(function () {
 		 * Current configuration.
 		 */
 		model: null,
-		
+
 		/**
 		 * Instance identifier.
 		 */
@@ -34,7 +34,10 @@ define(function () {
 			$('.provider').text(current.model.node.name);
 			_('name-prov').val(current.model.configuration.name);
 		},
-		
+
+		/**
+		 * Reload the model
+		 */
 		reload: function () {
 			// Clear the table
 			var $instances = _('prov-instances').DataTable();
@@ -85,98 +88,101 @@ define(function () {
 					'name', quote.name
 				],
 				[
-					'service:prov:resources',
-					  	current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + ', '
-					  + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU, '
-					  + current.$super('icon')('database', 'service:prov:total-storage') + (current.formatStorage(quote.totalStorage) || '0')
+					'service:prov:resources', current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + ', ' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU, ' + current.$super('icon')('database', 'service:prov:total-storage') + (current.formatStorage(quote.totalStorage) || '0')
 				],
 				[
 					'service:prov:nb-instances', current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances
 				]
 			], 1);
 		},
-		
+
 		/**
 		 * Format the cost.
 		 */
-		formatCost: function(cost) {
+		formatCost: function (cost) {
 			return formatManager.formatCost(cost, 3, '$');
 		},
-		
+
 		/**
 		 * Format the memory size.
 		 */
-		formatRam: function(sizeMB) {
+		formatRam: function (sizeMB) {
 			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 		},
-		
+
 		/**
 		 * Format the storage size.
 		 */
-		formatStorage: function(sizeGB) {
+		formatStorage: function (sizeGB) {
 			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
-		
+
 		/**
 		 * OS key to markup/label mapping.
 		 */
 		os: {
-			'linux' : ['Linux', 'fa fa-linux'],
-			'windows' : ['Windows', 'fa fa-windows'],
-			'suse' : ['SUSE', 'icon-suse'],
-			'rhe' : ['Red Hat Enterprise', 'icon-redhat']
+			'linux': [
+				'Linux', 'fa fa-linux'
+			],
+			'windows': [
+				'Windows', 'fa fa-windows'
+			],
+			'suse': [
+				'SUSE', 'icon-suse'
+			],
+			'rhe': ['Red Hat Enterprise', 'icon-redhat']
 		},
-		
+
 		/**
 		 * Storage type key to markup/label mapping.
 		 */
 		storageFrequency: {
-			'cold' : 'fa fa-snowflake-o text-info',
-			'hot' : 'fa fa-thermometer-full text-danger',
-			'archive' : 'fa fa-archive'
+			'cold': 'fa fa-snowflake-o text-info',
+			'hot': 'fa fa-thermometer-full text-danger',
+			'archive': 'fa fa-archive'
 		},
-		
+
 		/**
 		 * Storage optimized key to markup/label mapping.
 		 */
 		storageOptimized: {
-			'throughput' : 'fa fa-database',
-			'iops' : 'fa fa-flash'
+			'throughput': 'fa fa-database',
+			'iops': 'fa fa-flash'
 		},
 
 		/**
 		 * Return the HTML markup from the OS key name.
 		 */
-		formatOs: function(os, withText) {
+		formatOs: function (os, withText) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
-			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' +  cfg[0] + '"></i>' + (withText ? ' ' + cfg[0] : '');
+			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (withText ? ' ' + cfg[0] : '');
 		},
-		
+
 		/**
 		 * Return the HTML markup from the storage frequency.
 		 */
-		formatStorageFrequency: function(frequency, withText) {
+		formatStorageFrequency: function (frequency, withText) {
 			var id = (frequency.id || frequency || 'cold').toLowerCase();
 			var clazz = current.storageFrequency[id];
 			var text = current.$messages['service:prov:storage-frequency-' + id];
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
 		},
 
 		/**
 		 * Return the HTML markup from the storage optimized.
 		 */
-		formatStorageOptimized: function(optimized, withText) {
+		formatStorageOptimized: function (optimized, withText) {
 			if (optimized) {
 				var id = (optimized.id || optimized || 'throughput').toLowerCase();
 				var clazz = current.storageOptimized[id];
 				var text = current.$messages['service:prov:storage-optimized-' + id];
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' +  text + '"></i>' + (withText ? ' ' + text : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
 			}
 		},
 
 		/**
 		 * Associate the storages to the instances
-		 */ 
+		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
 			var instances = conf.instances;
@@ -198,13 +204,13 @@ define(function () {
 					// Detached storage
 					conf.detachedStorages.push[storage];
 				}
-				
+
 				// Optimize id access
 				conf.storagesById[storage.id] = storage;
 			}
 			current.updateUiCost();
 		},
-		
+
 		/**
 		 * Return the query parameter name to use to filter the associated input value.
 		 */
@@ -212,7 +218,7 @@ define(function () {
 			var id = $item.attr('id');
 			return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
 		},
-		
+
 		/**
 		 * Disable the create/update button
 		 * @return the related button.
@@ -220,7 +226,7 @@ define(function () {
 		disableCreate: function ($popup) {
 			return $popup.find('input[type="submit"]').attr('disabled', 'disabled').addClass('disabled');
 		},
-		
+
 		/**
 		 * Enable the create/update button
 		 * @return the related button.
@@ -233,17 +239,17 @@ define(function () {
 		 * Check there is at least one instance matching to the requirement
 		 * @param $form Optional jQuery form holding the resources to filter
 		 */
-		checkResource: function() {
+		checkResource: function () {
 			var $form = $(this).closest('[data-prov-type]');
 			var queries = [];
 			var type = $form.data('prov-type');
 			var $popup = _('popup-prov-' + type);
-			
+
 			// Disable the submit while checking the resource
 			current.disableCreate($popup);
-			
+
 			// Build the query
-			$form.find('.resource-query').each(function() {
+			$form.find('.resource-query').each(function () {
 				var $item = $(this);
 				var value = $item.val();
 				var queryParam = value && current.toQueryName(type, $item);
@@ -252,11 +258,11 @@ define(function () {
 					queries.push(queryParam + '=' + current.cleanData(value));
 				}
 			});
-			
+
 			// Check the availability of this instance for these requirements
 			$.ajax({
 				dataType: 'json',
-				url: REST_PATH + 'service/prov/' + type +'-lookup/' + current.model.subscription + '?' + queries.join('&'),
+				url: REST_PATH + 'service/prov/' + type + '-lookup/' + current.model.subscription + '?' + queries.join('&'),
 				type: 'GET',
 				success: function (price) {
 					var callbackUi = current[type + 'SetUiPrice'];
@@ -268,8 +274,8 @@ define(function () {
 				}
 			});
 		},
-		
-		instanceValidatePrice : function (price) {
+
+		instanceValidatePrice: function (price) {
 			var instances = [];
 			price.instance && instances.push(price.instance);
 			price.customInstance && instances.push(price.customInstance);
@@ -279,7 +285,7 @@ define(function () {
 				var lowest;
 				if (instances.length == 1) {
 					lowest = instances[0];
-				} else if (instances[0].cost < instances[1].cost){
+				} else if (instances[0].cost < instances[1].cost) {
 					lowest = instances[0];
 				} else {
 					lowest = instances[1];
@@ -291,10 +297,10 @@ define(function () {
 			traceLog('Out of bounds for this requirement');
 		},
 
-		storageValidatePrice : function (price) {
+		storageValidatePrice: function (price) {
 			return price;
 		},
-		
+
 		/**
 		 * Set the current storage price.
 		 */
@@ -302,7 +308,7 @@ define(function () {
 			current.model.storagePrice = price;
 			_('storage').val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
 		},
-		
+
 		/**
 		 * Set the current instance price.
 		 */
@@ -313,16 +319,16 @@ define(function () {
 				_('instance-price-type').select2('data', price.instance.type).val(price.instance.type.id);
 			} else {
 				_('instance').val('');
-				
+
 				// Find now the best instance from the default inputs
 				$.proxy(current.checkResource, _('popup-prov-instance'))();
 			}
 		},
-		
+
 		/**
 		 * Initialize data tables and popup event : delete and details
 		 */
-		initializeDataTableEvents : function (type) {
+		initializeDataTableEvents: function (type) {
 			// Delete the selected instance from the quote
 			var $table = _('prov-' + type + 's');
 			var dataTable = current[type + 'NewTable']();
@@ -330,12 +336,12 @@ define(function () {
 				var $tr = $(this).closest('tr');
 				var qi = dataTable.fnGetData($tr[0]);
 				$.ajax({
-					url: REST_PATH + 'service/prov/' + type +'/' + qi.id,
+					url: REST_PATH + 'service/prov/' + type + '/' + qi.id,
 					type: 'DELETE',
 					success: function () {
 						// Update the model
 						current[type + 'Delete'](qi.id);
-	
+
 						// Update the UI
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
 						$('.tooltip').remove();
@@ -405,23 +411,30 @@ define(function () {
 				table && table.fnFilter($(this).val());
 			});
 
-			$('.resource-query').on('change',current.checkResource);
-			$('.resource-query').on('keyup',current.checkResource);
+			$('.resource-query').on('change', current.checkResource);
+			$('.resource-query').on('keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
-				escapeMarkup: function (m, d) { 
+				escapeMarkup: function (m, d) {
 					return m;
 				},
-				data:[
-					{id:'LINUX', text:'LINUX'},
-					{id:'WINDOWS',text:'WINDOWS'},
-					{id:'SUSE',text:'SUSE'},
-					{id:'RHE',text:'RHE'}
-				]
+				data: [{
+					id: 'LINUX',
+					text: 'LINUX'
+				}, {
+					id: 'WINDOWS',
+					text: 'WINDOWS'
+				}, {
+					id: 'SUSE',
+					text: 'SUSE'
+				}, {
+					id: 'RHE',
+					text: 'RHE'
+				}]
 			});
 
 			_('storage-optimized').select2({
@@ -429,33 +442,41 @@ define(function () {
 				allowClear: true,
 				formatSelection: current.formatStorageOptimized,
 				formatResult: current.formatStorageOptimized,
-				escapeMarkup: function (m, d) { 
+				escapeMarkup: function (m, d) {
 					return m;
 				},
-				data:[
-					{id:'THROUGHPUT', text:'THROUGHPUT'},
-					{id:'IOPS',text:'IOPS'}
-				]
+				data: [{
+					id: 'THROUGHPUT',
+					text: 'THROUGHPUT'
+				}, {
+					id: 'IOPS',
+					text: 'IOPS'
+				}]
 			});
 
 			_('storage-frequency').select2({
 				formatSelection: current.formatStorageFrequency,
 				formatResult: current.formatStorageFrequency,
-				escapeMarkup: function (m, d) { 
+				escapeMarkup: function (m, d) {
 					return m;
 				},
-				data:[
-					{id:'COLD', text:'COLD'},
-					{id:'HOT',text:'HOT'},
-					{id:'ARCHIVE',text:'ARCHIVE'}
-				]
+				data: [{
+					id: 'COLD',
+					text: 'COLD'
+				}, {
+					id: 'HOT',
+					text: 'HOT'
+				}, {
+					id: 'ARCHIVE',
+					text: 'ARCHIVE'
+				}]
 			});
 
 			_('instance-price-type').select2(current.instancePriceTypeSelect2());
 			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
 		},
 
-		instancePriceTypeSelect2: function(allowClear) {
+		instancePriceTypeSelect2: function (allowClear) {
 			return {
 				formatSelection: current.priceTypeToText,
 				formatResult: current.priceTypeToText,
@@ -468,7 +489,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-							return REST_PATH + 'service/prov/instance-price-type/' + current.model.subscription;
+						return REST_PATH + 'service/prov/instance-price-type/' + current.model.subscription;
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -502,31 +523,31 @@ define(function () {
 						};
 					}
 				}
-			}
+			};
 		},
 
-		priceTypeToText: function(priceType) {
+		priceTypeToText: function (priceType) {
 			return priceType.name || priceType.text || priceType;
 		},
 
-		storageCommitToModel: function(data, model, costContext) {
+		storageCommitToModel: function (data, model, costContext) {
 			model.size = parseInt(data.size, 10);
 			model.type = costContext.type;
 		},
 
-		instanceCommitToModel: function(data, model, costContext) {
+		instanceCommitToModel: function (data, model, costContext) {
 			model.cpu = parseFloat(data.cpu, 10);
-			model.ram = parseInt(data.ram ,10);
+			model.ram = parseInt(data.ram, 10);
 			model.instancePrice = costContext.instance;
 		},
 
-		storageUiToData: function(data) {
+		storageUiToData: function (data) {
 			data.size = current.cleanData(_('storage-size').val());
 			data.type = current.model.storagePrice.type.id;
 			return current.model.storagePrice;
 		},
 
-		instanceUiToData: function(data) {
+		instanceUiToData: function (data) {
 			data.cpu = current.cleanData(_('instance-cpu').val()) || null;
 			data.ram = current.cleanData(_('instance-ram').val()) || null;
 			data.instancePrice = current.model.instancePrice.instance.id;
@@ -559,7 +580,10 @@ define(function () {
 			_('instance-ram').val(model.ram || '2048');
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-price-type').select2('data', (model.id && model.instancePrice.type) || null);
-			current.instanceSetUiPrice(model.id && {cost: model.cost, instance: model.instancePrice});
+			current.instanceSetUiPrice(model.id && {
+				cost: model.cost,
+				instance: model.instancePrice
+			});
 		},
 
 		/**
@@ -570,27 +594,33 @@ define(function () {
 			_('storage-size').val(model.size || '10');
 			_('storage-frequency').select2('data', current.select2IdentityData((model.storagePrice && model.storagePrice.frequency) || 'COLD'));
 			_('storage-optimized').select2('data', current.select2IdentityData(model.storagePrice && model.storagePrice.optimized));
-			current.storageSetUiPrice(model.id && {cost: model.cost, type: model.type});
+			current.storageSetUiPrice(model.id && {
+				cost: model.cost,
+				type: model.type
+			});
 		},
-		
-		select2IdentityData: function(id) {
-			return id && {id:id, text:id};
+
+		select2IdentityData: function (id) {
+			return id && {
+				id: id,
+				text: id
+			};
 		},
 
 		save: function (type) {
 			var $popup = _('popup-prov-' + type);
-			
+
 			// Build the playload for business service
 			var data = {
 				id: current.currentId,
 				name: (_(type + '-name').val() || ''),
 				description: _(type + '-description').val() || '',
-				subscription: current.model.subscription,
+				subscription: current.model.subscription
 			};
 			// Backup the stored context
 			var costContext = current[type + 'UiToData'](data);
 			var conf = current.model.configuration;
-			
+
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
@@ -603,9 +633,11 @@ define(function () {
 					} else {
 						notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
 					}
-					
+
 					// Update the model
-					var model = conf[type + 'sById'][data.id] || { id: data.id };
+					var model = conf[type + 'sById'][data.id] || {
+						id: data.id
+					};
 					model.name = data.name;
 					model.description = data.description;
 					current[type + 'CommitToModel'](data, model, costContext);
@@ -630,7 +662,7 @@ define(function () {
 				}
 			});
 		},
-		
+
 		/**
 		 * Update the total cost of the quote.
 		 */
@@ -638,9 +670,9 @@ define(function () {
 			$('.cost').text(current.formatCost(current.model.configuration.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
-			
+
 			// Update the total resource usage
-			require(['d3'], function(d3) {
+			require(['d3'], function (d3) {
 				var usage = current.usageGlobalRate();
 				var weight = 0;
 				var weightUsage = 0;
@@ -665,7 +697,7 @@ define(function () {
 				}
 			});
 		},
-		
+
 		/**
 		 * Compute the global resource usage of this quote.
 		 */
@@ -684,18 +716,27 @@ define(function () {
 				ramAvailable += instance.instancePrice.instance.ram;
 				ramUsed += instance.ram;
 			}
-			for (var i = 0; i < conf.storages.length; i++) {
+			for (i = 0; i < conf.storages.length; i++) {
 				var storage = conf.storages[i];
 				storageAvailable += Math.max(storage.size, storage.type.minimal);
 				storageUsed += storage.size;
 			}
 			return {
-				ram: {available: ramAvailable, used: ramUsed},
-				cpu: {available: cpuAvailable, used: cpuUsed},
-				storage: {available: storageAvailable, used: storageUsed}
+				ram: {
+					available: ramAvailable,
+					used: ramUsed
+				},
+				cpu: {
+					available: cpuAvailable,
+					used: cpuUsed
+				},
+				storage: {
+					available: storageAvailable,
+					used: storageUsed
+				}
 			};
 		},
-		
+
 		/**
 		 * Update the model a deleted quote storage
 		 */
@@ -710,7 +751,7 @@ define(function () {
 				}
 			}
 		},
-		
+
 		/**
 		 * Update the model and the association with a deleted quote instance
 		 */
@@ -724,7 +765,7 @@ define(function () {
 					delete conf.instancesById[instance.id];
 
 					// Also delete the related storages
-					for (var s = conf.storages.length; s--> 0;) {
+					for (var s = conf.storages.length; s-- > 0;) {
 						var storage = conf.storages[s];
 						if (storage.quoteInstance && storage.quoteInstance.id === id) {
 							// Delete the associated storages
@@ -742,18 +783,20 @@ define(function () {
 		 * Initialize D3 graphics with default empty data.
 		 */
 		initializeD3: function () {
-			require(['d3', '../main/service/prov/lib/liquidFillGauge'], function(d3) {
-			    d3.select("#gauge-global").call(d3.liquidfillgauge, 1, {
-			      textColor: "#FF4444",
-			      textVertPosition: 0.2,
-			      waveAnimateTime: 1200,
-			      waveHeight: 0.9,
-			      backgroundColor: "#e0e0e0"
-			    });
+			require([
+				'd3', '../main/service/prov/lib/liquidFillGauge'
+			], function (d3) {
+				d3.select("#gauge-global").call(d3.liquidfillgauge, 1, {
+					textColor: "#FF4444",
+					textVertPosition: 0.2,
+					waveAnimateTime: 1200,
+					waveHeight: 0.9,
+					backgroundColor: "#e0e0e0"
+				});
 
-			    // First render
-			    current.updateUiCost();
-		    });
+				// First render
+				current.updateUiCost();
+			});
 		},
 
 		/**
@@ -762,7 +805,7 @@ define(function () {
 		instanceNewTable: function () {
 			current.instanceTable = _('prov-instances').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data : current.model.configuration.instances,
+				data: current.model.configuration.instances,
 				destroy: true,
 				searching: true,
 				createdRow: function (nRow, data) {
@@ -795,8 +838,7 @@ define(function () {
 					width: '32px',
 					orderable: false,
 					render: function () {
-						return '<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>'
-						     + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return '<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>' + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				}]
 			});
@@ -809,7 +851,7 @@ define(function () {
 		storageNewTable: function () {
 			current.storageTable = _('prov-storages').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data : current.model.configuration.storages,
+				data: current.model.configuration.storages,
 				destroy: true,
 				searching: true,
 				createdRow: function (nRow, data) {
@@ -823,10 +865,10 @@ define(function () {
 					render: current.formatStorage
 				}, {
 					data: 'type.frequency',
-					render : current.formatStorageFrequency
+					render: current.formatStorageFrequency
 				}, {
 					data: 'type.optimized',
-					render : current.formatStorageOptimized
+					render: current.formatStorageOptimized
 				}, {
 					data: 'type.name'
 				}, {
@@ -837,8 +879,7 @@ define(function () {
 					width: '32px',
 					orderable: false,
 					render: function () {
-						return '<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>'
-						     + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return '<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>' + '<a class="delete"><i class="fa fa-times" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				}]
 			});

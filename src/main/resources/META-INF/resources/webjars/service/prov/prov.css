@@ -2,22 +2,27 @@
 .masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
 	width: 80px;
 }
+
 .masonry-container .node.service-prov.mode-th-large table.subscriptions th.features {
 	width: 58px;
 }
+
 .masonry-container .node.service-prov table.subscriptions th.features {
 	width: 50px;
 }
+
 #gauge-global {
 	width: 120px;
 	height: 120px;
 }
+
 #prov-dashboard {
 	position: relative;
 	width: 50%;
-    height: 0;
-    top: -30px;
+	height: 0;
+	top: -30px;
 }
+
 #prov-dashboard .svg-wrapper {
 	position: relative;
 }
