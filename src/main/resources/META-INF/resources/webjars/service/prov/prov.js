@@ -395,6 +395,8 @@ define(function () {
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
+				// Avoid useless empty optional inputs
+				$popup.find('input[type="text"]').not('[value]').not('[readonly]').not('.select2-focusser').not('[disabled]').attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
 				$(this).ajaxSubmit({
 					url: REST_PATH + 'service/prov/upload/' + current.model.subscription,
 					type: 'POST',
@@ -404,6 +406,7 @@ define(function () {
 						current.disableCreate($popup);
 						validationManager.reset($popup);
 						validationManager.mapping.DEFAULT = 'csv-file';
+						
 						$('.import-summary').html('Processing...');
 					},
 					success: function () {
@@ -414,6 +417,9 @@ define(function () {
 					},
 					complete: function (id) {
 						$('.import-summary').html('').addClass('hidden');
+
+						// Restore the optional inputs
+						$popup.find('input.temp-disabled').removeAttr('disabled').removeAttr('readonly').removeClass('temp-disabled').closest('.select2-container').select2('enable', true);
 						current.enableCreate($popup);
 					}
 				});
