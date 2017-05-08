@@ -497,6 +497,36 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	public void deleteAllInstances() {
+		refreshCost();
+
+		final Integer id = qiRepository.findByNameExpected("server1").getId();
+		final Integer storage1 = qsRepository.findByNameExpected("server1-root").getId();
+		final Integer storage2 = qsRepository.findByNameExpected("server1-data").getId();
+		final Integer storage3 = qsRepository.findByNameExpected("server1-temp").getId();
+		final Integer storageOther = qsRepository.findByNameExpected("shared-data").getId();
+		Assert.assertTrue(qsRepository.exists(storage1));
+		Assert.assertTrue(qsRepository.exists(storage2));
+		Assert.assertTrue(qsRepository.exists(storage3));
+		Assert.assertEquals(8, qiRepository.count());
+		em.flush();
+		em.clear();
+
+		resource.deleteAllInstances(subscription);
+
+		// Check the exact new cost
+		Assert.assertEquals(2.73, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertNull(qiRepository.findOne(id));
+		Assert.assertEquals(1, qiRepository.count());
+
+		// Also check the associated storage is deleted
+		Assert.assertFalse(qsRepository.exists(storage1));
+		Assert.assertFalse(qsRepository.exists(storage2));
+		Assert.assertFalse(qsRepository.exists(storage3));
+		Assert.assertTrue(qsRepository.exists(storageOther));
+	}
+
+	@Test
 	public void deleteInstance() {
 		refreshCost();
 
@@ -522,6 +552,30 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertFalse(qsRepository.exists(storage2));
 		Assert.assertFalse(qsRepository.exists(storage3));
 		Assert.assertTrue(qsRepository.exists(storageOther));
+	}
+
+	@Test
+	public void deleteAllStorages() {
+		refreshCost();
+
+		final Integer id = qsRepository.findByNameExpected("server1-root").getId();
+		Assert.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
+		Assert.assertEquals(8, qiRepository.count());
+		Assert.assertEquals(4, qsRepository.count());
+		em.flush();
+		em.clear();
+
+		resource.deleteAllStorages(subscription);
+
+		// Check the exact new cost
+		Assert.assertEquals(4236.084, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+
+		// Check the associations
+		Assert.assertNull(qsRepository.findOne(id));
+		Assert.assertEquals(0, qiRepository.findByNameExpected("server1").getStorages().size());
+
+		Assert.assertEquals(8, qiRepository.count());
+		Assert.assertEquals(0, qsRepository.count());
 	}
 
 	@Test

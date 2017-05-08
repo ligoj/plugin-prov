@@ -332,6 +332,8 @@ define(function () {
 			// Delete the selected instance from the quote
 			var $table = _('prov-' + type + 's');
 			var dataTable = current[type + 'NewTable']();
+
+			// Delete a single row/item
 			$table.on('click', '.delete', function () {
 				var $tr = $(this).closest('tr');
 				var qi = dataTable.fnGetData($tr[0]);
@@ -346,6 +348,23 @@ define(function () {
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
 						$('.tooltip').remove();
 						$table.DataTable().row($tr).remove().draw(false);
+						current.updateUiCost();
+					}
+				});
+			});
+
+			// Delete all items
+			$table.on('click', '.delete-all', function () {
+				$.ajax({
+					url: REST_PATH + 'service/prov/' + type + '/reset/' + current.model.subscription,
+					type: 'DELETE',
+					success: function () {
+						// Update the model
+						current[type + 'Delete']();
+
+						// Update the UI
+						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-cleared'])());
+						$table.DataTable().clear().draw();
 						current.updateUiCost();
 					}
 				});
@@ -592,7 +611,6 @@ define(function () {
 		 */
 		storageToUi: function (model) {
 			_('storage-size').val(model.size || '10');
-			debugger;
 			_('storage-frequency').select2('data', current.select2IdentityData((model.type && model.type.frequency) || 'HOT'));
 			_('storage-optimized').select2('data', current.select2IdentityData(model.type && model.type.optimized));
 			current.storageSetUiPrice(model.id && {
@@ -740,27 +758,32 @@ define(function () {
 
 		/**
 		 * Update the model a deleted quote storage
+		 * @param id Option identifier to delete. When not defined, all items are deleted.
 		 */
 		storageDelete: function (id) {
 			var conf = current.model.configuration;
-			for (var i = 0; i < conf.storages.length; i++) {
+			for (var i = conf.storages.length; i-- > 0;) {
 				var storage = conf.storages[i];
-				if (storage.id === id) {
+				if (typeof id === 'undefined' || storage.id === id) {
 					conf.storages.splice(i, 1);
 					conf.cost -= storage.cost;
-					break;
+					if (id) {
+						// Unique item to delete
+						break;
+					}
 				}
 			}
 		},
 
 		/**
 		 * Update the model and the association with a deleted quote instance
+		 * @param id Option identifier to delete. When not defined, all items are deleted.
 		 */
 		instanceDelete: function (id) {
 			var conf = current.model.configuration;
-			for (var i = 0; i < conf.instances.length; i++) {
+			for (var i = conf.instances.length; i-- > 0;) {
 				var instance = conf.instances[i];
-				if (instance.id === id) {
+				if (typeof id === 'undefined' || instance.id === id) {
 					conf.instances.splice(i, 1);
 					conf.cost -= instance.cost;
 					delete conf.instancesById[instance.id];
@@ -768,14 +791,17 @@ define(function () {
 					// Also delete the related storages
 					for (var s = conf.storages.length; s-- > 0;) {
 						var storage = conf.storages[s];
-						if (storage.quoteInstance && storage.quoteInstance.id === id) {
+						if (storage.quoteInstance && storage.quoteInstance.id === instance.id) {
 							// Delete the associated storages
 							conf.storages.splice(s, 1);
 							conf.cost -= storage.cost;
 							delete conf.storagesById[storage.id];
 						}
 					}
-					break;
+					if (id) {
+						// Unique item to delete
+						break;
+					}
 				}
 			}
 		},

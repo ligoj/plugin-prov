@@ -287,6 +287,46 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Delete all instances from a quote. The total cost is updated.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 */
+	@DELETE
+	@Path("instance/reset/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void deleteAllInstances(@PathParam("subscription") final int subscription) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+
+		// Delete all instance with cascaded delete for storages
+		qiRepository.delete(qiRepository.findAllBy("configuration.subscription.id", subscription));
+
+		// Update the cost. Note the effort could be reduced to a simple
+		// subtract of instances cost and related storage costs
+		refreshCost(subscription);
+	}
+
+	/**
+	 * Delete all storages from a quote. The total cost is updated.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 */
+	@DELETE
+	@Path("storage/reset/{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void deleteAllStorages(@PathParam("subscription") final int subscription) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+
+		// Delete all storages related to any instance, then the instances
+		qsRepository.delete(qsRepository.findAllBy("configuration.subscription.id", subscription));
+
+		// Update the cost. Note the effort could be reduced to a simple
+		// subtract of storage costs.
+		refreshCost(subscription);
+	}
+
+	/**
 	 * Create the storage inside a quote.
 	 * 
 	 * @param vo
@@ -757,8 +797,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription,
-			final Integer defaultType) {
+	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName(upload.getName());
@@ -792,7 +831,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
 			// Default the storage frequency to HOT when not specified
-			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(), ProvStorageFrequency.HOT);
+			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(),
+					ProvStorageFrequency.HOT);
 
 			// Find the nicest storage
 			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
