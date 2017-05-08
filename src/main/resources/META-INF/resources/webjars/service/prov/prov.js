@@ -592,8 +592,9 @@ define(function () {
 		 */
 		storageToUi: function (model) {
 			_('storage-size').val(model.size || '10');
-			_('storage-frequency').select2('data', current.select2IdentityData((model.storagePrice && model.storagePrice.frequency) || 'COLD'));
-			_('storage-optimized').select2('data', current.select2IdentityData(model.storagePrice && model.storagePrice.optimized));
+			debugger;
+			_('storage-frequency').select2('data', current.select2IdentityData((model.type && model.type.frequency) || 'HOT'));
+			_('storage-optimized').select2('data', current.select2IdentityData(model.type && model.type.optimized));
 			current.storageSetUiPrice(model.id && {
 				cost: model.cost,
 				type: model.type
