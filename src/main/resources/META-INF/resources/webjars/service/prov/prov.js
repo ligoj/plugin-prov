@@ -153,9 +153,12 @@ define(function () {
 		/**
 		 * Return the HTML markup from the OS key name.
 		 */
-		formatOs: function (os, withText) {
+		formatOs: function (os, mode) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
-			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (withText ? ' ' + cfg[0] : '');
+			if (mode === 'sort') {
+				return cfg[0];
+			}
+			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
 		/**
@@ -849,13 +852,14 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'instancePrice.os',
-					render: function (os) {
-						return current.formatOs(os, true);
-					}
+					width: '24px',
+					render: current.formatOs
 				}, {
-					data: 'cpu'
+					data: 'cpu',
+					width: '24px'
 				}, {
 					data: 'ram',
+					width: '48px',
 					render: current.formatRam
 				}, {
 					// Usage type for an instance
@@ -865,6 +869,7 @@ define(function () {
 					render: current.formatStorage
 				}, {
 					data: 'cost',
+					width: '64px',
 					render: current.formatCost
 				}, {
 					data: null,
@@ -897,17 +902,21 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'size',
+					width: '64px',
 					render: current.formatStorage
 				}, {
 					data: 'type.frequency',
+					width: '64px',
 					render: current.formatStorageFrequency
 				}, {
 					data: 'type.optimized',
+					width: '64px',
 					render: current.formatStorageOptimized
 				}, {
 					data: 'type.name'
 				}, {
 					data: 'cost',
+					width: '64px',
 					render: current.formatCost
 				}, {
 					data: null,
