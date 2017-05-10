@@ -349,7 +349,7 @@ define(function () {
 					type: 'DELETE',
 					success: function () {
 						// Update the model
-						current[type + 'Delete'](qi.id);
+						current[type + 'Delete'](qi.id); 
 
 						// Update the UI
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
@@ -704,6 +704,7 @@ define(function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function () {
+			current.model.configuration.cost = (Math.round(current.model.configuration.cost * 1000) / 1000) || 0;
 			$('.cost').text(current.formatCost(current.model.configuration.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
