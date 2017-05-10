@@ -8,8 +8,9 @@
 				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span></a></li>
 				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span></a></li>
 				<li id="prov-dashboard" class="text-center">
-					<div class="svg-wrapper" title="{{service:prov:efficiency-title}}" data-toggle="tooltip">
-						<svg id="gauge-global"></svg>
+					<div class="svg-wrapper">
+						<svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip"></svg>
+						<div id="sunburst"></div>
 					</div>
 				</li>
 				<li class="pull-right"><h2 class="text-info">

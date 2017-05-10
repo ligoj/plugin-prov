@@ -30,3 +30,29 @@
 #popup-prov-instance-import code {
 	font-size: 75%;
 }
+
+#subscribe-configuration-prov .nav h2 {
+	font-size: 90px;
+}
+
+#sunburst path {
+	stroke: #fff;
+	fill-rule: evenodd;
+}
+
+#sunburst {
+	width: 150px;
+	height: 200px;
+	z-index: 1030;
+	position: absolute;
+	top: -107px;
+}
+
+.d3-tooltip {
+	z-index: 1031;
+	visibility: hidden;
+}
+
+.d3-text {
+	pointer-events: none;
+}

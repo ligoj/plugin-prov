@@ -190,16 +190,20 @@ define(function () {
 			var conf = current.model.configuration;
 			var instances = conf.instances;
 			conf.instancesById = {};
+			conf.instanceCost = 0;
+			conf.storageCost = 0;
 			for (var i = 0; i < instances.length; i++) {
 				var instance = instances[i];
 				// Optimize id access
 				conf.instancesById[instance.id] = instance;
+				conf.instanceCost += instance.cost;
 			}
 			conf.detachedStorages = [];
 			conf.storagesById = {};
 			var storages = conf.storages;
 			for (i = 0; i < storages.length; i++) {
 				var storage = storages[i];
+				conf.storageCost += storage.cost;
 				if (storage.quoteInstance) {
 					// Attached storage
 					storage.quoteInstance = conf.instancesById[storage.quoteInstance];
@@ -399,7 +403,9 @@ define(function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
-				$popup.find('input[type="text"]').not('[value]').not('[readonly]').not('.select2-focusser').not('[disabled]').attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
+				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
+					return $(this).val() === "";
+				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
 				$(this).ajaxSubmit({
 					url: REST_PATH + 'service/prov/upload/' + current.model.subscription,
 					type: 'POST',
@@ -409,7 +415,7 @@ define(function () {
 						current.disableCreate($popup);
 						validationManager.reset($popup);
 						validationManager.mapping.DEFAULT = 'csv-file';
-						
+
 						$('.import-summary').html('Processing...');
 					},
 					success: function () {
@@ -648,6 +654,7 @@ define(function () {
 			// Backup the stored context
 			var costContext = current[type + 'UiToData'](data);
 			var conf = current.model.configuration;
+			var oldCost = costContext.cost;
 
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
@@ -675,6 +682,7 @@ define(function () {
 					if (data.id) {
 						// Update
 						conf.cost += costContext.cost - model.cost;
+						conf[type + 'Cost'] += costContext.cost - model.cost;
 						model.cost = costContext.cost;
 						$table.DataTable().row($table.find('tbody>tr[data-id="' + data.id + '"]').first()[0]).invalidate().draw();
 					} else {
@@ -682,6 +690,7 @@ define(function () {
 						conf[type + 's'].push(model);
 						conf[type + 'sById'][id] = model;
 						conf.cost += costContext.cost;
+						conf[type + 'Cost'] += costContext.cost;
 						model.cost = costContext.cost;
 						$table.DataTable().row.add(model).draw(false);
 					}
@@ -700,7 +709,7 @@ define(function () {
 			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
 
 			// Update the total resource usage
-			require(['d3'], function (d3) {
+			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				var usage = current.usageGlobalRate();
 				var weight = 0;
 				var weightUsage = 0;
@@ -722,6 +731,12 @@ define(function () {
 					d3.select("#gauge-global").on("valueChanged")(Math.floor(weightUsage * 100 / weight));
 				} else {
 					$('#gauge-global').addClass('hidden');
+				}
+				if (current.model.configuration.cost) {
+					sunburst.init('#sunburst', current.toD3());
+					$('#sunburst').removeClass('hidden');
+				} else {
+					$('#sunburst').addClass('hidden');
 				}
 			});
 		},
@@ -776,6 +791,7 @@ define(function () {
 				if (typeof id === 'undefined' || storage.id === id) {
 					conf.storages.splice(i, 1);
 					conf.cost -= storage.cost;
+					conf.storageCost -= storage.cost;
 					if (id) {
 						// Unique item to delete
 						break;
@@ -795,6 +811,7 @@ define(function () {
 				if (typeof id === 'undefined' || instance.id === id) {
 					conf.instances.splice(i, 1);
 					conf.cost -= instance.cost;
+					conf.instanceCost -= instance.cost;
 					delete conf.instancesById[instance.id];
 
 					// Also delete the related storages
@@ -804,6 +821,7 @@ define(function () {
 							// Delete the associated storages
 							conf.storages.splice(s, 1);
 							conf.cost -= storage.cost;
+							conf.storageCost -= storage.cost;
 							delete conf.storagesById[storage.id];
 						}
 					}
@@ -821,17 +839,94 @@ define(function () {
 		initializeD3: function () {
 			require([
 				'd3', '../main/service/prov/lib/liquidFillGauge'
-			], function (d3) {
-				d3.select("#gauge-global").call(d3.liquidfillgauge, 1, {
-					textColor: "#FF4444",
-					textVertPosition: 0.2,
-					waveAnimateTime: 1200,
-					waveHeight: 0.9,
-					backgroundColor: "#e0e0e0"
-				});
+			], function (d3, gauge) {
+				current.initializeD3Gauge(d3);
 
 				// First render
 				current.updateUiCost();
+			});
+		},
+
+		toD3: function () {
+			var conf = current.model.configuration;
+			var data = {
+				name: 'Cost',
+				value: conf.cost,
+				children: []
+			};
+			var instances;
+			var storages;
+			var allOss = {};
+			if (conf.instances.length) {
+				instances = {
+					name: 'Instances',
+					value: 0,
+					children: []
+				};
+				data.children.push(instances);
+			}
+			if (conf.storages.length) {
+				storages = {
+					name: 'Storages',
+					value: 0,
+					children: []
+				};
+				data.children.push(storages);
+			}
+			for (var i = 0; i < conf.instances.length; i++) {
+				var instance = conf.instances[i];
+				var oss = allOss[instance.instancePrice.os];
+				if (typeof oss === 'undefined') {
+					// First OS
+					oss = {
+						name: instance.instancePrice.os,
+						value: 0,
+						children: []
+					};
+					allOss[instance.instancePrice.os] = oss;
+					instances.children.push(oss);
+				}
+				oss.value += instance.cost;
+				instances.value += instance.cost;
+				oss.children.push({
+					name: instance.name,
+					size: instance.cost
+				});
+			}
+			var allFrequencies = {};
+			for (i = 0; i < conf.storages.length; i++) {
+				var storage = conf.storages[i];
+				var frequencies = allFrequencies[storage.type.frequency];
+				if (typeof frequencies === 'undefined') {
+					// First OS
+					frequencies = {
+						name: storage.type.frequency,
+						value: 0,
+						children: []
+					};
+					allFrequencies[storage.type.frequency] = frequencies;
+					storages.children.push(frequencies);
+				}
+				frequencies.value += storage.cost;
+				storages.value += storage.cost;
+				frequencies.children.push({
+					name: instance.name,
+					size: storage.cost
+				});
+			}
+			return data;
+		},
+
+		/**
+		 * Initialize the gauge
+		 */
+		initializeD3Gauge: function (d3) {
+			d3.select("#gauge-global").call(d3.liquidfillgauge, 1, {
+				textColor: "#FF4444",
+				textVertPosition: 0.2,
+				waveAnimateTime: 1200,
+				waveHeight: 0.9,
+				backgroundColor: "#e0e0e0"
 			});
 		},
 
@@ -856,7 +951,7 @@ define(function () {
 					render: current.formatOs
 				}, {
 					data: 'cpu',
-					width: '24px'
+					width: '48px'
 				}, {
 					data: 'ram',
 					width: '48px',
