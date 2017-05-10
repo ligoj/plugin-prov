@@ -56,12 +56,14 @@ define(['d3'], function (d3) {
 			})
 			.on("click", click)
 			.on("mouseover", function (d) {
+				mouseover(d);
 				return tooltip.text(d.data.name + ', cost: ' + formatManager.formatCost(d.data.size || d.data.value, 3, '$')).style("visibility", "visible");
 			})
 			.on("mousemove", function () {
 				return tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
 			})
-			.on("mouseout", function () {
+			.on("mouseout", function (d) {
+				mouseout(d);
 				return tooltip.style("visibility", "hidden");
 			});
 
@@ -84,6 +86,44 @@ define(['d3'], function (d3) {
 						return arc(d);
 					};
 				});
+		}
+
+		// Given a node in a partition layout, return an array of all of its ancestor
+		// nodes, highest first, but excluding the root.
+		function getAncestors(node) {
+			var path = [];
+			var current = node;
+			while (current.parent) {
+				path.unshift(current);
+				current = current.parent;
+			}
+			return path;
+		}
+
+		// Restore everything to full opacity when moving off the visualization.
+		function mouseout(d) {
+
+			// Deactivate all segments during transition.
+			//d3.selectAll("path").on("mouseover", null);
+
+			// Transition each segment to full opacity and then reactivate it.
+			d3.selectAll("path")
+				.style("opacity", 1)
+		}
+
+		function mouseover(d) {
+			var sequenceArray = getAncestors(d);
+
+			// Fade all the segments.
+			d3.selectAll("path")
+				.style("opacity", 0.3);
+
+			// Then highlight only those that are an ancestor of the current segment.
+			svg.selectAll("path")
+				.filter(function (node) {
+					return (sequenceArray.indexOf(node) >= 0);
+				})
+				.style("opacity", 1);
 		}
 		d3.select(self.frameElement).style("height", height + "px");
 	};
