@@ -118,6 +118,34 @@ define(function () {
 		},
 
 		/**
+		 * Format the storage size to html markup.
+		 */
+		formatStorageHtml: function (storage) {
+			return current.formatStorageFrequency(storage.type.frequency) + ' ' +  current.formatStorageOptimized(storage.type.optimized) + formatManager.formatSize(storage.size * 1024 * 1024 * 1024, 3);
+		},
+
+		/**
+		 * Format an attached storages
+		 */
+		formatQiStorages: function (instance, mode) {
+			// Compute the sum
+			var storages = instance.storages;
+			var sum = 0;
+			if (storages) {
+				for (var i = 0; i < storages.length; i++) {
+					sum += storages[i].size;
+				}
+			}
+			if (mode === 'sort') {
+				// Return only the sum
+				return sum;
+			}
+
+			// Need to build a Select2 tags markup
+			return '<input type="text" class="storages-tags" data-instance="' + instance.id + '">';
+		},
+
+		/**
 		 * OS key to markup/label mapping.
 		 */
 		os: {
@@ -207,6 +235,8 @@ define(function () {
 				if (storage.quoteInstance) {
 					// Attached storage
 					storage.quoteInstance = conf.instancesById[storage.quoteInstance];
+					storage.quoteInstance.storages = storage.quoteInstance.storages || [];
+					storage.quoteInstance.storages.push(storage);
 				} else {
 					// Detached storage
 					conf.detachedStorages.push[storage];
@@ -349,7 +379,7 @@ define(function () {
 					type: 'DELETE',
 					success: function () {
 						// Update the model
-						current[type + 'Delete'](qi.id); 
+						current[type + 'Delete'](qi.id);
 
 						// Update the UI
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
@@ -793,8 +823,26 @@ define(function () {
 					conf.storages.splice(i, 1);
 					conf.cost -= storage.cost;
 					conf.storageCost -= storage.cost;
+					current.detachStrorage(storage);
+
 					if (id) {
 						// Unique item to delete
+						break;
+					}
+				}
+			}
+		},
+
+		/**
+		 * Update the model to detach a storage from its instance
+		 * @param storage The storage model to detach.
+		 */
+		detachStrorage: function (storage) {
+			if (storage.quoteInstance) {
+				var qis = storage.quoteInstance.storages;
+				for (var s = qis.length; s-- > 0;) {
+					if (storage.quoteInstance.storages[s] === storage) {
+						qis.splice(s, 1);
 						break;
 					}
 				}
@@ -911,7 +959,7 @@ define(function () {
 				frequencies.value += storage.cost;
 				storages.value += storage.cost;
 				frequencies.children.push({
-					name: instance.name,
+					name: storage.name,
 					size: storage.cost
 				});
 			}
@@ -942,6 +990,21 @@ define(function () {
 				searching: true,
 				createdRow: function (nRow, data) {
 					$(nRow).attr('data-id', data.id);
+					$(nRow).find('.storages-tags').each(function () {
+						var instance = current.model.configuration.instancesById[parseInt($(this).data('instance'), 10)];
+						var storages = instance.storages;
+						$(this).select2({
+							multiple: true,
+							createSearchChoice: function () {
+								// Disable additional values
+								return null;
+							},
+							formatResult: current.formatStorageHtml,
+							formatSelection: current.formatStorageHtml,
+							tags: []
+						});
+						$(this).select2('data', storages|| []);
+					});
 				},
 				columns: [{
 					data: 'name',
@@ -961,8 +1024,8 @@ define(function () {
 					// Usage type for an instance
 					data: 'instancePrice.type.name'
 				}, {
-					data: 'storage',
-					render: current.formatStorage
+					data: null,
+					render: current.formatQiStorages
 				}, {
 					data: 'cost',
 					width: '64px',
