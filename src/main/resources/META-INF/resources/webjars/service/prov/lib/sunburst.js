@@ -1,5 +1,10 @@
 define(['d3'], function (d3) {
 	var sunburst = {};
+	var colors = function (s) {
+		return s.match(/.{6}/g).map(function (x) {
+			return "#" + x;
+		});
+	};
 	sunburst.update = function (data) {
 		sunburst.path
 			.data(partition.value(data).nodes)
@@ -15,7 +20,7 @@ define(['d3'], function (d3) {
 		var formatNumber = d3.format(",d");
 		var x = d3.scaleLinear().range([0, 2 * Math.PI]);
 		var y = d3.scaleSqrt().range([0, radius]);
-		var color = d3.scaleOrdinal(d3.schemeCategory20);
+		var color = d3.scaleOrdinal(colors("e41a1c377eb84daf4a984ea3ff7f00ffff33a65628f781bf999999"));
 		var partition = d3.partition();
 		var arc = d3.arc()
 			.startAngle(function (d) {
