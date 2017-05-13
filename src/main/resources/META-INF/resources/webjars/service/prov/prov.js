@@ -121,7 +121,7 @@ define(function () {
 		 * Format the storage size to html markup.
 		 */
 		formatStorageHtml: function (storage) {
-			return current.formatStorageFrequency(storage.type.frequency) + ' ' +  current.formatStorageOptimized(storage.type.optimized) + formatManager.formatSize(storage.size * 1024 * 1024 * 1024, 3);
+			return current.formatStorageFrequency(storage.type.frequency) + ' ' + current.formatStorageOptimized(storage.type.optimized) + ' ' + formatManager.formatSize(storage.size * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
@@ -165,8 +165,8 @@ define(function () {
 		 * Storage type key to markup/label mapping.
 		 */
 		storageFrequency: {
-			'cold': 'fa fa-snowflake-o text-info',
-			'hot': 'fa fa-thermometer-full text-danger',
+			'cold': 'fa fa-snowflake-o',
+			'hot': 'fa fa-thermometer-full',
 			'archive': 'fa fa-archive'
 		},
 
@@ -181,32 +181,36 @@ define(function () {
 		/**
 		 * Return the HTML markup from the OS key name.
 		 */
-		formatOs: function (os, mode) {
+		formatOs: function (os, mode, clazz) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
 			if (mode === 'sort') {
 				return cfg[0];
 			}
-			return '<i class="' + cfg[1] + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
 		/**
 		 * Return the HTML markup from the storage frequency.
 		 */
-		formatStorageFrequency: function (frequency, withText) {
+		formatStorageFrequency: function (frequency, mode, clazz) {
 			var id = (frequency.id || frequency || 'cold').toLowerCase();
-			var clazz = current.storageFrequency[id];
 			var text = current.$messages['service:prov:storage-frequency-' + id];
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+			clazz = current.storageFrequency[id] + (typeof clazz === 'string' ? clazz : '');
+			if (mode === 'sort') {
+				return text;
+			}
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
 		},
 
 		/**
 		 * Return the HTML markup from the storage optimized.
 		 */
-		formatStorageOptimized: function (optimized, withText) {
+		formatStorageOptimized: function (optimized, withText, clazz) {
 			if (optimized) {
 				var id = (optimized.id || optimized || 'throughput').toLowerCase();
-				var clazz = current.storageOptimized[id];
 				var text = current.$messages['service:prov:storage-optimized-' + id];
+				clazz = current.storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
 				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
 			}
 		},
@@ -475,8 +479,7 @@ define(function () {
 				table && table.fnFilter($(this).val());
 			});
 
-			$('.resource-query').on('change', current.checkResource);
-			$('.resource-query').on('keyup', current.checkResource);
+			$('.resource-query').on('change', current.checkResource).on('keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 
@@ -899,7 +902,7 @@ define(function () {
 		toD3: function () {
 			var conf = current.model.configuration;
 			var data = {
-				name: 'Cost',
+				name: 'Total',
 				value: conf.cost,
 				children: []
 			};
@@ -908,7 +911,7 @@ define(function () {
 			var allOss = {};
 			if (conf.instances.length) {
 				instances = {
-					name: 'Instances',
+					name: '<i class="fa fa-server fa-x2></i> ' + current.$messages['service:prov:instances-block'],
 					value: 0,
 					children: []
 				};
@@ -916,7 +919,7 @@ define(function () {
 			}
 			if (conf.storages.length) {
 				storages = {
-					name: 'Storages',
+					name: '<i class="fa fa-database fa-x2></i> ' + current.$messages['service:prov:storages-block'],
 					value: 0,
 					children: []
 				};
@@ -928,7 +931,7 @@ define(function () {
 				if (typeof oss === 'undefined') {
 					// First OS
 					oss = {
-						name: instance.instancePrice.os,
+						name: current.formatOs(instance.instancePrice.os, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
@@ -949,7 +952,7 @@ define(function () {
 				if (typeof frequencies === 'undefined') {
 					// First OS
 					frequencies = {
-						name: storage.type.frequency,
+						name: current.formatStorageFrequency(storage.type.frequency, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
@@ -1003,7 +1006,7 @@ define(function () {
 							formatSelection: current.formatStorageHtml,
 							tags: []
 						});
-						$(this).select2('data', storages|| []);
+						$(this).select2('data', storages || []);
 					});
 				},
 				columns: [{
