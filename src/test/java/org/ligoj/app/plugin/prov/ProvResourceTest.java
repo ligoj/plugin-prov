@@ -8,10 +8,8 @@ import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,10 +36,8 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
-import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -858,17 +854,6 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Out of limits
 		Assert.assertNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.COLD, null));
-	}
-
-	/**
-	 * TODO Add in bootstrap
-	 */
-	protected UriInfo newUriInfo(final String criteria) {
-		final UriInfo uriInfo = Mockito.mock(UriInfo.class);
-		final MetadataMap<String, String> metadataMap = new MetadataMap<String, String>();
-		metadataMap.putSingle(DataTableAttributes.SEARCH, criteria);
-		Mockito.when(uriInfo.getQueryParameters()).thenReturn(metadataMap);
-		return uriInfo;
 	}
 
 	@Test
