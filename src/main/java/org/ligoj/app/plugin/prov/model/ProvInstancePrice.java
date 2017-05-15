@@ -20,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "instance", "os",
-		"type" }))
+		"type", "tenancy", "license" }))
 public class ProvInstancePrice extends AbstractPersistable<Integer> {
 
 	/**
@@ -33,17 +33,22 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	 */
 	@NotNull
 	private Double cost;
-	
+
+	/**
+	 * The optional initial cost required to use this instance.
+	 */
+	private Double initialCost;
+
 	/**
 	 * The optional hourly cost of one requested CPU.
 	 */
 	private Double costCpu;
-	
+
 	/**
 	 * The optional hourly cost of one requested GB memory.
 	 */
 	private Double costRam;
-	
+
 	/**
 	 * Related instance characteristics.
 	 */
@@ -56,10 +61,21 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	private ProvInstancePriceType type;
 
 	/**
+	 * Th optional tenancy of the related instance. By default, the tenancy is
+	 * {@link ProvTenancy#SHARED}
+	 */
+	private ProvTenancy tenancy = ProvTenancy.SHARED;
+
+	/**
 	 * The related price
 	 */
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	private VmOs os;
+
+	/**
+	 * Optional license model.
+	 */
+	private String license;
 
 }
