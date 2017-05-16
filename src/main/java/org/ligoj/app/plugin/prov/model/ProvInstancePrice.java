@@ -29,7 +29,10 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
-	 * The hourly cost of this instance.
+	 * The corresponding effective hourly cost of this instance. Includes the
+	 * initial cost to be allow quick sort. To compute the remaining hourly cost
+	 * reduced by the initial cost, the formula is :
+	 * <code>cost - initialCost / 24 / 365</code>.
 	 */
 	@NotNull
 	private Double cost;
