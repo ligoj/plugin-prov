@@ -1004,8 +1004,10 @@ define(function() {
                 destroy: true,
                 searching: true,
                 createdRow: function(nRow, data) {
-                    $(nRow).attr('data-id', data.id)
-                        .find('.storages-tags')
+                    $(nRow).attr('data-id', data.id);
+                },
+                rowCallback: function(nRow, data) {
+                    $(nRow).find('.storages-tags')
                         .select2({
                             multiple: true,
                             createSearchChoice: function() {
