@@ -25,7 +25,7 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * @param ram
 	 *            The minimum RAM in MB.
 	 * @param constant
-	 *            The constant CPU behavior constraint.
+	 *            The optional constant CPU behavior constraint.
 	 * @param os
 	 *            The requested OS.
 	 * @param type
@@ -40,9 +40,9 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	@Query("FROM #{#entityName} AS ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
 			+ " AND (:instance IS NULL OR i.id = :instance) AND i.cpu>= :cpu AND i.ram>=:ram"
-			+ " AND (:os IS NULL OR ip.os=:os) AND (:constant = false OR i.constant = :constant)"
+			+ " AND (:os IS NULL OR ip.os=:os) AND (:constant IS NULL OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) AND i.cpu > 0 ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, boolean constant, VmOs os, Integer type,
+	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer type,
 			Integer instance, Pageable pageable);
 
 	/**
@@ -52,7 +52,7 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * @param node
 	 *            The requested provider node.
 	 * @param constant
-	 *            The constant CPU behavior constraint.
+	 *            The optional constant CPU behavior constraint.
 	 * @param os
 	 *            The requested OS.
 	 * @param type
@@ -63,8 +63,8 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 */
 	@Query("FROM #{#entityName} ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
-			+ " AND i.cpu = 0 AND ip.os=:os AND (:constant = false OR i.constant = :constant)"
+			+ " AND i.cpu = 0 AND ip.os=:os AND (:constant IS NULL OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestCustomPrice(String node, boolean constant, VmOs os, Integer type,
+	List<ProvInstancePrice> findLowestCustomPrice(String node, Boolean constant, VmOs os, Integer type,
 			Pageable pageable);
 }

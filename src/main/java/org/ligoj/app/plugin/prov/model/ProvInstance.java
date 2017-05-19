@@ -44,6 +44,7 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> implements No
 
 	/**
 	 * When <code>true</code> the delivery power is constant over time.
+	 * Otherwise, is variable.
 	 */
 	@NotNull
 	private Boolean constant;

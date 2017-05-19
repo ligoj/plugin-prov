@@ -215,7 +215,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupInstance() {
 		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0,
-				0, false, VmOs.LINUX, null, null);
+				0, null, VmOs.LINUX, null, null);
 
 		// Check the instance result
 		final ProvInstancePrice pi = price.getInstance().getInstance();
@@ -284,7 +284,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupInstanceNoMatch() {
 		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999,
-				0, false, VmOs.LINUX, null, null);
+				0, null, VmOs.LINUX, null, null);
 		Assert.assertNull(price.getInstance());
 
 		// Check the custom instance

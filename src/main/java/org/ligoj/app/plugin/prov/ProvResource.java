@@ -430,11 +430,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @param ram
 	 *            The amount of required RAM, in MB. Default is 1.
 	 * @param constant
-	 *            When true, the constant constraint is applied.
+	 *            Optional constant CPU. When <code>false</code>, variable CPU
+	 *            is requested. When <code>true</code> contant CPU os requested.
 	 * @param os
 	 *            The requested OS, default is "LINUX".
+	 * @param instance
+	 *            Optional instance identifier. May be <code>null</code>.
 	 * @param type
-	 *            The required price type identifier. May be <code>null</code>.
+	 *            Optional price type identifier. May be <code>null</code>.
 	 * @return The lowest price instance configurations matching to the required
 	 *         parameters for standard instance (if available) and custom
 	 *         instance (if available too) and also the lower instance based
@@ -446,7 +449,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
-			@DefaultValue(value = "false") @QueryParam("constant") final boolean constant,
+			@DefaultValue(value = "false") @QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
 			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type) {
 		// Get the attached node and check the security on this subscription
@@ -809,14 +812,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
-		final Boolean constant = ObjectUtils.defaultIfNull(upload.getConstant(), Boolean.FALSE);
 
 		// Instance selection
 		final Integer instance = Optional.ofNullable(instanceRepository.findByName(subscription, upload.getInstance()))
 				.map(ProvInstance::getId).orElse(null);
 		final Integer type = Optional.ofNullable(iptRepository.findByName(subscription, upload.getPriceType()))
 				.map(ProvInstancePriceType::getId).orElse(defaultType);
-		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), constant,
+		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(),
 				upload.getOs(), instance, type);
 
 		// Find the lowest price

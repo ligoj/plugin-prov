@@ -14,8 +14,20 @@ import lombok.Setter;
 @Setter
 public class InstanceUpload {
 	private String name;
-	private Double cpu;
-	private Double ram;
+	
+	/**
+	 * Optional requested CPU.
+	 */
+	private double cpu = 0;
+	
+	/**
+	 * Optional request RAM.
+	 */
+	private double ram = 0;
+
+	/**
+	 * Optional constant
+	 */
 	private Boolean constant;
 	private VmOs os;
 	private Double disk;
