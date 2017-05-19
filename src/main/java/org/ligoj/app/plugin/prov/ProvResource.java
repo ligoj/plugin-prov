@@ -65,7 +65,6 @@ import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.resource.BusinessException;
-import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -73,8 +72,7 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
- * The provisioning service. There is complete quote configuration along the
- * subscription.
+ * The provisioning service. There is complete quote configuration along the subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -188,8 +186,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Return the quote associated to the given subscription. The visibility is
-	 * checked.
+	 * Return the quote associated to the given subscription. The visibility is checked.
 	 * 
 	 * @param subscription
 	 *            The linked subscription.
@@ -228,9 +225,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Save or update the given entity from the {@link QuoteInstanceEditionVo}.
-	 * The computed cost are recursively updated from the instance to the quote
-	 * total cost.
+	 * Save or update the given entity from the {@link QuoteInstanceEditionVo}. The computed cost are recursively
+	 * updated from the instance to the quote total cost.
 	 */
 	private ProvQuoteInstance saveOrUpdate(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
 		DescribedBean.copy(vo, entity);
@@ -374,6 +370,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 					return i;
 				}).orElse(null));
 
+		// Check the storage compatibility with the instance
+		if (!entity.getType().isInstanceCompatible() && entity.getQuoteInstance() != null) {
+			// The related storage type does not accept to be attached to an instance
+			throw new ValidationJsonException("instance", "Null",
+					entity.getQuoteInstance().getInstancePrice().getInstance().getName());
+		}
+
 		// Check the storage limits
 		if (entity.getType().getMaximal() != null && vo.getSize() > entity.getType().getMaximal()) {
 			// The related storage type does not accept this value
@@ -402,8 +405,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Delete a configured entity and update the total cost of the associated
-	 * quote.
+	 * Delete a configured entity and update the total cost of the associated quote.
 	 */
 	private <T extends Costed> void deleteAndUpdateCost(final RestRepository<T, Integer> repository, final Integer id,
 			final Consumer<T> callback) {
@@ -423,25 +425,23 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Create the instance inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the
-	 *            instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param cpu
 	 *            The amount of required CPU. Default is 1.
 	 * @param ram
 	 *            The amount of required RAM, in MB. Default is 1.
 	 * @param constant
-	 *            Optional constant CPU. When <code>false</code>, variable CPU
-	 *            is requested. When <code>true</code> contant CPU os requested.
+	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
+	 *            contant CPU os requested.
 	 * @param os
 	 *            The requested OS, default is "LINUX".
 	 * @param instance
 	 *            Optional instance identifier. May be <code>null</code>.
 	 * @param type
 	 *            Optional price type identifier. May be <code>null</code>.
-	 * @return The lowest price instance configurations matching to the required
-	 *         parameters for standard instance (if available) and custom
-	 *         instance (if available too) and also the lower instance based
-	 *         price for a weaker requirement if applicable.
+	 * @return The lowest price instance configurations matching to the required parameters for standard instance (if
+	 *         available) and custom instance (if available too) and also the lower instance based price for a weaker
+	 *         requirement if applicable.
 	 */
 	@GET
 	@Path("instance-lookup/{subscription:\\d+}")
@@ -470,8 +470,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Return the price type available for a subscription.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the
-	 *            instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available price types for the given subscription.
@@ -491,8 +490,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Return the instance types inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the
-	 *            instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The valid instance types for the given subscription.
@@ -512,8 +510,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Return the storage types the instance inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the
-	 *            storages from the associated provider.
+	 *            The subscription identifier, will be used to filter the storages from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The valid storage types for the given subscription.
@@ -530,35 +527,39 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Return the storage types the instance inside a quote.
+	 * Return the available storage types from the provider linked to the given subscription..
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the
-	 *            storages from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
+	 * @param size
+	 *            The requested size in GB.
+	 * @param frequency
+	 *            The optional requested {@link ProvStorageFrequency}.
+	 * @param instance
+	 *            The optional requested instance to be associated.
+	 * @param optimized
+	 *            The optional requested {@link ProvStorageOptimized}.
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
 	@Path("storage-lookup/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@OnNullReturn404
-	public ComputedStoragePrice lookupStorage(@PathParam("subscription") final int subscription,
+	public List<ComputedStoragePrice> lookupStorage(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size,
 			@QueryParam("frequency") final ProvStorageFrequency frequency,
+			@QueryParam("instance") final Integer instance,
 			@QueryParam("optimized") final ProvStorageOptimized optimized) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 
 		// Return only the first matching instance
-		return stRepository.findLowestPrice(node, size, frequency, optimized, new PageRequest(0, 1)).stream()
-				.findFirst().map(st -> newComputedStoragePrice(st, getStorageCost(st, size))).orElse(null);
+		return stRepository.findLowestPrice(node, size, frequency, instance, optimized, new PageRequest(0, 10)).stream()
+				.map(st -> newComputedStoragePrice(st, getStorageCost(st, size))).collect(Collectors.toList());
 	}
 
 	/**
-	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
-	 * and computed price.
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice} and computed price.
 	 */
 	private ComputedInstancePrice newComputedInstancePrice(final ProvInstancePrice ip, final double cost) {
 		final ComputedInstancePrice result = new ComputedInstancePrice();
@@ -568,8 +569,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
-	 * and computed price.
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice} and computed price.
 	 */
 	private ComputedStoragePrice newComputedStoragePrice(final ProvStorageType st, final double cost) {
 		final ComputedStoragePrice result = new ComputedStoragePrice();
@@ -602,13 +602,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Compute the total cost without transactional/snapshot costs and save it
-	 * into the related quote. All compute and storage costs are updated.
+	 * Compute the total cost without transactional/snapshot costs and save it into the related quote. All compute and
+	 * storage costs are updated.
 	 * 
 	 * @param subscription
 	 *            The subscription to compute
-	 * @return the computed cost without transactional/snapshot, support,...
-	 *         costs.
+	 * @return the computed cost without transactional/snapshot, support,... costs.
 	 */
 	@PUT
 	@Path("refresh")
@@ -627,8 +626,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Round a cost to eliminate floating point artifact, and without required
-	 * {@link BigDecimal} usage (not yet)
+	 * Round a cost to eliminate floating point artifact, and without required {@link BigDecimal} usage (not yet)
 	 */
 	private double round(double value) {
 		return Math.round(value * 1000d) / 1000d;
@@ -764,8 +762,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Upload a file of quote in add mode.
 	 * 
 	 * @param uploadedFile
-	 *            Instance entries files to import. Currently support only CSV
-	 *            format.
+	 *            Instance entries files to import. Currently support only CSV format.
 	 * @param ramMultiplier
 	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param columns
@@ -829,7 +826,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			lowest = price.getCustom();
 		}
 		ValidationJsonException.assertNotnull(lowest, "instance");
-		vo.setInstancePrice(lowest.getInstance().getId());
+		final ProvInstancePrice instancePrice = lowest.getInstance();
+		vo.setInstancePrice(instancePrice.getId());
 		final int qi = createInstance(vo);
 
 		// Storage part
@@ -843,15 +841,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 					ProvStorageFrequency.HOT);
 
 			// Find the nicest storage
-			ComputedStoragePrice storagePrice = lookupStorage(subscription, size, frequency, upload.getOptimized());
-			ValidationJsonException.assertNotnull(storagePrice, "storage");
+			svo.setType(lookupStorage(subscription, size, frequency, instancePrice.getInstance().getId(),
+					upload.getOptimized()).stream().findFirst()
+							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getType().getId());
 
-			// Default the storage name to the instance
+			// Default the storage name to the instance name
 			svo.setName(vo.getName());
 			svo.setQuoteInstance(qi);
 			svo.setSize(size);
 			svo.setSubscription(subscription);
-			svo.setType(storagePrice.getType().getId());
 			createStorage(svo);
 		}
 

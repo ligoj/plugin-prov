@@ -50,8 +50,12 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	/**
 	 * The minimal disk in "Go".
 	 */
-	@NotNull
-	private Integer minimal;
+	private int minimal = 0;
+
+	/**
+	 * <code>true</code> when this storage can attached to an instance.
+	 */
+	private boolean instanceCompatible = false;
 
 	/**
 	 * The maximum supported size in "Go". May be <code>null</code>.
@@ -59,7 +63,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private Integer maximal;
 
 	/**
-	 * The cost per transaction. May be 0.
+	 * The cost per transaction. May be <code>0</code>.
 	 */
 	private double transactionalCost;
 

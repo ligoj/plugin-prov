@@ -33,6 +33,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -314,6 +315,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		ProvStorageFrequency.valueOf(ProvStorageFrequency.HOT.name());
 		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());
+		ProvTenancy.valueOf(ProvTenancy.DEDICATED.name());
 	}
 
 	@Test
@@ -343,6 +345,43 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setType(storageRepository.findByNameExpected("storage2").getId());
 		vo.setSize(1024); // Limit for this storage is 512
 		resource.updateStorage(vo);
+	}
+
+	/**
+	 * Attempt to attach a storage incompatible to an instance.
+	 */
+	@Test(expected = ValidationJsonException.class)
+	public void createStorageInstanceKo() {
+		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("storage3-root-bis");
+		vo.setType(storageRepository.findByNameExpected("storage3").getId());
+		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setSize(1);
+		resource.createStorage(vo);
+	}
+
+	/**
+	 * Attempt to attach a storage incompatible to an instance but without an instance.
+	 */
+	@Test
+	public void createStorageInstance() {
+		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("storage3-root-bis");
+		vo.setType(storageRepository.findByNameExpected("storage3").getId());
+		vo.setSize(1);
+		final int id = resource.createStorage(vo);
+		em.flush();
+		em.clear();
+
+		// Check the exact new cost
+		Assert.assertEquals(0.278, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
+		Assert.assertEquals("storage3-root-bis", storage.getName());
+		Assert.assertEquals(1, storage.getSize().intValue());
+		Assert.assertEquals(vo.getType(), storage.getType().getId().intValue());
+		Assert.assertEquals(0.15, storage.getCost(), DELTA);
 	}
 
 	@Test
@@ -749,7 +788,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void findStorageType() {
 		final TableItem<ProvStorageType> tableItem = resource.findStorageType(subscription, newUriInfo());
-		Assert.assertEquals(2, tableItem.getRecordsTotal());
+		Assert.assertEquals(3, tableItem.getRecordsTotal());
 		Assert.assertEquals("storage1", tableItem.getData().get(0).getName());
 	}
 
@@ -814,7 +853,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorage() {
-		final ComputedStoragePrice price = resource.lookupStorage(subscription, 2, null, ProvStorageOptimized.IOPS);
+		final ComputedStoragePrice price = resource
+				.lookupStorage(subscription, 2, null, null, ProvStorageOptimized.IOPS).get(0);
 
 		// Check the storage result
 		final ProvStorageType st = price.getType();
@@ -829,8 +869,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
 		final ComputedStoragePrice price = new ObjectMapperTrim().readValue(
-				new ObjectMapperTrim()
-						.writeValueAsString(resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null)),
+				new ObjectMapperTrim().writeValueAsString(
+						resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null, null).get(0)),
 				ComputedStoragePrice.class);
 
 		// Check the storage result
@@ -848,12 +888,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageNoMatch() {
-		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.HOT, null));
-		Assert.assertNotNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.HOT, null));
-		Assert.assertNotNull(resource.lookupStorage(subscription, 512, ProvStorageFrequency.COLD, null));
+		Assert.assertFalse(resource.lookupStorage(subscription, 512, ProvStorageFrequency.HOT, null, null).isEmpty());
+		Assert.assertFalse(resource.lookupStorage(subscription, 999, ProvStorageFrequency.HOT, null, null).isEmpty());
+		Assert.assertFalse(resource.lookupStorage(subscription, 512, ProvStorageFrequency.COLD, null, null).isEmpty());
 
 		// Out of limits
-		Assert.assertNull(resource.lookupStorage(subscription, 999, ProvStorageFrequency.COLD, null));
+		Assert.assertTrue(resource.lookupStorage(subscription, 999, ProvStorageFrequency.COLD, null, null).isEmpty());
 	}
 
 	@Test

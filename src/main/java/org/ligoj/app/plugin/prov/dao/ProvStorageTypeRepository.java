@@ -16,8 +16,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvStorageTypeRepository extends RestRepository<ProvStorageType, Integer> {
 
 	/**
-	 * Return all {@link ProvStorageType} related to given subscription
-	 * identifier.
+	 * Return all {@link ProvStorageType} related to given subscription identifier.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier to match.
@@ -33,16 +32,16 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 	Page<ProvStorageType> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return the lowest storage price configuration from the minimal
-	 * requirements.
+	 * Return the lowest storage price configuration from the minimal requirements.
 	 * 
 	 * @param node
-	 *            The node linked to the subscription. Is a node identifier
-	 *            within a provider.
+	 *            The node linked to the subscription. Is a node identifier within a provider.
 	 * @param size
 	 *            The requested size in GB.
 	 * @param frequency
 	 *            The optional requested frequency. May be <code>null</code>.
+	 * @param instance
+	 *            The optional requested instance to be associated.
 	 * @param optimized
 	 *            The optional requested optimized. May be <code>null</code>.
 	 * @param pageable
@@ -51,8 +50,9 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 	 */
 	@Query("FROM #{#entityName} AS st WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))"
 			+ " AND (:size IS NULL OR st.maximal IS NULL OR st.maximal >= :size)"
+			+ " AND (:instance IS NULL OR st.instanceCompatible = true)"
 			+ " AND (:frequency IS NULL OR st.frequency = :frequency)"
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY st.cost ASC")
-	List<ProvStorageType> findLowestPrice(String node, int size, ProvStorageFrequency frequency,
+	List<ProvStorageType> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance,
 			ProvStorageOptimized optimized, Pageable pageRequest);
 }
