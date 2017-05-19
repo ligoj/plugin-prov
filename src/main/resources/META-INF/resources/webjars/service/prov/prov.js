@@ -955,7 +955,7 @@ define(function () {
 			var allOss = {};
 			if (conf.instances.length) {
 				instances = {
-					name: '<i class="fa fa-server fa-x2></i> ' + current.$messages['service:prov:instances-block'],
+					name: '<i class="fa fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
 					value: 0,
 					children: []
 				};
@@ -963,7 +963,7 @@ define(function () {
 			}
 			if (conf.storages.length) {
 				storages = {
-					name: '<i class="fa fa-database fa-x2></i> ' + current.$messages['service:prov:storages-block'],
+					name: '<i class="fa fa-database fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
 					value: 0,
 					children: []
 				};
