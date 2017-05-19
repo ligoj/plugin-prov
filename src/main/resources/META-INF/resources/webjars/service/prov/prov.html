@@ -1,297 +1,311 @@
 <div id="subscribe-configuration-prov" class="hide subscribe-configuration">
-	<form class="form-horizontal">
-		<fieldset>
-			<legend>
-				<input type="text" id="name-prov" readonly></input><span class="pull-right"><span class="project-name"></span> / <span class="provider"></span></span>
-			</legend>
-			<ul class="nav nav-pills" role="tablist">
-				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span></a></li>
-				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span></a></li>
-				<li id="prov-dashboard" class="text-center">
-					<div class="svg-wrapper">
-						<svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip"></svg>
-						<div id="sunburst"></div>
-					</div>
-				</li>
-				<li class="pull-right"><h2 class="text-info">
-						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span>/m
-					</h2></li>
-			</ul>
-			<div class="tab-content">
-				<div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-instance" class="btn btn-success btn-raised">{{new}}</button>
-								<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
-							</div>
-						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="table" /> <span class="fa fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
-					</div>
-					<table id="prov-instances" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:ram-title}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
-								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="8">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div role="tabpanel" class="tab-pane" id="tab-storage" data-prov-type="storage">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-storage" class="btn btn-success btn-raised">{{new}}</button>
-							</div>
-						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="table" /> <span class="fa fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
-					</div>
-					<table id="prov-storages" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-frequency-title}}">{{service:prov:storage-frequency}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
-								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="7">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</fieldset>
-		<div class="form-actions">
-			<input class="btn btn-link cancel-subscription" type="button" value="{{back}}">
-		</div>
-	</form>
-	<form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="instance">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+    <form class="form-horizontal">
+        <fieldset>
+            <legend>
+                <input type="text" id="name-prov" readonly></input><span class="pull-right"><span class="project-name"></span> / <span class="provider"></span></span>
+            </legend>
+            <ul class="nav nav-pills" role="tablist">
+                <li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span></a></li>
+                <li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span></a></li>
+                <li id="prov-dashboard" class="text-center">
+                    <div class="svg-wrapper">
+                        <svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip"></svg>
+                        <div id="sunburst"></div>
+                    </div>
+                </li>
+                <li class="pull-right">
+                    <h2 class="text-info">
+                        <span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span>/m
+                    </h2>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
+                    <div class="row table-tools">
+                        <div class="col-sm-10">
+                            <div class="btn-group">
+                                <button type="button" data-toggle="modal" data-target="#popup-prov-instance" class="btn btn-success btn-raised">{{new}}</button>
+                                <button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group has-feedback">
+                                <div class="col-xs-12 has-feedback">
+                                    <input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="table" /> <span class="fa fa-search form-control-feedback"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="prov-instances" class="table table-striped table-bordered justified">
+                        <thead>
+                            <tr>
+                                <th>{{name}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:ram-title}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
+                                <th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="dataTables_empty" colspan="8">{{loading}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tab-storage" data-prov-type="storage">
+                    <div class="row table-tools">
+                        <div class="col-sm-10">
+                            <div class="btn-group">
+                                <button type="button" data-toggle="modal" data-target="#popup-prov-storage" class="btn btn-success btn-raised">{{new}}</button>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group has-feedback">
+                                <div class="col-xs-12 has-feedback">
+                                    <input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="table" /> <span class="fa fa-search form-control-feedback"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="prov-storages" class="table table-striped table-bordered justified">
+                        <thead>
+                            <tr>
+                                <th>{{name}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:storage-frequency-title}}">{{service:prov:storage-frequency}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</th>
+                                <th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
+                                <th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="dataTables_empty" colspan="7">{{loading}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+        <div class="form-actions">
+            <input class="btn btn-link cancel-subscription" type="button" value="{{back}}">
+        </div>
+    </form>
+    <form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="instance">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="modal-title">{{service:prov:instance-name}}</h4>
-				</div>
-				<div class="modal-body">
-					<div class="alert alert-info">{{service:prov:instance-choice}}</div>
-					<div class="form-horizontal">
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-name">{{name}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-name" class="form-control" required maxlength="50" />
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-description">{{description}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-description" class="form-control" maxlength="250" />
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-os" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-cpu" data-toggle="tooltip" title="{{service:prov:cpu-title}}">{{service:prov:cpu}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-cpu" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:cpu-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-ram" data-toggle="tooltip" title="{{service:prov:ram-title}}">{{service:prov:ram}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-ram" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-price-type" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-price-type" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance" class="form-control" required readonly /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
-					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
-				</div>
-			</div>
-		</div>
-	</form>
-	<form id="popup-prov-storage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="storage">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+                    <h4 class="modal-title" id="modal-title">{{service:prov:instance-name}}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">{{service:prov:instance-choice}}</div>
+                    <div class="form-horizontal">
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="instance-name">{{name}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-name" class="form-control" required maxlength="50" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance-description">{{description}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-description" class="form-control" maxlength="250" />
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-os" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="instance-cpu" data-toggle="tooltip" title="{{service:prov:cpu-title}}">{{service:prov:cpu}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-cpu" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:cpu-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="instance-ram" data-toggle="tooltip" title="{{service:prov:ram-title}}">{{service:prov:ram}}</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" id="instance-ram" class="resource-query form-control" required />
+                                    <div class="input-group-btn" id="instance-ram-unit">
+                                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span>{{service:prov:ram-mega}}</span> <span class="caret"></span>
+										</button>
+                                        <ul class="dropdown-menu">
+                                            <li data-unit="1" class="active"><a>{{service:prov:ram-mega}}</a></li>
+                                            <li data-unit="1024"><a>{{service:prov:ram-giga}}</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="instance-price-type" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-price-type" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance" class="form-control" required readonly /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+                    <button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <form id="popup-prov-storage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="storage">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="modal-title">{{service:prov:storage}}</h4>
-				</div>
-				<div class="modal-body">
-					<div class="form-horizontal">
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="storage-name">{{name}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage-name" class="form-control" required maxlength="50" />
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="storage-description">{{description}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage-description" class="form-control" maxlength="250" />
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="storage-size" data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage-size" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="storage-frequency" data-toggle="tooltip" title="{{service:storage-frequency-title}}">{{service:prov:storage-frequency}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage-frequency" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-frequency-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="storage-optimized" data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage-optimized" class="resource-query form-control" /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="storage-type" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="storage" class="form-control" required readonly /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
-					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
-				</div>
-			</div>
-		</div>
-	</form>
-	<form id="popup-prov-instance-import" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+                    <h4 class="modal-title" id="modal-title">{{service:prov:storage}}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="storage-name">{{name}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage-name" class="form-control" required maxlength="50" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="storage-description">{{description}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage-description" class="form-control" maxlength="250" />
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="storage-size" data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage-size" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="storage-frequency" data-toggle="tooltip" title="{{service:storage-frequency-title}}">{{service:prov:storage-frequency}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage-frequency" class="resource-query form-control" required /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-frequency-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="storage-optimized" data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage-optimized" class="resource-query form-control" /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="storage-type" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="storage" class="form-control" required readonly /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+                    <button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <form id="popup-prov-instance-import" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="import-modal-title">{{upload-new}}</h4>
-				</div>
-				<div class="modal-body">
-					<div class="form-horizontal">
-						<div class="alert alert-info import-options-details">
-							{{{instance-import-message}}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
-							<div id="more-import-options-full" class="collapse">
-								<br />Implicit CSV headers
-								<code>
+                    <h4 class="modal-title" id="import-modal-title">{{upload-new}}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="alert alert-info import-options-details">
+                            {{{instance-import-message}}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
+                            <div id="more-import-options-full" class="collapse">
+                                <br />Implicit CSV headers
+                                <code>
 									name;cpu;ram;os;disk;frequency;optimized
 								</code>
-								<br />Valid headers
-								<code>
+                                <br />Valid headers
+                                <code>
 									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance
 								</code>
-								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
-								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
-								<br /><code><strong>constant</strong> [true,(false)] for CPU behavior</code>
-								<br /><code><strong>os</strong> [(LINUX),WINDOWS,RHE,SUSE]</code>
-								<br /><code><strong>disk</strong> Optional disk size, in Giga Byte</code>
-								<br /><code><strong>frequency</strong> [HOT, COLD], default is auto</code>
-								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
-								<br /><code><strong>priceType</strong> Price type, case insensitive, default is auto</code>
-								<br /><code><strong>instance</strong> Instance name, case insensitive, default is auto</code>
-								<br />{{instance-import-sample}}
-								<br><code>name;cpu;ram;os;disk;frequency;optimized;constant;instance;priceType</code>
-								<br><code>mysql;1.5:2048;RHE;20;HOT;IOPS;true</code>
-								<br><code>nginx;0.5:1000;LINUX</code>
-								<br><code>jetty;2:2048;LINUX;;;;m1.large;spot</code>
-								<br /><br /><i class="fa fa-info-circle"></i> Trailing columns can be omitted if empty.
-							</div>
-						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="csv-file">CSV File</label>
-							<div class="col-sm-8">
-								<div class="input-group">
-									<input type="text" class="form-control" readonly> <span class="input-group-btn"> <a class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
+                                <br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
+                                <br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
+                                <br /><code><strong>constant</strong> [true,(false)] for CPU behavior</code>
+                                <br /><code><strong>os</strong> [(LINUX),WINDOWS,RHE,SUSE]</code>
+                                <br /><code><strong>disk</strong> Optional disk size, in Giga Byte</code>
+                                <br /><code><strong>frequency</strong> [HOT, COLD], default is auto</code>
+                                <br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
+                                <br /><code><strong>priceType</strong> Price type, case insensitive, default is auto</code>
+                                <br /><code><strong>instance</strong> Instance name, case insensitive, default is auto</code>
+                                <br />{{instance-import-sample}}
+                                <br><code>name;cpu;ram;os;disk;frequency;optimized;constant;instance;priceType</code>
+                                <br><code>mysql;1.5:2048;RHE;20;HOT;IOPS;true</code>
+                                <br><code>nginx;0.5:1000;LINUX</code>
+                                <br><code>jetty;2:2048;LINUX;;;;m1.large;spot</code>
+                                <br /><br /><i class="fa fa-info-circle"></i> Trailing columns can be omitted if empty.
+                            </div>
+                        </div>
+                        <div class="form-group required">
+                            <label class="control-label col-sm-3" for="csv-file">CSV File</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" readonly> <span class="input-group-btn"> <a class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
 									</a>
 									</span>
-								</div>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="csv-upload-encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-price-type-upload" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type-upload}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-price-type-upload" name="priceType" class="form-control" placeholder="{{service:prov:price-type-lowest}}" /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-upload-help}}"></i></span>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
-							<div class="col-sm-8">
-								<div class="btn-group" data-toggle="buttons">
-									<label class="btn btn-default"       ><input type="radio" name="memoryUnit" autocomplete="off" value="1" id="instance-memory-unit-upload">MB</label>
-									<label class="btn btn-default active"><input type="radio" name="memoryUnit" autocomplete="off" checked value="1024">GB</label>
-								</div> 
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
-							</div>
-						</div>
-						<div class="alert alert-info hide import-summary"></div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<input type="submit" class="btn btn-primary btn-raised" id="csv-upload" data-loading-text="{{upload-new}}..." value="{{upload-new}}" data-complete-text="{{upload-new}}">
-					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
-				</div>
-			</div>
-		</div>
-	</form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="csv-upload-encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance-price-type-upload" data-toggle="tooltip" title="{{service:prov:price-type-title}}">{{service:prov:price-type-upload}}</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="instance-price-type-upload" name="priceType" class="form-control" placeholder="{{service:prov:price-type-lowest}}" /> <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-upload-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
+                            <div class="col-sm-8">
+                                <div class="btn-group" data-toggle="buttons">
+                                    <label class="btn btn-default"><input type="radio" name="memoryUnit" autocomplete="off" value="1" id="instance-memory-unit-upload">MB</label>
+                                    <label class="btn btn-default active"><input type="radio" name="memoryUnit" autocomplete="off" checked value="1024">GB</label>
+                                </div>
+                                <span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
+                            </div>
+                        </div>
+                        <div class="alert alert-info hide import-summary"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" class="btn btn-primary btn-raised" id="csv-upload" data-loading-text="{{upload-new}}..." value="{{upload-new}}" data-complete-text="{{upload-new}}">
+                    <button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>

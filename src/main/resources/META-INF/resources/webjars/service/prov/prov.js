@@ -253,11 +253,18 @@ define(function() {
         },
 
         /**
-         * Return the query parameter name to use to filter the associated input value.
+         * Return the query parameter name to use to filter some other inputs.
          */
         toQueryName: function(type, $item) {
             var id = $item.attr('id');
             return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
+        },
+
+        /**
+         * Return the query parameter value to use to filter some other inputs.
+         */
+        toQueryValueRam: function() {
+            return (current.cleanInt(_('instance-ram').val()) || 0) * parseInt(_('instance-ram-unit').find('li.active').data('unit'), 10);
         },
 
         /**
@@ -294,9 +301,10 @@ define(function() {
                 var $item = $(this);
                 var value = $item.val();
                 var queryParam = value && current.toQueryName(type, $item);
-                if (queryParam) {
+                value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
+                if (queryParam && value) {
                     // Add as query
-                    queries.push(queryParam + '=' + current.cleanData(value));
+                    queries.push(queryParam + '=' + current.cleanData("" + value));
                 }
             });
 
@@ -539,6 +547,12 @@ define(function() {
                 }]
             });
 
+            // Memory unit selection
+            _('instance-ram-unit').on('click', 'li', function() {
+                _('instance-ram-unit').find('li.active').removeClass('active');
+                _('instance-ram-unit').find('.btn span:first-child').text($(this).addClass('active').find('a').text());
+            });
+
             _('instance-price-type').select2(current.instancePriceTypeSelect2());
             _('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
         },
@@ -616,7 +630,7 @@ define(function() {
 
         instanceUiToData: function(data) {
             data.cpu = current.cleanFloat(_('instance-cpu').val());
-            data.ram = current.cleanInt(_('instance-ram').val());
+            data.ram = current.toQueryValueRam();
             data.instancePrice = current.model.instancePrice.instance.id;
             return current.model.instancePrice;
         },
@@ -649,18 +663,36 @@ define(function() {
         },
 
         /**
-         * Fill the instance popup with given entity.
+         * Fill the instance popup with given entity or default values.
          * @param {Object} model, the entity corresponding to the quote.
          */
         instanceToUi: function(model) {
-            _('instance-cpu').val(model.cpu || '1');
-            _('instance-ram').val(model.ram || '2048');
+            _('instance-cpu').val(model.cpu || 1);
+            current.adaptRamUnit(model.ram || 2048);
             _('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
             _('instance-price-type').select2('data', (model.id && model.instancePrice.type) || null);
             current.instanceSetUiPrice(model.id && {
                 cost: model.cost,
                 instance: model.instancePrice
             });
+        },
+
+        /**
+         * Auto select the right RAM unit depending on the RAM amount.
+         * @param {int} ram, the RAM value in MB.
+         */
+        adaptRamUnit: function(ram) {
+            _('instance-ram-unit').find('li.active').removeClass('active');
+            if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+                // Auto select GB
+                _('instance-ram-unit').find('li:last-child').addClass('active');
+                _('instance-ram').val(ram / 1024);
+            } else {
+                // Keep MB
+                _('instance-ram-unit').find('li:first-child').addClass('active');
+                _('instance-ram').val(ram);
+            }
+            _('instance-ram-unit').find('.btn span:first-child').text(_('instance-ram-unit').find('li.active a').text());
         },
 
         /**
