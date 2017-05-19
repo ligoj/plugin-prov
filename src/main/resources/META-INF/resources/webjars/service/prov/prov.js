@@ -487,7 +487,7 @@ define(function() {
                 table && table.fnFilter($(this).val());
             });
 
-            $('.resource-query').on('change', current.checkResource).on('keyup', current.checkResource);
+            $('.resource-query').on('change keyup', current.checkResource);
             current.initializeDataTableEvents('instance');
             current.initializeDataTableEvents('storage');
 
@@ -551,6 +551,9 @@ define(function() {
             _('instance-ram-unit').on('click', 'li', function() {
                 _('instance-ram-unit').find('li.active').removeClass('active');
                 _('instance-ram-unit').find('.btn span:first-child').text($(this).addClass('active').find('a').text());
+
+                // Also trigger the change of the value
+                _('instance-ram').trigger('change');
             });
 
             _('instance-price-type').select2(current.instancePriceTypeSelect2());
