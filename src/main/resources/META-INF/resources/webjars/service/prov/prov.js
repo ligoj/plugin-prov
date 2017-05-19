@@ -714,7 +714,7 @@ define(function() {
 
                     // Update the model
                     var model = conf[type + 'sById'][data.id] || {
-                        id: data.id
+                        id: id
                     };
                     model.name = data.name;
                     model.description = data.description;
@@ -727,7 +727,9 @@ define(function() {
                         conf.cost += costContext.cost - model.cost;
                         conf[type + 'Cost'] += costContext.cost - model.cost;
                         model.cost = costContext.cost;
-                        $table.DataTable().row($table.find('tbody>tr[data-id="' + data.id + '"]').first()[0]).invalidate().draw();
+
+                        // Redraw the raw
+                        $table.DataTable().row($table.find('tr[data-id="' + data.id + '"]').first()[0]).invalidate().draw();
                     } else {
                         // Create
                         conf[type + 's'].push(model);
@@ -1002,11 +1004,9 @@ define(function() {
                 destroy: true,
                 searching: true,
                 createdRow: function(nRow, data) {
-                    $(nRow).attr('data-id', data.id);
-                    $(nRow).find('.storages-tags').each(function() {
-                        var instance = current.model.configuration.instancesById[parseInt($(this).data('instance'), 10)];
-                        var storages = instance.storages;
-                        $(this).select2({
+                    $(nRow).attr('data-id', data.id)
+                        .find('.storages-tags')
+                        .select2({
                             multiple: true,
                             createSearchChoice: function() {
                                 // Disable additional values
@@ -1015,9 +1015,8 @@ define(function() {
                             formatResult: current.formatStorageHtml,
                             formatSelection: current.formatStorageHtml,
                             tags: []
-                        });
-                        $(this).select2('data', storages || []);
-                    });
+                        })
+                        .select2('data', current.model.configuration.instancesById[data.id].storages || []);
                 },
                 columns: [{
                     data: 'name',
