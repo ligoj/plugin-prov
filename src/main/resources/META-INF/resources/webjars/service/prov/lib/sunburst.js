@@ -40,6 +40,26 @@ define(['d3'], function (d3) {
 			.append('g')
 			.attr('transform', 'translate(' + width / 2 + ',' + (height / 2) + ')');
 
+		/* For the drop shadow filter... */
+		var defs = svg.append("defs");
+		var filter = defs.append("filter")
+			.attr("id", "sunburst-filter")
+		filter.append("feGaussianBlur")
+			.attr("in", "SourceAlpha")
+			.attr("stdDeviation", 4)
+			.attr("result", "blur");
+		filter.append("feOffset")
+			.attr("in", "blur")
+			.attr("dx", 2)
+			.attr("dy", 2)
+			.attr("result", "offsetBlur");
+
+		var feMerge = filter.append("feMerge");
+		feMerge.append("feMergeNode")
+			.attr("in", "offsetBlur")
+		feMerge.append("feMergeNode")
+			.attr("in", "SourceGraphic");
+
 		var tooltip = d3.select('body')
 			.append('div')
 			.attr('class', 'tooltip d3-tooltip tooltip-inner')
@@ -57,6 +77,7 @@ define(['d3'], function (d3) {
 		sunburst.path = svg.selectAll('.node')
 			.append('path')
 			.attr('d', arc)
+			.attr('class', 'sunburst-part')
 			.style('fill', function (d) {
 				return color((d.children ? d : d.parent).data.name);
 			})
@@ -123,6 +144,7 @@ define(['d3'], function (d3) {
 				.filter(function (node) {
 					return (sequenceArray.indexOf(node) >= 0);
 				})
+				.attr('class', 'sunburst-part')
 				.style('opacity', 1);
 		}
 		d3.select(self.frameElement).style('height', height + 'px');
