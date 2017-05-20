@@ -48,6 +48,7 @@ define({
         'service:prov:storage-frequency-hot-title': 'Frequent access, medium to high latency',
         'service:prov:storage-frequency-archive': 'Archive',
         'service:prov:storage-frequency-archive-title': 'Very infrequent access, or high latency. Not suitable for instance',
+        'service:prov:storage-select': 'Specify the storage size in GB',
         'service:prov:storage-optimized': 'Optimized',
         'service:prov:storage-optimized-title': 'Storage optimization purpose',
         'service:prov:storage-optimized-help': 'What is the most important for this storage',

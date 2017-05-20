@@ -118,9 +118,10 @@ define(function () {
 
 		/**
 		 * Format the storage size to html markup.
+		 * @param {object} qs Quote storage with price, type and size.
 		 */
-		formatStorageHtml: function (storage) {
-			return current.formatStorageFrequency(storage.type.frequency) + ' ' + current.formatStorageOptimized(storage.type.optimized) + ' ' + formatManager.formatSize(storage.size * 1024 * 1024 * 1024, 3);
+		formatStorageHtml: function (qs) {
+			return current.formatStorageFrequency(qs.type.frequency) + ' ' + current.formatStorageOptimized(qs.type.optimized) + ' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
@@ -148,27 +149,27 @@ define(function () {
 		 * OS key to markup/label mapping.
 		 */
 		os: {
-			'linux': ['Linux', 'fa fa-linux'],
-			'windows': ['Windows', 'fa fa-windows'],
-			'suse': ['SUSE', 'icon-suse'],
-			'rhe': ['Red Hat Enterprise', 'icon-redhat']
+			'linux': ['Linux', 'fa fa-linux fa-fw'],
+			'windows': ['Windows', 'fa fa-windows fa-fw'],
+			'suse': ['SUSE', 'icon-suse fa-fw'],
+			'rhe': ['Red Hat Enterprise', 'icon-redhat fa-fw']
 		},
 
 		/**
 		 * Storage type key to markup/label mapping.
 		 */
 		storageFrequency: {
-			'cold': 'fa fa-snowflake-o',
-			'hot': 'fa fa-thermometer-full',
-			'archive': 'fa fa-archive'
+			'cold': 'fa fa-snowflake-o fa-fw',
+			'hot': 'fa fa-thermometer-full fa-fw',
+			'archive': 'fa fa-archive fa-fw'
 		},
 
 		/**
 		 * Storage optimized key to markup/label mapping.
 		 */
 		storageOptimized: {
-			'throughput': 'fa fa-database',
-			'iops': 'fa fa-flash'
+			'throughput': 'fa fa-database fa-fw',
+			'iops': 'fa fa-flash fa-fw'
 		},
 
 		/**
@@ -224,7 +225,6 @@ define(function () {
 				conf.instancesById[instance.id] = instance;
 				conf.instanceCost += instance.cost;
 			}
-			conf.detachedStorages = [];
 			conf.storagesById = {};
 			var storages = conf.storages;
 			for (i = 0; i < storages.length; i++) {
@@ -235,9 +235,6 @@ define(function () {
 					storage.quoteInstance = conf.instancesById[storage.quoteInstance];
 					storage.quoteInstance.storages = storage.quoteInstance.storages || [];
 					storage.quoteInstance.storages.push(storage);
-				} else {
-					// Detached storage
-					conf.detachedStorages.push[storage];
 				}
 
 				// Optimize id access
@@ -380,28 +377,20 @@ define(function () {
 			var dataTable = current[type + 'NewTable']();
 			// Delete a single row/item
 			$table.on('click', '.delete', function () {
-				var $tr = $(this).closest('tr');
-				var qi = dataTable.fnGetData($tr[0]);
+				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
 				$.ajax({
-					url: REST_PATH + 'service/prov/' + type + '/' + qi.id,
 					type: 'DELETE',
+					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
 					success: function () {
-						// Update the model
-						current[type + 'Delete'](qi.id);
-
-						// Update the UI
-						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([qi.id, qi.name]));
-						$('.tooltip').remove();
-						$table.DataTable().row($tr).remove().draw(false);
-						current.updateUiCost();
+						current.deleteCallback(type, resource);
 					}
 				});
 			});
 			// Delete all items
 			$table.on('click', '.delete-all', function () {
 				$.ajax({
-					url: REST_PATH + 'service/prov/' + type + '/reset/' + current.model.subscription,
 					type: 'DELETE',
+					url: REST_PATH + 'service/prov/' + type + '/reset/' + current.model.subscription,
 					success: function () {
 						// Update the model
 						current[type + 'Delete']();
@@ -428,6 +417,20 @@ define(function () {
 				model.id && current.enableCreate($popup);
 				current.toUi(type, model);
 			});
+		},
+
+		deleteCallback: function (type, resource) {
+			// Update the model
+			current[type + 'Delete'](resource.id);
+
+			// Update the UI
+			notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([resource.id, resource.name]));
+			$('.tooltip').remove();
+			var $table = _('prov-' + type + 's');
+			$table.find('tr[data-id="' + resource.id + '"]').each(function () {
+				$table.DataTable().row($(this)[0]).remove().draw(false);
+			});
+			current.updateUiCost();
 		},
 
 		initializeUpload: function () {
@@ -652,7 +655,7 @@ define(function () {
 		toUi: function (type, model) {
 			validationManager.reset(_('popup-prov-' + type));
 			current.currentId = model.id;
-			_(type + '-name').val(model.name || '');
+			_(type + '-name').val(model.name || current.findNewName(current.model[type + 's'], type));
 			_(type + '-description').val(model.description || '');
 			current[type + 'ToUi'](model);
 		},
@@ -720,21 +723,22 @@ define(function () {
 			};
 		},
 
+		/**
+		 * Save a storage or an instance in the database from the corresponding popup. Handle the cost delta,  update the model, then the UI.
+		 * @param {string} type Resource type to save.
+		 */
 		save: function (type) {
 			var $popup = _('popup-prov-' + type);
 
 			// Build the playload for business service
 			var data = {
 				id: current.currentId,
-				name: (_(type + '-name').val() || ''),
-				description: _(type + '-description').val() || '',
+				name: _(type + '-name').val(),
+				description: _(type + '-description').val(),
 				subscription: current.model.subscription
 			};
-
-			// Backup the stored context
-			var costContext = current[type + 'UiToData'](data);
-			var conf = current.model.configuration;
-			var oldCost = costContext.cost;
+			// Complete the data from the UI and backup the price context
+			var priceContext = current[type + 'UiToData'](data);
 
 			// Trim the data
 			Object.keys(data).forEach((key) => (data[key] === null || data[key] === '') && delete data[key]);
@@ -745,41 +749,58 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (id) {
-					if (current.currentId) {
-						notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
-					} else {
-						notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
-					}
-
-					// Update the model
-					var model = conf[type + 'sById'][data.id] || {
-						id: id
-					};
-					model.name = data.name;
-					model.description = data.description;
-					current[type + 'CommitToModel'](data, model, costContext);
-					// Update the model and the total cost
-					var $table = _('prov-' + type + 's');
-					if (data.id) {
-						// Update
-						conf.cost += costContext.cost - model.cost;
-						conf[type + 'Cost'] += costContext.cost - model.cost;
-						model.cost = costContext.cost;
-						// Redraw the raw
-						$table.DataTable().row($table.find('tr[data-id="' + data.id + '"]').first()[0]).invalidate().draw();
-					} else {
-						// Create
-						conf[type + 's'].push(model);
-						conf[type + 'sById'][id] = model;
-						conf.cost += costContext.cost;
-						conf[type + 'Cost'] += costContext.cost;
-						model.cost = costContext.cost;
-						$table.DataTable().row.add(model).draw(false);
-					}
-					current.updateUiCost();
+					current.saveCallback(type, id, data, priceContext);
 					$popup.modal('hide');
 				}
 			});
+		},
+
+		/**
+		 * Commit to the model the saved data and update the computed cost.
+		 * @param {string} type Resource type to save.
+		 * @param {string} id Resource identifier, never null.
+		 * @param {object} data The original data sent to the back-end.
+		 * @param {object} priceContext The price context to commit in addition of data.
+		 * @return {object} The updated or created model.
+		 */
+		saveCallback: function (type, id, data, priceContext) {
+			var conf = current.model.configuration;
+			if (current.currentId) {
+				notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
+			} else {
+				notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
+			}
+
+			// Update the model
+			var model = conf[type + 'sById'][data.id] || {
+				id: id,
+				cost: 0
+			};
+			model.name = data.name;
+			model.description = data.description;
+			current[type + 'CommitToModel'](data, model, priceContext);
+			// Update the model and the total cost
+			var $table = _('prov-' + type + 's');
+			if (data.id) {
+				// Update : Redraw the row
+				$table.find('tr[data-id="' + data.id + '"]').each(function () {
+					$table.DataTable().row($(this)[0]).invalidate().draw();
+				});
+			} else {
+				// Create
+				conf[type + 's'].push(model);
+				conf[type + 'sById'][id] = model;
+
+				// Ass the new row
+				$table.DataTable().row.add(model).draw(false);
+			}
+
+			// Update the hierarchical costs
+			conf.cost += priceContext.cost - model.cost;
+			conf[type + 'Cost'] += priceContext.cost - model.cost;
+			model.cost = priceContext.cost;
+			current.updateUiCost();
+			return model;
 		},
 
 		/**
@@ -1039,18 +1060,75 @@ define(function () {
 				createdRow: function (nRow, data) {
 					$(nRow).attr('data-id', data.id);
 				},
-				rowCallback: function (nRow, data) {
+				rowCallback: function (nRow, qi) {
 					$(nRow).find('.storages-tags').select2({
 						multiple: true,
+						minimumInputLength: 1,
 						createSearchChoice: function () {
 							// Disable additional values
 							return null;
 						},
-						formatResult: current.formatStorageHtml,
+						formatInputTooShort: current.$messages['service:prov:storage-select'],
+						formatResult: function (qs) {
+							return current.formatStorageHtml(qs) + ' ' + qs.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '/m</span>';
+						},
 						formatSelection: current.formatStorageHtml,
-						tags: []
-					}).select2('data',
-						current.model.configuration.instancesById[data.id].storages || []);
+						ajax: {
+							url: REST_PATH + 'service/prov/storage-lookup/' + current.model.subscription + '?instance=' + qi.id,
+							dataType: 'json',
+							data: function (term, page) {
+								return {
+									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
+								};
+							},
+							results: function (data, page) {
+								// Completed the requested identifier
+								for (item of data) {
+									item.id = item.type.id + '-' + new Date().getMilliseconds();
+									item.text = item.type.name;
+								}
+								return {
+									more: false,
+									results: data
+								};
+							}
+						}
+					}).select2('data', current.model.configuration.instancesById[qi.id].storages || []).on('change', function (event) {
+						if (event.added) {
+							// New storage
+							var storagePrice = event.added;
+							var data = {
+								name: current.findNewName(current.model.configuration.storages, qi.name),
+								type: storagePrice.type.id,
+								size: storagePrice.size,
+								quoteInstance: qi.id,
+								subscription: current.model.subscription
+							};
+							$.ajax({
+								type: 'POST',
+								url: REST_PATH + 'service/prov/storage',
+								dataType: 'json',
+								contentType: 'application/json',
+								data: JSON.stringify(data),
+								success: function (id) {
+									var qs = current.saveCallback('storage', id, data, storagePrice);
+									storagePrice.id = qs.id;
+									storagePrice.name = qs.name;
+									storagePrice.text = qs.name;
+								}
+							});
+						} else if (event.removed) {
+							// Storage to delete
+							var qs = current.model.configuration.storagesById[event.removed.id];
+							$.ajax({
+								type: 'DELETE',
+								url: REST_PATH + 'service/prov/storage/' + qs.id,
+								success: function () {
+									current.deleteCallback('storage', qs);
+								}
+							});
+						}
+					});
 				},
 				columns: [{
 					data: 'name',
@@ -1092,6 +1170,31 @@ define(function () {
 			});
 
 			return current.instanceTable;
+		},
+
+		/**
+		 * Find a free name within the given namespace.
+		 * @param {array} resources The namespace of current resources.
+		 * @param {string} prefix The prefered name (if available) and used as prefix when there is collision.
+		 * @param {string} increment The current increment number of collision. Will starts from 1 when not specified.
+		 * @param {string} resourcesByName The namespace where key is the unique name.
+		 */
+		findNewName: function (resources, prefix, increment, resourcesByName) {
+			if (typeof resourcesByName === 'undefined') {
+				// Build the name based index
+				resourcesByName = {};
+				for (resource of resources) {
+					resourcesByName[resource.name] = resource;
+				}
+			}
+			if (resourcesByName[prefix]) {
+				increment = increment || 1;
+				if (resourcesByName[prefix + '-' + increment]) {
+					return current.findNewName(resourcesByName, prefix, increment + 1, resourcesByName);
+				}
+				return prefix + '-' + increment;
+			}
+			return prefix;
 		},
 
 		/**
