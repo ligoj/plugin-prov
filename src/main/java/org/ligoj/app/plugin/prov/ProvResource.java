@@ -555,7 +555,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 		// Return only the first matching instance
 		return stRepository.findLowestPrice(node, size, frequency, instance, optimized, new PageRequest(0, 10)).stream()
-				.map(st -> newComputedStoragePrice(st, getStorageCost(st, size))).collect(Collectors.toList());
+				.map(st -> newComputedStoragePrice(st, size, getStorageCost(st, size))).collect(Collectors.toList());
 	}
 
 	/**
@@ -571,10 +571,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	/**
 	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice} and computed price.
 	 */
-	private ComputedStoragePrice newComputedStoragePrice(final ProvStorageType st, final double cost) {
+	private ComputedStoragePrice newComputedStoragePrice(final ProvStorageType st, final int size, final double cost) {
 		final ComputedStoragePrice result = new ComputedStoragePrice();
 		result.setCost(cost);
 		result.setType(st);
+		result.setSize(size);
 		return result;
 	}
 

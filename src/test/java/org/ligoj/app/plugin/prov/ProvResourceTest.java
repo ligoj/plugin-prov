@@ -861,6 +861,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(st.getId());
 		Assert.assertEquals("storage1", st.getName());
 		Assert.assertEquals(0.42, price.getCost(), DELTA);
+		Assert.assertEquals(2, price.getSize());
 	}
 
 	/**

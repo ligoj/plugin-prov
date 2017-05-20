@@ -16,4 +16,9 @@ public class ComputedStoragePrice extends AbstractComputedPrice {
 	 * The lowest storage type price.
 	 */
 	private ProvStorageType type;
+	
+	/**
+	 * The requested size.
+	 */
+	private int size;
 }
