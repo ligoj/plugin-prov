@@ -12,7 +12,7 @@ define({
         'service:prov:cpu-variable': 'Variable',
         'service:prov:cpu-constant': 'Constant',
         'service:prov:cpu-title': 'Operating System',
-        'service:prov:cpu-help': 'The requested CPU. The best instance matching to this requirement may include more than this amount. So it is important to request a balanced resource (CPU/RAM) to limit this loss.<div class=\'text-left\'><i class=\'fa fa-bolt\'></i> Variable CPU has credit with turbo.<br><i class=\'fa fa-minus\'></i> Constant CPU delivers a continous power.</div>',
+        'service:prov:cpu-help': 'The requested CPU. The best instance matching to this requirement may include more than this amount. So it is important to request a balanced resource (CPU/RAM) to limit this loss.<div class=\'text-left\'><i class=\'fa fa-bolt fa-fw\'></i> Variable CPU has credit with turbo.<br><i class=\'fa fa-minus fa-fw\'></i> Constant CPU delivers a continous power.</div>',
         'service:prov:ram': 'RAM',
         'service:prov:ram-mega': 'MB',
         'service:prov:ram-giga': 'GB',
