@@ -28,6 +28,8 @@ define({
         'service:prov:instance-deleted': 'Instance "{{[0]}}" ({{[1]}}) is deleted',
         'service:prov:instance-cleared': 'All instances and attached storages have been deleted',
         'service:prov:instance-choice': 'The best instance of the provider is determinated from the provided requirements',
+        'service:prov:instance-type': 'Type',
+        'service:prov:instance-type-title': 'Instance type of the provider',
         'service:prov:price-type': 'Usage',
         'service:prov:price-type-title': 'Price condition and usage',
         'service:prov:price-type-help': 'Price condition, period and contract. In general, the shortest is the contract, the more expensive is the instance',

@@ -96,6 +96,40 @@ define(function () {
 		},
 
 		/**
+		 * Format instance detail
+		 */
+		formatInstance: function (name, mode, qi) {
+			var instance = qi ? qi.instancePrice.instance : null;
+			var name = instance ? instance.name : name;
+			if (mode === 'sort' || (instance && typeof instance.id === 'undefined')) {
+				// Use only the name
+				return name;
+			}
+			// Instance details are available
+			var details = instance.description || '';
+			details += '<br><i class=\'fa fa-bolt fa-fw\'></i> ';
+			if (instance.cpu) {
+				details += instance.cpu;
+				details += ' ' + current.formatConstant(instance.constant);
+			} else {
+				details += current.$messages['service:prov:instance-custom']
+			}
+			if (instance.ram) {
+				details += '<br><i class=\'fa fa-microchip fa-fw\'></i> ';
+				details += current.formatRam(instance.ram)
+			}
+
+			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		},
+
+		/**
+		 * Format the constant CPU.
+		 */
+		formatConstant: function (constant) {
+			return current.$messages[constant === true ? 'service:prov:cpu-constant' : 'service:prov:cpu-variable'];
+		},
+
+		/**
 		 * Format the cost.
 		 */
 		formatCost: function (cost, mode) {
@@ -1156,7 +1190,13 @@ define(function () {
 					render: current.formatRam
 				}, {
 					// Usage type for an instance
-					data: 'instancePrice.type.name'
+					data: 'instancePrice.type.name',
+					className: 'truncate'
+				}, {
+					data: 'instancePrice.instance.name',
+					width: '64px',
+					className: 'truncate',
+					render: current.formatInstance
 				}, {
 					data: null,
 					render: current.formatQiStorages

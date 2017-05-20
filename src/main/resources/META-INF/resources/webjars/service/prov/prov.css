@@ -60,3 +60,9 @@
 .sunburst-part:hover {
 	filter: url(#sunburst-filter);
 }
+
+#subscribe-configuration-prov .instance {
+	border-bottom: 1px dotted #ccc;
+	text-decoration: none;
+	cursor: help;
+}
