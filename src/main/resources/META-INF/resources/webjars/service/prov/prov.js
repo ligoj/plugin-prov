@@ -376,7 +376,7 @@ define(function () {
 		},
 
 		storageValidatePrice: function (price) {
-			return price;
+			return price.length ? price[0] : null;
 		},
 
 		/**
@@ -517,6 +517,14 @@ define(function () {
 			$('.resource-query').on('change keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
+			$('.quote-name').text(current.model.configuration.name);
+			$('.prov-project-edit').on('click', function () {
+				bootbox.prompt({
+					title: current.$messages.name,
+					callback: current.updateQuoteName,
+					value: current.model.configuration.name
+				});
+			});
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
@@ -584,6 +592,26 @@ define(function () {
 			});
 			_('instance-price-type').select2(current.instancePriceTypeSelect2());
 			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
+		},
+
+		/**
+		 * Update the quote name
+		 */
+		updateQuoteName: function (name) {
+			$.ajax({
+				type: 'PUT',
+				url: REST_PATH + 'service/prov/' + current.model.subscription,
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					name: name,
+					description: current.model.configuration.description
+				}),
+				success: function () {
+					$('.quote-name').text(name);
+					notifyManager.notify(Handlebars.compile(current.$messages.updated)(name));
+				}
+			});
 		},
 
 		instancePriceTypeSelect2: function (allowClear) {

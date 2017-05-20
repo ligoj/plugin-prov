@@ -14,8 +14,8 @@ define(['d3'], function (d3) {
 
 	};
 	sunburst.init = function ($element, data) {
-		var width = 300;
-		var height = 300;
+		var width = 200;
+		var height = 200;
 		var radius = (Math.min(width, height) / 2) - 10;
 		var formatNumber = d3.format(',d');
 		var x = d3.scaleLinear().range([0, 2 * Math.PI]);

@@ -32,7 +32,7 @@
 }
 
 #subscribe-configuration-prov .nav h2 {
-	font-size: 90px;
+	font-size: 48px;
 }
 
 #sunburst path {
@@ -42,10 +42,10 @@
 
 #sunburst {
 	width: 150px;
-	height: 200px;
+	height: 150px;
 	z-index: 1030;
 	position: absolute;
-	top: -107px;
+	top: -18px;
 }
 
 .d3-tooltip {
@@ -65,4 +65,12 @@
 	border-bottom: 1px dotted #ccc;
 	text-decoration: none;
 	cursor: help;
+}
+
+.prov-project {
+	position: relative;
+}
+
+.prov-cost-wrapper {
+	pointer-events: none;
 }

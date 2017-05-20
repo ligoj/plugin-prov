@@ -35,6 +35,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
@@ -1005,5 +1006,14 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void uploadInvalidHeader() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")), new String[] { "any" },
 				priceTypeRepository.findByNameExpected("on-demand1").getId(), 1, "UTF-8");
+	}
+
+	@Test
+	public void update() {
+		final DescribedBean<?> nameDesc = new DescribedBean<>();
+		nameDesc.setName("name1");
+		nameDesc.setDescription("description1");
+		resource.update(subscription, nameDesc);
+		Assert.assertEquals("description1", repository.findByNameExpected("name1").getDescription());
 	}
 }

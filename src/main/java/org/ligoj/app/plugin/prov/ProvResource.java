@@ -603,6 +603,24 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
+	 * Update the configuration details.
+	 * 
+	 * @param subscription
+	 *            The subscription to update
+	 * @param nameAndDescription
+	 *            The new name and description.
+	 */
+	@PUT
+	@Path("{subscription:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void update(@PathParam("subscription") final int subscription, final DescribedBean<?> nameAndDescription) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+		final ProvQuote entity = repository.findByExpected("subscription.id", subscription);
+		entity.setName(nameAndDescription.getName());
+		entity.setDescription(nameAndDescription.getDescription());
+	}
+
+	/**
 	 * Compute the total cost without transactional/snapshot costs and save it into the related quote. All compute and
 	 * storage costs are updated.
 	 * 
