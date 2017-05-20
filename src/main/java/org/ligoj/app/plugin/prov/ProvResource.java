@@ -731,7 +731,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @return The cost of this storage.
 	 */
 	private double getStorageCost(final ProvStorageType storageType, final int size) {
-		return Math.max(size, storageType.getMinimal()) * storageType.getCost();
+		return round(Math.max(size, storageType.getMinimal()) * storageType.getCost());
 	}
 
 	@Override
