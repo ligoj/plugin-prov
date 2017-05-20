@@ -609,6 +609,13 @@ define(function () {
 		storageCommitToModel: function (data, model, costContext) {
 			model.size = parseInt(data.size, 10);
 			model.type = costContext.type;
+
+			// Manage the attached quote instance
+			if (data.quoteInstance) {
+				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
+				model.quoteInstance.storage = model.quoteInstance.storage ? model.quoteInstance.storage : [];
+				model.quoteInstance.storages.push(model);
+			}
 		},
 
 		instanceCommitToModel: function (data, model, costContext) {
@@ -779,7 +786,13 @@ define(function () {
 			model.name = data.name;
 			model.description = data.description;
 			current[type + 'CommitToModel'](data, model, priceContext);
+
 			// Update the model and the total cost
+			conf.cost += priceContext.cost - model.cost;
+			conf[type + 'Cost'] += priceContext.cost - model.cost;
+			model.cost = priceContext.cost;
+
+			// Update the UI
 			var $table = _('prov-' + type + 's');
 			if (data.id) {
 				// Update : Redraw the row
@@ -791,14 +804,11 @@ define(function () {
 				conf[type + 's'].push(model);
 				conf[type + 'sById'][id] = model;
 
-				// Ass the new row
+				// Add the new row
 				$table.DataTable().row.add(model).draw(false);
 			}
 
-			// Update the hierarchical costs
-			conf.cost += priceContext.cost - model.cost;
-			conf[type + 'Cost'] += priceContext.cost - model.cost;
-			model.cost = priceContext.cost;
+			// Update the UI costs only now
 			current.updateUiCost();
 			return model;
 		},
@@ -1061,7 +1071,7 @@ define(function () {
 					$(nRow).attr('data-id', data.id);
 				},
 				rowCallback: function (nRow, qi) {
-					$(nRow).find('.storages-tags').select2({
+					$(nRow).find('.storages-tags').select2('destroy').select2({
 						multiple: true,
 						minimumInputLength: 1,
 						createSearchChoice: function () {
@@ -1093,7 +1103,7 @@ define(function () {
 								};
 							}
 						}
-					}).select2('data', current.model.configuration.instancesById[qi.id].storages || []).on('change', function (event) {
+					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
 							// New storage
 							var storagePrice = event.added;
@@ -1111,15 +1121,12 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (id) {
-									var qs = current.saveCallback('storage', id, data, storagePrice);
-									storagePrice.id = qs.id;
-									storagePrice.name = qs.name;
-									storagePrice.text = qs.name;
+									storagePrice.qs = current.saveCallback('storage', id, data, storagePrice);
 								}
 							});
 						} else if (event.removed) {
 							// Storage to delete
-							var qs = current.model.configuration.storagesById[event.removed.id];
+							var qs = event.removed.qs || event.removed;
 							$.ajax({
 								type: 'DELETE',
 								url: REST_PATH + 'service/prov/storage/' + qs.id,
@@ -1135,13 +1142,16 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'instancePrice.os',
+					className: 'truncate',
 					width: '24px',
 					render: current.formatOs
 				}, {
 					data: 'cpu',
+					className: 'truncate',
 					width: '48px'
 				}, {
 					data: 'ram',
+					className: 'truncate',
 					width: '48px',
 					render: current.formatRam
 				}, {
@@ -1152,6 +1162,7 @@ define(function () {
 					render: current.formatQiStorages
 				}, {
 					data: 'cost',
+					className: 'truncate',
 					width: '64px',
 					render: current.formatCost
 				}, {
@@ -1215,19 +1226,28 @@ define(function () {
 				}, {
 					data: 'size',
 					width: '64px',
+					className: 'truncate',
 					render: current.formatStorage
 				}, {
 					data: 'type.frequency',
-					width: '64px',
+					width: '80px',
+					className: 'truncate',
 					render: current.formatStorageFrequency
 				}, {
 					data: 'type.optimized',
-					width: '64px',
+					width: '80px',
+					className: 'truncate',
 					render: current.formatStorageOptimized
 				}, {
-					data: 'type.name'
+					data: 'type.name',
+					className: 'truncate',
+					width: '80px'
+				}, {
+					data: 'quoteInstance.name',
+					className: 'truncate'
 				}, {
 					data: 'cost',
+					className: 'truncate',
 					width: '64px',
 					render: current.formatCost
 				}, {
