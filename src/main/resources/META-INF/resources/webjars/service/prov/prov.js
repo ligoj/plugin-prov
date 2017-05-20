@@ -655,7 +655,7 @@ define(function () {
 		toUi: function (type, model) {
 			validationManager.reset(_('popup-prov-' + type));
 			current.currentId = model.id;
-			_(type + '-name').val(model.name || current.findNewName(current.model[type + 's'], type));
+			_(type + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
 			_(type + '-description').val(model.description || '');
 			current[type + 'ToUi'](model);
 		},
