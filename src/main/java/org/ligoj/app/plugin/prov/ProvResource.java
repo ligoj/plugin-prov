@@ -214,8 +214,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Update the instance inside a quote.
 	 * 
 	 * @param vo
-	 *            The quote instance.
-	 * @return The created instance identifier.
+	 *            The quote instance to update.
 	 */
 	@PUT
 	@Path("instance")
@@ -353,8 +352,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	/**
 	 * Save or update the storage inside a quote.
 	 * 
+	 * @param entity
+	 *            The storage entity to update.
 	 * @param vo
-	 *            The quote storage.
+	 *            The new quote storage data to persist.
 	 * @return The formal entity.
 	 */
 	private ProvQuoteStorage saveOrUpdate(final ProvQuoteStorage entity, final QuoteStorageEditionVo vo) {

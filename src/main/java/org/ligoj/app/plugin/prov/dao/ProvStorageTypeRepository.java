@@ -54,5 +54,5 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 			+ " AND (:frequency IS NULL OR st.frequency = :frequency)"
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY st.cost ASC")
 	List<ProvStorageType> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance,
-			ProvStorageOptimized optimized, Pageable pageRequest);
+			ProvStorageOptimized optimized, Pageable pageable);
 }
