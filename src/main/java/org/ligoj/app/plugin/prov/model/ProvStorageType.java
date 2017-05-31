@@ -1,6 +1,8 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -40,27 +42,29 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * The frequency access
 	 */
 	@NotNull
+	@Enumerated(EnumType.STRING)
 	private ProvStorageFrequency frequency;
 	
 	/**
 	 * Optimized best usage of this storage
 	 */
+	@Enumerated(EnumType.STRING)
 	private ProvStorageOptimized optimized;
 
 	/**
-	 * The minimal disk in "Go".
+	 * The minimal disk size in "Go".
 	 */
 	private int minimal = 0;
-
-	/**
-	 * <code>true</code> when this storage can attached to an instance.
-	 */
-	private boolean instanceCompatible = false;
 
 	/**
 	 * The maximum supported size in "Go". May be <code>null</code>.
 	 */
 	private Integer maximal;
+
+	/**
+	 * <code>true</code> when this storage can attached to an instance.
+	 */
+	private boolean instanceCompatible = false;
 
 	/**
 	 * The cost per transaction. May be <code>0</code>.

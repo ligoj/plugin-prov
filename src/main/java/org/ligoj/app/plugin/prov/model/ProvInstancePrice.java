@@ -67,6 +67,7 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	 * Th optional tenancy of the related instance. By default, the tenancy is
 	 * {@link ProvTenancy#SHARED}
 	 */
+	@Enumerated(EnumType.STRING)
 	private ProvTenancy tenancy = ProvTenancy.SHARED;
 
 	/**
