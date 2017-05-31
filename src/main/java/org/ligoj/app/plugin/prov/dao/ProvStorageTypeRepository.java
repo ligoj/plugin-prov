@@ -32,7 +32,7 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 	Page<ProvStorageType> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return the lowest storage price configuration from the minimal requirements.
+	 * Return the cheapest storage configuration from the minimal requirements.
 	 * 
 	 * @param node
 	 *            The node linked to the subscription. Is a node identifier within a provider.
@@ -46,13 +46,15 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 	 *            The optional requested optimized. May be <code>null</code>.
 	 * @param pageable
 	 *            The page control to return few item.
-	 * @return The minimum instance or <code>null</code>.
+	 * @return The cheapest storage or <code>null</code>. The first item corresponds to the storage price, the second is
+	 *         the computed price.
 	 */
-	@Query("FROM #{#entityName} AS st WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))"
+	@Query("SELECT st, (st.cost+(CASE WHEN st.minimal < :size THEN st.minimal ELSE :size END) * st.costGb) AS cost"
+			+ " FROM #{#entityName} AS st WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))"
 			+ " AND (:size IS NULL OR st.maximal IS NULL OR st.maximal >= :size)"
 			+ " AND (:instance IS NULL OR st.instanceCompatible = true)"
 			+ " AND (:frequency IS NULL OR st.frequency = :frequency)"
-			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY st.cost ASC")
-	List<ProvStorageType> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance,
+			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC")
+	List<Object[]> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance,
 			ProvStorageOptimized optimized, Pageable pageable);
 }

@@ -33,10 +33,14 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
+	 * The fixed monthly cost whatever the used size.
+	 */
+	private double cost = 0;
+
+	/**
 	 * The monthly cost of 1Go (Giga Bytes).
 	 */
-	@NotNull
-	private Double cost;
+	private double costGb = 0;
 
 	/**
 	 * The frequency access
@@ -44,7 +48,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	private ProvStorageFrequency frequency;
-	
+
 	/**
 	 * Optimized best usage of this storage
 	 */
@@ -54,7 +58,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	/**
 	 * The minimal disk size in "Go".
 	 */
-	private int minimal = 0;
+	private int minimal = 1;
 
 	/**
 	 * The maximum supported size in "Go". May be <code>null</code>.
@@ -69,7 +73,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	/**
 	 * The cost per transaction. May be <code>0</code>.
 	 */
-	private double transactionalCost;
+	private double costTransaction;
 
 	/**
 	 * The enabled provider.
@@ -78,5 +82,4 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
-
 }

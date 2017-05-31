@@ -1,5 +1,5 @@
-node.id;name;frequency;optimized;cost;description;minimal;maximal;transactionalCost;instanceCompatible
-service:prov:test;storage1;HOT;IOPS;0.21;storageD1;;;;true
-service:prov:test;storage2;COLD;;0.15;storageD2;512;512;0.000000072;true
-service:prov:test;storage3;ARCHIVE;;0.15;storageD3;;;;false
-service:prov:x;storageX;HOT;;0.21;storageD1;;;;true
+node.id;name;frequency;optimized;cost;costGb;description;minimal;maximal;costTransaction;instanceCompatible
+service:prov:test;storage1;HOT;IOPS;;0.21;storageD1;;;;true
+service:prov:test;storage2;COLD;;1;0.15;storageD2;512;512;0.000000072;true
+service:prov:test;storage3;ARCHIVE;;2;0.15;storageD3;;;;false
+service:prov:x;storageX;HOT;;3;0.21;storageD1;;;;true

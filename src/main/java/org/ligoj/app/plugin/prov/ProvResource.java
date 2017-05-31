@@ -556,6 +556,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 		// Return only the first matching instance
 		return stRepository.findLowestPrice(node, size, frequency, instance, optimized, new PageRequest(0, 10)).stream()
+				.map(st -> (ProvStorageType) st[0])
 				.map(st -> newComputedStoragePrice(st, size, getStorageCost(st, size))).collect(Collectors.toList());
 	}
 
@@ -750,7 +751,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * @return The cost of this storage.
 	 */
 	private double getStorageCost(final ProvStorageType storageType, final int size) {
-		return round(Math.max(size, storageType.getMinimal()) * storageType.getCost());
+		return round(Math.max(size, storageType.getMinimal()) * storageType.getCostGb() + storageType.getCost());
 	}
 
 	@Override
