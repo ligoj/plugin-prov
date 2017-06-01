@@ -450,7 +450,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
-			@DefaultValue(value = "false") @QueryParam("constant") final Boolean constant,
+			@QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
 			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type) {
 		// Get the attached node and check the security on this subscription
