@@ -316,8 +316,8 @@ define(function () {
 		},
 
 		/**
-		 * Check there is at least one instance matching to the requirement
-		 * @param $form Optional jQuery form holding the resources to filter
+		 * Checks there is at least one instance matching to the requirement. 
+		 * Uses the current "this" jQuery context to get the UI context.
 		 */
 		checkResource: function () {
 			var $form = $(this).closest('[data-prov-type]');
@@ -346,6 +346,7 @@ define(function () {
 					var callbackUi = current[type + 'SetUiPrice'];
 					var valid = current[type + 'ValidatePrice'](price);
 					if (valid) {
+						// The resource is valid, enable the create
 						current.enableCreate($popup);
 					}
 					callbackUi(valid);
@@ -384,21 +385,21 @@ define(function () {
 		 */
 		storageSetUiPrice: function (price) {
 			current.model.storagePrice = price;
-			_('storage').val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
+			_('storage').select2('data',  price || null).val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
 		},
 
 		/**
 		 * Set the current instance price.
 		 */
 		instanceSetUiPrice: function (price) {
-			current.model.instancePrice = price || {};
-			if (current.model.instancePrice.instance) {
+			price = price || {};
+			current.model.instancePrice = price;
+
+			if (price.instance) {
 				_('instance').val(price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)');
 				_('instance-price-type').select2('data', price.instance.type).val(price.instance.type.id);
 			} else {
 				_('instance').val('');
-				// Find now the best instance from the default inputs
-				$.proxy(current.checkResource, _('popup-prov-instance'))();
 			}
 		},
 
@@ -745,11 +746,11 @@ define(function () {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
-			_('instance-price-type').select2('data', (model.id && model.instancePrice.type) || null);
 			current.instanceSetUiPrice(model.id && {
 				cost: model.cost,
 				instance: model.instancePrice
 			});
+			model.id || $.proxy(current.checkResource, _('popup-prov-instance'))();
 		},
 
 		/**
