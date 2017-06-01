@@ -155,7 +155,7 @@ define(function () {
 		 * @param {object} qs Quote storage with price, type and size.
 		 */
 		formatStorageHtml: function (qs) {
-			return current.formatStorageFrequency(qs.type.frequency) + ' ' + current.formatStorageOptimized(qs.type.optimized) + ' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3);
+			return current.formatStorageFrequency(qs.type.frequency) + (qs.type.optimized ? ' ' + current.formatStorageOptimized(qs.type.optimized) : '') + ' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
