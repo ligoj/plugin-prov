@@ -1,8 +1,8 @@
-configuration.name;instancePrice.id!;name;description;cpu;ram;cost
-quote1;1;server1;serverD1;0.5;2000;0.128
+configuration.name;instancePrice.id!;name;description;cpu;ram;cost;constant
+quote1;1;server1;serverD1;0.5;2000;0.128;true
 quote1;3;server2;serverD2;0.25;1000;0
 quote1;6;server3;serverD3;1;2000;0
-quote1;13;server4;serverD4;1;2000;0
+quote1;13;server4;serverD4;1;2000;0;false
 quote1;27;server5;serverD5;1;4000;0
 quote1;55;server6;serverD6;4;8000;0
 quote1;74;server7;serverD7;3;24576;0

@@ -34,4 +34,10 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 */
 	@NotNull
 	private Integer ram;
+
+	/**
+	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 */
+	private Boolean constant;
+	
 }

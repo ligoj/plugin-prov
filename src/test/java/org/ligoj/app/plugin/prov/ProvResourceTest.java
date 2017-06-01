@@ -142,6 +142,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(quoteInstance.getId());
 		Assert.assertEquals("server1", quoteInstance.getName());
 		Assert.assertEquals("serverD1", quoteInstance.getDescription());
+		Assert.assertTrue(quoteInstance.getConstant());
 		final ProvInstancePrice instancePrice = quoteInstance.getInstancePrice();
 		Assert.assertEquals(0.2, instancePrice.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
@@ -160,6 +161,11 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No minimal for this instance price
 		Assert.assertNull(instances.get(1).getInstancePrice().getType().getMinimum());
+		
+		// Check the constant CPU requirement
+		Assert.assertTrue(instances.get(0).getConstant());
+		Assert.assertNull(instances.get(1).getConstant());
+		Assert.assertFalse(instances.get(3).getConstant());
 
 		// Check storage
 		final List<QuoteStorageVo> storages = vo.getStorages();
@@ -678,6 +684,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setConstant(true);
 		final int id = resource.createInstance(vo);
 
 		// Check the exact new cost
@@ -688,6 +695,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(1024, instance.getRam().intValue());
 		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assert.assertEquals(208.62, instance.getCost(), DELTA);
+		Assert.assertTrue(instance.getConstant());
 	}
 
 	@Test

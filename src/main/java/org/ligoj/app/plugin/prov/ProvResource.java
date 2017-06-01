@@ -236,6 +236,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		entity.setInstancePrice(ipRepository.findOneExpected(vo.getInstancePrice()));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
+		entity.setConstant(vo.getConstant());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 
 		// Update the total cost, applying the delta cost

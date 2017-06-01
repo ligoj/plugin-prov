@@ -59,6 +59,11 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	private Integer ram;
 
 	/**
+	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 */
+	private Boolean constant;
+
+	/**
 	 * The parent quote.
 	 */
 	@NotNull
