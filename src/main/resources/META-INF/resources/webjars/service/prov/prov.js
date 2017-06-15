@@ -515,7 +515,7 @@ define(function () {
 				var table = current[type + 'Table'];
 				table && table.fnFilter($(this).val());
 			});
-			$('.resource-query').on('change keyup', current.checkResource);
+			$('input.resource-query').on('change keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 			$('.quote-name').text(current.model.configuration.name);
