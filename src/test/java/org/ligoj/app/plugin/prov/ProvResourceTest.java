@@ -2,13 +2,16 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.StreamingOutput;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,11 +38,13 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -85,10 +90,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
-						ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
+				ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 	}
@@ -161,7 +164,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No minimal for this instance price
 		Assert.assertNull(instances.get(1).getInstancePrice().getType().getMinimum());
-		
+
 		// Check the constant CPU requirement
 		Assert.assertTrue(instances.get(0).getConstant());
 		Assert.assertNull(instances.get(1).getConstant());
@@ -223,8 +226,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupInstance() {
-		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0,
-				0, null, VmOs.LINUX, null, null);
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 0, 0, null, VmOs.LINUX,
+				null, null);
 
 		// Check the instance result
 		final ProvInstancePrice pi = price.getInstance().getInstance();
@@ -256,9 +259,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupInstanceHighContraints() throws IOException {
 		final LowestInstancePrice price = new ObjectMapperTrim().readValue(
-				new ObjectMapperTrim().writeValueAsString(
-						resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3, 9, true,
-								VmOs.WINDOWS, null, priceTypeRepository.findByNameExpected("on-demand1").getId())),
+				new ObjectMapperTrim().writeValueAsString(resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 3, 9,
+						true, VmOs.WINDOWS, null, priceTypeRepository.findByNameExpected("on-demand1").getId())),
 				LowestInstancePrice.class);
 		final ProvInstancePrice pi = price.getInstance().getInstance();
 		Assert.assertNotNull(pi.getId());
@@ -281,8 +283,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupInstanceOnlyCustom() {
-		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999,
-				0, false, VmOs.LINUX, null, priceTypeRepository.findByNameExpected("1y").getId());
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, false,
+				VmOs.LINUX, null, priceTypeRepository.findByNameExpected("1y").getId());
 		Assert.assertNull(price.getInstance());
 		Assert.assertNull(price.getCustom());
 	}
@@ -292,8 +294,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupInstanceNoMatch() {
-		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999,
-				0, null, VmOs.LINUX, null, null);
+		final LowestInstancePrice price = resource.lookupInstance(getSubscription("mda", ProvResource.SERVICE_KEY), 999, 0, null,
+				VmOs.LINUX, null, null);
 		Assert.assertNull(price.getInstance());
 
 		// Check the custom instance
@@ -370,7 +372,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Attempt to attach a storage incompatible to an instance but without an instance.
+	 * Attempt to attach a storage incompatible to an instance but without an
+	 * instance.
 	 */
 	@Test
 	public void createStorageInstance() {
@@ -708,8 +711,8 @@ public class ProvResourceTest extends AbstractAppTest {
 			}
 		};
 		res.provResource = resource;
-		final QuoteLigthVo quote = (QuoteLigthVo) res
-				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
+		final QuoteLigthVo quote = (QuoteLigthVo) res.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData()
+				.get("quote");
 		Assert.assertNotNull(quote);
 		Assert.assertEquals(0.128, quote.getCost(), 0.0001);
 	}
@@ -772,8 +775,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findInstancePriceTypeCriteria() {
-		final TableItem<ProvInstancePriceType> tableItem = resource.findInstancePriceType(subscription,
-				newUriInfo("deMand"));
+		final TableItem<ProvInstancePriceType> tableItem = resource.findInstancePriceType(subscription, newUriInfo("deMand"));
 		Assert.assertEquals(2, tableItem.getRecordsTotal());
 		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
@@ -785,8 +787,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findInstancePriceTypeAnotherSubscription() {
-		Assert.assertEquals(1, resource.findInstancePriceType(getSubscription("mda", "service:prov:x"), newUriInfo())
-				.getData().size());
+		Assert.assertEquals(1, resource.findInstancePriceType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test(expected = EntityNotFoundException.class)
@@ -816,8 +817,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findStorageTypeAnotherSubscription() {
-		Assert.assertEquals(1,
-				resource.findStorageType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assert.assertEquals(1, resource.findStorageType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test(expected = EntityNotFoundException.class)
@@ -848,8 +848,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findInstanceAnotherSubscription() {
-		Assert.assertEquals(1,
-				resource.findInstance(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assert.assertEquals(1, resource.findInstance(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test(expected = EntityNotFoundException.class)
@@ -863,8 +862,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorage() {
-		final ComputedStoragePrice price = resource
-				.lookupStorage(subscription, 2, null, null, ProvStorageOptimized.IOPS).get(0);
+		final ComputedStoragePrice price = resource.lookupStorage(subscription, 2, null, null, ProvStorageOptimized.IOPS).get(0);
 
 		// Check the storage result
 		final ProvStorageType st = price.getType();
@@ -880,8 +878,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
 		final ComputedStoragePrice price = new ObjectMapperTrim().readValue(
-				new ObjectMapperTrim().writeValueAsString(
-						resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null, null).get(0)),
+				new ObjectMapperTrim()
+						.writeValueAsString(resource.lookupStorage(subscription, 1024, ProvStorageFrequency.HOT, null, null).get(0)),
 				ComputedStoragePrice.class);
 
 		// Check the storage result
@@ -921,8 +919,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadDefaultHeader() throws IOException {
-		resource.upload(subscription, new ClassPathResource("csv/upload-default.csv").getInputStream(), null, null, 1,
-				"UTF-8");
+		resource.upload(subscription, new ClassPathResource("csv/upload-default.csv").getInputStream(), null, null, 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(18, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getInstancePrice().getType().getName());
@@ -935,13 +932,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void uploadDefaultPriceType() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "constant" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
+				new String[] { "name", "cpu", "ram", "os", "constant" }, priceTypeRepository.findByNameExpected("on-demand2").getId(), 1,
+				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand2", configuration.getInstances().get(7).getInstancePrice().getType().getName());
-		Assert.assertEquals("instance1",
-				configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
+		Assert.assertEquals("instance1", configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
 		Assert.assertEquals(4, configuration.getStorages().size());
 		Assert.assertEquals(128.228, configuration.getCost(), DELTA);
 	}
@@ -949,13 +945,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void uploadFixedInstance() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "instance" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
+				new String[] { "name", "cpu", "ram", "os", "instance" }, priceTypeRepository.findByNameExpected("on-demand2").getId(), 1,
+				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand2", configuration.getInstances().get(7).getInstancePrice().getType().getName());
-		Assert.assertEquals("instance10",
-				configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
+		Assert.assertEquals("instance10", configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
 		Assert.assertEquals(4, configuration.getStorages().size());
 		Assert.assertEquals(1874.048, configuration.getCost(), DELTA);
 	}
@@ -963,21 +958,19 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void uploadFixedPriceType() throws IOException {
 		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;on-demand1".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "priceType" },
-				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
+				new String[] { "name", "cpu", "ram", "os", "priceType" }, priceTypeRepository.findByNameExpected("on-demand2").getId(), 1,
+				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getInstancePrice().getType().getName());
-		Assert.assertEquals("instance2",
-				configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
+		Assert.assertEquals("instance2", configuration.getInstances().get(7).getInstancePrice().getInstance().getName());
 		Assert.assertEquals(4, configuration.getStorages().size());
 		Assert.assertEquals(135.548, configuration.getCost(), DELTA);
 	}
 
 	@Test
 	public void uploadOnlyCustomFound() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6;LINUX".getBytes("UTF-8")), null, null, 1024,
-				"UTF-8");
+		resource.upload(subscription, new ByteArrayInputStream("ANY;999;6;LINUX".getBytes("UTF-8")), null, null, 1024, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getInstancePrice().getType().getName());
@@ -988,8 +981,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadCustomLowest() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64;LINUX".getBytes("UTF-8")), null, null, 1024,
-				"UTF-8");
+		resource.upload(subscription, new ByteArrayInputStream("ANY;1;64;LINUX".getBytes("UTF-8")), null, null, 1024, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getInstancePrice().getType().getName());
@@ -1006,8 +998,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadStorageNotFound() throws IOException {
-		resource.upload(subscription,
-				new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
+		resource.upload(subscription, new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
 				priceTypeRepository.findByNameExpected("on-demand1").getId(), 1, "UTF-8");
 	}
 
@@ -1024,5 +1015,28 @@ public class ProvResourceTest extends AbstractAppTest {
 		nameDesc.setDescription("description1");
 		resource.update(subscription, nameDesc);
 		Assert.assertEquals("description1", repository.findByNameExpected("name1").getDescription());
+	}
+
+	@Test(expected = BusinessException.class)
+	public void getTerraformNotSupported() {
+		newResource(null).getTerraform(subscription, "any.tf");
+	}
+
+	@Test
+	public void getTerraform() throws IOException {
+		final Terraforming terraforming = Mockito.mock(Terraforming.class);
+		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
+		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription), Mockito.any(QuoteVo.class));
+	}
+
+	private ProvResource newResource(final Terraforming providerResource) {
+		final ProvResource resource = new ProvResource();
+		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
+
+		// Replace the plugin locator
+		resource.locator = locator;
+		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
+		return resource;
 	}
 }

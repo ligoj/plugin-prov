@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -38,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceRepository;
@@ -56,7 +58,9 @@ import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
+import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
@@ -72,7 +76,8 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
- * The provisioning service. There is complete quote configuration along the subscription.
+ * The provisioning service. There is complete quote configuration along the
+ * subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -90,8 +95,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 */
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
-	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency",
-			"optimized", "priceType", "instance" };
+	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized",
+			"priceType", "instance" };
 
 	/**
 	 * Average hours in one month.
@@ -108,6 +113,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 	@Autowired
 	private CsvForBean csvForBean;
+
+	@Autowired
+	protected ServicePluginLocator locator;
 
 	@Autowired
 	private ProvQuoteRepository repository;
@@ -171,22 +179,31 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Path("{subscription:\\d+}")
 	@Override
 	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		return getConfiguration(subscriptionResource.checkVisibleSubscription(subscription));
+	}
+
+	/**
+	 * Return the quote configuration from a validated subscription.
+	 * 
+	 * @param subscription
+	 *            A visible subscription for the current principal.
+	 * @return The configuration with computed data.
+	 */
+	private QuoteVo getConfiguration(final Subscription subscription) {
 		final QuoteVo vo = new QuoteVo();
-		final ProvQuote entity = repository.getCompute(subscription);
+		final ProvQuote entity = repository.getCompute(subscription.getId());
 		DescribedBean.copy(entity, vo);
 		vo.copyAuditData(entity, toUser());
 		vo.setInstances(entity.getInstances());
-		vo.setStorages(
-				repository.getStorage(subscription).stream().map(this::toStorageVo).collect(Collectors.toList()));
-		// Also copy the cost even if computable
+		vo.setStorages(repository.getStorage(subscription.getId()).stream().map(this::toStorageVo).collect(Collectors.toList()));
+		// Also copy the pre-computed cost
 		vo.setCost(entity.getCost());
-
 		return vo;
 	}
 
 	/**
-	 * Return the quote associated to the given subscription. The visibility is checked.
+	 * Return the quote associated to the given subscription. The visibility is
+	 * checked.
 	 * 
 	 * @param subscription
 	 *            The linked subscription.
@@ -224,8 +241,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Save or update the given entity from the {@link QuoteInstanceEditionVo}. The computed cost are recursively
-	 * updated from the instance to the quote total cost.
+	 * Save or update the given entity from the {@link QuoteInstanceEditionVo}.
+	 * The computed cost are recursively updated from the instance to the quote
+	 * total cost.
 	 */
 	private ProvQuoteInstance saveOrUpdate(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
 		DescribedBean.copy(vo, entity);
@@ -278,8 +296,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void deleteInstance(@PathParam("id") final int id) {
 		// Delete the instance and also the attached storage
-		deleteAndUpdateCost(qiRepository, id, i -> i.getStorages()
-				.forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply)));
+		deleteAndUpdateCost(qiRepository, id,
+				i -> i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply)));
 	}
 
 	/**
@@ -366,17 +384,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
 		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
 		entity.setType(checkVisibility(stRepository.findOneExpected(vo.getType()), providerId));
-		entity.setQuoteInstance(
-				Optional.ofNullable(vo.getQuoteInstance()).map(i -> findConfigured(qiRepository, i)).map(i -> {
-					checkVisibility(i.getInstancePrice().getInstance(), providerId);
-					return i;
-				}).orElse(null));
+		entity.setQuoteInstance(Optional.ofNullable(vo.getQuoteInstance()).map(i -> findConfigured(qiRepository, i)).map(i -> {
+			checkVisibility(i.getInstancePrice().getInstance(), providerId);
+			return i;
+		}).orElse(null));
 
 		// Check the storage compatibility with the instance
 		if (!entity.getType().isInstanceCompatible() && entity.getQuoteInstance() != null) {
-			// The related storage type does not accept to be attached to an instance
-			throw new ValidationJsonException("instance", "Null",
-					entity.getQuoteInstance().getInstancePrice().getInstance().getName());
+			// The related storage type does not accept to be attached to an
+			// instance
+			throw new ValidationJsonException("instance", "Null", entity.getQuoteInstance().getInstancePrice().getInstance().getName());
 		}
 
 		// Check the storage limits
@@ -407,7 +424,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Delete a configured entity and update the total cost of the associated quote.
+	 * Delete a configured entity and update the total cost of the associated
+	 * quote.
 	 */
 	private <T extends Costed> void deleteAndUpdateCost(final RestRepository<T, Integer> repository, final Integer id,
 			final Consumer<T> callback) {
@@ -427,44 +445,42 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Create the instance inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
 	 * @param cpu
 	 *            The amount of required CPU. Default is 1.
 	 * @param ram
 	 *            The amount of required RAM, in MB. Default is 1.
 	 * @param constant
-	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
-	 *            contant CPU os requested.
+	 *            Optional constant CPU. When <code>false</code>, variable CPU
+	 *            is requested. When <code>true</code> contant CPU os requested.
 	 * @param os
 	 *            The requested OS, default is "LINUX".
 	 * @param instance
 	 *            Optional instance identifier. May be <code>null</code>.
 	 * @param type
 	 *            Optional price type identifier. May be <code>null</code>.
-	 * @return The lowest price instance configurations matching to the required parameters for standard instance (if
-	 *         available) and custom instance (if available too) and also the lower instance based price for a weaker
-	 *         requirement if applicable.
+	 * @return The lowest price instance configurations matching to the required
+	 *         parameters for standard instance (if available) and custom
+	 *         instance (if available too) and also the lower instance based
+	 *         price for a weaker requirement if applicable.
 	 */
 	@GET
 	@Path("instance-lookup/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
-			@DefaultValue(value = "1") @QueryParam("ram") final int ram,
-			@QueryParam("constant") final Boolean constant,
-			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
+			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu, @DefaultValue(value = "1") @QueryParam("ram") final int ram,
+			@QueryParam("constant") final Boolean constant, @DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
 			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type) {
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 		final LowestInstancePrice price = new LowestInstancePrice();
 
 		// Return only the first matching instance
-		price.setInstance(ipRepository
-				.findLowestPrice(node, cpu, ram, constant, os, type, instance, new PageRequest(0, 1)).stream()
+		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, type, instance, new PageRequest(0, 1)).stream()
 				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
-		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream()
-				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip))))
-				.orElse(null));
+		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream().findFirst()
+				.map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip)))).orElse(null));
 		return price;
 	}
 
@@ -472,7 +488,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Return the price type available for a subscription.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available price types for the given subscription.
@@ -483,16 +500,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	public TableItem<ProvInstancePriceType> findInstancePriceType(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, iptRepository.findAll(subscription,
-				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
-				Function.identity());
+		return paginationJson.applyPagination(uriInfo, iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)), Function.identity());
 	}
 
 	/**
 	 * Return the instance types inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the
+	 *            instances from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The valid instance types for the given subscription.
@@ -500,19 +517,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@GET
 	@Path("instance/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvInstance> findInstance(@PathParam("subscription") final int subscription,
-			@Context final UriInfo uriInfo) {
+	public TableItem<ProvInstance> findInstance(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, instanceRepository.findAll(subscription,
-				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
-				Function.identity());
+		return paginationJson.applyPagination(uriInfo, instanceRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)), Function.identity());
 	}
 
 	/**
 	 * Return the storage types the instance inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storages from the associated provider.
+	 *            The subscription identifier, will be used to filter the
+	 *            storages from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The valid storage types for the given subscription.
@@ -520,19 +536,19 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@GET
 	@Path("storage-type/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvStorageType> findStorageType(@PathParam("subscription") final int subscription,
-			@Context final UriInfo uriInfo) {
+	public TableItem<ProvStorageType> findStorageType(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, stRepository.findAll(subscription,
-				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
-				Function.identity());
+		return paginationJson.applyPagination(uriInfo, stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)), Function.identity());
 	}
 
 	/**
-	 * Return the available storage types from the provider linked to the given subscription..
+	 * Return the available storage types from the provider linked to the given
+	 * subscription..
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
+	 *            The subscription identifier, will be used to filter the
+	 *            storage types from the associated provider.
 	 * @param size
 	 *            The requested size in GB.
 	 * @param frequency
@@ -547,22 +563,21 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Path("storage-lookup/{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<ComputedStoragePrice> lookupStorage(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("size") final int size,
-			@QueryParam("frequency") final ProvStorageFrequency frequency,
-			@QueryParam("instance") final Integer instance,
-			@QueryParam("optimized") final ProvStorageOptimized optimized) {
+			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("frequency") final ProvStorageFrequency frequency,
+			@QueryParam("instance") final Integer instance, @QueryParam("optimized") final ProvStorageOptimized optimized) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 
 		// Return only the first matching instance
 		return stRepository.findLowestPrice(node, size, frequency, instance, optimized, new PageRequest(0, 10)).stream()
-				.map(st -> (ProvStorageType) st[0])
-				.map(st -> newComputedStoragePrice(st, size, getStorageCost(st, size))).collect(Collectors.toList());
+				.map(st -> (ProvStorageType) st[0]).map(st -> newComputedStoragePrice(st, size, getStorageCost(st, size)))
+				.collect(Collectors.toList());
 	}
 
 	/**
-	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice} and computed price.
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
+	 * and computed price.
 	 */
 	private ComputedInstancePrice newComputedInstancePrice(final ProvInstancePrice ip, final double cost) {
 		final ComputedInstancePrice result = new ComputedInstancePrice();
@@ -572,7 +587,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice} and computed price.
+	 * Build a new {@link ComputedInstancePrice} from {@link ProvInstancePrice}
+	 * and computed price.
 	 */
 	private ComputedStoragePrice newComputedStoragePrice(final ProvStorageType st, final int size, final double cost) {
 		final ComputedStoragePrice result = new ComputedStoragePrice();
@@ -624,12 +640,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Compute the total cost without transactional/snapshot costs and save it into the related quote. All compute and
-	 * storage costs are updated.
+	 * Compute the total cost without transactional/snapshot costs and save it
+	 * into the related quote. All compute and storage costs are updated.
 	 * 
 	 * @param subscription
 	 *            The subscription to compute
-	 * @return the computed cost without transactional/snapshot, support,... costs.
+	 * @return the computed cost without transactional/snapshot, support,...
+	 *         costs.
 	 */
 	@PUT
 	@Path("refresh")
@@ -648,7 +665,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	}
 
 	/**
-	 * Round a cost to eliminate floating point artifact, and without required {@link BigDecimal} usage (not yet)
+	 * Round a cost to eliminate floating point artifact, and without required
+	 * {@link BigDecimal} usage (not yet)
 	 */
 	private double round(double value) {
 		return Math.round(value * 1000d) / 1000d;
@@ -695,8 +713,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	private double getComputeCost(final ProvQuoteInstance quoteInstance) {
 		// Fixed price + custom price
 		return quoteInstance.getInstancePrice().getCost() + (quoteInstance.getInstancePrice().getInstance().isCustom()
-				? getComputeCustomCost(quoteInstance.getCpu(), quoteInstance.getRam(), quoteInstance.getInstancePrice())
-				: 0);
+				? getComputeCustomCost(quoteInstance.getCpu(), quoteInstance.getRam(), quoteInstance.getInstancePrice()) : 0);
 	}
 
 	/**
@@ -764,8 +781,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 		// Associate a default name and description
 		configuration.setName(configuration.getSubscription().getProject().getName());
-		configuration.setDescription(configuration.getSubscription().getProject().getPkey() + "-> "
-				+ configuration.getSubscription().getNode().getName());
+		configuration.setDescription(
+				configuration.getSubscription().getProject().getPkey() + "-> " + configuration.getSubscription().getNode().getName());
 		repository.saveAndFlush(configuration);
 	}
 
@@ -784,7 +801,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 * Upload a file of quote in add mode.
 	 * 
 	 * @param uploadedFile
-	 *            Instance entries files to import. Currently support only CSV format.
+	 *            Instance entries files to import. Currently support only CSV
+	 *            format.
 	 * @param ramMultiplier
 	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param columns
@@ -795,8 +813,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("upload/{subscription:\\d+}")
-	public void upload(@PathParam("subscription") final int subscription,
-			@Multipart(value = "csv-file") final InputStream uploadedFile,
+	public void upload(@PathParam("subscription") final int subscription, @Multipart(value = "csv-file") final InputStream uploadedFile,
 			@Multipart(value = "columns", required = false) final String[] columns,
 			@Multipart(value = "priceType", required = false) final Integer defaultPriceType,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
@@ -810,35 +827,31 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		checkHeaders(ACCEPTED_COLUMNS, sanitizeColumns);
 
 		// Build CSV header from array
-		final String csvHeaders = StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';')
-				+ "\n";
+		final String csvHeaders = StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';') + "\n";
 
 		// Build entries
 		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 		csvForBean
-				.toBean(InstanceUpload.class, new InputStreamReader(new SequenceInputStream(
-						new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
-				.stream().filter(Objects::nonNull)
-				.forEach(i -> persist(i, subscription, priceTypeEntity, ramMultiplier));
+				.toBean(InstanceUpload.class, new InputStreamReader(
+						new SequenceInputStream(new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
+				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, priceTypeEntity, ramMultiplier));
 
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType,
-			final Integer ramMultiplier) {
+	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType, final Integer ramMultiplier) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName(upload.getName());
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
-		vo.setRam(
-				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 
 		// Instance selection
 		final Integer instance = Optional.ofNullable(instanceRepository.findByName(subscription, upload.getInstance()))
 				.map(ProvInstance::getId).orElse(null);
 		final Integer type = Optional.ofNullable(iptRepository.findByName(subscription, upload.getPriceType()))
 				.map(ProvInstancePriceType::getId).orElse(defaultType);
-		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(),
-				upload.getOs(), instance, type);
+		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(), upload.getOs(),
+				instance, type);
 
 		// Find the lowest price
 		ComputedInstancePrice lowest = price.getInstance();
@@ -859,13 +872,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
 			// Default the storage frequency to HOT when not specified
-			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(),
-					ProvStorageFrequency.HOT);
+			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(), ProvStorageFrequency.HOT);
 
 			// Find the nicest storage
-			svo.setType(lookupStorage(subscription, size, frequency, instancePrice.getInstance().getId(),
-					upload.getOptimized()).stream().findFirst()
-							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getType().getId());
+			svo.setType(lookupStorage(subscription, size, frequency, instancePrice.getInstance().getId(), upload.getOptimized()).stream()
+					.findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getType().getId());
 
 			// Default the storage name to the instance name
 			svo.setName(vo.getName());
@@ -880,5 +891,26 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Override
 	public void delete(int subscription, boolean remoteData) {
 		repository.delete(repository.findBy("subscription.id", subscription));
+	}
+
+	/**
+	 * Produce the Terraform configuration.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 * @param file
+	 *            The target file name.
+	 * @return the {@link Response} ready to be consumed.
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("{subscription:\\d+}/{file:.*.tf}")
+	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
+		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
+		
+		// Check the provider support the Terraform generation
+		final Terraforming terra = Optional.ofNullable(locator.getResource(entity.getNode().getId(), Terraforming.class))
+				.orElseThrow(() -> new BusinessException("terraform-no-supported", entity.getNode().getRefined().getId()));
+		return AbstractToolPluginResource.download(o -> terra.terraform(o, subscription, getConfiguration(subscription)), file).build();
 	}
 }
