@@ -73,6 +73,8 @@ define({
         'service:prov:cost-month': 'Month',
         'service:prov:efficiency-title': 'Global efficiency of this quote : CPU, RAM and storage',
         'service:prov:price-type-lowest': 'Lowest, auto',
+        'service:prov:terraform:execute': 'Execute',
+        'service:prov:terraform:started': 'Terraform started',
         'instance-import-message': 'Import instances from a CSV file, <code> ;</code> as separator',
         'instance-import-sample': 'Sample'
     },

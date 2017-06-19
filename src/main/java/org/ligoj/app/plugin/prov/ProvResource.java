@@ -30,7 +30,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -60,7 +59,6 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
-import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
@@ -891,26 +889,5 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	@Override
 	public void delete(int subscription, boolean remoteData) {
 		repository.delete(repository.findBy("subscription.id", subscription));
-	}
-
-	/**
-	 * Produce the Terraform configuration.
-	 * 
-	 * @param subscription
-	 *            The related subscription.
-	 * @param file
-	 *            The target file name.
-	 * @return the {@link Response} ready to be consumed.
-	 */
-	@GET
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("{subscription:\\d+}/{file:.*.tf}")
-	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
-		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
-		
-		// Check the provider support the Terraform generation
-		final Terraforming terra = Optional.ofNullable(locator.getResource(entity.getNode().getId(), Terraforming.class))
-				.orElseThrow(() -> new BusinessException("terraform-no-supported", entity.getNode().getRefined().getId()));
-		return AbstractToolPluginResource.download(o -> terra.terraform(o, subscription, getConfiguration(subscription)), file).build();
 	}
 }

@@ -102,7 +102,17 @@
 			</div>
 		</fieldset>
 		<div class="form-actions">
-			<input class="btn btn-link cancel-subscription" type="button" value="{{back}}">
+			<div class="dropdown">
+				<button class="btn btn-info btn-raised dropdown-toggle" type="button" id="menu1" data-toggle="dropdown">
+					<img src="main/service/prov/img/terraform.png" class="icon tool">
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="fa fa-download fa-fw"></i> {{download}}</a></li>
+					<li role="presentation"><a role="menuitem" id="prov-terraform-execute"><i class="fa fa-play fa-fw"></i> {{service:prov:terraform:execute}}</a></li>
+				</ul>
+			</div>
+			<button type="button" class="btn btn-link cancel-subscription" type="button">{{back}}</button>
 		</div>
 	</form>
 	<form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="instance" autocomplete="off">

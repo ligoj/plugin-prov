@@ -2,16 +2,13 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import javax.ws.rs.core.StreamingOutput;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,13 +35,11 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
-import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -1015,28 +1010,5 @@ public class ProvResourceTest extends AbstractAppTest {
 		nameDesc.setDescription("description1");
 		resource.update(subscription, nameDesc);
 		Assert.assertEquals("description1", repository.findByNameExpected("name1").getDescription());
-	}
-
-	@Test(expected = BusinessException.class)
-	public void getTerraformNotSupported() {
-		newResource(null).getTerraform(subscription, "any.tf");
-	}
-
-	@Test
-	public void getTerraform() throws IOException {
-		final Terraforming terraforming = Mockito.mock(Terraforming.class);
-		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
-		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription), Mockito.any(QuoteVo.class));
-	}
-
-	private ProvResource newResource(final Terraforming providerResource) {
-		final ProvResource resource = new ProvResource();
-		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
-
-		// Replace the plugin locator
-		resource.locator = locator;
-		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
-		return resource;
 	}
 }

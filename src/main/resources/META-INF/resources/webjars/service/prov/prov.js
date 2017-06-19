@@ -526,6 +526,8 @@ define(function () {
 					value: current.model.configuration.name
 				});
 			});
+			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription +'/terraform-' + current.model.subscription + '.tf');
+			$('#prov-terraform-execute').on('click',current.terraform);
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
@@ -593,6 +595,20 @@ define(function () {
 			});
 			_('instance-price-type').select2(current.instancePriceTypeSelect2());
 			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
+		},
+
+		/**
+		 * Execute the terraform deployment
+		 */
+		terraform: function () {
+			$.ajax({
+				type: 'POST',
+				url: REST_PATH + 'service/prov/' + current.model.subscription +'/terraform',
+				dataType: 'json',
+				success: function () {
+					notifyManager.notify(Handlebars.compile(current.$messages['terraform-executed'])());
+				}
+			});
 		},
 
 		/**
