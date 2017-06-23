@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -36,6 +37,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Subscription;
@@ -46,6 +48,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
+import org.ligoj.app.plugin.prov.dao.TerraformStatusRepository;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
@@ -56,9 +59,11 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
+import org.ligoj.app.resource.plugin.LongTaskRunner;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
@@ -73,6 +78,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
+import lombok.Getter;
+
 /**
  * The provisioning service. There is complete quote configuration along the
  * subscription.
@@ -81,7 +88,8 @@ import org.springframework.stereotype.Service;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
+public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
+		implements LongTaskRunner<TerraformStatus, TerraformStatusRepository> {
 
 	/**
 	 * Plug-in key.
@@ -108,6 +116,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
+
+	@Autowired
+	@Getter
+	protected SubscriptionRepository subscriptionRepository;
+
+	@Autowired
+	@Getter
+	protected TerraformStatusRepository taskRepository;
 
 	@Autowired
 	private CsvForBean csvForBean;
@@ -187,7 +203,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	 *            A visible subscription for the current principal.
 	 * @return The configuration with computed data.
 	 */
-	private QuoteVo getConfiguration(final Subscription subscription) {
+	public QuoteVo getConfiguration(final Subscription subscription) {
 		final QuoteVo vo = new QuoteVo();
 		final ProvQuote entity = repository.getCompute(subscription.getId());
 		DescribedBean.copy(entity, vo);
@@ -890,4 +906,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 	public void delete(int subscription, boolean remoteData) {
 		repository.delete(repository.findBy("subscription.id", subscription));
 	}
+
+	@Override
+	public void resetTask(final TerraformStatus task) {
+		// Reset the current step
+		task.setStep(null);
+	}
+
+	@Override
+	public Supplier<TerraformStatus> newTask() {
+		return TerraformStatus::new;
+	}
+
 }

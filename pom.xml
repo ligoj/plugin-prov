@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>1.0.7</version>
+		<version>1.0.8-SNAPSHOT</version>
 		<relativePath />
 	</parent>
 
@@ -19,6 +19,11 @@
 		<developerConnection>scm:git:https://github.com/ligoj/plugin-prov</developerConnection>
 		<url>https://github.com/ligoj/plugin-prov.git</url>
 	</scm>
+	<properties>
+		<api.version>1.0.8-SNAPSHOT</api.version>
+		<spring-boot.version>1.5.3.RELEASE</spring-boot.version>
+		<awaitility.version>3.0.0</awaitility.version>
+	</properties>
 
 	<profiles>
 		<profile>
@@ -31,6 +36,21 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility-proxy</artifactId>
+			<version>${awaitility.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<!-- TODO Remove with ligoj/ligoj-api#3 -->
 	<build>
