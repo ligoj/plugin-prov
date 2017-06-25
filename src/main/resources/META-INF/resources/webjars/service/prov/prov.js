@@ -692,7 +692,7 @@ define(function () {
 			// Manage the attached quote instance
 			if (data.quoteInstance) {
 				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
-				model.quoteInstance.storage = model.quoteInstance.storage ? model.quoteInstance.storage : [];
+				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
 				model.quoteInstance.storages.push(model);
 			}
 		},
