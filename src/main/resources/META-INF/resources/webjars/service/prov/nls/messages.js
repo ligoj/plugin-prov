@@ -59,6 +59,7 @@ define({
         'service:prov:storage-optimized-iops': 'IOPS',
         'service:prov:storage-optimized-iops-title': 'I/O per seconds, generally SSD based storage',
         'service:prov:storage-instance-title' : 'Related instance of this storage. Is deleted when instance is deleted, even if their life cycle is independant at runtime',
+  		'service:prov:storage-instance-help' : 'Related instance',
         'service:prov:storage-size': 'Size',
         'service:prov:storage-size-title': 'Block size in GB',
         'service:prov:storage-deleted': 'Storage "{{[0]}}" ({{[1]}}) is deleted',

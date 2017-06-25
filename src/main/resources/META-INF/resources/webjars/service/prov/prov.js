@@ -219,6 +219,13 @@ define(function () {
 		},
 
 		/**
+		 * Return the HTML markup from the quote instance model.
+		 */
+		formatQuoteInstance: function (quoteInstance) {
+			return quoteInstance.name;
+		},
+
+		/**
 		 * Return the HTML markup from the storage frequency.
 		 */
 		formatStorageFrequency: function (frequency, mode, clazz) {
@@ -528,6 +535,22 @@ define(function () {
 			});
 			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription +'/terraform-' + current.model.subscription + '.tf');
 			$('#prov-terraform-execute').on('click',current.terraform);
+			
+			// Related instance of the storage
+			_('storage-instance').select2({
+				formatSelection: current.formatQuoteInstance,
+				formatResult: current.formatQuoteInstance,
+				placeholder: current.$messages['service:prov:instance'],
+				allowClear: true,
+				escapeMarkup: function (m, d) {
+					return m;
+				},
+				data: function(term, re) {
+					return {
+						results: current.model.configuration.instances
+					};
+				}
+			});
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
@@ -690,10 +713,33 @@ define(function () {
 			model.type = costContext.type;
 
 			// Manage the attached quote instance
+			if (model.quoteInstance) {
+				current.redrawInstance(model.quoteInstance);
+				current.detachStrorage(model);
+			}
+			
 			if (data.quoteInstance) {
 				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
 				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
 				model.quoteInstance.storages.push(model);
+				current.redrawInstance(model.quoteInstance);
+			}
+		},
+		
+		/**
+		 * Redraw an instance table row from its identifier
+		 * @param {number|Object} instance Quote instance or its identifier.
+		 */
+		redrawInstance: function(instance) {
+			instance = instance && (instance.id || instance);
+			if (instance) {
+				// The instance is valid
+				var $itable = _('prov-instances');
+				var $row = $itable.find('tr[data-id="' + instance +'"]');
+				if ($row.length) {
+					// This has been found and can be drawn
+					$itable.DataTable().row($row[0]).invalidate().draw();
+				}
 			}
 		},
 
@@ -706,6 +752,7 @@ define(function () {
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
 			data.type = current.model.storagePrice.type.id;
+			data.quoteInstance = current.cleanInt(_('storage-instance').val());
 			return current.model.storagePrice;
 		},
 		instanceUiToData: function (data) {
@@ -713,19 +760,16 @@ define(function () {
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.instancePrice = current.model.instancePrice.instance.id;
-
 			return current.model.instancePrice;
 		},
 
 		cleanFloat: function (data) {
 			data = current.cleanData(data);
-
 			return data && parseFloat(data, 10);
 		},
 
 		cleanInt: function (data) {
 			data = current.cleanData(data);
-
 			return data && parseInt(data, 10);
 		},
 
@@ -796,6 +840,8 @@ define(function () {
 			_('storage-size').val(model.size || '10');
 			_('storage-frequency').select2('data', current.select2IdentityData((model.type && model.type.frequency) || 'HOT'));
 			_('storage-optimized').select2('data', current.select2IdentityData(model.type && model.type.optimized));
+			_('storage-instance').select2('data', model.quoteInstance);
+			
 			current.storageSetUiPrice(model.id && {
 				cost: model.cost,
 				type: model.type
@@ -1003,10 +1049,10 @@ define(function () {
 				for (var s = qis.length; s-- > 0;) {
 					if (storage.quoteInstance.storages[s] === storage) {
 						qis.splice(s, 1);
-
 						break;
 					}
 				}
+				delete storage.quoteInstance;
 			}
 		},
 
