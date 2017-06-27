@@ -239,7 +239,7 @@ public class TerraformResource {
 			throws InterruptedException, IOException {
 		final ProcessBuilder builder = newBuilder(command);
 		builder.redirectErrorStream(true);
-		builder.directory(toFile(subscription));
+		builder.directory(toFile(subscription, "main.log").getParentFile());
 		final Process process = builder.start();
 		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
 		return process.waitFor();
