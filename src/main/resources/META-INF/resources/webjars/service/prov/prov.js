@@ -629,7 +629,7 @@ define(function () {
 				url: REST_PATH + 'service/prov/' + current.model.subscription +'/terraform',
 				dataType: 'json',
 				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages['terraform-executed'])());
+					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:terraform:started'])());
 				}
 			});
 		},
