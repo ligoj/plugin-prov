@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 import javax.transaction.Transactional;
@@ -123,8 +122,7 @@ public class TerraformResource {
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Path("{subscription:\\d+}/terraform")
-	public void applyTerraform(@PathParam("subscription") final int subscription)
-			throws IOException, InterruptedException, ExecutionException {
+	public void applyTerraform(@PathParam("subscription") final int subscription) {
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
 		final QuoteVo configuration = resource.getConfiguration(entity);
 
@@ -147,7 +145,7 @@ public class TerraformResource {
 	 * there is no concurrency check.
 	 */
 	protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
-			throws IOException, InterruptedException, ExecutionException {
+			throws IOException, InterruptedException {
 		log.info("Terraform start for {} ({})", entity.getId(), entity);
 		final File logFile = toFile(entity, "main.log");
 		final File tfFile = toFile(entity, "main.tf");
@@ -209,7 +207,7 @@ public class TerraformResource {
 	 * for now.
 	 */
 	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands)
-			throws InterruptedException, ExecutionException, IOException {
+			throws InterruptedException, IOException {
 		int step = 0;
 		final TerraformStatus task = resource.startTask(subscription.getId());
 		for (final String[] command : commands) {
@@ -238,7 +236,7 @@ public class TerraformResource {
 	 * Execute the given Terraform command arguments
 	 */
 	private int executeTerraform(final Subscription subscription, final Writer out, final String[] command)
-			throws InterruptedException, ExecutionException, IOException {
+			throws InterruptedException, IOException {
 		final ProcessBuilder builder = newBuilder(command);
 		builder.redirectErrorStream(true);
 		builder.directory(toFile(subscription));
@@ -250,7 +248,7 @@ public class TerraformResource {
 	/**
 	 * A new {@link ProcessBuilder} with the given arguments
 	 */
-	protected ProcessBuilder newBuilder(String... args) throws IOException {
+	protected ProcessBuilder newBuilder(String... args) {
 		return new ProcessBuilder(ArrayUtils.addAll(TERRAFORM_COMMAND, args));
 	}
 

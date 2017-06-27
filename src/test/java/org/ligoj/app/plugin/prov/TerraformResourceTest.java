@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
@@ -71,8 +70,10 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
-				ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
+						ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class,
+						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 	}
@@ -85,12 +86,14 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Test
 	public void getTerraform() throws IOException {
 		final Terraforming terraforming = Mockito.mock(Terraforming.class);
-		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
-		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription), Mockito.any(QuoteVo.class));
+		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity())
+				.write(new ByteArrayOutputStream());
+		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription),
+				Mockito.any(QuoteVo.class));
 	}
 
 	@Test
-	public void applyTerraform() throws IOException, InterruptedException, ExecutionException {
+	public void applyTerraform() {
 		newResource(Mockito.mock(Terraforming.class)).applyTerraform(subscription);
 	}
 
@@ -98,12 +101,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 		return em.find(Subscription.class, subscription);
 	}
 
-	private void applyTerraform(final TerraformResource resource) throws IOException, InterruptedException, ExecutionException {
+	private void applyTerraform(final TerraformResource resource) throws IOException, InterruptedException {
 		resource.applyTerraform(getSubscription(), Mockito.mock(Terraforming.class), null);
 	}
 
 	@Test
-	public void applyTerraformInternal() throws IOException, InterruptedException, ExecutionException {
+	public void applyTerraformInternal() throws IOException, InterruptedException {
 		final File log = new File(MOCK_PATH, "main.log");
 		final File tf = new File(MOCK_PATH, "main.tf");
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false);
@@ -139,11 +142,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void applyTerraformMainWriteFailed() throws IOException, InterruptedException, ExecutionException {
-		applyTerraformIOE(newResource(Mockito.mock(Terraforming.class), (s, f) -> new File("random-place/random-place"), false));
+	public void applyTerraformMainWriteFailed() throws InterruptedException {
+		applyTerraformIOE(
+				newResource(Mockito.mock(Terraforming.class), (s, f) -> new File("random-place/random-place"), false));
 	}
 
-	private void applyTerraformIOE(final TerraformResource resource) throws InterruptedException, ExecutionException {
+	private void applyTerraformIOE(final TerraformResource resource) throws InterruptedException {
 		try {
 			applyTerraform(resource);
 			Assert.fail("Expected IOException");
@@ -155,9 +159,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void applyTerraformLogWriteFailed() throws IOException, InterruptedException, ExecutionException {
-		applyTerraformIOE(newResource(Mockito.mock(Terraforming.class), (s, f) -> f.length > 0 && f[0].equals("main.log")
-				? new File("random-place/random-place") : f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), false));
+	public void applyTerraformLogWriteFailed() throws InterruptedException {
+		applyTerraformIOE(newResource(
+				Mockito.mock(Terraforming.class), (s, f) -> f.length > 0 && f[0].equals("main.log")
+						? new File("random-place/random-place") : f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
+				false));
 	}
 
 	@Test
@@ -205,11 +211,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getTerraformLog() throws IOException {
-		Assert.assertEquals(404, newResource(Mockito.mock(Terraforming.class)).getTerraformLog(subscription).getStatus());
+		Assert.assertEquals(404,
+				newResource(Mockito.mock(Terraforming.class)).getTerraformLog(subscription).getStatus());
 	}
 
 	@Test
-	public void newBuilder() throws IOException {
+	public void newBuilder() {
 		resource.newBuilder().command().contains("terraform");
 	}
 
@@ -233,12 +240,14 @@ public class TerraformResourceTest extends AbstractAppTest {
 		return newResource(providerResource, true, customArgs);
 	}
 
-	private TerraformResource newResource(final Terraforming providerResource, final boolean dryRun, final String... customArgs) {
-		return newResource(providerResource, (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), dryRun, customArgs);
+	private TerraformResource newResource(final Terraforming providerResource, final boolean dryRun,
+			final String... customArgs) {
+		return newResource(providerResource, (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), dryRun,
+				customArgs);
 	}
 
-	private TerraformResource newResource(final Terraforming providerResource, final BiFunction<Subscription, String[], File> toFile,
-			final boolean dryRun, final String... customArgs) {
+	private TerraformResource newResource(final Terraforming providerResource,
+			final BiFunction<Subscription, String[], File> toFile, final boolean dryRun, final String... customArgs) {
 		final TerraformResource resource = new TerraformResource() {
 			@Override
 			protected File toFile(final Subscription subscription, final String... fragments) throws IOException {
@@ -246,19 +255,18 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			@Override
-			protected ProcessBuilder newBuilder(String... args) throws IOException {
-				return new ProcessBuilder(
-						ArrayUtils.addAll(new String[] { "java", "-cp", MOCK_PATH.getParent(), "org.ligoj.app.plugin.prov.Main" },
-								customArgs.length > 0 ? customArgs : args));
+			protected ProcessBuilder newBuilder(String... args) {
+				return new ProcessBuilder(ArrayUtils.addAll(
+						new String[] { "java", "-cp", MOCK_PATH.getParent(), "org.ligoj.app.plugin.prov.Main" },
+						customArgs.length > 0 ? customArgs : args));
 			}
 
 			/**
-			 * Prepare the Terraform environment to apply the new environment.
-			 * Note there is no concurrency check.
+			 * Prepare the Terraform environment to apply the new environment. Note there is no concurrency check.
 			 */
 			@Override
-			protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
-					throws IOException, InterruptedException, ExecutionException {
+			protected File applyTerraform(final Subscription entity, final Terraforming terra,
+					final QuoteVo configuration) throws IOException, InterruptedException {
 				if (dryRun) {
 					// Ignore this call
 					return null;
