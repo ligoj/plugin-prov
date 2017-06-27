@@ -24,6 +24,7 @@ import javax.ws.rs.core.StreamingOutput;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
@@ -33,6 +34,7 @@ import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,11 +53,16 @@ import lombok.extern.slf4j.Slf4j;
 public class TerraformResource {
 
 	/**
+	 * Configiguration key for Terraform command path
+	 */
+	private static final String TERRAFORM_PATH = "terraform.path";
+
+	/**
 	 * Terraform base command with argument. The Terraform binary must be in the
 	 * PATH.
 	 */
-	private static final String[] TERRAFORM_COMMAND_WIN = { "cmd.exe", "/c", "terraform" };
-	private static final String[] TERRAFORM_COMMAND_LINUX = { "sh", "-c", "terraform" };
+	private static final String[] TERRAFORM_COMMAND_WIN = { "cmd.exe", "/c" };
+	private static final String[] TERRAFORM_COMMAND_LINUX = { "sh", "-c" };
 	private static final String[] TERRAFORM_COMMAND = SystemUtils.IS_OS_WINDOWS ? TERRAFORM_COMMAND_WIN : TERRAFORM_COMMAND_LINUX;
 
 	@Autowired
@@ -63,6 +70,9 @@ public class TerraformResource {
 
 	@Autowired
 	protected ProvResource resource;
+
+	@Autowired
+	protected ConfigurationResource configuration;
 
 	@Autowired
 	protected ServicePluginLocator locator;
@@ -135,8 +145,17 @@ public class TerraformResource {
 		// The Terraform execution will done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			// Restore the context
+			log.info("Terraform start for {} ({})", entity.getId(), entity);
 			SecurityContextHolder.setContext(context);
-			return applyTerraform(entity, terra, configuration);
+			try {
+				final File file = applyTerraform(entity, terra, configuration);
+				log.info("Terraform succeed for {} ({})", entity.getId(), entity);
+				return file;
+			} catch (final Exception e) {
+				// The error is not put in the Terraform logger for security
+				log.error("Terraform failed for {}", entity, e);
+			}
+			return null;
 		});
 	}
 
@@ -146,7 +165,6 @@ public class TerraformResource {
 	 */
 	protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
 			throws IOException, InterruptedException {
-		log.info("Terraform start for {} ({})", entity.getId(), entity);
 		final File logFile = toFile(entity, "main.log");
 		final File tfFile = toFile(entity, "main.tf");
 
@@ -171,7 +189,6 @@ public class TerraformResource {
 			// Execute the Terraform commands
 			executeTerraform(entity, out, getTerraformSequence());
 			succeed = true;
-			log.info("Terraform succeed for {} ({})", entity.getId(), entity);
 		} finally {
 			IOUtils.closeQuietly(mainTf);
 			IOUtils.closeQuietly(out);
@@ -186,10 +203,6 @@ public class TerraformResource {
 	 */
 	private void endTask(final Subscription entity, boolean succeed) {
 		resource.endTask(entity.getId(), !succeed);
-		if (!succeed) {
-			// The error is not put in the Terraform logger for security
-			log.error("Terraform failed for {}", entity);
-		}
 	}
 
 	private Terraforming getTerraform(final Node node) {
@@ -214,13 +227,13 @@ public class TerraformResource {
 			task.setStep(TerraformStep.values()[step]);
 			resource.nextStep(task);
 			final int code = executeTerraform(subscription, out, command);
-			if (code == 2) {
+			if (code == 0) {
 				// Nothing wrong, no change, only useless to go further
 				log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
 				out.write("Terraform exit code " + code + " -> no need to continue");
 				break;
 			}
-			if (code != 0) {
+			if (code != 2) {
 				// Something goes wrong
 				log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
 				out.write("Terraform exit code " + code + " -> aborted");
@@ -239,6 +252,7 @@ public class TerraformResource {
 			throws InterruptedException, IOException {
 		final ProcessBuilder builder = newBuilder(command);
 		builder.redirectErrorStream(true);
+		// TODO Subscription identifier is implicit strating from API 1.0.9
 		builder.directory(toFile(subscription, "main.log").getParentFile());
 		final Process process = builder.start();
 		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
@@ -249,7 +263,8 @@ public class TerraformResource {
 	 * A new {@link ProcessBuilder} with the given arguments
 	 */
 	protected ProcessBuilder newBuilder(String... args) {
-		return new ProcessBuilder(ArrayUtils.addAll(TERRAFORM_COMMAND, args));
+		return new ProcessBuilder(ArrayUtils.addAll(TERRAFORM_COMMAND,
+				configuration.get(TERRAFORM_PATH, "terraform") + " " + StringUtils.join(ArrayUtils.addAll(args), ' ')));
 	}
 
 	/**
@@ -271,6 +286,7 @@ public class TerraformResource {
 	 * Return the file reference from the given subscription.
 	 */
 	protected File toFile(final Subscription subscription, final String file) throws IOException {
+		// TODO Subscription identifier is implicit strating from API 1.0.9
 		return PluginsClassLoader.getInstance().toFile(subscription, subscription.getId().toString(), file);
 	}
 }

@@ -20,6 +20,6 @@ public class Main {
 		}
 
 		// No error code
-		System.exit(0);
+		System.exit(2);
 	}
 }
