@@ -228,7 +228,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 			scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader));
 			final File file = new File("");
 			final Subscription entity = new Subscription();
-			Mockito.when(classLoader.toFile(entity, "some")).thenReturn(file);
+			entity.setId(15);
+			Mockito.when(classLoader.toFile(entity, "15", "some")).thenReturn(file);
 			Assert.assertSame(file, resource.toFile(entity, "some"));
 			Assert.assertNotNull(PluginsClassLoader.getInstance());
 		} finally {
@@ -250,8 +251,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 			final BiFunction<Subscription, String[], File> toFile, final boolean dryRun, final String... customArgs) {
 		final TerraformResource resource = new TerraformResource() {
 			@Override
-			protected File toFile(final Subscription subscription, final String... fragments) throws IOException {
-				return toFile.apply(subscription, fragments);
+			protected File toFile(final Subscription subscription, final String file) throws IOException {
+				return toFile.apply(subscription, new String[] { file });
 			}
 
 			@Override

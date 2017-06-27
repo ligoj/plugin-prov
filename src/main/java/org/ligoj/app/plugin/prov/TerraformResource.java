@@ -270,7 +270,7 @@ public class TerraformResource {
 	/**
 	 * Return the file reference from the given subscription.
 	 */
-	protected File toFile(final Subscription subscription, final String... fragments) throws IOException {
-		return PluginsClassLoader.getInstance().toFile(subscription, fragments);
+	protected File toFile(final Subscription subscription, final String file) throws IOException {
+		return PluginsClassLoader.getInstance().toFile(subscription, subscription.getId().toString(), file);
 	}
 }
