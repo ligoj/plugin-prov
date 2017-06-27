@@ -19,4 +19,13 @@ public interface Terraforming {
 	 *            The fetched configuration : instance and storage.
 	 */
 	void terraform(OutputStream output, int subscription, QuoteVo quote) throws IOException;
+
+	/**
+	 * Return parameters used during Terraform command execution.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier.
+	 * @return parameters array
+	 */
+	String[] commandLineParameters(int subscription);
 }

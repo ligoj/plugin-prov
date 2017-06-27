@@ -187,7 +187,7 @@ public class TerraformResource {
 			terra.terraform(mainTf, entity.getId(), configuration);
 
 			// Execute the Terraform commands
-			executeTerraform(entity, out, getTerraformSequence());
+			executeTerraform(entity, out, getTerraformSequence(), terra.commandLineParameters(entity.getId()));
 			succeed = true;
 		} finally {
 			IOUtils.closeQuietly(mainTf);
@@ -219,14 +219,14 @@ public class TerraformResource {
 	 * Execute the given Terraform commands. Note there is no concurrency check
 	 * for now.
 	 */
-	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands)
-			throws InterruptedException, IOException {
+	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands,
+			final String... additionalParameters) throws InterruptedException, IOException {
 		int step = 0;
 		final TerraformStatus task = resource.startTask(subscription.getId());
 		for (final String[] command : commands) {
 			task.setStep(TerraformStep.values()[step]);
 			resource.nextStep(task);
-			final int code = executeTerraform(subscription, out, command);
+			final int code = executeTerraform(subscription, out, ArrayUtils.addAll(command, additionalParameters));
 			if (code == 0) {
 				// Nothing wrong, no change, only useless to go further
 				log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
