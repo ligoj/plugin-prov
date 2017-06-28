@@ -102,7 +102,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
 	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized",
-			"priceType", "instance" };
+			"priceType", "instance", "internetFacing", "internetAccess" };
 
 	/**
 	 * Average hours in one month.
@@ -269,6 +269,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
+		entity.setInternet(vo.getInternet());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 
 		// Update the total cost, applying the delta cost

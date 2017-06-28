@@ -2,6 +2,7 @@ package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -16,19 +17,19 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 */
 	@NotNull
 	private Integer instancePrice;
-	
+
 	/**
 	 * Related subscription identifier.
 	 */
 	@NotNull
 	private Integer subscription;
-	
+
 	/**
 	 * The requested CPU
 	 */
 	@NotNull
 	private Double cpu;
-	
+
 	/**
 	 * The requested memory in MB.
 	 */
@@ -36,8 +37,15 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private Integer ram;
 
 	/**
-	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 * The optional requested CPU behavior. When <code>false</code>, the CPU is
+	 * variable, with boost mode.
 	 */
 	private Boolean constant;
-	
+
+	/**
+	 * The Internet access : Internet facing, etc.
+	 */
+	@NotNull
+	private InternetAccess internet = InternetAccess.PUBLIC;
+
 }

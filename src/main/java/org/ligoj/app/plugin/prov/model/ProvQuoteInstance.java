@@ -24,8 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
-		"configuration" }))
+@Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
 public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implements Costed {
 
 	/**
@@ -59,9 +58,16 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	private Integer ram;
 
 	/**
-	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 * The requested CPU behavior. When <code>false</code>, the CPU is variable,
+	 * with boost mode.
 	 */
 	private Boolean constant;
+
+	/**
+	 * The Internet access : Internet facing, etc.
+	 */
+	@NotNull
+	private InternetAccess internet = InternetAccess.PUBLIC;
 
 	/**
 	 * The parent quote.

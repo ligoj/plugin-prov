@@ -52,13 +52,14 @@
 								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}">{{service:prov:instance-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:internet-title}}"><i class="fa fa-globe"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
 								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td class="dataTables_empty" colspan="9">{{loading}}</td>
+								<td class="dataTables_empty" colspan="10">{{loading}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -144,6 +145,13 @@
 							<div class="col-sm-8">
 								<input type="text" id="instance-os" class="resource-query form-control" required />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="instance-internet" data-toggle="tooltip" title="{{service:prov:internet-title}}">{{service:prov:internet}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="instance-internet" class="form-control" required />
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:internet-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
@@ -295,7 +303,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance
+									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance;internet
 								</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>

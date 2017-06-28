@@ -190,6 +190,15 @@ define(function () {
 		},
 
 		/**
+		 * Internet Access key to markup/label mapping.
+		 */
+		internet: {
+			'public': ['Public', 'fa fa-globe fa-fw'],
+			'private': ['Private', 'fa fa-lock fa-fw'],
+			'private_nat': ['NAT', 'fa fa-low-vision fa-fw']
+		},
+
+		/**
 		 * Storage type key to markup/label mapping.
 		 */
 		storageFrequency: {
@@ -211,6 +220,18 @@ define(function () {
 		 */
 		formatOs: function (os, mode, clazz) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
+			if (mode === 'sort') {
+				return cfg[0];
+			}
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+		},
+
+		/**
+		 * Return the HTML markup from the Internet privacy key name.
+		 */
+		formatInternet: function (internet, mode, clazz) {
+			var cfg = (internet && current.internet[(internet.id || internet || 'public').toLowerCase()]) || current.internet['public'];
 			if (mode === 'sort') {
 				return cfg[0];
 			}
@@ -572,6 +593,24 @@ define(function () {
 				}]
 			});
 
+			_('instance-internet').select2({
+				formatSelection: current.formatInternet,
+				formatResult: current.formatInternet,
+				escapeMarkup: function (m, d) {
+					return m;
+				},
+				data: [{
+					id: 'PUBLIC',
+					text: 'PUBLIC'
+				}, {
+					id: 'PRIVATE',
+					text: 'PRIVATE'
+				}, {
+					id: 'PRIVATE_NAT',
+					text: 'PRIVATE_NAT'
+				}]
+			});
+
 			_('storage-optimized').select2({
 				placeholder: current.$messages['service:prov:storage-optimized-help'],
 				allowClear: true,
@@ -746,6 +785,8 @@ define(function () {
 		instanceCommitToModel: function (data, model, costContext) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
+			model.internet = data.internet;
+			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
 		},
 
@@ -755,10 +796,12 @@ define(function () {
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
 			return current.model.storagePrice;
 		},
+
 		instanceUiToData: function (data) {
 			data.cpu = current.cleanFloat(_('instance-cpu').val());
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
+			data.internet = _('instance-internet').val().toLowerCase();
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
 		},
@@ -806,6 +849,7 @@ define(function () {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
+			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
 			current.instanceSetUiPrice(model.id && {
 				cost: model.cost,
 				instance: model.instancePrice
@@ -1291,6 +1335,10 @@ define(function () {
 				}, {
 					data: null,
 					render: current.formatQiStorages
+				}, {
+					data: 'internet',
+					width: '24px',
+					render: current.formatInternet
 				}, {
 					data: 'cost',
 					className: 'truncate',
