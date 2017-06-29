@@ -86,6 +86,34 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final Terraforming terraforming = Mockito.mock(Terraforming.class);
 		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
 		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription), Mockito.any(QuoteVo.class));
+
+		// Coverage only
+		Assert.assertEquals(TerraformStep.PLAN, TerraformStep.valueOf(TerraformStep.values()[0].name()));
+	}
+
+	/**
+	 * IOException during the asynchronous execution
+	 */
+	@Test
+	public void applyTerraformError() {
+		final TerraformResource resource = new TerraformResource() {
+
+			@Override
+			protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
+					throws IOException, InterruptedException {
+				throw new IOException();
+			}
+		};
+		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+
+		// Mock to disable inner transactions for this test
+		resource.resource = Mockito.mock(ProvResource.class);
+		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
+
+		// Replace the plugin locator
+		resource.locator = locator;
+		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(Mockito.mock(Terraforming.class));
+		resource.applyTerraform(subscription);
 	}
 
 	@Test
