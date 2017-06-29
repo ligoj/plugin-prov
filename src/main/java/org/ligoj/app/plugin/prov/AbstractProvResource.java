@@ -26,8 +26,7 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource {
 	@Override
 	public SubscriptionStatusWithData checkSubscriptionStatus(final int subscription, final String node,
 			final Map<String, String> parameters) throws Exception {
-		final SubscriptionStatusWithData status = super.checkSubscriptionStatus(subscription, node,
-				parameters);
+		final SubscriptionStatusWithData status = super.checkSubscriptionStatus(subscription, node, parameters);
 
 		// Complete the tool status with the generic quote data
 		status.put("quote", provResource.getSusbcriptionStatus(subscription));
@@ -36,8 +35,7 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource {
 
 	@Override
 	public List<Class<?>> getInstalledEntities() {
-		return Arrays.asList(Node.class, ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class,
-				ProvStorageType.class);
+		return Arrays.asList(Node.class, ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvStorageType.class);
 	}
 
 	@Override

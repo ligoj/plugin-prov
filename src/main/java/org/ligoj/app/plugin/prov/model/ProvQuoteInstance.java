@@ -46,10 +46,18 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	private Double cpu;
 
 	/**
-	 * The computed cost on the create/update time.
+	 * The computed monthly cost on the create/update time without attached
+	 * storages.
 	 */
 	@NotNull
 	private Double cost;
+
+	/**
+	 * The optional maximum monthly cost you want to pay. When
+	 * <code>null</code>, there is no limit. Only relevant for variable instance
+	 * price type.
+	 */
+	private Double maxCost;
 
 	/**
 	 * The requested RAM in MB.

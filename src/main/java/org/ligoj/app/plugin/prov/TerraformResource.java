@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TerraformResource {
 
 	/**
-	 * Configiguration key for Terraform command path
+	 * Configuration key for Terraform command path
 	 */
 	private static final String TERRAFORM_PATH = "terraform.path";
 

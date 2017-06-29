@@ -142,7 +142,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1", quoteInstance.getName());
 		Assert.assertEquals("serverD1", quoteInstance.getDescription());
 		Assert.assertTrue(quoteInstance.getConstant());
-		Assert.assertEquals( InternetAccess.PUBLIC ,quoteInstance.getInternet());
+		Assert.assertEquals(InternetAccess.PUBLIC, quoteInstance.getInternet());
+		Assert.assertEquals(10.1, quoteInstance.getMaxCost(), DELTA);
 		final ProvInstancePrice instancePrice = quoteInstance.getInstancePrice();
 		Assert.assertEquals(0.2, instancePrice.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
@@ -161,6 +162,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No minimal for this instance price
 		Assert.assertNull(instances.get(1).getInstancePrice().getType().getMinimum());
+		Assert.assertNull(instances.get(1).getMaxCost());
 
 		// Check the constant CPU requirement
 		Assert.assertTrue(instances.get(0).getConstant());
@@ -168,9 +170,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertFalse(instances.get(3).getConstant());
 
 		// Check the network requirement
-		Assert.assertEquals( InternetAccess.PUBLIC ,instances.get(0).getInternet());
-		Assert.assertEquals( InternetAccess.PRIVATE ,instances.get(1).getInternet());
-		Assert.assertEquals( InternetAccess.PRIVATE_NAT ,instances.get(2).getInternet());
+		Assert.assertEquals(InternetAccess.PUBLIC, instances.get(0).getInternet());
+		Assert.assertEquals(InternetAccess.PRIVATE, instances.get(1).getInternet());
+		Assert.assertEquals(InternetAccess.PRIVATE_NAT, instances.get(2).getInternet());
 
 		// Check storage
 		final List<QuoteStorageVo> storages = vo.getStorages();
@@ -691,6 +693,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setConstant(true);
 		vo.setInternet(InternetAccess.PUBLIC);
+		vo.setMaxCost(210.9);
 		final int id = resource.createInstance(vo);
 
 		// Check the exact new cost
@@ -703,6 +706,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(208.62, instance.getCost(), DELTA);
 		Assert.assertTrue(instance.getConstant());
 		Assert.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
+		Assert.assertEquals(210.9, instance.getMaxCost(), DELTA);
 	}
 
 	@Test

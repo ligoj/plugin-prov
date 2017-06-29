@@ -785,6 +785,7 @@ define(function () {
 		instanceCommitToModel: function (data, model, costContext) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
+			model.maxCost = parseFloat(data.maxCost, 10);
 			model.internet = data.internet;
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
@@ -801,6 +802,7 @@ define(function () {
 			data.cpu = current.cleanFloat(_('instance-cpu').val());
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
+			data.maxCost = current.cleanFloat(_('instance-max-cost').val());
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
@@ -848,6 +850,7 @@ define(function () {
 			} else {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
+			_('instance-max-cost').val(model.maxCost || null);
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
 			current.instanceSetUiPrice(model.id && {

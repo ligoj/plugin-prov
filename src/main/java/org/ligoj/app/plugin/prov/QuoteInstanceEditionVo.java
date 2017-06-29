@@ -43,6 +43,13 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private Boolean constant;
 
 	/**
+	 * The optional maximum monthly cost you want to pay. When
+	 * <code>null</code>, there is no limit. Only relevant for variable instance
+	 * price type.
+	 */
+	private Double maxCost;
+
+	/**
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull

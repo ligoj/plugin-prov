@@ -147,7 +147,7 @@
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group required">
+						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-internet" data-toggle="tooltip" title="{{service:prov:internet-title}}">{{service:prov:internet}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-internet" class="form-control" required />
@@ -158,7 +158,7 @@
 							<label class="control-label col-sm-3" for="instance-cpu" data-toggle="tooltip" title="{{service:prov:cpu-title}}">{{service:prov:cpu}}</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="number" id="instance-cpu" class="resource-query form-control input-mini" required />
+									<input type="number" min="0" max="999" id="instance-cpu" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn resource-query" id="instance-constant">
 										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											<span><i class="fa fa-ellipsis-h"></i></span>
@@ -178,7 +178,7 @@
 							<label class="control-label col-sm-3" for="instance-ram" data-toggle="tooltip" title="{{service:prov:ram-title}}">{{service:prov:ram}}</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="number" id="instance-ram" class="resource-query form-control input-mini" required />
+									<input type="number" min="0" id="instance-ram" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn" id="instance-ram-unit">
 										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											<span>{{service:prov:ram-mega}}</span>
@@ -198,6 +198,13 @@
 							<div class="col-sm-8">
 								<input type="text" id="instance-price-type" class="resource-query form-control" required />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:price-type-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-max-cost" data-toggle="tooltip" title="{{service:prov:instance-max-cost-title}}">{{service:prov:instance-max-cost}}</label>
+							<div class="col-sm-8">
+								<input type="number" min="0" id="instance-max-cost" class="form-control input-mini" />
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-max-cost-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -242,7 +249,7 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="storage-size" data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</label>
 							<div class="col-sm-8">
-								<input type="number" id="storage-size" class="resource-query form-control" required />
+								<input type="number" min="0" id="storage-size" class="resource-query form-control" required />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
 							</div>
 						</div>
@@ -303,7 +310,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance;internet
+									name;cpu;ram;constant;os;disk;frequency;optimized;priceType;instance;internet;maxCost
 								</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>

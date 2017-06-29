@@ -50,4 +50,8 @@ public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> impl
 	@JsonIgnore
 	private Node node;
 
+	/**
+	 * The price may vary within the period.
+	 */
+	private boolean variable;
 }
