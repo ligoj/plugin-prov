@@ -1,17 +1,22 @@
 package org.ligoj.app.plugin.prov;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.eclipse.jetty.util.thread.ThreadClassLoaderScope;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Test class of {@link TerraformResource} for {@link ProcessBuilder} platform only.
+ * Test class of {@link TerraformResource} for {@link ProcessBuilder} platform
+ * only.
  */
 public class TerraformResourceCLTest {
 
@@ -19,26 +24,30 @@ public class TerraformResourceCLTest {
 
 	@Test
 	public void newBuildWindows() throws ReflectiveOperationException {
-		checkCommands("Windows", new String[] { "cmd.exe", "/c", "terraform" });
+		checkCommands("Windows", new String[] { "cmd.exe", "/c", "null terraform" });
 	}
 
 	@Test
 	public void newBuildOther() throws ReflectiveOperationException {
-		checkCommands("FreeBSD", new String[] { "sh", "-c", "terraform" });
+		checkCommands("FreeBSD", new String[] { "sh", "-c", "null terraform" });
 	}
 
-	@SuppressWarnings("unchecked")
-	private void checkCommands(final String os, final String... command)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void checkCommands(final String os, final String... command) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		final URL[] urLs = ((URLClassLoader) Main.class.getClassLoader()).getURLs();
 		ThreadClassLoaderScope scope = null;
 		try {
 			System.setProperty("os.name", os);
 			final URLClassLoader urlClassLoader = new URLClassLoader(urLs, null);
 			scope = new ThreadClassLoaderScope(urlClassLoader);
-			Assert.assertEquals(command,
-					((Class<TerraformResource>) urlClassLoader.loadClass(TerraformResource.class.getName()))
-							.newInstance().newBuilder("some").command());
+			final Object terra = urlClassLoader.loadClass("org.ligoj.app.plugin.prov.TerraformResource").newInstance();
+			final Object mock = MethodUtils.invokeStaticMethod(urlClassLoader.loadClass("org.mockito.Mockito"), "mock",
+					urlClassLoader.loadClass("org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource"));
+			FieldUtils.writeField(terra, "configuration", mock, true);
+
+			Assert.assertEquals(Arrays.asList(command),
+					((ProcessBuilder) MethodUtils.invokeMethod(terra, true, "newBuilder", new Object[] { new String[] { "terraform" } }))
+							.command());
 		} finally {
 			IOUtils.closeQuietly(scope);
 		}
