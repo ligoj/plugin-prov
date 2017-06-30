@@ -127,7 +127,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		final QuoteVo vo = resource.getConfiguration(subscription);
 		Assert.assertEquals("quote1", vo.getName());
 		Assert.assertEquals("quoteD1", vo.getDescription());
-		Assert.assertEquals(4398.614, vo.getCost(), 0.00001);
+		Assert.assertEquals(4704.814, vo.getCost(), 0.00001);
 		Assert.assertNotNull(vo.getId());
 		Assert.assertNotNull(vo.getCreatedBy());
 		Assert.assertNotNull(vo.getCreatedDate());
@@ -143,7 +143,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("serverD1", quoteInstance.getDescription());
 		Assert.assertTrue(quoteInstance.getConstant());
 		Assert.assertEquals(InternetAccess.PUBLIC, quoteInstance.getInternet());
-		Assert.assertEquals(10.1, quoteInstance.getMaxCost(), DELTA);
+		Assert.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
 		final ProvInstancePrice instancePrice = quoteInstance.getInstancePrice();
 		Assert.assertEquals(0.2, instancePrice.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
@@ -162,7 +162,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No minimal for this instance price
 		Assert.assertNull(instances.get(1).getInstancePrice().getType().getMinimum());
-		Assert.assertNull(instances.get(1).getMaxCost());
+		Assert.assertNull(instances.get(1).getMaxVariableCost());
 
 		// Check the constant CPU requirement
 		Assert.assertTrue(instances.get(0).getConstant());
@@ -182,7 +182,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-root", quoteStorage.getName());
 		Assert.assertEquals("server1-rootD", quoteStorage.getDescription());
 		Assert.assertEquals(20, quoteStorage.getSize());
-		Assert.assertEquals(4.2, quoteStorage.getCost(), DELTA);
+		Assert.assertEquals(8.4, quoteStorage.getCost(), DELTA);
 		Assert.assertNotNull(quoteStorage.getQuoteInstance());
 		final ProvStorageType storage = quoteStorage.getType();
 		Assert.assertNotNull(storage.getId());
@@ -346,7 +346,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.updateStorage(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(4501.934, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4911.454, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		Assert.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
 	}
 
@@ -417,7 +417,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Check the exact new cost
-		Assert.assertEquals(4472.214, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4774.214, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(vo.getId());
 		Assert.assertEquals("server1-root-bis", storage.getName());
 		Assert.assertEquals("server1-root-bisD", storage.getDescription());
@@ -441,7 +441,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Check the exact new cost
-		Assert.assertEquals(4452.374, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4758.574, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
 		Assert.assertEquals("server1-root-ter", storage.getName());
 		Assert.assertEquals("server1-root-terD", storage.getDescription());
@@ -618,7 +618,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.deleteAllStorages(subscription);
 
 		// Check the exact new cost
-		Assert.assertEquals(4236.084, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4382.484, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 
 		// Check the associations
 		Assert.assertNull(qsRepository.findOne(id));
@@ -640,7 +640,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.deleteStorage(id);
 
 		// Check the exact new cost
-		Assert.assertEquals(4394.414, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4696.414, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 
 		// Check the associations
 		Assert.assertNull(qsRepository.findOne(id));
@@ -652,8 +652,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(0.128, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 
 		// Check the cost fully updated and exact actual cost
-		Assert.assertEquals(4398.614, resource.refreshCost(subscription), DELTA);
-		Assert.assertEquals(4398.614, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4704.814, resource.refreshCost(subscription), DELTA);
+		Assert.assertEquals(4704.814, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		em.flush();
 		em.clear();
 	}
@@ -672,7 +672,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		resource.updateInstance(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(4460.834, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(4620.634, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
 		Assert.assertEquals("server1-bis", instance.getName());
 		Assert.assertEquals(1024, instance.getRam().intValue());
@@ -693,20 +693,20 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setConstant(true);
 		vo.setInternet(InternetAccess.PUBLIC);
-		vo.setMaxCost(210.9);
+		vo.setMaxVariableCost(210.9);
 		final int id = resource.createInstance(vo);
 
 		// Check the exact new cost
-		Assert.assertEquals(4607.234, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
+		Assert.assertEquals(6791.014, resource.getSusbcriptionStatus(subscription).getCost(), DELTA);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(id);
 		Assert.assertEquals("serverZ", instance.getName());
 		Assert.assertEquals("serverZD", instance.getDescription());
 		Assert.assertEquals(1024, instance.getRam().intValue());
 		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
-		Assert.assertEquals(208.62, instance.getCost(), DELTA);
+		Assert.assertEquals(2086.2, instance.getCost(), DELTA);
 		Assert.assertTrue(instance.getConstant());
 		Assert.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
-		Assert.assertEquals(210.9, instance.getMaxCost(), DELTA);
+		Assert.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
 	}
 
 	@Test

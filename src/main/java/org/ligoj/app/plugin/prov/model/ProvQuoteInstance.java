@@ -9,6 +9,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
@@ -43,6 +44,7 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	 * The requested CPU.
 	 */
 	@NotNull
+	@Min(0)
 	private Double cpu;
 
 	/**
@@ -50,19 +52,23 @@ public class ProvQuoteInstance extends AbstractDescribedEntity<Integer> implemen
 	 * storages.
 	 */
 	@NotNull
+	@Min(0)
 	private Double cost;
 
 	/**
-	 * The optional maximum monthly cost you want to pay. When
+	 * The optional maximum monthly cost you want to pay. Only for one instance,
+	 * does not consider the {@link #quantityMax} or {@link #quantityMin}. When
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
-	 * price type.
+	 * price type such as AWS Spot.
 	 */
-	private Double maxCost;
+	@Min(0)
+	private Double maxVariableCost;
 
 	/**
 	 * The requested RAM in MB.
 	 */
 	@NotNull
+	@Min(0)
 	private Integer ram;
 
 	/**

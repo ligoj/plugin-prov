@@ -270,7 +270,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
 		entity.setInternet(vo.getInternet());
-		entity.setMaxCost(vo.getMaxCost());
+		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 
 		// Update the total cost, applying the delta cost

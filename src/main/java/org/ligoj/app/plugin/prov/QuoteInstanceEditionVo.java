@@ -1,5 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
@@ -28,12 +29,14 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The requested CPU
 	 */
 	@NotNull
+	@Min(0)
 	private Double cpu;
 
 	/**
 	 * The requested memory in MB.
 	 */
 	@NotNull
+	@Min(0)
 	private Integer ram;
 
 	/**
@@ -43,11 +46,13 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private Boolean constant;
 
 	/**
-	 * The optional maximum monthly cost you want to pay. When
+	 * The optional maximum monthly cost you want to pay. Only for one instance,
+	 * does not consider the {@link #quantityMax} or {@link #quantityMin}. When
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
-	 * price type.
+	 * price type such as AWS Spot.
 	 */
-	private Double maxCost;
+	@Min(0)
+	private Double maxVariableCost;
 
 	/**
 	 * The Internet access : Internet facing, etc.

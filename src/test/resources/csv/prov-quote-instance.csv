@@ -1,4 +1,4 @@
-configuration.name;instancePrice.id!;name;description;cpu;ram;cost;constant;internet;maxCost
+configuration.name;instancePrice.id!;name;description;cpu;ram;cost;constant;internet;maxVariableCost
 quote1;1;server1;serverD1;0.5;2000;0.128;true;PUBLIC;10.1
 quote1;3;server2;serverD2;0.25;1000;0;;PRIVATE
 quote1;6;server3;serverD3;1;2000;0;;PRIVATE_NAT
