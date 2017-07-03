@@ -21,6 +21,7 @@
 				<li class="pull-right prov-cost-wrapper">
 					<h2 class="text-info">
 						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span>/m
+						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh"><i class="fa fa-refresh"></i></span>
 					</h2>
 				</li>
 			</ul>
@@ -48,7 +49,7 @@
 								<th>{{name}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:ram-title}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}">{{service:prov:instance-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
@@ -175,7 +176,7 @@
 							</div>
 						</div>
 						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-ram" data-toggle="tooltip" title="{{service:prov:ram-title}}">{{service:prov:ram}}</label>
+							<label class="control-label col-sm-3" for="instance-ram">{{service:prov:ram}}</label>
 							<div class="col-sm-8">
 								<div class="input-group">
 									<input type="number" min="0" id="instance-ram" class="resource-query form-control input-mini" required />
@@ -205,6 +206,23 @@
 							<div class="col-sm-8">
 								<input type="number" min="0" id="instance-max-variable-cost" class="form-control input-mini" />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-max-variable-cost-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-min-quantity" data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}">{{service:prov:instance-quantity}}</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+									<input type="number" min="0" id="instance-min-quantity" class="form-control input-mini" />
+									<div class="input-group-addon">{{service:prov:instance-quantity-to}}</div>
+									<input type="number" min="1" id="instance-max-quantity" class="form-control input-mini" />
+									<div class="checkbox pull-right">
+										<label for="instance-auto-scale">
+											<input type="checkbox" id="instance-auto-scale">
+											<span>Auto-scale</span>
+										</label>
+									</div>
+								</div>
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">

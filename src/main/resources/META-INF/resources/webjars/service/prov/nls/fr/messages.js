@@ -15,10 +15,12 @@ define({
     'service:prov:ram': 'RAM',
     'service:prov:ram-mega': 'Mo',
     'service:prov:ram-giga': 'Go',
-    'service:prov:ram-title': 'Mémoire, en Mo',
     'service:prov:ram-help': 'La mémoire demandée. La meilleure instance correspondante à cette exigence peut inclure plus que cette quantité. Il est alors important de bien équilibrer la resource (CPU/RAM) pour limiter cette perte',
     'service:prov:instance-name': 'Serveur',
     'service:prov:instance-name-title': 'Nom logique serveur',
+    'service:prov:instance-quantity' : 'Quantité',
+    'service:prov:instance-quantity-to': 'à',
+    'service:prov:instance-quantity-help' : 'Quantité pour cette instance. Les stockages associés et le coût total reflèteront cette quantité',
     'service:prov:instance': 'Instance',
     'service:prov:instance-title': 'Type de VM avec ressources prédéfinies',
     'service:prov:instance-help': 'La meilleur instance répondant aux ressources demandées',
@@ -31,7 +33,7 @@ define({
     'service:prov:instance-type-title': 'Type d\'instance du fournisseur',
     'service:prov:instance-max-variable-cost': 'Coût max',
     'service:prov:instance-max-variable-cost-title': 'Coût maximum où cette instance sera valide',
-    'service:prov:instance-max-variable-cost-help': 'Coût maximum optionnel où cette instance sera valide. Lorsque non définie, il n\'y a pas de liite. Lorsque ce seuil est atteint, l\'instance serait supprimée.',
+    'service:prov:instance-max-variable-cost-help': 'Coût maximum optionnel où cette instance sera valide. Lorsque non définie, il n\'y a pas de limite. Lorsque ce seuil est atteint, l\'instance serait supprimée.',
     'service:prov:internet': 'Accès Internet', 
     'service:prov:internet-title': 'Accès Internet depuis/vers cette instance', 
     'service:prov:internet-help': 'Option d\'accès Internet. Une accès public implique une instance frontale Internet.', 
@@ -82,5 +84,7 @@ define({
     'service:prov:terraform:execute': 'Exécuter',
     'service:prov:terraform:started': 'Terraform démarré',
     'instance-import-message': 'Importer des instances depuis un fichier CSV, <code> ;</code> comme séparateur',
-    'instance-import-sample': 'Exemple'
+    'instance-import-sample': 'Exemple',
+    'service:prov:cost-refresh-title': 'Raffraichir (calcul complet) le coût global',
+    'service:prov:refresh-needed': 'Le coût global a chnagé,rechargement des détails ...'
 });

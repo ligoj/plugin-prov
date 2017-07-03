@@ -58,6 +58,25 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull
-	private InternetAccess internet = InternetAccess.PUBLIC;
+	private InternetAccess internet = InternetAccess.PRIVATE;
 
+	/**
+	 * The minimal quantity of this instance.
+	 */
+	@Min(0)
+	private int minQuantity = 1;
+
+	/**
+	 * The maximal quantity of this instance. When {@link #autoScale} is
+	 * enabled, this amount is considered to limit or not when
+	 * <code>null</code>. Must be greater than {@link #quantityMin}
+	 */
+	@Min(1)
+	private Integer maxQuantity = 1;
+
+	/**
+	 * When <code>true</code>, the quantity will vary at runtime automatically
+	 * depending on some thresholds.
+	 */
+	private boolean autoScale;
 }

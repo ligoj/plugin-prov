@@ -40,6 +40,6 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	/**
 	 * The computed monthly cost.
 	 */
-	private double cost;
+	private FloatingCost cost;
 
 }

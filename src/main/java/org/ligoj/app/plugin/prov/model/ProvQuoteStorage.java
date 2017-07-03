@@ -7,8 +7,6 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
@@ -21,9 +19,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
-		"configuration" }))
-public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implements Costed {
+@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
+public class ProvQuoteStorage extends AbstractQuoteResource {
 
 	/**
 	 * SID
@@ -37,12 +34,6 @@ public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implement
 	private Integer size;
 
 	/**
-	 * The computed cost on the create/update time.
-	 */
-	@NotNull
-	private Double cost;
-
-	/**
 	 * Related storage type with the price.
 	 */
 	@NotNull
@@ -50,18 +41,16 @@ public class ProvQuoteStorage extends AbstractDescribedEntity<Integer> implement
 	private ProvStorageType type;
 
 	/**
-	 * The parent quote.
-	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private ProvQuote configuration;
-
-	/**
 	 * Optional linked quoted instance.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private ProvQuoteInstance quoteInstance;
+
+	@Override
+	@JsonIgnore
+	public boolean isUnboundCost() {
+		return getQuoteInstance() != null && getQuoteInstance().isUnboundCost();
+	}
 
 }

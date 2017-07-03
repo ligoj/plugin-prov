@@ -1,4 +1,4 @@
-subscription.id!;name;description;cost
-1;quote1;quoteD1;0.128
-2;quote2;quoteD2;0
-3;quote3;quoteD3;0
+subscription.id!;name;description;cost;maxCost
+1;quote1;quoteD1;0.128;0.129
+2;quote2;quoteD2;0;0
+3;quote3;quoteD3;0;0

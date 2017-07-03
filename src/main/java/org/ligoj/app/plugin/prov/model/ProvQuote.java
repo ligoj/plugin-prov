@@ -34,11 +34,30 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private static final long serialVersionUID = 4795855466011388616L;
 
 	/**
-	 * Monthly cost, computed during the creation.
+	 * Minimal monthly cost, computed during the creation and kept synchronized
+	 * with the updates.
 	 */
 	@NotNull
 	@Min(0)
-	private Double cost;
+	private Double cost = 0d;
+
+	/**
+	 * Maximal determined monthly cost, computed during the creation and kept
+	 * synchronized with the updates. When there are unbound maximal quantities
+	 * (<code>null</code>), the minimal cost is used and the
+	 * {@link #unboundCostCounter} is incremented.
+	 */
+	@NotNull
+	@Min(0)
+	private Double maxCost = 0d;
+
+	/**
+	 * The amount unbound maximal quantities. Would be used to track the unbound
+	 * monthly bills on different scenarios.
+	 */
+	@NotNull
+	@Min(0)
+	private Integer unboundCostCounter = 0;
 
 	/**
 	 * The related subscription.

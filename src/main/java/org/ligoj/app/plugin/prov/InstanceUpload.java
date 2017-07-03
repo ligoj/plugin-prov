@@ -1,5 +1,8 @@
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.Min;
+
+import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.VmOs;
@@ -14,12 +17,12 @@ import lombok.Setter;
 @Setter
 public class InstanceUpload {
 	private String name;
-	
+
 	/**
 	 * Optional requested CPU.
 	 */
 	private double cpu = 0;
-	
+
 	/**
 	 * Optional request RAM.
 	 */
@@ -35,5 +38,30 @@ public class InstanceUpload {
 	private ProvStorageOptimized optimized;
 	private String instance;
 	private String priceType;
+
+	/**
+	 * Minimal quantity, when undefined <code>1</code>.
+	 */
+	private int minQuantity = 1;
+
+	/**
+	 * Maximal quantity, when undefined <code>1</code>.
+	 */
+	private int maxQuantity = 1;
+	private boolean autoScale;
+
+	/**
+	 * Internet access of this VM. By default, private.
+	 */
+	private InternetAccess internet = InternetAccess.PRIVATE;
+
+	/**
+	 * The optional maximum monthly cost you want to pay. Only for one instance,
+	 * does not consider the {@link #quantityMax} or {@link #quantityMin}. When
+	 * <code>null</code>, there is no limit. Only relevant for variable instance
+	 * price type such as AWS Spot.
+	 */
+	@Min(0)
+	private Double maxVariableCost;
 
 }

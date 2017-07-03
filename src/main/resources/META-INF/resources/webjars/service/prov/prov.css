@@ -71,9 +71,12 @@
 	position: relative;
 }
 
-.prov-cost-wrapper {
-	pointer-events: none;
-}
 #subscribe-configuration-prov .form-actions .dropdown {
 	display: inline;
+}
+
+#subscribe-configuration-prov .cost-refresh {
+	font-size: 10px;
+	margin: 0;
+	padding: 15px 0 0 0;
 }

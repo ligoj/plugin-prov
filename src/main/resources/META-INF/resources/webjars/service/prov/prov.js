@@ -1,3 +1,4 @@
+/*jshint esversion: 6*/
 define(function () {
 	var current = {
 
@@ -58,6 +59,27 @@ define(function () {
 		},
 
 		/**
+		 * Request to refresh the cost and trgger a global update as needed
+		 */
+		refreshCost: function () {
+			var min = current.model.configuration.cost.min;
+			var max = current.model.configuration.cost.max;
+			$.ajax({
+				type: 'PUT',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/refresh',
+				dataType: 'json',
+				success: function (updatedTotalCost) {
+					if (updatedTotalCost.min !== min || updatedTotalCost.max !== max) {
+						// The cost has been updated
+						current.model.configuration.cost = updatedTotalCost;
+						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-needed'])());
+						current.reload();
+					}
+				}
+			});
+		},
+
+		/**
 		 * Render LDAP.
 		 */
 		renderFeatures: function (subscription) {
@@ -100,7 +122,7 @@ define(function () {
 		 */
 		formatInstance: function (name, mode, qi) {
 			var instance = qi ? qi.instancePrice.instance : null;
-			var name = instance ? instance.name : name;
+			name = instance ? instance.name : name;
 			if (mode === 'sort' || (instance && typeof instance.id === 'undefined')) {
 				// Use only the name
 				return name;
@@ -112,11 +134,11 @@ define(function () {
 				details += instance.cpu;
 				details += ' ' + current.formatConstant(instance.constant);
 			} else {
-				details += current.$messages['service:prov:instance-custom']
+				details += current.$messages['service:prov:instance-custom'];
 			}
 			if (instance.ram) {
 				details += '<br><i class=\'fa fa-microchip fa-fw\'></i> ';
-				details += current.formatRam(instance.ram)
+				details += current.formatRam(instance.ram);
 			}
 
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
@@ -132,8 +154,27 @@ define(function () {
 		/**
 		 * Format the cost.
 		 */
-		formatCost: function (cost, mode) {
-			return mode === 'sort' ? cost : formatManager.formatCost(cost, 3, '$');
+		formatCost: function (cost, mode, obj) {
+			if (mode === 'sort') {
+				return cost;
+			}
+			var costStr = '';
+			obj = typeof obj === 'undefined' ? cost : obj;
+			if (typeof obj.cost === 'undefined' && typeof obj.min === 'undefined') {
+				// Standard cost
+				return formatManager.formatCost(cost, 3, '$');
+			}
+			// A floating cost
+			var min = obj.cost || obj.min || 0;
+			var max = typeof obj.maxCost === 'undefined' ? obj.max : obj.maxCost;
+			if ((typeof max === 'undefined') || max === min) {
+				// Max cost is equal to min cost, no range
+				costStr = formatManager.formatCost(obj.cost || obj.min || 0, 3, '$');
+			} else {
+				// Max cost, is different, display a range
+				costStr = formatManager.formatCost(min, 3, '$') + '-' + formatManager.formatCost(max, 3, '$');
+			}
+			return cost.unboundedCost ? costStr + '+' : costStr;
 		},
 
 		/**
@@ -231,7 +272,7 @@ define(function () {
 		 * Return the HTML markup from the Internet privacy key name.
 		 */
 		formatInternet: function (internet, mode, clazz) {
-			var cfg = (internet && current.internet[(internet.id || internet || 'public').toLowerCase()]) || current.internet['public'];
+			var cfg = (internet && current.internet[(internet.id || internet || 'public').toLowerCase()]) || current.internet.public;
 			if (mode === 'sort') {
 				return cfg[0];
 			}
@@ -368,7 +409,7 @@ define(function () {
 			// Check the availability of this instance for these requirements
 			$.ajax({
 				dataType: 'json',
-				url: REST_PATH + 'service/prov/' + type + '-lookup/' + current.model.subscription + '?' + queries.join('&'),
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queries.join('&'),
 				type: 'GET',
 				success: function (price) {
 					var callbackUi = current[type + 'SetUiPrice'];
@@ -413,7 +454,7 @@ define(function () {
 		 */
 		storageSetUiPrice: function (price) {
 			current.model.storagePrice = price;
-			_('storage').select2('data',  price || null).val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
+			_('storage').select2('data', price || null).val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
 		},
 
 		/**
@@ -444,7 +485,8 @@ define(function () {
 				$.ajax({
 					type: 'DELETE',
 					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
-					success: function () {
+					success: function (updatedTotalCost) {
+						current.model.configuration.cost = updatedTotalCost;
 						current.deleteCallback(type, resource);
 					}
 				});
@@ -453,9 +495,10 @@ define(function () {
 			$table.on('click', '.delete-all', function () {
 				$.ajax({
 					type: 'DELETE',
-					url: REST_PATH + 'service/prov/' + type + '/reset/' + current.model.subscription,
-					success: function () {
+					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
+					success: function (updatedTotalCost) {
 						// Update the model
+						current.model.configuration.cost = updatedTotalCost;
 						current[type + 'Delete']();
 						// Update the UI
 						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-cleared'])());
@@ -508,7 +551,7 @@ define(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
 				$(this).ajaxSubmit({
-					url: REST_PATH + 'service/prov/upload/' + current.model.subscription,
+					url: REST_PATH + 'service/prov/' + current.model.subscription + '/upload',
 					type: 'POST',
 					dataType: 'json',
 					beforeSubmit: function () {
@@ -554,9 +597,10 @@ define(function () {
 					value: current.model.configuration.name
 				});
 			});
-			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription +'/terraform-' + current.model.subscription + '.tf');
-			$('#prov-terraform-execute').on('click',current.terraform);
-			
+			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
+			$('#prov-terraform-execute').on('click', current.terraform);
+			$('.cost-refresh').on('click', current.refreshCost);
+
 			// Related instance of the storage
 			_('storage-instance').select2({
 				formatSelection: current.formatQuoteInstance,
@@ -566,7 +610,7 @@ define(function () {
 				escapeMarkup: function (m, d) {
 					return m;
 				},
-				data: function(term, re) {
+				data: function (term, re) {
 					return {
 						results: current.model.configuration.instances
 					};
@@ -665,7 +709,7 @@ define(function () {
 		terraform: function () {
 			$.ajax({
 				type: 'POST',
-				url: REST_PATH + 'service/prov/' + current.model.subscription +'/terraform',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/terraform',
 				dataType: 'json',
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:terraform:started'])());
@@ -706,7 +750,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-						return REST_PATH + 'service/prov/instance-price-type/' + current.model.subscription;
+						return REST_PATH + 'service/prov/' + current.model.subscription + '/instance-price-type';
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -756,7 +800,7 @@ define(function () {
 				current.redrawInstance(model.quoteInstance);
 				current.detachStrorage(model);
 			}
-			
+
 			if (data.quoteInstance) {
 				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
 				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
@@ -764,17 +808,17 @@ define(function () {
 				current.redrawInstance(model.quoteInstance);
 			}
 		},
-		
+
 		/**
 		 * Redraw an instance table row from its identifier
 		 * @param {number|Object} instance Quote instance or its identifier.
 		 */
-		redrawInstance: function(instance) {
+		redrawInstance: function (instance) {
 			instance = instance && (instance.id || instance);
 			if (instance) {
 				// The instance is valid
 				var $itable = _('prov-instances');
-				var $row = $itable.find('tr[data-id="' + instance +'"]');
+				var $row = $itable.find('tr[data-id="' + instance + '"]');
 				if ($row.length) {
 					// This has been found and can be drawn
 					$itable.DataTable().row($row[0]).invalidate().draw();
@@ -787,6 +831,9 @@ define(function () {
 			model.ram = parseInt(data.ram, 10);
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
 			model.internet = data.internet;
+			model.minQuantity = parseInt(data.minQuantity, 10);
+			model.maxQuantity = parseInt(data.maxQuantity, 10);
+			model.autoScale = data.autoScale;
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
 		},
@@ -801,9 +848,12 @@ define(function () {
 		instanceUiToData: function (data) {
 			data.cpu = current.cleanFloat(_('instance-cpu').val());
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
-			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.maxVariableCost = current.cleanFloat(_('instance-max-variable-cost').val());
 			data.internet = _('instance-internet').val().toLowerCase();
+			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
+			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
+			data.autoScale = _('instance-auto-scale').is(':checked');
+			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
 		},
@@ -851,6 +901,9 @@ define(function () {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
 			_('instance-max-variable-cost').val(model.maxVariableCost || null);
+			_('instance-min-quantity').val((typeof model.minQuantity === 'undefined') ? 1 : model.minQuantity);
+			_('instance-max-quantity').val((typeof model.maxQuantity === 'undefined') ? 1 : model.maxQuantity);
+			_('instance-auto-scale').val((typeof model.maxQuantity === 'undefined') ? null : model.maxQuantity);
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
 			current.instanceSetUiPrice(model.id && {
@@ -888,7 +941,7 @@ define(function () {
 			_('storage-frequency').select2('data', current.select2IdentityData((model.type && model.type.frequency) || 'HOT'));
 			_('storage-optimized').select2('data', current.select2IdentityData(model.type && model.type.optimized));
 			_('storage-instance').select2('data', model.quoteInstance);
-			
+
 			current.storageSetUiPrice(model.id && {
 				cost: model.cost,
 				type: model.type
@@ -927,23 +980,24 @@ define(function () {
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
-				success: function (id) {
-					current.saveCallback(type, id, data, priceContext);
+				success: function (updatedCost) {
+					current.saveCallback(type, updatedCost, data, priceContext);
 					$popup.modal('hide');
 				}
 			});
 		},
 
 		/**
-		 * Commit to the model the saved data and update the computed cost.
+		 * Commit to the model the saved data (server side) and update the computed cost.
 		 * @param {string} type Resource type to save.
-		 * @param {string} id Resource identifier, never null.
+		 * @param {string} updatedCost The new updated cost with identifier, total cost, resource cost and related resources costs.
 		 * @param {object} data The original data sent to the back-end.
 		 * @param {object} priceContext The price context to commit in addition of data.
 		 * @return {object} The updated or created model.
 		 */
-		saveCallback: function (type, id, data, priceContext) {
+		saveCallback: function (type, updatedCost, data, priceContext) {
 			var conf = current.model.configuration;
+			var id = updatedCost.id;
 			if (current.currentId) {
 				notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
 			} else {
@@ -951,19 +1005,23 @@ define(function () {
 			}
 
 			// Update the model
+			conf.cost = updatedCost.totalCost;
 			var model = conf[type + 'sById'][data.id] || {
 				id: id,
 				cost: 0
 			};
+
+			// Common data
 			model.name = data.name;
 			model.description = data.description;
+
+			// Specific data
 			current[type + 'CommitToModel'](data, model, priceContext);
 
-			// Update the model and the total cost
-			var delta = priceContext.cost - model.cost;
-			conf.cost += delta;
+			// Update the model cost
+			var delta = updatedCost.cost.min - model.cost;
 			conf[type + 'Cost'] += delta;
-			model.cost = priceContext.cost;
+			model.cost = updatedCost.cost.min;
 
 			// Update the UI
 			var $table = _('prov-' + type + 's');
@@ -990,7 +1048,6 @@ define(function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function () {
-			current.model.configuration.cost = (Math.round(current.model.configuration.cost * 1000) / 1000) || 0;
 			$('.cost').text(current.formatCost(current.model.configuration.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
@@ -1028,7 +1085,8 @@ define(function () {
 		},
 
 		/**
-		 * Compute the global resource usage of this quote.
+		 * Compute the global resource usage of this quote. Only minimal quantities are considered and with minimal to 1.
+		 * Maximal quantities is currently ignored.
 		 */
 		usageGlobalRate: function () {
 			var conf = current.model.configuration;
@@ -1038,17 +1096,20 @@ define(function () {
 			var cpuUsed = 0;
 			var storageAvailable = 0;
 			var storageUsed = 0;
+			var nb = 0;
 			for (var i = 0; i < conf.instances.length; i++) {
 				var instance = conf.instances[i];
-				cpuAvailable += instance.instancePrice.instance.cpu;
-				cpuUsed += instance.cpu;
-				ramAvailable += instance.instancePrice.instance.ram;
-				ramUsed += instance.ram;
+				nb = instance.minQuantity || 1;
+				cpuAvailable += instance.instancePrice.instance.cpu * nb;
+				cpuUsed += instance.cpu * nb;
+				ramAvailable += instance.instancePrice.instance.ram * nb;
+				ramUsed += instance.ram * nb;
 			}
 			for (i = 0; i < conf.storages.length; i++) {
 				var storage = conf.storages[i];
-				storageAvailable += Math.max(storage.size, storage.type.minimal);
-				storageUsed += storage.size;
+				nb = storage.quoteInstance ? storage.quoteInstance.minQuantity || 1 : 1;
+				storageAvailable += Math.max(storage.size, storage.type.minimal) * nb;
+				storageUsed += storage.size * nb;
 			}
 			return {
 				ram: {
@@ -1076,7 +1137,6 @@ define(function () {
 				var storage = conf.storages[i];
 				if (typeof id === 'undefined' || storage.id === id) {
 					conf.storages.splice(i, 1);
-					conf.cost -= storage.cost;
 					conf.storageCost -= storage.cost;
 					current.detachStrorage(storage);
 					if (id) {
@@ -1114,7 +1174,6 @@ define(function () {
 				var instance = conf.instances[i];
 				if (typeof id === 'undefined' || instance.id === id) {
 					conf.instances.splice(i, 1);
-					conf.cost -= instance.cost;
 					conf.instanceCost -= instance.cost;
 					delete conf.instancesById[instance.id];
 					// Also delete the related storages
@@ -1123,7 +1182,6 @@ define(function () {
 						if (storage.quoteInstance && storage.quoteInstance.id === instance.id) {
 							// Delete the associated storages
 							conf.storages.splice(s, 1);
-							conf.cost -= storage.cost;
 							conf.storageCost -= storage.cost;
 							delete conf.storagesById[storage.id];
 						}
@@ -1257,7 +1315,7 @@ define(function () {
 						},
 						formatSelection: current.formatStorageHtml,
 						ajax: {
-							url: REST_PATH + 'service/prov/storage-lookup/' + current.model.subscription + '?instance=' + qi.id,
+							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
 							dataType: 'json',
 							data: function (term, page) {
 								return {
@@ -1266,7 +1324,7 @@ define(function () {
 							},
 							results: function (data, page) {
 								// Completed the requested identifier
-								for (item of data) {
+								for (var item of data) {
 									item.id = item.type.id + '-' + new Date().getMilliseconds();
 									item.text = item.type.name;
 								}
@@ -1280,6 +1338,7 @@ define(function () {
 						if (event.added) {
 							// New storage
 							var storagePrice = event.added;
+							var $that = $(this);
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: storagePrice.type.id,
@@ -1293,8 +1352,13 @@ define(function () {
 								dataType: 'json',
 								contentType: 'application/json',
 								data: JSON.stringify(data),
-								success: function (id) {
-									storagePrice.qs = current.saveCallback('storage', id, data, storagePrice);
+								success: function (updatedCost) {
+									storagePrice.qs = current.saveCallback('storage', updatedCost, data, storagePrice);
+
+									// Keep the focus on this UI after the redraw of the row
+									$(function () {
+										_('prov-instances').find('tr[data-id="' + qi.id + '"]').find('.storages-tags .select2-input').trigger('focus');
+									});
 								}
 							});
 						} else if (event.removed) {
@@ -1303,7 +1367,8 @@ define(function () {
 							$.ajax({
 								type: 'DELETE',
 								url: REST_PATH + 'service/prov/storage/' + qs.id,
-								success: function () {
+								success: function (updatedTotalCost) {
+									current.model.configuration.cost = updatedTotalCost;
 									current.deleteCallback('storage', qs);
 								}
 							});
@@ -1377,7 +1442,7 @@ define(function () {
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
-				for (resource of resources) {
+				for (var resource of resources) {
 					resourcesByName[resource.name] = resource;
 				}
 			}

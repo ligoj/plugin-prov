@@ -19,7 +19,7 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * Monthly cost, computed during the creation.
 	 */
-	private double cost;
+	private FloatingCost cost;
 
 	/**
 	 * Quoted instance.

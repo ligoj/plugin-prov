@@ -33,7 +33,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
@@ -49,6 +51,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.TerraformStatusRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
@@ -102,12 +105,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
 	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized",
-			"priceType", "instance", "internet", "maxCost" };
+			"priceType", "instance", "internet", "maxCost", "minQuantity", "maxQuantity", "autoScale", "maxVariableCost" };
 
 	/**
 	 * Average hours in one month.
 	 */
-	private static final double HOURS_BY_MONTH = 24 * 30.5;
+	private static final double HOURS_BY_MONTH = 24 * 365 / 12;
 
 	/**
 	 * Ordered/mapped columns.
@@ -211,7 +214,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(repository.getStorage(subscription.getId()).stream().map(this::toStorageVo).collect(Collectors.toList()));
 		// Also copy the pre-computed cost
-		vo.setCost(entity.getCost());
+		vo.setCost(toFloatingCost(entity));
 		return vo;
 	}
 
@@ -232,13 +235,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param vo
 	 *            The quote instance.
-	 * @return The created instance identifier.
+	 * @return The created instance cost details with identifier.
 	 */
 	@POST
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int createInstance(final QuoteInstanceEditionVo vo) {
-		return saveOrUpdate(new ProvQuoteInstance(), vo).getId();
+	public UpdatedCost createInstance(final QuoteInstanceEditionVo vo) {
+		return saveOrUpdate(new ProvQuoteInstance(), vo);
 	}
 
 	/**
@@ -246,12 +249,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param vo
 	 *            The quote instance to update.
+	 * @return The new cost configuration.
 	 */
 	@PUT
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateInstance(final QuoteInstanceEditionVo vo) {
-		saveOrUpdate(findConfigured(qiRepository, vo.getId()), vo);
+	public UpdatedCost updateInstance(final QuoteInstanceEditionVo vo) {
+		return saveOrUpdate(findConfigured(qiRepository, vo.getId()), vo);
 	}
 
 	/**
@@ -259,61 +263,80 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * The computed cost are recursively updated from the instance to the quote
 	 * total cost.
 	 */
-	private ProvQuoteInstance saveOrUpdate(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
-		DescribedBean.copy(vo, entity);
+	private UpdatedCost saveOrUpdate(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
+		// Compute the unbound cost delta
+		final int deltaUnbound = BooleanUtils.toInteger(vo.getMaxQuantity() == null) - BooleanUtils.toInteger(entity.isUnboundCost());
 
-		// Check the associations
-		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
-		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
+		// Check the associations and copy attributes to the entity
+		final ProvQuote configuration = getQuoteFromSubscription(vo.getSubscription());
+		entity.setConfiguration(configuration);
+		final String providerId = configuration.getSubscription().getNode().getRefined().getId();
+		DescribedBean.copy(vo, entity);
 		entity.setInstancePrice(ipRepository.findOneExpected(vo.getInstancePrice()));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
 		entity.setInternet(vo.getInternet());
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
+		entity.setMinQuantity(vo.getMinQuantity());
+		entity.setMaxQuantity(vo.getMaxQuantity());
+		entity.setAutoScale(vo.isAutoScale());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
+		checkConstraints(entity);
 
-		// Update the total cost, applying the delta cost
-		addCost(entity, this::updateCost);
+		// Update the unbound increment of the global quote
+		configuration.setUnboundCostCounter(configuration.getUnboundCostCounter() + deltaUnbound);
 
 		// Save and update the costs
-		qiRepository.saveAndFlush(entity);
-		return entity;
+		final UpdatedCost cost = newUpdateCost(qiRepository, entity, this::updateCost);
+		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
+		CollectionUtils.emptyIfNull(entity.getStorages()).forEach(s -> storagesCosts.put(s.getId(), addCost(s, this::updateCost)));
+		cost.setRelatedCosts(storagesCosts);
+		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
+		return cost;
 	}
 
 	/**
-	 * Add a cost to the quote related to given entity.
+	 * Extract the costs from a quote and build a new {@link FloatingCost}
+	 * 
+	 * @param configuration
+	 *            The quote configuration.
+	 * @return The built {@link FloatingCost} instance.
+	 */
+	public FloatingCost toFloatingCost(final ProvQuote configuration) {
+		return new FloatingCost(configuration.getCost(), configuration.getMaxCost(), configuration.getUnboundCostCounter() > 0);
+	}
+
+	private void checkConstraints(ProvQuoteInstance entity) {
+		if (entity.getMaxQuantity() != null && entity.getMaxQuantity() < entity.getMinQuantity()) {
+			// Maximal quantity must be greater than minimal quantity
+			throw new ValidationJsonException("maxQuantity", "Min", entity.getMinQuantity());
+		}
+	}
+
+	/**
+	 * Add a cost to the quote related to given resource entity. The global cost
+	 * is not deeply computed, only delta is applied.
 	 * 
 	 * @param entity
 	 *            The configured entity, related to a quote.
-	 * @param addCost
-	 *            The monthly cost to add, may positive or negative.
+	 * @param costUpdater
+	 *            The function used to compute the new cost.
+	 * @return The new computed cost.
 	 */
-	private <T extends Costed> void addCost(final T entity, final Consumer<T> costUpdater) {
-		// Update the cost of this instance, saving the previous one
+	private <T extends Costed> FloatingCost addCost(final T entity, final Function<T, FloatingCost> costUpdater) {
+		// Save the previous costs
 		final double oldCost = ObjectUtils.defaultIfNull(entity.getCost(), 0d);
+		final double oldMaxCost = ObjectUtils.defaultIfNull(entity.getMaxCost(), 0d);
 
-		// Process the update
-		costUpdater.accept(entity);
+		// Process the update of this entity
+		final FloatingCost newCost = costUpdater.apply(entity);
 
 		// Report the delta to the quote
-		final double oldQuoteCost = ObjectUtils.defaultIfNull(entity.getConfiguration().getCost(), 0d);
-		entity.getConfiguration().setCost(round(oldQuoteCost + entity.getCost() - oldCost));
-	}
-
-	/**
-	 * Delete an instance from a quote. The total cost is updated.
-	 * 
-	 * @param id
-	 *            The {@link ProvQuoteInstance}'s identifier to delete.
-	 */
-	@DELETE
-	@Path("instance/{id:\\d+}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteInstance(@PathParam("id") final int id) {
-		// Delete the instance and also the attached storage
-		deleteAndUpdateCost(qiRepository, id,
-				i -> i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply)));
+		final ProvQuote configuration = entity.getConfiguration();
+		configuration.setCost(round(configuration.getCost() + entity.getCost() - oldCost));
+		configuration.setMaxCost(round(configuration.getMaxCost() + entity.getMaxCost() - oldMaxCost));
+		return newCost;
 	}
 
 	/**
@@ -321,11 +344,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param subscription
 	 *            The related subscription.
+	 * @return The updated computed cost.
 	 */
 	@DELETE
-	@Path("instance/reset/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteAllInstances(@PathParam("subscription") final int subscription) {
+	public FloatingCost deleteAllInstances(@PathParam("subscription") final int subscription) {
 		subscriptionResource.checkVisibleSubscription(subscription);
 
 		// Delete all instance with cascaded delete for storages
@@ -333,7 +357,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of instances cost and related storage costs
-		refreshCost(subscription);
+		return refreshCost(subscription);
 	}
 
 	/**
@@ -341,11 +365,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param subscription
 	 *            The related subscription.
+	 * @return The updated computed cost.
 	 */
 	@DELETE
-	@Path("storage/reset/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteAllStorages(@PathParam("subscription") final int subscription) {
+	public FloatingCost deleteAllStorages(@PathParam("subscription") final int subscription) {
 		subscriptionResource.checkVisibleSubscription(subscription);
 
 		// Delete all storages related to any instance, then the instances
@@ -353,7 +378,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of storage costs.
-		refreshCost(subscription);
+		return refreshCost(subscription);
 	}
 
 	/**
@@ -361,13 +386,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param vo
 	 *            The quote storage.
-	 * @return The created storage identifier.
+	 * @return The created instance cost details with identifier.
 	 */
 	@POST
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int createStorage(final QuoteStorageEditionVo vo) {
-		return saveOrUpdate(new ProvQuoteStorage(), vo).getId();
+	public UpdatedCost createStorage(final QuoteStorageEditionVo vo) {
+		return saveOrUpdate(new ProvQuoteStorage(), vo);
 	}
 
 	/**
@@ -375,13 +400,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param vo
 	 *            The quote storage.
-	 * @return The created storage identifier.
+	 * @return The new cost configuration.
 	 */
 	@PUT
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateStorage(final QuoteStorageEditionVo vo) {
-		saveOrUpdate(findConfigured(qsRepository, vo.getId()), vo);
+	public UpdatedCost updateStorage(final QuoteStorageEditionVo vo) {
+		return saveOrUpdate(findConfigured(qsRepository, vo.getId()), vo);
 	}
 
 	/**
@@ -393,12 +418,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 *            The new quote storage data to persist.
 	 * @return The formal entity.
 	 */
-	private ProvQuoteStorage saveOrUpdate(final ProvQuoteStorage entity, final QuoteStorageEditionVo vo) {
+	private UpdatedCost saveOrUpdate(final ProvQuoteStorage entity, final QuoteStorageEditionVo vo) {
 		DescribedBean.copy(vo, entity);
 
 		// Check the associations
-		entity.setConfiguration(getQuoteFromSubscription(vo.getSubscription()));
-		final String providerId = entity.getConfiguration().getSubscription().getNode().getRefined().getId();
+		final ProvQuote configuration = getQuoteFromSubscription(vo.getSubscription());
+		entity.setConfiguration(configuration);
+		final String providerId = configuration.getSubscription().getNode().getRefined().getId();
 		entity.setType(checkVisibility(stRepository.findOneExpected(vo.getType()), providerId));
 		entity.setQuoteInstance(Optional.ofNullable(vo.getQuoteInstance()).map(i -> findConfigured(qiRepository, i)).map(i -> {
 			checkVisibility(i.getInstancePrice().getInstance(), providerId);
@@ -419,11 +445,30 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		}
 		entity.setSize(vo.getSize());
 
-		// Update the total cost, applying the delta cost
-		addCost(entity, this::updateCost);
-
 		// Save and update the costs
-		return qsRepository.saveAndFlush(entity);
+		return newUpdateCost(qsRepository, entity, this::updateCost);
+	}
+
+	/**
+	 * Delete an instance from a quote. The total cost is updated.
+	 * 
+	 * @param id
+	 *            The {@link ProvQuoteInstance}'s identifier to delete.
+	 * @return The updated computed cost.
+	 */
+	@DELETE
+	@Path("instance/{id:\\d+}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public FloatingCost deleteInstance(@PathParam("id") final int id) {
+		// Delete the instance and also the attached storage
+		return deleteAndUpdateCost(qiRepository, id, i -> {
+			// Delete the relate storages
+			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply));
+
+			// Decrement the unbound counter
+			final ProvQuote configuration = i.getConfiguration();
+			configuration.setUnboundCostCounter(configuration.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
+		});
 	}
 
 	/**
@@ -431,30 +476,57 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * 
 	 * @param id
 	 *            The {@link ProvQuoteStorage}'s identifier to delete.
+	 * @return The updated computed cost.
 	 */
 	@DELETE
 	@Path("storage/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteStorage(@PathParam("id") final int id) {
-		deleteAndUpdateCost(qsRepository, id, Function.identity()::apply);
+	public FloatingCost deleteStorage(@PathParam("id") final int id) {
+		return deleteAndUpdateCost(qsRepository, id, Function.identity()::apply);
 	}
 
 	/**
 	 * Delete a configured entity and update the total cost of the associated
 	 * quote.
 	 */
-	private <T extends Costed> void deleteAndUpdateCost(final RestRepository<T, Integer> repository, final Integer id,
-			final Consumer<T> callback) {
+	private <T extends AbstractQuoteResource> FloatingCost deleteAndUpdateCost(final RestRepository<T, Integer> repository,
+			final Integer id, final Consumer<T> callback) {
 		// Check the entity exists and is visible
 		final T entity = super.findConfigured(repository, id);
 
-		// Remove the cost from the quote
-		entity.getConfiguration().setCost(entity.getConfiguration().getCost() - entity.getCost());
+		// Remove the cost of this entity
+		addCost(entity, e -> {
+			e.setCost(0d);
+			e.setMaxCost(0d);
+			return new FloatingCost(0);
+		});
 
 		// Callback before the deletion
 		callback.accept(entity);
+
 		// Delete the entity
 		repository.delete(id);
+		return toFloatingCost(entity.getConfiguration());
+
+	}
+
+	/**
+	 * Request a cost update of the given entity and report the delta to the the
+	 * global cost. The changes are persisted.
+	 */
+	private <T extends Costed> UpdatedCost newUpdateCost(final RestRepository<T, Integer> repository, final T entity,
+			final Function<T, FloatingCost> costUpdater) {
+
+		// Update the total cost, applying the delta cost
+		final FloatingCost floatingCost = addCost(entity, costUpdater);
+		repository.saveAndFlush(entity);
+
+		final UpdatedCost cost = new UpdatedCost();
+		cost.setId(entity.getId());
+		cost.setResourceCost(floatingCost);
+		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
+		return cost;
+
 	}
 
 	/**
@@ -482,7 +554,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 *         price for a weaker requirement if applicable.
 	 */
 	@GET
-	@Path("instance-lookup/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/instance-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu, @DefaultValue(value = "1") @QueryParam("ram") final int ram,
@@ -511,7 +583,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @return The available price types for the given subscription.
 	 */
 	@GET
-	@Path("instance-price-type/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/instance-price-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstancePriceType> findInstancePriceType(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
@@ -531,7 +603,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @return The valid instance types for the given subscription.
 	 */
 	@GET
-	@Path("instance/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/instance")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstance> findInstance(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
@@ -550,7 +622,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
-	@Path("storage-type/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/storage-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvStorageType> findStorageType(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
@@ -576,7 +648,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
-	@Path("storage-lookup/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/storage-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<ComputedStoragePrice> lookupStorage(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("frequency") final ProvStorageFrequency frequency,
@@ -628,7 +700,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final Object[] storage = repository.getStorageSummary(subscription).get(0);
 		final ProvQuote entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
-		vo.setCost(round(entity.getCost()));
+		vo.setCost(toFloatingCost(entity));
 		vo.setNbInstances(((Long) compute[1]).intValue());
 		vo.setTotalCpu((Double) compute[2]);
 		vo.setTotalRam(((Long) compute[3]).intValue());
@@ -656,28 +728,34 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	}
 
 	/**
-	 * Compute the total cost without transactional/snapshot costs and save it
-	 * into the related quote. All compute and storage costs are updated.
+	 * Compute the total cost and save it into the related quote. All separated
+	 * compute and storage costs are also updated.
 	 * 
 	 * @param subscription
 	 *            The subscription to compute
-	 * @return the computed cost without transactional/snapshot, support,...
-	 *         costs.
+	 * @return The updated computed cost.
 	 */
 	@PUT
-	@Path("refresh")
+	@Path("{subscription:\\d+}/refresh")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public double refreshCost(final int subscription) {
+	public FloatingCost refreshCost(@PathParam("subscription") final int subscription) {
 		final ProvQuote entity = repository.getCompute(subscription);
-		final List<ProvQuoteStorage> storages = repository.getStorage(subscription);
+		entity.setCost(0d);
+		entity.setMaxCost(0d);
 
-		// Compute compute costs
-		final double computeCost = entity.getInstances().stream().mapToDouble(this::updateCost).sum();
-		final double storageCost = storages.stream().mapToDouble(this::updateCost).reduce(0.0, Double::sum);
+		// Add the compute cost, and update the unbound cost
+		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(this::updateCost).map(fc -> addCost(entity, fc))
+				.filter(FloatingCost::isUnbound).count());
 
-		// Hour to monthly cost
-		entity.setCost(round(computeCost + storageCost));
-		return entity.getCost();
+		// Add the storage cost
+		repository.getStorage(subscription).stream().map(this::updateCost).forEach(fc -> addCost(entity, fc));
+		return toFloatingCost(entity);
+	}
+
+	private FloatingCost addCost(final ProvQuote entity, final FloatingCost fc) {
+		entity.setCost(round(entity.getCost() + fc.getMin()));
+		entity.setMaxCost(round(entity.getMaxCost() + fc.getMax()));
+		return fc;
 	}
 
 	/**
@@ -692,7 +770,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * Compute the monthly cost from hourly costs.
 	 */
 	private double toMonthly(double cost) {
-		return Math.round(cost * 1000) * HOURS_BY_MONTH / 1000d;
+		return Math.round(cost * 1000 * HOURS_BY_MONTH) / 1000d;
 	}
 
 	/**
@@ -702,45 +780,58 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 *            The {@link ProvQuoteInstance} to update cost.
 	 * @return The new cost.
 	 */
-	private Double updateCost(final ProvQuoteInstance qi) {
-		qi.setCost(toMonthly(getComputeCost(qi)));
-		return qi.getCost();
+	private FloatingCost updateCost(final ProvQuoteInstance qi) {
+		return updateCost(qi, this::getComputeCost, this::toMonthly);
 	}
 
 	/**
 	 * Update the actual monthly cost of given storage.
 	 * 
-	 * @param qi
+	 * @param qs
 	 *            The {@link ProvQuoteStorage} to update cost.
 	 * @return The new cost.
 	 */
-	private Double updateCost(final ProvQuoteStorage qs) {
-		qs.setCost(getStorageCost(qs));
-		return qs.getCost();
+	private FloatingCost updateCost(final ProvQuoteStorage qs) {
+		return updateCost(qs, this::getStorageCost, Function.identity());
 	}
 
 	/**
-	 * Compute the cost of a quote instance.
+	 * Update the actual monthly cost of given resource.
 	 * 
-	 * @param quoteInstance
+	 * @param qr
+	 *            The {@link AbstractQuoteResource} to update cost.
+	 * @return The new cost.
+	 */
+	private <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, Function<T, FloatingCost> costProvider,
+			Function<Double, Double> toMonthly) {
+		final FloatingCost cost = costProvider.apply(qr);
+		qr.setCost(toMonthly.apply(cost.getMin()));
+		qr.setMaxCost(toMonthly.apply(cost.getMax()));
+		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
+	}
+
+	/**
+	 * Compute the hourly cost of a quote instance.
+	 * 
+	 * @param qi
 	 *            The quote to evaluate.
 	 * @return The cost of this instance.
 	 */
-	private double getComputeCost(final ProvQuoteInstance quoteInstance) {
+	private FloatingCost getComputeCost(final ProvQuoteInstance qi) {
 		// Fixed price + custom price
-		return quoteInstance.getInstancePrice().getCost() + (quoteInstance.getInstancePrice().getInstance().isCustom()
-				? getComputeCustomCost(quoteInstance.getCpu(), quoteInstance.getRam(), quoteInstance.getInstancePrice()) : 0);
+		final ProvInstancePrice ip = qi.getInstancePrice();
+		return computeFloat(ip.getCost() + (ip.getInstance().isCustom() ? getComputeCustomCost(qi.getCpu(), qi.getRam(), ip) : 0), qi);
 	}
 
 	/**
-	 * Compute the cost of a custom requested resource.
+	 * Compute the hourly cost of a custom requested resource.
 	 * 
-	 * @param quoteInstance
-	 *            The quote to evaluate.
-	 * @param required
-	 *            The request resource amount.
-	 * @param cost
-	 *            The cost of one resource.
+	 * @param cpu
+	 *            The requested CPU.
+	 * @param ram
+	 *            The requested RAM.
+	 * @param ip
+	 *            The instance price configuration.
 	 * @return The cost of this custom instance.
 	 */
 	private double getComputeCustomCost(final Double cpu, final Integer ram, final ProvInstancePrice ip) {
@@ -749,30 +840,44 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	}
 
 	/**
-	 * Compute the cost of a custom requested resource.
+	 * Compute the hourly cost of a custom requested resource.
 	 * 
-	 * @param quoteInstance
-	 *            The quote to evaluate.
-	 * @param required
+	 * @param requested
 	 *            The request resource amount.
 	 * @param cost
 	 *            The cost of one resource.
+	 * @param weight
+	 *            The weight of one resource.
 	 * @return The cost of this custom instance.
 	 */
-	private double getComputeCustomCost(Number required, Double cost, final double multiplicator) {
+	private double getComputeCustomCost(Number requested, Double cost, final double weight) {
 		// Compute the count of the requested resources
-		return Math.ceil(required.doubleValue() / multiplicator) * cost;
+		return Math.ceil(requested.doubleValue() / weight) * cost;
 	}
 
 	/**
-	 * Compute the cost of a quote storage.
+	 * Compute the hourly cost of a quote storage. The minimal quantity of
+	 * related instance is considered.
 	 * 
 	 * @param quoteStorage
 	 *            The quote to evaluate.
 	 * @return The cost of this storage.
 	 */
-	private double getStorageCost(final ProvQuoteStorage quoteStorage) {
-		return getStorageCost(quoteStorage.getType(), quoteStorage.getSize());
+	private FloatingCost getStorageCost(final ProvQuoteStorage quoteStorage) {
+		final double base = getStorageCost(quoteStorage.getType(), quoteStorage.getSize());
+		return Optional.ofNullable(quoteStorage.getQuoteInstance()).map(i -> computeFloat(base, i)).orElseGet(() -> new FloatingCost(base));
+	}
+
+	/**
+	 * Compute the cost using minimal and maximal quantity of related instance.
+	 * no rounding there.
+	 */
+	private FloatingCost computeFloat(final double base, final ProvQuoteInstance instance) {
+		final FloatingCost cost = new FloatingCost();
+		cost.setMin(base * instance.getMinQuantity());
+		cost.setMax(Optional.ofNullable(instance.getMaxQuantity()).orElse(instance.getMinQuantity()) * base);
+		cost.setUnbound(instance.isUnboundCost());
+		return cost;
 	}
 
 	/**
@@ -793,7 +898,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		// Add an empty quote
 		final ProvQuote configuration = new ProvQuote();
 		configuration.setSubscription(subscriptionRepository.findOne(subscription));
-		configuration.setCost(0d);
 
 		// Associate a default name and description
 		configuration.setName(configuration.getSubscription().getProject().getName());
@@ -819,16 +923,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @param uploadedFile
 	 *            Instance entries files to import. Currently support only CSV
 	 *            format.
-	 * @param ramMultiplier
-	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param columns
 	 *            the CSV header names.
+	 * @param ramMultiplier
+	 *            The multiplier for imported RAM values. Default is 1.
+	 * @param defaultPriceType
+	 *            The default {@link ProvInstancePrice} used when no one is defined in the CSV line
 	 * @param encoding
 	 *            CSV encoding. Default is UTF-8.
 	 */
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Path("upload/{subscription:\\d+}")
+	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription, @Multipart(value = "csv-file") final InputStream uploadedFile,
 			@Multipart(value = "columns", required = false) final String[] columns,
 			@Multipart(value = "priceType", required = false) final Integer defaultPriceType,
@@ -860,6 +966,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		vo.setName(upload.getName());
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		vo.setMaxVariableCost(upload.getMaxVariableCost());
+		vo.setMinQuantity(upload.getMinQuantity());
+		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).map(q -> q <= 0 ? null : q).orElse(null));
+		vo.setAutoScale(upload.isAutoScale());
+		vo.setInternet(upload.getInternet());
 
 		// Instance selection
 		final Integer instance = Optional.ofNullable(instanceRepository.findByName(subscription, upload.getInstance()))
@@ -879,7 +990,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		ValidationJsonException.assertNotnull(lowest, "instance");
 		final ProvInstancePrice instancePrice = lowest.getInstance();
 		vo.setInstancePrice(instancePrice.getId());
-		final int qi = createInstance(vo);
+		final UpdatedCost newInstance = createInstance(vo);
+		final int qi = newInstance.getId();
 
 		// Storage part
 		final Integer size = Optional.ofNullable(upload.getDisk()).map(Double::intValue).orElse(0);
