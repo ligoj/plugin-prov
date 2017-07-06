@@ -153,7 +153,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
 		Assert.assertEquals(2, quoteInstance.getMinQuantity().intValue());
 		Assert.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
-		Assert.assertTrue(quoteInstance.getAutoScale());
 		final ProvInstancePrice instancePrice = quoteInstance.getInstancePrice();
 		Assert.assertEquals(0.2, instancePrice.getCost(), DELTA);
 		Assert.assertEquals(VmOs.LINUX, instancePrice.getOs());
@@ -176,7 +175,6 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		Assert.assertEquals(1, instances.get(3).getMinQuantity().intValue());
 		Assert.assertEquals(1, instances.get(3).getMaxQuantity().intValue());
-		Assert.assertFalse(instances.get(3).getAutoScale());
 
 		// Check the constant CPU requirement
 		Assert.assertTrue(instances.get(0).getConstant());
@@ -923,7 +921,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
-		vo.setAutoScale(false);
 		final UpdatedCost updatedCost = resource.updateInstance(vo);
 		Assert.assertEquals(updatedCost.getId(), vo.getId().intValue());
 
@@ -941,7 +938,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assert.assertEquals(208.05, instance.getCost(), DELTA);
 		Assert.assertEquals(4161, instance.getMaxCost(), DELTA);
-		Assert.assertFalse(instance.getAutoScale());
 	}
 
 	@Test
@@ -958,7 +954,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setMaxVariableCost(210.9);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
-		vo.setAutoScale(true);
 		final UpdatedCost updatedCost = resource.createInstance(vo);
 
 		// Check the exact new cost
@@ -978,7 +973,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
 		Assert.assertEquals(10, instance.getMinQuantity().intValue());
 		Assert.assertEquals(15, instance.getMaxQuantity().intValue());
-		Assert.assertTrue(instance.getAutoScale());
 		Assert.assertFalse(instance.isUnboundCost());
 	}
 
@@ -1003,7 +997,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNull(instance.getMaxVariableCost());
 		Assert.assertEquals(10, instance.getMinQuantity().intValue());
 		Assert.assertNull(instance.getMaxQuantity());
-		Assert.assertFalse(instance.getAutoScale());
 		Assert.assertTrue(instance.isUnboundCost());
 	}
 
@@ -1287,7 +1280,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
 		Assert.assertEquals(1, qi.getMinQuantity().intValue());
 		Assert.assertEquals(1000, qi.getMaxQuantity().intValue());
-		Assert.assertFalse(qi.getAutoScale());
 		Assert.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 135099.185, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
@@ -1305,7 +1297,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
 		Assert.assertEquals(1, qi.getMinQuantity().intValue());
 		Assert.assertEquals(1, qi.getMaxQuantity().intValue());
-		Assert.assertFalse(qi.getAutoScale());
 		Assert.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 7267.145, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
@@ -1315,15 +1306,14 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void uploadUnBoundQuantities() throws IOException {
-		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;1;true;1;0;true".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "autoScale" },
+		resource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;1;true;1;0".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity" },
 				priceTypeRepository.findByNameExpected("on-demand2").getId(), 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
 		Assert.assertEquals(1, qi.getMinQuantity().intValue());
 		Assert.assertNull(qi.getMaxQuantity());
-		Assert.assertTrue(qi.getAutoScale());
 		Assert.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 7267.145, true);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");

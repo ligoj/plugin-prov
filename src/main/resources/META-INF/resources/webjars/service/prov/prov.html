@@ -53,7 +53,7 @@
 								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}">{{service:prov:instance-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:internet-title}}"><i class="fa fa-globe"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:internet-title}}"><i class="fa fa-fw fa-globe"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
 								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
@@ -86,6 +86,7 @@
 							<tr>
 								<th>{{name}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}">{{service:prov:instance-quantity}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-frequency-title}}">{{service:prov:storage-frequency}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</th>
@@ -216,8 +217,8 @@
 									<div class="input-group-addon">{{service:prov:instance-quantity-to}}</div>
 									<input type="number" min="1" id="instance-max-quantity" class="form-control input-mini" />
 									<div class="checkbox pull-right">
-										<label for="instance-auto-scale">
-											<input type="checkbox" id="instance-auto-scale">
+										<label for="instance-auto-scale" data-toggle="tooltip" title="{{service:prov:instance-auto-scale-title}}">
+											<input type="checkbox" id="instance-auto-scale" disabled>
 											<span>Auto-scale</span>
 										</label>
 									</div>

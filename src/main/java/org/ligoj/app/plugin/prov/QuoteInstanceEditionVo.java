@@ -67,16 +67,9 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private int minQuantity = 1;
 
 	/**
-	 * The maximal quantity of this instance. When {@link #autoScale} is
-	 * enabled, this amount is considered to limit or not when
-	 * <code>null</code>. Must be greater than {@link #quantityMin}
+	 * The maximal quantity of this instance. Must be greater than
+	 * {@link #quantityMin}
 	 */
 	@Min(1)
 	private Integer maxQuantity = 1;
-
-	/**
-	 * When <code>true</code>, the quantity will vary at runtime automatically
-	 * depending on some thresholds.
-	 */
-	private boolean autoScale;
 }

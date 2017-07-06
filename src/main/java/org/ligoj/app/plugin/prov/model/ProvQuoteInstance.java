@@ -91,13 +91,6 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	@Min(1)
 	private Integer maxQuantity = 1;
 
-	/**
-	 * When <code>true</code>, the quantity will vary at runtime automatically
-	 * depending on some thresholds. Default is <code>false</code>.
-	 */
-	@NotNull
-	private Boolean autoScale = Boolean.FALSE;
-
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

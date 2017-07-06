@@ -21,6 +21,8 @@ define({
     'service:prov:instance-quantity' : 'Quantité',
     'service:prov:instance-quantity-to': 'à',
     'service:prov:instance-quantity-help' : 'Quantité pour cette instance. Les stockages associés et le coût total reflèteront cette quantité',
+    'service:prov:instance-quantity-title': 'Quantité variable pour cette instance. Lorsque la quantité maximale n\'est pas renseigné, les coûts ne sont plus bornées. Lorsque les quantités maximale et minimale sont différentes, auto-scale est activée automatiquement',
+    'service:prov:instance-auto-scale-title': 'Le mode auto-scale est activé dès lors que les quantités maximale et minimale sont différentes',
     'service:prov:instance': 'Instance',
     'service:prov:instance-title': 'Type de VM avec ressources prédéfinies',
     'service:prov:instance-help': 'La meilleur instance répondant aux ressources demandées',

@@ -105,7 +105,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
 	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized",
-			"priceType", "instance", "internet", "maxCost", "minQuantity", "maxQuantity", "autoScale", "maxVariableCost" };
+			"priceType", "instance", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost" };
 
 	/**
 	 * Average hours in one month.
@@ -280,7 +280,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
-		entity.setAutoScale(vo.isAutoScale());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 		checkConstraints(entity);
 
@@ -969,7 +968,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		vo.setMaxVariableCost(upload.getMaxVariableCost());
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).map(q -> q <= 0 ? null : q).orElse(null));
-		vo.setAutoScale(upload.isAutoScale());
 		vo.setInternet(upload.getInternet());
 
 		// Instance selection

@@ -80,3 +80,7 @@
 	margin: 0;
 	padding: 15px 0 0 0;
 }
+
+#instance-max-quantity+.checkbox.disabled, #instance-max-quantity+.checkbox.disabled * {
+	pointer-events: bounding-box;
+}

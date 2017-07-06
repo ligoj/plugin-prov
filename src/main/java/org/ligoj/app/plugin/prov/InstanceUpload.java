@@ -48,7 +48,6 @@ public class InstanceUpload {
 	 * Maximal quantity, when undefined <code>1</code>.
 	 */
 	private int maxQuantity = 1;
-	private boolean autoScale;
 
 	/**
 	 * Internet access of this VM. By default, private.

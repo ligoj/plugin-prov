@@ -600,6 +600,7 @@ define(function () {
 			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
 			$('#prov-terraform-execute').on('click', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
+			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 
 			// Related instance of the storage
 			_('storage-instance').select2({
@@ -718,6 +719,13 @@ define(function () {
 		},
 
 		/**
+		 * Update the auto-scale  flag from the provided quantities.
+		 */
+		updateAutoScale: function () {
+			_('instance-auto-scale').prop('checked', _('instance-min-quantity').val() !== _('instance-max-quantity').val());
+		},
+
+		/**
 		 * Update the quote name
 		 */
 		updateQuoteName: function (name) {
@@ -833,7 +841,6 @@ define(function () {
 			model.internet = data.internet;
 			model.minQuantity = parseInt(data.minQuantity, 10);
 			model.maxQuantity = parseInt(data.maxQuantity, 10);
-			model.autoScale = data.autoScale;
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
 		},
@@ -852,7 +859,6 @@ define(function () {
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
-			data.autoScale = _('instance-auto-scale').is(':checked');
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
@@ -903,9 +909,9 @@ define(function () {
 			_('instance-max-variable-cost').val(model.maxVariableCost || null);
 			_('instance-min-quantity').val((typeof model.minQuantity === 'undefined') ? 1 : model.minQuantity);
 			_('instance-max-quantity').val((typeof model.maxQuantity === 'undefined') ? 1 : model.maxQuantity);
-			_('instance-auto-scale').val((typeof model.maxQuantity === 'undefined') ? null : model.maxQuantity);
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
+			current.updateAutoScale();
 			current.instanceSetUiPrice(model.id && {
 				cost: model.cost,
 				instance: model.instancePrice
