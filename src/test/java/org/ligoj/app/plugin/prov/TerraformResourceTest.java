@@ -38,6 +38,7 @@ import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -85,7 +86,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void getTerraform() throws IOException {
 		final Terraforming terraforming = Mockito.mock(Terraforming.class);
 		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
-		Mockito.verify(terraforming).terraform(Mockito.any(OutputStream.class), Mockito.eq(subscription), Mockito.any(QuoteVo.class));
+		Mockito.verify(terraforming).terraform(ArgumentMatchers.any(OutputStream.class), ArgumentMatchers.eq(subscription), ArgumentMatchers.any(QuoteVo.class));
 
 		// Coverage only
 		Assert.assertEquals(TerraformStep.PLAN, TerraformStep.valueOf(TerraformStep.values()[0].name()));
