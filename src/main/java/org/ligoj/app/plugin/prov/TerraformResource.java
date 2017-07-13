@@ -51,6 +51,22 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class TerraformResource {
 
+
+	/**
+	 * Main log file.
+	 */
+	private static final String MAIN_LOG = "main.log";
+
+	/**
+	 * Tarraform fag to disable interactive mode
+	 */
+	private String NO_INUT = "-input=false";
+	
+	/**
+	 * Tarraform fag to disable color mode
+	 */
+	private static final String NO_COLOR = "-no-color";
+
 	/**
 	 * Configuration key for Terraform command path
 	 */
@@ -107,11 +123,11 @@ public class TerraformResource {
 	@Path("{subscription:\\d+}/terraform.log")
 	public Response getTerraformLog(@PathParam("subscription") final int subscription) throws IOException {
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
-		final File log = toFile(entity, "main.log");
+		final File log = toFile(entity, MAIN_LOG);
 
 		// Check there is a log file
 		if (log.exists()) {
-			final StreamingOutput so = o ->  FileUtils.copyFile(toFile(entity, "main.log"), o);
+			final StreamingOutput so = o ->  FileUtils.copyFile(toFile(entity, MAIN_LOG), o);
 			return Response.ok().entity(so).build();
 		}
 
@@ -131,7 +147,7 @@ public class TerraformResource {
 	@Path("{subscription:\\d+}/terraform")
 	public void applyTerraform(@PathParam("subscription") final int subscription) {
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
-		final QuoteVo configuration = resource.getConfiguration(entity);
+		final QuoteVo quote = resource.getConfiguration(entity);
 
 		// Check the provider support the Terraform generation
 
@@ -145,7 +161,7 @@ public class TerraformResource {
 			log.info("Terraform start for {} ({})", entity.getId(), entity);
 			SecurityContextHolder.setContext(context);
 			try {
-				final File file = applyTerraform(entity, terra, configuration);
+				final File file = applyTerraform(entity, terra, quote);
 				log.info("Terraform succeed for {} ({})", entity.getId(), entity);
 				return file;
 			} catch (final Exception e) {
@@ -162,7 +178,7 @@ public class TerraformResource {
 	 */
 	protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
 			throws IOException, InterruptedException {
-		final File logFile = toFile(entity, "main.log");
+		final File logFile = toFile(entity, MAIN_LOG);
 		final File tfFile = toFile(entity, "main.tf");
 
 		// Clear the previous generated files
@@ -208,8 +224,8 @@ public class TerraformResource {
 	}
 
 	protected String[][] getTerraformSequence() {
-		return new String[][] { { "plan", "-input=false", "-no-color", "-detailed-exitcode" }, { "apply", "-input=false", "-no-color" },
-				{ "show", "-input=false", "-no-color" } };
+		return new String[][] { { "plan", NO_INUT, NO_COLOR, "-detailed-exitcode" }, { "apply", NO_INUT, NO_COLOR },
+				{ "show", NO_INUT, NO_COLOR } };
 	}
 
 	/**
@@ -250,7 +266,7 @@ public class TerraformResource {
 		final ProcessBuilder builder = newBuilder(command);
 		builder.redirectErrorStream(true);
 		// TODO Subscription identifier is implicit strating from API 1.0.9
-		builder.directory(toFile(subscription, "main.log").getParentFile());
+		builder.directory(toFile(subscription, MAIN_LOG).getParentFile());
 		final Process process = builder.start();
 		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
 		return process.waitFor();

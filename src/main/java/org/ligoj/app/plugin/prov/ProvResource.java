@@ -110,7 +110,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	/**
 	 * Average hours in one month.
 	 */
-	private static final double HOURS_BY_MONTH = 24 * 365 / 12;
+	private static final double HOURS_BY_MONTH = 24d * 365d / 12d;
 
 	/**
 	 * Ordered/mapped columns.
