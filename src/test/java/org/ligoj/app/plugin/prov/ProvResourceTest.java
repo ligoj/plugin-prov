@@ -99,6 +99,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void testBusiness() {
 		// Coverage only
 		Assert.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
+		Assert.assertNotNull(resource.getSubscriptionRepository());
+		Assert.assertNotNull(resource.getTaskRepository());
 	}
 
 	@Test

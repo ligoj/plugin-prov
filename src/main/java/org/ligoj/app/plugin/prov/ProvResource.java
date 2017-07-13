@@ -122,10 +122,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 
 	@Autowired
 	@Getter
-	protected SubscriptionRepository subscriptionRepository;
-
-	@Autowired
-	@Getter
 	protected TerraformStatusRepository taskRepository;
 
 	@Autowired
@@ -1029,5 +1025,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public Supplier<TerraformStatus> newTask() {
 		return TerraformStatus::new;
 	}
-
+	
+	@Override
+	public SubscriptionRepository getSubscriptionRepository() {
+		return subscriptionRepository;
+	}
 }
