@@ -1,7 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -112,9 +111,7 @@ public class TerraformResource {
 
 		// Check there is a log file
 		if (log.exists()) {
-			final StreamingOutput so = o -> {
-				IOUtils.copy(new FileInputStream(toFile(entity, "main.log")), o);
-			};
+			final StreamingOutput so = o ->  FileUtils.copyFile(toFile(entity, "main.log"), o);
 			return Response.ok().entity(so).build();
 		}
 
