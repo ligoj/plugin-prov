@@ -60,7 +60,7 @@ public class TerraformResource {
 	/**
 	 * Tarraform fag to disable interactive mode
 	 */
-	private String NO_INUT = "-input=false";
+	private static final String NO_INPUT = "-input=false";
 	
 	/**
 	 * Tarraform fag to disable color mode
@@ -224,8 +224,8 @@ public class TerraformResource {
 	}
 
 	protected String[][] getTerraformSequence() {
-		return new String[][] { { "plan", NO_INUT, NO_COLOR, "-detailed-exitcode" }, { "apply", NO_INUT, NO_COLOR },
-				{ "show", NO_INUT, NO_COLOR } };
+		return new String[][] { { "plan", NO_INPUT, NO_COLOR, "-detailed-exitcode" }, { "apply", NO_INPUT, NO_COLOR },
+				{ "show", NO_INPUT, NO_COLOR } };
 	}
 
 	/**
