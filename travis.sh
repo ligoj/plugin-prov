@@ -8,17 +8,17 @@ set -euo pipefail
 # at each build.
 #
 function installJdk8 {
-  echo "Setup JDK 1.8u121"
+  echo "Setup JDK 1.8u131"
   mkdir -p ~/jvm
   pushd ~/jvm > /dev/null
-  if [ ! -d "jdk1.8.0_121" ]; then
+  if [ ! -d "jdk1.8.0_131" ]; then
     echo "Download JDK8"
-    wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz
-    tar xzf jdk-8u121-linux-x64.tar.gz
-    rm jdk-8u121-linux-x64.tar.gz
+    wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
+    tar xzf jdk-8u131-linux-x64.tar.gz
+    rm jdk-8u131-linux-x64.tar.gz
   fi
   popd > /dev/null
-  export JAVA_HOME=~/jvm/jdk1.8.0_121
+  export JAVA_HOME=~/jvm/jdk1.8.0_131
   export PATH=$JAVA_HOME/bin:$PATH
 }
 
@@ -66,7 +66,9 @@ function installMaven {
 # PROJECT_VERSION=6.3
 #
 function fixBuildVersion {
-  export INITIAL_VERSION=$(maven_expression "project.version")
+  echo "Create a clean build version ..."
+  export INITIAL_VERSION=$(maven_expression "project.version -Dskip-sonarsource-repo=true")
+  echo "INITIAL_VERSION : $INITIAL_VERSION"
 
   # remove suffix -SNAPSHOT or -RC
   without_suffix=$(echo $INITIAL_VERSION | sed "s/-.*//g")
@@ -83,6 +85,7 @@ function fixBuildVersion {
   if [[ "${INITIAL_VERSION}" == *"-SNAPSHOT" ]]; then
     # SNAPSHOT
     export PROJECT_VERSION=$BUILD_VERSION
+    echo "Replacing Initial version '$INITIAL_VERSION' by '$PROJECT_VERSION'"
     grep --include={*.properties,pom.xml} -rnl './' -e "$INITIAL_VERSION" | xargs -i@ sed -i "s/$INITIAL_VERSION/$PROJECT_VERSION/g" @
   else
     # not a SNAPSHOT: milestone, RC or GA
@@ -113,7 +116,7 @@ BUILD)
 
   # Minimal Maven settings
   export MAVEN_OPTS="-Xmx1G -Xms128m"
-  MAVEN_ARGS="-Dmaven.test.redirectTestOutputToFile=false -Djava.net.preferIPv4Stack=true -Dsurefire.useFile=false -B -e -V -DbuildVersion=$BUILD_VERSION"
+  MAVEN_ARGS="-Dmaven.test.redirectTestOutputToFile=false -Djava.net.preferIPv4Stack=true -Dsurefire.useFile=false -B -e -V -DbuildVersion=$BUILD_VERSION -Dskip-sonarsource-repo=true"
 
   if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     echo 'Build and analyze master'
@@ -143,7 +146,7 @@ BUILD)
   elif [[ "$TRAVIS_BRANCH" == "branch-"* ]] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     echo 'Build release branch'
 
-    mvn deploy $MAVEN_ARGS -Pdeploy-sonarsource,release
+    mvn install $MAVEN_ARGS
 
   elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
     echo 'Build and analyze internal pull request'
@@ -162,7 +165,7 @@ BUILD)
   else
     echo 'Build feature branch or external pull request'
 
-    mvn install $MAVEN_ARGS -Dsource.skip=true
+    mvn install $MAVEN_ARGS
   fi
 
   ;;
