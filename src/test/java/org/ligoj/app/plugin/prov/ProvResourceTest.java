@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -1042,38 +1041,15 @@ public class ProvResourceTest extends AbstractAppTest {
 		}.getInstalledEntities().contains(ProvStorageType.class));
 	}
 
-	@Test(expected = NotImplementedException.class)
-	public void linkAbstract() throws Exception {
-		new AbstractProvResource() {
-
-			@Override
-			public String getKey() {
-				return "service:prov:sample";
-			}
-		}.link(subscription);
-	}
-
 	@Test
-	public void createAbstract() throws Exception {
-		// Nothing to check
-		new AbstractProvResource() {
-
-			@Override
-			public String getKey() {
-				return "service:prov:sample";
-			}
-		}.create(subscription);
-	}
-
-	@Test
-	public void create() {
+	public void link() {
 		final Subscription subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
 		em.persist(subscription);
 		em.flush();
 		em.clear();
-		resource.create(subscription.getId());
+		resource.link(subscription.getId());
 		final QuoteVo configuration = resource.getConfiguration(subscription.getId());
 		Assert.assertNotNull(configuration);
 		Assert.assertNotNull(configuration.getName());

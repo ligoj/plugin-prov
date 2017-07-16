@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.ligoj.app.api.SubscriptionStatusWithData;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.model.ProvInstance;
@@ -36,15 +35,5 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource {
 	@Override
 	public List<Class<?>> getInstalledEntities() {
 		return Arrays.asList(Node.class, ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvStorageType.class);
-	}
-
-	@Override
-	public void link(final int subscription) throws Exception {
-		throw new NotImplementedException("");
-	}
-
-	@Override
-	public void create(final int subscription) throws Exception {
-		// Nothing to do
 	}
 }

@@ -1025,9 +1025,10 @@ define(function () {
 			current[type + 'CommitToModel'](data, model, priceContext);
 
 			// Update the model cost
-			var delta = updatedCost.cost.min - model.cost;
+			var delta = updatedCost.resourceCost.min - model.cost;
 			conf[type + 'Cost'] += delta;
-			model.cost = updatedCost.cost.min;
+			model.cost = updatedCost.resourceCost.min;
+			model.maxCost = updatedCost.resourceCost.max;
 
 			// Update the UI
 			var $table = _('prov-' + type + 's');
@@ -1081,7 +1082,7 @@ define(function () {
 				} else {
 					$('#gauge-global').addClass('hidden');
 				}
-				if (current.model.configuration.cost) {
+				if (current.model.configuration.cost.min) {
 					sunburst.init('#sunburst', current.toD3());
 					$('#sunburst').removeClass('hidden');
 				} else {
