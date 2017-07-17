@@ -145,6 +145,28 @@ define(function () {
 		},
 
 		/**
+		 * Format instance quantity
+		 */
+		formatQuantity: function(quantity, mode, instance) {
+			instance = typeof instance === 'undefined' ? quantity : (instance.quoteInstance || instance);
+			if (mode === 'sort' || typeof instance === 'undefined') {
+				return quantity;
+			}
+			
+			var min = instance.minQuantity || 0;
+			var max = instance.maxQuantity;
+			if (typeof max === 'undefined') {
+				return min + '+';
+			}
+			if (max === min) {
+				return min;
+			}
+
+			// A range
+			return min + '-' + max;
+		},
+
+		/**
 		 * Format the constant CPU.
 		 */
 		formatConstant: function (constant) {
@@ -541,10 +563,11 @@ define(function () {
 			if (relatedResources) {
 				var $relatedTable = _('prov-storages');
 				Object.keys(relatedResources).forEach((id) => {
-				$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
-					$relatedTable.DataTable().row($(this)[0]).remove().draw(false);
+					$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
+						$relatedTable.DataTable().row($(this)[0]).remove().draw(false);
+					});
 				});
-			});
+			}
 			current.updateUiCost();
 		},
 
@@ -1416,6 +1439,11 @@ define(function () {
 					data: 'name',
 					className: 'truncate'
 				}, {
+					data: 'minQuantity',
+					width: '24px',
+					className: 'truncate',
+					render: current.formatQuantity
+				}, {
 					data: 'instancePrice.os',
 					className: 'truncate',
 					width: '24px',
@@ -1508,6 +1536,11 @@ define(function () {
 				columns: [{
 					data: 'name',
 					className: 'truncate'
+				}, {
+					data: 'quoteInstance.minQuantity',
+					width: '24px',
+					className: 'truncate',
+					render: current.formatQuantity
 				}, {
 					data: 'size',
 					width: '64px',
