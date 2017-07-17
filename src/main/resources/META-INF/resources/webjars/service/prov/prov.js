@@ -1440,8 +1440,7 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'minQuantity',
-					width: '24px',
-					className: 'truncate',
+					className: 'hidden-xs',
 					render: current.formatQuantity
 				}, {
 					data: 'instancePrice.os',
@@ -1458,25 +1457,23 @@ define(function () {
 					width: '48px',
 					render: current.formatRam
 				}, {
-					// Usage type for an instance
 					data: 'instancePrice.type.name',
-					className: 'truncate'
+					className: 'hidden-xs hidden-sm'
 				}, {
 					data: 'instancePrice.instance.name',
-					width: '64px',
-					className: 'truncate',
+					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatInstance
 				}, {
 					data: null,
+					className: 'truncate hidden-xs hidden-sm',
 					render: current.formatQiStorages
 				}, {
 					data: 'internet',
-					width: '24px',
+					className: 'hidden-xs',
 					render: current.formatInternet
 				}, {
 					data: 'cost',
-					className: 'truncate',
-					width: '64px',
+					className: 'truncate hidden-xs',
 					render: current.formatCost
 				}, {
 					data: null,
@@ -1538,35 +1535,30 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'quoteInstance.minQuantity',
-					width: '24px',
-					className: 'truncate',
+					className: 'hidden-xs',
 					render: current.formatQuantity
 				}, {
 					data: 'size',
-					width: '64px',
+					width: '36px',
 					className: 'truncate',
 					render: current.formatStorage
 				}, {
 					data: 'type.frequency',
-					width: '80px',
-					className: 'truncate',
+					className: 'truncate hidden-xs',
 					render: current.formatStorageFrequency
 				}, {
 					data: 'type.optimized',
-					width: '80px',
-					className: 'truncate',
+					className: 'truncate hidden-xs',
 					render: current.formatStorageOptimized
 				}, {
 					data: 'type.name',
-					className: 'truncate',
-					width: '80px'
+					className: 'truncate hidden-xs hidden-sm hidden-md'
 				}, {
 					data: 'quoteInstance.name',
-					className: 'truncate'
+					className: 'truncate hidden-xs hidden-sm'
 				}, {
 					data: 'cost',
-					className: 'truncate',
-					width: '64px',
+					className: 'truncate hidden-xs',
 					render: current.formatCost
 				}, {
 					data: null,

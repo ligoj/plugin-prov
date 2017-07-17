@@ -3,8 +3,8 @@
 		<fieldset>
 			<legend>
 				<span class="pull-right prov-project">
-					<span class="quote-name"></span>
-					<span class="btn btn-xs prov-project-edit" data-toggle="tooltip" title="{{update}}"><i class="fa fa-pencil"></i></span> /
+					<span class="quote-name hidden-xs hidden-sm"></span>
+					<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="tooltip" title="{{update}}"><i class="fa fa-pencil"></i></span><span class="hidden-xs hidden-sm"> / </span>
 					<span class="project-name"></span> /
 					<span class="provider"></span>
 				</span>
@@ -12,7 +12,7 @@
 			<ul class="nav nav-pills" role="tablist">
 				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span></a></li>
 				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span></a></li>
-				<li id="prov-dashboard" class="text-center">
+				<li id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md">
 					<div class="svg-wrapper">
 						<svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip"></svg>
 						<div id="sunburst"></div>
@@ -21,7 +21,7 @@
 				<li class="pull-right prov-cost-wrapper">
 					<h2 class="text-info">
 						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span>/m
-						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh"><i class="fa fa-refresh"></i></span>
+						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></span>
 					</h2>
 				</li>
 			</ul>
@@ -47,15 +47,15 @@
 						<thead>
 							<tr>
 								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}"><i class="fa fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fa fa-ellipsis-h"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}">{{service:prov:instance-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-title}}"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:internet-title}}"><i class="fa fa-fw fa-globe"></i></th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:price-type-title}}" class="hidden-xs hidden-sm"><i class="fa fa-clock-o"></i> {{service:prov:price-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:instance-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:internet-title}}" class="hidden-xs icon"><i class="fa fa-fw fa-globe"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
 								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
 						</thead>
@@ -86,13 +86,13 @@
 						<thead>
 							<tr>
 								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}"><i class="fa fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fa fa-ellipsis-h"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-frequency-title}}">{{service:prov:storage-frequency}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-instance-title}}">{{service:prov:instance}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:storage-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-instance-title}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
 								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
 						</thead>

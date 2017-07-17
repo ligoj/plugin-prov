@@ -84,3 +84,23 @@
 #instance-max-quantity+.checkbox.disabled, #instance-max-quantity+.checkbox.disabled * {
 	pointer-events: bounding-box;
 }
+@media (min-width: 768px) {
+	#prov-storages thead>tr>th:nth-child(4), #prov-storages thead>tr>th:nth-child(5) {
+		width: 80px;
+	}
+	#prov-instances thead>tr>th:nth-child(10),#prov-storages thead>tr>th:nth-child(9) {
+		width: 64px;
+	}
+	#prov-instances thead>tr>th:nth-child(2), #prov-storages thead>tr>th:nth-child(2) {
+		width: 24px;
+	}
+}
+
+@media (min-width: 1200px) {
+	#prov-instances thead>tr>th:nth-child(6) {
+		width: 120px;
+	}
+	#prov-instances thead>tr>th:nth-child(7), #prov-storages thead>tr>th:nth-child(6) {
+		width: 50px;
+	}
+}
