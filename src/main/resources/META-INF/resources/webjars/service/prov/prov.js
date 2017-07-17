@@ -527,7 +527,7 @@ define(function () {
 
 		deleteCallback: function (type, resource) {
 			// Update the model
-			current[type + 'Delete'](resource.id);
+			var relatedResources = current[type + 'Delete'](resource.id);
 
 			// Update the UI
 			notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([resource.id, resource.name]));
@@ -535,6 +535,15 @@ define(function () {
 			var $table = _('prov-' + type + 's');
 			$table.find('tr[data-id="' + resource.id + '"]').each(function () {
 				$table.DataTable().row($(this)[0]).remove().draw(false);
+			});
+			
+			// With related cost, other UI table need to be updated
+			if (relatedResources) {
+				var $relatedTable = _('prov-storages');
+				Object.keys(relatedResources).forEach((id) => {
+				$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
+					$relatedTable.DataTable().row($(this)[0]).remove().draw(false);
+				});
 			});
 			current.updateUiCost();
 		},
@@ -834,7 +843,7 @@ define(function () {
 			}
 		},
 
-		instanceCommitToModel: function (data, model, costContext) {
+		instanceCommitToModel: function (data, model, costContext, updatedCost) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
@@ -843,6 +852,15 @@ define(function () {
 			model.maxQuantity = parseInt(data.maxQuantity, 10);
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
+			
+			// Also update the related resources costs
+			var conf = current.model.configuration;
+			var storageCost = 0;
+			Object.keys(updatedCost.relatedCosts).forEach((id) => {
+				var storage = conf.storagesById[id];
+				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost.min;
+				storage.cost = updatedCost.relatedCosts[id];
+			});
 		},
 
 		storageUiToData: function (data) {
@@ -1022,7 +1040,7 @@ define(function () {
 			model.description = data.description;
 
 			// Specific data
-			current[type + 'CommitToModel'](data, model, priceContext);
+			current[type + 'CommitToModel'](data, model, priceContext, updatedCost);
 
 			// Update the model cost
 			var delta = updatedCost.resourceCost.min - model.cost;
@@ -1036,6 +1054,14 @@ define(function () {
 				// Update : Redraw the row
 				$table.find('tr[data-id="' + data.id + '"]').each(function () {
 					$table.DataTable().row($(this)[0]).invalidate().draw();
+				});
+				
+				// With related cost, other UI table need to be updated
+				var $relatedTable = _('prov-storages');
+				Object.keys(updatedCost.relatedCosts).forEach((id) => {
+					$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
+						$relatedTable.DataTable().row($(this)[0]).invalidate().draw();
+					});
 				});
 			} else {
 				// Create
@@ -1174,9 +1200,11 @@ define(function () {
 		/**
 		 * Update the model and the association with a deleted quote instance
 		 * @param id Option identifier to delete. When not defined, all items are deleted.
+		 * @return The related storage resource identifiers also deleted.
 		 */
 		instanceDelete: function (id) {
 			var conf = current.model.configuration;
+			var deletedStorages = [];
 			for (var i = conf.instances.length; i-- > 0;) {
 				var instance = conf.instances[i];
 				if (typeof id === 'undefined' || instance.id === id) {
@@ -1191,6 +1219,7 @@ define(function () {
 							conf.storages.splice(s, 1);
 							conf.storageCost -= storage.cost;
 							delete conf.storagesById[storage.id];
+							deletedStorages.push(storage.id);
 						}
 					}
 					if (id) {
@@ -1199,6 +1228,7 @@ define(function () {
 					}
 				}
 			}
+			return deletedStorages;
 		},
 
 		/**
