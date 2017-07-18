@@ -554,20 +554,13 @@ define(function () {
 			// Update the UI
 			notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([resource.id, resource.name]));
 			$('.tooltip').remove();
-			var $table = _('prov-' + type + 's');
-			$table.find('tr[data-id="' + resource.id + '"]').each(function () {
-				$table.DataTable().row($(this)[0]).remove().draw(false);
-			});
-			
+			_('prov-' + type + 's').DataTable().rows(function(index, data) {
+				return data.id === resource.id;	
+			}).remove().draw(false);
+		
 			// With related cost, other UI table need to be updated
-			if (relatedResources) {
-				var $relatedTable = _('prov-storages');
-				Object.keys(relatedResources).forEach((id) => {
-					$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
-						$relatedTable.DataTable().row($(this)[0]).remove().draw(false);
-					});
-				});
-			}
+			var relatedType = type === 'instance' ? 'storage' : 'instance';
+			Object.keys(relatedResources || []).forEach((index) => (current.redrawResource(relatedType, relatedResources[index])));
 			current.updateUiCost();
 		},
 
@@ -831,38 +824,37 @@ define(function () {
 			return priceType.name || priceType.text || priceType;
 		},
 
+		/**
+		 * Redraw an resource table row from its identifier
+		 * @param {String} type Resource type : 'instance', 'storage'.
+		 * @param {number|Object} resource Quote resource or its identifier.
+		 */
+		redrawResource: function (type, resource) {
+			resource = instance && (resource.id || resource);
+			if (resource) {
+				// The instance is valid
+				_('prov-' + type + 's').DataTable().rows(function(index,data) {
+					return data.id === resource;
+				}).invalidate().draw();
+			}
+		},
+
 		storageCommitToModel: function (data, model, costContext) {
 			model.size = parseInt(data.size, 10);
 			model.type = costContext.type;
 
-			// Manage the attached quote instance
+			// Redraw the previous instance
 			if (model.quoteInstance) {
-				current.redrawInstance(model.quoteInstance);
+				current.redrawResource('instance', model.quoteInstance);
 				current.detachStrorage(model);
 			}
 
+			// Redraw the newly attached instance
 			if (data.quoteInstance) {
 				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
 				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
 				model.quoteInstance.storages.push(model);
-				current.redrawInstance(model.quoteInstance);
-			}
-		},
-
-		/**
-		 * Redraw an instance table row from its identifier
-		 * @param {number|Object} instance Quote instance or its identifier.
-		 */
-		redrawInstance: function (instance) {
-			instance = instance && (instance.id || instance);
-			if (instance) {
-				// The instance is valid
-				var $itable = _('prov-instances');
-				var $row = $itable.find('tr[data-id="' + instance + '"]');
-				if ($row.length) {
-					// This has been found and can be drawn
-					$itable.DataTable().row($row[0]).invalidate().draw();
-				}
+				current.redrawResource('instance', model.quoteInstance);
 			}
 		},
 
@@ -881,7 +873,7 @@ define(function () {
 			var storageCost = 0;
 			Object.keys(updatedCost.relatedCosts).forEach((id) => {
 				var storage = conf.storagesById[id];
-				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost.min;
+				conf.storageCost += storage.cost.min - storage.cost.min;
 				storage.cost = updatedCost.relatedCosts[id];
 			});
 		},
@@ -1075,17 +1067,7 @@ define(function () {
 			var $table = _('prov-' + type + 's');
 			if (data.id) {
 				// Update : Redraw the row
-				$table.find('tr[data-id="' + data.id + '"]').each(function () {
-					$table.DataTable().row($(this)[0]).invalidate().draw();
-				});
-				
-				// With related cost, other UI table need to be updated
-				var $relatedTable = _('prov-storages');
-				Object.keys(updatedCost.relatedCosts).forEach((id) => {
-					$relatedTable.find('tr[data-id="' + id + '"]').each(function () {
-						$relatedTable.DataTable().row($(this)[0]).invalidate().draw();
-					});
-				});
+				current.redrawResource(type, data.id);
 			} else {
 				// Create
 				conf[type + 's'].push(model);
@@ -1094,6 +1076,10 @@ define(function () {
 				// Add the new row
 				$table.DataTable().row.add(model).draw(false);
 			}
+				
+			// With related cost, other UI table need to be updated
+			var relatedType = type === 'instance' ? 'storage' : 'instance';
+			Object.keys(updatedCost.relatedCosts).forEach((id) => (current.redrawResource(relatedType, id)));
 
 			// Update the UI costs only now
 			current.updateUiCost();
@@ -1194,10 +1180,11 @@ define(function () {
 				if (typeof id === 'undefined' || storage.id === id) {
 					conf.storages.splice(i, 1);
 					conf.storageCost -= storage.cost;
+					var instance = storage.quoteInstance && storage.quoteInstance.id;
 					current.detachStrorage(storage);
 					if (id) {
 						// Unique item to delete
-						break;
+						return instance && [instance];
 					}
 				}
 			}

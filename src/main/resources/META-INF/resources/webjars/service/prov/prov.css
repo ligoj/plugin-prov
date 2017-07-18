@@ -88,7 +88,7 @@
 	#prov-storages thead>tr>th:nth-child(4), #prov-storages thead>tr>th:nth-child(5) {
 		width: 80px;
 	}
-	#prov-instances thead>tr>th:nth-child(10),#prov-storages thead>tr>th:nth-child(9) {
+	#prov-instances thead>tr>th:nth-child(10),#prov-storages thead>tr>th:nth-child(8) {
 		width: 64px;
 	}
 	#prov-instances thead>tr>th:nth-child(2), #prov-storages thead>tr>th:nth-child(2) {

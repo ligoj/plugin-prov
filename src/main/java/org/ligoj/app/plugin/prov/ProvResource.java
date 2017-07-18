@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -287,7 +288,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
 		CollectionUtils.emptyIfNull(entity.getStorages()).forEach(s -> storagesCosts.put(s.getId(), addCost(s, this::updateCost)));
 		cost.setRelatedCosts(storagesCosts);
-		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
 		return cost;
 	}
 
@@ -441,7 +441,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setSize(vo.getSize());
 
 		// Save and update the costs
-		return newUpdateCost(qsRepository, entity, this::updateCost);
+		final UpdatedCost cost = newUpdateCost(qsRepository, entity, this::updateCost);
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q ->cost.setRelatedCosts(Collections.singletonMap(q.getId(), addCost(q, this::updateCost))));
+		return cost;
 	}
 
 	/**
