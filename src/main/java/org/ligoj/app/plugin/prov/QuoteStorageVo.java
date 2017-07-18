@@ -24,5 +24,6 @@ public class QuoteStorageVo extends AbstractQuoteStorageVo {
 	 */
 	@NotNull
 	private Double cost;
+	private Double maxCost;
 
 }

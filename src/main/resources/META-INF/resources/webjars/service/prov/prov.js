@@ -873,8 +873,9 @@ define(function () {
 			var storageCost = 0;
 			Object.keys(updatedCost.relatedCosts).forEach((id) => {
 				var storage = conf.storagesById[id];
-				conf.storageCost += storage.cost.min - storage.cost.min;
-				storage.cost = updatedCost.relatedCosts[id];
+				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost;
+				storage.cost = updatedCost.relatedCosts[id].min;
+				storage.maxCost = updatedCost.relatedCosts[id].max;
 			});
 		},
 
@@ -1079,7 +1080,7 @@ define(function () {
 				
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
-			Object.keys(updatedCost.relatedCosts).forEach((id) => (current.redrawResource(relatedType, id)));
+			Object.keys(updatedCost.relatedCosts).forEach((id) => (current.redrawResource(relatedType, parseInt(id, 10))));
 
 			// Update the UI costs only now
 			current.updateUiCost();

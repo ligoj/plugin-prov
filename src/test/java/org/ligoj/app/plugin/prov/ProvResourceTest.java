@@ -196,6 +196,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("server1-rootD", quoteStorage.getDescription());
 		Assert.assertEquals(20, quoteStorage.getSize());
 		Assert.assertEquals(8.4, quoteStorage.getCost(), DELTA);
+		Assert.assertEquals(42, quoteStorage.getMaxCost(), DELTA); // = 8.4 * 5
 		Assert.assertNotNull(quoteStorage.getQuoteInstance());
 		final ProvStorageType storage = quoteStorage.getType();
 		Assert.assertNotNull(storage.getId());
@@ -415,7 +416,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = resource.createStorage(vo);
 		checkCost(cost.getTotalCost(), 4907.825, 8214.385, false);
 		checkCost(cost.getResourceCost(), 215.04, 1075.2, false);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 1460, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -444,7 +446,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = resource.createStorage(vo);
 		checkCost(cost.getTotalCost(), 4907.825, 4907.825, true);
 		checkCost(cost.getResourceCost(), 215.04, 215.04, true);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -559,7 +562,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		cost = resource.updateStorage(vo);
 		checkCost(cost.getTotalCost(), 4692.785, 4692.785, true);
 		checkCost(cost.getResourceCost(), 8.4, 8.4, true);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
 
 		checkCost(subscription, 4692.785, 4692.785, true);
 		Assert.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());

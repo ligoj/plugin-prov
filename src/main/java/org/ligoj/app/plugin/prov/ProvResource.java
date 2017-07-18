@@ -186,6 +186,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		vo.setSize(entity.getSize());
 		vo.setType(entity.getType());
 		vo.setCost(entity.getCost());
+		vo.setMaxCost(entity.getMaxCost());
 		return vo;
 	}
 
@@ -288,6 +289,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
 		CollectionUtils.emptyIfNull(entity.getStorages()).forEach(s -> storagesCosts.put(s.getId(), addCost(s, this::updateCost)));
 		cost.setRelatedCosts(storagesCosts);
+		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
 		return cost;
 	}
 
@@ -442,7 +444,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 
 		// Save and update the costs
 		final UpdatedCost cost = newUpdateCost(qsRepository, entity, this::updateCost);
-		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q ->cost.setRelatedCosts(Collections.singletonMap(q.getId(), addCost(q, this::updateCost))));
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q ->cost.setRelatedCosts(Collections.singletonMap(q.getId(), updateCost(q))));
 		return cost;
 	}
 
@@ -853,7 +855,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	}
 
 	/**
-	 * Compute the hourly cost of a quote storage. The minimal quantity of
+	 * Compute the monthly cost of a quote storage. The minimal quantity of
 	 * related instance is considered.
 	 * 
 	 * @param quoteStorage
