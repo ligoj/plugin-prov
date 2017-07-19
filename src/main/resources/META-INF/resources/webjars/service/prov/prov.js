@@ -110,13 +110,16 @@ define(function () {
 				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
 			}
 			if (quote.totalCpu) {
-				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU');
+				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu']);
 			}
 			if (quote.totalStorage) {
 				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
 			}
 			if (quote.nbInstances) {
 				resources.push(current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM');
+			}
+			if (quote.nbPublicAccess) {
+				resources.push(current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + 'VM');
 			}
 
 			return current.$super('generateCarousel')(subscription, [

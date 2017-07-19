@@ -79,6 +79,7 @@ define({
     'service:prov:total-ram': 'Mémoire totale',
     'service:prov:total-cpu': 'CPU total',
     'service:prov:total-storage': 'Stockage total',
+	'service:prov:nb-public-access' : 'Nombre d\'instances exposées sur Internet',
     'service:prov:nb-instances': 'Nombre d\'instances',
     'service:prov:cost-month': 'Mois',
     'service:prov:efficiency-title': 'Efficacité globale de cette demande : CPU, RAM et stockage',

@@ -112,6 +112,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(7, status.getNbInstances());
 		Assert.assertEquals(10.75, status.getTotalCpu(), 0.0001);
 		Assert.assertEquals(43576, status.getTotalRam());
+		Assert.assertEquals(5, status.getNbPublicAccess());
 		Assert.assertEquals(4, status.getNbStorages());
 		Assert.assertEquals(94, status.getTotalStorage());
 	}

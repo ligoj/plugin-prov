@@ -20,7 +20,8 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @return The quote with aggregated details : Quote, amount of instances,
 	 *         total RAM and total CPU.
 	 */
-	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu),0), COALESCE(SUM(qi.ram),0)"
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu),0), COALESCE(SUM(qi.ram),0),"
+			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN 1 ELSE 0 END),0)"
 			+ " FROM ProvQuote q LEFT JOIN q.instances AS qi"
 			+ " LEFT JOIN qi.instancePrice AS ip LEFT JOIN ip.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getComputeSummary(int subscription);

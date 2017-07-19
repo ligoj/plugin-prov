@@ -703,6 +703,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		vo.setNbInstances(((Long) compute[1]).intValue());
 		vo.setTotalCpu((Double) compute[2]);
 		vo.setTotalRam(((Long) compute[3]).intValue());
+		vo.setNbPublicAccess(((Long) compute[4]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		return vo;

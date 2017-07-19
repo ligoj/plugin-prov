@@ -28,6 +28,11 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	private int nbStorages;
 
 	/**
+	 * The amount of instances with Internet/public access. Corresponds to amount a required public IP.
+	 */
+	private int nbPublicAccess;
+
+	/**
 	 * The amount of CPU
 	 */
 	private double totalCpu;

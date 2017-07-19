@@ -80,6 +80,7 @@ define({
 		'service:prov:total-ram': 'Total memory',
 		'service:prov:total-cpu': 'Total CPU',
 		'service:prov:total-storage': 'Total storage',
+		'service:prov:nb-public-access' : 'Number of Internet facing instances',
 		'service:prov:nb-instances': 'Number of instances',
 		'service:prov:cost-month': 'Month',
 		'service:prov:efficiency-title': 'Global efficiency of this quote : CPU, RAM and storage',
