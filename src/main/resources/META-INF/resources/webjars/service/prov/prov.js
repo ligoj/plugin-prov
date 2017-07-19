@@ -80,7 +80,7 @@ define(function () {
 		},
 
 		/**
-		 * Render LDAP.
+		 * Render Provisioning management link.
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
@@ -92,10 +92,10 @@ define(function () {
 		},
 
 		/**
-		 * Display the details of the quote
+		 * Display the cost of the quote.
 		 */
 		renderDetailsFeatures: function (subscription) {
-			if (subscription.data.quote && subscription.data.quote.cost) {
+			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + '" class="label label-default">' + current.formatCost(subscription.data.quote.cost) + '$</span>';
 			}
 		},
@@ -105,15 +105,23 @@ define(function () {
 		 */
 		renderDetailsKey: function (subscription) {
 			var quote = subscription.data.quote;
+			var resources = [];
+			if (quote.totalRam) {
+				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
+			}
+			if (quote.totalCpu) {
+				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' CPU');
+			}
+			if (quote.totalStorage) {
+				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
+			}
+			if (quote.nbInstances) {
+				resources.push(current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM');
+			}
 
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
-				['service:prov:resources',
-					current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + ', ' + current.$super('icon')('bolt',
-						'service:prov:total-cpu') + quote.totalCpu + ' CPU, ' + current.$super('icon')('database', 'service:prov:total-storage') + (current.formatStorage(quote.totalStorage) ||
-						'0')
-				],
-				['service:prov:nb-instances', current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances]
+				['service:prov:resources', resources.join(', ')]
 			], 1);
 		},
 
