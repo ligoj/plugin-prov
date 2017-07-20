@@ -645,7 +645,7 @@ define(function () {
 				escapeMarkup: function (m) {
 					return m;
 				},
-				data: function (term) {
+				data: function () {
 					return {
 						results: current.model.configuration.instances
 					};

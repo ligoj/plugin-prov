@@ -5,23 +5,23 @@ define(['d3'], function (d3) {
 			return '#' + x;
 		});
 	};
-	sunburst.update = function (data) {
-		sunburst.path
-			.data(partition.value(data).nodes)
-			.transition()
-			.duration(1500)
-			.attrTween('d', arcTween);
-
-	};
 	sunburst.init = function ($element, data) {
 		var width = 200;
 		var height = 200;
 		var radius = (Math.min(width, height) / 2) - 10;
-		var formatNumber = d3.format(',d');
 		var x = d3.scaleLinear().range([0, 2 * Math.PI]);
 		var y = d3.scaleSqrt().range([0, radius]);
 		var color = d3.scaleOrdinal(colors('a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928'));
 		var partition = d3.partition();
+
+		sunburst.update = function (data) {
+			sunburst.path
+				.data(partition.value(data).nodes)
+				.transition()
+				.duration(1500)
+				.attrTween('d', arcTween);
+		};
+
 		var arc = d3.arc()
 			.startAngle(function (d) {
 				return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
@@ -95,7 +95,7 @@ define(['d3'], function (d3) {
 			});
 
 		function click(d) {
-			var depth = d.depth + 1;
+			// depth => d.depth + 1
 			svg.transition()
 				.duration(750)
 				.tween('scale', function () {
@@ -128,7 +128,7 @@ define(['d3'], function (d3) {
 		}
 
 		// Restore everything to full opacity when moving off the visualization.
-		function mouseout(d) {
+		function mouseout() {
 			// Transition each segment to full opacity and then reactivate it.
 			d3.selectAll('path').style('opacity', 1);
 		}
