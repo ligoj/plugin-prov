@@ -110,11 +110,11 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertNotNull(status.getId());
 		checkCost(status.getCost(), 4692.785, 7139.185, false);
 		Assert.assertEquals(7, status.getNbInstances());
-		Assert.assertEquals(10.75, status.getTotalCpu(), 0.0001);
-		Assert.assertEquals(43576, status.getTotalRam());
-		Assert.assertEquals(5, status.getNbPublicAccess());
-		Assert.assertEquals(4, status.getNbStorages());
-		Assert.assertEquals(94, status.getTotalStorage());
+		Assert.assertEquals(11.25, status.getTotalCpu(), 0.0001);
+		Assert.assertEquals(45576, status.getTotalRam());
+		Assert.assertEquals(6, status.getNbPublicAccess());
+		Assert.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
+		Assert.assertEquals(175, status.getTotalStorage());
 	}
 
 	@Test
