@@ -106,20 +106,16 @@ define(function () {
 		renderDetailsKey: function (subscription) {
 			var quote = subscription.data.quote;
 			var resources = [];
-			if (quote.totalCpu) {
+			if (quote.nbInstances) {
+				resources.push(current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM');
 				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu']);
-			}
-			if (quote.totalRam) {
 				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
+			}
+			if (quote.nbPublicAccess) {
+				resources.push(current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess);
 			}
 			if (quote.totalStorage) {
 				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
-			}
-			if (quote.nbInstances) {
-				resources.push(current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM');
-			}
-			if (quote.nbPublicAccess) {
-				resources.push(current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + 'VM');
 			}
 
 			return current.$super('generateCarousel')(subscription, [
@@ -1167,7 +1163,7 @@ define(function () {
 				cpuUsed += instance.cpu * nb;
 				ramAvailable += instance.instancePrice.instance.ram * nb;
 				ramUsed += instance.ram * nb;
-				publicAccess += instance.internetAccess = 'PUBLIC' ? 1 : 0;
+				publicAccess += (instance.internet === 'public') ? 1 : 0;
 			}
 			for (i = 0; i < conf.storages.length; i++) {
 				var storage = conf.storages[i];
