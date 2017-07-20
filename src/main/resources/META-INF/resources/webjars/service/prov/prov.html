@@ -10,8 +10,18 @@
 				</span>
 			</legend>
 			<ul class="nav nav-pills" role="tablist">
-				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span></a></li>
-				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span></a></li>
+				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span>
+						<div class="summary">
+							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fa fa-bolt"></i></span> 
+							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fa fa-microchip"></i></span>
+							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fa fa-globe"></i></span>
+						</div>
+					</a></li>
+				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span>
+						<div class="summary">
+							<span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
+						</div>
+				</a></li>
 				<li id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md">
 					<div class="svg-wrapper">
 						<svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip"></svg>

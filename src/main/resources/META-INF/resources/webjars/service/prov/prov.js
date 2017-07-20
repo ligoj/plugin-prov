@@ -106,11 +106,11 @@ define(function () {
 		renderDetailsKey: function (subscription) {
 			var quote = subscription.data.quote;
 			var resources = [];
-			if (quote.totalRam) {
-				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
-			}
 			if (quote.totalCpu) {
 				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu']);
+			}
+			if (quote.totalRam) {
+				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
 			}
 			if (quote.totalStorage) {
 				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
@@ -1102,12 +1102,20 @@ define(function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function () {
-			$('.cost').text(current.formatCost(current.model.configuration.cost) || '-');
-			$('.nav-pills [href="#tab-instance"] > .badge').text(current.model.configuration.instances.length || '');
-			$('.nav-pills [href="#tab-storage"] > .badge').text(current.model.configuration.storages.length || '');
+			var conf = current.model.configuration;
+			var usage = current.usageGlobalRate();
+			$('.cost').text(current.formatCost(conf.cost) || '-');
+			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
+			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
+			
+			var $summary = $('.nav-pills [href="#tab-instance"] .summary>.badge');
+			$summary.eq(0).rawText(' ' + usage.cpu.available);
+			$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available));
+			$summary.eq(2).rawText(' ' + usage.publicAccess);
+			$('.nav-pills [href="#tab-storage"] .summary>.badge').rawText(' ' + current.formatStorage(usage.storage.available));
+			
 			// Update the total resource usage
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
-				var usage = current.usageGlobalRate();
 				var weight = 0;
 				var weightUsage = 0;
 				if (usage.cpu.available) {
@@ -1129,7 +1137,7 @@ define(function () {
 				} else {
 					$('#gauge-global').addClass('hidden');
 				}
-				if (current.model.configuration.cost.min) {
+				if (conf.cost.min) {
 					sunburst.init('#sunburst', current.toD3());
 					$('#sunburst').removeClass('hidden');
 				} else {
@@ -1151,6 +1159,7 @@ define(function () {
 			var storageAvailable = 0;
 			var storageUsed = 0;
 			var nb = 0;
+			var publicAccess = 0;
 			for (var i = 0; i < conf.instances.length; i++) {
 				var instance = conf.instances[i];
 				nb = instance.minQuantity || 1;
@@ -1158,14 +1167,16 @@ define(function () {
 				cpuUsed += instance.cpu * nb;
 				ramAvailable += instance.instancePrice.instance.ram * nb;
 				ramUsed += instance.ram * nb;
+				publicAccess += instance.internetAccess = 'PUBLIC' ? 1 : 0;
 			}
 			for (i = 0; i < conf.storages.length; i++) {
 				var storage = conf.storages[i];
-				nb = storage.quoteInstance ? storage.quoteInstance.minQuantity || 1 : 1;
+				nb = (storage.quoteInstance && storage.quoteInstance.minQuantity) || 1;
 				storageAvailable += Math.max(storage.size, storage.type.minimal) * nb;
 				storageUsed += storage.size * nb;
 			}
 			return {
+				publicAccess: publicAccess,
 				ram: {
 					available: ramAvailable,
 					used: ramUsed
