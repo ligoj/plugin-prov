@@ -1,27 +1,56 @@
 package org.ligoj.app.plugin.prov.model;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 /**
  * VM Operating System. Not represented as a table to be able to compare the prices.
  */
 public enum VmOs {
 
 	/**
-	 * Linux like system, no cost
+	 * Generic Linux like system, no cost
 	 */
-	LINUX,
+	LINUX(null),
 
 	/**
 	 * Microsoft Windows
 	 */
-	WINDOWS,
+	WINDOWS(null),
 
 	/**
 	 * Suse
 	 */
-	SUSE,
+	SUSE(null),
 
 	/**
 	 * Red Hat Enterprise
 	 */
-	RHE
+	RHEL(null),
+
+	/**
+	 * Centos
+	 */
+	CENTOS(LINUX),
+
+	/**
+	 * Debian
+	 */
+	DEBIAN(LINUX);
+	
+	/**
+	 * The related pricing OS.
+	 */
+	private final VmOs pricingOs;
+
+	private VmOs(VmOs pricingOs) {
+		this.pricingOs = pricingOs;
+	}
+
+	/**
+	 * Return the related pricing OS.
+	 * @return the related pricing OS.
+	 */
+	public VmOs toPricingOs() {
+		return ObjectUtils.defaultIfNull(pricingOs, this);
+	}
 }

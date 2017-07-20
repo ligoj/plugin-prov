@@ -62,6 +62,12 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	private Integer ram;
 
 	/**
+	 * The requested OS. May be different from the one related by {@link #instancePrice}, but reffers to {@link VmOs#toPricingOs()}
+	 */
+	@NotNull
+	private VmOs os;
+
+	/**
 	 * The requested CPU behavior. When <code>false</code>, the CPU is variable,
 	 * with boost mode.
 	 */

@@ -162,7 +162,7 @@ define(function () {
 			
 			var min = instance.minQuantity || 0;
 			var max = instance.maxQuantity;
-			if (typeof max === 'undefined') {
+			if (typeof max !== 'number') {
 				return min + '+';
 			}
 			if (max === min) {
@@ -189,21 +189,21 @@ define(function () {
 			}
 			var costStr = '';
 			obj = typeof obj === 'undefined' ? cost : obj;
-			if (typeof obj.cost === 'undefined' && typeof obj.min === 'undefined') {
+			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
 				return formatManager.formatCost(cost, 3, '$');
 			}
 			// A floating cost
 			var min = obj.cost || obj.min || 0;
-			var max = typeof obj.maxCost === 'undefined' ? obj.max : obj.maxCost;
-			if ((typeof max === 'undefined') || max === min) {
+			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
 				costStr = formatManager.formatCost(obj.cost || obj.min || 0, 3, '$');
 			} else {
 				// Max cost, is different, display a range
 				costStr = formatManager.formatCost(min, 3, '$') + '-' + formatManager.formatCost(max, 3, '$');
 			}
-			return cost.unboundedCost ? costStr + '+' : costStr;
+			return cost.unbound ? costStr + '+' : costStr;
 		},
 
 		/**
@@ -256,7 +256,9 @@ define(function () {
 			'linux': ['Linux', 'fa fa-linux fa-fw'],
 			'windows': ['Windows', 'fa fa-windows fa-fw'],
 			'suse': ['SUSE', 'icon-suse fa-fw'],
-			'rhe': ['Red Hat Enterprise', 'icon-redhat fa-fw']
+			'rhel': ['Red Hat Enterprise', 'icon-redhat fa-fw'],
+			'centos': ['CentOS', 'icon-centos fa-fw'],
+			'debian': ['Debian', 'icon-debian fa-fw']
 		},
 
 		/**
@@ -599,7 +601,7 @@ define(function () {
 						// Refresh the data
 						current.reload();
 					},
-					complete: function (id) {
+					complete: function () {
 						$('.import-summary').html('').addClass('hidden');
 						// Restore the optional inputs
 						$popup.find('input.temp-disabled').removeAttr('disabled').removeAttr('readonly').removeClass('temp-disabled').closest('.select2-container').select2('enable', true);
@@ -640,10 +642,10 @@ define(function () {
 				formatResult: current.formatQuoteInstance,
 				placeholder: current.$messages['service:prov:instance'],
 				allowClear: true,
-				escapeMarkup: function (m, d) {
+				escapeMarkup: function (m) {
 					return m;
 				},
-				data: function (term, re) {
+				data: function (term) {
 					return {
 						results: current.model.configuration.instances
 					};
@@ -652,7 +654,7 @@ define(function () {
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
-				escapeMarkup: function (m, d) {
+				escapeMarkup: function (m) {
 					return m;
 				},
 				data: [{
@@ -665,15 +667,21 @@ define(function () {
 					id: 'SUSE',
 					text: 'SUSE'
 				}, {
-					id: 'RHE',
-					text: 'RHE'
+					id: 'RHEL',
+					text: 'RHEL'
+				}, {
+					id: 'CENTOS',
+					text: 'CENTOS'
+				}, {
+					id: 'DEBIAN',
+					text: 'DEBIAN'
 				}]
 			});
 
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
 				formatResult: current.formatInternet,
-				escapeMarkup: function (m, d) {
+				escapeMarkup: function (m) {
 					return m;
 				},
 				data: [{
@@ -693,7 +701,7 @@ define(function () {
 				allowClear: true,
 				formatSelection: current.formatStorageOptimized,
 				formatResult: current.formatStorageOptimized,
-				escapeMarkup: function (m, d) {
+				escapeMarkup: function (m) {
 					return m;
 				},
 				data: [{
@@ -708,7 +716,7 @@ define(function () {
 			_('storage-frequency').select2({
 				formatSelection: current.formatStorageFrequency,
 				formatResult: current.formatStorageFrequency,
-				escapeMarkup: function (m, d) {
+				escapeMarkup: function (m) {
 					return m;
 				},
 				data: [{
@@ -871,13 +879,12 @@ define(function () {
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
 			model.internet = data.internet;
 			model.minQuantity = parseInt(data.minQuantity, 10);
-			model.maxQuantity = parseInt(data.maxQuantity, 10);
+			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
 			
 			// Also update the related resources costs
 			var conf = current.model.configuration;
-			var storageCost = 0;
 			Object.keys(updatedCost.relatedCosts).forEach((id) => {
 				var storage = conf.storagesById[id];
 				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost;
@@ -948,8 +955,8 @@ define(function () {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
 			_('instance-max-variable-cost').val(model.maxVariableCost || null);
-			_('instance-min-quantity').val((typeof model.minQuantity === 'undefined') ? 1 : model.minQuantity);
-			_('instance-max-quantity').val((typeof model.maxQuantity === 'undefined') ? 1 : model.maxQuantity);
+			_('instance-min-quantity').val((typeof model.minQuantity === 'number') ? model.minQuantity : 1);
+			_('instance-max-quantity').val((typeof model.maxQuantity === 'number') ? model.maxQuantity : '');
 			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
 			current.updateAutoScale();
@@ -1264,7 +1271,7 @@ define(function () {
 		 * Initialize D3 graphics with default empty data.
 		 */
 		initializeD3: function () {
-			require(['d3', '../main/service/prov/lib/liquidFillGauge'], function (d3, gauge) {
+			require(['d3', '../main/service/prov/lib/liquidFillGauge'], function (d3) {
 				current.initializeD3Gauge(d3);
 				// First render
 				current.updateUiCost();
@@ -1383,12 +1390,12 @@ define(function () {
 						ajax: {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
 							dataType: 'json',
-							data: function (term, page) {
+							data: function (term) {
 								return {
 									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
 							},
-							results: function (data, page) {
+							results: function (data) {
 								// Completed the requested identifier
 								for (var item of data) {
 									item.id = item.type.id + '-' + new Date().getMilliseconds();
@@ -1404,7 +1411,6 @@ define(function () {
 						if (event.added) {
 							// New storage
 							var storagePrice = event.added;
-							var $that = $(this);
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: storagePrice.type.id,

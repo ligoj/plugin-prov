@@ -4,6 +4,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -40,6 +41,11 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private Integer ram;
 
 	/**
+	 * The requested OS. May be <code>null</code> and defaulted to the #instancePrice 's OS.
+	 */
+	private VmOs os;
+
+	/**
 	 * The optional requested CPU behavior. When <code>false</code>, the CPU is
 	 * variable, with boost mode.
 	 */
@@ -64,12 +70,13 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The minimal quantity of this instance.
 	 */
 	@Min(0)
-	private int minQuantity = 1;
+	@NotNull
+	private Integer minQuantity = 1;
 
 	/**
-	 * The maximal quantity of this instance. Must be greater than
+	 * The maximal quantity of this instance. When defined, must be greater than
 	 * {@link #quantityMin}
 	 */
 	@Min(1)
-	private Integer maxQuantity = 1;
+	private Integer maxQuantity;
 }

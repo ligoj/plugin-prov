@@ -912,6 +912,21 @@ public class ProvResourceTest extends AbstractAppTest {
 		refreshCost();
 	}
 
+	@Test(expected = ValidationJsonException.class)
+	public void updateInstanceIncommatibleOs() {
+		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setId(qiRepository.findByNameExpected("server1").getId());
+		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.285).getId());
+		vo.setName("server1-bis");
+		vo.setRam(1024);
+		vo.setOs(VmOs.CENTOS);
+		vo.setCpu(0.5);
+		vo.setMinQuantity(1);
+		vo.setMaxQuantity(20);
+		resource.updateInstance(vo);
+	}
+	
 	@Test
 	public void updateInstance() {
 		// Check the cost of related storages of this instance
@@ -945,6 +960,21 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(208.05, instance.getCost(), DELTA);
 		Assert.assertEquals(4161, instance.getMaxCost(), DELTA);
 	}
+	
+	@Test
+	public void updateInstanceOsCompatible() {
+		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setId(qiRepository.findByNameExpected("server2").getId());
+		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.16).getId());
+		vo.setName("server2-bis");
+		vo.setOs(VmOs.CENTOS);
+		vo.setRam(1024);
+		vo.setCpu(0.5);
+		resource.updateInstance(vo);
+		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
+		Assert.assertEquals(VmOs.CENTOS, instance.getOs());
+	}
 
 	@Test
 	public void createInstance() {
@@ -972,6 +1002,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("serverZD", instance.getDescription());
 		Assert.assertEquals(1024, instance.getRam().intValue());
 		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assert.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assert.assertEquals(2080.5, instance.getCost(), DELTA);
 		Assert.assertEquals(3120.75, instance.getMaxCost(), DELTA);
 		Assert.assertTrue(instance.getConstant());
@@ -980,6 +1011,24 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(10, instance.getMinQuantity().intValue());
 		Assert.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assert.assertFalse(instance.isUnboundCost());
+	}
+
+	@Test(expected=ValidationJsonException.class)
+	public void createInstanceIncompatibleOs() {
+		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setInstancePrice(ipRepository.findByExpected("cost", 0.285).getId());
+		vo.setName("serverZ");
+		vo.setDescription("serverZD");
+		vo.setRam(1024);
+		vo.setCpu(0.5);
+		vo.setOs(VmOs.SUSE);
+		vo.setConstant(true);
+		vo.setInternet(InternetAccess.PUBLIC);
+		vo.setMaxVariableCost(210.9);
+		vo.setMinQuantity(10);
+		vo.setMaxQuantity(15);
+		resource.createInstance(vo);
 	}
 
 	@Test

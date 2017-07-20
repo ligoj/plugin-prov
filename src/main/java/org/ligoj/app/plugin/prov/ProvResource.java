@@ -83,6 +83,7 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The provisioning service. There is complete quote configuration along the
@@ -92,6 +93,7 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Slf4j
 public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		implements LongTaskRunner<TerraformStatus, TerraformStatusRepository> {
 
@@ -271,6 +273,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final String providerId = configuration.getSubscription().getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
 		entity.setInstancePrice(ipRepository.findOneExpected(vo.getInstancePrice()));
+		entity.setOs(ObjectUtils.defaultIfNull(vo.getOs(), entity.getInstancePrice().getOs()));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
@@ -280,6 +283,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setMaxQuantity(vo.getMaxQuantity());
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 		checkConstraints(entity);
+		checkOs(entity);
 
 		// Update the unbound increment of the global quote
 		configuration.setUnboundCostCounter(configuration.getUnboundCostCounter() + deltaUnbound);
@@ -291,6 +295,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		cost.setRelatedCosts(storagesCosts);
 		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
 		return cost;
+	}
+
+	/**
+	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
+	 */
+	private void checkOs(ProvQuoteInstance entity) {
+		if (entity.getOs().toPricingOs() != entity.getInstancePrice().getOs()) {
+			// Incompatible, hack attempt?
+			log.warn("Attempt to create an instance with an incompatible OS {} with catalog OS {}", entity.getOs(),
+					entity.getInstancePrice().getOs());
+			throw new ValidationJsonException("os", "incompatible-os", entity.getInstancePrice().getOs());
+		}
 	}
 
 	/**
@@ -540,7 +556,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 *            The amount of required RAM, in MB. Default is 1.
 	 * @param constant
 	 *            Optional constant CPU. When <code>false</code>, variable CPU
-	 *            is requested. When <code>true</code> contant CPU os requested.
+	 *            is requested. When <code>true</code> constant CPU is requested.
 	 * @param os
 	 *            The requested OS, default is "LINUX".
 	 * @param instance
@@ -564,9 +580,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final LowestInstancePrice price = new LowestInstancePrice();
 
 		// Return only the first matching instance
-		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, os, type, instance, new PageRequest(0, 1)).stream()
+		final VmOs pricingOs = Optional.ofNullable(os).map(VmOs::toPricingOs).orElse(null);
+		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, pricingOs, type, instance, new PageRequest(0, 1)).stream()
 				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
-		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, os, type, new PageRequest(0, 1)).stream().findFirst()
+		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, pricingOs, type, new PageRequest(0, 1)).stream().findFirst()
 				.map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip)))).orElse(null));
 		return price;
 	}
@@ -957,7 +974,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 				.toBean(InstanceUpload.class, new InputStreamReader(
 						new SequenceInputStream(new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
 				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, priceTypeEntity, ramMultiplier));
-
 	}
 
 	private void persist(final InstanceUpload upload, final int subscription, final Integer defaultType, final Integer ramMultiplier) {
