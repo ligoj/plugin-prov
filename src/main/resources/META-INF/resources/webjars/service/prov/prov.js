@@ -882,6 +882,7 @@ define(function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
+			model.os = data.os;
 			
 			// Also update the related resources costs
 			var conf = current.model.configuration;
@@ -907,6 +908,7 @@ define(function () {
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
+			data.os = _('instance-os').val().toLowerCase();
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.instancePrice = current.model.instancePrice.instance.id;
 			return current.model.instancePrice;
@@ -957,7 +959,7 @@ define(function () {
 			_('instance-max-variable-cost').val(model.maxVariableCost || null);
 			_('instance-min-quantity').val((typeof model.minQuantity === 'number') ? model.minQuantity : 1);
 			_('instance-max-quantity').val((typeof model.maxQuantity === 'number') ? model.maxQuantity : '');
-			_('instance-os').select2('data', current.select2IdentityData((model.id && model.instancePrice.os) || 'LINUX'));
+			_('instance-os').select2('data', current.select2IdentityData((model.id && (model.os || model.instancePrice.os)) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(model.id && {
@@ -1306,15 +1308,15 @@ define(function () {
 			}
 			for (var i = 0; i < conf.instances.length; i++) {
 				var instance = conf.instances[i];
-				var oss = allOss[instance.instancePrice.os];
+				var oss = allOss[instance.os];
 				if (typeof oss === 'undefined') {
 					// First OS
 					oss = {
-						name: current.formatOs(instance.instancePrice.os, true, ' fa-2x'),
+						name: current.formatOs(instance.os, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
-					allOss[instance.instancePrice.os] = oss;
+					allOss[instance.os] = oss;
 					instances.children.push(oss);
 				}
 				oss.value += instance.cost;
@@ -1455,7 +1457,7 @@ define(function () {
 					className: 'hidden-xs',
 					render: current.formatQuantity
 				}, {
-					data: 'instancePrice.os',
+					data: 'os',
 					className: 'truncate',
 					width: '24px',
 					render: current.formatOs
