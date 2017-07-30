@@ -911,7 +911,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	}
 
 	@Override
-	public void link(final int subscription) {
+	public void create(final int subscription) {
 		// Add an empty quote
 		final ProvQuote configuration = new ProvQuote();
 		configuration.setSubscription(subscriptionRepository.findOne(subscription));
