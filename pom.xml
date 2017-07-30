@@ -10,7 +10,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-prov</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Provisioning</name>
 
