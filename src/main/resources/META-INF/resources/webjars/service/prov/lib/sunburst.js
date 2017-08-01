@@ -5,6 +5,16 @@ define(['d3'], function (d3) {
 			return '#' + x;
 		});
 	};
+	sunburst..arcTween = function(newAngle) {
+	  return function(d) {
+	    var interpolate = d3.interpolate(d.endAngle, newAngle);
+	    return function(t) {
+	      d.endAngle = interpolate(t);
+	      return arc(d);
+	    };
+	  };
+	};
+
 	sunburst.init = function ($element, data) {
 		var width = 200;
 		var height = 200;
@@ -19,7 +29,7 @@ define(['d3'], function (d3) {
 				.data(partition.value(data).nodes)
 				.transition()
 				.duration(1500)
-				.attrTween('d', arcTween);
+				.attrTween('d', sunburst.arcTween);
 		};
 
 		var arc = d3.arc()
@@ -43,7 +53,7 @@ define(['d3'], function (d3) {
 		/* For the drop shadow filter... */
 		var defs = svg.append("defs");
 		var filter = defs.append("filter")
-			.attr("id", "sunburst-filter")
+			.attr("id", "sunburst-filter");
 		filter.append("feGaussianBlur")
 			.attr("in", "SourceAlpha")
 			.attr("stdDeviation", 4)
@@ -56,7 +66,7 @@ define(['d3'], function (d3) {
 
 		var feMerge = filter.append("feMerge");
 		feMerge.append("feMergeNode")
-			.attr("in", "offsetBlur")
+			.attr("in", "offsetBlur");
 		feMerge.append("feMergeNode")
 			.attr("in", "SourceGraphic");
 
