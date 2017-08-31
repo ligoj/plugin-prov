@@ -5,7 +5,7 @@ define(['d3'], function (d3) {
 			return '#' + x;
 		});
 	};
-	sunburst..arcTween = function(newAngle) {
+	sunburst.arcTween = function(newAngle) {
 	  return function(d) {
 	    var interpolate = d3.interpolate(d.endAngle, newAngle);
 	    return function(t) {
@@ -157,7 +157,6 @@ define(['d3'], function (d3) {
 				.attr('class', 'sunburst-part')
 				.style('opacity', 1);
 		}
-		d3.select(self.frameElement).style('height', height + 'px');
 	};
 	return sunburst;
 });
