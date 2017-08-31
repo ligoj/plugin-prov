@@ -1,4 +1,4 @@
-define(['d3'], function (d3) {
+define(['d3', 'jquery'], function (d3, $) {
 	var sunburst = {};
 	var colors = function (s) {
 		return s.match(/.{6}/g).map(function (x) {
@@ -6,13 +6,13 @@ define(['d3'], function (d3) {
 		});
 	};
 	sunburst.arcTween = function(newAngle) {
-	  return function(d) {
-	    var interpolate = d3.interpolate(d.endAngle, newAngle);
-	    return function(t) {
-	      d.endAngle = interpolate(t);
-	      return arc(d);
-	    };
-	  };
+		return function(d) {
+			var interpolate = d3.interpolate(d.endAngle, newAngle);
+			return function(t) {
+				d.endAngle = interpolate(t);
+				return arc(d);
+			};
+		};
 	};
 
 	sunburst.init = function ($element, data, tooltipFunction) {

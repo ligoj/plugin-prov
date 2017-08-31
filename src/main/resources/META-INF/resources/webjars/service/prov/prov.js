@@ -154,12 +154,12 @@ define(function () {
 		/**
 		 * Format instance quantity
 		 */
-		formatQuantity: function(quantity, mode, instance) {
+		formatQuantity: function (quantity, mode, instance) {
 			instance = typeof instance === 'undefined' ? quantity : (instance.quoteInstance || instance);
 			if (mode === 'sort' || typeof instance === 'undefined') {
 				return quantity;
 			}
-			
+
 			var min = instance.minQuantity || 0;
 			var max = instance.maxQuantity;
 			if (typeof max !== 'number') {
@@ -558,18 +558,24 @@ define(function () {
 
 		deleteCallback: function (type, resource) {
 			// Update the model
-			var relatedResources = current[type + 'Delete'](resource.id);
+			var relatedResources = current[type + 'Delete'](resource.id) || [];
 
 			// Update the UI
 			notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([resource.id, resource.name]));
 			$('.tooltip').remove();
-			_('prov-' + type + 's').DataTable().rows(function(index, data) {
-				return data.id === resource.id;	
+			_('prov-' + type + 's').DataTable().rows(function (index, data) {
+				return data.id === resource.id;
 			}).remove().draw(false);
-		
+
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
-			Object.keys(relatedResources || []).forEach((index) => (current.redrawResource(relatedType, relatedResources[index])));
+			if (type === 'instance') {
+				Object.keys(relatedResources).forEach((index) => (_('prov-storages').DataTable().rows(function (_i, data) {
+					return data.id === relatedResources[index];
+				}).remove().draw(false)));
+			} else {
+				Object.keys(relatedResources).forEach((index) => (current.redrawResource(relatedType, relatedResources[index])));
+			}
 			current.updateUiCost();
 		},
 
@@ -845,10 +851,10 @@ define(function () {
 		 * @param {number|Object} resource Quote resource or its identifier.
 		 */
 		redrawResource: function (type, resource) {
-			resource = instance && (resource.id || resource);
+			resource = resource && (resource.id || resource);
 			if (resource) {
 				// The instance is valid
-				_('prov-' + type + 's').DataTable().rows(function(index,data) {
+				_('prov-' + type + 's').DataTable().rows(function (index, data) {
 					return data.id === resource;
 				}).invalidate().draw();
 			}
@@ -883,7 +889,7 @@ define(function () {
 			model.constant = data.constant;
 			model.instancePrice = costContext.instance;
 			model.os = data.os;
-			
+
 			// Also update the related resources costs
 			var conf = current.model.configuration;
 			Object.keys(updatedCost.relatedCosts).forEach((id) => {
@@ -1093,7 +1099,7 @@ define(function () {
 				// Add the new row
 				$table.DataTable().row.add(model).draw(false);
 			}
-				
+
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
 			Object.keys(updatedCost.relatedCosts).forEach((id) => (current.redrawResource(relatedType, parseInt(id, 10))));
@@ -1112,13 +1118,13 @@ define(function () {
 			$('.cost').text(current.formatCost(conf.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
-			
+
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary>.badge');
 			$summary.eq(0).rawText(' ' + usage.cpu.available);
 			$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available));
 			$summary.eq(2).rawText(' ' + usage.publicAccess);
 			$('.nav-pills [href="#tab-storage"] .summary>.badge').rawText(' ' + current.formatStorage(usage.storage.available));
-			
+
 			// Update the total resource usage
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				var weight = 0;
@@ -1143,8 +1149,8 @@ define(function () {
 					$('#gauge-global').addClass('hidden');
 				}
 				if (conf.cost.min) {
-					sunburst.init('#sunburst', current.toD3(), function(data) {
-						return data.name + ', cost: ' + current.formatCost(data.size || data.value );					
+					sunburst.init('#sunburst', current.toD3(), function (data) {
+						return data.name + ', cost: ' + current.formatCost(data.size || data.value);
 					});
 					$('#sunburst').removeClass('hidden');
 				} else {
