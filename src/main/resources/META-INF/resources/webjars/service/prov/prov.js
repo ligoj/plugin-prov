@@ -1143,7 +1143,9 @@ define(function () {
 					$('#gauge-global').addClass('hidden');
 				}
 				if (conf.cost.min) {
-					sunburst.init('#sunburst', current.toD3());
+					sunburst.init('#sunburst', current.toD3(), function(data) {
+						return data.name + ', cost: ' + current.formatCost(data.size || data.value );					
+					});
 					$('#sunburst').removeClass('hidden');
 				} else {
 					$('#sunburst').addClass('hidden');
