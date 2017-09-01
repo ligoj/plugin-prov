@@ -1114,16 +1114,32 @@ define(function () {
 		 */
 		updateUiCost: function () {
 			var conf = current.model.configuration;
+
+			// Compute the new usage and costs
 			var usage = current.usageGlobalRate();
+
+			// Update the global counts
 			$('.cost').text(current.formatCost(conf.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
 
-			var $summary = $('.nav-pills [href="#tab-instance"] .summary>.badge');
-			$summary.eq(0).rawText(' ' + usage.cpu.available);
-			$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available));
-			$summary.eq(2).rawText(' ' + usage.publicAccess);
-			$('.nav-pills [href="#tab-storage"] .summary>.badge').rawText(' ' + current.formatStorage(usage.storage.available));
+			// Update the summary
+			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
+			if (usage.cpu.available) {
+				$summary.removeClass('hidden');
+				$summary.eq(0).rawText(' ' + usage.cpu.available);
+				$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available));
+				$summary.eq(2).rawText(' ' + usage.publicAccess);
+			} else {
+				$summary.addClass('hidden');
+			}
+			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge');
+			if (usage.storage.available) {
+				$summary.removeClass('hidden');
+				$summary.rawText(' ' + current.formatStorage(usage.storage.available));
+			} else {
+				$summary.addClass('hidden');
+			}
 
 			// Update the total resource usage
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
