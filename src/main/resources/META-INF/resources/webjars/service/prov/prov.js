@@ -431,6 +431,7 @@ define(function () {
 				var $item = $(this);
 				var value = $item.is('.input-group-btn') ? $item.find('li.active').data('value') : $item.val();
 				var queryParam = value && current.toQueryName(type, $item);
+				value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
 				if (queryParam && value) {
 					// Add as query

@@ -33,17 +33,22 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 *            <code>null</code>.
 	 * @param instance
 	 *            The optional instance identifier. May be <code>null</code>.
+	 * @param ephemeral
+	 *            When <code>true</code>, ephemeral contract is accepted.
+	 *            Otherwise (<code>false</code>), only non ephemeral instance
+	 *            are accepted.
 	 * @param pageable
 	 *            The page control to return few item.
 	 * @return The minimum instance or <code>null</code>.
 	 */
-	@Query("FROM #{#entityName} AS ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
+	@Query("FROM #{#entityName} ip INNER JOIN FETCH ip.instance AS i INNER JOIN FETCH ip.type AS t"
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
 			+ " AND (:instance IS NULL OR i.id = :instance) AND i.cpu>= :cpu AND i.ram>=:ram"
 			+ " AND (:os IS NULL OR ip.os=:os) AND (:constant IS NULL OR i.constant = :constant)"
-			+ " AND (:type IS NULL OR t.id = :type) AND i.cpu > 0 ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer type,
-			Integer instance, Pageable pageable);
+			+ " AND (:type IS NULL OR t.id = :type) AND i.cpu > 0 AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ " ORDER BY ip.cost ASC")
+	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer type, Integer instance,
+			boolean ephemeral, Pageable pageable);
 
 	/**
 	 * Return the lowest custom instance price configuration from the minimal
@@ -65,6 +70,5 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,'%'))"
 			+ " AND i.cpu = 0 AND ip.os=:os AND (:constant IS NULL OR i.constant = :constant)"
 			+ " AND (:type IS NULL OR t.id = :type) ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestCustomPrice(String node, Boolean constant, VmOs os, Integer type,
-			Pageable pageable);
+	List<ProvInstancePrice> findLowestCustomPrice(String node, Boolean constant, VmOs os, Integer type, Pageable pageable);
 }

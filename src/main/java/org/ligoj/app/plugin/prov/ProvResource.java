@@ -108,7 +108,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
 	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized",
-			"priceType", "instance", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost" };
+			"priceType", "instance", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost", "ephemeral" };
 
 	/**
 	 * Average hours in one month.
@@ -298,7 +298,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	}
 
 	/**
-	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
+	 * Check the requested OS is compliant with the one of associated
+	 * {@link ProvInstancePrice}
 	 */
 	private void checkOs(ProvQuoteInstance entity) {
 		if (entity.getOs().toPricingOs() != entity.getInstancePrice().getOs()) {
@@ -460,7 +461,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 
 		// Save and update the costs
 		final UpdatedCost cost = newUpdateCost(qsRepository, entity, this::updateCost);
-		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q ->cost.setRelatedCosts(Collections.singletonMap(q.getId(), updateCost(q))));
+		Optional.ofNullable(entity.getQuoteInstance())
+				.ifPresent(q -> cost.setRelatedCosts(Collections.singletonMap(q.getId(), updateCost(q))));
 		return cost;
 	}
 
@@ -556,13 +558,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 *            The amount of required RAM, in MB. Default is 1.
 	 * @param constant
 	 *            Optional constant CPU. When <code>false</code>, variable CPU
-	 *            is requested. When <code>true</code> constant CPU is requested.
+	 *            is requested. When <code>true</code> constant CPU is
+	 *            requested.
 	 * @param os
 	 *            The requested OS, default is "LINUX".
 	 * @param instance
 	 *            Optional instance identifier. May be <code>null</code>.
 	 * @param type
 	 *            Optional price type identifier. May be <code>null</code>.
+	 * @param ephemeral
+	 *            Optional ephemeral constraint. When <code>false</code>
+	 *            (default), only non ephemeral instance are accepted. Otherwise
+	 *            (<code>true</code>), ephemeral instance contract is accepted.
 	 * @return The lowest price instance configurations matching to the required
 	 *         parameters for standard instance (if available) and custom
 	 *         instance (if available too) and also the lower instance based
@@ -574,15 +581,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public LowestInstancePrice lookupInstance(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu, @DefaultValue(value = "1") @QueryParam("ram") final int ram,
 			@QueryParam("constant") final Boolean constant, @DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os,
-			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type) {
+			@QueryParam("instance") final Integer instance, @QueryParam("price-type") final Integer type,
+			@QueryParam("ephemeral") final boolean ephemeral) {
 		// Get the attached node and check the security on this subscription
 		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
 		final LowestInstancePrice price = new LowestInstancePrice();
 
 		// Return only the first matching instance
 		final VmOs pricingOs = Optional.ofNullable(os).map(VmOs::toPricingOs).orElse(null);
-		price.setInstance(ipRepository.findLowestPrice(node, cpu, ram, constant, pricingOs, type, instance, new PageRequest(0, 1)).stream()
-				.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
+		price.setInstance(
+				ipRepository.findLowestPrice(node, cpu, ram, constant, pricingOs, type, instance, ephemeral, new PageRequest(0, 1)).stream()
+						.findFirst().map(ip -> newComputedInstancePrice(ip, toMonthly(ip.getCost()))).orElse(null));
 		price.setCustom(ipRepository.findLowestCustomPrice(node, constant, pricingOs, type, new PageRequest(0, 1)).stream().findFirst()
 				.map(ip -> newComputedInstancePrice(ip, toMonthly(getComputeCustomCost(cpu, ram, ip)))).orElse(null));
 		return price;
@@ -945,7 +954,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	 * @param ramMultiplier
 	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param defaultPriceType
-	 *            The default {@link ProvInstancePrice} used when no one is defined in the CSV line
+	 *            The default {@link ProvInstancePrice} used when no one is
+	 *            defined in the CSV line
 	 * @param encoding
 	 *            CSV encoding. Default is UTF-8.
 	 */
@@ -993,7 +1003,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final Integer type = Optional.ofNullable(iptRepository.findByName(subscription, upload.getPriceType()))
 				.map(ProvInstancePriceType::getId).orElse(defaultType);
 		final LowestInstancePrice price = lookupInstance(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(), upload.getOs(),
-				instance, type);
+				instance, type, upload.isEphemeral());
 
 		// Find the lowest price
 		ComputedInstancePrice lowest = price.getInstance();
@@ -1046,7 +1056,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 	public Supplier<TerraformStatus> newTask() {
 		return TerraformStatus::new;
 	}
-	
+
 	@Override
 	public SubscriptionRepository getSubscriptionRepository() {
 		return subscriptionRepository;
