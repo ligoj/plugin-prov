@@ -97,6 +97,11 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	@Min(1)
 	private Integer maxQuantity = 1;
 
+	/**
+	 * The instance could be terminated by the provider.
+	 */
+	private boolean ephemeral;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

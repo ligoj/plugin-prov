@@ -277,6 +277,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
+		entity.setEphemeral(vo.isEphemeral());
 		entity.setInternet(vo.getInternet());
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setMinQuantity(vo.getMinQuantity());
