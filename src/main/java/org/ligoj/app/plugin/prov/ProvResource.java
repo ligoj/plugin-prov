@@ -282,6 +282,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
+		
 		checkVisibility(entity.getInstancePrice().getInstance(), providerId);
 		checkConstraints(entity);
 		checkOs(entity);
@@ -991,6 +992,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote>
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName(upload.getName());
+		vo.setEphemeral(upload.isEphemeral());
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setMaxVariableCost(upload.getMaxVariableCost());

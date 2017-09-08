@@ -992,6 +992,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo.setConstant(true);
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setMaxVariableCost(210.9);
+		vo.setEphemeral(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		final UpdatedCost updatedCost = resource.createInstance(vo);
@@ -1003,6 +1004,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(subscription, 6773.285, 10259.935, false);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
 		Assert.assertEquals("serverZ", instance.getName());
+		Assert.assertTrue(instance.isEphemeral());
 		Assert.assertEquals("serverZD", instance.getDescription());
 		Assert.assertEquals(1024, instance.getRam().intValue());
 		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
