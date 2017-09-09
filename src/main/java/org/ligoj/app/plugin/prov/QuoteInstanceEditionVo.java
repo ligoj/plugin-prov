@@ -79,4 +79,9 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 */
 	@Min(1)
 	private Integer maxQuantity;
+
+	/**
+	 * The instance could be terminated by the provider. Default <code>false</code>.
+	 */
+	private boolean ephemeral;
 }

@@ -63,4 +63,9 @@ public class InstanceUpload {
 	@Min(0)
 	private Double maxVariableCost;
 
+	/**
+	 * The instance could be terminated by the provider.
+	 */
+	private boolean ephemeral;
+
 }

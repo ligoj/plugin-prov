@@ -54,4 +54,9 @@ public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> impl
 	 * The price may vary within the period.
 	 */
 	private boolean variable;
+
+	/**
+	 * The instance could be terminated by the provider.
+	 */
+	private boolean ephemeral;
 }

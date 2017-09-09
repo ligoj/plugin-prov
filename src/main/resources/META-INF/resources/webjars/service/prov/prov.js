@@ -431,6 +431,7 @@ define(function () {
 				var $item = $(this);
 				var value = $item.is('.input-group-btn') ? $item.find('li.active').data('value') : $item.val();
 				var queryParam = value && current.toQueryName(type, $item);
+				value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
 				if (queryParam && value) {
 					// Add as query
@@ -911,6 +912,7 @@ define(function () {
 			data.cpu = current.cleanFloat(_('instance-cpu').val());
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
 			data.maxVariableCost = current.cleanFloat(_('instance-max-variable-cost').val());
+			data.ephemeral = _('instance-ephemeral').is(':checked');
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
@@ -963,6 +965,7 @@ define(function () {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
 			_('instance-max-variable-cost').val(model.maxVariableCost || null);
+			_('instance-ephemeral').prop('checked', model.ephemeral);
 			_('instance-min-quantity').val((typeof model.minQuantity === 'number') ? model.minQuantity : 1);
 			_('instance-max-quantity').val((typeof model.maxQuantity === 'number') ? model.maxQuantity : '');
 			_('instance-os').select2('data', current.select2IdentityData((model.id && (model.os || model.instancePrice.os)) || 'LINUX'));

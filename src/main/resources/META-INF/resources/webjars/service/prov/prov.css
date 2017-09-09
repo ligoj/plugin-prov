@@ -104,3 +104,6 @@
 		width: 50px;
 	}
 }
+label[for="instance-max-variable-cost"] {
+	margin-top: 10px;
+}
