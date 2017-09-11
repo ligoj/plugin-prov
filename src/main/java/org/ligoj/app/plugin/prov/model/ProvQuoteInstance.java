@@ -8,8 +8,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -42,7 +43,7 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 * The requested CPU.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Double cpu;
 
 	/**
@@ -51,14 +52,14 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
 	 * price type such as AWS Spot.
 	 */
-	@Min(0)
+	@Positive
 	private Double maxVariableCost;
 
 	/**
 	 * The requested RAM in MB.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Integer ram;
 
 	/**
@@ -87,14 +88,14 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 * The minimal quantity of this instance.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Integer minQuantity = 1;
 
 	/**
 	 * The maximal quantity of this instance. May be <code>null</code> when
 	 * unbound maximal, otherwise must be greater than {@link #quantityMin}
 	 */
-	@Min(1)
+	@PositiveOrZero
 	private Integer maxQuantity = 1;
 
 	/**

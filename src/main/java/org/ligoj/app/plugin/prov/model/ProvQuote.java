@@ -7,8 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.model.PluginConfiguration;
 import org.ligoj.app.model.Subscription;
@@ -38,7 +38,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 * with the updates.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Double cost = 0d;
 
 	/**
@@ -48,7 +48,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 * {@link #unboundCostCounter} is incremented.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Double maxCost = 0d;
 
 	/**
@@ -56,7 +56,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 * monthly bills on different scenarios.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Integer unboundCostCounter = 0;
 
 	/**

@@ -3,8 +3,8 @@ package org.ligoj.app.plugin.prov.model;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
@@ -33,7 +33,7 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	 * The minimal computed monthly cost of the resource.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Double cost;
 
 	/**
@@ -41,7 +41,7 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	 * maximal (<code>null</code>) quantity, the minimal cost is used.
 	 */
 	@NotNull
-	@Min(0)
+	@PositiveOrZero
 	private Double maxCost;
 
 	/**

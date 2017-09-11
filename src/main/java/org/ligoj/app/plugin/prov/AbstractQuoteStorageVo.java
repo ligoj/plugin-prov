@@ -1,6 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
 
 import org.ligoj.bootstrap.core.DescribedBean;
 
@@ -17,12 +17,13 @@ public abstract class AbstractQuoteStorageVo extends DescribedBean<Integer> {
 	/**
 	 * Size of the storage in "Go" "Giga Bytes"
 	 */
-	@Min(1)
+	@Positive
 	private int size;
 
 	/**
 	 * Optional linked quoted instance.
 	 */
+	@Positive
 	private Integer quoteInstance;
 
 }

@@ -1,7 +1,8 @@
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.VmOs;
@@ -18,26 +19,28 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * Instance price configuration matching to the requirements.
 	 */
 	@NotNull
+	@Positive
 	private Integer instancePrice;
 
 	/**
 	 * Related subscription identifier.
 	 */
 	@NotNull
+	@Positive
 	private Integer subscription;
 
 	/**
 	 * The requested CPU
 	 */
 	@NotNull
-	@Min(0)
+	@Positive
 	private Double cpu;
 
 	/**
 	 * The requested memory in MB.
 	 */
 	@NotNull
-	@Min(0)
+	@Positive
 	private Integer ram;
 
 	/**
@@ -57,7 +60,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
 	 * price type such as AWS Spot.
 	 */
-	@Min(0)
+	@Positive
 	private Double maxVariableCost;
 
 	/**
@@ -69,7 +72,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	/**
 	 * The minimal quantity of this instance.
 	 */
-	@Min(0)
+	@PositiveOrZero
 	@NotNull
 	private Integer minQuantity = 1;
 
@@ -77,7 +80,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The maximal quantity of this instance. When defined, must be greater than
 	 * {@link #quantityMin}
 	 */
-	@Min(1)
+	@PositiveOrZero
 	private Integer maxQuantity;
 
 	/**

@@ -1,6 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Min;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
@@ -21,11 +21,13 @@ public class InstanceUpload {
 	/**
 	 * Optional requested CPU.
 	 */
+	@PositiveOrZero
 	private double cpu = 0;
 
 	/**
 	 * Optional request RAM.
 	 */
+	@PositiveOrZero
 	private double ram = 0;
 
 	/**
@@ -42,11 +44,13 @@ public class InstanceUpload {
 	/**
 	 * Minimal quantity, when undefined <code>1</code>.
 	 */
+	@PositiveOrZero
 	private int minQuantity = 1;
 
 	/**
 	 * Maximal quantity, when undefined <code>1</code>.
 	 */
+	@PositiveOrZero
 	private int maxQuantity = 1;
 
 	/**
@@ -60,7 +64,7 @@ public class InstanceUpload {
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
 	 * price type such as AWS Spot.
 	 */
-	@Min(0)
+	@PositiveOrZero
 	private Double maxVariableCost;
 
 	/**
