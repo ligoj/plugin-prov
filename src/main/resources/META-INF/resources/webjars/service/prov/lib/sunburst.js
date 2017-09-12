@@ -33,6 +33,12 @@ define(['d3', 'jquery'], function (d3, $) {
 			}).outerRadius(function (d) {
 				return Math.max(0, y(d.y1));
 			});
+		$($element).empty();
+		var svg = d3.select($element).append('svg')
+			.attr('width', width)
+			.attr('height', height)
+			.append('g')
+			.attr('transform', 'translate(' + width / 2 + ',' + (height / 2) + ')');
 
 		function click(d) {
 			// depth => d.depth + 1
@@ -95,13 +101,6 @@ define(['d3', 'jquery'], function (d3, $) {
 				.duration(1500)
 				.attrTween('d', sunburst.arcTween);
 		};
-
-		$($element).empty();
-		var svg = d3.select($element).append('svg')
-			.attr('width', width)
-			.attr('height', height)
-			.append('g')
-			.attr('transform', 'translate(' + width / 2 + ',' + (height / 2) + ')');
 
 		/* For the drop shadow filter... */
 		var defs = svg.append("defs");
