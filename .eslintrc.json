@@ -14,14 +14,11 @@
         "validationManager": true,
         "bootbox": true,
         "_": true,
-        "$": true,
         "notifyManager": true,
         "Handlebars": true,
         "traceLog": true,
         "formatManager": true,
         "define": true,
-        "Handlebars": true,
-        "Handlebars": true,
         "Handlebars": true
     }
  }

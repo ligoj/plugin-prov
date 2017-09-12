@@ -13,6 +13,24 @@ import lombok.Setter;
 public class FloatingCost {
 
 	/**
+	 * Minimal monthly cost.
+	 */
+	private double min;
+
+	/**
+	 * The maximal determined monthly cost. When the maximal cost cannot be
+	 * determined, the minimal cost is used and the {@link #unbound} is set to
+	 * <code>true</code>.
+	 */
+	private double max;
+
+	/**
+	 * When <code>true</code>, the maximal cost is not fully determined.
+	 */
+	private boolean unbound;
+
+
+	/**
 	 * Default float where {@link #min} and {@link #max} are set to
 	 * <code>0</code>.
 	 */
@@ -31,22 +49,4 @@ public class FloatingCost {
 		min = base;
 		max = base;
 	}
-
-	/**
-	 * Minimal monthly cost.
-	 */
-	private double min;
-
-	/**
-	 * The maximal determined monthly cost. When the maximal cost cannot be
-	 * determined, the minimal cost is used and the {@link #unbound} is set to
-	 * <code>true</code>.
-	 */
-	private double max;
-
-	/**
-	 * When <code>true</code>, the maximal cost is not fully determined.
-	 */
-	private boolean unbound;
-
 }

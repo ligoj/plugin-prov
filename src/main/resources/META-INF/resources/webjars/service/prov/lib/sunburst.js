@@ -23,15 +23,6 @@ define(['d3', 'jquery'], function (d3, $) {
 		var y = d3.scaleSqrt().range([0, radius]);
 		var color = d3.scaleOrdinal(colors('a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928'));
 		var partition = d3.partition();
-
-		sunburst.update = function (data) {
-			sunburst.path
-				.data(partition.value(data).nodes)
-				.transition()
-				.duration(1500)
-				.attrTween('d', sunburst.arcTween);
-		};
-
 		var arc = d3.arc()
 			.startAngle(function (d) {
 				return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
@@ -42,6 +33,68 @@ define(['d3', 'jquery'], function (d3, $) {
 			}).outerRadius(function (d) {
 				return Math.max(0, y(d.y1));
 			});
+
+		function click(d) {
+			// depth => d.depth + 1
+			svg.transition()
+				.duration(750)
+				.tween('scale', function () {
+					var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
+						yd = d3.interpolate(y.domain(), [d.y0, 1]),
+						yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
+					return function (t) {
+						x.domain(xd(t));
+						y.domain(yd(t)).range(yr(t));
+					};
+				})
+				.selectAll('path')
+				.attrTween('d', function (d) {
+					return function () {
+						return arc(d);
+					};
+				});
+		}
+
+		// Given a node in a partition layout, return an array of all of its ancestor
+		// nodes, highest first, but excluding the root.
+		function getAncestors(node) {
+			var path = [];
+			var current = node;
+			while (current.parent) {
+				path.unshift(current);
+				current = current.parent;
+			}
+			return path;
+		}
+
+		// Restore everything to full opacity when moving off the visualization.
+		function mouseout() {
+			// Transition each segment to full opacity and then reactivate it.
+			d3.selectAll('path').style('opacity', 1);
+		}
+
+		function mouseover(d) {
+			var sequenceArray = getAncestors(d);
+
+			// Fade all the segments.
+			d3.selectAll('path').style('opacity', 0.3);
+
+			// Then highlight only those that are an ancestor of the current segment.
+			svg.selectAll('path')
+				.filter(function (node) {
+					return (sequenceArray.indexOf(node) >= 0);
+				})
+				.attr('class', 'sunburst-part')
+				.style('opacity', 1);
+		}
+
+		sunburst.update = function (data) {
+			sunburst.path
+				.data(partition.value(data).nodes)
+				.transition()
+				.duration(1500)
+				.attrTween('d', sunburst.arcTween);
+		};
 
 		$($element).empty();
 		var svg = d3.select($element).append('svg')
@@ -103,60 +156,6 @@ define(['d3', 'jquery'], function (d3, $) {
 				mouseout(d);
 				return tooltip.style('visibility', 'hidden');
 			});
-
-		function click(d) {
-			// depth => d.depth + 1
-			svg.transition()
-				.duration(750)
-				.tween('scale', function () {
-					var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
-						yd = d3.interpolate(y.domain(), [d.y0, 1]),
-						yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
-					return function (t) {
-						x.domain(xd(t));
-						y.domain(yd(t)).range(yr(t));
-					};
-				})
-				.selectAll('path')
-				.attrTween('d', function (d) {
-					return function () {
-						return arc(d);
-					};
-				});
-		}
-
-		// Given a node in a partition layout, return an array of all of its ancestor
-		// nodes, highest first, but excluding the root.
-		function getAncestors(node) {
-			var path = [];
-			var current = node;
-			while (current.parent) {
-				path.unshift(current);
-				current = current.parent;
-			}
-			return path;
-		}
-
-		// Restore everything to full opacity when moving off the visualization.
-		function mouseout() {
-			// Transition each segment to full opacity and then reactivate it.
-			d3.selectAll('path').style('opacity', 1);
-		}
-
-		function mouseover(d) {
-			var sequenceArray = getAncestors(d);
-
-			// Fade all the segments.
-			d3.selectAll('path').style('opacity', 0.3);
-
-			// Then highlight only those that are an ancestor of the current segment.
-			svg.selectAll('path')
-				.filter(function (node) {
-					return (sequenceArray.indexOf(node) >= 0);
-				})
-				.attr('class', 'sunburst-part')
-				.style('opacity', 1);
-		}
 	};
 	return sunburst;
 });

@@ -350,10 +350,11 @@ define(function () {
 		optimizeModel: function () {
 			var conf = current.model.configuration;
 			var instances = conf.instances;
+			var i;
 			conf.instancesById = {};
 			conf.instanceCost = 0;
 			conf.storageCost = 0;
-			for (var i = 0; i < instances.length; i++) {
+			for (i = 0; i < instances.length; i++) {
 				var instance = instances[i];
 				// Optimize id access
 				conf.instancesById[instance.id] = instance;
@@ -463,7 +464,7 @@ define(function () {
 				// There is at least one valid instance
 				// For now, renders only the lowest priced instance
 				var lowest;
-				if (instances.length == 1) {
+				if (instances.length === 1) {
 					lowest = instances[0];
 				} else if (instances[0].cost < instances[1].cost) {
 					lowest = instances[0];
