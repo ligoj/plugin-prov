@@ -1,5 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -29,7 +30,6 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
-import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.resource.BusinessException;
@@ -100,14 +100,16 @@ public class TerraformResource {
 	 * @param file
 	 *            The target file name.
 	 * @return the {@link Response} ready to be consumed.
+	 * @throws IOException 
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:.*.tf}")
-	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
+	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file) throws IOException {
 		final Terraforming terra = getTerraform(subscription);
-		return AbstractToolPluginResource.download(o -> terra.terraform(o, subscription, resource.getConfiguration(subscription)), file)
-				.build();
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		terra.terraform(output, subscription, resource.getConfiguration(subscription));
+		return Response.ok().header("Content-Disposition", "attachment; filename=" + file + ";").entity(new String(output.toByteArray())).build();
 	}
 
 	/**
