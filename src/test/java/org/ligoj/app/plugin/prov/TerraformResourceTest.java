@@ -78,7 +78,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test(expected = BusinessException.class)
-	public void getTerraformNotSupported() {
+	public void getTerraformNotSupported() throws IOException {
 		newResource(null).getTerraform(subscription, "any.tf");
 	}
 
