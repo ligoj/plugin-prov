@@ -572,13 +572,21 @@ define(function () {
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
 			if (type === 'instance') {
-				Object.keys(relatedResources).forEach((index) => (_('prov-storages').DataTable().rows(function (_i, data) {
-					return data.id === relatedResources[index];
-				}).remove().draw(false)));
+				for(var i = 0; i < relatedResources.length; i++) {
+					current.removeResourceRow(relatedResources[i]);
+				}
 			} else {
-				Object.keys(relatedResources).forEach((index) => (current.redrawResource(relatedType, relatedResources[index])));
+				for(var j = 0; j < relatedResources.length; j++) {
+					current.redrawResource(relatedType, relatedResources[j]);
+				}
 			}
 			current.updateUiCost();
+		},
+
+		removeResourceRow: function(resource) {
+			_('prov-storages').DataTable().rows(function (_i, data) {
+					return data.id === resource;
+			}).remove().draw(false)));
 		},
 
 		initializeUpload: function () {
@@ -894,7 +902,7 @@ define(function () {
 
 			// Also update the related resources costs
 			var conf = current.model.configuration;
-			Object.keys(updatedCost.relatedCosts).forEach((id) => {
+			Object.keys(updatedCost.relatedCosts).forEach(function(id) {
 				var storage = conf.storagesById[id];
 				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost;
 				storage.cost = updatedCost.relatedCosts[id].min;
@@ -1039,7 +1047,9 @@ define(function () {
 			var priceContext = current[type + 'UiToData'](data);
 
 			// Trim the data
-			Object.keys(data).forEach((key) => (data[key] === null || data[key] === '') && delete data[key]);
+			Object.keys(data).forEach(function(key) {
+				(data[key] === null || data[key] === '') && delete data[key];
+			});
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
@@ -1106,7 +1116,9 @@ define(function () {
 
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
-			Object.keys(updatedCost.relatedCosts).forEach((id) => (current.redrawResource(relatedType, parseInt(id, 10))));
+			Object.keys(updatedCost.relatedCosts).forEach(function (id) {
+				current.redrawResource(relatedType, parseInt(id, 10)));
+			});
 
 			// Update the UI costs only now
 			current.updateUiCost();
