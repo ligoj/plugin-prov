@@ -572,21 +572,17 @@ define(function () {
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
 			if (type === 'instance') {
-				for(var i = 0; i < relatedResources.length; i++) {
-					current.removeResourceRow(relatedResources[i]);
-				}
+				Object.keys(relatedResources).forEach(function (index) {
+					_('prov-storages').DataTable().rows(function (_i, data) {
+						return data.id === relatedResources[index];
+					}).remove().draw(false);
+				});
 			} else {
-				for(var j = 0; j < relatedResources.length; j++) {
-					current.redrawResource(relatedType, relatedResources[j]);
-				}
+				Object.keys(relatedResources).forEach(function (index) {
+					current.redrawResource(relatedType, relatedResources[index]);
+				});
 			}
 			current.updateUiCost();
-		},
-
-		removeResourceRow: function(resource) {
-			_('prov-storages').DataTable().rows(function (_i, data) {
-					return data.id === resource;
-			}).remove().draw(false)));
 		},
 
 		initializeUpload: function () {
@@ -1117,7 +1113,7 @@ define(function () {
 			// With related cost, other UI table need to be updated
 			var relatedType = type === 'instance' ? 'storage' : 'instance';
 			Object.keys(updatedCost.relatedCosts).forEach(function (id) {
-				current.redrawResource(relatedType, parseInt(id, 10)));
+				current.redrawResource(relatedType, parseInt(id, 10));
 			});
 
 			// Update the UI costs only now
