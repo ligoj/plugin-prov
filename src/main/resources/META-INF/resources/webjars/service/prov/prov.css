@@ -1,14 +1,14 @@
 @import url("font-mfizz.css");
 .masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
-	width: 90px;
+	width: 110px;
 }
 
 .masonry-container .node.service-prov.mode-th-large table.subscriptions th.features {
-	width: 86px;
+	width: 96px;
 }
 
 .masonry-container .node.service-prov table.subscriptions th.features {
-	width: 75px;
+	width: 85px;
 }
 
 #gauge-global {
