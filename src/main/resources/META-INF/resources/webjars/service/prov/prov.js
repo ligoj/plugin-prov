@@ -236,9 +236,9 @@ define(function () {
 			var storages = instance.storages;
 			var sum = 0;
 			if (storages) {
-				for (var i = 0; i < storages.length; i++) {
-					sum += storages[i].size;
-				}
+				storages.forEach(function(storage) {
+					sum += storage.size;
+				});
 			}
 			if (mode === 'sort') {
 				// Return only the sum
@@ -1435,10 +1435,10 @@ define(function () {
 							},
 							results: function (data) {
 								// Completed the requested identifier
-								for (var item of data) {
+								data.forEach(function(item) {
 									item.id = item.type.id + '-' + new Date().getMilliseconds();
 									item.text = item.type.name;
-								}
+								});
 								return {
 									more: false,
 									results: data
@@ -1554,9 +1554,9 @@ define(function () {
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
-				for (var resource of resources) {
+				resources.forEach(function(resource) {
 					resourcesByName[resource.name] = resource;
-				}
+				});
 			}
 			if (resourcesByName[prefix]) {
 				increment = increment || 1;
