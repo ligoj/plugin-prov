@@ -15,7 +15,7 @@
 
 @font-face {
   font-family: "FontMfizz";
-  src: url("/ligoj/main/service/prov/font-mfizz.woff") format("woff");
+  src: url("./font-mfizz.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
