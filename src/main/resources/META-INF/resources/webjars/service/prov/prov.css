@@ -11,6 +11,16 @@
 	width: 85px;
 }
 
+.masonry-container .node.service-prov .price {
+	max-width: 53px;
+	display: inline-block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	margin-bottom: -6px;
+}
+
 #gauge-global {
 	width: 120px;
 	height: 120px;

@@ -96,7 +96,8 @@ define(function () {
 		 */
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
-				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + '" class="label label-default">' + current.formatCost(subscription.data.quote.cost) + '$</span>';
+				var price = current.formatCost(subscription.data.quote.cost) + '$';
+				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
 
