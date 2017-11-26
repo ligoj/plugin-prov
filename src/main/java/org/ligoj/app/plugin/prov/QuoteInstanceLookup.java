@@ -4,16 +4,15 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * The lowest price found for the requested resources.
  */
 @Getter
 @Setter
-public class ComputedInstancePrice extends AbstractComputedPrice {
+@ToString(callSuper = true)
+public class QuoteInstanceLookup extends AbstractComputedPrice<ProvInstancePrice> {
 
-	/**
-	 * The lowest instance based price. May be <code>null</code>.
-	 */
-	private ProvInstancePrice instance;
+	// Nothing more than super class
 }

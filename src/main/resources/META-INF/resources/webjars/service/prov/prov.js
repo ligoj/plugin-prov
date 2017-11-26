@@ -13,14 +13,9 @@ define(function () {
 		storageTable: null,
 
 		/**
-		 * Current configuration.
+		 * Current quote.
 		 */
 		model: null,
-
-		/**
-		 * Instance identifier.
-		 */
-		currentId: null,
 
 		/**
 		 * Show the members of the given group
@@ -54,29 +49,37 @@ define(function () {
 					current.optimizeModel();
 					$instances.rows.add(current.model.configuration.instances).draw();
 					$storages.rows.add(current.model.configuration.storages).draw();
+					_('quote-location').select2('data', current.model.configuration.location);
 				}
 			});
 		},
 
 		/**
-		 * Request to refresh the cost and trgger a global update as needed
+		 * Request to refresh the cost and trigger a global update as needed
 		 */
 		refreshCost: function () {
-			var min = current.model.configuration.cost.min;
-			var max = current.model.configuration.cost.max;
 			$.ajax({
 				type: 'PUT',
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/refresh',
 				dataType: 'json',
-				success: function (updatedTotalCost) {
-					if (updatedTotalCost.min !== min || updatedTotalCost.max !== max) {
-						// The cost has been updated
-						current.model.configuration.cost = updatedTotalCost;
-						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-needed'])());
-						current.reload();
-					}
-				}
+				success: current.reloadAsNeed
 			});
+		},
+
+		/**
+		 * Reload the whole quote if the new cost is different from the previous one.
+		 * @param {object} newCost The new cost.
+		 */
+		reloadAsNeed: function (newCost) {
+			if (newCost.min !== current.model.configuration.cost.min || newCost.max !== current.model.configuration.cost.max) {
+				// The cost has been updated
+				current.model.configuration.cost = newCost;
+				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-needed'])());
+				current.reload();
+			} else {
+				// The cost still the same
+				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-no-change'])());				
+			}
 		},
 
 		/**
@@ -96,7 +99,7 @@ define(function () {
 		 */
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
-				var price = current.formatCost(subscription.data.quote.cost) + '$';
+				var price = current.formatCost(subscription.data.quote.cost);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
@@ -129,24 +132,24 @@ define(function () {
 		 * Format instance detail
 		 */
 		formatInstance: function (name, mode, qi) {
-			var instance = qi ? qi.instancePrice.instance : null;
-			name = instance ? instance.name : name;
-			if (mode === 'sort' || (instance && typeof instance.id === 'undefined')) {
+			var type = qi ? qi.price.type : null;
+			name = type ? type.name : name;
+			if (mode === 'sort' || (type && typeof type.id === 'undefined')) {
 				// Use only the name
 				return name;
 			}
 			// Instance details are available
-			var details = instance.description || '';
+			var details = type.description || '';
 			details += '<br><i class=\'fa fa-bolt fa-fw\'></i> ';
-			if (instance.cpu) {
-				details += instance.cpu;
-				details += ' ' + current.formatConstant(instance.constant);
+			if (type.cpu) {
+				details += type.cpu;
+				details += ' ' + current.formatConstant(type.constant);
 			} else {
 				details += current.$messages['service:prov:instance-custom'];
 			}
-			if (instance.ram) {
+			if (type.ram) {
 				details += '<br><i class=\'fa fa-microchip fa-fw\'></i> ';
-				details += current.formatRam(instance.ram);
+				details += current.formatRam(type.ram);
 			}
 
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
@@ -192,17 +195,17 @@ define(function () {
 			obj = typeof obj === 'undefined' ? cost : obj;
 			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
-				return formatManager.formatCost(cost, 3, '$');
+				return formatManager.formatCost(cost, 3, '$', 'unit');
 			}
 			// A floating cost
 			var min = obj.cost || obj.min || 0;
 			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
-				costStr = formatManager.formatCost(obj.cost || obj.min || 0, 3, '$');
+				costStr = formatManager.formatCost(obj.cost || obj.min || 0, 3, '$', 'unit');
 			} else {
 				// Max cost, is different, display a range
-				costStr = formatManager.formatCost(min, 3, '$') + '-' + formatManager.formatCost(max, 3, '$');
+				costStr = formatManager.formatCost(min, 3, '$', 'unit') + '-' + formatManager.formatCost(max, 3, '$', 'unit');
 			}
 			return cost.unbound ? costStr + '+' : costStr;
 		},
@@ -226,7 +229,11 @@ define(function () {
 		 * @param {object} qs Quote storage with price, type and size.
 		 */
 		formatStorageHtml: function (qs) {
-			return current.formatStorageFrequency(qs.type.frequency) + (qs.type.optimized ? ' ' + current.formatStorageOptimized(qs.type.optimized) : '') + ' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3);
+			var type = qs.price.type;
+			return current.formatStorageFrequency(type.frequency) +
+				(type.optimized ? ' ' + current.formatStorageOptimized(type.optimized) : '') +
+				' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
+				((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
 		},
 
 		/**
@@ -237,7 +244,7 @@ define(function () {
 			var storages = instance.storages;
 			var sum = 0;
 			if (storages) {
-				storages.forEach(function(storage) {
+				storages.forEach(function (storage) {
 					sum += storage.size;
 				});
 			}
@@ -356,25 +363,25 @@ define(function () {
 			conf.instanceCost = 0;
 			conf.storageCost = 0;
 			for (i = 0; i < instances.length; i++) {
-				var instance = instances[i];
+				var qi = instances[i];
 				// Optimize id access
-				conf.instancesById[instance.id] = instance;
-				conf.instanceCost += instance.cost;
+				conf.instancesById[qi.id] = qi;
+				conf.instanceCost += qi.cost;
 			}
 			conf.storagesById = {};
 			var storages = conf.storages;
 			for (i = 0; i < storages.length; i++) {
-				var storage = storages[i];
-				conf.storageCost += storage.cost;
-				if (storage.quoteInstance) {
+				var qs = storages[i];
+				conf.storageCost += qs.cost;
+				if (qs.quoteInstance) {
 					// Attached storage
-					storage.quoteInstance = conf.instancesById[storage.quoteInstance];
-					storage.quoteInstance.storages = storage.quoteInstance.storages || [];
-					storage.quoteInstance.storages.push(storage);
+					qs.quoteInstance = conf.instancesById[qs.quoteInstance];
+					qs.quoteInstance.storages = qs.quoteInstance.storages || [];
+					qs.quoteInstance.storages.push(qs);
 				}
 
 				// Optimize id access
-				conf.storagesById[storage.id] = storage;
+				conf.storagesById[qs.id] = qs;
 			}
 			current.updateUiCost();
 		},
@@ -426,8 +433,7 @@ define(function () {
 			var queries = [];
 			var type = $form.data('prov-type');
 			var $popup = _('popup-prov-' + type);
-			// Disable the submit while checking the resource
-			current.disableCreate($popup);
+
 			// Build the query
 			$form.find('.resource-query').each(function () {
 				var $item = $(this);
@@ -441,66 +447,39 @@ define(function () {
 				}
 			});
 			// Check the availability of this instance for these requirements
+			current.disableCreate($popup);
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queries.join('&'),
 				type: 'GET',
-				success: function (price) {
-					var callbackUi = current[type + 'SetUiPrice'];
-					var valid = current[type + 'ValidatePrice'](price);
-					if (valid) {
+				success: function (suggest) {
+					if (suggest.price) {
 						// The resource is valid, enable the create
 						current.enableCreate($popup);
 					}
-					callbackUi(valid);
+					current[type + 'SetUiPrice'](suggest);
+					current.model.quote.suggest = suggest;
+				},
+				error: function () {
+					current.enableCreate($popup);
 				}
 			});
-		},
-
-		instanceValidatePrice: function (price) {
-			var instances = [];
-			price.instance && instances.push(price.instance);
-			price.customInstance && instances.push(price.customInstance);
-			if (instances.length) {
-				// There is at least one valid instance
-				// For now, renders only the lowest priced instance
-				var lowest;
-				if (instances.length === 1) {
-					lowest = instances[0];
-				} else if (instances[0].cost < instances[1].cost) {
-					lowest = instances[0];
-				} else {
-					lowest = instances[1];
-				}
-				// TODO Add warning about custom instance
-				return lowest;
-			}
-			// Out of bound requirements
-			traceLog('Out of bounds for this requirement');
-		},
-
-		storageValidatePrice: function (price) {
-			return price.length ? price[0] : null;
 		},
 
 		/**
 		 * Set the current storage price.
 		 */
-		storageSetUiPrice: function (price) {
-			current.model.storagePrice = price;
-			_('storage').select2('data', price || null).val(price ? price.type.name + ' (' + current.formatCost(price.cost) + '/m)' : '');
+		storageSetUiPrice: function (quote) {
+			_('storage').select2('data', quote.price || null).val(quote.price ? quote.price.type.name + ' (' + current.formatCost(quote.cost) + '/m)' : '');
 		},
 
 		/**
 		 * Set the current instance price.
 		 */
-		instanceSetUiPrice: function (price) {
-			price = price || {};
-			current.model.instancePrice = price;
-
-			if (price.instance) {
-				_('instance').val(price.instance.instance.name + ' (' + current.formatCost(price.cost) + '/m)');
-				_('instance-price-type').select2('data', price.instance.type).val(price.instance.type.id);
+		instanceSetUiPrice: function (quote) {
+			if (quote && quote.price) {
+				_('instance').val(quote.price.type.name + ' (' + current.formatCost(quote.cost) + '/m)');
+				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
 			} else {
 				_('instance').val('');
 			}
@@ -551,11 +530,13 @@ define(function () {
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var model = ($tr.length && dataTable.fnGetData($tr[0])) || {};
-				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(model.id ? 'btn-primary' : 'btn-success');
+				var quote = ($tr.length && dataTable.fnGetData($tr[0])) || {};
+				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(quote.id ? 'btn-primary' : 'btn-success');
 				current.disableCreate($popup);
-				model.id && current.enableCreate($popup);
-				current.toUi(type, model);
+				quote.id && current.enableCreate($popup);
+				delete quote.suggest;
+				current.model.quote = quote;
+				current.toUi(type, quote);
 			});
 		},
 
@@ -637,12 +618,16 @@ define(function () {
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 			$('.quote-name').text(current.model.configuration.name);
-			$('.prov-project-edit').on('click', function () {
-				bootbox.prompt({
-					title: current.$messages.name,
-					callback: current.updateQuoteName,
-					value: current.model.configuration.name
-				});
+
+			_('popup-prov-update').on('shown.bs.modal', function () {
+				_('quote-name').trigger('focus');
+			}).on('submit', function (e) {
+				e.preventDefault();
+				current.updateQuote();
+			}).on('show.bs.modal', function (event) {
+				_('quote-name').val(current.model.configuration.name);
+				_('quote-description').val(current.model.configuration.description || '');
+				_('quote-location').select2('data', current.model.configuration.location);
 			});
 			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
 			$('#prov-terraform-execute').on('click', current.terraform);
@@ -753,55 +738,38 @@ define(function () {
 				// Also trigger the change of the value
 				_('instance-cpu').trigger('change');
 			});
-			_('instance-price-type').select2(current.instancePriceTypeSelect2());
-			_('instance-price-type-upload').select2(current.instancePriceTypeSelect2(true));
-		},
-
-		/**
-		 * Execute the terraform deployment
-		 */
-		terraform: function () {
-			$.ajax({
-				type: 'POST',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/terraform',
-				dataType: 'json',
-				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:terraform:started'])());
+			_('instance-term').select2(current.instanceTermSelect2());
+			_('instance-term-upload').select2(current.instanceTermSelect2(true));
+			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
+				if (event.added.data) {
+					current.updateLocation(event.added.data);
 				}
 			});
+			_('instance-location').select2(current.locationSelect2(true));
+			_('storage-location').select2(current.locationSelect2(true));
 		},
 
 		/**
-		 * Update the auto-scale  flag from the provided quantities.
+		 * Location Select2 configuration.
 		 */
-		updateAutoScale: function () {
-			_('instance-auto-scale').prop('checked', _('instance-min-quantity').val() !== _('instance-max-quantity').val());
+		locationSelect2: function (allowClear) {
+			return current.genericSelect2(true, current.locationToText, 'location');
 		},
 
 		/**
-		 * Update the quote name
+		 * Price term Select2 configuration.
 		 */
-		updateQuoteName: function (name) {
-			$.ajax({
-				type: 'PUT',
-				url: REST_PATH + 'service/prov/' + current.model.subscription,
-				dataType: 'json',
-				contentType: 'application/json',
-				data: JSON.stringify({
-					name: name,
-					description: current.model.configuration.description
-				}),
-				success: function () {
-					$('.quote-name').text(name);
-					notifyManager.notify(Handlebars.compile(current.$messages.updated)(name));
-				}
-			});
+		instanceTermSelect2: function (allowClear) {
+			return current.genericSelect2(true, current.termToText, 'instance-price-term');
 		},
 
-		instancePriceTypeSelect2: function (allowClear) {
+		/**
+		 * Generic Ajax Select2 configuration.
+		 */
+		genericSelect2: function (allowClear, renderer, path) {
 			return {
-				formatSelection: current.priceTypeToText,
-				formatResult: current.priceTypeToText,
+				formatSelection: renderer,
+				formatResult: renderer,
 				escapeMarkup: function (m) {
 					return m;
 				},
@@ -811,7 +779,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-						return REST_PATH + 'service/prov/' + current.model.subscription + '/instance-price-type';
+						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + path;
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -836,7 +804,7 @@ define(function () {
 							result.push({
 								id: this.id,
 								data: this,
-								text: current.priceTypeToText(this)
+								text: renderer(this)
 							});
 						});
 						return {
@@ -848,8 +816,111 @@ define(function () {
 			};
 		},
 
-		priceTypeToText: function (priceType) {
-			return priceType.name || priceType.text || priceType;
+		/**
+		 * Execute the terraform deployment
+		 */
+		terraform: function () {
+			$.ajax({
+				type: 'POST',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/terraform',
+				dataType: 'json',
+				success: function () {
+					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:terraform:started'])());
+				}
+			});
+		},
+
+		/**
+		 * Update the auto-scale  flag from the provided quantities.
+		 */
+		updateAutoScale: function () {
+			var min = _('instance-min-quantity').val();
+			min = min && parseInt(min, 10);
+			var max = _('instance-max-quantity').val();
+			max = max && parseInt(max, 10);
+			if (min && max !== '' && min > max) {
+				max = min;
+				_('instance-max-quantity').val(min);
+			}
+			_('instance-auto-scale').prop('checked', (min !== max));
+		},
+
+		/**
+		 * Update the quote name and description
+		 */
+		updateQuote: function () {
+			var $popup = _('popup-prov-update');
+			var data = {
+				name: _('quote-name').val(),
+				description: _('quote-description').val(),
+				location: _('quote-location').val()
+			};
+			current.disableCreate($popup);
+			$.ajax({
+				type: 'PUT',
+				url: REST_PATH + 'service/prov/' + current.model.subscription,
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function (newCost) {
+					// Update the UI
+					$('.quote-name').text(data.name);
+
+					// Commit to the model
+					current.model.configuration.name = data.name;
+					current.model.configuration.description = data.description;
+					notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
+					$popup.modal('hide');
+					current.reloadAsNeed(newCost);
+				},
+				complete: function () {
+					current.enableCreate($popup);
+				}
+			});
+		},
+
+		/**
+		 * Update the quote's location. If the total cost is updated, the quote will be updated.
+		 * @param {object} location The location data, including identifier and name.
+		 */
+		updateLocation: function (location) {
+			$.ajax({
+				type: 'PUT',
+				url: REST_PATH + 'service/prov/' + current.model.subscription,
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					name: current.model.configuration.name,
+					description: current.model.configuration.description,
+					location: location.name
+				}),
+				success: function (newCost) {
+					// Commit to the model
+					current.model.configuration.location = location;
+					notifyManager.notify(Handlebars.compile(current.$messages.updated)(location.name));
+
+					// Handle updated cost
+					current.reloadAsNeed(newCost);
+				}, error : function() {
+					// Restore the old value
+					notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:location-failed'])(location.name));
+					_('quote-location').select2('data', current.model.configuration.location);				
+				}
+			});
+		},
+
+		/**
+		 * Location text renderer.
+		 */
+		locationToText: function (location) {
+			return location.name || location.text || location;
+		},
+
+		/**
+		 * Price term text renderer.
+		 */
+		termToText: function (term) {
+			return term.name || term.text || term;
 		},
 
 		/**
@@ -867,9 +938,8 @@ define(function () {
 			}
 		},
 
-		storageCommitToModel: function (data, model, costContext) {
+		storageCommitToModel: function (data, model) {
 			model.size = parseInt(data.size, 10);
-			model.type = costContext.type;
 
 			// Redraw the previous instance
 			if (model.quoteInstance) {
@@ -886,7 +956,7 @@ define(function () {
 			}
 		},
 
-		instanceCommitToModel: function (data, model, costContext, updatedCost) {
+		instanceCommitToModel: function (data, model, updatedCost) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
@@ -894,24 +964,25 @@ define(function () {
 			model.minQuantity = parseInt(data.minQuantity, 10);
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
-			model.instancePrice = costContext.instance;
 			model.os = data.os;
 
 			// Also update the related resources costs
 			var conf = current.model.configuration;
-			Object.keys(updatedCost.relatedCosts).forEach(function(id) {
-				var storage = conf.storagesById[id];
-				conf.storageCost += updatedCost.relatedCosts[id].min - storage.cost;
-				storage.cost = updatedCost.relatedCosts[id].min;
-				storage.maxCost = updatedCost.relatedCosts[id].max;
+			Object.keys(updatedCost.relatedCosts).forEach(function (id) {
+				var qs = conf.storagesById[id];
+				conf.storageCost += updatedCost.relatedCosts[id].min - qs.cost;
+				qs.cost = updatedCost.relatedCosts[id].min;
+				qs.maxCost = updatedCost.relatedCosts[id].max;
 			});
 		},
 
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
-			data.type = current.model.storagePrice.type.id;
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
-			return current.model.storagePrice;
+
+			// Use either the new price, either the original one 
+			var price = (current.model.quote.suggest || current.model.quote).price;
+			data.type = price.name;
 		},
 
 		instanceUiToData: function (data) {
@@ -924,8 +995,10 @@ define(function () {
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
 			data.os = _('instance-os').val().toLowerCase();
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
-			data.instancePrice = current.model.instancePrice.instance.id;
-			return current.model.instancePrice;
+
+			// Use either the new price, either the original one 
+			var price = (current.model.quote.suggest || current.model.quote).price;
+			data.price = price.id;
 		},
 
 		cleanFloat: function (data) {
@@ -949,7 +1022,6 @@ define(function () {
 		 */
 		toUi: function (type, model) {
 			validationManager.reset(_('popup-prov-' + type));
-			current.currentId = model.id;
 			_(type + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
 			_(type + '-description').val(model.description || '');
 			current[type + 'ToUi'](model);
@@ -957,31 +1029,28 @@ define(function () {
 
 		/**
 		 * Fill the instance popup with given entity or default values.
-		 * @param {Object} model, the entity corresponding to the quote.
+		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
-		instanceToUi: function (model) {
-			_('instance-cpu').val(model.cpu || 1);
-			current.adaptRamUnit(model.ram || 2048);
+		instanceToUi: function (quote) {
+			_('instance-cpu').val(quote.cpu || 1);
+			current.adaptRamUnit(quote.ram || 2048);
 			_('instance-constant').find('li.active').removeClass('active');
-			if (model.constant === true) {
+			if (quote.constant === true) {
 				_('instance-constant').find('li[data-value="constant"]').addClass('active');
-			} else if (model.constant === false) {
+			} else if (quote.constant === false) {
 				_('instance-constant').find('li[data-value="variable"]').addClass('active');
 			} else {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
-			_('instance-max-variable-cost').val(model.maxVariableCost || null);
-			_('instance-ephemeral').prop('checked', model.ephemeral);
-			_('instance-min-quantity').val((typeof model.minQuantity === 'number') ? model.minQuantity : 1);
-			_('instance-max-quantity').val((typeof model.maxQuantity === 'number') ? model.maxQuantity : '');
-			_('instance-os').select2('data', current.select2IdentityData((model.id && (model.os || model.instancePrice.os)) || 'LINUX'));
-			_('instance-internet').select2('data', current.select2IdentityData(model.internet || 'PUBLIC'));
+			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
+			_('instance-ephemeral').prop('checked', quote.ephemeral);
+			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : 1);
+			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : 1);
+			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
+			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
-			current.instanceSetUiPrice(model.id && {
-				cost: model.cost,
-				instance: model.instancePrice
-			});
-			model.id || $.proxy(current.checkResource, _('popup-prov-instance'))();
+			current.instanceSetUiPrice(quote);
+			quote.id || $.proxy(current.checkResource, _('popup-prov-instance'))();
 		},
 
 		/**
@@ -1007,16 +1076,12 @@ define(function () {
 		 * Fill the storage popup with given entity.
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
-		storageToUi: function (model) {
-			_('storage-size').val(model.size || '10');
-			_('storage-frequency').select2('data', current.select2IdentityData((model.type && model.type.frequency) || 'HOT'));
-			_('storage-optimized').select2('data', current.select2IdentityData(model.type && model.type.optimized));
-			_('storage-instance').select2('data', model.quoteInstance);
-
-			current.storageSetUiPrice(model.id && {
-				cost: model.cost,
-				type: model.type
-			});
+		storageToUi: function (quote) {
+			_('storage-size').val(quote.size || '10');
+			_('storage-frequency').select2('data', current.select2IdentityData((quote.price.type && quote.price.type.frequency) || 'HOT'));
+			_('storage-optimized').select2('data', current.select2IdentityData(quote.price && quote.price.type.optimized));
+			_('storage-instance').select2('data', quote.quoteInstance);
+			current.storageSetUiPrice(quote);
 		},
 
 		select2IdentityData: function (id) {
@@ -1035,18 +1100,20 @@ define(function () {
 
 			// Build the playload for business service
 			var data = {
-				id: current.currentId,
+				id: current.model.quote.id,
 				name: _(type + '-name').val(),
 				description: _(type + '-description').val(),
 				subscription: current.model.subscription
 			};
 			// Complete the data from the UI and backup the price context
-			var priceContext = current[type + 'UiToData'](data);
+			current[type + 'UiToData'](data);
 
 			// Trim the data
-			Object.keys(data).forEach(function(key) {
+			Object.keys(data).forEach(function (key) {
 				(data[key] === null || data[key] === '') && delete data[key];
 			});
+
+			current.disableCreate($popup);
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
@@ -1054,8 +1121,11 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveCallback(type, updatedCost, data, priceContext);
+					current.saveAndUpdateCosts(type, updatedCost, data, current.model.quote.suggest);
 					$popup.modal('hide');
+				},
+				complete: function () {
+					current.enableCreate($popup);
 				}
 			});
 		},
@@ -1065,13 +1135,13 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 * @param {string} updatedCost The new updated cost with identifier, total cost, resource cost and related resources costs.
 		 * @param {object} data The original data sent to the back-end.
-		 * @param {object} priceContext The price context to commit in addition of data.
+		 * @param {object} suggest The last know price suggest replacing the current price. When undefined, the original price is used.
 		 * @return {object} The updated or created model.
 		 */
-		saveCallback: function (type, updatedCost, data, priceContext) {
+		saveAndUpdateCosts: function (type, updatedCost, data, suggest) {
 			var conf = current.model.configuration;
 			var id = updatedCost.id;
-			if (current.currentId) {
+			if (data.id) {
 				notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
 			} else {
 				notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
@@ -1079,23 +1149,24 @@ define(function () {
 
 			// Update the model
 			conf.cost = updatedCost.totalCost;
-			var model = conf[type + 'sById'][data.id] || {
+			var qx = conf[type + 'sById'][data.id] || {
 				id: id,
 				cost: 0
 			};
 
 			// Common data
-			model.name = data.name;
-			model.description = data.description;
+			qx.price = (suggest || current.model.quote || qx).price;
+			qx.name = data.name;
+			qx.description = data.description;
 
 			// Specific data
-			current[type + 'CommitToModel'](data, model, priceContext, updatedCost);
+			current[type + 'CommitToModel'](data, qx, updatedCost);
 
 			// Update the model cost
-			var delta = updatedCost.resourceCost.min - model.cost;
+			var delta = updatedCost.resourceCost.min - qx.cost;
 			conf[type + 'Cost'] += delta;
-			model.cost = updatedCost.resourceCost.min;
-			model.maxCost = updatedCost.resourceCost.max;
+			qx.cost = updatedCost.resourceCost.min;
+			qx.maxCost = updatedCost.resourceCost.max;
 
 			// Update the UI
 			var $table = _('prov-' + type + 's');
@@ -1104,11 +1175,11 @@ define(function () {
 				current.redrawResource(type, data.id);
 			} else {
 				// Create
-				conf[type + 's'].push(model);
-				conf[type + 'sById'][id] = model;
+				conf[type + 's'].push(qx);
+				conf[type + 'sById'][id] = qx;
 
 				// Add the new row
-				$table.DataTable().row.add(model).draw(false);
+				$table.DataTable().row.add(qx).draw(false);
 			}
 
 			// With related cost, other UI table need to be updated
@@ -1119,7 +1190,7 @@ define(function () {
 
 			// Update the UI costs only now
 			current.updateUiCost();
-			return model;
+			return qx;
 		},
 
 		/**
@@ -1132,7 +1203,7 @@ define(function () {
 			var usage = current.usageGlobalRate();
 
 			// Update the global counts
-			$('.cost').text(current.formatCost(conf.cost) || '-');
+			$('.cost').html(current.formatCost(conf.cost) || '-');
 			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
 
@@ -1141,7 +1212,7 @@ define(function () {
 			if (usage.cpu.available) {
 				$summary.removeClass('hidden');
 				$summary.eq(0).rawText(' ' + usage.cpu.available);
-				$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available));
+				$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available).replace('</span>','').replace('<span class="unit">',''));
 				$summary.eq(2).rawText(' ' + usage.publicAccess);
 			} else {
 				$summary.addClass('hidden');
@@ -1203,19 +1274,19 @@ define(function () {
 			var nb = 0;
 			var publicAccess = 0;
 			for (var i = 0; i < conf.instances.length; i++) {
-				var instance = conf.instances[i];
-				nb = instance.minQuantity || 1;
-				cpuAvailable += instance.instancePrice.instance.cpu * nb;
-				cpuUsed += instance.cpu * nb;
-				ramAvailable += instance.instancePrice.instance.ram * nb;
-				ramUsed += instance.ram * nb;
-				publicAccess += (instance.internet === 'public') ? 1 : 0;
+				var qi = conf.instances[i];
+				nb = qi.minQuantity || 1;
+				cpuAvailable += qi.price.type.cpu * nb;
+				cpuUsed += qi.cpu * nb;
+				ramAvailable += qi.price.type.ram * nb;
+				ramUsed += qi.ram * nb;
+				publicAccess += (qi.internet === 'public') ? 1 : 0;
 			}
 			for (i = 0; i < conf.storages.length; i++) {
-				var storage = conf.storages[i];
-				nb = (storage.quoteInstance && storage.quoteInstance.minQuantity) || 1;
-				storageAvailable += Math.max(storage.size, storage.type.minimal) * nb;
-				storageUsed += storage.size * nb;
+				var qs = conf.storages[i];
+				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
+				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
+				storageUsed += qs.size * nb;
 			}
 			return {
 				publicAccess: publicAccess,
@@ -1281,20 +1352,20 @@ define(function () {
 			var conf = current.model.configuration;
 			var deletedStorages = [];
 			for (var i = conf.instances.length; i-- > 0;) {
-				var instance = conf.instances[i];
-				if (typeof id === 'undefined' || instance.id === id) {
+				var qi = conf.instances[i];
+				if (typeof id === 'undefined' || qi.id === id) {
 					conf.instances.splice(i, 1);
-					conf.instanceCost -= instance.cost;
-					delete conf.instancesById[instance.id];
+					conf.instanceCost -= qi.cost;
+					delete conf.instancesById[qi.id];
 					// Also delete the related storages
 					for (var s = conf.storages.length; s-- > 0;) {
-						var storage = conf.storages[s];
-						if (storage.quoteInstance && storage.quoteInstance.id === instance.id) {
+						var qs = conf.storages[s];
+						if (qs.quoteInstance && qs.quoteInstance.id === qi.id) {
 							// Delete the associated storages
 							conf.storages.splice(s, 1);
-							conf.storageCost -= storage.cost;
-							delete conf.storagesById[storage.id];
-							deletedStorages.push(storage.id);
+							conf.storageCost -= qs.cost;
+							delete conf.storagesById[qs.id];
+							deletedStorages.push(qs.id);
 						}
 					}
 					if (id) {
@@ -1310,7 +1381,7 @@ define(function () {
 		 * Initialize D3 graphics with default empty data.
 		 */
 		initializeD3: function () {
-			require(['d3', '../main/service/prov/lib/liquidFillGauge'], function (d3) {
+			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
 				current.initializeD3Gauge(d3);
 				// First render
 				current.updateUiCost();
@@ -1344,44 +1415,44 @@ define(function () {
 				data.children.push(storages);
 			}
 			for (var i = 0; i < conf.instances.length; i++) {
-				var instance = conf.instances[i];
-				var oss = allOss[instance.os];
+				var qi = conf.instances[i];
+				var oss = allOss[qi.os];
 				if (typeof oss === 'undefined') {
 					// First OS
 					oss = {
-						name: current.formatOs(instance.os, true, ' fa-2x'),
+						name: current.formatOs(qi.os, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
-					allOss[instance.os] = oss;
+					allOss[qi.os] = oss;
 					instances.children.push(oss);
 				}
-				oss.value += instance.cost;
-				instances.value += instance.cost;
+				oss.value += qi.cost;
+				instances.value += qi.cost;
 				oss.children.push({
-					name: instance.name,
-					size: instance.cost
+					name: qi.name,
+					size: qi.cost
 				});
 			}
 			var allFrequencies = {};
 			for (i = 0; i < conf.storages.length; i++) {
-				var storage = conf.storages[i];
-				var frequencies = allFrequencies[storage.type.frequency];
+				var qs = conf.storages[i];
+				var frequencies = allFrequencies[qs.price.type.frequency];
 				if (typeof frequencies === 'undefined') {
 					// First OS
 					frequencies = {
-						name: current.formatStorageFrequency(storage.type.frequency, true, ' fa-2x'),
+						name: current.formatStorageFrequency(qs.price.type.frequency, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
-					allFrequencies[storage.type.frequency] = frequencies;
+					allFrequencies[qs.price.type.frequency] = frequencies;
 					storages.children.push(frequencies);
 				}
-				frequencies.value += storage.cost;
-				storages.value += storage.cost;
+				frequencies.value += qs.cost;
+				storages.value += qs.cost;
 				frequencies.children.push({
-					name: storage.name,
-					size: storage.cost
+					name: qs.name,
+					size: qs.cost
 				});
 			}
 
@@ -1423,7 +1494,7 @@ define(function () {
 						},
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
 						formatResult: function (qs) {
-							return current.formatStorageHtml(qs) + ' ' + qs.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '/m</span>';
+							return current.formatStorageHtml(qs) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '/m</span>';
 						},
 						formatSelection: current.formatStorageHtml,
 						ajax: {
@@ -1436,9 +1507,9 @@ define(function () {
 							},
 							results: function (data) {
 								// Completed the requested identifier
-								data.forEach(function(item) {
-									item.id = item.type.id + '-' + new Date().getMilliseconds();
-									item.text = item.type.name;
+								data.forEach(function (quote) {
+									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+									quote.text = quote.price.type.name;
 								});
 								return {
 									more: false,
@@ -1449,11 +1520,11 @@ define(function () {
 					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
 							// New storage
-							var storagePrice = event.added;
+							var suggest = event.added;
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
-								type: storagePrice.type.id,
-								size: storagePrice.size,
+								type: suggest.price.type.name,
+								size: suggest.size,
 								quoteInstance: qi.id,
 								subscription: current.model.subscription
 							};
@@ -1464,7 +1535,7 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (updatedCost) {
-									storagePrice.qs = current.saveCallback('storage', updatedCost, data, storagePrice);
+									current.saveAndUpdateCosts('storage', updatedCost, data, suggest);
 
 									// Keep the focus on this UI after the redraw of the row
 									$(function () {
@@ -1508,10 +1579,10 @@ define(function () {
 					width: '48px',
 					render: current.formatRam
 				}, {
-					data: 'instancePrice.type.name',
-					className: 'hidden-xs hidden-sm'
+					data: 'price.term.name',
+					className: 'hidden-xs hidden-sm price-term'
 				}, {
-					data: 'instancePrice.instance.name',
+					data: 'price.type.name',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatInstance
 				}, {
@@ -1547,7 +1618,7 @@ define(function () {
 		/**
 		 * Find a free name within the given namespace.
 		 * @param {array} resources The namespace of current resources.
-		 * @param {string} prefix The prefered name (if available) and used as prefix when there is collision.
+		 * @param {string} prefix The preferred name (if available) and used as prefix when there is collision.
 		 * @param {string} increment The current increment number of collision. Will starts from 1 when not specified.
 		 * @param {string} resourcesByName The namespace where key is the unique name.
 		 */
@@ -1555,7 +1626,7 @@ define(function () {
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
-				resources.forEach(function(resource) {
+				resources.forEach(function (resource) {
 					resourcesByName[resource.name] = resource;
 				});
 			}
@@ -1594,15 +1665,15 @@ define(function () {
 					className: 'truncate',
 					render: current.formatStorage
 				}, {
-					data: 'type.frequency',
+					data: 'price.type.frequency',
 					className: 'truncate hidden-xs',
 					render: current.formatStorageFrequency
 				}, {
-					data: 'type.optimized',
+					data: 'price.type.optimized',
 					className: 'truncate hidden-xs',
 					render: current.formatStorageOptimized
 				}, {
-					data: 'type.name',
+					data: 'price.type.name',
 					className: 'truncate hidden-xs hidden-sm hidden-md'
 				}, {
 					data: 'quoteInstance.name',

@@ -38,8 +38,9 @@ public class InstanceUpload {
 	private Double disk;
 	private ProvStorageFrequency frequency;
 	private ProvStorageOptimized optimized;
-	private String instance;
-	private String priceType;
+	private String type;
+	private String term;
+	private String location;
 
 	/**
 	 * Minimal quantity, when undefined <code>1</code>.

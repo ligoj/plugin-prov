@@ -1,4 +1,4 @@
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.terraform;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +27,17 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.prov.model.ProvInstance;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.QuoteVo;
+import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
@@ -60,6 +65,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Autowired
 	private TerraformResource resource;
 
+	@Autowired
+	private TerraformRunnerResource runner;
+
 	@After
 	@Before
 	public void cleanupFiles() throws IOException {
@@ -71,8 +79,10 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvQuote.class, ProvStorageType.class,
-				ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
+						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 	}
@@ -86,7 +96,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void getTerraform() throws IOException {
 		final Terraforming terraforming = Mockito.mock(Terraforming.class);
 		((StreamingOutput) newResource(terraforming).getTerraform(subscription, "any.tf").getEntity()).write(new ByteArrayOutputStream());
-		Mockito.verify(terraforming).terraform(ArgumentMatchers.any(OutputStream.class), ArgumentMatchers.eq(subscription), ArgumentMatchers.any(QuoteVo.class));
+		Mockito.verify(terraforming).terraform(ArgumentMatchers.any(OutputStream.class), ArgumentMatchers.eq(subscription),
+				ArgumentMatchers.any(QuoteVo.class));
 
 		// Coverage only
 		Assert.assertEquals(TerraformStep.PLAN, TerraformStep.valueOf(TerraformStep.values()[0].name()));
@@ -155,13 +166,13 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assert.assertEquals(logString, bos.toString(StandardCharsets.UTF_8));
 
 		// Check the task status
-		TerraformStatus task = resource.resource.getTask(subscription);
+		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assert.assertTrue(task.isFinished());
 		Assert.assertFalse(task.isFailed());
 		Assert.assertNotNull(task.getStart());
 		Assert.assertNotNull(task.getAuthor());
 		Assert.assertEquals(DEFAULT_USER, task.getAuthor());
-		Assert.assertEquals(subscription, task.getSubscription().getId().intValue());
+		Assert.assertEquals("service:prov:test:account", task.getLocked().getId());
 		Assert.assertNotNull(task.getEnd());
 		Assert.assertEquals(TerraformStep.SHOW, task.getStep());
 	}
@@ -175,17 +186,21 @@ public class TerraformResourceTest extends AbstractAppTest {
 		try {
 			applyTerraform(resource);
 			Assert.fail("Expected IOException");
-		} catch (IOException ioe) {
+		} catch (final IOException ioe) {
 			// Nice, as expected, but more check to do
-			Assert.assertTrue(resource.resource.getTask(subscription).isFinished());
-			Assert.assertTrue(resource.resource.getTask(subscription).isFailed());
+			final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
+			Assert.assertNotNull(task);
+			Assert.assertTrue(task.isFinished());
+			Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
 		}
 	}
 
 	@Test
 	public void applyTerraformLogWriteFailed() throws InterruptedException {
-		applyTerraformIOE(newResource(Mockito.mock(Terraforming.class), (s, f) -> f.length > 0 && f[0].equals("main.log")
-				? new File("random-place/random-place") : f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), false));
+		applyTerraformIOE(newResource(Mockito.mock(Terraforming.class),
+				(s, f) -> f.length > 0 && f[0].equals("main.log") ? new File("random-place/random-place")
+						: f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
+				false));
 	}
 
 	@Test
@@ -219,12 +234,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final String logString = IOUtils.toString(log.toURI(), "UTF-8");
 		Assert.assertTrue(logString.contains("error=" + code));
 		Assert.assertTrue(logString.contains(message));
-		Assert.assertTrue(resource.resource.getTask(subscription).isFinished());
+		Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFinished());
 
 		if (code == 1) {
-			Assert.assertTrue(resource.resource.getTask(subscription).isFailed());
+			Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
 		} else {
-			Assert.assertFalse(resource.resource.getTask(subscription).isFailed());
+			Assert.assertFalse(resource.runner.getTask("service:prov:test:account").isFailed());
 		}
 		if (thrown != null) {
 			throw thrown;
@@ -234,11 +249,6 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Test
 	public void getTerraformLog() throws IOException {
 		Assert.assertEquals(404, newResource(Mockito.mock(Terraforming.class)).getTerraformLog(subscription).getStatus());
-	}
-
-	@Test
-	public void newBuilder() {
-		resource.newBuilder().command().contains("terraform");
 	}
 
 	@Test
@@ -274,16 +284,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 				return toFile.apply(subscription, new String[] { file });
 			}
 
-			@Override
-			protected ProcessBuilder newBuilder(String... args) {
-				return new ProcessBuilder(
-						ArrayUtils.addAll(new String[] { "java", "-cp", MOCK_PATH.getParent(), "org.ligoj.app.plugin.prov.Main" },
-								customArgs.length > 0 ? customArgs : args));
-			}
-
 			/**
-			 * Prepare the Terraform environment to apply the new environment.
-			 * Note there is no concurrency check.
+			 * Prepare the Terraform environment to apply the new environment. Note there is
+			 * no concurrency check.
 			 */
 			@Override
 			protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
@@ -297,30 +300,34 @@ public class TerraformResourceTest extends AbstractAppTest {
 		};
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
-		// Mock to disable inner transactions for this test
-		resource.resource = new ProvResource() {
-			@Override
-			public TerraformStatus startTask(final int subscription) {
-				return super.startTask(subscription);
-			}
+		// Replace the plugin locator
+		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
+		resource.locator = locator;
+
+		// Replace the runner
+		resource.runner = new TerraformRunnerResource();
+		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
+
+		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
+
+		// Replace the CLI runner
+		resource.terraformUtils = new TerraformUtils() {
 
 			@Override
-			public void endTask(final int subscription, final boolean failed) {
-				super.endTask(subscription, failed);
-			}
-
-			@Override
-			public void nextStep(final TerraformStatus task) {
-				super.nextStep(task);
+			protected ProcessBuilder newBuilder(String... args) {
+				return new ProcessBuilder(
+						ArrayUtils.addAll(new String[] { "java", "-cp", MOCK_PATH.getParent(), "org.ligoj.app.plugin.prov.terraform.Main" },
+								customArgs.length > 0 ? customArgs : args));
 			}
 		};
-		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.resource);
-
-		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
-
-		// Replace the plugin locator
-		resource.locator = locator;
-		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
 		return resource;
+	}
+
+	@Test
+	public void testBusiness() {
+		// Coverage only
+		Assert.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
+		Assert.assertNotNull(runner.getNodeRepository());
+		Assert.assertNotNull(runner.getTaskRepository());
 	}
 }

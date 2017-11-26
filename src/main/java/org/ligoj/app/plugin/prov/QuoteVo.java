@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
 
 import lombok.Getter;
@@ -29,5 +30,10 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * Related storages instance.
 	 */
-	private List<QuoteStorageVo> storages;
+	private List<ProvQuoteStorage> storages;
+	
+	/**
+	 * Default location of this quote.
+	 */
+	private String location;
 }

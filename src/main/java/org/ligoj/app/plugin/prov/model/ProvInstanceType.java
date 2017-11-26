@@ -22,13 +22,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvInstance extends AbstractDescribedEntity<Integer> implements NodeScoped {
-
-	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
+@Table(name = "LIGOJ_PROV_INSTANCE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+public class ProvInstanceType extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
 	 * Amount of CPU. When <code>0</code>, correspond to a custom instance.
@@ -37,7 +32,7 @@ public class ProvInstance extends AbstractDescribedEntity<Integer> implements No
 	private Double cpu;
 
 	/**
-	 * RAM (Memory) in "Mo" = "Mega Bytes"
+	 * RAM (Memory) in "MiB" = "Mega Bytes"
 	 */
 	@NotNull
 	private Integer ram;

@@ -17,12 +17,12 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * 
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The quote with aggregated details : Quote, amount of instances,
-	 *         total RAM and total CPU.
+	 * @return The quote with aggregated details : Quote, amount of instances, total
+	 *         RAM and total CPU.
 	 */
 	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
 			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.instances AS qi"
-			+ " LEFT JOIN qi.instancePrice AS ip LEFT JOIN ip.instance AS i WHERE q.subscription.id = :subscription GROUP BY q")
+			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getComputeSummary(int subscription);
 
 	/**
@@ -46,8 +46,8 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @return The compute quote details : Quote, instance details and price
 	 *         details.
 	 */
-	@Query("FROM ProvQuote AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.instancePrice AS ip "
-			+ " LEFT JOIN FETCH ip.instance AS i LEFT JOIN FETCH ip.type WHERE q.subscription.id = :subscription")
+	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
+			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term WHERE q.subscription.id = :subscription")
 	ProvQuote getCompute(int subscription);
 
 	/**
@@ -57,7 +57,16 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *            The subscription identifier linking the quote.
 	 * @return The storage quote details with the optional linked instance.
 	 */
-	@Query("FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.type LEFT JOIN FETCH qs.quoteInstance"
+	@Query("FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.price qsp INNER JOIN FETCH qsp.type LEFT JOIN FETCH qs.quoteInstance"
 			+ " WHERE qs.configuration.subscription.id = :subscription")
 	List<ProvQuoteStorage> getStorage(int subscription);
+
+	/**
+	 * Return the amount of quotes based on the related node.
+	 * @param node
+	 *            The node identifier. Sub nodes are also involved.
+	 * @return The amount of quotes based on the related node.
+	 */
+	@Query("SELECT COUNT (q) FROM #{#entityName} AS q INNER JOIN q.subscription AS s WHERE s.node.id = :node OR s.node.id LIKE CONCAT(:node, ':%')")
+	long countByNode(String node);
 }

@@ -1,6 +1,5 @@
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.terraform;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -15,10 +14,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Test class of {@link TerraformResource} for {@link ProcessBuilder} platform
- * only.
+ * Test class of {@link TerraformUtils}
  */
-public class TerraformResourceCLTest {
+public class TerraformUtilsTest {
 
 	private String os = SystemUtils.OS_NAME;
 
@@ -32,19 +30,17 @@ public class TerraformResourceCLTest {
 		checkCommands("FreeBSD", new String[] { "sh", "-c", "null terraform" });
 	}
 
-	private void checkCommands(final String os, final String... command) throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private void checkCommands(final String os, final String... command) throws ReflectiveOperationException {
 		final URL[] urLs = ((URLClassLoader) Main.class.getClassLoader()).getURLs();
 		ThreadClassLoaderScope scope = null;
 		try {
 			System.setProperty("os.name", os);
 			final URLClassLoader urlClassLoader = new URLClassLoader(urLs, null);
 			scope = new ThreadClassLoaderScope(urlClassLoader);
-			final Object terra = urlClassLoader.loadClass("org.ligoj.app.plugin.prov.TerraformResource").newInstance();
+			final Object terra = urlClassLoader.loadClass("org.ligoj.app.plugin.prov.terraform.TerraformUtils").newInstance();
 			final Object mock = MethodUtils.invokeStaticMethod(urlClassLoader.loadClass("org.mockito.Mockito"), "mock",
 					urlClassLoader.loadClass("org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource"));
 			FieldUtils.writeField(terra, "configuration", mock, true);
-
 			Assert.assertEquals(Arrays.asList(command),
 					((ProcessBuilder) MethodUtils.invokeMethod(terra, true, "newBuilder", new Object[] { new String[] { "terraform" } }))
 							.command());

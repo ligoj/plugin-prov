@@ -11,6 +11,9 @@ import org.ligoj.bootstrap.core.DescribedBean;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Quote for an instance while editing it.
+ */
 @Getter
 @Setter
 public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
@@ -20,7 +23,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 */
 	@NotNull
 	@Positive
-	private Integer instancePrice;
+	private Integer price;
 
 	/**
 	 * Related subscription identifier.
@@ -87,4 +90,9 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The instance could be terminated by the provider. Default <code>false</code>.
 	 */
 	private boolean ephemeral;
+	
+	/**
+	 * Optional required location. When <code>null</code>, the default quote's one will be used.
+	 */
+	private String location;
 }

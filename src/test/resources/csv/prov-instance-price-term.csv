@@ -1,0 +1,5 @@
+node.id;name;code;period;description;minimum;ephemeral;variable
+service:prov:test;on-demand1;A;15;15 minutes fragment;60
+service:prov:test;on-demand2;B;60;1 hour fragment;;true;true
+service:prov:test;1y;527040;C;1 year fragment
+service:prov:x;1y;527040;D;1 year fragment

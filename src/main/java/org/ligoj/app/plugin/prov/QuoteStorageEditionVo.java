@@ -1,6 +1,7 @@
 package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,14 +14,16 @@ import lombok.Setter;
 public class QuoteStorageEditionVo extends AbstractQuoteStorageVo {
 
 	/**
-	 * Related storage with the price.
+	 * Related storage type name within the given location.
 	 */
-	private int type;
+	@NotNull
+	private String type;
 	
 	/**
 	 * Related subscription identifier.
 	 */
 	@NotNull
+	@Positive
 	private Integer subscription;
 
 }

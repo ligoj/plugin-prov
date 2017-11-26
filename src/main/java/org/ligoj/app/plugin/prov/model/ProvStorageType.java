@@ -19,28 +19,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Storage type of a provider.
+ * Storage specification of a provider. <br>
+ * Sizes use the GiB unit.
+ * 
+ * @see https://en.wikipedia.org/wiki/Gibibyte
+ * 
  */
 @Getter
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_STORAGE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
 public class ProvStorageType extends AbstractDescribedEntity<Integer> implements NodeScoped {
-
-	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
-
-	/**
-	 * The fixed monthly cost whatever the used size.
-	 */
-	private double cost = 0;
-
-	/**
-	 * The monthly cost of 1Go (Giga Bytes).
-	 */
-	private double costGb = 0;
 
 	/**
 	 * The frequency access
@@ -56,12 +45,12 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private ProvStorageOptimized optimized;
 
 	/**
-	 * The minimal disk size in "Go".
+	 * The minimal disk size in "GiB".
 	 */
 	private int minimal = 1;
 
 	/**
-	 * The maximum supported size in "Go". May be <code>null</code>.
+	 * The maximum supported size in "GiB". May be <code>null</code>.
 	 */
 	private Integer maximal;
 
@@ -71,15 +60,11 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private boolean instanceCompatible = false;
 
 	/**
-	 * The cost per transaction. May be <code>0</code>.
-	 */
-	private double costTransaction;
-
-	/**
 	 * The enabled provider.
 	 */
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
+
 }

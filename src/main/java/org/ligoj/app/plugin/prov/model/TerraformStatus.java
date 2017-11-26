@@ -2,9 +2,10 @@ package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
-import org.ligoj.app.model.AbstractLongTask;
-import org.ligoj.app.plugin.prov.TerraformStep;
+import org.ligoj.app.model.AbstractLongTaskNode;
+import org.ligoj.app.plugin.prov.terraform.TerraformStep;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,10 +16,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_TERRAFORM_STATUS")
-public class TerraformStatus extends AbstractLongTask {
-
-	private static final long serialVersionUID = 1L;
+@Table(name = "LIGOJ_PROV_TERRAFORM_STATUS", uniqueConstraints=@UniqueConstraint(columnNames="locked"))
+public class TerraformStatus extends AbstractLongTaskNode {
 
 	/**
 	 * The progress of the execution.

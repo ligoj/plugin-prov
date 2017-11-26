@@ -49,6 +49,23 @@
       "securityManager"
     ]
   },
+  "standard": {
+    "globals": [
+      "$",
+      "jQuery",
+      "define"
+    ],
+    "ignore": [
+      "node_modules/**"
+    ],
+    "plugins": [
+      "html"
+    ],
+    "parser": "babel-eslint",
+    "envs": [
+      "jest"
+    ]
+  },
   "stylelint": {
     "rules": {
       "at-rule-no-unknown": [
@@ -64,16 +81,17 @@
       "selector-combinator-space-before": "never",
       "selector-combinator-space-after": "never",
       "selector-list-comma-newline-after": "never-multi-line",
-      "rule-non-nested-empty-line-before": null,
-      "media-feature-no-missing-punctuation": null,
       "number-leading-zero": "never"
     }
   },
   "private": true,
   "analyze": true,
   "devDependencies": {
+    "eslint": "^4.12.1",
+    "eslint-plugin-html": "^4.0.1",
+    "eslint-plugin-vue": "^2.1.0",
     "happiness": ">=7",
-    "jshint": ">=2.9"
+    "jshint": "^2.9.5"
   },
   "dependencies": {
     "d3": ">=4",

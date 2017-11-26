@@ -1,0 +1,6 @@
+name;node.id
+region-1;service:prov:x
+region-3;service:prov:x
+region-1;service:prov:test
+region-2;service:prov:test
+region-4;service:prov:test

@@ -1,4 +1,4 @@
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.terraform;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;

@@ -1,7 +1,9 @@
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.terraform;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.ligoj.app.plugin.prov.QuoteVo;
 
 /**
  * Contract for Terraform compliant provider.

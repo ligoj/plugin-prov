@@ -7,8 +7,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
+import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,11 +25,6 @@ import lombok.Setter;
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Integer> implements Costed {
-
-	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The minimal computed monthly cost of the resource.
@@ -52,4 +49,10 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	@JsonIgnore
 	private ProvQuote configuration;
 
+	/**
+	 * Optional expected location for this resource.
+	 */
+	@ManyToOne
+	@JsonSerialize(using = ToNameSerializer.class)
+	private ProvLocation location;
 }

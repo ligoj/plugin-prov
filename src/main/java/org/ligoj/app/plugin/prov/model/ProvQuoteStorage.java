@@ -7,7 +7,10 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.bootstrap.core.model.ToIdSerializer;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -23,28 +26,23 @@ import lombok.Setter;
 public class ProvQuoteStorage extends AbstractQuoteResource {
 
 	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
-
-	/**
-	 * Size of the storage in "Go" "Giga Bytes"
+	 * Size of the storage in "GiB". 1GiB = 1024MiB
 	 */
 	@NotNull
 	private Integer size;
 
 	/**
-	 * Related storage type with the price.
+	 * Related storage with the price.
 	 */
 	@NotNull
 	@ManyToOne
-	private ProvStorageType type;
+	private ProvStoragePrice price;
 
 	/**
 	 * Optional linked quoted instance.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
+	@JsonSerialize(using = ToIdSerializer.class)
 	private ProvQuoteInstance quoteInstance;
 
 	@Override

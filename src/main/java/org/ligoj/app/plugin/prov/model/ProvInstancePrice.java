@@ -8,34 +8,24 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.bootstrap.core.model.AbstractPersistable;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * An priced instance with billing configuration
+ * An priced instance with billing configuration. <br>
+ * The cost attribute is the corresponding effective hourly cost of this
+ * instance. Includes the initial cost to be allow quick sort. To compute the
+ * remaining hourly cost reduced by the initial cost, the formula is :
+ * <code>cost - initialCost / 24 / 365</code>.
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "instance", "os",
-		"type", "tenancy", "license" }))
-public class ProvInstancePrice extends AbstractPersistable<Integer> {
-
-	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
-
-	/**
-	 * The corresponding effective hourly cost of this instance. Includes the
-	 * initial cost to be allow quick sort. To compute the remaining hourly cost
-	 * reduced by the initial cost, the formula is :
-	 * <code>cost - initialCost / 24 / 365</code>.
-	 */
-	@NotNull
-	private Double cost;
+@ToString(of = { "os", "term", "tenancy", "license" }, callSuper = true)
+@Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "type", "os", "term", "tenancy", "license",
+		"location" }))
+public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> {
 
 	/**
 	 * The optional initial cost required to use this instance.
@@ -53,15 +43,14 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	private Double costRam;
 
 	/**
-	 * Related instance characteristics.
+	 * The internal offer code.
 	 */
 	@NotNull
-	@ManyToOne
-	private ProvInstance instance;
+	private String code;
 
 	@NotNull
 	@ManyToOne
-	private ProvInstancePriceType type;
+	private ProvInstancePriceTerm term;
 
 	/**
 	 * The optional tenancy of the related instance. By default, the tenancy is
@@ -81,5 +70,4 @@ public class ProvInstancePrice extends AbstractPersistable<Integer> {
 	 * Optional license model.
 	 */
 	private String license;
-
 }

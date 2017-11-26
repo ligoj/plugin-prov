@@ -1,9 +1,5 @@
 package org.ligoj.app.plugin.prov.dao;
 
-import java.util.List;
-
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
-import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
@@ -30,31 +26,4 @@ public interface ProvStorageTypeRepository extends RestRepository<ProvStorageTyp
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(stn.id, ':%')"
 			+ " AND (:criteria IS NULL OR UPPER(st.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
 	Page<ProvStorageType> findAll(int subscription, String criteria, Pageable pageRequest);
-
-	/**
-	 * Return the cheapest storage configuration from the minimal requirements.
-	 * 
-	 * @param node
-	 *            The node linked to the subscription. Is a node identifier within a provider.
-	 * @param size
-	 *            The requested size in GB.
-	 * @param frequency
-	 *            The optional requested frequency. May be <code>null</code>.
-	 * @param instance
-	 *            The optional requested instance to be associated.
-	 * @param optimized
-	 *            The optional requested optimized. May be <code>null</code>.
-	 * @param pageable
-	 *            The page control to return few item.
-	 * @return The cheapest storage or <code>null</code>. The first item corresponds to the storage price, the second is
-	 *         the computed price.
-	 */
-	@Query("SELECT st, (st.cost+(CASE WHEN st.minimal < :size THEN st.minimal ELSE :size END) * st.costGb) AS cost"
-			+ " FROM #{#entityName} AS st WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))"
-			+ " AND (:size IS NULL OR st.maximal IS NULL OR st.maximal >= :size)"
-			+ " AND (:instance IS NULL OR st.instanceCompatible = true)"
-			+ " AND (:frequency IS NULL OR st.frequency = :frequency)"
-			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC")
-	List<Object[]> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance,
-			ProvStorageOptimized optimized, Pageable pageable);
 }

@@ -28,16 +28,11 @@ import lombok.Setter;
 public class ProvQuoteInstance extends AbstractQuoteResource {
 
 	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
-
-	/**
 	 * Related instance with the price.
 	 */
 	@NotNull
 	@ManyToOne
-	private ProvInstancePrice instancePrice;
+	private ProvInstancePrice price;
 
 	/**
 	 * The requested CPU.
@@ -56,14 +51,14 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	private Double maxVariableCost;
 
 	/**
-	 * The requested RAM in MB.
+	 * The requested RAM in "MiB". 1MiB = 1024 MiB.
 	 */
 	@NotNull
 	@PositiveOrZero
 	private Integer ram;
 
 	/**
-	 * The requested OS. May be different from the one related by {@link #instancePrice}, but reffers to {@link VmOs#toPricingOs()}
+	 * The requested OS. May be different from the one related by {@link #instancePrice}, but refers to {@link VmOs#toPricingOs()}
 	 */
 	@NotNull
 	private VmOs os;

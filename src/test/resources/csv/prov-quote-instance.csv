@@ -1,9 +1,9 @@
-configuration.name;instancePrice.id!;name;description;cpu;ram;os;cost;maxCost;constant;internet;maxVariableCost;minQuantity;maxQuantity
+configuration.name;price.id!;name;description;cpu;ram;os;cost;maxCost;constant;internet;maxVariableCost;minQuantity;maxQuantity;ephemeral
 quote1;1;server1;serverD1;0.5;2000;LINUX;0.128;0.129;true;PUBLIC;10.1;2;10
-quote1;3;server2;serverD2;0.25;1000;LINUX;0;0;;PRIVATE
-quote1;6;server3;serverD3;1;2000;LINUX;0;0;;PRIVATE_NAT
+quote1;3;server2;serverD2;0.25;1000;LINUX;0;0;;PRIVATE;;;;true
+quote1;6;server3;serverD3;0.5;2000;WINDOWS;0;0;;PRIVATE_NAT
 quote1;13;server4;serverD4;1;2000;DEBIAN;0;0;false
-quote1;27;server5;serverD5;1;4000;CENTOS;0;0
+quote1;27;server5;serverD5;1;4000;LINUX;0;0;;;;;;true
 quote1;55;server6;serverD6;4;8000;LINUX;0;0
 quote1;74;server7;serverD7;3;24576;LINUX;0;0
 quote3;73;serverX;serverDX;1;2000;LINUX;0;0

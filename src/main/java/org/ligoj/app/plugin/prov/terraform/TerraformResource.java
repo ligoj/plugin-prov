@@ -1,4 +1,4 @@
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.terraform;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.GET;
@@ -24,16 +25,15 @@ import javax.ws.rs.core.StreamingOutput;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.prov.model.TerraformStatus;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.resource.ServicePluginLocator;
+import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.resource.BusinessException;
-import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,34 +51,10 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class TerraformResource {
 
-
 	/**
 	 * Main log file.
 	 */
 	private static final String MAIN_LOG = "main.log";
-
-	/**
-	 * Tarraform fag to disable interactive mode
-	 */
-	private static final String NO_INPUT = "-input=false";
-	
-	/**
-	 * Tarraform fag to disable color mode
-	 */
-	private static final String NO_COLOR = "-no-color";
-
-	/**
-	 * Configuration key for Terraform command path
-	 */
-	private static final String TERRAFORM_PATH = "terraform.path";
-
-	/**
-	 * Terraform base command with argument. The Terraform binary must be in the
-	 * PATH.
-	 */
-	private static final String[] TERRAFORM_COMMAND_WIN = { "cmd.exe", "/c" };
-	private static final String[] TERRAFORM_COMMAND_LINUX = { "sh", "-c" };
-	private static final String[] TERRAFORM_COMMAND = SystemUtils.IS_OS_WINDOWS ? TERRAFORM_COMMAND_WIN : TERRAFORM_COMMAND_LINUX;
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
@@ -87,10 +63,13 @@ public class TerraformResource {
 	protected ProvResource resource;
 
 	@Autowired
-	protected ConfigurationResource configuration;
+	protected TerraformRunnerResource runner;
 
 	@Autowired
 	protected ServicePluginLocator locator;
+
+	@Autowired
+	protected TerraformUtils terraformUtils;
 
 	/**
 	 * Produce the Terraform configuration.
@@ -100,16 +79,17 @@ public class TerraformResource {
 	 * @param file
 	 *            The target file name.
 	 * @return the {@link Response} ready to be consumed.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:.*.tf}")
-	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file) throws IOException {
+	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file)
+			throws IOException {
 		final Terraforming terra = getTerraform(subscription);
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		terra.terraform(output, subscription, resource.getConfiguration(subscription));
-		return Response.ok().header("Content-Disposition", "attachment; filename=" + file + ";").entity(new String(output.toByteArray())).build();
+		return AbstractToolPluginResource.download(o -> o.write(output.toByteArray()), file).build();
 	}
 
 	/**
@@ -129,7 +109,7 @@ public class TerraformResource {
 
 		// Check there is a log file
 		if (log.exists()) {
-			final StreamingOutput so = o ->  FileUtils.copyFile(toFile(entity, MAIN_LOG), o);
+			final StreamingOutput so = o -> FileUtils.copyFile(toFile(entity, MAIN_LOG), o);
 			return Response.ok().entity(so).build();
 		}
 
@@ -175,8 +155,8 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Prepare the Terraform environment to apply the new environment. Note
-	 * there is no concurrency check.
+	 * Prepare the Terraform environment to apply the new environment. Note there is
+	 * no concurrency check.
 	 */
 	protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
 			throws IOException, InterruptedException {
@@ -188,8 +168,11 @@ public class TerraformResource {
 		FileUtils.deleteQuietly(tfFile);
 		FileOutputStream mainTf = null;
 		Writer out = null;
-		boolean succeed = false;
+		boolean failed = true;
 		try {
+			// Start the task
+			runner.startTask(entity.getNode().getId(), t -> t.setStep(null));
+
 			// Generate and persist the main Terraform file.
 			// This file is isolated from the other subscription, inside the
 			// subscription context path
@@ -202,22 +185,15 @@ public class TerraformResource {
 			terra.terraform(mainTf, entity.getId(), configuration);
 
 			// Execute the Terraform commands
-			executeTerraform(entity, out, getTerraformSequence(), terra.commandLineParameters(entity.getId()));
-			succeed = true;
+			executeTerraform(entity, out, terraformUtils.getTerraformSequence(), terra.commandLineParameters(entity.getId()));
+			failed = false;
 		} finally {
 			IOUtils.closeQuietly(mainTf);
 			IOUtils.closeQuietly(out);
-			endTask(entity, succeed);
+			runner.endTask(entity.getNode().getId(), failed);
 		}
 
 		return logFile;
-	}
-
-	/**
-	 * End the related task
-	 */
-	private void endTask(final Subscription entity, boolean succeed) {
-		resource.endTask(entity.getId(), !succeed);
 	}
 
 	private Terraforming getTerraform(final Node node) {
@@ -225,22 +201,18 @@ public class TerraformResource {
 				.orElseThrow(() -> new BusinessException("terraform-no-supported", node.getRefined().getId()));
 	}
 
-	protected String[][] getTerraformSequence() {
-		return new String[][] { { "plan", NO_INPUT, NO_COLOR, "-detailed-exitcode" }, { "apply", NO_INPUT, NO_COLOR },
-				{ "show", NO_INPUT, NO_COLOR } };
-	}
-
 	/**
-	 * Execute the given Terraform commands. Note there is no concurrency check
-	 * for now.
+	 * Execute the given Terraform commands. Note there is no concurrency check for
+	 * now.
 	 */
 	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands,
 			final String... additionalParameters) throws InterruptedException, IOException {
-		int step = 0;
-		final TerraformStatus task = resource.startTask(subscription.getId());
+		final AtomicInteger step = new AtomicInteger(0);
+		// Reset the current step
 		for (final String[] command : commands) {
-			task.setStep(TerraformStep.values()[step]);
-			resource.nextStep(task);
+			// Next step, another transaction
+			runner.nextStep("service:prov:test:account", t -> t.setStep(TerraformStep.values()[step.get()]));
+
 			final int code = executeTerraform(subscription, out, ArrayUtils.addAll(command, additionalParameters));
 			if (code == 0) {
 				// Nothing wrong, no change, only useless to go further
@@ -254,9 +226,10 @@ public class TerraformResource {
 				out.write("Terraform exit code " + code + " -> aborted");
 				throw new BusinessException("aborted");
 			}
-			// Code is correct, proceed the next command
 			out.flush();
-			step++;
+
+			// Code is correct, proceed the next command
+			step.incrementAndGet();
 		}
 	}
 
@@ -265,27 +238,23 @@ public class TerraformResource {
 	 */
 	private int executeTerraform(final Subscription subscription, final Writer out, final String[] command)
 			throws InterruptedException, IOException {
-		final ProcessBuilder builder = newBuilder(command);
+		final ProcessBuilder builder = terraformUtils.newBuilder(command);
 		builder.redirectErrorStream(true);
-		// TODO Subscription identifier is implicit strating from API 1.0.9
+		// TODO Subscription identifier is implicit starting from API 1.0.9
 		builder.directory(toFile(subscription, MAIN_LOG).getParentFile());
 		final Process process = builder.start();
 		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
-		return process.waitFor();
+
+		// Wait and get the code
+		int code = process.waitFor();
+		out.flush();
+		return code;
 	}
 
 	/**
-	 * A new {@link ProcessBuilder} with the given arguments
-	 */
-	protected ProcessBuilder newBuilder(String... args) {
-		return new ProcessBuilder(ArrayUtils.addAll(TERRAFORM_COMMAND,
-				configuration.get(TERRAFORM_PATH, "terraform") + " " + StringUtils.join(ArrayUtils.addAll(args), ' ')));
-	}
-
-	/**
-	 * Check the subscription is visible, then check the associated provider
-	 * support Terraform generation and return the corresponding
-	 * {@link Terraforming} instance.
+	 * Check the subscription is visible, then check the associated provider support
+	 * Terraform generation and return the corresponding {@link Terraforming}
+	 * instance.
 	 * 
 	 * @param subscription
 	 *            The related subscription.
@@ -301,7 +270,7 @@ public class TerraformResource {
 	 * Return the file reference from the given subscription.
 	 */
 	protected File toFile(final Subscription subscription, final String file) throws IOException {
-		// TODO Subscription identifier is implicit strating from API 1.0.9
+		// TODO Subscription identifier is implicit starting from API 1.0.9
 		return PluginsClassLoader.getInstance().toFile(subscription, subscription.getId().toString(), file);
 	}
 }

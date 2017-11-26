@@ -1,22 +1,19 @@
 package org.ligoj.app.plugin.prov;
 
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * The lowest price found for the requested resources.
  */
 @Getter
 @Setter
-public class ComputedStoragePrice extends AbstractComputedPrice {
+@ToString(callSuper = true)
+public class QuoteStorageLoopup extends AbstractComputedPrice<ProvStoragePrice> {
 
-	/**
-	 * The lowest storage type price.
-	 */
-	private ProvStorageType type;
-	
 	/**
 	 * The requested size.
 	 */

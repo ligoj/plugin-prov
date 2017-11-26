@@ -17,24 +17,25 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * An instance price configuration
+ * An instance price term configuration
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvInstancePriceType extends AbstractDescribedEntity<Integer> implements NodeScoped {
-
-	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
+@Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TERM", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
 	 * Billing period in minutes. Any started period is due.
 	 */
 	@NotNull
 	private Integer period;
+
+	/**
+	 * The internal offer code.
+	 */
+	@NotNull
+	private String code;
 
 	/**
 	 * Minimal billing period in minutes. Any started period is due for this

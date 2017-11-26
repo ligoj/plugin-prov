@@ -22,8 +22,14 @@
 }
 
 #gauge-global {
-	width: 120px;
-	height: 120px;
+	width: 180px;
+	height: 180px;
+}
+.gauge-wrapper {
+	top: -9px;
+	height: 0px;
+	position: relative;
+	left: 200px;
 }
 
 #prov-dashboard {
@@ -34,15 +40,19 @@
 }
 
 #prov-dashboard .svg-wrapper {
-	position: relative;
+	position: absolute;
+	z-index: 1030;
 }
 
 #popup-prov-instance-import code {
 	font-size: 75%;
 }
 
-#subscribe-configuration-prov .nav h2 {
+#subscribe-configuration-prov .nav .prov-cost-wrapper {
 	font-size: 48px;
+	text-align: right;
+	margin-top: 0;
+	margin-top: 0;
 }
 
 #sunburst path {
@@ -53,9 +63,8 @@
 #sunburst {
 	width: 150px;
 	height: 150px;
-	z-index: 1030;
-	position: absolute;
 	top: -18px;
+	position: relative;
 }
 
 .d3-tooltip {
@@ -79,7 +88,25 @@
 
 .prov-project {
 	position: relative;
+	margin-top: 0;
 }
+
+#prov-location-summary {
+	width: 0;
+}
+.unit {
+	font-weight: bolder;
+}
+
+#prov-location-summary .form-group {
+	left: 20px;
+	width: 250px;
+	top: 67px
+}
+#prov-location-summary .form-group>div {
+	padding-left: 0;
+}
+
 
 #subscribe-configuration-prov .form-actions .dropdown {
 	display: inline;
@@ -116,4 +143,9 @@
 }
 label[for="instance-max-variable-cost"] {
 	margin-top: 10px;
+}
+.price-term {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }

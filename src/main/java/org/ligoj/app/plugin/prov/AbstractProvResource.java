@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.ligoj.app.api.SubscriptionStatusWithData;
 import org.ligoj.app.model.Node;
-import org.ligoj.app.plugin.prov.model.ProvInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceType;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * The base class for provisioning tool. There is complete quote configuration
  * along the subscription.
  */
-public abstract class AbstractProvResource extends AbstractToolPluginResource {
+public abstract class AbstractProvResource extends AbstractToolPluginResource implements ProvisioningService {
 
 	@Autowired
 	protected ProvResource provResource;
@@ -34,6 +34,7 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource {
 
 	@Override
 	public List<Class<?>> getInstalledEntities() {
-		return Arrays.asList(Node.class, ProvInstancePriceType.class, ProvInstance.class, ProvInstancePrice.class, ProvStorageType.class);
+		return Arrays.asList(Node.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
+				ProvStorageType.class);
 	}
 }

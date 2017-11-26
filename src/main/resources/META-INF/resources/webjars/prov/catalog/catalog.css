@@ -1,0 +1,11 @@
+.instance-prices {
+	font-size: smaller;
+	color: white;
+	font-weight: bolder;
+}
+.catalog-status {
+	line-height: 14px;
+	display: inline-block;
+	text-align: center;
+	width: 100%;
+}
