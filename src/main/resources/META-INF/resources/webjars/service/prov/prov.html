@@ -12,14 +12,14 @@
 				</li>
 				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"></span>
 						<div class="summary">
-							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fa fa-bolt"></i></span> 
-							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fa fa-microchip"></i></span>
-							 <span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fa fa-globe"></i></span>
+							 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fa fa-bolt"></i><span></span></span> 
+							 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fa fa-microchip"></i><span></span></span>
+							 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fa fa-globe"></i><span></span></span>
 						</div>
 					</a></li>
 				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span>
 						<div class="summary">
-							<span class="badge" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
+							<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
 						</div>
 				</a></li>
 				<li id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md">
@@ -37,7 +37,7 @@
 						<span class="provider"></span>
 					</h1>
 					<h2 class="text-info prov-cost-wrapper">
-						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span>/m
+						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
 						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></span>
 					</h2>
 				</li>
@@ -318,7 +318,7 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-type" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="storage" class="form-control" required readonly />
+								<input type="text" id="storage" class="form-control" required/>
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
 							</div>
 						</div>

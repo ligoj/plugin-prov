@@ -1,4 +1,5 @@
 @import url("font-mfizz.css");
+@import url("odometer-theme-minimal.css");
 .masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
 	width: 110px;
 }
@@ -94,10 +95,12 @@
 #prov-location-summary {
 	width: 0;
 }
-.unit {
+.cost-unit {
 	font-weight: bolder;
 }
-
+.cost-value {
+	top: -3px;
+}
 #prov-location-summary .form-group {
 	left: 20px;
 	width: 250px;
@@ -148,4 +151,8 @@ label[for="instance-max-variable-cost"] {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
+}
+
+.summary .badge>i+span {
+	margin-left: 1px;
 }

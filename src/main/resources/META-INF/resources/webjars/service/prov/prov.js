@@ -23,6 +23,7 @@ define(function () {
 		configure: function (subscription) {
 			current.model = subscription;
 			current.initializeD3();
+			current.initOdometer();
 			current.optimizeModel();
 			current.initializeForm();
 			current.initializeUpload();
@@ -186,28 +187,91 @@ define(function () {
 
 		/**
 		 * Format the cost.
+		 * @param {number} cost The cost value. May contains "min" and "max" attributes.
+		 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
+		 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
+		 * @param {boolean} noRichText When true, the cost will not use HTML code.
+		 * @return The formated cost.
 		 */
-		formatCost: function (cost, mode, obj) {
+		formatCost: function (cost, mode, obj, noRichText) {
 			if (mode === 'sort') {
 				return cost;
 			}
-			var costStr = '';
-			obj = typeof obj === 'undefined' ? cost : obj;
+
+			var formatter = current.formatCostText;
+			var $cost = $();
+			if (mode instanceof jQuery) {
+				// Odomoter format
+				formatter = current.formatCostOdometer;
+				$cost = mode;
+			}
+
+			// Computation part
+			var minStr = '';
+			var maxStr = '';
+			obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
 			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
-				return formatManager.formatCost(cost, 3, '$', 'unit');
+				$cost.find('.cost-min').addClass('hidden');
+				return formatter(cost, true, $cost, noRichText);
 			}
 			// A floating cost
 			var min = obj.cost || obj.min || 0;
 			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
-				costStr = formatManager.formatCost(obj.cost || obj.min || 0, 3, '$', 'unit');
-			} else {
-				// Max cost, is different, display a range
-				costStr = formatManager.formatCost(min, 3, '$', 'unit') + '-' + formatManager.formatCost(max, 3, '$', 'unit');
+				$cost.find('.cost-min').addClass('hidden');
+				return formatter(obj.cost || obj.min || 0, true, $cost, noRichText);
 			}
-			return cost.unbound ? costStr + '+' : costStr;
+
+			// Max cost, is different, display a range
+			return formatter(min, false, $cost) + '-' + formatter(max, true, $cost, noRichText);
+		},
+		
+		
+		/**
+		 * Configure Odometer components
+		 */
+		initOdometer: function() {
+			var $cost = $('.cost');
+			var weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
+			$cost.append('<span class="cost-min hidden"><span class="cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
+			$cost.append('<span class="cost-max"><span class="cost-value"></span>' + weightUnit + '</span>');
+			require(['../main/service/prov/lib/odometer'], function (Odometer) {
+				// Odometer component
+				current.registerOdometer(Odometer, $cost.find('.cost-min .cost-value'));
+				current.registerOdometer(Odometer, $cost.find('.cost-max .cost-value'));
+				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-instance"] > .badge'));
+				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-storage"] > .badge'));
+				var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
+				current.registerOdometer(Odometer, $summary.filter('.cpu').find('span'));
+				current.registerOdometer(Odometer, $summary.filter('.internet').find('span'));
+			});
+		},
+		registerOdometer: function(Odometer, $container) {
+			new Odometer({ el: $container[0], theme: 'minimal', duration:0}).render();
+		},
+
+		formatCostOdometer: function(cost, isMax, $cost, noRichTest) {
+			if (isMax) {
+				formatManager.formatCost(cost, 3, '$', 'cost-unit', function(value, weight, unit) {
+					var $wrapper = $cost.find('.cost-max');
+					$wrapper.find('.cost-value').html(value);
+					$wrapper.find('.cost-weight').html(weight + (cost.unbound ? '+' : ''));
+					$wrapper.find('.cost-unit').html(unit);
+				});
+			} else {
+				formatManager.formatCost(cost, 3, '$', 'cost-unit', function(value, weight, unit) {
+					var $wrapper = $cost.find('.cost-min').removeClass('hidden');
+					$wrapper.find('.cost-value').html(value);
+					$wrapper.find('.cost-weight').html(weight);
+					$wrapper.find('.cost-unit').html(unit);
+				});
+			}
+		},
+
+		formatCostText: function(cost, isMax, _i, noRichText) {
+			return formatManager.formatCost(cost, 3, '$', noRichText === true ? '' : 'cost-unit') + ((cost.unbound && isMax) ? '+' : '');
 		},
 
 		/**
@@ -228,9 +292,9 @@ define(function () {
 		 * Format the storage size to html markup.
 		 * @param {object} qs Quote storage with price, type and size.
 		 */
-		formatStorageHtml: function (qs) {
+		formatStorageHtml: function (qs, showName) {
 			var type = qs.price.type;
-			return current.formatStorageFrequency(type.frequency) +
+			return (showName === true ? type.name + ' ' : '') + current.formatStorageFrequency(type.frequency) +
 				(type.optimized ? ' ' + current.formatStorageOptimized(type.optimized) : '') +
 				' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
 				((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
@@ -453,12 +517,11 @@ define(function () {
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queries.join('&'),
 				type: 'GET',
 				success: function (suggest) {
-					if (suggest.price) {
+					current[type + 'SetUiPrice'](suggest);
+					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						// The resource is valid, enable the create
 						current.enableCreate($popup);
 					}
-					current[type + 'SetUiPrice'](suggest);
-					current.model.quote.suggest = suggest;
 				},
 				error: function () {
 					current.enableCreate($popup);
@@ -468,9 +531,31 @@ define(function () {
 
 		/**
 		 * Set the current storage price.
+		 * @param {object|Array} Quote or prices
 		 */
 		storageSetUiPrice: function (quote) {
-			_('storage').select2('data', quote.price || null).val(quote.price ? quote.price.type.name + ' (' + current.formatCost(quote.cost) + '/m)' : '');
+			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
+				var suggests = quote;
+				if (!$.isArray(quote)) {
+					// Single price
+					suggests = [quote];
+				}
+				for (var i = 0; i < suggests.length; i++) {
+					suggests[i].id = suggests[i].id || suggests[i].price.id;
+				}
+				var suggest = suggests[0];
+				_('storage').select2({
+					data: suggests,
+					formatSelection: function(qs) {
+						return current.formatStorageHtml(qs, true);
+					},
+					formatResult: function(qs) {
+						return current.formatStorageHtml(qs, true);
+					}
+				}).select2('data', suggest);
+			} else {
+				_('storage').select2('data', null);
+			}
 		},
 
 		/**
@@ -478,10 +563,19 @@ define(function () {
 		 */
 		instanceSetUiPrice: function (quote) {
 			if (quote && quote.price) {
-				_('instance').val(quote.price.type.name + ' (' + current.formatCost(quote.cost) + '/m)');
+				var suggests = [quote];
+				_('instance').select2({
+					data : suggests,
+					formatSelection: function(qi) {
+						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+					},
+					formatResult: function(qi) {
+						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+					}
+				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
 			} else {
-				_('instance').val('');
+				_('instance').select2('data', null);
 			}
 		},
 
@@ -534,7 +628,6 @@ define(function () {
 				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(quote.id ? 'btn-primary' : 'btn-success');
 				current.disableCreate($popup);
 				quote.id && current.enableCreate($popup);
-				delete quote.suggest;
 				current.model.quote = quote;
 				current.toUi(type, quote);
 			});
@@ -979,10 +1072,9 @@ define(function () {
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
-
-			// Use either the new price, either the original one 
-			var price = (current.model.quote.suggest || current.model.quote).price;
-			data.type = price.name;
+			var suggest = _('storage').select2('data');
+			data.type = suggest.price.type.name;
+			return suggest;
 		},
 
 		instanceUiToData: function (data) {
@@ -995,10 +1087,9 @@ define(function () {
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
 			data.os = _('instance-os').val().toLowerCase();
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
-
-			// Use either the new price, either the original one 
-			var price = (current.model.quote.suggest || current.model.quote).price;
-			data.price = price.id;
+			var suggest = _('instance').select2('data');
+			data.price = suggest.price.id;
+			return suggest;
 		},
 
 		cleanFloat: function (data) {
@@ -1106,7 +1197,7 @@ define(function () {
 				subscription: current.model.subscription
 			};
 			// Complete the data from the UI and backup the price context
-			current[type + 'UiToData'](data);
+			var price = current[type + 'UiToData'](data);
 
 			// Trim the data
 			Object.keys(data).forEach(function (key) {
@@ -1121,7 +1212,7 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveAndUpdateCosts(type, updatedCost, data, current.model.quote.suggest);
+					current.saveAndUpdateCosts(type, updatedCost, data, price);
 					$popup.modal('hide');
 				},
 				complete: function () {
@@ -1203,7 +1294,8 @@ define(function () {
 			var usage = current.usageGlobalRate();
 
 			// Update the global counts
-			$('.cost').html(current.formatCost(conf.cost) || '-');
+			current.formatCost(conf.cost, $('.cost'));
+
 			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
 
@@ -1211,16 +1303,16 @@ define(function () {
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 			if (usage.cpu.available) {
 				$summary.removeClass('hidden');
-				$summary.eq(0).rawText(' ' + usage.cpu.available);
-				$summary.eq(1).rawText(' ' + current.formatRam(usage.ram.available).replace('</span>','').replace('<span class="unit">',''));
-				$summary.eq(2).rawText(' ' + usage.publicAccess);
+				$summary.filter('.cpu').find('span').text(usage.cpu.available);
+				$summary.filter('.ram').find('span').text(current.formatRam(usage.ram.available).replace('</span>','').replace('<span class="unit">',''));
+				$summary.filter('.internet').find('span').text(usage.publicAccess);
 			} else {
 				$summary.addClass('hidden');
 			}
-			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge');
+			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
 			if (usage.storage.available) {
 				$summary.removeClass('hidden');
-				$summary.rawText(' ' + current.formatStorage(usage.storage.available));
+				$summary.text(current.formatStorage(usage.storage.available));
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -1465,7 +1557,7 @@ define(function () {
 		initializeD3Gauge: function (d3) {
 			d3.select('#gauge-global').call(d3.liquidfillgauge, 1, {
 				textColor: '#FF4444',
-				textVertPosition: 0.2,
+				textVertPosition: 0.6,
 				waveAnimateTime: 1200,
 				waveHeight: 0.9,
 				backgroundColor: '#e0e0e0'
@@ -1494,7 +1586,7 @@ define(function () {
 						},
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
 						formatResult: function (qs) {
-							return current.formatStorageHtml(qs) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '/m</span>';
+							return current.formatStorageHtml(qs) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
 						},
 						formatSelection: current.formatStorageHtml,
 						ajax: {
