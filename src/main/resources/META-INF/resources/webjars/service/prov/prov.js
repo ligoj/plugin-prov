@@ -100,7 +100,7 @@ define(function () {
 		 */
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
-				var price = current.formatCost(subscription.data.quote.cost);
+				var price = current.formatCost(subscription.data.quote.cost, null, null, true);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
@@ -225,7 +225,7 @@ define(function () {
 			}
 
 			// Max cost, is different, display a range
-			return formatter(min, false, $cost) + '-' + formatter(max, true, $cost, noRichText);
+			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText);
 		},
 		
 		
