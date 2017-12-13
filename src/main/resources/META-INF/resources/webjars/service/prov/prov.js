@@ -947,7 +947,7 @@ define(function () {
 			var data = {
 				name: _('quote-name').val(),
 				description: _('quote-description').val(),
-				location: _('quote-location').val()
+				location: _('quote-location').select2('data')
 			};
 			current.disableCreate($popup);
 			$.ajax({
@@ -965,7 +965,6 @@ define(function () {
 					current.model.configuration.description = data.description;
 					notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
 					$popup.modal('hide');
-					current.reloadAsNeed(newCost);
 				},
 				complete: function () {
 					current.enableCreate($popup);
