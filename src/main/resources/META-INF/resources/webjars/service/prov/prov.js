@@ -122,11 +122,11 @@ define(function () {
 			if (quote.totalStorage) {
 				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
 			}
-			resources.push(current.$super('icon')('map-marker', 'service:prov:location') +  quote.location.name);
 
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
-				['service:prov:resources', resources.join(', ')]
+				['service:prov:resources', resources.join(', ')],
+				['service:prov:location', current.$super('icon')('map-marker', 'service:prov:location') +  quote.location]
 			], 1);
 		},
 

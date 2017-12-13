@@ -92,5 +92,6 @@ define({
     'service:prov:refresh-needed': 'Le coût global a changé, rechargement des détails ...',
     'service:prov:refresh-no-change': 'Pas de changement de coût',
     'service:prov:location-failed': 'L\'emplacement sélectionné {{this}} ne supporte pas toutes vos exigences',
+ 	'service:prov:location': 'Emplacement',
     'quote-location' : 'Emplacement par défaut pour cette Default location for ce devis. Suivant les disponibilités et les types d\'instances, les prix peuvent varier.'
 });

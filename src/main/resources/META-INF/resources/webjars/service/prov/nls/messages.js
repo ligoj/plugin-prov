@@ -94,6 +94,7 @@ define({
 		'service:prov:refresh-needed': 'The global cost has been updated, reloading the details ...',
 		'service:prov:refresh-no-change': 'No updated cost',
 		'service:prov:location-failed': 'Location {{this}} does not support all your requirements',
+		'service:prov:location': 'Location',
 		'quote-location' : 'Default location for this quote. Depending on availabilities and instance types, the prices may vary.',
 		'error': {
 			'service:prov-no-catalog': 'There is not yet any catalog for the provider "{{[0]}}" ({{[1]}}), you can import it. <a class="btn btn-success btn-raised" href="#/prov/catalog">Import ...</button>',
