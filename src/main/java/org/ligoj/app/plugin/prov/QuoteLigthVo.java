@@ -46,5 +46,10 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	 * The computed monthly cost.
 	 */
 	private FloatingCost cost;
+	
+	/**
+	 * The main location of this quote.
+	 */
+	private String location;
 
 }

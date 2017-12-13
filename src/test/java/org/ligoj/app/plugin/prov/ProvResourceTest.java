@@ -130,6 +130,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals(6, status.getNbPublicAccess());
 		Assert.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
 		Assert.assertEquals(175, status.getTotalStorage());
+		Assert.assertEquals("region-1", status.getLocation());
 	}
 
 	@Test

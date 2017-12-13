@@ -844,6 +844,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> {
 		vo.setNbPublicAccess(((Long) compute[4]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
+		vo.setLocation(entity.getLocation().getName());
 		return vo;
 	}
 
