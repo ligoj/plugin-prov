@@ -79,7 +79,7 @@ define(function () {
 				current.reload();
 			} else {
 				// The cost still the same
-				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-no-change'])());				
+				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-no-change'])());
 			}
 		},
 
@@ -126,7 +126,7 @@ define(function () {
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
 				['service:prov:resources', resources.join(', ')],
-				['service:prov:location', current.$super('icon')('map-marker', 'service:prov:location') +  quote.location]
+				['service:prov:location', current.$super('icon')('map-marker', 'service:prov:location') + quote.location]
 			], 1);
 		},
 
@@ -228,12 +228,11 @@ define(function () {
 			// Max cost, is different, display a range
 			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText);
 		},
-		
-		
+
 		/**
 		 * Configure Odometer components
 		 */
-		initOdometer: function() {
+		initOdometer: function () {
 			var $cost = $('.cost');
 			var weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
 			$cost.append('<span class="cost-min hidden"><span class="cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
@@ -249,20 +248,24 @@ define(function () {
 				current.registerOdometer(Odometer, $summary.filter('.internet').find('span'));
 			});
 		},
-		registerOdometer: function(Odometer, $container) {
-			new Odometer({ el: $container[0], theme: 'minimal', duration:0}).render();
+		registerOdometer: function (Odometer, $container) {
+			new Odometer({
+				el: $container[0],
+				theme: 'minimal',
+				duration: 0
+			}).render();
 		},
 
-		formatCostOdometer: function(cost, isMax, $cost, noRichTest) {
+		formatCostOdometer: function (cost, isMax, $cost, noRichTest) {
 			if (isMax) {
-				formatManager.formatCost(cost, 3, '$', 'cost-unit', function(value, weight, unit) {
+				formatManager.formatCost(cost, 3, '$', 'cost-unit', function (value, weight, unit) {
 					var $wrapper = $cost.find('.cost-max');
 					$wrapper.find('.cost-value').html(value);
 					$wrapper.find('.cost-weight').html(weight + (cost.unbound ? '+' : ''));
 					$wrapper.find('.cost-unit').html(unit);
 				});
 			} else {
-				formatManager.formatCost(cost, 3, '$', 'cost-unit', function(value, weight, unit) {
+				formatManager.formatCost(cost, 3, '$', 'cost-unit', function (value, weight, unit) {
 					var $wrapper = $cost.find('.cost-min').removeClass('hidden');
 					$wrapper.find('.cost-value').html(value);
 					$wrapper.find('.cost-weight').html(weight);
@@ -271,7 +274,7 @@ define(function () {
 			}
 		},
 
-		formatCostText: function(cost, isMax, _i, noRichText) {
+		formatCostText: function (cost, isMax, _i, noRichText) {
 			return formatManager.formatCost(cost, 3, '$', noRichText === true ? '' : 'cost-unit') + ((cost.unbound && isMax) ? '+' : '');
 		},
 
@@ -547,10 +550,10 @@ define(function () {
 				var suggest = suggests[0];
 				_('storage').select2({
 					data: suggests,
-					formatSelection: function(qs) {
+					formatSelection: function (qs) {
 						return current.formatStorageHtml(qs, true);
 					},
-					formatResult: function(qs) {
+					formatResult: function (qs) {
 						return current.formatStorageHtml(qs, true);
 					}
 				}).select2('data', suggest);
@@ -566,11 +569,11 @@ define(function () {
 			if (quote && quote.price) {
 				var suggests = [quote];
 				_('instance').select2({
-					data : suggests,
-					formatSelection: function(qi) {
+					data: suggests,
+					formatSelection: function (qi) {
 						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
 					},
-					formatResult: function(qi) {
+					formatResult: function (qi) {
 						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
 					}
 				}).select2('data', quote);
@@ -628,7 +631,9 @@ define(function () {
 				var quote = ($tr.length && dataTable.fnGetData($tr[0])) || {};
 				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(quote.id ? 'btn-primary' : 'btn-success');
 				current.disableCreate($popup);
-				quote.id && current.enableCreate($popup);
+				if (quote.id) {
+					current.enableCreate($popup);
+				}
 				current.model.quote = quote;
 				current.toUi(type, quote);
 			});
@@ -704,9 +709,10 @@ define(function () {
 		initializeForm: function () {
 			// Global datatables filter
 			$('.subscribe-configuration-prov-search').on('keyup', function () {
-				var type = $(this).closest('[data-prov-type]').data('prov-type');
-				var table = current[type + 'Table'];
-				table && table.fnFilter($(this).val());
+				var table = current[$(this).closest('[data-prov-type]').data('prov-type') + 'Table'];
+				if (table) {
+					table.fnFilter($(this).val());
+				}
 			});
 			$('input.resource-query').on('change keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
@@ -994,10 +1000,11 @@ define(function () {
 
 					// Handle updated cost
 					current.reloadAsNeed(newCost);
-				}, error : function() {
+				},
+				error: function () {
 					// Restore the old value
 					notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:location-failed'])(location.name));
-					_('quote-location').select2('data', current.model.configuration.location);				
+					_('quote-location').select2('data', current.model.configuration.location);
 				}
 			});
 		},
@@ -1037,7 +1044,7 @@ define(function () {
 			// Redraw the previous instance
 			if (model.quoteInstance) {
 				current.redrawResource('instance', model.quoteInstance);
-				current.detachStrorage(model);
+				current.detachStorage(model);
 			}
 
 			// Redraw the newly attached instance
@@ -1168,10 +1175,10 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		storageToUi: function (quote) {
-			_('storage-size').val(quote.size || '10');
-			_('storage-frequency').select2('data', current.select2IdentityData((quote.price.type && quote.price.type.frequency) || 'HOT'));
-			_('storage-optimized').select2('data', current.select2IdentityData(quote.price && quote.price.type.optimized));
-			_('storage-instance').select2('data', quote.quoteInstance);
+			_('storage-size').val((quote && quote.size) || '10');
+			_('storage-frequency').select2('data', current.select2IdentityData((quote.price && quote.price.type.frequency) || 'HOT'));
+			_('storage-optimized').select2('data', current.select2IdentityData((quote.price && quote.price.type.optimized) || null));
+			_('storage-instance').select2('data', quote.quoteInstance || null);
 			current.storageSetUiPrice(quote);
 		},
 
@@ -1201,7 +1208,9 @@ define(function () {
 
 			// Trim the data
 			Object.keys(data).forEach(function (key) {
-				(data[key] === null || data[key] === '') && delete data[key];
+				if (data[key] === null || data[key] === '') {
+					delete data[key];
+				}
 			});
 
 			current.disableCreate($popup);
@@ -1304,7 +1313,7 @@ define(function () {
 			if (usage.cpu.available) {
 				$summary.removeClass('hidden');
 				$summary.filter('.cpu').find('span').text(usage.cpu.available);
-				$summary.filter('.ram').find('span').text(current.formatRam(usage.ram.available).replace('</span>','').replace('<span class="unit">',''));
+				$summary.filter('.ram').find('span').text(current.formatRam(usage.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
 				$summary.filter('.internet').find('span').text(usage.publicAccess);
 			} else {
 				$summary.addClass('hidden');
@@ -1409,7 +1418,7 @@ define(function () {
 					conf.storages.splice(i, 1);
 					conf.storageCost -= storage.cost;
 					var instance = storage.quoteInstance && storage.quoteInstance.id;
-					current.detachStrorage(storage);
+					current.detachStorage(storage);
 					if (id) {
 						// Unique item to delete
 						return instance && [instance];
@@ -1422,7 +1431,7 @@ define(function () {
 		 * Update the model to detach a storage from its instance
 		 * @param storage The storage model to detach.
 		 */
-		detachStrorage: function (storage) {
+		detachStorage: function (storage) {
 			if (storage.quoteInstance) {
 				var qis = storage.quoteInstance.storages;
 				for (var s = qis.length; s-- > 0;) {
