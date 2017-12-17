@@ -548,7 +548,7 @@ define(function () {
 					suggests[i].id = suggests[i].id || suggests[i].price.id;
 				}
 				var suggest = suggests[0];
-				_('storage').select2({
+				_('storage-price').select2({
 					data: suggests,
 					formatSelection: function (qs) {
 						return current.formatStorageHtml(qs, true);
@@ -558,7 +558,7 @@ define(function () {
 					}
 				}).select2('data', suggest);
 			} else {
-				_('storage').select2('data', null);
+				_('storage-price').select2('data', null);
 			}
 		},
 
@@ -568,7 +568,7 @@ define(function () {
 		instanceSetUiPrice: function (quote) {
 			if (quote && quote.price) {
 				var suggests = [quote];
-				_('instance').select2({
+				_('instance-price').select2({
 					data: suggests,
 					formatSelection: function (qi) {
 						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
@@ -579,7 +579,7 @@ define(function () {
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
 			} else {
-				_('instance').select2('data', null);
+				_('instance-price').select2('data', null);
 			}
 		},
 
@@ -1079,7 +1079,7 @@ define(function () {
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
-			var suggest = _('storage').select2('data');
+			var suggest = _('storage-price').select2('data');
 			data.type = suggest.price.type.name;
 			return suggest;
 		},
@@ -1094,7 +1094,7 @@ define(function () {
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
 			data.os = _('instance-os').val().toLowerCase();
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
-			var suggest = _('instance').select2('data');
+			var suggest = _('instance-price').select2('data');
 			data.price = suggest.price.id;
 			return suggest;
 		},

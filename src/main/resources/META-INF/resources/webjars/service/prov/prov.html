@@ -39,10 +39,10 @@
 					</h1>
 					<h2 class="text-info prov-cost-wrapper">
 						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
-						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></span>
+						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></button>
 					</h2>
 				</li>
-			</ul
+			</ul>
 			<div class="tab-content">
 				<div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
 					<div class="row table-tools">
@@ -55,7 +55,7 @@
 						<div class="col-sm-2">
 							<div class="form-group has-feedback">
 								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="table" />
+									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="prov-instances" />
 									<span class="fa fa-search form-control-feedback"></span>
 								</div>
 							</div>
@@ -94,7 +94,7 @@
 						<div class="col-sm-2">
 							<div class="form-group has-feedback">
 								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="table" />
+									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="prov-storages" />
 									<span class="fa fa-search form-control-feedback"></span>
 								</div>
 							</div>
@@ -134,17 +134,17 @@
 					<li role="presentation"><a role="menuitem" id="prov-terraform-execute"><i class="fa fa-play fa-fw"></i> {{service:prov:terraform:execute}}</a></li>
 				</ul>
 			</div>
-			<button type="button" class="btn btn-link cancel-subscription" type="button">{{back}}</button>
+			<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
 		</div>
 	</form>
-	<form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="instance" autocomplete="off">
+	<form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="modal-title">{{service:prov:instance-name}}</h4>
+					<h4 class="modal-title" id="qi-modal-title">{{service:prov:instance-name}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="alert alert-info">{{service:prov:instance-choice}}</div>
@@ -250,9 +250,9 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
+							<label class="control-label col-sm-3" for="instance-price" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="instance" class="form-control" required readonly />
+								<input type="text" id="instance-price" class="form-control" required readonly />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
 							</div>
 						</div>
@@ -265,14 +265,14 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-storage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" data-prov-type="storage" autocomplete="off">
+	<form id="popup-prov-storage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="qs-modal-title" data-prov-type="storage" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="modal-title">{{service:prov:storage}}</h4>
+					<h4 class="modal-title" id="qs-modal-title">{{service:prov:storage}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
@@ -317,9 +317,9 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-sm-3" for="storage-type" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
+							<label class="control-label col-sm-3" for="storage-price" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="storage" class="form-control" required/>
+								<input type="text" id="storage-price" class="form-control" required/>
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
 							</div>
 						</div>
@@ -382,9 +382,9 @@
 							<div class="col-sm-8">
 								<div class="input-group">
 									<input type="text" class="form-control" readonly>
-									<span class="input-group-btn"> <a class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
-									</a>
+									<div class="input-group-btn"> <span class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
 									</span>
+								</div>
 								</div>
 							</div>
 						</div>
@@ -407,9 +407,9 @@
 								<div class="input-group">
 									<div class="btn-group" data-toggle="buttons">
 										<label class="btn btn-default">
-											<input type="radio" name="memoryUnit" autocomplete="off" value="1" id="instance-memory-unit-upload">{{service:prov:ram-mega}}</label>
+											<input type="radio" name="memoryUnit" value="1" id="instance-memory-unit-upload">{{service:prov:ram-mega}}</label>
 										<label class="btn btn-default active">
-											<input type="radio" name="memoryUnit" autocomplete="off" checked value="1024">{{service:prov:ram-giga}}</label>
+											<input type="radio" name="memoryUnit" checked value="1024">{{service:prov:ram-giga}}</label>
 									</div>
 								</div>
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
@@ -425,14 +425,14 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-update" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title" autocomplete="off">
+	<form id="popup-prov-update" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="u-modal-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="modal-title">{{service:prov:quote}}</h4>
+					<h4 class="modal-title" id="u-modal-title">{{service:prov:quote}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
