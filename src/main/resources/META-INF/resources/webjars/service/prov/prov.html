@@ -42,7 +42,7 @@
 						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></span>
 					</h2>
 				</li>
-			</ul>
+			</ul
 			<div class="tab-content">
 				<div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
 					<div class="row table-tools">
@@ -352,7 +352,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;frequency;optimized;term-help;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity
+									name;cpu;ram;constant;os;disk;frequency;optimized;term-help;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location
 								</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
@@ -367,8 +367,9 @@
 								<br /><code><strong>ephemeral</strong> When true, ephemeral contract is accepted. False by default.</code>
 								<br /><code><strong>minQuantity</strong> Minimal quantity, default is 1.</code>
 								<br /><code><strong>maxQuantity</strong> Maximal quantity, default is 1.</code>
+								<br /><code><strong>location</strong> Location override of quote's one</code>
 								<br />{{instance-import-sample}}
-								<br><code>name;cpu;ram;os;disk;frequency;optimized;constant;instance;priceType</code>
+								<br><code>name;cpu;ram;os;disk;frequency;optimized;constant;instance;term</code>
 								<br><code>mysql;1.5:2048;RHEL;20;HOT;IOPS;true</code>
 								<br><code>nginx;0.5:1000;LINUX</code>
 								<br><code>jetty;2:2048;LINUX;;;;m1.large;spot</code>
