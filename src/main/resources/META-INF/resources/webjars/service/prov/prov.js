@@ -22,7 +22,6 @@ define(function () {
 		 */
 		configure: function (subscription) {
 			current.model = subscription;
-			current.initializeD3();
 			current.initOdometer();
 			current.optimizeModel();
 			current.initializeForm();
@@ -51,6 +50,7 @@ define(function () {
 					$instances.rows.add(current.model.configuration.instances).draw();
 					$storages.rows.add(current.model.configuration.storages).draw();
 					_('quote-location').select2('data', current.model.configuration.location);
+					_('quote-usage').select2('data', current.model.configuration.usage);
 				}
 			});
 		},
@@ -75,11 +75,11 @@ define(function () {
 			if (newCost.min !== current.model.configuration.cost.min || newCost.max !== current.model.configuration.cost.max) {
 				// The cost has been updated
 				current.model.configuration.cost = newCost;
-				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-needed'])());
+				notifyManager.notify(current.$messages['service:prov:refresh-needed']);
 				current.reload();
 			} else {
 				// The cost still the same
-				notifyManager.notify(Handlebars.compile(current.$messages['service:prov:refresh-no-change'])());
+				notifyManager.notify(current.$messages['service:prov:refresh-no-change']);
 			}
 		},
 
@@ -246,6 +246,7 @@ define(function () {
 				var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 				current.registerOdometer(Odometer, $summary.filter('.cpu').find('span'));
 				current.registerOdometer(Odometer, $summary.filter('.internet').find('span'));
+				current.updateUiCost();
 			});
 		},
 		registerOdometer: function (Odometer, $container) {
@@ -505,13 +506,21 @@ define(function () {
 			// Build the query
 			$form.find('.resource-query').each(function () {
 				var $item = $(this);
-				var value = $item.is('.input-group-btn') ? $item.find('li.active').data('value') : $item.val();
+				var value = '';
+				if ($item.is('.input-group-btn')) {
+					value = $item.find('li.active').data('value');
+				} else if ($item.prev().is('.select2-container')) {
+					var data = ($item.select2('data') || {});
+					value = data.name || (data.data ? data.data.name : (data.id || $item.val()));
+				} else if (!$item.is('.select2-container')) {
+					value = current.cleanData($item.val());
+				}
 				var queryParam = value && current.toQueryName(type, $item);
 				value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
 				if (queryParam && value) {
 					// Add as query
-					queries.push(queryParam + '=' + current.cleanData('' + value));
+					queries.push(queryParam + '=' + value);
 				}
 			});
 			// Check the availability of this instance for these requirements
@@ -612,7 +621,7 @@ define(function () {
 						current.model.configuration.cost = updatedTotalCost;
 						current[type + 'Delete']();
 						// Update the UI
-						notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-cleared'])());
+						notifyManager.notify(current.$messages['service:prov:' + type + '-cleared']);
 						$table.DataTable().clear().draw();
 						current.updateUiCost();
 					}
@@ -723,14 +732,38 @@ define(function () {
 				_('quote-name').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
-				current.updateQuote();
+				current.updateQuote({
+					name: _('quote-name').val(),
+					description: _('quote-description').val()
+				});
 			}).on('show.bs.modal', function (event) {
 				_('quote-name').val(current.model.configuration.name);
 				_('quote-description').val(current.model.configuration.description || '');
-				_('quote-location').select2('data', current.model.configuration.location);
 			});
-			$('#prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
-			$('#prov-terraform-execute').on('click', current.terraform);
+			_('popup-prov-usage').on('shown.bs.modal', function () {
+				_('usage-name').trigger('focus');
+			}).on('submit', function (e) {
+				e.preventDefault();
+				current.saveOrUpdateUsage({
+					name: _('usage-name').val(),
+					rate: _('usage-rate').val()
+				}, _('usage-old-name').val());
+			}).on('show.bs.modal', function (event) {
+				if ($(event.relatedTarget).is('.btn-success')) {
+					// Create mode
+					_('usage-old-name').val('');
+					_('usage-name').val('');
+					_('usage-rate').val('100');
+				} else {
+					// Update mode
+					var usage = event.relatedTarget;
+					_('usage-old-name').val(usage.name);
+					_('usage-name').val(usage.name);
+					_('usage-rate').val(usage.rate);
+				}
+			});
+			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
+			_('prov-terraform-execute').on('click', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 
@@ -838,42 +871,83 @@ define(function () {
 				// Also trigger the change of the value
 				_('instance-cpu').trigger('change');
 			});
-			_('instance-term').select2(current.instanceTermSelect2());
-			_('instance-term-upload').select2(current.instanceTermSelect2(true));
+			_('instance-term').select2(current.instanceTermSelect2(false));
+			_('instance-term-upload').select2(current.instanceTermSelect2(current.$messages['service:prov:default']));
 			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
-				if (event.added.data) {
-					current.updateLocation(event.added.data);
+				if (event.added) {
+					current.updateQuote({
+						location: event.added
+					}, 'location');
 				}
 			});
-			_('instance-location').select2(current.locationSelect2(true));
-			_('storage-location').select2(current.locationSelect2(true));
+			_('prov-usage-delete').click(function () {
+				current.deleteUsage(_('usage-old-name').val());
+			});
+			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
+			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
+			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage'])).select2('data', current.model.configuration.usage).on('change', function (event) {
+				current.updateQuote({
+					usage: event.added || null
+				}, 'usage');
+			});
+
+			var $usageSelect2 = _('quote-usage').data('select2');
+			if (typeof $usageSelect2.originalSelect === 'undefined') {
+				$usageSelect2.originalSelect = $usageSelect2.onSelect;
+			}
+			$usageSelect2.onSelect = (function (fn) {
+				return function (data, options) {
+					if (options) {
+						var $target = $(options.target).closest('.prov-usage-select2-action');
+						if ($target.is('.update')) {
+							// Update action
+							_('quote-usage').select2('close');
+							_('popup-prov-usage').modal('show', data);
+							return;
+						}
+					}
+					return fn.apply(this, arguments);
+				};
+			})($usageSelect2.originalSelect);
+			_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
 		},
 
 		/**
 		 * Location Select2 configuration.
 		 */
-		locationSelect2: function (allowClear) {
-			return current.genericSelect2(true, current.locationToText, 'location');
+		locationSelect2: function (placeholder) {
+			return current.genericSelect2(placeholder, current.locationToText, 'location');
+		},
+
+		/**
+		 * Usage Select2 configuration.
+		 */
+		usageSelect2: function (placeholder) {
+			return current.genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
+				return usage.name + '<span class="pull-right small">(' + usage.rate + '%) ' +
+					'<a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="' + current.$messages.update + '" class="fa fa-fw fa-pencil"></i><a></span>';
+			});
 		},
 
 		/**
 		 * Price term Select2 configuration.
 		 */
-		instanceTermSelect2: function (allowClear) {
-			return current.genericSelect2(true, current.termToText, 'instance-price-term');
+		instanceTermSelect2: function () {
+			return current.genericSelect2(current.$messages['service:prov:default'], current.termToText, 'instance-price-term');
 		},
 
 		/**
 		 * Generic Ajax Select2 configuration.
 		 */
-		genericSelect2: function (allowClear, renderer, path) {
+		genericSelect2: function (placeholder, renderer, path, rendererResult) {
 			return {
 				formatSelection: renderer,
-				formatResult: renderer,
+				formatResult: rendererResult || renderer,
 				escapeMarkup: function (m) {
 					return m;
 				},
-				allowClear: allowClear,
+				allowClear: placeholder !== false,
+				placeholder: placeholder ? placeholder : null,
 				formatSearching: function () {
 					return current.$messages.loading;
 				},
@@ -901,11 +975,8 @@ define(function () {
 					results: function (data, page) {
 						var result = [];
 						$(data.data).each(function () {
-							result.push({
-								id: this.id,
-								data: this,
-								text: renderer(this)
-							});
+							result.push(this);
+							this.text = renderer(this);
 						});
 						return {
 							more: data.recordsFiltered > page * 10,
@@ -925,7 +996,7 @@ define(function () {
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/terraform',
 				dataType: 'json',
 				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:terraform:started'])());
+					notifyManager.notify(current.$messages['service:prov:terraform:started']);
 				}
 			});
 		},
@@ -946,31 +1017,132 @@ define(function () {
 		},
 
 		/**
-		 * Update the quote name and description
+		 * Update the quote's details. If the total cost is updated, the quote will be updated.
+		 * @param {object} data The optional data overriding the on from the model.
+		 * @param {String} property The optional highlighted updated property name. Used for the feedback UI.
 		 */
-		updateQuote: function () {
+		updateQuote: function (data, property) {
+			var conf = current.model.configuration;
 			var $popup = _('popup-prov-update');
-			var data = {
-				name: _('quote-name').val(),
-				description: _('quote-description').val(),
-				location: _('quote-location').select2('data')
-			};
 			current.disableCreate($popup);
+
+			// Build the new data
+			var jsonData = $.extend({
+				name: conf.name,
+				description: conf.description,
+				location: conf.location,
+				usage: conf.usage
+			}, data || {});
+			jsonData.location = jsonData.location.name ? jsonData.location.name : jsonData.location;
+			if (jsonData.usage) {
+				jsonData.usage = jsonData.usage.name;
+			} else {
+				delete jsonData.usage;
+			}
+
 			$.ajax({
 				type: 'PUT',
 				url: REST_PATH + 'service/prov/' + current.model.subscription,
 				dataType: 'json',
 				contentType: 'application/json',
-				data: JSON.stringify(data),
+				data: JSON.stringify(jsonData),
 				success: function (newCost) {
 					// Update the UI
-					$('.quote-name').text(data.name);
+					$('.quote-name').text(jsonData.name);
 
 					// Commit to the model
-					current.model.configuration.name = data.name;
-					current.model.configuration.description = data.description;
-					notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
+					conf.name = jsonData.name;
+					conf.description = jsonData.description;
+					conf.location = data.location || conf.location;
+					conf.usage = data.usage || conf.usage;
+
+					// UI feedback
+					notifyManager.notify(Handlebars.compile(current.$messages.updated)(jsonData.name));
 					$popup.modal('hide');
+
+					// Handle updated cost
+					if (property) {
+						current.reloadAsNeed(newCost);
+					}
+				},
+				complete: function () {
+					current.enableCreate($popup);
+				},
+				error: function () {
+					// Restore the old property value
+					if (property) {
+						notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:' + property + '-failed'])(data[property].name));
+						_('quote-' + property).select2('data', current.model.configuration[property]);
+					}
+				}
+			});
+		},
+
+		/**
+		 * Delete an usage by its name.
+		 * @param {string} name The usage name to delete.
+		 */
+		deleteUsage: function (name) {
+			var conf = current.model.configuration;
+			var $popup = _('popup-prov-usage');
+			current.disableCreate($popup);
+			$.ajax({
+				type: 'DELETE',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + name,
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (newCost) {
+					// Commit to the model
+					if (conf.usage && conf.usage.name === name) {
+						// Update the usage of the quote
+						delete conf.usage;
+						_('prov-usage').select2('data', null);
+					}
+
+					// UI feedback
+					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
+					$popup.modal('hide');
+
+					// Handle updated cost
+					current.reloadAsNeed(newCost);
+				},
+				complete: function () {
+					current.enableCreate($popup);
+				}
+			});
+
+		},
+
+		/**
+		 * Update a quote usage.
+		 * @param {string} name The usage data to persist.
+		 * @param {string} oldName The optional old name. Required for 'update' mode.
+		 */
+		saveOrUpdateUsage: function (data, oldName) {
+			var conf = current.model.configuration;
+			var $popup = _('popup-prov-usage');
+			current.disableCreate($popup);
+			$.ajax({
+				type: oldName ? 'PUT' : 'POST',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage' + (oldName ? '/' + oldName : ''),
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function (newCost) {
+					// Commit to the model
+					if (conf.usage && conf.usage.name === oldName) {
+						// Update the usage of the quote
+						conf.usage.name = data.name;
+						conf.usage.rate = data.rate;
+						_('prov-usage').select2('data', data);
+					}
+
+					// UI feedback
+					notifyManager.notify(Handlebars.compile(current.$messages[data.id ? 'updated' : 'created'])(data.name));
+					$popup.modal('hide');
+
+					// Handle updated cost
+					current.reloadAsNeed(newCost);
 				},
 				complete: function () {
 					current.enableCreate($popup);
@@ -979,48 +1151,24 @@ define(function () {
 		},
 
 		/**
-		 * Update the quote's location. If the total cost is updated, the quote will be updated.
-		 * @param {object} location The location data, including identifier and name.
+		 * Location text renderer.
 		 */
-		updateLocation: function (location) {
-			$.ajax({
-				type: 'PUT',
-				url: REST_PATH + 'service/prov/' + current.model.subscription,
-				dataType: 'json',
-				contentType: 'application/json',
-				data: JSON.stringify({
-					name: current.model.configuration.name,
-					description: current.model.configuration.description,
-					location: location.name
-				}),
-				success: function (newCost) {
-					// Commit to the model
-					current.model.configuration.location = location;
-					notifyManager.notify(Handlebars.compile(current.$messages.updated)(location.name));
-
-					// Handle updated cost
-					current.reloadAsNeed(newCost);
-				},
-				error: function () {
-					// Restore the old value
-					notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:location-failed'])(location.name));
-					_('quote-location').select2('data', current.model.configuration.location);
-				}
-			});
+		locationToText: function (location) {
+			return location.text || location.name || location;
 		},
 
 		/**
 		 * Location text renderer.
 		 */
-		locationToText: function (location) {
-			return location.name || location.text || location;
+		usageToText: function (usage) {
+			return usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>');
 		},
 
 		/**
 		 * Price term text renderer.
 		 */
 		termToText: function (term) {
-			return term.name || term.text || term;
+			return term.text || term.name || term;
 		},
 
 		/**
@@ -1081,7 +1229,6 @@ define(function () {
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
 			var suggest = _('storage-price').select2('data');
 			data.type = suggest.price.type.name;
-			return suggest;
 		},
 
 		instanceUiToData: function (data) {
@@ -1096,7 +1243,6 @@ define(function () {
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			var suggest = _('instance-price').select2('data');
 			data.price = suggest.price.id;
-			return suggest;
 		},
 
 		cleanFloat: function (data) {
@@ -1122,6 +1268,8 @@ define(function () {
 			validationManager.reset(_('popup-prov-' + type));
 			_(type + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
 			_(type + '-description').val(model.description || '');
+			_(type + '-location').select2('data', model.location || null);
+			_(type + '-usage').select2('data', model.usage || null);
 			current[type + 'ToUi'](model);
 		},
 
@@ -1148,7 +1296,9 @@ define(function () {
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
-			quote.id || $.proxy(current.checkResource, _('popup-prov-instance'))();
+			if (quote.id) {
+				$.proxy(current.checkResource, _('popup-prov-instance'))();
+			}
 		},
 
 		/**
@@ -1197,18 +1347,24 @@ define(function () {
 			var $popup = _('popup-prov-' + type);
 
 			// Build the playload for business service
+			var suggest = {
+				price: _(type + '-price').select2('data'),
+				usage: _(type + '-usage').select2('data')
+			};
 			var data = {
 				id: current.model.quote.id,
 				name: _(type + '-name').val(),
 				description: _(type + '-description').val(),
+				location: (_(type + '-location').select2('data') || {}).name,
+				usage: (suggest.usage || {}).name,
 				subscription: current.model.subscription
 			};
 			// Complete the data from the UI and backup the price context
-			var price = current[type + 'UiToData'](data);
+			current[type + 'UiToData'](data);
 
 			// Trim the data
 			Object.keys(data).forEach(function (key) {
-				if (data[key] === null || data[key] === '') {
+				if (typeof data[key] === 'undefined' || data[key] === null || data[key] === '') {
 					delete data[key];
 				}
 			});
@@ -1221,7 +1377,7 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveAndUpdateCosts(type, updatedCost, data, price);
+					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage);
 					$popup.modal('hide');
 				},
 				complete: function () {
@@ -1235,10 +1391,11 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 * @param {string} updatedCost The new updated cost with identifier, total cost, resource cost and related resources costs.
 		 * @param {object} data The original data sent to the back-end.
-		 * @param {object} suggest The last know price suggest replacing the current price. When undefined, the original price is used.
+		 * @param {object} price The last know price suggest replacing the current price. When undefined, the original price is used.
+		 * @param {object} usage The last provided usage.
 		 * @return {object} The updated or created model.
 		 */
-		saveAndUpdateCosts: function (type, updatedCost, data, suggest) {
+		saveAndUpdateCosts: function (type, updatedCost, data, price, usage) {
 			var conf = current.model.configuration;
 			var id = updatedCost.id;
 			if (data.id) {
@@ -1255,9 +1412,10 @@ define(function () {
 			};
 
 			// Common data
-			qx.price = (suggest || current.model.quote || qx).price;
+			qx.price = (price || current.model.quote || qx).price;
 			qx.name = data.name;
 			qx.description = data.description;
+			qx.usage = usage;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx, updatedCost);
@@ -1299,8 +1457,8 @@ define(function () {
 		updateUiCost: function () {
 			var conf = current.model.configuration;
 
-			// Compute the new usage and costs
-			var usage = current.usageGlobalRate();
+			// Compute the new capacity and costs
+			var usage = current.computeUsage();
 
 			// Update the global counts
 			current.formatCost(conf.cost, $('.cost'));
@@ -1326,82 +1484,143 @@ define(function () {
 				$summary.addClass('hidden');
 			}
 
-			// Update the total resource usage
-			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
+			// Update the gauge : reserved / available
+			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
+				if (typeof current.d3Gauge === 'undefined') {
+					current.d3Gauge = d3;
+					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
+						textColor: '#FF4444',
+						textVertPosition: 0.6,
+						waveAnimateTime: 1200,
+						waveHeight: 0.9,
+						backgroundColor: '#e0e0e0'
+					});
+					current.updateUiCost();
+					return;
+				}
 				var weight = 0;
 				var weightUsage = 0;
 				if (usage.cpu.available) {
-					weightUsage += 50 * usage.cpu.used / usage.cpu.available;
+					weightUsage += 50 * usage.cpu.reserved / usage.cpu.available;
 					weight += 50;
 				}
 				if (usage.ram.available) {
-					weightUsage += 10 * usage.ram.used / usage.ram.available;
+					weightUsage += 10 * usage.ram.reserved / usage.ram.available;
 					weight += 10;
 				}
 				if (usage.storage.available) {
-					weightUsage += usage.storage.used / usage.storage.available;
+					weightUsage += usage.storage.reserved / usage.storage.available;
 					weight += 1;
 				}
-				if (d3.select('#gauge-global').on('valueChanged') && weight) {
-					$('#gauge-global').removeClass('hidden');
+				if (d3.select('#prov-gauge').on('valueChanged') && weight) {
+					_('prov-gauge').removeClass('hidden');
 					// Weight average of average...
-					d3.select('#gauge-global').on('valueChanged')(Math.floor(weightUsage * 100 / weight));
+					d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightUsage * 100 / weight));
 				} else {
-					$('#gauge-global').addClass('hidden');
+					$('#prov-gauge').addClass('hidden');
 				}
+			});
+
+			// Update the sunburst total resource capacity
+			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (conf.cost.min) {
-					sunburst.init('#sunburst', current.toD3(), function (data) {
+					sunburst.init('#prov-sunburst', current.toD3(), function (data) {
 						return data.name + ', cost: ' + current.formatCost(data.size || data.value);
 					});
-					$('#sunburst').removeClass('hidden');
+					_('prov-sunburst').removeClass('hidden');
 				} else {
-					$('#sunburst').addClass('hidden');
+					_('prov-sunburst').addClass('hidden');
+				}
+			});
+
+			require(['d3', '../main/service/prov/lib/arc'], function (d3, arcGenerator) {
+				var weightedRate = usage.weightedRate;
+				var rates = {
+					segments: [{
+						value: conf.usage ? conf.usage.rate : 100,
+						tooltip: Handlebars.compile(current.$messages['service:prov:usage-default'])(conf.usage ? Math.round(conf.usage.rate) : 100),
+						color: 'orange'
+					}]
+				};
+				if (usage.nbInstances && weightedRate.cost != rates.segments[0].value) {
+					// [instance] Add the real usage rate with overrides
+					rates.segments.push({
+						value: weightedRate.cost,
+						tooltip: Handlebars.compile(current.$messages['service:prov:usage-actual-cost'])(weightedRate.cost),
+						color: 'yellow'
+					});
+				}
+
+				// Render concentric rates
+				if (typeof current.d3Arc === 'undefined') {
+					current.d3Arc = arcGenerator;
+					$.proxy(arcGenerator.init, arcGenerator)('#prov-usage', rates, 90);
+					current.updateUiCost();
+				} else {
+					$.proxy(arcGenerator.update, arcGenerator)(rates);
 				}
 			});
 		},
 
 		/**
-		 * Compute the global resource usage of this quote. Only minimal quantities are considered and with minimal to 1.
+		 * Compute the global resource usage of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		usageGlobalRate: function () {
+		computeUsage: function () {
 			var conf = current.model.configuration;
 			var ramAvailable = 0;
-			var ramUsed = 0;
+			var ramReserved = 0;
 			var cpuAvailable = 0;
-			var cpuUsed = 0;
+			var cpuReserved = 0;
 			var storageAvailable = 0;
-			var storageUsed = 0;
+			var storageReserved = 0;
+			var nbInstances = 0;
 			var nb = 0;
 			var publicAccess = 0;
-			for (var i = 0; i < conf.instances.length; i++) {
+			var defaultRate = conf.usage ? conf.usage.rate : 100;
+			var weightedRateInstance = 0;
+			var weightedRateCost = 0;
+			var i;
+			var instanceCost = 0;
+			for (i = 0; i < conf.instances.length; i++) {
 				var qi = conf.instances[i];
+				var rate = qi.usage ? qi.usage.rate : defaultRate;
+				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
+				nbInstances += nb;
 				cpuAvailable += qi.price.type.cpu * nb;
-				cpuUsed += qi.cpu * nb;
+				cpuReserved += qi.cpu * nb;
 				ramAvailable += qi.price.type.ram * nb;
-				ramUsed += qi.ram * nb;
+				ramReserved += qi.ram * nb;
+				weightedRateInstance += rate * nb;
+				instanceCost += cost;
+				weightedRateCost += cost * rate;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 			}
 			for (i = 0; i < conf.storages.length; i++) {
 				var qs = conf.storages[i];
 				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
 				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
-				storageUsed += qs.size * nb;
+				storageReserved += qs.size * nb;
 			}
 			return {
 				publicAccess: publicAccess,
+				nbInstances: nbInstances,
+				weightedRate: {
+					instance: nbInstances ? Math.round(weightedRateInstance / nbInstances) : 0,
+					cost: instanceCost ? Math.round(weightedRateCost / instanceCost) : 0
+				},
 				ram: {
 					available: ramAvailable,
-					used: ramUsed
+					reserved: ramReserved
 				},
 				cpu: {
 					available: cpuAvailable,
-					used: cpuUsed
+					reserved: cpuReserved
 				},
 				storage: {
 					available: storageAvailable,
-					used: storageUsed
+					reserved: storageReserved
 				}
 			};
 		},
@@ -1478,17 +1697,6 @@ define(function () {
 			return deletedStorages;
 		},
 
-		/**
-		 * Initialize D3 graphics with default empty data.
-		 */
-		initializeD3: function () {
-			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
-				current.initializeD3Gauge(d3);
-				// First render
-				current.updateUiCost();
-			});
-		},
-
 		toD3: function () {
 			var conf = current.model.configuration;
 			var data = {
@@ -1558,19 +1766,6 @@ define(function () {
 			}
 
 			return data;
-		},
-
-		/**
-		 * Initialize the gauge
-		 */
-		initializeD3Gauge: function (d3) {
-			d3.select('#gauge-global').call(d3.liquidfillgauge, 1, {
-				textColor: '#FF4444',
-				textVertPosition: 0.6,
-				waveAnimateTime: 1200,
-				waveHeight: 0.9,
-				backgroundColor: '#e0e0e0'
-			});
 		},
 
 		/**

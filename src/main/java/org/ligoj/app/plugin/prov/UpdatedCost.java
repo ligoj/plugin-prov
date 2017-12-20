@@ -14,7 +14,7 @@ import lombok.Setter;
 public class UpdatedCost {
 
 	/**
-	 * The quote instance identifier.
+	 * The quote resource identifier.
 	 */
 	private int id;
 
@@ -30,7 +30,7 @@ public class UpdatedCost {
 
 	/**
 	 * The new related costs of the update resource. For sample, storage for
-	 * associated instance..
+	 * associated instance.Ò
 	 */
 	private Map<Integer, FloatingCost> relatedCosts = new HashMap<>();
 }

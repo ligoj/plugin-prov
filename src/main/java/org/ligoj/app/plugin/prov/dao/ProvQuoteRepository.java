@@ -47,7 +47,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 *         details.
 	 */
 	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
-			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term WHERE q.subscription.id = :subscription")
+			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription")
 	ProvQuote getCompute(int subscription);
 
 	/**

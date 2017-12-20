@@ -26,20 +26,19 @@ import lombok.Setter;
 public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
-	 * Billing period in minutes. Any started period is due.
+	 * Billing period duration in minutes. Any started period is due.
 	 */
 	@NotNull
 	private Integer period;
 
 	/**
-	 * The internal offer code.
-	 */
-	@NotNull
-	private String code;
-
-	/**
 	 * Minimal billing period in minutes. Any started period is due for this
-	 * minimum. When <code>null</code>, corresponds to the period.
+	 * minimum. When <code>null</code>, corresponds to the period. <br>
+	 * When <code>usage &lt; minimum &lt; period</code> then nothing is billed.<br>
+	 * When <code>minimum &lt; usage &lt; period</code> then <code>period</code> is
+	 * billed. <br>
+	 * When <code>period1 &lt; usage &lt; period2</code> then <code>period2</code>
+	 * is billed.
 	 */
 	private Integer minimum;
 
@@ -60,4 +59,10 @@ public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> impl
 	 * The instance could be terminated by the provider.
 	 */
 	private boolean ephemeral;
+
+	/**
+	 * The internal offer code.
+	 */
+	@NotNull
+	private String code;
 }

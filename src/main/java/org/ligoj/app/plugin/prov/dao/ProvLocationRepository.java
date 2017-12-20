@@ -24,7 +24,8 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	 */
 	@Query("SELECT pl FROM ProvLocation pl, Subscription s INNER JOIN s.node AS sn INNER JOIN pl.node AS pln"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(pln.id, ':%')"
-			+ " AND (:criteria IS NULL OR UPPER(pl.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
+			+ " AND (:criteria IS NULL OR UPPER(pl.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))"
+			+ " ORDER BY UPPER(pl.name)")
 	Page<ProvLocation> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**

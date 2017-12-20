@@ -22,17 +22,6 @@
 	margin-bottom: -6px;
 }
 
-#gauge-global {
-	width: 180px;
-	height: 180px;
-}
-.gauge-wrapper {
-	top: -9px;
-	height: 0px;
-	position: relative;
-	left: 200px;
-}
-
 #prov-dashboard {
 	position: relative;
 	width: 50%;
@@ -55,32 +44,79 @@
 	margin-top: 0;
 	margin-top: 0;
 }
+#prov-gauge {
+	width: 180px;
+	height: 180px;
+}
 
-#sunburst path {
+.gauge-wrapper {
+	top: -9px;
+	height: 0;
+	position: relative;
+	left: 200px;
+}
+
+#prov-sunburst path {
 	stroke: #fff;
 	fill-rule: evenodd;
 }
 
-#sunburst {
-	width: 150px;
-	height: 150px;
+#prov-sunburst {
+	width: 200px;
+	height: 0;
 	top: -18px;
 	position: relative;
 }
 
-.d3-tooltip {
-	z-index: 1031;
-	visibility: hidden;
+.prov-usage-wrapper {
+	width: 200px;
+	height: 0;
+	top: -9px;
+	position: relative;
+	left: 390px;
 }
 
-.d3-text {
-	pointer-events: none;
+#prov-usage {
+	margin-left: 13px;
+}
+
+.prov-usage-wrapper .form-group {
+	height: 0;
+	position: absolute;
+}
+.prov-usage-wrapper .form-group>.control-label {
+	top: -141px;
+	position: relative;
+	left: -17px;
+	width: 0;
+}
+.prov-usage-wrapper .form-group .select2-container {
+	margin-top: -10px;
+}
+
+.prov-usage-wrapper .form-group>div {
+	top: -134px;
+	margin-left: 24px;
+	width: 200px;
+	position: relative;
+}
+
+.prov-usage-wrapper .btn-success {
+	top: -178px;
+	width: 32px;
+	left: -80px;
+	padding-left: 0px;
+	padding-right: 0px;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .sunburst-part:hover {
 	filter: url(#sunburst-filter);
 }
-
+.slice {
+	filter: url(#arc-filter);
+}
 #subscribe-configuration-prov .instance {
 	border-bottom: 1px dotted #ccc;
 	text-decoration: none;
@@ -155,4 +191,18 @@ label[for="instance-max-variable-cost"] {
 
 .summary .badge>i+span {
 	margin-left: 1px;
+}
+
+.slice path {
+	stroke: #fff;
+	stroke-width: 1px;
+}
+
+.d3-tooltip {
+	z-index: 1031;
+	visibility: hidden;
+}
+
+.d3-text {
+	pointer-events: none;
 }

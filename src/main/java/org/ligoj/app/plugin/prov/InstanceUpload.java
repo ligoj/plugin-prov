@@ -41,6 +41,11 @@ public class InstanceUpload {
 	private String type;
 	private String term;
 	private String location;
+	
+	/**
+	 * Usage name within the target quote. Target usage must exist.
+	 */
+	private String usage;
 
 	/**
 	 * Minimal quantity, when undefined <code>1</code>.

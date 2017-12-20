@@ -26,11 +26,11 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE")
-public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implements PluginConfiguration {
+public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implements PluginConfiguration, Costed {
 
 	/**
-	 * Minimal monthly cost, computed during the creation and kept synchronized
-	 * with the updates.
+	 * Minimal monthly cost, computed during the creation and kept synchronized with
+	 * the updates.
 	 */
 	@NotNull
 	@PositiveOrZero
@@ -69,6 +69,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private List<ProvQuoteInstance> instances;
 
 	/**
+	 * Usages associated to this quote..
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvUsage> usages;
+
+	/**
 	 * Quoted storages.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
@@ -82,4 +89,21 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	@NotNull
 	private ProvLocation location;
 
+	/**
+	 * Optional usage. When <code>null</code>, full time.
+	 */
+	@ManyToOne
+	private ProvUsage usage;
+
+	@Override
+	@JsonIgnore
+	public boolean isUnboundCost() {
+		return unboundCostCounter > 0;
+	}
+
+	@Override
+	@JsonIgnore
+	public ProvQuote getConfiguration() {
+		return this;
+	}
 }

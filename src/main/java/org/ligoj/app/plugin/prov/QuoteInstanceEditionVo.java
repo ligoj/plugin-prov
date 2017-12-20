@@ -92,7 +92,12 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private boolean ephemeral;
 	
 	/**
-	 * Optional required location. When <code>null</code>, the default quote's one will be used.
+	 * Optional required location name. When <code>null</code>, the default quote's one will be used.
 	 */
 	private String location;
+	
+	/**
+	 * Optional applied usage name. When <code>null</code>, the default quote's one will be used.
+	 */
+	private String usage;
 }

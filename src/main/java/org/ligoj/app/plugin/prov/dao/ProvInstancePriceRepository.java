@@ -49,19 +49,23 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 *            (<code>false</code>), only non ephemeral instance are accepted.
 	 * @param location
 	 *            Optional location name. May be <code>null</code>.
+	 * @param rate
+	 *            Usage rate. Positive number. Maximum is
+	 *            <code>1</code, minimum is <code>0.01</code>.
 	 * @param pageable
 	 *            The page control to return few item.
 	 * @return The minimum instance price or <code>null</code>.
 	 */
-	@Query("SELECT ip FROM #{#entityName} ip INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t LEFT JOIN ip.location AS loc"
+	@Query("SELECT ip, ip.cost * CASE WHEN t.period > 60 THEN 100 ELSE :rate END AS rateCost FROM #{#entityName} ip"
+			+ " INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t LEFT JOIN ip.location AS loc"
 			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
 			+ " AND (:type IS NULL OR i.id = :type) AND i.cpu>= :cpu AND i.ram>=:ram"
 			+ " AND (:os IS NULL OR ip.os=:os) AND (:constant IS NULL OR i.constant = :constant)"
 			+ " AND (:term IS NULL OR t.id = :term) AND i.cpu > 0 AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
 			+ " AND (:location IS NULL OR loc IS NULL OR loc.name = :location)                                        "
-			+ " ORDER BY ip.cost ASC")
-	List<ProvInstancePrice> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer term, Integer type,
-			boolean ephemeral, String location, Pageable pageable);
+			+ " ORDER BY rateCost ASC")
+	List<Object[]> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer term, Integer type,
+			boolean ephemeral, String location, double rate, Pageable pageable);
 
 	/**
 	 * Return the lowest custom instance price configuration from the minimal

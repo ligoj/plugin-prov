@@ -55,7 +55,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private Integer maximal;
 
 	/**
-	 * <code>true</code> when this storage can attached to an instance.
+	 * When <code>true</code>, this storage can attached to an instance.
 	 */
 	private boolean instanceCompatible = false;
 

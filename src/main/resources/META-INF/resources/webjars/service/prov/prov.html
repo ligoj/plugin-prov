@@ -25,8 +25,18 @@
 				</a></li>
 				<li id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md">
 					<div class="svg-wrapper">
-						<div class="gauge-wrapper"><svg id="gauge-global" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></div>
-						<div id="sunburst"></div>
+						<div class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></div>
+						<div id="prov-sunburst"></div>
+						<div class="prov-usage-wrapper">
+							<div id="prov-usage"></div>
+							<div class="form-group">
+								<label class="control-label col-" for="quote-usage"><i class="fa fa-clock-o fa-4x" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
+								<div class="col-">
+									<input type="text" id="quote-usage" class="form-control" />
+								</div>
+								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success col-"><i class="fa fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+							</div>
+						</div>	
 					</div>
 				</li>
 				<li class="pull-right prov-global-summary">
@@ -219,6 +229,20 @@
 							<div class="col-sm-8">
 								<input type="text" id="instance-term" class="resource-query form-control" required />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-usage" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="instance-usage" class="resource-query form-control" />
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-location" data-toggle="tooltip" title="{{service:prov:location-title}}">{{service:prov:location}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="instance-location" class="resource-query form-control" />
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -452,6 +476,43 @@
 				</div>
 				<div class="modal-footer">
 					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+				</div>
+			</div>
+		</div>
+	</form>
+	<form id="popup-prov-usage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="r-modal-title" autocomplete="off">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="r-modal-title">{{service:prov:usage}}</h4>
+				</div>
+				<div class="modal-body">
+					<input class="hidden" type="hidden" id="usage-old-name">
+					<div class="form-horizontal">
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="usage-name">{{name}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="usage-name" class="form-control" required maxlength="50" />
+							</div>
+						</div>
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="usage-rate" data-toggle="tooltip" title="{{service:prov:usage-rate-title}}">{{service:prov:usage-rate}}</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+									<input type="number" min="1" max="100" id="usage-rate" class="form-control input-mini" required />
+									<span class="input-group-addon">%</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+					<button type="button" class="btn btn-danger" id="prov-usage-delete" >{{delete}}</button>
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>

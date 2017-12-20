@@ -5,10 +5,10 @@ define(['d3', 'jquery'], function (d3, $) {
 			return '#' + x;
 		});
 	};
-	sunburst.arcTween = function(newAngle) {
-		return function(d) {
+	sunburst.arcTween = function (newAngle) {
+		return function (d) {
 			var interpolate = d3.interpolate(d.endAngle, newAngle);
-			return function(t) {
+			return function (t) {
 				d.endAngle = interpolate(t);
 				return arc(d);
 			};
@@ -21,82 +21,85 @@ define(['d3', 'jquery'], function (d3, $) {
 		var radius = (Math.min(width, height) / 2) - 10;
 		var x = d3.scaleLinear().range([0, 2 * Math.PI]);
 		var y = d3.scaleSqrt().range([0, radius]);
-        var color = function(d) {
+		var color = function (d) {
 
-            // This function builds the total
-            // color palette incrementally so
-            // we don't have to iterate through
-            // the entire data structure.
+			// This function builds the total
+			// color palette incrementally so
+			// we don't have to iterate through
+			// the entire data structure.
 
-            // We're going to need a color scale.
-            // Normally we'll distribute the colors
-            // in the scale to child nodes.
-            var colors;
+			// We're going to need a color scale.
+			// Normally we'll distribute the colors
+			// in the scale to child nodes.
+			var colors;
 
-            // The root node is special since
-            // we have to seed it with our
-            // desired palette.
-            if (!d.parent) {
+			// The root node is special since
+			// we have to seed it with our
+			// desired palette.
+			if (!d.parent) {
 
-                // Create a categorical color
-                // scale to use both for the
-                // root node's immediate
-                // children. We're using the
-                // 10-color predefined scale,
-                // so set the domain to be
-                // [0, ... 9] to ensure that
-                // we can predictably generate
-                // correct individual colors.
-                colors = d3.scaleOrdinal(d3.schemeCategory10)
-                    .domain(d3.range(0,10));
+				// Create a categorical color
+				// scale to use both for the
+				// root node's immediate
+				// children. We're using the
+				// 10-color predefined scale,
+				// so set the domain to be
+				// [0, ... 9] to ensure that
+				// we can predictably generate
+				// correct individual colors.
+				colors = d3.scaleOrdinal(d3.schemeCategory10)
+					.domain(d3.range(0, 10));
 
-                // White for the root node
-                // itself.
-                d.color = "#fff";
+				// White for the root node
+				// itself.
+				d.color = "#fff";
 
-            } else if (d.children) {
+			} else if (d.children) {
 
-                // Since this isn't the root node,
-                // we construct the scale from the
-                // node's assigned color. Our scale
-                // will range from darker than the
-                // node's color to brigher than the
-                // node's color.
-                var startColor = d3.hcl(d.color)
-                                    .darker(),
-                    endColor   = d3.hcl(d.color)
-                                    .brighter();
+				// Since this isn't the root node,
+				// we construct the scale from the
+				// node's assigned color. Our scale
+				// will range from darker than the
+				// node's color to brigher than the
+				// node's color.
+				var startColor = d3.hcl(d.color)
+					.darker(),
+					endColor = d3.hcl(d.color)
+					.brighter();
 
-                // Create the scale
-                colors = d3.scaleLinear()
-                        .interpolate(d3.interpolateHcl)
-                        .range([
-                            startColor.toString(),
-                            endColor.toString()
-                        ])
-                        .domain([0,d.children.length+1]);
+				// Create the scale
+				colors = d3.scaleLinear()
+					.interpolate(d3.interpolateHcl)
+					.range([
+						startColor.toString(),
+						endColor.toString()
+					])
+					.domain([0, d.children.length + 1]);
 
-            }
+			}
 
-            if (d.children) {
+			if (d.children) {
 
-                // Now distribute those colors to
-                // the child nodes. We want to do
-                // it in sorted order, so we'll
-                // have to calculate that. Because
-                // JavaScript sorts arrays in place,
-                // we use a mapped version.
-                d.children.map(function(child, i) {
-                    return {value: child.value, idx: i};
-                }).sort(function(a,b) {
-                    return b.value - a.value
-                }).forEach(function(child, i) {
-                    d.children[child.idx].color = colors(i);
-                });
-            }
+				// Now distribute those colors to
+				// the child nodes. We want to do
+				// it in sorted order, so we'll
+				// have to calculate that. Because
+				// JavaScript sorts arrays in place,
+				// we use a mapped version.
+				d.children.map(function (child, i) {
+					return {
+						value: child.value,
+						idx: i
+					};
+				}).sort(function (a, b) {
+					return b.value - a.value
+				}).forEach(function (child, i) {
+					d.children[child.idx].color = colors(i);
+				});
+			}
 
-            return d.color;
-        };
+			return d.color;
+		};
 		var partition = d3.partition();
 		var arc = d3.arc()
 			.startAngle(function (d) {
