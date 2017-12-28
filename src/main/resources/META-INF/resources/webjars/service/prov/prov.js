@@ -771,7 +771,7 @@ define(function () {
 			_('storage-instance').select2({
 				formatSelection: current.formatQuoteInstance,
 				formatResult: current.formatQuoteInstance,
-				placeholder: current.$messages['service:prov:instance'],
+				placeholder: current.$messages['service:prov:no-attached-instance'],
 				allowClear: true,
 				escapeMarkup: function (m) {
 					return m;

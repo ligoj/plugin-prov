@@ -75,6 +75,7 @@ define({
 		'service:prov:storage-size': 'Size',
 		'service:prov:storage-size-title': 'Block size in GiB',
 		'service:prov:storage-deleted': 'Storage "{{[0]}}" ({{[1]}}) is deleted',
+		'service:prov:no-attached-instance': 'No attached instance',
 		'service:prov:storage-cleared': 'All storages have been deleted',
 		'service:prov:cost': 'Cost',
 		'service:prov:cost-title': 'Monthly billed',
