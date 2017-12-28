@@ -315,7 +315,10 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="storage-size" data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</label>
 							<div class="col-sm-8">
-								<input type="number" min="0" id="storage-size" class="resource-query form-control" required />
+								<div class="input-group">
+									<input type="number" min="1" id="storage-size" class="resource-query form-control" required />
+									<span class="input-group-addon">{{service:prov:storage-giga}}</span>
+								</div>
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
 							</div>
 						</div>
