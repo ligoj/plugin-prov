@@ -569,6 +569,24 @@ define(function () {
 			} else {
 				_('storage-price').select2('data', null);
 			}
+			current.updateInstanceCompatible(_('storage-price').select2('data'));
+		},
+
+		/**
+		 * Depending on the current storage type, enable/disable the instance selection
+		 */
+		updateInstanceCompatible: function (suggest) {
+			if (suggest && suggest.price && suggest.price.type.instanceCompatible === false) {
+				// Disable
+				_('storage-instance').select2('data', null).select2('disable');
+				_('storage-instance').prev('.select2-container').find('.select2-chosen').text(current.$messages['service:prov:cannot-attach-instance']);
+			} else {
+				// Enable
+				_('storage-instance').select2('enable');
+				if (_('storage-instance').select2('data') === null) {
+					_('storage-instance').prev('.select2-container').find('.select2-chosen').text(current.$messages['service:prov:no-attached-instance']);
+				}
+			}
 		},
 
 		/**
@@ -885,10 +903,15 @@ define(function () {
 			});
 			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
-			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage'])).select2('data', current.model.configuration.usage).on('change', function (event) {
-				current.updateQuote({
-					usage: event.added || null
-				}, 'usage');
+			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage']))
+				.select2('data', current.model.configuration.usage)
+				.on('change', function (event) {
+					current.updateQuote({
+						usage: event.added || null
+					}, 'usage');
+				});
+			_('storage-price').on('change', function (event) {
+				current.updateInstanceCompatible(event.added);
 			});
 
 			var $usageSelect2 = _('quote-usage').data('select2');
@@ -1227,8 +1250,7 @@ define(function () {
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
-			var suggest = _('storage-price').select2('data');
-			data.type = suggest.price.type.name;
+			data.type = _('storage-price').select2('data').price.type.name;
 		},
 
 		instanceUiToData: function (data) {
@@ -1241,8 +1263,7 @@ define(function () {
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
 			data.os = _('instance-os').val().toLowerCase();
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
-			var suggest = _('instance-price').select2('data');
-			data.price = suggest.price.id;
+			data.price = _('instance-price').select2('data').price.id;
 		},
 
 		cleanFloat: function (data) {

@@ -78,6 +78,7 @@ define({
 		'service:prov:storage-size-help': 'Required size. Depending on this value the available types vary',
 		'service:prov:storage-deleted': 'Storage "{{[0]}}" ({{[1]}}) is deleted',
 		'service:prov:no-attached-instance': 'No attached instance',
+		'service:prov:cannot-attach-instance': 'Not available',
 		'service:prov:storage-cleared': 'All storages have been deleted',
 		'service:prov:cost': 'Cost',
 		'service:prov:cost-title': 'Monthly billed',

@@ -74,6 +74,7 @@ define({
 	'service:prov:storage-size-title': 'Taille du bloc en Go',
 	'service:prov:storage-size-help': 'Taille requise. Suivant cette valeur, les types disponibles varient',
 	'service:prov:no-attached-instance': 'Aucune instance attachée',
+	'service:prov:cannot-attach-instance': 'Non disponible',
 	'service:prov:storage-deleted': 'Stockage "{{[0]}}" ({{[1]}}) est supprimé',
 	'service:prov:storage-cleared': 'Tous les stockages ont été supprimés',
 	'service:prov:cost': 'Coût',
