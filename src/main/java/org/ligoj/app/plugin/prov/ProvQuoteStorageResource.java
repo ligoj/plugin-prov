@@ -30,7 +30,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
@@ -129,7 +129,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		final Integer qi = Optional.ofNullable(storage.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
 		final String location = Optional.ofNullable(storage.getLocation()).map(INamableBean::getName).orElse(null);
 		storage.setPrice(validateLookup("storage",
-				lookup(quote, storage.getSize(), price.getType().getFrequency(), qi, price.getType().getOptimized(), location).stream()
+				lookup(quote, storage.getSize(), price.getType().getLatency(), qi, price.getType().getOptimized(), location).stream()
 						.findFirst().orElse(null),
 				storage.getName()));
 		return updateCost(storage);
@@ -230,10 +230,10 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	 *            types from the associated provider.
 	 * @param size
 	 *            The requested size in GB.
-	 * @param frequency
-	 *            The optional requested {@link ProvStorageFrequency}.
+	 * @param latency
+	 *            The optional requested minimal {@link ProvStorageLatency} class.
 	 * @param instance
-	 *            The optional requested instance to be associated.
+	 *            The optional requested quote instance to be associated.
 	 * @param optimized
 	 *            The optional requested {@link ProvStorageOptimized}.
 	 * @param location
@@ -244,15 +244,15 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@Path("{subscription:\\d+}/storage-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLoopup> lookup(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("frequency") final ProvStorageFrequency frequency,
+			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final ProvStorageLatency latency,
 			@QueryParam("instance") final Integer instance, @QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), size, frequency, instance, optimized, location);
+		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, optimized, location);
 	}
 
-	private List<QuoteStorageLoopup> lookup(final ProvQuote configuration, final int size, final ProvStorageFrequency frequency,
+	private List<QuoteStorageLoopup> lookup(final ProvQuote configuration, final int size, final ProvStorageLatency latency,
 			final Integer instance, final ProvStorageOptimized optimized, final String location) {
 
 		// Get the attached node and check the security on this subscription
@@ -261,7 +261,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		// The the right location from instance first
 		final String resolvedLocation = Optional.ofNullable(location).orElseGet(() -> configuration.getLocation().getName());
 
-		return spRepository.findLowestPrice(node, size, frequency, instance, optimized, resolvedLocation, PageRequest.of(0, 10)).stream()
+		return spRepository.findLowestPrice(node, size, latency, instance, optimized, resolvedLocation, PageRequest.of(0, 10)).stream()
 				.map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size))).collect(Collectors.toList());
 	}
 

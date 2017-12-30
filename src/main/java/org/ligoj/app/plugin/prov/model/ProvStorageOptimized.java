@@ -13,6 +13,11 @@ public enum ProvStorageOptimized {
 	/**
 	 * IOPS optimized storage
 	 */
-	IOPS
+	IOPS,
+
+	/**
+	 * Durability over performance
+	 */
+	DURABILITY
 
 }

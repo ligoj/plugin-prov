@@ -23,7 +23,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
@@ -522,12 +522,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
-		final QuoteStorageLoopup lookup = sResource.lookup(subscription, 1024, ProvStorageFrequency.HOT, null, null, null).get(0);
+		final QuoteStorageLoopup lookup = sResource.lookup(subscription, 1024, ProvStorageLatency.LOW, null, null, null).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assert.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assert.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
 		Assert.assertTrue(asJson.endsWith(
-				"\"name\":\"storage1\",\"description\":\"storageD1\",\"frequency\":\"hot\",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
+				"\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"low\",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result
 		assertCSP(lookup);
@@ -548,11 +548,11 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageNoMatch() {
-		Assert.assertFalse(sResource.lookup(subscription, 512, ProvStorageFrequency.HOT, null, null, null).isEmpty());
-		Assert.assertFalse(sResource.lookup(subscription, 999, ProvStorageFrequency.HOT, null, null, null).isEmpty());
-		Assert.assertFalse(sResource.lookup(subscription, 512, ProvStorageFrequency.COLD, null, null, null).isEmpty());
+		Assert.assertEquals("storage1", sResource.lookup(subscription, 512, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage1", sResource.lookup(subscription, 999, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage2", sResource.lookup(subscription, 512, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 
 		// Out of limits
-		Assert.assertTrue(sResource.lookup(subscription, 999, ProvStorageFrequency.COLD, null, null, null).isEmpty());
+		Assert.assertEquals("storage1", sResource.lookup(subscription, 999, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 	}
 }

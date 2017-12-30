@@ -34,7 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
@@ -228,7 +228,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assert.assertEquals("storage1", storageType.getName());
 		Assert.assertEquals("storageD1", storageType.getDescription());
 		Assert.assertEquals(0, storage.getCostTransaction(), DELTA);
-		Assert.assertEquals(ProvStorageFrequency.HOT, storageType.getFrequency());
+		Assert.assertEquals(ProvStorageLatency.LOW, storageType.getLatency());
 		Assert.assertEquals(ProvStorageOptimized.IOPS, storageType.getOptimized());
 
 		// Not attached storage
@@ -454,7 +454,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
 		new ProvQuoteInstance().setStorages(null);
-		ProvStorageFrequency.valueOf(ProvStorageFrequency.HOT.name());
+		ProvStorageLatency.valueOf(ProvStorageLatency.LOW.name());
 		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());
 		ProvTenancy.valueOf(ProvTenancy.DEDICATED.name());
@@ -603,5 +603,27 @@ public class ProvResourceTest extends AbstractAppTest {
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assert.assertEquals("description1", quote2.getDescription());
 		Assert.assertEquals("region-1", quote2.getLocation().getName());
+	}
+
+	@Test
+	public void findConfigured() {
+		final ProvQuoteInstance qi = qiRepository.findByName("server1");
+		Assert.assertEquals("server1", resource.findConfigured(qiRepository, qi.getId(), subscription).getName());
+	}
+
+	@Test
+	public void findConfiguredByName() {
+		Assert.assertEquals("server1", resource.findConfigured(qiRepository, "server1", subscription).getName());
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void findConfiguredNotFound() {
+		final ProvQuoteInstance qi = qiRepository.findByName("server1");
+		resource.findConfigured(qiRepository, qi.getId(), 0).getName();
+	}
+
+	@Test(expected = EntityNotFoundException.class)
+	public void findConfiguredByNameNotFound() {
+		resource.findConfigured(qiRepository, "server1", 0);
 	}
 }

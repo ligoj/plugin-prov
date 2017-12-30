@@ -88,7 +88,7 @@ define(function () {
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
-			var result = current.$super('renderServicelink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
+			var result = current.$super('renderServiceLink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
 
 			// Help
 			result += current.$super('renderServiceHelpLink')(subscription.parameters, 'service:prov:help');
@@ -299,7 +299,7 @@ define(function () {
 		 */
 		formatStorageHtml: function (qs, showName) {
 			var type = qs.price.type;
-			return (showName === true ? type.name + ' ' : '') + current.formatStorageFrequency(type.frequency) +
+			return (showName === true ? type.name + ' ' : '') + current.formatStorageLatency(type.latency) +
 				(type.optimized ? ' ' + current.formatStorageOptimized(type.optimized) : '') +
 				' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
 				((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
@@ -350,10 +350,13 @@ define(function () {
 		/**
 		 * Storage type key to markup/label mapping.
 		 */
-		storageFrequency: {
-			'cold': 'fa fa-snowflake-o fa-fw',
-			'hot': 'fa fa-thermometer-full fa-fw',
-			'archive': 'fa fa-archive fa-fw'
+		storageLatency: {
+			'highest': 'fa fa-clock-o fa-fw',
+			'high': 'fa fa-snowflake-o fa-fw',
+			'medium': 'fa fa-thermometer-empty fa-fw',
+			'low': 'fa fa-thermometer-three-quarters fa-fw',
+			'lowest': 'fa fa-thermometer-full fa-fw',
+			'invalid': 'fa fa-ban fa-fw'
 		},
 
 		/**
@@ -361,6 +364,7 @@ define(function () {
 		 */
 		storageOptimized: {
 			'throughput': 'fa fa-database fa-fw',
+			'durability': 'fa fa-archive fa-fw',
 			'iops': 'fa fa-flash fa-fw'
 		},
 
@@ -396,12 +400,12 @@ define(function () {
 		},
 
 		/**
-		 * Return the HTML markup from the storage frequency.
+		 * Return the HTML markup from the storage latency.
 		 */
-		formatStorageFrequency: function (frequency, mode, clazz) {
-			var id = (frequency.id || frequency || 'cold').toLowerCase();
-			var text = current.$messages['service:prov:storage-frequency-' + id];
-			clazz = current.storageFrequency[id] + (typeof clazz === 'string' ? clazz : '');
+		formatStorageLatency: function (latency, mode, clazz) {
+			var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
+			var text = id && current.$messages['service:prov:storage-latency-' + id];
+			clazz = current.storageLatency[id] + (typeof clazz === 'string' ? clazz : '');
 			if (mode === 'sort') {
 				return text;
 			}
@@ -414,7 +418,7 @@ define(function () {
 		 */
 		formatStorageOptimized: function (optimized, withText, clazz) {
 			if (optimized) {
-				var id = (optimized.id || optimized || 'throughput').toLowerCase();
+				var id = (optimized.id || optimized).toLowerCase();
 				var text = current.$messages['service:prov:storage-optimized-' + id];
 				clazz = current.storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
 				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
@@ -846,7 +850,7 @@ define(function () {
 			});
 
 			_('storage-optimized').select2({
-				placeholder: current.$messages['service:prov:storage-optimized-help'],
+				placeholder: current.$messages['service:prov:no-requirement'],
 				allowClear: true,
 				formatSelection: current.formatStorageOptimized,
 				formatResult: current.formatStorageOptimized,
@@ -859,24 +863,35 @@ define(function () {
 				}, {
 					id: 'IOPS',
 					text: 'IOPS'
+				}, {
+					id: 'DURABILITY',
+					text: 'DURABILITY'
 				}]
 			});
 
-			_('storage-frequency').select2({
-				formatSelection: current.formatStorageFrequency,
-				formatResult: current.formatStorageFrequency,
+			_('storage-latency').select2({
+				placeholder: current.$messages['service:prov:no-requirement'],
+				allowClear: true,
+				formatSelection: current.formatStorageLatency,
+				formatResult: current.formatStorageLatency,
 				escapeMarkup: function (m) {
 					return m;
 				},
 				data: [{
-					id: 'COLD',
-					text: 'COLD'
+					id: 'LOWEST',
+					text: 'LOWEST'
 				}, {
-					id: 'HOT',
-					text: 'HOT'
+					id: 'LOW',
+					text: 'LOW'
 				}, {
-					id: 'ARCHIVE',
-					text: 'ARCHIVE'
+					id: 'MEDIUM',
+					text: 'MEDIUM'
+				}, {
+					id: 'HIGH',
+					text: 'HIGH'
+				}, {
+					id: 'HIGHEST',
+					text: 'HIGHEST'
 				}]
 			});
 
@@ -1347,7 +1362,7 @@ define(function () {
 		 */
 		storageToUi: function (quote) {
 			_('storage-size').val((quote && quote.size) || '10');
-			_('storage-frequency').select2('data', current.select2IdentityData((quote.price && quote.price.type.frequency) || 'HOT'));
+			_('storage-latency').select2('data', current.select2IdentityData((quote.price && quote.price.type.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.price && quote.price.type.optimized) || null));
 			_('storage-instance').select2('data', quote.quoteInstance || null);
 			current.storageSetUiPrice(quote);
@@ -1764,23 +1779,23 @@ define(function () {
 					size: qi.cost
 				});
 			}
-			var allFrequencies = {};
+			var allOptimizations = {};
 			for (i = 0; i < conf.storages.length; i++) {
 				var qs = conf.storages[i];
-				var frequencies = allFrequencies[qs.price.type.frequency];
-				if (typeof frequencies === 'undefined') {
-					// First OS
-					frequencies = {
-						name: current.formatStorageFrequency(qs.price.type.frequency, true, ' fa-2x'),
+				var optimizations = allOptimizations[qs.price.type.latency];
+				if (typeof optimizations === 'undefined') {
+					// First optimization
+					optimizations = {
+						name: current.formatStorageLatency(qs.price.type.latency, true, ' fa-2x'),
 						value: 0,
 						children: []
 					};
-					allFrequencies[qs.price.type.frequency] = frequencies;
-					storages.children.push(frequencies);
+					allOptimizations[qs.price.type.latency] = optimizations;
+					storages.children.push(optimizations);
 				}
-				frequencies.value += qs.cost;
+				optimizations.value += qs.cost;
 				storages.value += qs.cost;
-				frequencies.children.push({
+				optimizations.children.push({
 					name: qs.name,
 					size: qs.cost
 				});
@@ -1982,9 +1997,9 @@ define(function () {
 					className: 'truncate',
 					render: current.formatStorage
 				}, {
-					data: 'price.type.frequency',
+					data: 'price.type.latency',
 					className: 'truncate hidden-xs',
-					render: current.formatStorageFrequency
+					render: current.formatStorageLatency
 				}, {
 					data: 'price.type.optimized',
 					className: 'truncate hidden-xs',

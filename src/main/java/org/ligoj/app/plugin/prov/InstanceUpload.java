@@ -3,7 +3,7 @@ package org.ligoj.app.plugin.prov;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
@@ -36,7 +36,7 @@ public class InstanceUpload {
 	private Boolean constant;
 	private VmOs os;
 	private Double disk;
-	private ProvStorageFrequency frequency;
+	private ProvStorageLatency latency;
 	private ProvStorageOptimized optimized;
 	private String type;
 	private String term;

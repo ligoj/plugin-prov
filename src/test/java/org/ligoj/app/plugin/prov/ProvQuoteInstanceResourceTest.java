@@ -651,13 +651,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	@Test
 	public void upload() throws IOException {
 		iResource.upload(subscription, new ClassPathResource("csv/upload.csv").getInputStream(),
-				new String[] { "name", "cpu", "ram", "disk", "frequency", "os", "constant" }, null, 1, "UTF-8");
+				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant" }, null, 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assert.assertEquals(18, configuration.getInstances().size());
 		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
 		Assert.assertEquals(15, configuration.getStorages().size());
 		Assert.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
-		checkCost(configuration.getCost(), 14917.079, 17363.479, false);
+		checkCost(configuration.getCost(), 14546.049, 16992.449, false);
 	}
 
 	@Test
@@ -672,7 +672,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		Assert.assertEquals("dynamic", configuration.getInstances().get(12).getPrice().getType().getName());
 		Assert.assertEquals(14, configuration.getStorages().size());
 		Assert.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
-		checkCost(configuration.getCost(), 14839.279, 17285.679, false);
+		checkCost(configuration.getCost(), 14539.329, 16985.729, false);
 	}
 
 	@Test
@@ -852,7 +852,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	@Test(expected = ValidationJsonException.class)
 	public void uploadStorageNotFound() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;HOT;THROUGHPUT".getBytes("UTF-8")), null,
+		iResource.upload(subscription, new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;LOWEST;THROUGHPUT".getBytes("UTF-8")), new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" },
 				"on-demand1", 1, "UTF-8");
 	}
 

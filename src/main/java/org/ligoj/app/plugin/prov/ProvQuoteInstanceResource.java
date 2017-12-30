@@ -46,7 +46,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -71,8 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteInstance> {
-	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "frequency", "optimized" };
-	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "frequency", "optimized", "term",
+	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
+	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "latency", "optimized", "term",
 			"type", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost", "ephemeral", "location", "usage" };
 
 	@Autowired
@@ -561,14 +561,12 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			// Size is provided
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
-			// Default the storage frequency to HOT when not specified
-			final ProvStorageFrequency frequency = ObjectUtils.defaultIfNull(upload.getFrequency(), ProvStorageFrequency.HOT);
+			// Default the storage latency to HOT when not specified
+			final ProvStorageLatency latency = ObjectUtils.defaultIfNull(upload.getLatency(), ProvStorageLatency.LOW);
 
 			// Find the nicest storage
-			svo.setType(storageResource
-					.lookup(subscription, size, frequency, instancePrice.getType().getId(), upload.getOptimized(), upload.getLocation())
-					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
-					.getName());
+			svo.setType(storageResource.lookup(subscription, size, latency, qi, upload.getOptimized(), upload.getLocation()).stream()
+					.findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType().getName());
 
 			// Default the storage name to the instance name
 			svo.setName(vo.getName());

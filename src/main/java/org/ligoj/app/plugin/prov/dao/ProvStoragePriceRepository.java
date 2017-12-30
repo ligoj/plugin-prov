@@ -2,7 +2,7 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.List;
 
-import org.ligoj.app.plugin.prov.model.ProvStorageFrequency;
+import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -56,8 +56,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 *            provider.
 	 * @param size
 	 *            The requested size in GB.
-	 * @param frequency
-	 *            The optional requested frequency. May be <code>null</code>.
+	 * @param latency
+	 *            The optional requested latency. May be <code>null</code>.
 	 * @param instance
 	 *            The optional requested quote instance identifier to be associated.
 	 *            The related instance must be in the same provider.
@@ -70,17 +70,17 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @return The cheapest storage or <code>null</code>. The first item corresponds
 	 *         to the storage price, the second is the computed price.
 	 */
-	@Query("SELECT sp, (sp.cost+(CASE WHEN st.minimal < :size THEN st.minimal ELSE :size END) * sp.costGb) AS cost"
+	@Query("SELECT sp, (sp.cost+(CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost"
 			+ " FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st             "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) "
 			+ " AND (:size IS NULL OR st.maximal IS NULL OR st.maximal >= :size)"
 			+ " AND (:instance IS NULL OR (st.instanceCompatible = true"
 			+ "       AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi LEFT JOIN qi.location qiloc"
-			+ "        WHERE qi.configuration.subscription.node.refined = st.node AND (qiloc IS NULL OR loc IS NULL OR qiloc=loc))))"
-			+ " AND (:frequency IS NULL OR st.frequency = :frequency)           "
-			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))  "
+			+ "        WHERE qi.id = :instance AND qi.configuration.subscription.node.refined = st.node AND (qiloc IS NULL OR loc IS NULL OR qiloc=loc))))"
+			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
+			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC")
-	List<Object[]> findLowestPrice(String node, int size, ProvStorageFrequency frequency, Integer instance, ProvStorageOptimized optimized,
+	List<Object[]> findLowestPrice(String node, int size, ProvStorageLatency latency, Integer instance, ProvStorageOptimized optimized,
 			String location, Pageable pageable);
 
 	/**

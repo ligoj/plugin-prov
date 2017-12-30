@@ -32,11 +32,11 @@ import lombok.Setter;
 public class ProvStorageType extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
-	 * The frequency access
+	 * The latency class.
 	 */
 	@NotNull
-	@Enumerated(EnumType.STRING)
-	private ProvStorageFrequency frequency;
+	@Enumerated(EnumType.ORDINAL)
+	private ProvStorageLatency latency;
 
 	/**
 	 * Optimized best usage of this storage
