@@ -70,7 +70,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @return The cheapest storage or <code>null</code>. The first item corresponds
 	 *         to the storage price, the second is the computed price.
 	 */
-	@Query("SELECT sp, (sp.cost+(CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost"
+	@Query("SELECT sp, (sp.cost+(CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost, st.latency AS latency"
 			+ " FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st             "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) "
 			+ " AND (:size IS NULL OR st.maximal IS NULL OR st.maximal >= :size)"
@@ -79,7 +79,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			+ "        WHERE qi.id = :instance AND qi.configuration.subscription.node.refined = st.node AND (qiloc IS NULL OR loc IS NULL OR qiloc=loc))))"
 			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
 			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
-			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC")
+			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC, latency DESC")
 	List<Object[]> findLowestPrice(String node, int size, ProvStorageLatency latency, Integer instance, ProvStorageOptimized optimized,
 			String location, Pageable pageable);
 
@@ -89,15 +89,15 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * 
 	 * @param subscription
 	 *            The subscription identifier to match.
-	 * @param name
-	 *            The name to match. Case insensitive.
+	 * @param type
+	 *            The type name to match. Case insensitive.
 	 * @param location
 	 *            The expected location name. Case insensitive.
 	 * 
 	 * @return The entity or <code>null</code>.
 	 */
 	@Query("SELECT sp FROM ProvStoragePrice sp, Subscription s INNER JOIN s.node AS sn LEFT JOIN sp.location AS loc INNER JOIN sp.type AS st"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(st.node.id, ':%') AND UPPER(st.name) = UPPER(:name) "
+			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(st.node.id, ':%') AND UPPER(st.name) = UPPER(:type) "
 			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))")
-	ProvStoragePrice findByName(int subscription, String name, String location);
+	ProvStoragePrice findByTypeName(int subscription, String type, String location);
 }

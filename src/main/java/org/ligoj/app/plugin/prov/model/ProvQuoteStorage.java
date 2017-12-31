@@ -26,7 +26,22 @@ import lombok.Setter;
 public class ProvQuoteStorage extends AbstractQuoteResource {
 
 	/**
-	 * Size of the storage in "GiB". 1GiB = 1024MiB
+	 * Optional required latency class.
+	 */
+	private ProvStorageLatency latency;
+
+	/**
+	 * Optional required optimized best usage of this storage
+	 */
+	private ProvStorageOptimized optimized;
+
+	/**
+	 * Optional instance compatibility flag.
+	 */
+	private Boolean instanceCompatible;
+
+	/**
+	 * Required size of the storage in "GiB". 1GiB = 1024MiB
 	 */
 	@NotNull
 	private Integer size;

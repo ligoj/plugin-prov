@@ -121,26 +121,25 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteStorage storage) {
-		final ProvQuote quote = storage.getConfiguration();
+	public FloatingCost refresh(final ProvQuoteStorage qs) {
+		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		final ProvStoragePrice price = storage.getPrice();
-		final Integer qi = Optional.ofNullable(storage.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
-		final String location = Optional.ofNullable(storage.getLocation()).map(INamableBean::getName).orElse(null);
-		storage.setPrice(validateLookup("storage",
-				lookup(quote, storage.getSize(), price.getType().getLatency(), qi, price.getType().getOptimized(), location).stream()
-						.findFirst().orElse(null),
-				storage.getName()));
-		return updateCost(storage);
+		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
+		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
+		qs.setPrice(validateLookup("storage",
+				lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location).stream().findFirst().orElse(null),
+				qs.getName()));
+		return updateCost(qs);
 	}
 
 	/**
-	 * Check and return the storage matching to the requirements
+	 * Check and return the storage price matching to the requirements and related
+	 * name.
 	 */
-	private ProvStoragePrice findByName(final int subscription, final String name, final String location, final ProvQuote quote) {
-		return assertFound(spRepository.findByName(subscription, name, Optional.ofNullable(location).orElse(quote.getLocation().getName())),
-				name);
+	private ProvStoragePrice findByTypeName(final int subscription, final String name, final String location, final ProvQuote quote) {
+		return assertFound(
+				spRepository.findByTypeName(subscription, name, Optional.ofNullable(location).orElse(quote.getLocation().getName())), name);
 	}
 
 	/**
@@ -156,30 +155,30 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		DescribedBean.copy(vo, entity);
 
 		// Check the associations
-		final ProvQuote quote = getQuoteFromSubscription(vo.getSubscription());
+		final int subscription = vo.getSubscription();
+		final ProvQuote quote = getQuoteFromSubscription(subscription);
 		final String node = quote.getSubscription().getNode().getRefined().getId();
 		entity.setConfiguration(quote);
-		entity.setLocation(resource.findLocation(vo.getSubscription(), vo.getLocation()));
-		entity.setPrice(findByName(vo.getSubscription(), vo.getType(), vo.getLocation(), quote));
+		entity.setLocation(resource.findLocation(subscription, vo.getLocation()));
+		entity.setPrice(findByTypeName(subscription, vo.getType(), vo.getLocation(), quote));
+		entity.setInstanceCompatible(vo.getInstanceCompatible());
+		entity.setLatency(vo.getLatency());
+		entity.setOptimized(vo.getOptimized());
+		entity.setSize(vo.getSize());
+
+		// Check the related quote instance
 		entity.setQuoteInstance(Optional.ofNullable(vo.getQuoteInstance()).map(i -> resource.findConfigured(qiRepository, i)).map(i -> {
 			resource.checkVisibility(i.getPrice().getType(), node);
 			return i;
 		}).orElse(null));
 
-		// Check the storage compatibility with the instance
+		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
-		if (!type.isInstanceCompatible() && entity.getQuoteInstance() != null) {
-			// The related storage type does not accept to be attached to an instance
-			throw new ValidationJsonException("storage", "not-compatible-storage-instance", entity.getName(),
-					entity.getQuoteInstance().getName());
+		if (!lookup(quote, entity.getSize(), entity.getLatency(), vo.getQuoteInstance(), entity.getOptimized(), vo.getLocation()).stream()
+				.map(qs -> qs.getPrice().getType()).filter(type::equals).findAny().isPresent()) {
+			// The related storage type does not match these requirements
+			throw new ValidationJsonException("type", "type-incompatible-reqirements", type.getName());
 		}
-
-		// Check the storage limits
-		if (type.getMaximal() != null && vo.getSize() > type.getMaximal()) {
-			// The related storage type does not accept this value
-			throw new ValidationJsonException("size", "Max", type.getMaximal());
-		}
-		entity.setSize(vo.getSize());
 
 		// Save and update the costs
 		final UpdatedCost cost = newUpdateCost(qsRepository, entity, this::updateCost);

@@ -1265,6 +1265,9 @@ define(function () {
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
 			data.quoteInstance = current.cleanInt(_('storage-instance').val());
+			data.optimized = _('storage-optimized').val();
+			data.latency = _('storage-latency').val();
+			data.instanceCompatible = data.quoteInstance ? true : null;
 			data.type = _('storage-price').select2('data').price.type.name;
 		},
 

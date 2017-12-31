@@ -16,6 +16,8 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -59,6 +61,13 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
+	@Autowired
+	private ProvStorageTypeRepository stRepository;
+
+	@Autowired
+	private ProvStoragePriceRepository spRepository;
+;
+
 	private int subscription;
 
 	@Before
@@ -66,9 +75,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class,
-						ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
-						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
+						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		refreshCost();
@@ -231,6 +240,49 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
 		Assert.assertEquals(53.76, storage.getCost(), DELTA);
 		Assert.assertFalse(storage.isUnboundCost());
+	}
+
+	@Test
+	public void refresh() {
+		// Create with constraints
+		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("server-new");
+		vo.setType("storage1");
+		vo.setOptimized(null);
+		vo.setLatency(ProvStorageLatency.LOW);
+		vo.setSize(512);
+		final UpdatedCost cost = sResource.create(vo);
+		checkCost(cost.getResourceCost(), 107.52, 107.52, false);
+
+		// No change
+		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 107.52, 107.52, false);
+		Assert.assertEquals("storage1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+
+		// Change some constraints
+		vo.setLatency(ProvStorageLatency.HIGHEST); vo.setId(cost.getId());
+
+		// Cost is the same since the type still match the constraints
+		checkCost(sResource.update(vo).getResourceCost(), 107.52, 107.52, false);
+
+		// The cost changed since a best type matches to the constraints
+		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
+		Assert.assertEquals("storage2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+
+		// Change the price of "storage3" to make it as cheap as "storage2"
+		final ProvStoragePrice price3 = spRepository.findBy("type.name", "storage3");
+		price3.setCost(1);
+		spRepository.saveAndFlush(price3);
+		
+		// Also, change the latency of "storage3" to "LOW" class
+		final ProvStorageType type3 = stRepository.findByName("storage3");
+		type3.setLatency(ProvStorageLatency.LOW);
+		stRepository.saveAndFlush(type3);
+		
+		// Even if "storage2" and "storage3" have identical prices and match to the
+		// requirements, "storage3" offers a lowest latency.
+		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
+		Assert.assertEquals("storage3", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
 	@Test(expected = EntityNotFoundException.class)
@@ -548,11 +600,15 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageNoMatch() {
-		Assert.assertEquals("storage1", sResource.lookup(subscription, 512, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
-		Assert.assertEquals("storage1", sResource.lookup(subscription, 999, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
-		Assert.assertEquals("storage2", sResource.lookup(subscription, 512, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage1",
+				sResource.lookup(subscription, 512, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage1",
+				sResource.lookup(subscription, 999, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage2",
+				sResource.lookup(subscription, 512, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 
 		// Out of limits
-		Assert.assertEquals("storage1", sResource.lookup(subscription, 999, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
+		Assert.assertEquals("storage1",
+				sResource.lookup(subscription, 999, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 	}
 }
