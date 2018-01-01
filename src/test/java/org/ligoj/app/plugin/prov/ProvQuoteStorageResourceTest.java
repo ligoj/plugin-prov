@@ -65,8 +65,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
-	private ProvStoragePriceRepository spRepository;
-;
+	private ProvStoragePriceRepository spRepository;;
 
 	private int subscription;
 
@@ -250,7 +249,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setName("server-new");
 		vo.setType("storage1");
 		vo.setOptimized(null);
+		vo.setInstanceCompatible(true);
 		vo.setLatency(ProvStorageLatency.LOW);
+		vo.setQuoteInstance(qiRepository.findByNameExpected("server2").getId());
 		vo.setSize(512);
 		final UpdatedCost cost = sResource.create(vo);
 		checkCost(cost.getResourceCost(), 107.52, 107.52, false);
@@ -258,9 +259,13 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// No change
 		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 107.52, 107.52, false);
 		Assert.assertEquals("storage1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+		Assert.assertEquals(true, qsRepository.findOneExpected(cost.getId()).getInstanceCompatible());
 
 		// Change some constraints
-		vo.setLatency(ProvStorageLatency.HIGHEST); vo.setId(cost.getId());
+		vo.setLatency(ProvStorageLatency.HIGHEST);
+		vo.setInstanceCompatible(false);
+		vo.setQuoteInstance(null);
+		vo.setId(cost.getId());
 
 		// Cost is the same since the type still match the constraints
 		checkCost(sResource.update(vo).getResourceCost(), 107.52, 107.52, false);
@@ -273,12 +278,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final ProvStoragePrice price3 = spRepository.findBy("type.name", "storage3");
 		price3.setCost(1);
 		spRepository.saveAndFlush(price3);
-		
+
 		// Also, change the latency of "storage3" to "LOW" class
 		final ProvStorageType type3 = stRepository.findByName("storage3");
 		type3.setLatency(ProvStorageLatency.LOW);
 		stRepository.saveAndFlush(type3);
-		
+
 		// Even if "storage2" and "storage3" have identical prices and match to the
 		// requirements, "storage3" offers a lowest latency.
 		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
