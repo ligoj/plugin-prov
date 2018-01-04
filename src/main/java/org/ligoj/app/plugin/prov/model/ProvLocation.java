@@ -8,7 +8,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Node;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
+import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -22,7 +22,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_LOCATION", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvLocation extends AbstractNamedEntity<Integer> {
+public class ProvLocation extends AbstractDescribedEntity<Integer> {
 
 	/**
 	 * The related node (VM provider) of this location.
