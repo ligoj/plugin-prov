@@ -1180,7 +1180,7 @@ define(function () {
 					$popup.modal('hide');
 
 					// Handle updated cost
-					current.reloadAsNeed(newCost);
+					current.reloadAsNeed(newCost.totalCost);
 				},
 				complete: function () {
 					current.enableCreate($popup);
