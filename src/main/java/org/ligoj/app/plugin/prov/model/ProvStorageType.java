@@ -22,8 +22,7 @@ import lombok.Setter;
  * Storage specification of a provider. <br>
  * Sizes use the GiB unit.
  * 
- * @see https://en.wikipedia.org/wiki/Gibibyte
- * 
+ * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">https://en.wikipedia.org/wiki/Gibibyte</a>
  */
 @Getter
 @Setter

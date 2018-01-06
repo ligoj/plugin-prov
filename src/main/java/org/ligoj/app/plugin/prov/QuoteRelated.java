@@ -14,6 +14,13 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 
+/**
+ * An object related to a quote. Handle cost cost and association validation
+ * against the quote.
+ * 
+ * @param <C>
+ *            The related entity.
+ */
 public interface QuoteRelated<C extends Costed> {
 
 	/**
@@ -21,8 +28,20 @@ public interface QuoteRelated<C extends Costed> {
 	 */
 	double HOURS_BY_MONTH = 24d * 365d / 12d;
 
+	/**
+	 * Return the {@link SubscriptionResource} instance. Used to resolve the related
+	 * subscription and validate the visibility.
+	 * 
+	 * @return The {@link SubscriptionResource} instance.
+	 */
 	SubscriptionResource getSubscriptionResource();
 
+	/**
+	 * Return the {@link ProvQuoteRepository} instance. Used to resolve the right
+	 * quote.
+	 * 
+	 * @return The {@link ProvQuoteRepository} instance.
+	 */
 	ProvQuoteRepository getRepository();
 
 	/**
@@ -114,8 +133,8 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The value to round.
 	 * @return The rounded value for one month with 4 decimals.
 	 */
-	default double toMonthly(final double cost) {
-		return toMonthly(cost, 1000);
+	default double toMonthly(final double value) {
+		return toMonthly(value, 1000);
 	}
 
 	/**
@@ -123,10 +142,12 @@ public interface QuoteRelated<C extends Costed> {
 	 * 
 	 * @param value
 	 *            The value to round.
+	 * @param mult
+	 *            The multiplier before the round.
 	 * @return The rounded value for one month with 4 decimals.
 	 */
-	default double toMonthly(final double cost, final int mult) {
-		return Math.round(cost * mult * HOURS_BY_MONTH) / 1000d;
+	default double toMonthly(final double value, final int mult) {
+		return Math.round(value * mult * HOURS_BY_MONTH) / 1000d;
 	}
 
 	/**
@@ -134,10 +155,15 @@ public interface QuoteRelated<C extends Costed> {
 	 * 
 	 * @param qr
 	 *            The {@link AbstractQuoteResource} to update cost.
-	 * @return The new cost.
+	 * @param costProvider
+	 *            The cost provider.
+	 * @param toMonthly
+	 *            The function to use to compute the monthly cost from the hourly
+	 *            one.
+	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, Function<T, FloatingCost> costProvider,
-			Function<Double, Double> toMonthly) {
+	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, final Function<T, FloatingCost> costProvider,
+			final Function<Double, Double> toMonthly) {
 		final FloatingCost cost = costProvider.apply(qr);
 		qr.setCost(toMonthly.apply(cost.getMin()));
 		qr.setMaxCost(toMonthly.apply(cost.getMax()));

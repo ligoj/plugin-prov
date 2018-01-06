@@ -8,7 +8,7 @@ import org.ligoj.app.plugin.prov.QuoteVo;
 /**
  * Contract for Terraform compliant provider.
  * 
- * @see https://www.terraform.io/
+ * @see <a href="https://www.terraform.io/">https://www.terraform.io/</a>
  */
 public interface Terraforming {
 
