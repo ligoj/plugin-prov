@@ -1402,11 +1402,7 @@ define(function () {
 			current[type + 'UiToData'](data);
 
 			// Trim the data
-			Object.keys(data).forEach(function (key) {
-				if (typeof data[key] === 'undefined' || data[key] === null || data[key] === '') {
-					delete data[key];
-				}
-			});
+			current.$main.trimObject(data);
 
 			current.disableCreate($popup);
 			$.ajax({
