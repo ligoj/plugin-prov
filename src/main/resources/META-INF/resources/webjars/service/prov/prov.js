@@ -296,6 +296,8 @@ define(function () {
 		/**
 		 * Format the storage size to html markup.
 		 * @param {object} qs Quote storage with price, type and size.
+		 * @param {boolean} showName When true, the type name is displayed. Default is false.
+		 * @return {string} The HTML markup representing the quote storage : type and flags.
 		 */
 		formatStorageHtml: function (qs, showName) {
 			var type = qs.price.type;
@@ -303,6 +305,16 @@ define(function () {
 				(type.optimized ? ' ' + current.formatStorageOptimized(type.optimized) : '') +
 				' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
 				((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
+		},
+
+		/**
+		 * Format the storage price to html markup.
+		 * @param {object} qs Quote storage with price, type and size.
+		 * @param {boolean} showName When true, the type name is displayed. Default is true.
+		 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
+		 */
+		formatStoragePriceHtml: function (qs, showName) {
+			return current.formatStorageHtml(qs, showName === false ? showName : true) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
 		},
 
 		/**
@@ -563,12 +575,8 @@ define(function () {
 				var suggest = suggests[0];
 				_('storage-price').select2({
 					data: suggests,
-					formatSelection: function (qs) {
-						return current.formatStorageHtml(qs, true);
-					},
-					formatResult: function (qs) {
-						return current.formatStorageHtml(qs, true);
-					}
+					formatSelection: current.formatStoragePriceHtml,
+					formatResult: current.formatStoragePriceHtml
 				}).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
@@ -1826,9 +1834,7 @@ define(function () {
 							return null;
 						},
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
-						formatResult: function (qs) {
-							return current.formatStorageHtml(qs) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
-						},
+						formatResult: current.formatStoragePriceHtml,
 						formatSelection: current.formatStorageHtml,
 						ajax: {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
