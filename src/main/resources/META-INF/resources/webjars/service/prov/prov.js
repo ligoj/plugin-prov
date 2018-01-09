@@ -661,12 +661,14 @@ define(function () {
 				var $tr = $source.closest('tr');
 				var quote = ($tr.length && dataTable.fnGetData($tr[0])) || {};
 				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(quote.id ? 'btn-primary' : 'btn-success');
-				current.disableCreate($popup);
 				if (quote.id) {
 					current.enableCreate($popup);
+				} else {
+					current.disableCreate($popup);
 				}
 				current.model.quote = quote;
 				current.toUi(type, quote);
+				current.checkResource
 			});
 		},
 
@@ -1310,6 +1312,7 @@ define(function () {
 			_(type + '-location').select2('data', model.location || null);
 			_(type + '-usage').select2('data', model.usage || null);
 			current[type + 'ToUi'](model);
+			$.proxy(current.checkResource, _('popup-prov-' + type))();
 		},
 
 		/**
@@ -1335,9 +1338,6 @@ define(function () {
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
-			if (quote.id) {
-				$.proxy(current.checkResource, _('popup-prov-instance'))();
-			}
 		},
 
 		/**
