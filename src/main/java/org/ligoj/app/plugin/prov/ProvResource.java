@@ -149,6 +149,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * subscription is used to determinate the related node (provider). Return
 	 * <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
+	 * 
+	 * @param subscription
+	 *            A visible subscription for the current principal.
+	 * @param name
+	 *            The location name. Case is insensitive.
+	 * @return The visible location for the related subscription or
+	 *         <code>null</code>.
 	 */
 	public ProvLocation findLocation(final int subscription, final String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -326,6 +333,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 *            The repository holding the configured entity.
 	 * @param name
 	 *            The requested configured name.
+	 * @param <K>
+	 *            The {@link Configurable} identifier type.
+	 * @param <T>
+	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
@@ -341,6 +352,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 *            The requested configured identifier.
 	 * @param subscription
 	 *            The required subscription owner.
+	 * @param <K>
+	 *            The {@link Configurable} identifier type.
+	 * @param <T>
+	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
@@ -358,10 +373,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Check the visibility of a configured entity and check the ownership by the
 	 * given subscription.
 	 * 
+	 * @param repository
+	 *            The repository holding the configured entity.
 	 * @param name
 	 *            The requested configured name.
 	 * @param subscription
 	 *            The required subscription owner.
+	 * @param <K>
+	 *            The {@link Configurable} identifier type.
+	 * @param <T>
+	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,

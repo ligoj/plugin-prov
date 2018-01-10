@@ -15,10 +15,14 @@ public interface Terraforming {
 	/**
 	 * Generate the Terraform configuration in the related output.
 	 * 
+	 * @param output
+	 *            The target output for
 	 * @param subscription
 	 *            The subscription identifier.
 	 * @param quote
 	 *            The fetched configuration : instance and storage.
+	 * @throws IOException
+	 *             When Terraform content cannot be written.
 	 */
 	void terraform(OutputStream output, int subscription, QuoteVo quote) throws IOException;
 

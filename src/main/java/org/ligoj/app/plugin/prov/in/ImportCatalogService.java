@@ -10,6 +10,9 @@ public interface ImportCatalogService {
 	 * 
 	 * @param node
 	 *            The node to update.
+	 * @throws Exception
+	 *             When the catalog update fails. The error is caught at upper
+	 *             level.
 	 */
 	void updateCatalog(String node) throws Exception;
 }

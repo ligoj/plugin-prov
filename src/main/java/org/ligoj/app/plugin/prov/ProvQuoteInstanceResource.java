@@ -464,6 +464,12 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	/**
 	 * Compute the cost using minimal and maximal quantity of related instance. no
 	 * rounding there.
+	 * 
+	 * @param base
+	 *            The cost of one instance.
+	 * @param instance
+	 *            The quote instance to compute.
+	 * @return The updated cost of this instance.
 	 */
 	public FloatingCost computeFloat(final double base, final ProvQuoteInstance instance) {
 		final FloatingCost cost = new FloatingCost();
@@ -495,13 +501,15 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 *            format.
 	 * @param columns
 	 *            the CSV header names.
-	 * @param ramMultiplier
-	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param term
 	 *            The default {@link ProvInstancePriceTerm} used when no one is
 	 *            defined in the CSV line
+	 * @param ramMultiplier
+	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param encoding
 	 *            CSV encoding. Default is UTF-8.
+	 * @throws IOException
+	 *             When the CSV stream cannot be written.
 	 */
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -581,6 +589,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	/**
 	 * Request a cost update of the given entity and report the delta to the the
 	 * global cost. The changes are persisted.
+	 * 
+	 * @param entity
+	 *            The quote instance to update.
+	 * @return The new computed cost.
 	 */
 	public UpdatedCost newUpdateCost(final ProvQuoteInstance entity) {
 		return newUpdateCost(qiRepository, entity, this::updateCost);

@@ -59,6 +59,16 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Request a cost update of the given entity and report the delta to the the
 	 * global cost. The changes are persisted.
+	 * 
+	 * @param repository
+	 *            The repository of the entity holding the cost.
+	 * @param entity
+	 *            The entity holding the cost.
+	 * @param costUpdater
+	 *            The function used to compute the new cost.
+	 * @param <T>
+	 *            The entity type holding the cost.
+	 * @return The new computed cost.
 	 */
 	default <T extends Costed> UpdatedCost newUpdateCost(final RestRepository<T, Integer> repository, final T entity,
 			final Function<T, FloatingCost> costUpdater) {
@@ -82,6 +92,8 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The configured entity, related to a quote.
 	 * @param costUpdater
 	 *            The function used to compute the new cost.
+	 * @param <T>
+	 *            The entity type holding the cost.
 	 * @return The new computed cost.
 	 */
 	default <T extends Costed> FloatingCost addCost(final T entity, final Function<T, FloatingCost> costUpdater) {
@@ -160,6 +172,8 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param toMonthly
 	 *            The function to use to compute the monthly cost from the hourly
 	 *            one.
+	 * @param <T>
+	 *            The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
 	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, final Function<T, FloatingCost> costProvider,
@@ -188,6 +202,8 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The object to test.
 	 * @param name
 	 *            The object name. Used for the exception when <code>null</code>.
+	 * @param <T>
+	 *            The entity type.
 	 * @return the {@code object} when not <code>null</code>.
 	 */
 	default <T> T assertFound(final T object, final String name) {

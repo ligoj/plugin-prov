@@ -87,6 +87,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * 
 	 * @param node
 	 *            The node (provider) to update.
+	 * @return The catalog status.
 	 */
 	@POST
 	@Path("catalog/{node:service:prov:.+}")

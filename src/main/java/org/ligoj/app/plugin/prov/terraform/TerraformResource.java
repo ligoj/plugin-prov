@@ -79,6 +79,8 @@ public class TerraformResource {
 	 * @param file
 	 *            The target file name.
 	 * @return the {@link Response} ready to be consumed.
+	 * @throws IOException
+	 *             When Terraform content cannot be written.
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -98,6 +100,8 @@ public class TerraformResource {
 	 * @param subscription
 	 *            The related subscription.
 	 * @return the streaming {@link Response} with output.
+	 * @throws IOException
+	 *             When Terraform content cannot be written.
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)

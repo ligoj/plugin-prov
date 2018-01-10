@@ -50,8 +50,8 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 * @param location
 	 *            Optional location name. May be <code>null</code>.
 	 * @param rate
-	 *            Usage rate. Positive number. Maximum is
-	 *            <code>1</code, minimum is <code>0.01</code>.
+	 *            Usage rate. Positive number. Maximum is <code>1</code>, minimum is
+	 *            <code>0.01</code>.
 	 * @param pageable
 	 *            The page control to return few item.
 	 * @return The minimum instance price or <code>null</code>.
