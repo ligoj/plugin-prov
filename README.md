@@ -10,7 +10,7 @@
 [![Quality Gate](https://sonarcloud.io/api/badges/gate?key=org.ligoj.plugin:plugin-prov)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-prov)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c815531da2f40dea89a57999ad7e5ca)](https://www.codacy.com/app/ligoj/plugin-prov?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ligoj/plugin-prov&amp;utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/ligoj/plugin-prov/badge)](https://www.codefactor.io/repository/github/ligoj/plugin-prov)
-[![License](http://img.shields.io/:license-mit-blue.svg)](http://gus.mit-license.org/)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e92fa81768de52d514b7/maintainability)](https://codeclimate.com/github/ligoj/plugin-prov/maintainability)[![License](http://img.shields.io/:license-mit-blue.svg)](http://gus.mit-license.org/)
 
 [Ligoj](https://github.com/ligoj/ligoj) Provisioning plugin
 Provides the following features :

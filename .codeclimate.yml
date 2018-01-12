@@ -21,4 +21,5 @@ ratings:
  - "**.css"
 exclude_paths:
 - "**/lib/"
+- "**/test/"
 - "**/themes/"
