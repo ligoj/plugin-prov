@@ -154,29 +154,24 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
 		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test");
 
-		ImportCatalogStatus status;
-		try {
-			resource.updateCatalog(service, "service:prov:test");
-			Assert.fail("IllegalStateException expected");
-		} catch (IllegalStateException ise) {
-			status = repository.findBy("locked.id", "service:prov:test");
-			Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-			Assert.assertNotNull(status.getEnd());
-			Assert.assertNull(status.getLocation());
-			Assert.assertEquals("service:prov:test", status.getLocked().getId());
-			Assert.assertNotNull(status.getStart());
-			Assert.assertNull(status.getLocation());
-			Assert.assertEquals(0, status.getDone());
-			Assert.assertEquals(0, status.getWorkload());
-			Assert.assertTrue(status.isFinished());
-			Assert.assertTrue(status.isFailed());
-			Assert.assertEquals(0, status.getLastSuccess().getTime());
-			Assert.assertEquals(-1, status.getNbInstancePrices().intValue());
-			Assert.assertEquals(-1, status.getNbInstanceTypes().intValue());
-			Assert.assertEquals(-1, status.getNbLocations().intValue());
-			Assert.assertEquals(-1, status.getNbStorageTypes().intValue());
-			Mockito.verify(service).updateCatalog("service:prov:test");
-		}
+		resource.updateCatalog(service, "service:prov:test");
+		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
+		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assert.assertNotNull(status.getEnd());
+		Assert.assertNull(status.getLocation());
+		Assert.assertEquals("service:prov:test", status.getLocked().getId());
+		Assert.assertNotNull(status.getStart());
+		Assert.assertNull(status.getLocation());
+		Assert.assertEquals(0, status.getDone());
+		Assert.assertEquals(0, status.getWorkload());
+		Assert.assertTrue(status.isFinished());
+		Assert.assertTrue(status.isFailed());
+		Assert.assertEquals(0, status.getLastSuccess().getTime());
+		Assert.assertEquals(-1, status.getNbInstancePrices().intValue());
+		Assert.assertEquals(-1, status.getNbInstanceTypes().intValue());
+		Assert.assertEquals(-1, status.getNbLocations().intValue());
+		Assert.assertEquals(-1, status.getNbStorageTypes().intValue());
+		Mockito.verify(service).updateCatalog("service:prov:test");
 	}
 
 	private ImportCatalogResource newResource() {

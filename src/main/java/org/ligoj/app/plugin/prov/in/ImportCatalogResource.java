@@ -146,6 +146,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			catalogService.updateCatalog(node);
 			log.info("Catalog update succeed for {}", node);
 			failed = false;
+		} catch (final Exception e) {
+			// Catalog update failed
+			log.error("Catalog update failed for {}", node, e);
 		} finally {
 			endTask(node, failed, t -> {
 				if (!t.isFailed()) {
