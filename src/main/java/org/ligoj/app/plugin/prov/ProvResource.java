@@ -21,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
@@ -394,12 +393,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			throw new EntityNotFoundException(name);
 		}
 		return entity;
-	}
-
-	@Override
-	protected <T extends NodeScoped> T checkVisibility(final T nodeScoped, final String requiredNode) {
-		// Simple proxy call but with public visibility
-		return super.checkVisibility(nodeScoped, requiredNode);
 	}
 
 	@Override
