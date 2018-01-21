@@ -676,7 +676,6 @@ define(function () {
 				}
 				current.model.quote = quote;
 				current.toUi(type, quote);
-				current.checkResource
 			});
 		},
 
