@@ -18,11 +18,11 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.awaitility.Awaitility;
 import org.eclipse.jetty.util.thread.ThreadClassLoaderScope;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
@@ -30,9 +30,9 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -48,12 +48,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link TerraformResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -68,14 +68,14 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Autowired
 	private TerraformRunnerResource runner;
 
-	@After
-	@Before
+	@AfterEach
+	@BeforeEach
 	public void cleanupFiles() throws IOException {
 		FileUtils.deleteDirectory(MOCK_PATH);
 		FileUtils.forceMkdir(MOCK_PATH);
 	}
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -87,9 +87,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 	}
 
-	@Test(expected = BusinessException.class)
-	public void getTerraformNotSupported() throws IOException {
-		newResource(null).getTerraform(subscription, "any.tf");
+	@Test
+	public void getTerraformNotSupported() {
+		Assertions.assertEquals("terraform-no-supported", Assertions.assertThrows(BusinessException.class, () -> {
+			newResource(null).getTerraform(subscription, "any.tf");
+		}).getMessage());
 	}
 
 	@Test
@@ -100,7 +102,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 				ArgumentMatchers.any(QuoteVo.class));
 
 		// Coverage only
-		Assert.assertEquals(TerraformStep.PLAN, TerraformStep.valueOf(TerraformStep.values()[0].name()));
+		Assertions.assertEquals(TerraformStep.PLAN, TerraformStep.valueOf(TerraformStep.values()[0].name()));
 	}
 
 	/**
@@ -153,28 +155,28 @@ public class TerraformResourceTest extends AbstractAppTest {
 				.until(() -> tf.exists() && log.exists() && IOUtils.toString(log.toURI(), "UTF-8").contains("show"));
 		Thread.yield();
 
-		Assert.assertTrue(tf.exists());
-		Assert.assertTrue(log.exists());
+		Assertions.assertTrue(tf.exists());
+		Assertions.assertTrue(log.exists());
 		final String logString = IOUtils.toString(log.toURI(), "UTF-8");
-		Assert.assertTrue(logString.contains("plan"));
-		Assert.assertTrue(logString.contains("apply"));
-		Assert.assertTrue(logString.contains("show"));
+		Assertions.assertTrue(logString.contains("plan"));
+		Assertions.assertTrue(logString.contains("apply"));
+		Assertions.assertTrue(logString.contains("show"));
 
 		// Check the log file is well handled
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		((StreamingOutput) resource.getTerraformLog(subscription).getEntity()).write(bos);
-		Assert.assertEquals(logString, bos.toString(StandardCharsets.UTF_8));
+		Assertions.assertEquals(logString, bos.toString(StandardCharsets.UTF_8));
 
 		// Check the task status
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
-		Assert.assertTrue(task.isFinished());
-		Assert.assertFalse(task.isFailed());
-		Assert.assertNotNull(task.getStart());
-		Assert.assertNotNull(task.getAuthor());
-		Assert.assertEquals(DEFAULT_USER, task.getAuthor());
-		Assert.assertEquals("service:prov:test:account", task.getLocked().getId());
-		Assert.assertNotNull(task.getEnd());
-		Assert.assertEquals(TerraformStep.SHOW, task.getStep());
+		Assertions.assertTrue(task.isFinished());
+		Assertions.assertFalse(task.isFailed());
+		Assertions.assertNotNull(task.getStart());
+		Assertions.assertNotNull(task.getAuthor());
+		Assertions.assertEquals(DEFAULT_USER, task.getAuthor());
+		Assertions.assertEquals("service:prov:test:account", task.getLocked().getId());
+		Assertions.assertNotNull(task.getEnd());
+		Assertions.assertEquals(TerraformStep.SHOW, task.getStep());
 	}
 
 	@Test
@@ -185,13 +187,13 @@ public class TerraformResourceTest extends AbstractAppTest {
 	private void applyTerraformIOE(final TerraformResource resource) throws InterruptedException {
 		try {
 			applyTerraform(resource);
-			Assert.fail("Expected IOException");
+			Assertions.fail("Expected IOException");
 		} catch (final IOException ioe) {
 			// Nice, as expected, but more check to do
 			final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
-			Assert.assertNotNull(task);
-			Assert.assertTrue(task.isFinished());
-			Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
+			Assertions.assertNotNull(task);
+			Assertions.assertTrue(task.isFinished());
+			Assertions.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
 		}
 	}
 
@@ -208,9 +210,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 		applyTerraformExit(0, "Terraform exit code 0 -> no need to continue");
 	}
 
-	@Test(expected = BusinessException.class)
+	@Test
 	public void applyTerraformExit1() throws Exception {
-		applyTerraformExit(1, "Terraform exit code 1 -> aborted");
+		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () -> {
+			applyTerraformExit(1, "Terraform exit code 1 -> aborted");
+		}).getMessage());
 	}
 
 	private void applyTerraformExit(final int code, final String message) throws Exception {
@@ -229,17 +233,17 @@ public class TerraformResourceTest extends AbstractAppTest {
 				.until(() -> tf.exists() && log.exists() && IOUtils.toString(log.toURI(), "UTF-8").contains("error="));
 		Thread.yield();
 
-		Assert.assertTrue(tf.exists());
-		Assert.assertTrue(log.exists());
+		Assertions.assertTrue(tf.exists());
+		Assertions.assertTrue(log.exists());
 		final String logString = IOUtils.toString(log.toURI(), "UTF-8");
-		Assert.assertTrue(logString.contains("error=" + code));
-		Assert.assertTrue(logString.contains(message));
-		Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFinished());
+		Assertions.assertTrue(logString.contains("error=" + code));
+		Assertions.assertTrue(logString.contains(message));
+		Assertions.assertTrue(resource.runner.getTask("service:prov:test:account").isFinished());
 
 		if (code == 1) {
-			Assert.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
+			Assertions.assertTrue(resource.runner.getTask("service:prov:test:account").isFailed());
 		} else {
-			Assert.assertFalse(resource.runner.getTask("service:prov:test:account").isFailed());
+			Assertions.assertFalse(resource.runner.getTask("service:prov:test:account").isFailed());
 		}
 		if (thrown != null) {
 			throw thrown;
@@ -248,7 +252,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getTerraformLog() throws IOException {
-		Assert.assertEquals(404, newResource(Mockito.mock(Terraforming.class)).getTerraformLog(subscription).getStatus());
+		Assertions.assertEquals(404, newResource(Mockito.mock(Terraforming.class)).getTerraformLog(subscription).getStatus());
 	}
 
 	@Test
@@ -261,8 +265,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 			final Subscription entity = new Subscription();
 			entity.setId(15);
 			Mockito.when(classLoader.toFile(entity, "15", "some")).thenReturn(file);
-			Assert.assertSame(file, resource.toFile(entity, "some"));
-			Assert.assertNotNull(PluginsClassLoader.getInstance());
+			Assertions.assertSame(file, resource.toFile(entity, "some"));
+			Assertions.assertNotNull(PluginsClassLoader.getInstance());
 		} finally {
 			IOUtils.closeQuietly(scope);
 		}
@@ -285,8 +289,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			/**
-			 * Prepare the Terraform environment to apply the new environment. Note there is
-			 * no concurrency check.
+			 * Prepare the Terraform environment to apply the new environment.
+			 * Note there is no concurrency check.
 			 */
 			@Override
 			protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
@@ -326,8 +330,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Test
 	public void testBusiness() {
 		// Coverage only
-		Assert.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
-		Assert.assertNotNull(runner.getNodeRepository());
-		Assert.assertNotNull(runner.getTaskRepository());
+		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
+		Assertions.assertNotNull(runner.getNodeRepository());
+		Assertions.assertNotNull(runner.getTaskRepository());
 	}
 }

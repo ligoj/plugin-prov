@@ -9,10 +9,10 @@ import java.util.function.Consumer;
 import javax.transaction.Transactional;
 import javax.ws.rs.PathParam;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
@@ -35,12 +35,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ImportCatalogResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -51,7 +51,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	@Autowired
 	private NodeRepository nodeRepository;
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -80,44 +80,50 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
 		final ImportCatalogStatus status = resource.updateCatalog("service:prov:test:account");
-		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-		Assert.assertNull(status.getEnd());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals("service:prov:test", status.getLocked().getId());
-		Assert.assertNotNull(status.getStart());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals(0, status.getDone());
-		Assert.assertEquals(0, status.getWorkload());
-		Assert.assertFalse(resource.getTask("service:prov:test").isFinished());
+		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assertions.assertNull(status.getEnd());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals("service:prov:test", status.getLocked().getId());
+		Assertions.assertNotNull(status.getStart());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals(0, status.getDone());
+		Assertions.assertEquals(0, status.getWorkload());
+		Assertions.assertFalse(resource.getTask("service:prov:test").isFinished());
 		Thread.sleep(100);
 		Mockito.verify(service).updateCatalog("service:prov:test");
 	}
 
-	@Test(expected = BusinessException.class)
+	@Test
 	public void cancelNotExistNode() {
-		newResource().cancel("service:prov:any");
+		Assertions.assertEquals("read-only-node", Assertions.assertThrows(BusinessException.class, () -> {
+			newResource().cancel("service:prov:any");
+		}).getMessage());
 	}
 
-	@Test(expected = BusinessException.class)
+	@Test
 	public void cancelNotVisible() {
 		initSpringSecurityContext("any");
-		newResource().cancel("service:prov:test");
+		Assertions.assertEquals("read-only-node", Assertions.assertThrows(BusinessException.class, () -> {
+			newResource().cancel("service:prov:test");
+		}).getMessage());
 	}
 
-	@Test(expected = BusinessException.class)
+	@Test
 	public void cancelNoStartedTask() {
 		final ImportCatalogResource resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		final ImportCatalogStatus status = newStatus();
 		status.setEnd(new Date());
-		resource.cancel("service:prov:test");
+		Assertions.assertEquals("Already finished", Assertions.assertThrows(BusinessException.class, () -> {
+			resource.cancel("service:prov:test");
+		}).getMessage());
 	}
 
 	@Test
 	public void cancel() {
 		final ImportCatalogResource resource = newResource();
 		resource.cancel("service:prov:test");
-		Assert.assertTrue(resource.getTask("service:prov:test").isFailed());
+		Assertions.assertTrue(resource.getTask("service:prov:test").isFailed());
 	}
 
 	@Test
@@ -128,22 +134,22 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		resource.updateCatalog(service, "service:prov:test");
 
 		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
-		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-		Assert.assertNotNull(status.getEnd());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals("service:prov:test", status.getLocked().getId());
-		Assert.assertNotNull(status.getStart());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals(0, status.getDone());
-		Assert.assertNull(status.getPhase());
-		Assert.assertEquals(0, status.getWorkload());
-		Assert.assertTrue(status.isFinished());
-		Assert.assertFalse(status.isFailed());
-		Assert.assertNotEquals(0, status.getLastSuccess().getTime());
-		Assert.assertEquals(101, status.getNbInstancePrices().intValue());
-		Assert.assertEquals(13, status.getNbInstanceTypes().intValue());
-		Assert.assertEquals(3, status.getNbLocations().intValue());
-		Assert.assertEquals(3, status.getNbStorageTypes().intValue());
+		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assertions.assertNotNull(status.getEnd());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals("service:prov:test", status.getLocked().getId());
+		Assertions.assertNotNull(status.getStart());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals(0, status.getDone());
+		Assertions.assertNull(status.getPhase());
+		Assertions.assertEquals(0, status.getWorkload());
+		Assertions.assertTrue(status.isFinished());
+		Assertions.assertFalse(status.isFailed());
+		Assertions.assertNotEquals(0, status.getLastSuccess().getTime());
+		Assertions.assertEquals(101, status.getNbInstancePrices().intValue());
+		Assertions.assertEquals(13, status.getNbInstanceTypes().intValue());
+		Assertions.assertEquals(3, status.getNbLocations().intValue());
+		Assertions.assertEquals(3, status.getNbStorageTypes().intValue());
 		Mockito.verify(service).updateCatalog("service:prov:test");
 	}
 
@@ -156,21 +162,21 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 		resource.updateCatalog(service, "service:prov:test");
 		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
-		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-		Assert.assertNotNull(status.getEnd());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals("service:prov:test", status.getLocked().getId());
-		Assert.assertNotNull(status.getStart());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals(0, status.getDone());
-		Assert.assertEquals(0, status.getWorkload());
-		Assert.assertTrue(status.isFinished());
-		Assert.assertTrue(status.isFailed());
-		Assert.assertEquals(0, status.getLastSuccess().getTime());
-		Assert.assertEquals(-1, status.getNbInstancePrices().intValue());
-		Assert.assertEquals(-1, status.getNbInstanceTypes().intValue());
-		Assert.assertEquals(-1, status.getNbLocations().intValue());
-		Assert.assertEquals(-1, status.getNbStorageTypes().intValue());
+		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assertions.assertNotNull(status.getEnd());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals("service:prov:test", status.getLocked().getId());
+		Assertions.assertNotNull(status.getStart());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals(0, status.getDone());
+		Assertions.assertEquals(0, status.getWorkload());
+		Assertions.assertTrue(status.isFinished());
+		Assertions.assertTrue(status.isFailed());
+		Assertions.assertEquals(0, status.getLastSuccess().getTime());
+		Assertions.assertEquals(-1, status.getNbInstancePrices().intValue());
+		Assertions.assertEquals(-1, status.getNbInstanceTypes().intValue());
+		Assertions.assertEquals(-1, status.getNbLocations().intValue());
+		Assertions.assertEquals(-1, status.getNbStorageTypes().intValue());
 		Mockito.verify(service).updateCatalog("service:prov:test");
 	}
 
@@ -212,13 +218,13 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test");
 
 		final ImportCatalogStatus status = resource.updateCatalog("service:prov:test:account");
-		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-		Assert.assertNull(status.getEnd());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals("service:prov:test", status.getLocked().getId());
-		Assert.assertNotNull(status.getStart());
-		Assert.assertEquals(0, status.getDone());
-		Assert.assertEquals(0, status.getWorkload());
+		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assertions.assertNull(status.getEnd());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals("service:prov:test", status.getLocked().getId());
+		Assertions.assertNotNull(status.getStart());
+		Assertions.assertEquals(0, status.getDone());
+		Assertions.assertEquals(0, status.getWorkload());
 	}
 
 	@Test
@@ -226,7 +232,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		initSpringSecurityContext("any");
 		final ImportCatalogResource resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		Assert.assertEquals(0, resource.findAll().size());
+		Assertions.assertEquals(0, resource.findAll().size());
 	}
 
 	@Test
@@ -246,37 +252,37 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		nodeRepository.saveAndFlush(notImportNode);
 
 		final List<CatalogVo> catalogs = resource.findAll();
-		Assert.assertEquals(3, catalogs.size());
+		Assertions.assertEquals(3, catalogs.size());
 
 		// This provider does not support catalog update
-		Assert.assertEquals(0, catalogs.get(0).getStatus().getNbInstancePrices().intValue());
-		Assert.assertNull(catalogs.get(0).getStatus().getEnd());
-		Assert.assertNull(catalogs.get(0).getStatus().getStart());
-		Assert.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());
-		Assert.assertFalse(catalogs.get(0).isCanImport());
-		Assert.assertEquals(0, catalogs.get(0).getNbQuotes());
+		Assertions.assertEquals(0, catalogs.get(0).getStatus().getNbInstancePrices().intValue());
+		Assertions.assertNull(catalogs.get(0).getStatus().getEnd());
+		Assertions.assertNull(catalogs.get(0).getStatus().getStart());
+		Assertions.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());
+		Assertions.assertFalse(catalogs.get(0).isCanImport());
+		Assertions.assertEquals(0, catalogs.get(0).getNbQuotes());
 
 		// This provider supports catalog update
-		Assert.assertNotNull(catalogs.get(1).getStatus());
-		Assert.assertEquals("service:prov:test", catalogs.get(1).getNode().getId());
-		Assert.assertTrue(catalogs.get(1).isCanImport());
-		Assert.assertEquals(2, catalogs.get(1).getNbQuotes());
+		Assertions.assertNotNull(catalogs.get(1).getStatus());
+		Assertions.assertEquals("service:prov:test", catalogs.get(1).getNode().getId());
+		Assertions.assertTrue(catalogs.get(1).isCanImport());
+		Assertions.assertEquals(2, catalogs.get(1).getNbQuotes());
 
 		// This provider does not support catalog update
-		Assert.assertEquals("service:prov:x", catalogs.get(2).getNode().getId());
-		Assert.assertFalse(catalogs.get(2).isCanImport());
-		Assert.assertNull(catalogs.get(2).getStatus().getEnd());
-		Assert.assertNull(catalogs.get(2).getStatus().getStart());
-		Assert.assertEquals(1, catalogs.get(2).getNbQuotes());
+		Assertions.assertEquals("service:prov:x", catalogs.get(2).getNode().getId());
+		Assertions.assertFalse(catalogs.get(2).isCanImport());
+		Assertions.assertNull(catalogs.get(2).getStatus().getEnd());
+		Assertions.assertNull(catalogs.get(2).getStatus().getStart());
+		Assertions.assertEquals(1, catalogs.get(2).getNbQuotes());
 
 		final ImportCatalogStatus status = catalogs.get(1).getStatus();
-		Assert.assertEquals(DEFAULT_USER, status.getAuthor());
-		Assert.assertNull(status.getEnd());
-		Assert.assertNull(status.getLocation());
-		Assert.assertEquals("service:prov:test", status.getLocked().getId());
-		Assert.assertNotNull(status.getStart());
-		Assert.assertEquals(0, status.getDone());
-		Assert.assertEquals(0, status.getWorkload());
+		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
+		Assertions.assertNull(status.getEnd());
+		Assertions.assertNull(status.getLocation());
+		Assertions.assertEquals("service:prov:test", status.getLocked().getId());
+		Assertions.assertNotNull(status.getStart());
+		Assertions.assertEquals(0, status.getDone());
+		Assertions.assertEquals(0, status.getWorkload());
 	}
 
 }

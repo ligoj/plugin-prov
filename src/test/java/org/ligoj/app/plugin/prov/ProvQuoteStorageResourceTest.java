@@ -6,11 +6,12 @@ import java.nio.charset.StandardCharsets;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
+import org.ligoj.app.MatcherUtil;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
@@ -36,12 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -65,11 +66,11 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
-	private ProvStoragePriceRepository spRepository;;
+	private ProvStoragePriceRepository spRepository;
 
 	private int subscription;
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -89,15 +90,15 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	}
 
 	private void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assert.assertEquals(min, cost.getMin(), DELTA);
-		Assert.assertEquals(max, cost.getMax(), DELTA);
-		Assert.assertEquals(unbound, cost.isUnbound());
+		Assertions.assertEquals(min, cost.getMin(), DELTA);
+		Assertions.assertEquals(max, cost.getMax(), DELTA);
+		Assertions.assertEquals(unbound, cost.isUnbound());
 	}
 
 	/**
 	 * Attempt to attach a storage incompatible to an instance.
 	 */
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void createStorageInstanceKo() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -105,7 +106,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage3");
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(1);
-		sResource.create(vo);
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			sResource.create(vo);
+		}), "type", "type-incompatible-requirements");
 	}
 
 	/**
@@ -122,7 +125,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = sResource.create(vo);
 		checkCost(cost.getTotalCost(), 4694.935, 7141.335, false);
 		checkCost(cost.getResourceCost(), 2.15, 2.15, false);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -130,11 +133,11 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(subscription, 4694.935, 7141.335, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
-		Assert.assertEquals("storage3-root-bis", storage.getName());
-		Assert.assertEquals(1, storage.getSize().intValue());
-		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assert.assertEquals(2.15, storage.getCost(), DELTA);
-		Assert.assertFalse(storage.isUnboundCost());
+		Assertions.assertEquals("storage3-root-bis", storage.getName());
+		Assertions.assertEquals(1, storage.getSize().intValue());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(2.15, storage.getCost(), DELTA);
+		Assertions.assertFalse(storage.isUnboundCost());
 	}
 
 	@Test
@@ -148,7 +151,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = sResource.create(vo);
 		checkCost(cost.getTotalCost(), 4907.825, 8214.385, false);
 		checkCost(cost.getResourceCost(), 215.04, 1075.2, false);
-		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		Assertions.assertEquals(1, cost.getRelatedCosts().size());
 		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 1460, false);
 		final int id = cost.getId();
 		em.flush();
@@ -157,11 +160,11 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(subscription, 4907.825, 8214.385, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
-		Assert.assertEquals("server1-root-bis", storage.getName());
-		Assert.assertEquals(512, storage.getSize().intValue());
-		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assert.assertEquals(215.04, storage.getCost(), DELTA);
-		Assert.assertFalse(storage.isUnboundCost());
+		Assertions.assertEquals("server1-root-bis", storage.getName());
+		Assertions.assertEquals(512, storage.getSize().intValue());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(215.04, storage.getCost(), DELTA);
+		Assertions.assertFalse(storage.isUnboundCost());
 	}
 
 	@Test
@@ -178,7 +181,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = sResource.create(vo);
 		checkCost(cost.getTotalCost(), 4907.825, 4907.825, true);
 		checkCost(cost.getResourceCost(), 215.04, 215.04, true);
-		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		Assertions.assertEquals(1, cost.getRelatedCosts().size());
 		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
 		final int id = cost.getId();
 		em.flush();
@@ -187,11 +190,11 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(subscription, 4907.825, 4907.825, true);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
-		Assert.assertEquals("server1-root-bis", storage.getName());
-		Assert.assertEquals(512, storage.getSize().intValue());
-		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assert.assertEquals(215.04, storage.getCost(), DELTA);
-		Assert.assertTrue(storage.isUnboundCost());
+		Assertions.assertEquals("server1-root-bis", storage.getName());
+		Assertions.assertEquals(512, storage.getSize().intValue());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(215.04, storage.getCost(), DELTA);
+		Assertions.assertTrue(storage.isUnboundCost());
 	}
 
 	/**
@@ -201,8 +204,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final ProvQuoteInstance quoteInstance = qiRepository.findByNameExpected(name);
 
 		// Precondition
-		Assert.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
-		Assert.assertEquals(0, quoteInstance.getConfiguration().getUnboundCostCounter().intValue());
+		Assertions.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
+		Assertions.assertEquals(0, quoteInstance.getConfiguration().getUnboundCostCounter().intValue());
 
 		// Make the instance with unbound cost
 		quoteInstance.setMaxQuantity(null);
@@ -225,7 +228,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		final UpdatedCost cost = sResource.create(vo);
 		checkCost(cost.getTotalCost(), 4746.545, 7192.945, false);
 		checkCost(cost.getResourceCost(), 53.76, 53.76, false);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -233,12 +236,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(subscription, 4746.545, 7192.945, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
-		Assert.assertEquals("server1-root-ter", storage.getName());
-		Assert.assertEquals("server1-root-terD", storage.getDescription());
-		Assert.assertEquals(256, storage.getSize().intValue());
-		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assert.assertEquals(53.76, storage.getCost(), DELTA);
-		Assert.assertFalse(storage.isUnboundCost());
+		Assertions.assertEquals("server1-root-ter", storage.getName());
+		Assertions.assertEquals("server1-root-terD", storage.getDescription());
+		Assertions.assertEquals(256, storage.getSize().intValue());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(53.76, storage.getCost(), DELTA);
+		Assertions.assertFalse(storage.isUnboundCost());
 	}
 
 	@Test
@@ -258,8 +261,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 		// No change
 		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 107.52, 107.52, false);
-		Assert.assertEquals("storage1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
-		Assert.assertEquals(true, qsRepository.findOneExpected(cost.getId()).getInstanceCompatible());
+		Assertions.assertEquals("storage1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+		Assertions.assertEquals(true, qsRepository.findOneExpected(cost.getId()).getInstanceCompatible());
 
 		// Change some constraints
 		vo.setLatency(ProvStorageLatency.HIGHEST);
@@ -272,7 +275,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 		// The cost changed since a best type matches to the constraints
 		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
-		Assert.assertEquals("storage2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+		Assertions.assertEquals("storage2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 
 		// Change the price of "storage3" to make it as cheap as "storage2"
 		final ProvStoragePrice price3 = spRepository.findBy("type.name", "storage3");
@@ -284,13 +287,14 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		type3.setLatency(ProvStorageLatency.LOW);
 		stRepository.saveAndFlush(type3);
 
-		// Even if "storage2" and "storage3" have identical prices and match to the
+		// Even if "storage2" and "storage3" have identical prices and match to
+		// the
 		// requirements, "storage3" offers a lowest latency.
 		checkCost(sResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
-		Assert.assertEquals("storage3", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+		Assertions.assertEquals("storage3", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void createStorageNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
@@ -298,7 +302,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setName("server1-root-ter");
 		vo.setType("storage1");
 		vo.setSize(1);
-		sResource.create(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.create(vo);
+		});
 	}
 
 	@Test
@@ -330,24 +336,24 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		UpdatedCost cost = sResource.update(vo);
 		checkCost(cost.getTotalCost(), 4688.585, 4688.585, true);
 		checkCost(cost.getResourceCost(), 4.2, 4.2, false);
-		Assert.assertEquals(0, cost.getRelatedCosts().size());
+		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 
 		// Check the exact new cost
 		checkCost(subscription, 4688.585, 4688.585, true);
 		final ProvQuoteStorage qs = qsRepository.findOneExpected(vo.getId());
-		Assert.assertEquals("server1-root-bis", qs.getName());
-		Assert.assertFalse(qs.isUnboundCost());
+		Assertions.assertEquals("server1-root-bis", qs.getName());
+		Assertions.assertFalse(qs.isUnboundCost());
 
 		// Attach back this storage to "server1
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		cost = sResource.update(vo);
 		checkCost(cost.getTotalCost(), 4692.785, 4692.785, true);
 		checkCost(cost.getResourceCost(), 8.4, 8.4, true);
-		Assert.assertEquals(1, cost.getRelatedCosts().size());
+		Assertions.assertEquals(1, cost.getRelatedCosts().size());
 		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
 
 		checkCost(subscription, 4692.785, 4692.785, true);
-		Assert.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());
+		Assertions.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());
 	}
 
 	@Test
@@ -364,10 +370,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 		// Check the exact new cost
 		checkCost(subscription, 4899.425, 8172.385, false);
-		Assert.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
+		Assertions.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateStorageInvalidLocation() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -377,10 +383,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		vo.setLocation("region-Z");
-		sResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateStorageNotVisibleLocation() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -390,7 +398,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		vo.setLocation("region-3");
-		sResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
 	@Test
@@ -411,14 +421,14 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(subscription, 4762.185, 7174.985, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(vo.getId());
-		Assert.assertEquals("server1-root-bis", storage.getName());
-		Assert.assertEquals("server1-root-bisD", storage.getDescription());
-		Assert.assertEquals(512, storage.getSize().intValue());
-		Assert.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assert.assertEquals(77.8, storage.getCost(), DELTA);
+		Assertions.assertEquals("server1-root-bis", storage.getName());
+		Assertions.assertEquals("server1-root-bisD", storage.getDescription());
+		Assertions.assertEquals(512, storage.getSize().intValue());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(77.8, storage.getCost(), DELTA);
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void updateStorageLimitKo() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -426,10 +436,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storage2");
 		vo.setSize(1024); // Limit for this storage is 512
-		sResource.update(vo);
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			sResource.update(vo);
+		}), "type", "type-incompatible-requirements");
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateStorageUnknownStorage() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -437,13 +449,15 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storage-unknown");
 		vo.setSize(1);
-		sResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
 	/**
 	 * Selected storage is not within the same provider.
 	 */
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateStorageInvalidStorage() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -451,10 +465,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storageX");
 		vo.setSize(1);
-		sResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
-	@Test(expected = JpaObjectRetrievalFailureException.class)
+	@Test
 	public void updateStorageUnknownInstance() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -463,13 +479,15 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage1");
 		vo.setQuoteInstance(-1);
 		vo.setSize(1);
-		sResource.update(vo);
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
 	/**
 	 * Selected instance is not within the same provider.
 	 */
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateStorageNonVisibleInstance() {
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -478,15 +496,17 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage1");
 		vo.setQuoteInstance(qiRepository.findByNameExpected("serverX").getId());
 		vo.setSize(1);
-		sResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.update(vo);
+		});
 	}
 
 	@Test
 	public void deleteAllStorages() {
 		final Integer id = qsRepository.findByNameExpected("server1-root").getId();
-		Assert.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
-		Assert.assertEquals(8, qiRepository.count());
-		Assert.assertEquals(4, qsRepository.count());
+		Assertions.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
+		Assertions.assertEquals(8, qiRepository.count());
+		Assertions.assertEquals(4, qsRepository.count());
 		em.flush();
 		em.clear();
 
@@ -496,17 +516,17 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		checkCost(subscription, 4370.455, 5538.455, false);
 
 		// Check the associations
-		Assert.assertNull(qsRepository.findOne(id));
-		Assert.assertEquals(0, qiRepository.findByNameExpected("server1").getStorages().size());
+		Assertions.assertNull(qsRepository.findOne(id));
+		Assertions.assertEquals(0, qiRepository.findByNameExpected("server1").getStorages().size());
 
-		Assert.assertEquals(8, qiRepository.count());
-		Assert.assertEquals(0, qsRepository.count());
+		Assertions.assertEquals(8, qiRepository.count());
+		Assertions.assertEquals(0, qsRepository.count());
 	}
 
 	@Test
 	public void deleteStorage() {
 		final Integer id = qsRepository.findByNameExpected("server1-root").getId();
-		Assert.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
+		Assertions.assertEquals(3, qiRepository.findByNameExpected("server1").getStorages().size());
 		em.flush();
 		em.clear();
 
@@ -516,16 +536,16 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		checkCost(subscription, 4684.385, 7097.185, false);
 
 		// Check the associations
-		Assert.assertNull(qsRepository.findOne(id));
-		Assert.assertEquals(2, qiRepository.findByNameExpected("server1").getStorages().size());
+		Assertions.assertNull(qsRepository.findOne(id));
+		Assertions.assertEquals(2, qiRepository.findByNameExpected("server1").getStorages().size());
 	}
 
 	private void refreshCost() {
 		// Check the cost fully updated and exact actual cost
 		final FloatingCost cost = resource.refreshCost(subscription);
-		Assert.assertEquals(4692.785, cost.getMin(), DELTA);
-		Assert.assertEquals(7139.185, cost.getMax(), DELTA);
-		Assert.assertFalse(cost.isUnbound());
+		Assertions.assertEquals(4692.785, cost.getMin(), DELTA);
+		Assertions.assertEquals(7139.185, cost.getMax(), DELTA);
+		Assertions.assertFalse(cost.isUnbound());
 		checkCost(subscription, 4692.785, 7139.185, false);
 		em.flush();
 		em.clear();
@@ -534,31 +554,35 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	@Test
 	public void findStorageType() {
 		final TableItem<ProvStorageType> tableItem = sResource.findType(subscription, newUriInfo());
-		Assert.assertEquals(3, tableItem.getRecordsTotal());
-		Assert.assertEquals("storage1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals("storage1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	public void findStorageTypeCriteria() {
 		final TableItem<ProvStorageType> tableItem = sResource.findType(subscription, newUriInfo("rAge2"));
-		Assert.assertEquals(1, tableItem.getRecordsTotal());
-		Assert.assertEquals("storage2", tableItem.getData().get(0).getName());
+		Assertions.assertEquals(1, tableItem.getRecordsTotal());
+		Assertions.assertEquals("storage2", tableItem.getData().get(0).getName());
 	}
 
-	@Test(expected = JpaObjectRetrievalFailureException.class)
+	@Test
 	public void findStorageTypeNotExistsSubscription() {
-		sResource.findType(-1, newUriInfo());
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+			sResource.findType(-1, newUriInfo());
+		});
 	}
 
 	@Test
 	public void findStorageTypeAnotherSubscription() {
-		Assert.assertEquals(1, sResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assertions.assertEquals(1, sResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void findStorageTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		sResource.findType(subscription, newUriInfo());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			sResource.findType(subscription, newUriInfo());
+		});
 	}
 
 	/**
@@ -570,8 +594,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 		// Check the storage result
 		assertCSP(price);
-		Assert.assertEquals(0.42, price.getCost(), DELTA);
-		Assert.assertEquals(2, price.getSize());
+		Assertions.assertEquals(0.42, price.getCost(), DELTA);
+		Assertions.assertEquals(2, price.getSize());
 	}
 
 	/**
@@ -581,22 +605,22 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	public void lookupStorageHighContraints() throws IOException {
 		final QuoteStorageLoopup lookup = sResource.lookup(subscription, 1024, ProvStorageLatency.LOW, null, null, null).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
-		Assert.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
-		Assert.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
-		Assert.assertTrue(asJson.endsWith(
+		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
+		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
+		Assertions.assertTrue(asJson.endsWith(
 				"\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"low\",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result
 		assertCSP(lookup);
-		Assert.assertEquals(215.04, lookup.getCost(), DELTA);
+		Assertions.assertEquals(215.04, lookup.getCost(), DELTA);
 	}
 
 	private QuoteStorageLoopup assertCSP(final QuoteStorageLoopup price) {
 		final ProvStoragePrice sp = price.getPrice();
 		final ProvStorageType st = sp.getType();
-		Assert.assertNotNull(sp.getId());
-		Assert.assertNotNull(st.getId());
-		Assert.assertEquals("storage1", st.getName());
+		Assertions.assertNotNull(sp.getId());
+		Assertions.assertNotNull(st.getId());
+		Assertions.assertEquals("storage1", st.getName());
 		return price;
 	}
 
@@ -605,15 +629,15 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageNoMatch() {
-		Assert.assertEquals("storage1",
+		Assertions.assertEquals("storage1",
 				sResource.lookup(subscription, 512, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
-		Assert.assertEquals("storage1",
+		Assertions.assertEquals("storage1",
 				sResource.lookup(subscription, 999, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
-		Assert.assertEquals("storage2",
+		Assertions.assertEquals("storage2",
 				sResource.lookup(subscription, 512, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 
 		// Out of limits
-		Assert.assertEquals("storage1",
+		Assertions.assertEquals("storage1",
 				sResource.lookup(subscription, 999, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
 	}
 }

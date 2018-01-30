@@ -7,10 +7,10 @@ import java.util.Collections;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
@@ -32,12 +32,12 @@ import org.ligoj.bootstrap.core.json.TableItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvUsageResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -61,7 +61,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvQuoteRepository repository;
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -98,11 +98,11 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		checkCost(subscription, 3307.63, 5754.03, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
-		Assert.assertEquals("DevV2", entity.getName());
-		Assert.assertEquals(id, entity.getId().intValue());
-		Assert.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assert.assertEquals(75, entity.getRate().intValue());
-		Assert.assertEquals(3, entity.getConfiguration().getUsages().size());
+		Assertions.assertEquals("DevV2", entity.getName());
+		Assertions.assertEquals(id, entity.getId().intValue());
+		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
+		Assertions.assertEquals(75, entity.getRate().intValue());
+		Assertions.assertEquals(3, entity.getConfiguration().getUsages().size());
 		entity.getConfiguration().setUsages(Collections.emptyList());
 	}
 
@@ -125,7 +125,8 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Dev");
-		// Min = (3307.63 - 322.33 - 175.2[1y term])*.5 + 322.33 + 91.25 [1y term]
+		// Min = (3307.63 - 322.33 - 175.2[1y term])*.5 + 322.33 + 91.25 [1y
+		// term]
 		checkCost(resource.update(subscription, quote), 1902.58, 3764.98, false);
 		checkCost(subscription, 1902.58, 3764.98, false);
 		em.flush();
@@ -135,15 +136,16 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
-		// Min = (3307.63 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
+		// Min = (3307.63 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y
+		// term]
 		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2605.104, 4759.504, false);
 		checkCost(subscription, 2605.104, 4759.504, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
-		Assert.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assert.assertEquals("DevV2", entity.getName());
-		Assert.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assert.assertEquals(75, entity.getRate().intValue());
+		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
+		Assertions.assertEquals("DevV2", entity.getName());
+		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
+		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
 	@Test
@@ -168,9 +170,9 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		checkCost(subscription, 2634.304, 4788.704, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
-		Assert.assertEquals("DevV2", entity.getName());
-		Assert.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assert.assertEquals(75, entity.getRate().intValue());
+		Assertions.assertEquals("DevV2", entity.getName());
+		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
+		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
 	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
@@ -180,9 +182,9 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	}
 
 	private FloatingCost checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assert.assertEquals(min, cost.getMin(), DELTA);
-		Assert.assertEquals(max, cost.getMax(), DELTA);
-		Assert.assertEquals(unbound, cost.isUnbound());
+		Assertions.assertEquals(min, cost.getMin(), DELTA);
+		Assertions.assertEquals(max, cost.getMax(), DELTA);
+		Assertions.assertEquals(unbound, cost.isUnbound());
 		return cost;
 	}
 
@@ -193,9 +195,9 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 
 	private FloatingCost checkCost(final FloatingCost cost) {
 		// Check the cost fully updated and exact actual cost
-		Assert.assertEquals(4692.785, cost.getMin(), DELTA);
-		Assert.assertEquals(7139.185, cost.getMax(), DELTA);
-		Assert.assertFalse(cost.isUnbound());
+		Assertions.assertEquals(4692.785, cost.getMin(), DELTA);
+		Assertions.assertEquals(7139.185, cost.getMax(), DELTA);
+		Assertions.assertFalse(cost.isUnbound());
 		checkCost(subscription, 4692.785, 7139.185, false);
 		em.flush();
 		em.clear();
@@ -205,17 +207,17 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	@Test
 	public void findAll() {
 		final TableItem<ProvUsage> usages = uResource.findAll(subscription, newUriInfo());
-		Assert.assertEquals(2, usages.getData().size());
-		Assert.assertEquals("Dev", usages.getData().get(0).getName());
-		Assert.assertEquals("Full Time", usages.getData().get(1).getName());
-		Assert.assertEquals(subscription, usages.getData().get(1).getConfiguration().getSubscription().getId().intValue());
+		Assertions.assertEquals(2, usages.getData().size());
+		Assertions.assertEquals("Dev", usages.getData().get(0).getName());
+		Assertions.assertEquals("Full Time", usages.getData().get(1).getName());
+		Assertions.assertEquals(subscription, usages.getData().get(1).getConfiguration().getSubscription().getId().intValue());
 	}
 
 	@Test
 	public void deleteUsedInInstance() {
 		attachUsageToQuote();
-		Assert.assertNotNull(usageRepository.findByName(subscription, "Dev"));
-		Assert.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
+		Assertions.assertNotNull(usageRepository.findByName(subscription, "Dev"));
+		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
 
 		// Delete the usage
 		// Check the cost is now back at 100%
@@ -231,17 +233,19 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		em.clear();
 		checkCost(resource.refreshCostAndResource(subscription), 3307.63, 5754.03, false);
 
-		Assert.assertNotNull(usageRepository.findByName(subscription, "Dev"));
-		Assert.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
+		Assertions.assertNotNull(usageRepository.findByName(subscription, "Dev"));
+		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
 
 		// Delete the usage
 		// Check the cost is at 100%
 		checkUsage100AfterDelete(uResource.delete(subscription, "Dev"));
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void deleteNotOwned() {
-		checkUsage100AfterDelete(uResource.delete(0, "Dev"));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			checkUsage100AfterDelete(uResource.delete(0, "Dev"));
+		});
 	}
 
 	@Test
@@ -267,8 +271,8 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	private void checkUsage100AfterDelete(final UpdatedCost cost) {
 		checkCost(cost.getTotalCost(), 3307.63, 5754.03, false);
 		checkCost(subscription, 3307.63, 5754.03, false);
-		Assert.assertNull(usageRepository.findByName(subscription, "Dev"));
-		Assert.assertEquals(1, usageRepository.findAllBy("name", "Dev").size());
+		Assertions.assertNull(usageRepository.findByName(subscription, "Dev"));
+		Assertions.assertEquals(1, usageRepository.findAllBy("name", "Dev").size());
 	}
 
 	private void attachUsageToQuote() {

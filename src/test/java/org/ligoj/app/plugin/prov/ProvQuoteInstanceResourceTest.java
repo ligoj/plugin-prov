@@ -9,11 +9,12 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
+import org.ligoj.app.MatcherUtil;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
@@ -43,12 +44,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -79,7 +80,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	private int subscription;
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -99,9 +100,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	}
 
 	private void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assert.assertEquals(min, cost.getMin(), DELTA);
-		Assert.assertEquals(max, cost.getMax(), DELTA);
-		Assert.assertEquals(unbound, cost.isUnbound());
+		Assertions.assertEquals(min, cost.getMin(), DELTA);
+		Assertions.assertEquals(max, cost.getMax(), DELTA);
+		Assertions.assertEquals(unbound, cost.isUnbound());
 	}
 
 	/**
@@ -123,8 +124,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Basic case, almost no requirements but location different from the quote's
-	 * one.
+	 * Basic case, almost no requirements but location different from the
+	 * quote's one.
 	 */
 	@Test
 	public void lookupInstanceLocationNotFoundButWorldwideService() {
@@ -138,34 +139,35 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupInstanceLocationNotFound() {
-		Assert.assertEquals("instance2", iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, null, true, "region-xxx", null)
+		Assertions.assertEquals("instance2", iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, null, true, "region-xxx", null)
 				.getPrice().getType().getName());
 
 		final ProvLocation location = locationRepository.findByName("region-1");
 
-		// Add location constraint on the first matching instances to exclude them
+		// Add location constraint on the first matching instances to exclude
+		// them
 		ipRepository.findAllBy("type.name", "instance2").forEach(ip -> ip.setLocation(location));
 		ipRepository.findAllBy("type.name", "dynamic").forEach(ip -> ip.setLocation(location));
 		em.flush();
 		em.clear();
 
 		// Instance 2 is not available in this region
-		Assert.assertEquals("instance4", iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, null, true, "region-xxx", null)
+		Assertions.assertEquals("instance4", iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, null, true, "region-xxx", null)
 				.getPrice().getType().getName());
 	}
 
 	private void checkInstance(final QuoteInstanceLookup lookup) {
 		// Check the instance result
 		final ProvInstancePrice pi = lookup.getPrice();
-		Assert.assertNotNull(pi.getId());
-		Assert.assertEquals("instance2", pi.getType().getName());
-		Assert.assertEquals(1, pi.getType().getCpu().intValue());
-		Assert.assertEquals(2000, pi.getType().getRam().intValue());
-		Assert.assertFalse(pi.getTerm().isEphemeral());
-		Assert.assertEquals(0.14, pi.getCost(), DELTA);
-		Assert.assertEquals(VmOs.LINUX, pi.getOs());
-		Assert.assertEquals("1y", pi.getTerm().getName());
-		Assert.assertEquals(102.2, lookup.getCost(), DELTA);
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(1, pi.getType().getCpu().intValue());
+		Assertions.assertEquals(2000, pi.getType().getRam().intValue());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(0.14, pi.getCost(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("1y", pi.getTerm().getName());
+		Assertions.assertEquals(102.2, lookup.getCost(), DELTA);
 	}
 
 	/**
@@ -178,20 +180,20 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 						iResource.lookup(subscription, 3, 9, true, VmOs.WINDOWS, null, "on-demand1", false, null, null)),
 				QuoteInstanceLookup.class);
 		final ProvInstancePrice pi = lookup.getPrice();
-		Assert.assertNotNull(pi.getId());
-		Assert.assertEquals("instance9", pi.getType().getName());
-		Assert.assertEquals(4, pi.getType().getCpu().intValue());
-		Assert.assertEquals(16000, pi.getType().getRam().intValue());
-		Assert.assertTrue(pi.getType().getConstant());
-		Assert.assertEquals(5.6, pi.getCost(), DELTA);
-		Assert.assertEquals(VmOs.WINDOWS, pi.getOs());
-		Assert.assertEquals("on-demand1", pi.getTerm().getName());
-		Assert.assertFalse(pi.getTerm().isEphemeral());
-		Assert.assertFalse(pi.getType().isCustom());
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance9", pi.getType().getName());
+		Assertions.assertEquals(4, pi.getType().getCpu().intValue());
+		Assertions.assertEquals(16000, pi.getType().getRam().intValue());
+		Assertions.assertTrue(pi.getType().getConstant());
+		Assertions.assertEquals(5.6, pi.getCost(), DELTA);
+		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertFalse(pi.getType().isCustom());
 
 		// Not serialized
-		Assert.assertNull(pi.getType().getNode());
-		Assert.assertNull(pi.getTerm().getNode());
+		Assertions.assertNull(pi.getType().getNode());
+		Assertions.assertNull(pi.getTerm().getNode());
 	}
 
 	/**
@@ -199,17 +201,21 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupInstanceNoMatch() {
-		Assert.assertNull(iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, "1y", true, null, null));
+		Assertions.assertNull(iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, "1y", true, null, null));
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void lookupTermNotFound() {
-		iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, "any", true, null, null);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, "any", true, null, null);
+		});
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void lookupTypeNotFound() {
-		iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", "1y", true, null, null);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			iResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", "1y", true, null, null);
+		});
 	}
 
 	/**
@@ -221,20 +227,20 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 		// Check the custom instance
 		final ProvInstancePrice pi = lookup.getPrice();
-		Assert.assertNotNull(pi.getId());
-		Assert.assertEquals("dynamic", pi.getType().getName());
-		Assert.assertEquals(0, pi.getType().getCpu().intValue());
-		Assert.assertEquals(0, pi.getType().getRam().intValue());
-		Assert.assertTrue(pi.getType().getConstant());
-		Assert.assertEquals(0, pi.getCost(), DELTA);
-		Assert.assertEquals(VmOs.LINUX, pi.getOs());
-		Assert.assertEquals("on-demand1", pi.getTerm().getName());
-		Assert.assertTrue(pi.getType().isCustom());
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("dynamic", pi.getType().getName());
+		Assertions.assertEquals(0, pi.getType().getCpu().intValue());
+		Assertions.assertEquals(0, pi.getType().getRam().intValue());
+		Assertions.assertTrue(pi.getType().getConstant());
+		Assertions.assertEquals(0, pi.getCost(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertTrue(pi.getType().isCustom());
 
-		Assert.assertEquals(241928.03, lookup.getCost(), DELTA);
+		Assertions.assertEquals(241928.03, lookup.getCost(), DELTA);
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void updateInstanceNonVisibleInstance() {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -243,7 +249,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setName("server1-bis");
 		vo.setRam(1);
 		vo.setCpu(0.5);
-		iResource.update(vo);
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			iResource.update(vo);
+		});
 	}
 
 	@Test
@@ -253,10 +261,10 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		final Integer storage2 = qsRepository.findByNameExpected("server1-data").getId();
 		final Integer storage3 = qsRepository.findByNameExpected("server1-temp").getId();
 		final Integer storageOther = qsRepository.findByNameExpected("shared-data").getId();
-		Assert.assertTrue(qsRepository.existsById(storage1));
-		Assert.assertTrue(qsRepository.existsById(storage2));
-		Assert.assertTrue(qsRepository.existsById(storage3));
-		Assert.assertEquals(8, qiRepository.count());
+		Assertions.assertTrue(qsRepository.existsById(storage1));
+		Assertions.assertTrue(qsRepository.existsById(storage2));
+		Assertions.assertTrue(qsRepository.existsById(storage3));
+		Assertions.assertEquals(8, qiRepository.count());
 		em.flush();
 		em.clear();
 
@@ -264,14 +272,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 		// Check the exact new cost
 		checkCost(subscription, 2.73, 2.73, false);
-		Assert.assertNull(qiRepository.findOne(id));
-		Assert.assertEquals(1, qiRepository.count());
+		Assertions.assertNull(qiRepository.findOne(id));
+		Assertions.assertEquals(1, qiRepository.count());
 
 		// Also check the associated storage is deleted
-		Assert.assertFalse(qsRepository.existsById(storage1));
-		Assert.assertFalse(qsRepository.existsById(storage2));
-		Assert.assertFalse(qsRepository.existsById(storage3));
-		Assert.assertTrue(qsRepository.existsById(storageOther));
+		Assertions.assertFalse(qsRepository.existsById(storage1));
+		Assertions.assertFalse(qsRepository.existsById(storage2));
+		Assertions.assertFalse(qsRepository.existsById(storage3));
+		Assertions.assertTrue(qsRepository.existsById(storageOther));
 	}
 
 	@Test
@@ -281,11 +289,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		final Integer storage2 = qsRepository.findByNameExpected("server1-data").getId();
 		final Integer storage3 = qsRepository.findByNameExpected("server1-temp").getId();
 		final Integer storageOther = qsRepository.findByNameExpected("shared-data").getId();
-		Assert.assertTrue(qsRepository.existsById(storage1));
-		Assert.assertTrue(qsRepository.existsById(storage2));
-		Assert.assertTrue(qsRepository.existsById(storage3));
-		Assert.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
-		Assert.assertFalse(repository.findBy("subscription.id", subscription).isUnboundCost());
+		Assertions.assertTrue(qsRepository.existsById(storage1));
+		Assertions.assertTrue(qsRepository.existsById(storage2));
+		Assertions.assertTrue(qsRepository.existsById(storage3));
+		Assertions.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
+		Assertions.assertFalse(repository.findBy("subscription.id", subscription).isUnboundCost());
 
 		em.flush();
 		em.clear();
@@ -294,19 +302,19 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 		// Check the exact new cost
 		checkCost(subscription, 4081.185, 4081.185, false);
-		Assert.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
-		Assert.assertNull(qiRepository.findOne(id));
+		Assertions.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
+		Assertions.assertNull(qiRepository.findOne(id));
 
 		// Also check the associated storage is deleted
-		Assert.assertFalse(qsRepository.existsById(storage1));
-		Assert.assertFalse(qsRepository.existsById(storage2));
-		Assert.assertFalse(qsRepository.existsById(storage3));
-		Assert.assertTrue(qsRepository.existsById(storageOther));
+		Assertions.assertFalse(qsRepository.existsById(storage1));
+		Assertions.assertFalse(qsRepository.existsById(storage2));
+		Assertions.assertFalse(qsRepository.existsById(storage3));
+		Assertions.assertTrue(qsRepository.existsById(storageOther));
 	}
 
 	@Test
 	public void deleteUnboundInstance() {
-		Assert.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
+		Assertions.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -318,24 +326,24 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		final int id = iResource.create(vo).getId();
 
 		// Check the counter is now 1
-		Assert.assertEquals(1, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
-		Assert.assertTrue(repository.findBy("subscription.id", subscription).isUnboundCost());
+		Assertions.assertEquals(1, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
+		Assertions.assertTrue(repository.findBy("subscription.id", subscription).isUnboundCost());
 		em.flush();
 		em.clear();
 
 		iResource.delete(id);
 
 		// Check the counter is back to 0
-		Assert.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
+		Assertions.assertEquals(0, repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 	}
 
 	private void refreshCost() {
 
 		// Check the cost fully updated and exact actual cost
 		final FloatingCost cost = resource.refreshCost(subscription);
-		Assert.assertEquals(4692.785, cost.getMin(), DELTA);
-		Assert.assertEquals(7139.185, cost.getMax(), DELTA);
-		Assert.assertFalse(cost.isUnbound());
+		Assertions.assertEquals(4692.785, cost.getMin(), DELTA);
+		Assertions.assertEquals(7139.185, cost.getMax(), DELTA);
+		Assertions.assertFalse(cost.isUnbound());
 		checkCost(subscription, 4692.785, 7139.185, false);
 		em.flush();
 		em.clear();
@@ -350,7 +358,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void updateInstanceIdentity() {
 		// Check the cost of related storages of this instance
 		final Map<Integer, FloatingCost> storagePrices = toStoragesFloatingCost("server1");
-		Assert.assertEquals(3, storagePrices.size());
+		Assertions.assertEquals(3, storagePrices.size());
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -362,14 +370,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
 		final UpdatedCost updatedCost = iResource.update(vo);
-		Assert.assertEquals(updatedCost.getId(), vo.getId().intValue());
+		Assertions.assertEquals(updatedCost.getId(), vo.getId().intValue());
 
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 4692.785, 7139.185, false);
 		checkCost(updatedCost.getResourceCost(), 292, 1460, false);
 
 		// Check the related storage prices
-		Assert.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
 
 		// Check the cost is the same
 		refreshCost();
@@ -378,13 +386,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	@Test
 	public void updateInstanceUnbound() {
 		ProvQuoteStorage qs = qsRepository.findByNameExpected("server1-root");
-		Assert.assertFalse(qs.isUnboundCost());
-		Assert.assertEquals(8.4, qs.getCost(), DELTA);
-		Assert.assertEquals(42, qs.getMaxCost(), DELTA);
+		Assertions.assertFalse(qs.isUnboundCost());
+		Assertions.assertEquals(8.4, qs.getCost(), DELTA);
+		Assertions.assertEquals(42, qs.getMaxCost(), DELTA);
 
 		// Check the cost of related storages of this instance
 		final Map<Integer, FloatingCost> storagePrices = toStoragesFloatingCost("server1");
-		Assert.assertEquals(3, storagePrices.size());
+		Assertions.assertEquals(3, storagePrices.size());
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -396,7 +404,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(null);
 		UpdatedCost updatedCost = iResource.update(vo);
-		Assert.assertEquals(updatedCost.getId(), vo.getId().intValue());
+		Assertions.assertEquals(updatedCost.getId(), vo.getId().intValue());
 
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 4386.985, 4386.985, true);
@@ -404,14 +412,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		checkCost(subscription, 4386.985, 4386.985, true);
 
 		// Check the related storage prices
-		Assert.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
 		qs = qsRepository.findByNameExpected("server1-root");
-		Assert.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMin(), DELTA);
-		Assert.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMax(), DELTA);
-		Assert.assertTrue(updatedCost.getRelatedCosts().get(qs.getId()).isUnbound());
-		Assert.assertTrue(qs.isUnboundCost());
-		Assert.assertEquals(4.2, qs.getCost(), DELTA);
-		Assert.assertEquals(4.2, qs.getMaxCost(), DELTA);
+		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMin(), DELTA);
+		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMax(), DELTA);
+		Assertions.assertTrue(updatedCost.getRelatedCosts().get(qs.getId()).isUnbound());
+		Assertions.assertTrue(qs.isUnboundCost());
+		Assertions.assertEquals(4.2, qs.getCost(), DELTA);
+		Assertions.assertEquals(4.2, qs.getMaxCost(), DELTA);
 
 		// Check the cost is the same
 		vo.setMinQuantity(2);
@@ -420,7 +428,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		refreshCost();
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void updateInstanceIncommatibleOs() {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -432,14 +440,16 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
-		iResource.update(vo);
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.update(vo);
+		}), "os", "incompatible-os");
 	}
 
 	@Test
 	public void updateInstance() {
 		// Check the cost of related storages of this instance
 		final Map<Integer, FloatingCost> storagePrices = toStoragesFloatingCost("server1");
-		Assert.assertEquals(3, storagePrices.size());
+		Assertions.assertEquals(3, storagePrices.size());
 
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -453,7 +463,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setLocation("region-1");
 		vo.setUsage("Full Time");
 		final UpdatedCost updatedCost = iResource.update(vo);
-		Assert.assertEquals(updatedCost.getId(), vo.getId().intValue());
+		Assertions.assertEquals(updatedCost.getId(), vo.getId().intValue());
 
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 4449.035, 11438.185, false);
@@ -461,15 +471,15 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		checkCost(subscription, 4449.035, 11438.185, false);
 
 		// Check the related storage prices
-		Assert.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
 
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
-		Assert.assertEquals("server1-bis", instance.getName());
-		Assert.assertEquals(1024, instance.getRam().intValue());
-		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
-		Assert.assertEquals(208.05, instance.getCost(), DELTA);
-		Assert.assertEquals(4161, instance.getMaxCost(), DELTA);
-		Assert.assertEquals("region-1", instance.getLocation().getName());
+		Assertions.assertEquals("server1-bis", instance.getName());
+		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(208.05, instance.getCost(), DELTA);
+		Assertions.assertEquals(4161, instance.getMaxCost(), DELTA);
+		Assertions.assertEquals("region-1", instance.getLocation().getName());
 
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
@@ -490,7 +500,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		iResource.update(vo);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
-		Assert.assertEquals(VmOs.CENTOS, instance.getOs());
+		Assertions.assertEquals(VmOs.CENTOS, instance.getOs());
 	}
 
 	@Test
@@ -513,26 +523,26 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 6773.285, 10259.935, false);
 		checkCost(updatedCost.getResourceCost(), 2080.5, 3120.75, false);
-		Assert.assertTrue(updatedCost.getRelatedCosts().isEmpty());
+		Assertions.assertTrue(updatedCost.getRelatedCosts().isEmpty());
 		checkCost(subscription, 6773.285, 10259.935, false);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
-		Assert.assertEquals("serverZ", instance.getName());
-		Assert.assertTrue(instance.isEphemeral());
-		Assert.assertEquals("serverZD", instance.getDescription());
-		Assert.assertEquals(1024, instance.getRam().intValue());
-		Assert.assertEquals(0.5, instance.getCpu(), DELTA);
-		Assert.assertEquals(VmOs.WINDOWS, instance.getOs());
-		Assert.assertEquals(2080.5, instance.getCost(), DELTA);
-		Assert.assertEquals(3120.75, instance.getMaxCost(), DELTA);
-		Assert.assertTrue(instance.getConstant());
-		Assert.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
-		Assert.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
-		Assert.assertEquals(10, instance.getMinQuantity().intValue());
-		Assert.assertEquals(15, instance.getMaxQuantity().intValue());
-		Assert.assertFalse(instance.isUnboundCost());
+		Assertions.assertEquals("serverZ", instance.getName());
+		Assertions.assertTrue(instance.isEphemeral());
+		Assertions.assertEquals("serverZD", instance.getDescription());
+		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
+		Assertions.assertEquals(2080.5, instance.getCost(), DELTA);
+		Assertions.assertEquals(3120.75, instance.getMaxCost(), DELTA);
+		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
+		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
+		Assertions.assertEquals(10, instance.getMinQuantity().intValue());
+		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
+		Assertions.assertFalse(instance.isUnboundCost());
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void createInstanceIncompatibleOs() {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -547,7 +557,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setMaxVariableCost(210.9);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
-		iResource.create(vo);
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.create(vo);
+		}), "os", "incompatible-os");
 	}
 
 	@Test
@@ -565,16 +577,16 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 6773.285, 9219.685, true);
 		checkCost(updatedCost.getResourceCost(), 2080.5, 2080.5, true);
-		Assert.assertTrue(updatedCost.getRelatedCosts().isEmpty());
+		Assertions.assertTrue(updatedCost.getRelatedCosts().isEmpty());
 		checkCost(subscription, 6773.285, 9219.685, true);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
-		Assert.assertNull(instance.getMaxVariableCost());
-		Assert.assertEquals(10, instance.getMinQuantity().intValue());
-		Assert.assertNull(instance.getMaxQuantity());
-		Assert.assertTrue(instance.isUnboundCost());
+		Assertions.assertNull(instance.getMaxVariableCost());
+		Assertions.assertEquals(10, instance.getMinQuantity().intValue());
+		Assertions.assertNull(instance.getMaxQuantity());
+		Assertions.assertTrue(instance.isUnboundCost());
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void createInstanceMinGreaterThanMax() {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
@@ -584,68 +596,78 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(100);
 		vo.setMaxQuantity(10);
-		iResource.create(vo);
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.create(vo);
+		}), "maxQuantity", "Min");
 	}
 
 	@Test
 	public void findInstanceTerm() {
 		final TableItem<ProvInstancePriceTerm> tableItem = iResource.findPriceTerm(subscription, newUriInfo());
-		Assert.assertEquals(3, tableItem.getRecordsTotal());
-		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	public void findInstancePriceTermCriteria() {
 		final TableItem<ProvInstancePriceTerm> tableItem = iResource.findPriceTerm(subscription, newUriInfo("deMand"));
-		Assert.assertEquals(2, tableItem.getRecordsTotal());
-		Assert.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals(2, tableItem.getRecordsTotal());
+		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
-	@Test(expected = JpaObjectRetrievalFailureException.class)
+	@Test
 	public void findInstancePriceTermNotExistsSubscription() {
-		iResource.findPriceTerm(-1, newUriInfo());
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+			iResource.findPriceTerm(-1, newUriInfo());
+		});
 	}
 
 	@Test
 	public void findInstancePriceTermAnotherSubscription() {
-		Assert.assertEquals(1, iResource.findPriceTerm(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assertions.assertEquals(1, iResource.findPriceTerm(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void findInstancePriceTermNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		iResource.findPriceTerm(subscription, newUriInfo());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			iResource.findPriceTerm(subscription, newUriInfo());
+		});
 	}
 
 	@Test
 	public void findInstance() {
 		final TableItem<ProvInstanceType> tableItem = iResource.findAll(subscription, newUriInfo());
-		Assert.assertEquals(13, tableItem.getRecordsTotal());
-		Assert.assertEquals("instance1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals(13, tableItem.getRecordsTotal());
+		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	public void findInstanceCriteria() {
 		final TableItem<ProvInstanceType> tableItem = iResource.findAll(subscription, newUriInfo("sTance1"));
-		Assert.assertEquals(4, tableItem.getRecordsTotal());
-		Assert.assertEquals("instance1", tableItem.getData().get(0).getName());
-		Assert.assertEquals("instance10", tableItem.getData().get(1).getName());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
+		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("instance10", tableItem.getData().get(1).getName());
 	}
 
-	@Test(expected = JpaObjectRetrievalFailureException.class)
+	@Test
 	public void findInstanceNotExistsSubscription() {
-		iResource.findAll(-1, newUriInfo());
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+			iResource.findAll(-1, newUriInfo());
+		});
 	}
 
 	@Test
 	public void findInstanceAnotherSubscription() {
-		Assert.assertEquals(1, iResource.findAll(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assertions.assertEquals(1, iResource.findAll(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
-	@Test(expected = EntityNotFoundException.class)
+	@Test
 	public void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		iResource.findAll(subscription, newUriInfo());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			iResource.findAll(subscription, newUriInfo());
+		});
 	}
 
 	@Test
@@ -653,10 +675,10 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		iResource.upload(subscription, new ClassPathResource("csv/upload.csv").getInputStream(),
 				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant" }, null, 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(18, configuration.getInstances().size());
-		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
-		Assert.assertEquals(15, configuration.getStorages().size());
-		Assert.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
+		Assertions.assertEquals(18, configuration.getInstances().size());
+		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
+		Assertions.assertEquals(15, configuration.getStorages().size());
+		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14546.049, 16992.449, false);
 	}
 
@@ -664,14 +686,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void uploadDefaultHeader() throws IOException {
 		iResource.upload(subscription, new ClassPathResource("csv/upload-default.csv").getInputStream(), null, null, 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(18, configuration.getInstances().size());
-		Assert.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
-		Assert.assertEquals(1, configuration.getInstances().get(17).getMinQuantity().intValue());
-		Assert.assertEquals(1, configuration.getInstances().get(17).getMaxQuantity().intValue());
-		Assert.assertNull(configuration.getInstances().get(17).getMaxVariableCost());
-		Assert.assertEquals("dynamic", configuration.getInstances().get(12).getPrice().getType().getName());
-		Assert.assertEquals(14, configuration.getStorages().size());
-		Assert.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
+		Assertions.assertEquals(18, configuration.getInstances().size());
+		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
+		Assertions.assertEquals(1, configuration.getInstances().get(17).getMinQuantity().intValue());
+		Assertions.assertEquals(1, configuration.getInstances().get(17).getMaxQuantity().intValue());
+		Assertions.assertNull(configuration.getInstances().get(17).getMaxVariableCost());
+		Assertions.assertEquals("dynamic", configuration.getInstances().get(12).getPrice().getType().getName());
+		Assertions.assertEquals(14, configuration.getStorages().size());
+		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14539.329, 16985.729, false);
 	}
 
@@ -680,14 +702,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;true;true;region-1;Full Time".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "constant", "ephemeral", "location", "usage" }, "on-demand2", 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvInstancePrice instancePrice = configuration.getInstances().get(7).getPrice();
 		final ProvInstancePriceTerm ipt = instancePrice.getTerm();
-		Assert.assertEquals("on-demand2", ipt.getName());
-		Assert.assertTrue(ipt.isEphemeral());
-		Assert.assertTrue(ipt.isVariable());
-		Assert.assertEquals("instance1", instancePrice.getType().getName());
-		Assert.assertEquals(4, configuration.getStorages().size());
+		Assertions.assertEquals("on-demand2", ipt.getName());
+		Assertions.assertTrue(ipt.isEphemeral());
+		Assertions.assertTrue(ipt.isVariable());
+		Assertions.assertEquals("instance1", instancePrice.getType().getName());
+		Assertions.assertEquals(4, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.535, 7266.935, false);
 	}
 
@@ -696,11 +718,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10;true".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "type", "ephemeral" }, "on-demand2", 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvInstancePriceTerm term = configuration.getInstances().get(7).getPrice().getTerm();
-		Assert.assertEquals("on-demand2", term.getName());
-		Assert.assertEquals("instance10", configuration.getInstances().get(7).getPrice().getType().getName());
-		Assert.assertEquals(4, configuration.getStorages().size());
+		Assertions.assertEquals("on-demand2", term.getName());
+		Assertions.assertEquals("instance10", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals(4, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 6561.585, 9007.985, false);
 	}
 
@@ -710,16 +732,16 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" }, "on-demand2", 1,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assert.assertEquals(1, qi.getMinQuantity().intValue());
-		Assert.assertTrue(qi.getPrice().getTerm().isEphemeral());
-		Assert.assertTrue(qi.getPrice().getTerm().isVariable());
-		Assert.assertEquals(1000, qi.getMaxQuantity().intValue());
-		Assert.assertEquals(5, configuration.getStorages().size());
+		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertTrue(qi.getPrice().getTerm().isEphemeral());
+		Assertions.assertTrue(qi.getPrice().getTerm().isVariable());
+		Assertions.assertEquals(1000, qi.getMaxQuantity().intValue());
+		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 135099.185, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assert.assertEquals(1, storagesFloatingCost.size());
+		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 210, false);
 	}
 
@@ -729,14 +751,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" }, "on-demand2", 1,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assert.assertEquals(1, qi.getMinQuantity().intValue());
-		Assert.assertEquals(1, qi.getMaxQuantity().intValue());
-		Assert.assertEquals(5, configuration.getStorages().size());
+		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
+		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 7267.145, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assert.assertEquals(1, storagesFloatingCost.size());
+		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, false);
 	}
 
@@ -746,14 +768,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" }, "on-demand2", 1,
 				"UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assert.assertEquals(1, qi.getMinQuantity().intValue());
-		Assert.assertNull(qi.getMaxQuantity());
-		Assert.assertEquals(5, configuration.getStorages().size());
+		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertNull(qi.getMaxQuantity());
+		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4820.745, 7267.145, true);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assert.assertEquals(1, storagesFloatingCost.size());
+		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, true);
 	}
 
@@ -762,9 +784,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10;PUBLIC;true".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "type", "internet", "ephemeral" }, "on-demand2", 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
-		Assert.assertEquals("instance10", configuration.getInstances().get(7).getPrice().getType().getName());
-		Assert.assertEquals(InternetAccess.PUBLIC, configuration.getInstances().get(7).getInternet());
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance10", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals(InternetAccess.PUBLIC, configuration.getInstances().get(7).getInternet());
 		checkCost(configuration.getCost(), 6561.585, 9007.985, false);
 	}
 
@@ -773,15 +795,15 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;on-demand1;66".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "term", "maxVariableCost" }, "on-demand2", 1, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance instance = configuration.getInstances().get(7);
 		final ProvInstancePrice instancePrice = instance.getPrice();
-		Assert.assertEquals("on-demand1", instancePrice.getTerm().getName());
-		Assert.assertFalse(instancePrice.getTerm().isEphemeral());
-		Assert.assertFalse(instancePrice.getTerm().isVariable());
-		Assert.assertEquals("instance2", instancePrice.getType().getName());
-		Assert.assertEquals(66, instance.getMaxVariableCost(), DELTA);
-		Assert.assertEquals(4, configuration.getStorages().size());
+		Assertions.assertEquals("on-demand1", instancePrice.getTerm().getName());
+		Assertions.assertFalse(instancePrice.getTerm().isEphemeral());
+		Assertions.assertFalse(instancePrice.getTerm().isVariable());
+		Assertions.assertEquals("instance2", instancePrice.getType().getName());
+		Assertions.assertEquals(66, instance.getMaxVariableCost(), DELTA);
+		Assertions.assertEquals(4, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4827.835, 7274.235, false);
 	}
 
@@ -789,10 +811,10 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void uploadOnlyCustomFound() throws IOException {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;LINUX".getBytes("UTF-8")), null, null, 1024, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
-		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getPrice().getTerm().getName());
-		Assert.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
-		Assert.assertEquals(4, configuration.getStorages().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("on-demand1", configuration.getInstances().get(7).getPrice().getTerm().getName());
+		Assertions.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals(4, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 246640.288, 249086.688, false);
 	}
 
@@ -800,64 +822,80 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void uploadCustomLowest() throws IOException {
 		iResource.upload(subscription, new ByteArrayInputStream("ANY;1;64;LINUX".getBytes("UTF-8")), null, null, 1024, "UTF-8");
 		final QuoteVo configuration = resource.getConfiguration(subscription);
-		Assert.assertEquals(8, configuration.getInstances().size());
-		Assert.assertEquals("on-demand1", configuration.getInstances().get(7).getPrice().getTerm().getName());
-		Assert.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
-		Assert.assertEquals(4, configuration.getStorages().size());
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("on-demand1", configuration.getInstances().get(7).getPrice().getTerm().getName());
+		Assertions.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals(4, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 5142.672, 7589.072, false);
 	}
 
 	/**
-	 * Expected usage does not exist for this subscription, so there is no matching
-	 * instance.
+	 * Expected usage does not exist for this subscription, so there is no
+	 * matching instance.
 	 */
-	@Test(expected = ValidationJsonException.class)
-	public void uploadInvalidUsageForSubscription() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time2".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "usage" }, "on-demand2", 1, "UTF-8");
+	@Test
+	public void uploadInvalidUsageForSubscription() {
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time2".getBytes("UTF-8")),
+					new String[] { "name", "cpu", "ram", "os", "usage" }, "on-demand2", 1, "UTF-8");
+		}), "instance", "no-match-instance");
 	}
 
 	/**
 	 * Expected location does not exist for this subscription, so there is no
 	 * matching instance.
 	 */
-	@Test(expected = ValidationJsonException.class)
-	public void uploadInvalidLocationForSubscription() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-3".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "location" }, "on-demand2", 1, "UTF-8");
+	@Test
+	public void uploadInvalidLocationForSubscription() {
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-3".getBytes("UTF-8")),
+					new String[] { "name", "cpu", "ram", "os", "location" }, "on-demand2", 1, "UTF-8");
+		}), "instance", "no-match-instance");
 	}
 
 	/**
 	 * Expected location does not exist at all?
 	 */
-	@Test(expected = ValidationJsonException.class)
-	public void uploadInvalidLocation() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-ZZ".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "location" }, "on-demand2", 1, "UTF-8");
+	@Test
+	public void uploadInvalidLocation() {
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-ZZ".getBytes("UTF-8")),
+					new String[] { "name", "cpu", "ram", "os", "location" }, "on-demand2", 1, "UTF-8");
+		}), "instance", "no-match-instance");
 	}
 
 	/**
 	 * Expected usage does not exist at all.
 	 */
-	@Test(expected = JpaObjectRetrievalFailureException.class)
-	public void uploadInvalidUsage() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;any".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "usage" }, "on-demand2", 1, "UTF-8");
+	@Test
+	public void uploadInvalidUsage() {
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;any".getBytes("UTF-8")),
+					new String[] { "name", "cpu", "ram", "os", "usage" }, "on-demand2", 1, "UTF-8");
+		});
 	}
 
-	@Test(expected = ValidationJsonException.class)
-	public void uploadInstanceNotFound() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null, "on-demand1", 1024, "UTF-8");
+	@Test
+	public void uploadInstanceNotFound() {
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null, "on-demand1", 1024,
+					"UTF-8");
+		}), "instance", "no-match-instance");
 	}
 
-	@Test(expected = ValidationJsonException.class)
-	public void uploadStorageNotFound() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;LOWEST;THROUGHPUT".getBytes("UTF-8")), new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" },
-				"on-demand1", 1, "UTF-8");
+	@Test
+	public void uploadStorageNotFound() {
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;LOWEST;THROUGHPUT".getBytes("UTF-8")),
+					new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, "on-demand1", 1, "UTF-8");
+		}), "storage", "NotNull");
 	}
 
-	@Test(expected = BusinessException.class)
-	public void uploadInvalidHeader() throws IOException {
-		iResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")), new String[] { "any" }, "on-demand1", 1, "UTF-8");
+	@Test
+	public void uploadInvalidHeader() {
+		Assertions.assertEquals("Invalid header", Assertions.assertThrows(BusinessException.class, () -> {
+			iResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")), new String[] { "any" }, "on-demand1", 1,
+					"UTF-8");
+		}).getMessage());
 	}
 }
