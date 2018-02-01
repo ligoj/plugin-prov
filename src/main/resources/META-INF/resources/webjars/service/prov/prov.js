@@ -214,19 +214,20 @@ define(function () {
 			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
 				$cost.find('.cost-min').addClass('hidden');
-				return formatter(cost, true, $cost, noRichText);
+				return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
 			}
 			// A floating cost
 			var min = obj.cost || obj.min || 0;
 			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+			var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity != obj.maxQuantity);
 			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
 				$cost.find('.cost-min').addClass('hidden');
-				return formatter(obj.cost || obj.min || 0, true, $cost, noRichText);
+				return formatter(obj.cost || obj.min || 0, true, $cost, noRichText, unbound);
 			}
 
 			// Max cost, is different, display a range
-			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText);
+			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
 		},
 
 		/**
@@ -241,7 +242,7 @@ define(function () {
 				// Odometer component
 				current.registerOdometer(Odometer, $cost.find('.cost-min .cost-value'));
 				current.registerOdometer(Odometer, $cost.find('.cost-max .cost-value'));
-				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-instance"] > .badge'));
+				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-instance"] > .badge .odo-wrapper'));
 				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-storage"] > .badge'));
 				var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 				current.registerOdometer(Odometer, $summary.filter('.cpu').find('span'));
@@ -257,12 +258,12 @@ define(function () {
 			}).render();
 		},
 
-		formatCostOdometer: function (cost, isMax, $cost, noRichTest) {
+		formatCostOdometer: function (cost, isMax, $cost, noRichTest, unbound) {
 			if (isMax) {
 				formatManager.formatCost(cost, 3, '$', 'cost-unit', function (value, weight, unit) {
 					var $wrapper = $cost.find('.cost-max');
 					$wrapper.find('.cost-value').html(value);
-					$wrapper.find('.cost-weight').html(weight + (cost.unbound ? '+' : ''));
+					$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 					$wrapper.find('.cost-unit').html(unit);
 				});
 			} else {
@@ -275,8 +276,8 @@ define(function () {
 			}
 		},
 
-		formatCostText: function (cost, isMax, _i, noRichText) {
-			return formatManager.formatCost(cost, 3, '$', noRichText === true ? '' : 'cost-unit') + ((cost.unbound && isMax) ? '+' : '');
+		formatCostText: function (cost, isMax, _i, noRichText, unbound) {
+			return formatManager.formatCost(cost, 3, '$', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 		},
 
 		/**
@@ -1542,7 +1543,9 @@ define(function () {
 			// Update the global counts
 			current.formatCost(conf.cost, $('.cost'));
 
-			$('.nav-pills [href="#tab-instance"] > .badge').first().text(conf.instances.length || '');
+			var $instance = $('.nav-pills [href="#tab-instance"] > .badge');
+			$instance.find('.odo-wrapper').text(usage.nbInstances || 0);
+			$instance.find('.odo-wrapper-unbound').text(usage.unbound ? '+' : '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
 
 			// Update the summary
@@ -1612,6 +1615,7 @@ define(function () {
 				}
 			});
 
+			// Update the efficiency chart
 			require(['d3', '../main/service/prov/lib/arc'], function (d3, arcGenerator) {
 				var weightedRate = usage.weightedRate;
 				var rates = {
@@ -1654,6 +1658,7 @@ define(function () {
 			var storageAvailable = 0;
 			var storageReserved = 0;
 			var nbInstances = 0;
+			var nbInstancesUnbound = false;
 			var nb = 0;
 			var publicAccess = 0;
 			var defaultRate = conf.usage ? conf.usage.rate : 100;
@@ -1669,6 +1674,7 @@ define(function () {
 				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
 				nbInstances += nb;
+				nbInstancesUnbound |= (qi.maxQuantity !== nb);
 				cpuAvailable += qi.price.type.cpu * nb;
 				cpuReserved += qi.cpu * nb;
 				ramAvailable += qi.price.type.ram * nb;
@@ -1689,6 +1695,7 @@ define(function () {
 			return {
 				publicAccess: publicAccess,
 				nbInstances: nbInstances,
+				unbound: nbInstancesUnbound,
 				weightedRate: {
 					instance: nbInstances ? Math.round(weightedRateInstance / nbInstances) : 0,
 					cost: instanceCost ? Math.round(weightedRateCost / instanceCost) : 0
