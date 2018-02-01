@@ -282,8 +282,34 @@ define(function () {
 		/**
 		 * Format the memory size.
 		 */
-		formatRam: function (sizeMB) {
+		formatRam: function (sizeMB, mode, instance) {
+			if (mode === 'display' && instance && instance.price.type.ram > (sizeMB * 1.01)) {
+				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
+					return formatManager.formatSize(value * 1024 * 1024, 3);
+				});
+			}
 			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
+		},
+
+		/**
+		 * Format the memory size.
+		 */
+		formatCpu: function (value, mode, instance) {
+			if (mode === 'display' && instance && instance.price.type.cpu > value) {
+				return current.formatEfficiency(value, instance.price.type.cpu);
+			}
+			return value;
+		},
+
+		formatEfficiency: function (value, max, formatter) {
+			var fullClass = 'fa-circle text-primary';
+			if (max / 2.0 >= value) {
+				fullClass = 'fa-circle-o text-danger';
+			} else if (max / 1.3 > value) {
+				fullClass = 'fa-adjust fa-rotate-90 text-warning';
+			}
+			return (formatter ? formatter(value) : value) + '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
+				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max)] : [value, max])) + '"></i></span>';
 		},
 
 		/**
@@ -1626,6 +1652,8 @@ define(function () {
 			var weightedRateCost = 0;
 			var i;
 			var instanceCost = 0;
+
+			// Instance statistics
 			for (i = 0; i < conf.instances.length; i++) {
 				var qi = conf.instances[i];
 				var rate = qi.usage ? qi.usage.rate : defaultRate;
@@ -1641,6 +1669,8 @@ define(function () {
 				weightedRateCost += cost * rate;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 			}
+
+			// Storage statistics
 			for (i = 0; i < conf.storages.length; i++) {
 				var qs = conf.storages[i];
 				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
@@ -1910,7 +1940,8 @@ define(function () {
 				}, {
 					data: 'cpu',
 					className: 'truncate',
-					width: '48px'
+					width: '48px',
+					render: current.formatCpu
 				}, {
 					data: 'ram',
 					className: 'truncate',
