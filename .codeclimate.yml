@@ -1,37 +1,43 @@
-engines:
- duplication:
-  enabled: true
-  checks:
-   Similar code:
+version: "2"         # required to adjust maintainability checks
+checks:
+  argument-count:
     enabled: false
- file-lines:
-  enabled: false
- method-count:
-  enabled: false
- method-lines:
-  enabled: false
- csslint:
-  enabled: true
-  checks:
-   box-sizing:
+  similar-code:
     enabled: false
-   star-property-hack:
+  file-lines:
     enabled: false
-   adjoining-classes:
+  method-count:
     enabled: false
-   ids:
+  method-lines:
     enabled: false
- eslint:
-  enabled: true
-  no-unused-expressions:
-   enabled: false
-  complexity:
-   enabled: false
-ratings:
- paths:
- - "**.js"
- - "**.css"
-exclude_paths:
-- "**/lib/"
+  identical-code:
+    enabled: false
+plugins:
+  csslint:
+    enabled: true
+    checks:
+      box-sizing:
+        enabled: false
+      star-property-hack:
+        enabled: false
+      adjoining-classes:
+        enabled: false
+      ids:
+        enabled: false
+  markdownlint:
+    enabled: true
+  eslint:
+    enabled: true
+    no-unused-expressions:
+      enabled: false
+    checks:
+      complexity:
+        enabled: false
+      max-statements:
+        enabled: false
+exclude_patterns:
+- "**/dist/"
+- "**/build/"
 - "**/test/"
+- "**/lib/"
 - "**/themes/"
