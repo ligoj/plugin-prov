@@ -1377,8 +1377,8 @@ define(function () {
 			}
 			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
 			_('instance-ephemeral').prop('checked', quote.ephemeral);
-			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : 1);
-			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : 1);
+			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
+			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
 			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
