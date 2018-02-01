@@ -22,6 +22,8 @@ define(function () {
 		 */
 		configure: function (subscription) {
 			current.model = subscription;
+			delete current.d3Arc;
+			delete current.d3Gauge;
 			current.initOdometer();
 			current.optimizeModel();
 			current.initializeForm();
