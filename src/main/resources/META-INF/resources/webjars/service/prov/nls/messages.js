@@ -117,7 +117,7 @@ define({
 		'service:prov:usage-actual-cost': 'Actual usage rate : {{this}}%',
 		'service:prov:usage-rate': 'Rate',
 		'service:prov:usage-rate-title': 'Percentage usage. 100% means full usage.',
-		'service:prov:usage-partial': 'Use only {{[0]}} of {{[1]}} available',
+		'service:prov:usage-partial': 'Use only {{[0]}} of {{[1]}} available ({{[2]}}%)',
 		'quote-location': 'Default location for this quote. Depending on availabilities and instance types, the prices may vary.',
 		'error': {
 			'service:prov-no-catalog': 'There is not yet any catalog for the provider "{{[0]}}" ({{[1]}}), you can import it. <a class="btn btn-success btn-raised" href="#/prov/catalog">Import ...</button>',

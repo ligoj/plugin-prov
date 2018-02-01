@@ -114,6 +114,6 @@ define({
 	'service:prov:usage-actual-cost': 'Niveau d\'utilisation actuel : {{this}}%',
 	'service:prov:usage-rate': 'Niveau',
 	'service:prov:usage-rate-title': 'Pourcentage d\'utilistion. 100% signifiant une utilisation plein temps.',
-	'service:prov:usage-partial': 'Utilisation seuelement de {{[0]}} sur {{[1]}} disponibles',
+	'service:prov:usage-partial': 'Utilisation seulement de {{[0]}} sur {{[1]}} disponibles ({{[2]}}%)',
 	'quote-location': 'Emplacement par défaut pour cette Default location for ce devis. Suivant les disponibilités et les types d\'instances, les prix peuvent varier.'
 });

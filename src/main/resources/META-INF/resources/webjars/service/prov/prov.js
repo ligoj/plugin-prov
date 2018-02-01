@@ -301,15 +301,24 @@ define(function () {
 			return value;
 		},
 
+		/**
+		 * Format the efficiency of a data depending on the rate against the maximum value.
+		 * @param value {number} Current value.
+		 * @param max {number} Maximal value.
+		 * @param formatter {function} Option formatter function of the value. 
+		 * @returns {string} The value to display containing the rate.
+		 */
 		formatEfficiency: function (value, max, formatter) {
 			var fullClass = 'fa-circle text-primary';
+			max = max || value || 1;
 			if (max / 2.0 >= value) {
 				fullClass = 'fa-circle-o text-danger';
 			} else if (max / 1.3 > value) {
 				fullClass = 'fa-adjust fa-rotate-90 text-warning';
 			}
+			var rate = Math.round(value * 100 / max) / 100;
 			return (formatter ? formatter(value) : value) + '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
-				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max)] : [value, max])) + '"></i></span>';
+				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>';
 		},
 
 		/**
