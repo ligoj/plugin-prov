@@ -210,8 +210,6 @@ define(function () {
 			}
 
 			// Computation part
-			var minStr = '';
-			var maxStr = '';
 			obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
 			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
@@ -805,7 +803,7 @@ define(function () {
 					name: _('quote-name').val(),
 					description: _('quote-description').val()
 				});
-			}).on('show.bs.modal', function (event) {
+			}).on('show.bs.modal', function () {
 				_('quote-name').val(current.model.configuration.name);
 				_('quote-description').val(current.model.configuration.description || '');
 			});

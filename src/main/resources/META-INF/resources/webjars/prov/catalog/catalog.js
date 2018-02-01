@@ -3,7 +3,7 @@ define(['sparkline'], function () {
 
 		table: null,
 
-		initialize: function (parameters) {
+		initialize: function () {
 			current.initializeDataTable();
 		},
 
@@ -28,7 +28,7 @@ define(['sparkline'], function () {
 						}
 					});
 				},
-				rowCallback: function (row, data, index) {
+				rowCallback: function (row, data) {
 					$(row).attr('data-node', data.node.id);
 				},
 				columns: [{
@@ -318,19 +318,6 @@ define(['sparkline'], function () {
 			}
 			// No information at all
 			return '<i class="fa fa-dot-circle-o"></i>';
-		},
-
-		updatePie: function () {
-			_('table').find('[data-node="' + id + '"] .catalog-status').sparkline([catalog.status.done, catalog.status.workload - catalog.status.done], {
-				type: 'pie',
-				sliceColors: ['#000000', '#FFFFFF'],
-				offset: '-90',
-				width: '16px',
-				height: '16px',
-				fillColor: 'white',
-				borderWidth: '2',
-				borderColor: '#000000'
-			});
 		}
 	};
 	return current;
