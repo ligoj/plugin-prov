@@ -4,6 +4,12 @@ engines:
   checks:
    Similar code:
     enabled: false
+ file-lines:
+  enabled: false
+ method-count:
+  enabled: false
+ method-lines:
+  enabled: false
  csslint:
   enabled: true
   checks:
