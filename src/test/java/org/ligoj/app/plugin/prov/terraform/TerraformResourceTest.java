@@ -114,7 +114,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 			@Override
 			protected File applyTerraform(final Subscription entity, final Terraforming terra,
-					final QuoteVo configuration) throws IOException, InterruptedException {
+					final QuoteVo configuration) throws IOException {
 				throw new IOException();
 			}
 		};
@@ -211,7 +211,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void applyTerraformExit1() throws Exception {
+	public void applyTerraformExit1() {
 		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () -> {
 			applyTerraformExit(1, "Terraform exit code 1 -> aborted");
 		}).getMessage());
@@ -287,7 +287,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			final BiFunction<Subscription, String[], File> toFile, final boolean dryRun, final String... customArgs) {
 		final TerraformResource resource = new TerraformResource() {
 			@Override
-			protected File toFile(final Subscription subscription, final String file) throws IOException {
+			protected File toFile(final Subscription subscription, final String file) {
 				return toFile.apply(subscription, new String[] { file });
 			}
 

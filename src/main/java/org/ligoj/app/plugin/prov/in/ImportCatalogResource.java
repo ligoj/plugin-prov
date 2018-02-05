@@ -138,7 +138,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @param node
 	 *            The node to update.
 	 */
-	protected void updateCatalog(final ImportCatalogService catalogService, final String node) throws Exception {
+	protected void updateCatalog(final ImportCatalogService catalogService, final String node) {
 		// Restore the context
 		log.info("Catalog update for {}", node);
 		boolean failed = true;

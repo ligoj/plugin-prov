@@ -581,7 +581,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createNoCatalog() throws Exception {
+	public void createNoCatalog() {
 		final Subscription subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
