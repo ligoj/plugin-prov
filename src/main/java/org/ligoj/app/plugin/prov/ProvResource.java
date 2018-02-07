@@ -47,8 +47,7 @@ import org.springframework.stereotype.Service;
 import lombok.Getter;
 
 /**
- * The provisioning service. There is complete quote configuration along the
- * subscription.
+ * The provisioning service. There is complete quote configuration along the subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -128,8 +127,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Return the locations available for a subscription.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the locations
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the locations from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available locations for the given subscription.
@@ -137,24 +135,24 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@GET
 	@Path("{subscription:\\d+}/location")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
+	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription,
+			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-				paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)), Function.identity());
+		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(subscription,
+				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
+				Function.identity());
 	}
 
 	/**
-	 * Check and return the expected location within the given subscription. The
-	 * subscription is used to determinate the related node (provider). Return
-	 * <code>null</code> when the given name is <code>null</code> or empty. In other
+	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
+	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 * 
 	 * @param subscription
 	 *            A visible subscription for the current principal.
 	 * @param name
 	 *            The location name. Case is insensitive.
-	 * @return The visible location for the related subscription or
-	 *         <code>null</code>.
+	 * @return The visible location for the related subscription or <code>null</code>.
 	 */
 	public ProvLocation findLocation(final int subscription, final String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -229,13 +227,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// TODO Check the location change to avoid useless compute
 		entity.setLocation(findLocation(subscription, quote.getLocation()));
-		entity.setUsage(Optional.ofNullable(quote.getUsage()).map(u -> findConfigured(usageRepository, u)).orElse(null));
+		entity.setUsage(
+				Optional.ofNullable(quote.getUsage()).map(u -> findConfigured(usageRepository, u, subscription)).orElse(null));
 		return refreshCostAndResource(entity);
 	}
 
 	/**
-	 * Compute the total cost and save it into the related quote. All separated
-	 * compute and storage costs are also updated.
+	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
+	 * updated.
 	 * 
 	 * @param subscription
 	 *            The subscription to compute
@@ -256,8 +255,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setMaxCost(0d);
 
 		// Add the compute cost, and update the unbound cost
-		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::updateCost).map(fc -> addCost(entity, fc))
-				.filter(FloatingCost::isUnbound).count());
+		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::updateCost)
+				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the storage cost
 		repository.getStorage(entity.getSubscription().getId()).stream().map(storageResource::updateCost)
@@ -289,11 +288,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	protected FloatingCost refreshCostAndResource(final ProvQuote quote) {
 		// Update the instance, and add the cost
-		quote.setUnboundCostCounter((int) quote.getInstances().stream().map(instanceResource::refresh).map(fc -> addCost(quote, fc))
-				.filter(FloatingCost::isUnbound).count());
+		quote.setUnboundCostCounter((int) quote.getInstances().stream().map(instanceResource::refresh)
+				.map(fc -> addCost(quote, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Update the storage, and add the cost
-		repository.getStorage(quote.getSubscription().getId()).stream().map(storageResource::refresh).forEach(fc -> addCost(quote, fc));
+		repository.getStorage(quote.getSubscription().getId()).stream().map(storageResource::refresh)
+				.forEach(fc -> addCost(quote, fc));
 
 		// Compute the the total cost
 		return refreshCost(quote.getSubscription().getId());
@@ -319,33 +319,40 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	@Override
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
-			final K id) {
+	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
+			final RestRepository<T, K> repository, final K id) {
 		// Simple proxy call but with public visibility
 		return super.findConfigured(repository, id);
 	}
 
 	/**
-	 * Check the visibility of a configured entity.
+	 * Check the visibility of a configured entity by its name.
 	 * 
 	 * @param repository
 	 *            The repository holding the configured entity.
 	 * @param name
 	 *            The requested configured name.
+	 * @param subscription
+	 *            The required subscription owner.
 	 * @param <K>
 	 *            The {@link Configurable} identifier type.
 	 * @param <T>
 	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
+	 * 
+	 * TODO Replace by findConfiguredByName with bootstrap 2.1.1+, API 2.1.1+
 	 */
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
-			final String name) {
-		return super.findConfigured(repository, repository.findByNameExpected(name).getId());
+	@SuppressWarnings("unchecked")
+	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfiguredByName(
+			final RestRepository<T, K> repository, final String name, final int subscription) {
+		// TODO Replace by RestRepository#findAllBy with bootstrap 2.1.1+
+		return checkConfiguredVisibility(repository.findAllBy("configuration.subscription.id", subscription).stream()
+				.filter(c -> name.equals(((INamableBean<K>) c).getName())).findFirst()
+				.orElseThrow(() -> new EntityNotFoundException(name)));
 	}
 
 	/**
-	 * Check the visibility of a configured entity and check the ownership by the
-	 * given subscription.
+	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 * 
 	 * @param id
 	 *            The requested configured identifier.
@@ -357,8 +364,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
-			final K id, final int subscription) {
+	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
+			final RestRepository<T, K> repository, final K id, final int subscription) {
 		// Simple proxy call but with public visibility
 		final T entity = findConfigured(repository, id);
 		if (entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
@@ -369,8 +376,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check the visibility of a configured entity and check the ownership by the
-	 * given subscription.
+	 * Check the visibility of a configured entity by its name and check the ownership by the given subscription.
 	 * 
 	 * @param repository
 	 *            The repository holding the configured entity.
@@ -384,10 +390,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(final RestRepository<T, K> repository,
-			final String name, final int subscription) {
+	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
+			final RestRepository<T, K> repository, final String name, final int subscription) {
 		// Simple proxy call but with public visibility
-		final T entity = findConfigured(repository, name);
+		final T entity = findConfiguredByName(repository, name, subscription);
 		if (entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
 			// Associated project is not visible, reject the configuration access
 			throw new EntityNotFoundException(name);
