@@ -98,10 +98,9 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
+				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
+				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		refreshCost();
@@ -110,10 +109,12 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void testBusiness() {
 		// Coverage only
-		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
+		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(),
+				InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
 
 		// Association only
-		Assertions.assertEquals("service:prov:test", stRepository.findBy("node.id", "service:prov:test").getNode().getId());
+		Assertions.assertEquals("service:prov:test",
+				stRepository.findBy("node.id", "service:prov:test").getNode().getId());
 	}
 
 	@Test
@@ -334,8 +335,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances, but no one use
-	 * the default location. Cost still updated.
+	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
 	 */
 	@Test
 	public void updateLocation() {
@@ -365,8 +365,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances, but no one use
-	 * the default location. Cost still updated.
+	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
 	 */
 	@Test
 	public void updateLocationDifferentQILocation() {
@@ -377,12 +376,12 @@ public class ProvResourceTest extends AbstractAppTest {
 		qiRepository.findAll().forEach(ip -> ip.setLocation(location));
 
 		// Make sure there is no more world wild prices
-		em.createQuery("FROM ProvInstancePrice WHERE location.name=:location", ProvInstancePrice.class).setParameter("location", "region-1")
-				.getResultList().forEach(ip -> ip.setLocation(location4));
-		em.createQuery("FROM ProvStoragePrice WHERE location.name=:location", ProvStoragePrice.class).setParameter("location", "region-1")
-				.getResultList().forEach(ip -> ip.setLocation(location4));
-		em.createQuery("FROM ProvQuoteInstance WHERE location.name=:location", ProvQuoteInstance.class).setParameter("location", "region-1")
-				.getResultList().forEach(ip -> ip.setLocation(location4));
+		em.createQuery("FROM ProvInstancePrice WHERE location.name=:location", ProvInstancePrice.class)
+				.setParameter("location", "region-1").getResultList().forEach(ip -> ip.setLocation(location4));
+		em.createQuery("FROM ProvStoragePrice WHERE location.name=:location", ProvStoragePrice.class)
+				.setParameter("location", "region-1").getResultList().forEach(ip -> ip.setLocation(location4));
+		em.createQuery("FROM ProvQuoteInstance WHERE location.name=:location", ProvQuoteInstance.class)
+				.setParameter("location", "region-1").getResultList().forEach(ip -> ip.setLocation(location4));
 		em.flush();
 		em.clear();
 
@@ -399,8 +398,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact some storages. And block some
-	 * storages associated to instances not located on the same location.
+	 * Update the location of the quote, impact some storages. And block some storages associated to instances not
+	 * located on the same location.
 	 */
 	@Test
 	public void updateLocationKoDifferentStorageAndQILocation() {
@@ -543,8 +542,8 @@ public class ProvResourceTest extends AbstractAppTest {
 			}
 		};
 		res.provResource = resource;
-		final QuoteLigthVo quote = (QuoteLigthVo) res.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData()
-				.get("quote");
+		final QuoteLigthVo quote = (QuoteLigthVo) res
+				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
 		Assertions.assertNotNull(quote);
 		checkCost(quote.getCost(), 4692.785, 7139.185, false);
 	}
@@ -636,9 +635,16 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findConfiguredByNameNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+	public void findConfiguredByNameNotFoundInvalidName() {
+		Assertions.assertEquals("serverAAAAA", Assertions.assertThrows(EntityNotFoundException.class, () -> {
+			resource.findConfigured(qiRepository, "serverAAAAA", subscription);
+		}).getMessage());
+	}
+
+	@Test
+	public void findConfiguredByNameNotFoundInvalidSub() {
+		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class, () -> {
 			resource.findConfigured(qiRepository, "server1", 0);
-		});
+		}).getMessage());
 	}
 }
