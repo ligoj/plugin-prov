@@ -72,16 +72,22 @@ define(function () {
 		/**
 		 * Reload the whole quote if the new cost is different from the previous one.
 		 * @param {object} newCost The new cost.
+		 * @param {function} forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
-		reloadAsNeed: function (newCost) {
+		reloadAsNeed: function (newCost, forceUpdateUi) {
+			var dirty = true;
 			if (newCost.min !== current.model.configuration.cost.min || newCost.max !== current.model.configuration.cost.max) {
 				// The cost has been updated
 				current.model.configuration.cost = newCost;
 				notifyManager.notify(current.$messages['service:prov:refresh-needed']);
+				dirty = false;
 				current.reload();
 			} else {
 				// The cost still the same
 				notifyManager.notify(current.$messages['service:prov:refresh-no-change']);
+			}
+			if (dirty && forceUpdateUi) {
+				current.updateUiCost();
 			}
 		},
 
@@ -813,7 +819,7 @@ define(function () {
 				e.preventDefault();
 				current.saveOrUpdateUsage({
 					name: _('usage-name').val(),
-					rate: _('usage-rate').val()
+					rate: parseInt(_('usage-rate').val() || '100', 10)
 				}, _('usage-old-name').val());
 			}).on('show.bs.modal', function (event) {
 				if ($(event.relatedTarget).is('.btn-success')) {
@@ -968,7 +974,7 @@ define(function () {
 				.on('change', function (event) {
 					current.updateQuote({
 						usage: event.added || null
-					}, 'usage');
+					}, 'usage', true);
 				});
 			_('storage-price').on('change', function (event) {
 				current.updateInstanceCompatible(event.added);
@@ -1103,8 +1109,9 @@ define(function () {
 		 * Update the quote's details. If the total cost is updated, the quote will be updated.
 		 * @param {object} data The optional data overriding the on from the model.
 		 * @param {String} property The optional highlighted updated property name. Used for the feedback UI.
+		 * @param {function } forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
-		updateQuote: function (data, property) {
+		updateQuote: function (data, property, forceUpdateUi) {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-update');
 			current.disableCreate($popup);
@@ -1140,12 +1147,13 @@ define(function () {
 					conf.usage = data.usage || conf.usage;
 
 					// UI feedback
-					notifyManager.notify(Handlebars.compile(current.$messages.updated)(jsonData.name));
 					$popup.modal('hide');
 
 					// Handle updated cost
 					if (property) {
-						current.reloadAsNeed(newCost);
+						current.reloadAsNeed(newCost, forceUpdateUi);
+					} else if (forceUpdateUi) {
+						current.updateUiCost();
 					}
 				},
 				complete: function () {
@@ -1200,8 +1208,9 @@ define(function () {
 		 * Update a quote usage.
 		 * @param {string} name The usage data to persist.
 		 * @param {string} oldName The optional old name. Required for 'update' mode.
+		 * @param {function } forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
-		saveOrUpdateUsage: function (data, oldName) {
+		saveOrUpdateUsage: function (data, oldName, forceUpdateUi) {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-usage');
 			current.disableCreate($popup);
@@ -1217,7 +1226,9 @@ define(function () {
 						// Update the usage of the quote
 						conf.usage.name = data.name;
 						conf.usage.rate = data.rate;
-						_('prov-usage').select2('data', data);
+						data.id = 0;
+						_('quote-usage').select2('data', data);
+						forceUpdateUi = true;
 					}
 
 					// UI feedback
@@ -1226,7 +1237,7 @@ define(function () {
 
 					// Handle updated cost
 					if (newCost.totalCost) {
-						current.reloadAsNeed(newCost.totalCost);
+						current.reloadAsNeed(newCost.totalCost, forceUpdateUi);
 					}
 				},
 				complete: function () {
@@ -1635,12 +1646,13 @@ define(function () {
 				}
 
 				// Render concentric rates
-				if (typeof current.d3Arc === 'undefined') {
+				if (current.d3Arc) {
+					$.proxy(arcGenerator.update, arcGenerator)(rates);
+				} else {
+					_('prov-usage').empty();
 					current.d3Arc = arcGenerator;
 					$.proxy(arcGenerator.init, arcGenerator)('#prov-usage', rates, 90);
-					current.updateUiCost();
-				} else {
-					$.proxy(arcGenerator.update, arcGenerator)(rates);
+					//current.updateUiCost();
 				}
 			});
 		},
