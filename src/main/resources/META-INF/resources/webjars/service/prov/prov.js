@@ -570,6 +570,8 @@ define(function () {
 				} else if ($item.prev().is('.select2-container')) {
 					var data = ($item.select2('data') || {});
 					value = data.name || (data.data ? data.data.name : (data.id || $item.val()));
+				} else if ($item.is('[type="number"]')) {
+					value = parseInt(current.cleanData($item.val()) || "0", 10);
 				} else if (!$item.is('.select2-container')) {
 					value = current.cleanData($item.val());
 				}
@@ -1354,7 +1356,7 @@ define(function () {
 		},
 
 		cleanData: function (data) {
-			return (data && data.replace(',', '.').replace(' ', '')) || null;
+			return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
 		},
 
 		/**
