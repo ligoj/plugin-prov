@@ -792,14 +792,20 @@ define(function () {
 
 		initializeForm: function () {
 			// Global datatables filter
-			$('.subscribe-configuration-prov-search').on('keyup', function () {
-				var table = current[$(this).closest('[data-prov-type]').data('prov-type') + 'Table'];
-				if (table) {
-					table.fnFilter($(this).val());
+			$('.subscribe-configuration-prov-search').on('keyup', function (event) {
+				if (event.which !== 16 && event.which !== 91) {
+					var table = current[$(this).closest('[data-prov-type]').data('prov-type') + 'Table'];
+					if (table) {
+						table.fnFilter($(this).val());
+					}
 				}
 			});
 			$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-			$('input.resource-query[type="number"]').on('keyup', current.checkResource);
+			$('input.resource-query[type="number"]').on('keyup', function (event) {
+				if (event.which !== 16 && event.which !== 91) {
+					$.proxy(current.checkResource, $(this))();
+				}
+			});
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 			$('.quote-name').text(current.model.configuration.name);
@@ -956,7 +962,7 @@ define(function () {
 				var $active = $(this).addClass('active').find('a');
 				$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
 				// Also trigger the change of the value
-				_('instance-cpu').trigger('change');
+				_('instance-cpu').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
 			_('instance-term-upload').select2(current.instanceTermSelect2(current.$messages['service:prov:default']));
