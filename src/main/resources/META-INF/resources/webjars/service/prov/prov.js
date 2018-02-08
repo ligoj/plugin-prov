@@ -796,7 +796,8 @@ define(function () {
 					table.fnFilter($(this).val());
 				}
 			});
-			$('input.resource-query').on('change keyup', current.checkResource);
+			$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
+			$('input.resource-query[type="number"]').on('keyup', current.checkResource);
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
 			$('.quote-name').text(current.model.configuration.name);
