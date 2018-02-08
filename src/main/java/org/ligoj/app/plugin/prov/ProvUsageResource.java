@@ -114,7 +114,7 @@ public class ProvUsageResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost update(@PathParam("subscription") final int subscription, @PathParam("name") final String name,
 			final UsageEditionVo vo) {
-		return saveOrUpdate(resource.findConfigured(repository, name, subscription), vo);
+		return saveOrUpdate(resource.findConfiguredByName(repository, name, subscription), vo);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class ProvUsageResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("{subscription:\\d+}/usage/{name}")
 	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("name") final String name) {
-		final ProvUsage entity = resource.findConfigured(repository, name, subscription);
+		final ProvUsage entity = resource.findConfiguredByName(repository, name, subscription);
 		final ProvQuote configuration = entity.getConfiguration();
 
 		final UpdatedCost cost = new UpdatedCost();

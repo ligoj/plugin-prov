@@ -227,8 +227,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// TODO Check the location change to avoid useless compute
 		entity.setLocation(findLocation(subscription, quote.getLocation()));
-		entity.setUsage(
-				Optional.ofNullable(quote.getUsage()).map(u -> findConfigured(usageRepository, u, subscription)).orElse(null));
+		entity.setUsage(Optional.ofNullable(quote.getUsage())
+				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
 		return refreshCostAndResource(entity);
 	}
 
@@ -340,12 +340,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 *            The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 * 
-	 * TODO Replace by findConfiguredByName with bootstrap 2.1.1+, API 2.1.1+
+	 *         TODO Replace by findConfiguredByName with bootstrap 2.1.1+, API 2.1.1+
 	 */
 	@SuppressWarnings("unchecked")
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfiguredByName(
 			final RestRepository<T, K> repository, final String name, final int subscription) {
-		// TODO Replace by RestRepository#findAllBy with bootstrap 2.1.1+
 		return checkConfiguredVisibility(repository.findAllBy("configuration.subscription.id", subscription).stream()
 				.filter(c -> name.equals(((INamableBean<K>) c).getName())).findFirst()
 				.orElseThrow(() -> new EntityNotFoundException(name)));
@@ -371,32 +370,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		if (entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
 			// Associated project is not visible, reject the configuration access
 			throw new EntityNotFoundException(id.toString());
-		}
-		return entity;
-	}
-
-	/**
-	 * Check the visibility of a configured entity by its name and check the ownership by the given subscription.
-	 * 
-	 * @param repository
-	 *            The repository holding the configured entity.
-	 * @param name
-	 *            The requested configured name.
-	 * @param subscription
-	 *            The required subscription owner.
-	 * @param <K>
-	 *            The {@link Configurable} identifier type.
-	 * @param <T>
-	 *            The {@link Configurable} type.
-	 * @return The entity where the related subscription if visible.
-	 */
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
-			final RestRepository<T, K> repository, final String name, final int subscription) {
-		// Simple proxy call but with public visibility
-		final T entity = findConfiguredByName(repository, name, subscription);
-		if (entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
-			// Associated project is not visible, reject the configuration access
-			throw new EntityNotFoundException(name);
 		}
 		return entity;
 	}

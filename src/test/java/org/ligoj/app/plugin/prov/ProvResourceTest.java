@@ -623,7 +623,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findConfiguredByName() {
-		Assertions.assertEquals("server1", resource.findConfigured(qiRepository, "server1", subscription).getName());
+		Assertions.assertEquals("server1", resource.findConfiguredByName(qiRepository, "server1", subscription).getName());
 	}
 
 	@Test
@@ -637,14 +637,14 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void findConfiguredByNameNotFoundInvalidName() {
 		Assertions.assertEquals("serverAAAAA", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.findConfigured(qiRepository, "serverAAAAA", subscription);
+			resource.findConfiguredByName(qiRepository, "serverAAAAA", subscription);
 		}).getMessage());
 	}
 
 	@Test
 	public void findConfiguredByNameNotFoundInvalidSub() {
 		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.findConfigured(qiRepository, "server1", 0);
+			resource.findConfiguredByName(qiRepository, "server1", 0);
 		}).getMessage());
 	}
 }
