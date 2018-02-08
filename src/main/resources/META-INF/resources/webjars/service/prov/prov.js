@@ -2055,7 +2055,13 @@ define(function () {
 				}, {
 					data: 'quoteInstance.minQuantity',
 					className: 'hidden-xs',
-					render: current.formatQuantity
+					render: function (value, mode, data) {
+						if (value) {
+							return current.formatQuantity(value, mode, data);
+						}
+						// No related instance
+						return 1;
+					}
 				}, {
 					data: 'size',
 					width: '36px',
