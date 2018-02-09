@@ -78,11 +78,18 @@
 
 #prov-usage {
 	margin-left: 13px;
+	height: 0;
 }
 
+#prov-usage+.control-label {
+	position: relative;
+	top: 38px;
+	left: 5px;
+}
+	
 .prov-usage-wrapper .form-group {
-	height: 0;
-	position: absolute;
+	position: relative;
+	top: 81px;
 }
 .prov-usage-wrapper .form-group>.control-label {
 	top: -141px;
@@ -95,20 +102,19 @@
 }
 
 .prov-usage-wrapper .form-group>div {
-	top: -134px;
 	margin-left: 24px;
 	width: 200px;
-	position: relative;
 }
 
 .prov-usage-wrapper .btn-success {
-	top: -178px;
+	top: -44px;
 	width: 32px;
-	left: -80px;
 	padding-left: 0px;
 	padding-right: 0px;
 	margin-top: 0;
 	margin-bottom: 0;
+	float: left;
+	margin-left: 22px;
 }
 
 .sunburst-part:hover {
