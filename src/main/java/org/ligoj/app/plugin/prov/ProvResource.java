@@ -326,31 +326,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check the visibility of a configured entity by its name.
-	 * 
-	 * @param repository
-	 *            The repository holding the configured entity.
-	 * @param name
-	 *            The requested configured name.
-	 * @param subscription
-	 *            The required subscription owner.
-	 * @param <K>
-	 *            The {@link Configurable} identifier type.
-	 * @param <T>
-	 *            The {@link Configurable} type.
-	 * @return The entity where the related subscription if visible.
-	 * 
-	 *         TODO Replace by findConfiguredByName with bootstrap 2.1.1+, API 2.1.1+
-	 */
-	@SuppressWarnings("unchecked")
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfiguredByName(
-			final RestRepository<T, K> repository, final String name, final int subscription) {
-		return checkConfiguredVisibility(repository.findAllBy("configuration.subscription.id", subscription).stream()
-				.filter(c -> name.equals(((INamableBean<K>) c).getName())).findFirst()
-				.orElseThrow(() -> new EntityNotFoundException(name)));
-	}
-
-	/**
 	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 * 
 	 * @param id
