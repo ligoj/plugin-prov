@@ -351,7 +351,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Override
 	public void delete(final int subscription, final boolean remoteData) {
-		repository.delete(repository.findBy("subscription.id", subscription));
+		// Delete the configuration if available
+		Optional.ofNullable(repository.findBy("subscription.id", subscription)).ifPresent(c -> repository.delete(c));
 	}
 
 }

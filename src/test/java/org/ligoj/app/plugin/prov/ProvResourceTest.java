@@ -484,6 +484,22 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(2, repository.findAll().size());
 	}
 
+	@Test
+	public void deleteNoConfiguration() {
+		// Check the pre-deletion
+		repository.deleteAll();
+		Assertions.assertEquals(0, repository.findAll().size());
+		em.flush();
+		em.clear();
+
+		resource.delete(subscription, true);
+		em.flush();
+		em.clear();
+
+		// Check the post-deletion
+		Assertions.assertEquals(0, repository.findAll().size());
+	}
+
 	private void refreshCost() {
 
 		// Check the cost fully updated and exact actual cost
