@@ -119,6 +119,9 @@ define({
 		'service:prov:usage-rate-title': 'Percentage usage. 100% means full usage.',
 		'service:prov:usage-partial': 'Use only {{[0]}} of {{[1]}} available ({{[2]}}%)',
 		'quote-location': 'Default location for this quote. Depending on availabilities and instance types, the prices may vary.',
+		'csv-headers-included': 'CSV file has headers',
+		'csv-headers': 'Headers',
+		'csv-headers-included-help': 'When headers are in the first line of CSV file',
 		'error': {
 			'service:prov-no-catalog': 'There is not yet any catalog for the provider "{{[0]}}" ({{[1]}}), you can import it. <a class="btn btn-success btn-raised" href="#/prov/catalog">Import ...</button>',
 			'no-match-instance': 'Update failed, at least one resource ({{resource}}) does not support all your requirements',

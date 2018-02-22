@@ -1,11 +1,14 @@
 
 package org.ligoj.app.plugin.prov;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.SequenceInputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -54,7 +58,6 @@ import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
-import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -71,8 +74,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteInstance> {
-	private static final String[] DEFAULT_COLUMNS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
-	private static final String[] ACCEPTED_COLUMNS = { "name", "cpu", "ram", "constant", "os", "disk", "latency",
+	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
+	private static final String[] ACCEPTED_HEADERS = { "name", "cpu", "ram", "constant", "os", "disk", "latency",
 			"optimized", "term", "type", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost",
 			"ephemeral", "location", "usage" };
 
@@ -498,7 +501,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	private void checkHeaders(final String[] expected, final String... columns) {
 		for (final String column : columns) {
 			if (!ArrayUtils.contains(expected, column.trim())) {
-				throw new BusinessException("Invalid header", column);
+				throw new ValidationJsonException("headers", "invalid-header", column);
 			}
 		}
 	}
@@ -510,10 +513,13 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 *            The subscription identifier, will be used to filter the locations from the associated provider.
 	 * @param uploadedFile
 	 *            Instance entries files to import. Currently support only CSV format.
-	 * @param columns
-	 *            the CSV header names.
+	 * @param headers
+	 *            the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded
+	 *            When <code>true</code>, the first line is the headers and the given <code>headers</code> parameter is
+	 *            ignored. Otherwise the <code>headers</code> parameter is used.
 	 * @param term
-	 *            The default {@link ProvInstancePriceTerm} used when no one is defined in the CSV line
+	 *            The default {@link ProvInstancePriceTerm} used when no one is defined in the CSV line.
 	 * @param ramMultiplier
 	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param encoding
@@ -526,26 +532,36 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription,
 			@Multipart(value = "csv-file") final InputStream uploadedFile,
-			@Multipart(value = "columns", required = false) final String[] columns,
+			@Multipart(value = "headers", required = false) final String[] headers,
+			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
 			@Multipart(value = "term", required = false) final String term,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
 		subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
-		// Check column's name validity
-		final String[] sanitizeColumns = ArrayUtils.isEmpty(columns) ? DEFAULT_COLUMNS : columns;
-		checkHeaders(ACCEPTED_COLUMNS, sanitizeColumns);
-
-		// Build CSV header from array
-		final String csvHeaders = StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';')
-				+ "\n";
+		// Check headers validity
+		final String[] sanitizeColumns;
+		final Reader reader;
+		if (headersIncluded) {
+			// Header at first line
+			final String rawFile = IOUtils.toString(uploadedFile, safeEncoding);
+			sanitizeColumns = StringUtils.defaultString(new BufferedReader(new StringReader(rawFile)).readLine(), "")
+					.replace(',', ';').split(";");
+			reader = new StringReader(rawFile);
+		} else {
+			// Headers are provided separately
+			sanitizeColumns = ArrayUtils.isEmpty(headers) ? DEFAULT_HEADERS : headers;
+			reader = new InputStreamReader(new SequenceInputStream(new ByteArrayInputStream(
+					(StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';') + "\n")
+							.getBytes(safeEncoding)),
+					uploadedFile), safeEncoding);
+		}
+		checkHeaders(ACCEPTED_HEADERS, sanitizeColumns);
 
 		// Build entries
-		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
-		csvForBean
-				.toBean(InstanceUpload.class, new InputStreamReader(new SequenceInputStream(
-						new ByteArrayInputStream(csvHeaders.getBytes(safeEncoding)), uploadedFile), safeEncoding))
-				.stream().filter(Objects::nonNull).forEach(i -> persist(i, subscription, term, ramMultiplier));
+		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull)
+				.forEach(i -> persist(i, subscription, term, ramMultiplier));
 	}
 
 	private void persist(final InstanceUpload upload, final int subscription, final String defaultTerm,

@@ -752,12 +752,22 @@ define(function () {
 
 		initializeUpload: function () {
 			var $popup = _('popup-prov-instance-import');
+			_('csv-headers-included').on('change', function() {
+				if ($(this).is(':checked')) {
+					// Useless input headers
+					_('csv-headers').closest('.form-group').addClass('hidden');
+				} else {
+					_('csv-headers').closest('.form-group').removeClass('hidden');
+				}
+			});
 			$popup.on('shown.bs.modal', function () {
 				_('csv-file').trigger('focus');
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
+				_('instance-term-upload-name').val((_('instance-term-upload').select2('data') || {}).name || null);
+				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);

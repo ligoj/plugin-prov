@@ -419,15 +419,32 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="csv-upload-encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
+								<input type="text" id="csv-upload-encoding" name="encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-sm-8 col-sm-offset-3">
+								<div class="checkbox">
+									<label for="csv-headers-included">
+										<input type="checkbox" checked id="csv-headers-included" name="headers-included"> {{csv-headers-included}}
+								    </label>
+								</div>
+								<p class="help-block">{{csv-headers-included-help}}</p>
+							</div>
+						</div>
+						<div class="form-group hidden">
+							<label class="control-label col-sm-3" for="csv-headers">{{csv-headers}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="csv-headers" name="headers" value="" class="form-control" placeholder="name;cpu;ram;os;disk;latency;optimized">
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-term-upload" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term-upload}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="instance-term-upload" name="priceType" class="form-control" placeholder="{{service:prov:term-lowest}}" />
+								<input type="text" id="instance-term-upload" class="form-control" placeholder="{{service:prov:term-lowest}}" />
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-upload-help}}"></i></span>
 							</div>
+							<input type="text" id="instance-term-upload-name" class="hidden" name="term">
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
