@@ -53,8 +53,7 @@ public abstract class AbstractCostedResource<C extends Costed> implements QuoteR
 		if (lookup == null) {
 			throw new ValidationJsonException(resourceType, "no-match-" + resourceType, "resource", context);
 		}
-		final T instancePrice = lookup.getPrice();
-		return instancePrice;
+		return lookup.getPrice();
 	}
 
 	/**

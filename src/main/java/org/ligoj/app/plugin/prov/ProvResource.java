@@ -318,13 +318,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		repository.saveAndFlush(quote);
 	}
 
-	@Override
-	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
-			final RestRepository<T, K> repository, final K id) {
-		// Simple proxy call but with public visibility
-		return super.findConfigured(repository, id);
-	}
-
 	/**
 	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 * 

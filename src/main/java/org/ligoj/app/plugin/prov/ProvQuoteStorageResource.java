@@ -175,7 +175,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
 		if (!lookup(quote, entity.getSize(), entity.getLatency(), vo.getQuoteInstance(), entity.getOptimized(), vo.getLocation()).stream()
-				.map(qs -> qs.getPrice().getType()).filter(type::equals).findAny().isPresent()) {
+				.map(qs -> qs.getPrice().getType()).anyMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
