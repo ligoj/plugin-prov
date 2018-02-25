@@ -26,10 +26,10 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -74,10 +74,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
+				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
+				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		refreshCost();
@@ -112,8 +111,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Attempt to attach a storage compatible to an instance but without an
-	 * instance.
+	 * Attempt to attach a storage compatible to an instance but without an instance.
 	 */
 	@Test
 	public void createStorageNoInstance() {
@@ -253,7 +251,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage1");
 		vo.setOptimized(null);
 		vo.setInstanceCompatible(true);
-		vo.setLatency(ProvStorageLatency.LOW);
+		vo.setLatency(Rate.GOOD);
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server2").getId());
 		vo.setSize(512);
 		final UpdatedCost cost = sResource.create(vo);
@@ -265,7 +263,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(true, qsRepository.findOneExpected(cost.getId()).getInstanceCompatible());
 
 		// Change some constraints
-		vo.setLatency(ProvStorageLatency.HIGHEST);
+		vo.setLatency(Rate.WORST);
 		vo.setInstanceCompatible(false);
 		vo.setQuoteInstance(null);
 		vo.setId(cost.getId());
@@ -282,9 +280,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		price3.setCost(1);
 		spRepository.saveAndFlush(price3);
 
-		// Also, change the latency of "storage3" to "LOW" class
+		// Also, change the latency of "storage3" to "GOOD" class
 		final ProvStorageType type3 = stRepository.findByName("storage3");
-		type3.setLatency(ProvStorageLatency.LOW);
+		type3.setLatency(Rate.GOOD);
 		stRepository.saveAndFlush(type3);
 
 		// Even if "storage2" and "storage3" have identical prices and match to
@@ -574,7 +572,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findStorageTypeAnotherSubscription() {
-		Assertions.assertEquals(1, sResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+		Assertions.assertEquals(1,
+				sResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
@@ -590,7 +589,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorage() {
-		final QuoteStorageLoopup price = sResource.lookup(subscription, 2, null, null, ProvStorageOptimized.IOPS, null).get(0);
+		final QuoteStorageLoopup price = sResource.lookup(subscription, 2, null, null, ProvStorageOptimized.IOPS, null)
+				.get(0);
 
 		// Check the storage result
 		assertCSP(price);
@@ -603,12 +603,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
-		final QuoteStorageLoopup lookup = sResource.lookup(subscription, 1024, ProvStorageLatency.LOW, null, null, null).get(0);
+		final QuoteStorageLoopup lookup = sResource.lookup(subscription, 1024, Rate.GOOD, null, null, null).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
 		Assertions.assertTrue(asJson.endsWith(
-				"\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"low\",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
+				"\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"good\",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result
 		assertCSP(lookup);
@@ -630,14 +630,14 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	@Test
 	public void lookupStorageNoMatch() {
 		Assertions.assertEquals("storage1",
-				sResource.lookup(subscription, 512, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
+				sResource.lookup(subscription, 512, Rate.GOOD, null, null, null).get(0).getPrice().getType().getName());
 		Assertions.assertEquals("storage1",
-				sResource.lookup(subscription, 999, ProvStorageLatency.LOW, null, null, null).get(0).getPrice().getType().getName());
-		Assertions.assertEquals("storage2",
-				sResource.lookup(subscription, 512, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
+				sResource.lookup(subscription, 999, Rate.GOOD, null, null, null).get(0).getPrice().getType().getName());
+		Assertions.assertEquals("storage2", sResource.lookup(subscription, 512, Rate.MEDIUM, null, null, null).get(0)
+				.getPrice().getType().getName());
 
 		// Out of limits
-		Assertions.assertEquals("storage1",
-				sResource.lookup(subscription, 999, ProvStorageLatency.MEDIUM, null, null, null).get(0).getPrice().getType().getName());
+		Assertions.assertEquals("storage1", sResource.lookup(subscription, 999, Rate.MEDIUM, null, null, null).get(0)
+				.getPrice().getType().getName());
 	}
 }

@@ -50,8 +50,8 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.INamableBean;
@@ -601,7 +601,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 
 			// Default the storage latency to HOT when not specified
-			final ProvStorageLatency latency = ObjectUtils.defaultIfNull(upload.getLatency(), ProvStorageLatency.LOW);
+			final Rate latency = ObjectUtils.defaultIfNull(upload.getLatency(), Rate.GOOD);
 
 			// Find the nicest storage
 			svo.setType(

@@ -1,5 +1,5 @@
 node.id;name;latency;optimized;description;minimal;maximal;instanceCompatible
-service:prov:test;storage1;LOW;IOPS;storageD1;;;true
+service:prov:test;storage1;GOOD;IOPS;storageD1;;;true
 service:prov:test;storage2;MEDIUM;THROUGHPUT;storageD2;512;512;true
-service:prov:test;storage3;HIGH;DURABILITY;storageD3;;;false
-service:prov:x;storageX;LOWEST;;storageD1;;;true
+service:prov:test;storage3;LOW;DURABILITY;storageD3;;;false
+service:prov:x;storageX;BEST;;storageD1;;;true

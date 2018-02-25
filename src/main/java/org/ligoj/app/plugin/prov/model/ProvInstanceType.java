@@ -1,6 +1,8 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -38,8 +40,35 @@ public class ProvInstanceType extends AbstractDescribedEntity<Integer> implement
 	private Integer ram;
 
 	/**
-	 * When <code>true</code> the delivery power is constant over time.
-	 * Otherwise, is variable.
+	 * CPU performance.
+	 */
+	@NotNull
+	@Enumerated(EnumType.ORDINAL)
+	private Rate cpuRate = Rate.MEDIUM;
+
+	/**
+	 * RAM performance.
+	 */
+	@NotNull
+	@Enumerated(EnumType.ORDINAL)
+	private Rate ramRate = Rate.MEDIUM;
+
+	/**
+	 * Storage performance.
+	 */
+	@NotNull
+	@Enumerated(EnumType.ORDINAL)
+	private Rate storageRate = Rate.MEDIUM;
+
+	/**
+	 * Network performance.
+	 */
+	@NotNull
+	@Enumerated(EnumType.ORDINAL)
+	private Rate networkRate = Rate.MEDIUM;
+
+	/**
+	 * When <code>true</code> the delivery power is constant over time. Otherwise, is variable.
 	 */
 	@NotNull
 	private Boolean constant;

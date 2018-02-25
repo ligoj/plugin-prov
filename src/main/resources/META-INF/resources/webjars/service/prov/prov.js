@@ -948,20 +948,20 @@ define(function () {
 					return m;
 				},
 				data: [{
-					id: 'LOWEST',
-					text: 'LOWEST'
+					id: 'BEST',
+					text: 'BEST'
 				}, {
-					id: 'LOW',
-					text: 'LOW'
+					id: 'GOOD',
+					text: 'GOOD'
 				}, {
 					id: 'MEDIUM',
 					text: 'MEDIUM'
 				}, {
-					id: 'HIGH',
-					text: 'HIGH'
+					id: 'LOW',
+					text: 'LOW'
 				}, {
-					id: 'HIGHEST',
-					text: 'HIGHEST'
+					id: 'WORST',
+					text: 'WORST'
 				}]
 			});
 

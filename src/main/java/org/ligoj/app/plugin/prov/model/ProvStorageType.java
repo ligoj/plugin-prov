@@ -35,7 +35,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 */
 	@NotNull
 	@Enumerated(EnumType.ORDINAL)
-	private ProvStorageLatency latency;
+	private Rate latency;
 
 	/**
 	 * Optimized best usage of this storage

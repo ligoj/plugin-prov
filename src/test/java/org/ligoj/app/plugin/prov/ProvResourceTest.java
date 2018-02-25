@@ -35,11 +35,11 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
@@ -231,7 +231,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("storage1", storageType.getName());
 		Assertions.assertEquals("storageD1", storageType.getDescription());
 		Assertions.assertEquals(0, storage.getCostTransaction(), DELTA);
-		Assertions.assertEquals(ProvStorageLatency.LOW, storageType.getLatency());
+		Assertions.assertEquals(Rate.GOOD, storageType.getLatency());
 		Assertions.assertEquals(ProvStorageOptimized.IOPS, storageType.getOptimized());
 
 		// Not attached storage
@@ -462,7 +462,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().setInstances(null);
 		new ProvQuoteInstance().setStorages(null);
-		ProvStorageLatency.valueOf(ProvStorageLatency.LOW.name());
+		Rate.valueOf(Rate.GOOD.name());
 		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());
 		ProvTenancy.valueOf(ProvTenancy.DEDICATED.name());
@@ -639,7 +639,8 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findConfiguredByName() {
-		Assertions.assertEquals("server1", resource.findConfiguredByName(qiRepository, "server1", subscription).getName());
+		Assertions.assertEquals("server1",
+				resource.findConfiguredByName(qiRepository, "server1", subscription).getName());
 	}
 
 	@Test

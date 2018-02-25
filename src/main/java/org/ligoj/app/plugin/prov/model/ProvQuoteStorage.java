@@ -1,6 +1,8 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -16,19 +18,20 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A storage configuration inside a quote and optionally linked to an instance.
- * Name is unique inside a quote.
+ * A storage configuration inside a quote and optionally linked to an instance. Name is unique inside a quote.
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
+@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
+		"configuration" }))
 public class ProvQuoteStorage extends AbstractQuoteResource {
 
 	/**
 	 * Optional required latency class.
 	 */
-	private ProvStorageLatency latency;
+	@Enumerated(EnumType.ORDINAL)
+	private Rate latency;
 
 	/**
 	 * Optional required optimized best usage of this storage

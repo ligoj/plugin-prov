@@ -2,9 +2,9 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.List;
 
-import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,8 +36,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	Page<ProvStoragePrice> findAll(int subscription, String location, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return all {@link ProvStoragePrice} related to given node and within a
-	 * specific location.
+	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 * 
 	 * @param node
 	 *            The node (provider) to match.
@@ -52,23 +51,22 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * Return the cheapest storage configuration from the minimal requirements.
 	 * 
 	 * @param node
-	 *            The node linked to the subscription. Is a node identifier within a
-	 *            provider.
+	 *            The node linked to the subscription. Is a node identifier within a provider.
 	 * @param size
 	 *            The requested size in GB.
 	 * @param latency
 	 *            The optional requested latency. May be <code>null</code>.
 	 * @param instance
-	 *            The optional requested quote instance identifier to be associated.
-	 *            The related instance must be in the same provider.
+	 *            The optional requested quote instance identifier to be associated. The related instance must be in the
+	 *            same provider.
 	 * @param optimized
 	 *            The optional requested optimized. May be <code>null</code>.
 	 * @param location
 	 *            The expected location name. Case insensitive.
 	 * @param pageable
 	 *            The page control to return few item.
-	 * @return The cheapest storage or <code>null</code>. The first item corresponds
-	 *         to the storage price, the second is the computed price.
+	 * @return The cheapest storage or <code>null</code>. The first item corresponds to the storage price, the second is
+	 *         the computed price.
 	 */
 	@Query("SELECT sp, (sp.cost+(CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost, st.latency AS latency"
 			+ " FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st             "
@@ -80,12 +78,11 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
 			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC, latency DESC")
-	List<Object[]> findLowestPrice(String node, int size, ProvStorageLatency latency, Integer instance, ProvStorageOptimized optimized,
-			String location, Pageable pageable);
+	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance,
+			ProvStorageOptimized optimized, String location, Pageable pageable);
 
 	/**
-	 * Return the {@link ProvStoragePrice} by it's name and the location and related
-	 * to given subscription.
+	 * Return the {@link ProvStoragePrice} by it's name and the location and related to given subscription.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier to match.

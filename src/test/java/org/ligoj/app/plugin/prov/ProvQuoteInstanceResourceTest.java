@@ -918,7 +918,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void uploadStorageNotFound() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			iResource.upload(subscription,
-					new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;LOWEST;THROUGHPUT".getBytes("UTF-8")),
+					new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT".getBytes("UTF-8")),
 					new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, false, "on-demand1", 1,
 					"UTF-8");
 		}), "storage", "NotNull");

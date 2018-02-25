@@ -30,7 +30,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageLatency;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
@@ -230,7 +230,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	 * @param size
 	 *            The requested size in GB.
 	 * @param latency
-	 *            The optional requested minimal {@link ProvStorageLatency} class.
+	 *            The optional requested minimal {@link Rate} class.
 	 * @param instance
 	 *            The optional requested quote instance to be associated.
 	 * @param optimized
@@ -243,7 +243,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@Path("{subscription:\\d+}/storage-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLoopup> lookup(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final ProvStorageLatency latency,
+			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
 			@QueryParam("instance") final Integer instance, @QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
@@ -251,7 +251,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, optimized, location);
 	}
 
-	private List<QuoteStorageLoopup> lookup(final ProvQuote configuration, final int size, final ProvStorageLatency latency,
+	private List<QuoteStorageLoopup> lookup(final ProvQuote configuration, final int size, final Rate latency,
 			final Integer instance, final ProvStorageOptimized optimized, final String location) {
 
 		// Get the attached node and check the security on this subscription
@@ -305,7 +305,8 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	 * @return The cost of this storage.
 	 */
 	private double getCost(final ProvStoragePrice storagePrice, final int size) {
-		return round(Math.max(size, storagePrice.getType().getMinimal()) * storagePrice.getCostGb() + storagePrice.getCost());
+		return round(Math.max(size, storagePrice.getType().getMinimal()) * storagePrice.getCostGb()
+				+ storagePrice.getCost());
 	}
 
 }

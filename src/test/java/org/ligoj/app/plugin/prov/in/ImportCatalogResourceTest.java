@@ -55,10 +55,9 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
+				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
+				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 	}
 
@@ -161,6 +160,21 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test");
 
 		resource.updateCatalog(service, "service:prov:test");
+		assertFailed(service);
+	}
+
+	@Test
+	public void updateCatalogSynchronousFailedWithError() throws Exception {
+		initSpringSecurityContext(DEFAULT_USER);
+		final ImportCatalogResource resource = newResource();
+		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		Mockito.doThrow(new AssertionError("my-assert")).when(service).updateCatalog("service:prov:test");
+
+		Assertions.assertThrows(AssertionError.class, () -> resource.updateCatalog(service, "service:prov:test"));
+		assertFailed(service);
+	}
+
+	private void assertFailed(final ImportCatalogService service) throws Exception {
 		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNotNull(status.getEnd());
