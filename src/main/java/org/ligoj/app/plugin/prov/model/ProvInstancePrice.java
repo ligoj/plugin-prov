@@ -28,17 +28,17 @@ import lombok.ToString;
 public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> {
 
 	/**
-	 * The optional initial cost required to use this instance.
+	 * The optional initial cost required to use this instance. May be <code>null</code>.
 	 */
 	private Double initialCost;
 
 	/**
-	 * The optional hourly cost of one requested CPU.
+	 * The optional hourly cost of one requested CPU. May be <code>null</code>.
 	 */
 	private Double costCpu;
 
 	/**
-	 * The optional hourly cost of one requested GB memory.
+	 * The optional hourly cost of one requested GB memory. May be <code>null</code>.
 	 */
 	private Double costRam;
 
