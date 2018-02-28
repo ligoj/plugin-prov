@@ -259,16 +259,20 @@ define(['sparkline'], function () {
 				success: function (status) {
 					current.updateStatus(status, node);
 					if (status.end) {
+						current.unscheduleUploadStep(node);
 						return;
 					}
 					// Continue polling for this catalog
 					current.scheduleUploadStep(node);
+				},
+				error: function() {
+					current.unscheduleUploadStep(node);
 				}
 			});
 		},
 
 		/**
-		 * Generate a sparkline corresponding to the given catalog
+		 * Generate a pie corresponding to the given catalog status
 		 */
 		toStatus: function (catalog) {
 			var id = catalog.node.id;
