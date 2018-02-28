@@ -230,6 +230,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, storage.getCost(), DELTA);
 		Assertions.assertEquals("storage1", storageType.getName());
 		Assertions.assertEquals("storageD1", storageType.getDescription());
+		Assertions.assertEquals(200, storageType.getIops());
+		Assertions.assertEquals(60, storageType.getThroughput());
 		Assertions.assertEquals(0, storage.getCostTransaction(), DELTA);
 		Assertions.assertEquals(Rate.GOOD, storageType.getLatency());
 		Assertions.assertEquals(ProvStorageOptimized.IOPS, storageType.getOptimized());
@@ -562,22 +564,6 @@ public class ProvResourceTest extends AbstractAppTest {
 				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
 		Assertions.assertNotNull(quote);
 		checkCost(quote.getCost(), 4692.785, 7139.185, false);
-	}
-
-	@Test
-	public void getInstalledEntities() {
-		Assertions.assertTrue(new AbstractProvResource() {
-
-			@Override
-			public String getKey() {
-				return "service:prov:sample";
-			}
-		}.getInstalledEntities().contains(ProvStorageType.class));
-	}
-
-	@Test
-	public void updateCatalog() {
-
 	}
 
 	@Test

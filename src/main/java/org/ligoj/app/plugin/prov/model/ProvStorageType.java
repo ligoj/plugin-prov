@@ -52,6 +52,16 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * The maximum supported size in "GiB". May be <code>null</code>.
 	 */
 	private Integer maximal;
+	
+	/**
+	 * IOPS. When <code>null</code> or <code>0</code>, is undefined.
+	 */
+	private int iops;
+
+	/**
+	 * Throughput in MB/s. When <code>null</code> or <code>0</code>, is undefined.
+	 */
+	private int throughput;
 
 	/**
 	 * When <code>true</code>, this storage can attached to an instance.
