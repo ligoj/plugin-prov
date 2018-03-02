@@ -17,7 +17,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	private AbstractImportCatalogResource resource;
 
 	@BeforeEach
-	public void init() throws IOException {
+	public void init() {
 		resource = new AbstractImportCatalogResource() {
 			// Nothing
 		};
