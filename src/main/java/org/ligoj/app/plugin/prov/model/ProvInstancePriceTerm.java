@@ -26,21 +26,10 @@ import lombok.Setter;
 public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
-	 * Billing period duration in minutes. Any started period is due.
+	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing
+	 * period below 1 month.
 	 */
-	@NotNull
-	private Integer period;
-
-	/**
-	 * Minimal billing period in minutes. Any started period is due for this
-	 * minimum. When <code>null</code>, corresponds to the period. <br>
-	 * When <code>usage &lt; minimum &lt; period</code> then nothing is billed.<br>
-	 * When <code>minimum &lt; usage &lt; period</code> then <code>period</code> is
-	 * billed. <br>
-	 * When <code>period1 &lt; usage &lt; period2</code> then <code>period2</code>
-	 * is billed.
-	 */
-	private Integer minimum;
+	private int period = 0;
 
 	/**
 	 * The related node (VM provider) of this instance.

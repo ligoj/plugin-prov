@@ -121,7 +121,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage3");
 		vo.setSize(1);
 		final UpdatedCost cost = sResource.create(vo);
-		checkCost(cost.getTotalCost(), 4694.935, 7141.335, false);
+		checkCost(cost.getTotalCost(), 4706.908, 7156.508, false);
 		checkCost(cost.getResourceCost(), 2.15, 2.15, false);
 		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 		final int id = cost.getId();
@@ -129,7 +129,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 4694.935, 7141.335, false);
+		checkCost(subscription, 4706.908, 7156.508, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("storage3-root-bis", storage.getName());
 		Assertions.assertEquals(1, storage.getSize().intValue());
@@ -147,16 +147,16 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		final UpdatedCost cost = sResource.create(vo);
-		checkCost(cost.getTotalCost(), 4907.825, 8214.385, false);
+		checkCost(cost.getTotalCost(), 4919.798, 8229.558, false);
 		checkCost(cost.getResourceCost(), 215.04, 1075.2, false);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 1460, false);
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 1464.0, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 4907.825, 8214.385, false);
+		checkCost(subscription, 4919.798, 8229.558, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("server1-root-bis", storage.getName());
 		Assertions.assertEquals(512, storage.getSize().intValue());
@@ -177,16 +177,16 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(quoteInstance.getId());
 		vo.setSize(512);
 		final UpdatedCost cost = sResource.create(vo);
-		checkCost(cost.getTotalCost(), 4907.825, 4907.825, true);
+		checkCost(cost.getTotalCost(), 4919.798, 4919.798, true);
 		checkCost(cost.getResourceCost(), 215.04, 215.04, true);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 292.8, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 4907.825, 4907.825, true);
+		checkCost(subscription, 4919.798, 4919.798, true);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("server1-root-bis", storage.getName());
 		Assertions.assertEquals(512, storage.getSize().intValue());
@@ -224,7 +224,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage1");
 		vo.setSize(256);
 		final UpdatedCost cost = sResource.create(vo);
-		checkCost(cost.getTotalCost(), 4746.545, 7192.945, false);
+		checkCost(cost.getTotalCost(), 4758.518, 7208.118, false);
 		checkCost(cost.getResourceCost(), 53.76, 53.76, false);
 		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 		final int id = cost.getId();
@@ -232,7 +232,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 4746.545, 7192.945, false);
+		checkCost(subscription, 4758.518, 7208.118, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("server1-root-ter", storage.getName());
 		Assertions.assertEquals("server1-root-terD", storage.getDescription());
@@ -307,7 +307,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 	@Test
 	public void updateStorageDetachAttach() {
-		checkCost(subscription, 4692.785, 7139.185, false);
+		checkCost(subscription, 4704.758, 7154.358, false);
 
 		// Make "server1" with unbound maximal quantities
 		setUnboundInstance("server1");
@@ -315,7 +315,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the new cost corresponds to the minimal cost since there is
 		// only
 		// one unbound instance
-		checkCost(subscription, 4692.785, 4692.785, true);
+		checkCost(subscription, 4704.758, 4704.758, true);
 
 		// Detach "server1-root" storage from "server1"
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
@@ -332,12 +332,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// STORAGE_COST = STORAGE_COST * STORAGE.INSTANCE.MIN
 		// ............ = 4.2 * 1
 		UpdatedCost cost = sResource.update(vo);
-		checkCost(cost.getTotalCost(), 4688.585, 4688.585, true);
+		checkCost(cost.getTotalCost(), 4700.558, 4700.558, true);
 		checkCost(cost.getResourceCost(), 4.2, 4.2, false);
 		Assertions.assertEquals(0, cost.getRelatedCosts().size());
 
 		// Check the exact new cost
-		checkCost(subscription, 4688.585, 4688.585, true);
+		checkCost(subscription, 4700.558, 4700.558, true);
 		final ProvQuoteStorage qs = qsRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("server1-root-bis", qs.getName());
 		Assertions.assertFalse(qs.isUnboundCost());
@@ -345,12 +345,12 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Attach back this storage to "server1
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		cost = sResource.update(vo);
-		checkCost(cost.getTotalCost(), 4692.785, 4692.785, true);
+		checkCost(cost.getTotalCost(), 4704.758, 4704.758, true);
 		checkCost(cost.getResourceCost(), 8.4, 8.4, true);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292, 292, true);
+		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 292.8, true);
 
-		checkCost(subscription, 4692.785, 4692.785, true);
+		checkCost(subscription, 4704.758, 4704.758, true);
 		Assertions.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());
 	}
 
@@ -367,7 +367,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		sResource.update(vo);
 
 		// Check the exact new cost
-		checkCost(subscription, 4899.425, 8172.385, false);
+		checkCost(subscription, 4911.398, 8187.558, false);
 		Assertions.assertEquals("server1-root-bis", qsRepository.findOneExpected(vo.getId()).getName());
 	}
 
@@ -417,7 +417,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 4762.185, 7174.985, false);
+		checkCost(subscription, 4774.158, 7190.158, false);
 		final ProvQuoteStorage storage = qsRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("server1-root-bis", storage.getName());
 		Assertions.assertEquals("server1-root-bisD", storage.getDescription());
@@ -508,10 +508,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		em.flush();
 		em.clear();
 
-		checkCost(sResource.deleteAll(subscription), 4370.455, 5538.455, false);
+		checkCost(sResource.deleteAll(subscription), 4382.428, 5553.628, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 4370.455, 5538.455, false);
+		checkCost(subscription, 4382.428, 5553.628, false);
 
 		// Check the associations
 		Assertions.assertNull(qsRepository.findOne(id));
@@ -528,10 +528,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		em.flush();
 		em.clear();
 
-		checkCost(sResource.delete(id), 4684.385, 7097.185, false);
+		checkCost(sResource.delete(id), 4696.358, 7112.358, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 4684.385, 7097.185, false);
+		checkCost(subscription, 4696.358, 7112.358, false);
 
 		// Check the associations
 		Assertions.assertNull(qsRepository.findOne(id));
@@ -541,10 +541,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	private void refreshCost() {
 		// Check the cost fully updated and exact actual cost
 		final FloatingCost cost = resource.refreshCost(subscription);
-		Assertions.assertEquals(4692.785, cost.getMin(), DELTA);
-		Assertions.assertEquals(7139.185, cost.getMax(), DELTA);
+		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
+		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4692.785, 7139.185, false);
+		checkCost(subscription, 4704.758, 7154.358, false);
 		em.flush();
 		em.clear();
 	}

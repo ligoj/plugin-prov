@@ -36,12 +36,12 @@ public class InstanceUpload {
 	private Boolean constant;
 	private VmOs os;
 	private Double disk;
-	private Rate latency;
-	private ProvStorageOptimized optimized;
+	private Rate latency = Rate.GOOD;
+	private ProvStorageOptimized optimized = ProvStorageOptimized.IOPS;
 	private String type;
 	private String term;
 	private String location;
-	
+
 	/**
 	 * Usage name within the target quote. Target usage must exist.
 	 */
@@ -65,10 +65,9 @@ public class InstanceUpload {
 	private InternetAccess internet = InternetAccess.PRIVATE;
 
 	/**
-	 * The optional maximum monthly cost you want to pay. Only for one instance,
-	 * does not consider the {@link #quantityMax} or {@link #quantityMin}. When
-	 * <code>null</code>, there is no limit. Only relevant for variable instance
-	 * price type such as AWS Spot.
+	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
+	 * {@link #quantityMax} or {@link #quantityMin}. When <code>null</code>, there is no limit. Only relevant for
+	 * variable instance price type such as AWS Spot.
 	 */
 	@PositiveOrZero
 	private Double maxVariableCost;

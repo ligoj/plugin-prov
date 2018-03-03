@@ -1,5 +1,11 @@
-configuration.id!;name;rate
+configuration.id!;name;rate;duration
 1;Full Time;100
 1;Dev;50
+1;Full Time 11 month;100;11
+1;Full Time 12 month;100;12
+1;Full Time 13 month;100;13
+1;Dev 11 month;25;11
+1;Dev 12 month;25;12
+1;Dev 13 month;25;13
 2;Dev;25
 2;Full Time2;100

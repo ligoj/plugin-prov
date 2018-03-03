@@ -29,7 +29,7 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public abstract class AbstractCostedResource<C extends Costed> implements QuoteRelated<C> {
+public abstract class AbstractCostedResource<C extends AbstractQuoteResource> implements QuoteRelated<C> {
 
 	@Autowired
 	protected PaginationJson paginationJson;
@@ -87,6 +87,17 @@ public abstract class AbstractCostedResource<C extends Costed> implements QuoteR
 	 *            The {@link Costed} to update cost.
 	 * @return The new cost.
 	 */
-	public abstract FloatingCost updateCost(final C qr);
+	protected FloatingCost updateCost(final C qr) {
+		return updateCost(qr, this::getCost);
+	}
+
+	/**
+	 * Compute the monthly cost of a quote instance.
+	 * 
+	 * @param qi
+	 *            The quote to evaluate.
+	 * @return The cost of this instance.
+	 */
+	protected abstract FloatingCost getCost(final C qr);
 
 }

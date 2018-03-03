@@ -30,10 +30,10 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.INamableBean;
@@ -127,19 +127,19 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		// Find the lowest price
 		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
 		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
-		qs.setPrice(validateLookup("storage",
-				lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location).stream().findFirst().orElse(null),
-				qs.getName()));
+		qs.setPrice(
+				validateLookup("storage", lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location)
+						.stream().findFirst().orElse(null), qs.getName()));
 		return updateCost(qs);
 	}
 
 	/**
-	 * Check and return the storage price matching to the requirements and related
-	 * name.
+	 * Check and return the storage price matching to the requirements and related name.
 	 */
-	private ProvStoragePrice findByTypeName(final int subscription, final String name, final String location, final ProvQuote quote) {
-		return assertFound(
-				spRepository.findByTypeName(subscription, name, Optional.ofNullable(location).orElse(quote.getLocation().getName())), name);
+	private ProvStoragePrice findByTypeName(final int subscription, final String name, final String location,
+			final ProvQuote quote) {
+		return assertFound(spRepository.findByTypeName(subscription, name,
+				Optional.ofNullable(location).orElse(quote.getLocation().getName())), name);
 	}
 
 	/**
@@ -167,23 +167,24 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		entity.setSize(vo.getSize());
 
 		// Check the related quote instance
-		entity.setQuoteInstance(Optional.ofNullable(vo.getQuoteInstance()).map(i -> resource.findConfigured(qiRepository, i)).map(i -> {
-			resource.checkVisibility(i.getPrice().getType(), node);
-			return i;
-		}).orElse(null));
+		entity.setQuoteInstance(
+				Optional.ofNullable(vo.getQuoteInstance()).map(i -> resource.findConfigured(qiRepository, i)).map(i -> {
+					resource.checkVisibility(i.getPrice().getType(), node);
+					return i;
+				}).orElse(null));
 
 		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
-		if (!lookup(quote, entity.getSize(), entity.getLatency(), vo.getQuoteInstance(), entity.getOptimized(), vo.getLocation()).stream()
-				.map(qs -> qs.getPrice().getType()).anyMatch(type::equals)) {
+		if (!lookup(quote, entity.getSize(), entity.getLatency(), vo.getQuoteInstance(), entity.getOptimized(),
+				vo.getLocation()).stream().map(qs -> qs.getPrice().getType()).anyMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
 
 		// Save and update the costs
 		final UpdatedCost cost = newUpdateCost(qsRepository, entity, this::updateCost);
-		Optional.ofNullable(entity.getQuoteInstance())
-				.ifPresent(q -> cost.setRelatedCosts(Collections.singletonMap(q.getId(), instanceResource.updateCost(q))));
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(
+				q -> cost.setRelatedCosts(Collections.singletonMap(q.getId(), instanceResource.updateCost(q))));
 		return cost;
 	}
 
@@ -205,8 +206,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	 * Return the storage types the instance inside a quote.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storages
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the storages from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The valid storage types for the given subscription.
@@ -214,19 +214,20 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@GET
 	@Path("{subscription:\\d+}/storage-type")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvStorageType> findType(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
+	public TableItem<ProvStorageType> findType(@PathParam("subscription") final int subscription,
+			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-				paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)), Function.identity());
+		return paginationJson.applyPagination(uriInfo,
+				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
+				Function.identity());
 	}
 
 	/**
-	 * Return the available storage types from the provider linked to the given
-	 * subscription..
+	 * Return the available storage types from the provider linked to the given subscription..
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storage
-	 *            types from the associated provider.
+	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
 	 * @param size
 	 *            The requested size in GB.
 	 * @param latency
@@ -244,7 +245,8 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLoopup> lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
-			@QueryParam("instance") final Integer instance, @QueryParam("optimized") final ProvStorageOptimized optimized,
+			@QueryParam("instance") final Integer instance,
+			@QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
 		// Check the security on this subscription
@@ -258,15 +260,17 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		final String node = configuration.getSubscription().getNode().getId();
 
 		// The the right location from instance first
-		final String resolvedLocation = Optional.ofNullable(location).orElseGet(() -> configuration.getLocation().getName());
+		final String resolvedLocation = Optional.ofNullable(location)
+				.orElseGet(() -> configuration.getLocation().getName());
 
-		return spRepository.findLowestPrice(node, size, latency, instance, optimized, resolvedLocation, PageRequest.of(0, 10)).stream()
-				.map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size))).collect(Collectors.toList());
+		return spRepository
+				.findLowestPrice(node, size, latency, instance, optimized, resolvedLocation, PageRequest.of(0, 10))
+				.stream().map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size)))
+				.collect(Collectors.toList());
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and
-	 * computed price.
+	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteStorageLoopup newPrice(final ProvStoragePrice sp, final int size, final double cost) {
 		final QuoteStorageLoopup result = new QuoteStorageLoopup();
@@ -277,19 +281,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	}
 
 	@Override
-	public FloatingCost updateCost(final ProvQuoteStorage qs) {
-		return updateCost(qs, this::getCost, Function.identity());
-	}
-
-	/**
-	 * Compute the monthly cost of a quote storage. The minimal quantity of related
-	 * instance is considered.
-	 * 
-	 * @param quoteStorage
-	 *            The quote to evaluate.
-	 * @return The cost of this storage.
-	 */
-	private FloatingCost getCost(final ProvQuoteStorage quoteStorage) {
+	protected FloatingCost getCost(final ProvQuoteStorage quoteStorage) {
 		final double base = getCost(quoteStorage.getPrice(), quoteStorage.getSize());
 		return Optional.ofNullable(quoteStorage.getQuoteInstance()).map(i -> instanceResource.computeFloat(base, i))
 				.orElseGet(() -> new FloatingCost(base));

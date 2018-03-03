@@ -123,7 +123,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
 		Assertions.assertNotNull(status.getId());
-		checkCost(status.getCost(), 4692.785, 7139.185, false);
+		checkCost(status.getCost(), 4704.758, 7154.358, false);
 		Assertions.assertEquals(7, status.getNbInstances());
 		Assertions.assertEquals(10.75, status.getTotalCpu(), 0.0001);
 		Assertions.assertEquals(45576, status.getTotalRam());
@@ -152,10 +152,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		QuoteVo vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
-		checkCost(vo.getCost(), 4692.785, 7139.185, false);
-		checkCost(resource.refreshCost(subscription), 4692.785, 7139.185, false);
+		checkCost(vo.getCost(), 4704.758, 7154.358, false);
+		checkCost(resource.refreshCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
-		checkCost(vo.getCost(), 4692.785, 7139.185, false);
+		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 
 		Assertions.assertNotNull(vo.getId());
 		Assertions.assertNotNull(vo.getCreatedBy());
@@ -176,17 +176,17 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
 		Assertions.assertEquals(2, quoteInstance.getMinQuantity().intValue());
 		Assertions.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
-		final ProvInstancePrice instancePrice = quoteInstance.getPrice();
-		Assertions.assertEquals(0.2, instancePrice.getCost(), DELTA);
-		Assertions.assertEquals(VmOs.LINUX, instancePrice.getOs());
-		Assertions.assertNotNull(instancePrice.getTerm().getId());
-		Assertions.assertFalse(instancePrice.getTerm().isEphemeral());
-		Assertions.assertFalse(instancePrice.getTerm().isVariable());
-		Assertions.assertEquals(15, instancePrice.getTerm().getPeriod().intValue());
-		Assertions.assertEquals(60, instancePrice.getTerm().getMinimum().intValue());
-		Assertions.assertEquals("on-demand1", instancePrice.getTerm().getName());
-		Assertions.assertEquals("15 minutes fragment", instancePrice.getTerm().getDescription());
-		final ProvInstanceType instance = instancePrice.getType();
+		final ProvInstancePrice price = quoteInstance.getPrice();
+		Assertions.assertEquals(146.4, price.getCost(), DELTA);
+		Assertions.assertEquals(146.4, price.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, price.getOs());
+		Assertions.assertNotNull(price.getTerm().getId());
+		Assertions.assertFalse(price.getTerm().isEphemeral());
+		Assertions.assertFalse(price.getTerm().isVariable());
+		Assertions.assertEquals(0, price.getTerm().getPeriod());
+		Assertions.assertEquals("on-demand1", price.getTerm().getName());
+		Assertions.assertEquals("15 minutes fragment", price.getTerm().getDescription());
+		final ProvInstanceType instance = price.getType();
 		Assertions.assertNotNull(instance.getId().intValue());
 		Assertions.assertEquals("instance1", instance.getName());
 		Assertions.assertEquals("instanceD1", instance.getDescription());
@@ -195,7 +195,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(instance.getConstant());
 
 		// No minimal for this instance price
-		Assertions.assertNull(instances.get(1).getPrice().getTerm().getMinimum());
 		Assertions.assertNull(instances.get(1).getMaxVariableCost());
 
 		Assertions.assertEquals(1, instances.get(3).getMinQuantity().intValue());
@@ -220,8 +219,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("server1-rootD", quoteStorage.getDescription());
 		Assertions.assertEquals(20, quoteStorage.getSize().intValue());
 		Assertions.assertEquals(8.4, quoteStorage.getCost(), DELTA);
-		Assertions.assertEquals(42, quoteStorage.getMaxCost(), DELTA); // = 8.4
-																		// * 5
+		Assertions.assertEquals(42, quoteStorage.getMaxCost(), DELTA); // = 8.4 * 5
 		Assertions.assertNotNull(quoteStorage.getQuoteInstance());
 		final ProvStoragePrice storage = quoteStorage.getPrice();
 		final ProvStorageType storageType = storage.getType();
@@ -260,7 +258,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("on-demand1", instances.get(6).getPrice().getTerm().getName());
 
 		// Optimize the configuration
-		checkCost(resource.refreshCostAndResource(subscription), 3307.63, 5754.03, false);
+		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
 
 		final QuoteVo vo2 = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo2.getName());
@@ -292,7 +290,6 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No associated usage for this use case
 		Assertions.assertNull(vo.getUsage());
-
 	}
 
 	@Test
@@ -354,7 +351,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 7167.333, 11030.704, false);
+		checkCost(cost, 7186.085, 11056.538, false);
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
@@ -393,7 +390,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-4");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 3307.63, 5754.03, false);
+		checkCost(cost, 3315.808, 5765.408, false);
 		final ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-4", quote2.getLocation().getName());
@@ -506,10 +503,10 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check the cost fully updated and exact actual cost
 		final FloatingCost cost = resource.refreshCost(subscription);
-		Assertions.assertEquals(4692.785, cost.getMin(), DELTA);
-		Assertions.assertEquals(7139.185, cost.getMax(), DELTA);
+		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
+		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4692.785, 7139.185, false);
+		checkCost(subscription, 4704.758, 7154.358, false);
 		em.flush();
 		em.clear();
 	}
@@ -563,7 +560,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		final QuoteLigthVo quote = (QuoteLigthVo) res
 				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
 		Assertions.assertNotNull(quote);
-		checkCost(quote.getCost(), 4692.785, 7139.185, false);
+		checkCost(quote.getCost(), 4704.758, 7154.358, false);
 	}
 
 	@Test
@@ -611,7 +608,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 3307.63, 5754.03, false);
+		checkCost(cost, 3315.808, 5765.408, false);
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());

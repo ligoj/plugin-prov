@@ -139,48 +139,20 @@ public interface QuoteRelated<C extends Costed> {
 	}
 
 	/**
-	 * Compute the monthly cost from hourly costs.
-	 * 
-	 * @param value
-	 *            The value to round.
-	 * @return The rounded value for one month with 4 decimals.
-	 */
-	default double toMonthly(final double value) {
-		return toMonthly(value, 1000);
-	}
-
-	/**
-	 * Compute the monthly cost from hourly costs.
-	 * 
-	 * @param value
-	 *            The value to round.
-	 * @param mult
-	 *            The multiplier before the round.
-	 * @return The rounded value for one month with 4 decimals.
-	 */
-	default double toMonthly(final double value, final int mult) {
-		return Math.round(value * mult * HOURS_BY_MONTH) / 1000d;
-	}
-
-	/**
 	 * Update the actual monthly cost of given resource.
 	 * 
 	 * @param qr
 	 *            The {@link AbstractQuoteResource} to update cost.
 	 * @param costProvider
 	 *            The cost provider.
-	 * @param toMonthly
-	 *            The function to use to compute the monthly cost from the hourly
-	 *            one.
 	 * @param <T>
 	 *            The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, final Function<T, FloatingCost> costProvider,
-			final Function<Double, Double> toMonthly) {
+	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, final Function<T, FloatingCost> costProvider) {
 		final FloatingCost cost = costProvider.apply(qr);
-		qr.setCost(toMonthly.apply(cost.getMin()));
-		qr.setMaxCost(toMonthly.apply(cost.getMax()));
+		qr.setCost(cost.getMin());
+		qr.setMaxCost(cost.getMax());
 		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
 	}
 

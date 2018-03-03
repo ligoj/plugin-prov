@@ -51,7 +51,6 @@ import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.INamableBean;
@@ -78,6 +77,11 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	private static final String[] ACCEPTED_HEADERS = { "name", "cpu", "ram", "constant", "os", "disk", "latency",
 			"optimized", "term", "type", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost",
 			"ephemeral", "location", "usage" };
+
+	/**
+	 * The default usage : 100% for 1 month.
+	 */
+	private static final ProvUsage USAGE_DEFAULT = new ProvUsage();
 
 	@Autowired
 	private ProvQuoteStorageResource storageResource;
@@ -313,7 +317,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final int ram,
 			final Boolean constant, final VmOs osName, final String type, final String term, final boolean ephemeral,
-			final String location, final String usage) {
+			final String location, final String usageName) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 
@@ -324,8 +328,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final String locationR = location == null ? configuration.getLocation().getName() : location;
 
 		// Compute the rate to use
-		final int rate = getRate(configuration,
-				usage == null ? null : resource.findConfiguredByName(usageRepository, usage, subscription));
+		final ProvUsage usage = usageName == null ? ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT)
+				: resource.findConfiguredByName(usageRepository, usageName, subscription);
+		final double rate = usage.getRate() / 100d;
+		final int duration = usage.getDuration();
 
 		// Resolve the required instance type
 		final Integer typeId = type == null ? null
@@ -338,15 +344,16 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		// Return only the first matching instance
 		// Template instance
 		final QuoteInstanceLookup template = ipRepository
-				.findLowestPrice(node, cpu, ram, constant, os, termId, typeId, ephemeral, locationR, rate,
+				.findLowestPrice(node, cpu, ram, constant, os, termId, typeId, ephemeral, locationR, rate, duration,
 						PageRequest.of(0, 1))
-				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], toMonthly((double) ip[1], 10)))
-				.orElse(null);
+				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], (double) ip[2])).orElse(null);
 
 		// Custom instance
 		final QuoteInstanceLookup custom = ipRepository
-				.findLowestCustomPrice(node, constant, os, termId, locationR, PageRequest.of(0, 1)).stream().findFirst()
-				.map(ip -> newPrice(ip, toMonthly(getCustomCost(cpu, ram, ip)))).orElse(null);
+				.findLowestCustomPrice(node, Math.ceil(cpu), Math.ceil(ram / 1024), constant, os, termId, locationR,
+						PageRequest.of(0, 1))
+				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], rate * (double) ip[1]))
+				.orElse(null);
 
 		// Select the best instance
 		if (template == null) {
@@ -405,32 +412,21 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 */
 	private QuoteInstanceLookup newPrice(final ProvInstancePrice ip, final double cost) {
 		final QuoteInstanceLookup result = new QuoteInstanceLookup();
-		result.setCost(cost);
+		result.setCost(round(cost));
 		result.setPrice(ip);
 		return result;
 	}
 
 	@Override
-	public FloatingCost updateCost(final ProvQuoteInstance qi) {
-		return updateCost(qi, this::getCost, this::toMonthly);
-	}
-
-	/**
-	 * Compute the hourly cost of a quote instance.
-	 * 
-	 * @param qi
-	 *            The quote to evaluate.
-	 * @return The cost of this instance.
-	 */
-	private FloatingCost getCost(final ProvQuoteInstance qi) {
+	protected FloatingCost getCost(final ProvQuoteInstance qi) {
 		// Fixed price + custom price
 		final ProvInstancePrice ip = qi.getPrice();
 		final double rate;
-		if (ip.getTerm().getPeriod() > 60) {
-			// Related term has a period greater than the hour, ignore usage
-			rate = 1d;
-		} else {
+		if (ip.getTerm().getPeriod() == 0) {
+			// Related term has a period lesser than the month, rate applies
 			rate = getRate(qi) / 100d;
+		} else {
+			rate = 1d;
 		}
 		return computeFloat(
 				rate * (ip.getCost() + (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getRam(), ip) : 0)),
@@ -441,13 +437,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		return Optional.ofNullable(getUsage(qi)).map(ProvUsage::getRate).orElse(100);
 	}
 
-	private int getRate(final ProvQuote quote, final ProvUsage usage) {
-		return Optional.ofNullable(Optional.ofNullable(usage).orElse(quote.getUsage())).map(ProvUsage::getRate)
-				.orElse(100);
-	}
-
 	/**
-	 * Compute the hourly cost of a custom requested resource.
+	 * Compute the monthly cost of a custom requested resource.
 	 * 
 	 * @param cpu
 	 *            The requested CPU.
@@ -463,7 +454,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	}
 
 	/**
-	 * Compute the hourly cost of a custom requested resource.
+	 * Compute the monthly cost of a custom requested resource.
 	 * 
 	 * @param requested
 	 *            The request resource amount.
@@ -520,6 +511,9 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 *            ignored. Otherwise the <code>headers</code> parameter is used.
 	 * @param term
 	 *            The default {@link ProvInstancePriceTerm} used when no one is defined in the CSV line.
+	 * @param usage
+	 *            The optional usage name. When not <code>null</code>, each quote instance will be associated to this
+	 *            usage.
 	 * @param ramMultiplier
 	 *            The multiplier for imported RAM values. Default is 1.
 	 * @param encoding
@@ -535,6 +529,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
 			@Multipart(value = "term", required = false) final String term,
+			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
 		subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
@@ -561,10 +556,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Build entries
 		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull)
-				.forEach(i -> persist(i, subscription, term, ramMultiplier));
+				.forEach(i -> persist(i, subscription, term, usage, ramMultiplier));
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription, final String defaultTerm,
+	private void persist(final InstanceUpload upload, final int subscription, final String defaultTerm, String usage,
 			final Integer ramMultiplier) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
@@ -575,7 +570,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
-		vo.setUsage(upload.getUsage() == null ? null
+
+		vo.setUsage(upload.getUsage() == null ? usage
 				: resource.findConfiguredByName(usageRepository, upload.getUsage(), subscription).getName());
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
@@ -597,22 +593,23 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		// Storage part
 		final Integer size = Optional.ofNullable(upload.getDisk()).map(Double::intValue).orElse(0);
 		if (size > 0) {
-			// Size is provided
+			// Size is provided, propagate the upload properties
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
-
-			// Default the storage latency to HOT when not specified
-			final Rate latency = ObjectUtils.defaultIfNull(upload.getLatency(), Rate.GOOD);
-
-			// Find the nicest storage
-			svo.setType(
-					storageResource.lookup(subscription, size, latency, qi, upload.getOptimized(), upload.getLocation())
-							.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
-							.getPrice().getType().getName());
-
-			// Default the storage name to the instance name
 			svo.setName(vo.getName());
 			svo.setQuoteInstance(qi);
 			svo.setSize(size);
+			svo.setLatency(upload.getLatency());
+			svo.setInstanceCompatible(true);
+			svo.setOptimized(upload.getOptimized());
+			svo.setLocation(upload.getLocation());
+
+			// Find the nicest storage
+			svo.setType(storageResource
+					.lookup(subscription, size, upload.getLatency(), qi, upload.getOptimized(), upload.getLocation())
+					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
+					.getPrice().getType().getName());
+
+			// Default the storage name to the instance name
 			svo.setSubscription(subscription);
 			storageResource.create(svo);
 		}
