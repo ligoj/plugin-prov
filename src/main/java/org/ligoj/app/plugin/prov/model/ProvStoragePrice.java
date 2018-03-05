@@ -24,7 +24,7 @@ public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 	private double costGb = 0;
 
 	/**
-	 * The cost per transaction. May be <code>0</code>.
+	 * The cost per million transactions. May be <code>0</code>.
 	 */
 	private double costTransaction;
 }
