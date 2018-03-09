@@ -164,6 +164,31 @@ define(function () {
 
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
+		
+		/**
+		 * Format instance term detail
+		 */
+		formatInstanceTerm: function (name, mode, qi) {
+			var term = qi ? qi.price.term : null;
+			name = term ? term.name : name;
+			if (mode === 'sort' || (term && typeof term.id === 'undefined')) {
+				// Use only the name
+				return name;
+			}
+			// Instance details are available
+			var details = '<i class=\'fa fa-clock-o\'></i> ';
+			if (term.period) {
+				details += term.period + 'months period';
+			} else {
+				details = 'on demand, hourly (or less) billing period';
+			}
+			if (qi.price.initialCost) {
+				details += '<br/>Initial cost: $' + qi.price.initialCost;
+			}
+
+			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		},
+		
 
 		/**
 		 * Format instance quantity
@@ -766,7 +791,7 @@ define(function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
-				_('instance-term-upload-name').val((_('instance-term-upload').select2('data') || {}).name || null);
+				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
@@ -838,7 +863,8 @@ define(function () {
 				e.preventDefault();
 				current.saveOrUpdateUsage({
 					name: _('usage-name').val(),
-					rate: parseInt(_('usage-rate').val() || '100', 10)
+					rate: parseInt(_('usage-rate').val() || '100', 10),
+					duration: parseInt(_('usage-duration').val() || '1', 10)
 				}, _('usage-old-name').val());
 			}).on('show.bs.modal', function (event) {
 				if ($(event.relatedTarget).is('.btn-success')) {
@@ -846,13 +872,19 @@ define(function () {
 					_('usage-old-name').val('');
 					_('usage-name').val('');
 					_('usage-rate').val(100);
+					_('usage-duration').val(1);
 				} else {
 					// Update mode
 					var usage = event.relatedTarget;
 					_('usage-old-name').val(usage.name);
 					_('usage-name').val(usage.name);
 					_('usage-rate').val(usage.rate);
+					_('usage-duration').val(usage.duration);
 				}
+				validationManager.reset($(this));
+				validationManager.mapping.name = 'usage-name';
+				validationManager.mapping.rate = 'usage-rate';
+				validationManager.mapping.duration = 'usage-duration';
 				_('usage-rate').trigger('change');
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
@@ -979,7 +1011,7 @@ define(function () {
 				_('instance-cpu').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
-			_('instance-term-upload').select2(current.instanceTermSelect2(current.$messages['service:prov:default']));
+			_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
 			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
 				if (event.added) {
 					current.updateQuote({
@@ -1706,7 +1738,6 @@ define(function () {
 					_('prov-usage').empty();
 					current.d3Arc = arcGenerator;
 					$.proxy(arcGenerator.init, arcGenerator)('#prov-usage', rates, 90);
-					//current.updateUiCost();
 				}
 			});
 		},
@@ -2031,7 +2062,8 @@ define(function () {
 					render: current.formatRam
 				}, {
 					data: 'price.term.name',
-					className: 'hidden-xs hidden-sm price-term'
+					className: 'hidden-xs hidden-sm price-term',
+					render: current.formatInstanceTerm
 				}, {
 					data: 'price.type.name',
 					className: 'truncate hidden-xs hidden-sm hidden-md',

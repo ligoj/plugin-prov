@@ -103,7 +103,7 @@ public class ProvResourceTest extends AbstractAppTest {
 				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		refreshCost();
+		updateCost();
 	}
 
 	@Test
@@ -153,7 +153,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
-		checkCost(resource.refreshCost(subscription), 4704.758, 7154.358, false);
+		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 
@@ -258,7 +258,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("on-demand1", instances.get(6).getPrice().getTerm().getName());
 
 		// Optimize the configuration
-		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
 		final QuoteVo vo2 = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo2.getName());
@@ -271,20 +271,20 @@ public class ProvResourceTest extends AbstractAppTest {
 		// Same instance
 		Assertions.assertEquals("instance1", instances2.get(0).getPrice().getType().getName());
 		Assertions.assertEquals("dynamic", instances2.get(5).getPrice().getType().getName());
+		Assertions.assertEquals("dynamic", instances2.get(4).getPrice().getType().getName());
 
 		// Fixed instance types for the same constraints
 		Assertions.assertEquals("instance2", instances2.get(1).getPrice().getType().getName());
 		Assertions.assertEquals("instance2", instances2.get(2).getPrice().getType().getName());
 		Assertions.assertEquals("instance2", instances2.get(3).getPrice().getType().getName());
-		Assertions.assertEquals("instance6", instances2.get(4).getPrice().getType().getName());
 		Assertions.assertEquals("dynamic", instances2.get(6).getPrice().getType().getName());
 
-		// Check the contracts are the same
+		// Check the contracts are the same but for 2
 		Assertions.assertEquals("on-demand1", instances2.get(0).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand2", instances2.get(1).getPrice().getTerm().getName());
-		Assertions.assertEquals("1y", instances2.get(2).getPrice().getTerm().getName());
+		Assertions.assertEquals("on-demand1", instances2.get(2).getPrice().getTerm().getName()); // Updated
 		Assertions.assertEquals("on-demand1", instances2.get(3).getPrice().getTerm().getName());
-		Assertions.assertEquals("on-demand2", instances2.get(4).getPrice().getTerm().getName());
+		Assertions.assertEquals("on-demand1", instances2.get(4).getPrice().getTerm().getName()); // Updated
 		Assertions.assertEquals("on-demand1", instances2.get(5).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand1", instances2.get(6).getPrice().getTerm().getName());
 
@@ -294,8 +294,8 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getConfigurationEmpty() {
-		checkCost0(resource.refreshCost(checkEmpty()));
-		checkCost0(resource.refreshCostAndResource(checkEmpty()));
+		checkCost0(resource.updateCost(checkEmpty()));
+		checkCost0(resource.refresh(checkEmpty()));
 	}
 
 	private int checkEmpty() {
@@ -351,7 +351,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 7186.085, 11056.538, false);
+		checkCost(cost, 5799.465, 9669.918, false);
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
@@ -390,7 +390,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-4");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 3315.808, 5765.408, false);
+		checkCost(cost, 3165.4, 5615.0, false);
 		final ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-4", quote2.getLocation().getName());
@@ -499,10 +499,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, repository.findAll().size());
 	}
 
-	private void refreshCost() {
+	private void updateCost() {
 
 		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.refreshCost(subscription);
+		final FloatingCost cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
 		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
@@ -608,7 +608,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		final FloatingCost cost = resource.update(subscription, quote);
-		checkCost(cost, 3315.808, 5765.408, false);
+		checkCost(cost, 3165.4, 5615.0, false);
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());

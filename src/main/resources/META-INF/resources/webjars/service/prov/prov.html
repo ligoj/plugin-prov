@@ -223,13 +223,6 @@
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group required">
-							<label class="control-label col-sm-3" for="instance-term" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term}}</label>
-							<div class="col-sm-8">
-								<input type="text" id="instance-term" class="resource-query form-control" required />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
-							</div>
-						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-usage" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
 							<div class="col-sm-8">
@@ -270,6 +263,13 @@
 									</label>
 								</div>
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-term" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term}}</label>
+							<div class="col-sm-8">
+								<input type="text" id="instance-term" class="form-control" required readonly/>
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -378,7 +378,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;latency;optimized;term;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage
+									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage
 								</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
@@ -387,7 +387,6 @@
 								<br /><code><strong>disk</strong> Optional disk size, in Gibi Byte (GiB)</code>
 								<br /><code><strong>latency</strong> [WORST, LOW, MEDIUM, GOOD, BEST], default is GOOD</code>
 								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
-								<br /><code><strong>term</strong> Price term name, case insensitive, default is auto</code>
 								<br /><code><strong>type</strong> Instance type name, case insensitive, default is auto</code>
 								<br /><code><strong>internet</strong> [NAT,PUBLIC,(PRIVATE)]</code>
 								<br /><code><strong>ephemeral</strong> When true, ephemeral contract is accepted. False by default.</code>
@@ -397,10 +396,10 @@
 								<br /><code><strong>usage</strong> Usage name override of quote's one</code>
 								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay.</code>
 								<br />{{instance-import-sample}}
-								<br /><code>name;cpu;ram;os;disk;latency;optimized;constant;instance;term</code>
+								<br /><code>name;cpu;ram;os;disk;latency;optimized;constant;instance;usage</code>
 								<br /><code>mysql;1.5:2048;RHEL;20;GOOD;IOPS;true</code>
 								<br /><code>nginx;0.5:1000;LINUX</code>
-								<br /><code>jetty;2:2048;LINUX;;;;m1.large;spot</code>
+								<br /><code>jetty;2:2048;LINUX;;;;m1.large;production2</code>
 								<br />
 								<br /><i class="fa fa-info-circle"></i> Trailing columns can be omitted if empty, default value or "false".
 							</div>
@@ -439,12 +438,12 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-term-upload" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term-upload}}</label>
+							<label class="control-label col-sm-3" for="instance-usage-upload" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="instance-term-upload" class="form-control" placeholder="{{service:prov:term-lowest}}" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-upload-help}}"></i></span>
+								<input type="text" id="instance-usage-upload" class="form-control" placeholder="{{default}}" />
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
 							</div>
-							<input type="text" id="instance-term-upload-name" class="hidden" name="term">
+							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
@@ -528,7 +527,7 @@
 									<input type="number" min="1" max="100" id="usage-rate" class="form-control input-mini" required />
 									<span class="input-group-addon">%</span>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}"></i></span>
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-rate-help}}"></i></span>
 								<div class="input-group">
 									<input type="number" min="8" max="732" id="usage-month" class="form-control input-mini" required />
 									<div class="input-group-addon">/{{month}}</div>
@@ -541,6 +540,16 @@
 									<input type="number" min="1" max="24" id="usage-day" class="form-control input-mini" required />
 									<div class="input-group-addon">/{{day}}</div>
 								</div>
+							</div>
+						</div>
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="usage-duration">{{service:prov:usage-duration}}</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+									<input type="number" min="0" max="72" id="usage-duration" class="form-control input-mini" required />
+									<div class="input-group-addon">{{months}}</div>
+								</div>
+								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-duration-help}}"></i></span>
 							</div>
 						</div>
 					</div>

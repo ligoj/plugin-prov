@@ -209,7 +209,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Update the configuration details.
+	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
 	 * 
 	 * @param subscription
 	 *            The subscription to update
@@ -225,11 +225,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setName(quote.getName());
 		entity.setDescription(quote.getDescription());
 
-		// TODO Check the location change to avoid useless compute
+		// TODO Check the location/usage change to avoid useless compute
 		entity.setLocation(findLocation(subscription, quote.getLocation()));
 		entity.setUsage(Optional.ofNullable(quote.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
-		return refreshCostAndResource(entity);
+		return refresh(entity);
 	}
 
 	/**
@@ -243,13 +243,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@PUT
 	@Path("{subscription:\\d+}/refresh-cost")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost refreshCost(@PathParam("subscription") final int subscription) {
+	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch instances) to refresh
-		return refresh(repository.getCompute(subscription));
+		return updateCost(repository.getCompute(subscription));
 	}
 
-	@Override
-	public FloatingCost refresh(final ProvQuote entity) {
+	/**
+	 * Refresh the cost without updating the resources constraints.
+	 */
+	protected FloatingCost updateCost(final ProvQuote entity) {
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCost(0d);
 		entity.setMaxCost(0d);
@@ -274,29 +276,26 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@PUT
 	@Path("{subscription:\\d+}/refresh")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost refreshCostAndResource(@PathParam("subscription") final int subscription) {
-		return refreshCostAndResource(getQuoteFromSubscription(subscription));
+	public FloatingCost refresh(@PathParam("subscription") final int subscription) {
+		return refresh(getQuoteFromSubscription(subscription));
 	}
 
-	/**
-	 * Execute the lookup for each resource and compute the total cost.
-	 * 
-	 * @param quote
-	 *            The quote to evaluate.
-	 * @return The updated computed cost.
-	 * @see #refreshCost(int)
-	 */
-	protected FloatingCost refreshCostAndResource(final ProvQuote quote) {
+	@Override
+	public FloatingCost refresh(final ProvQuote entity) {
+		// Reset the costs to 0, will be updated further in this process
+		entity.setCost(0d);
+		entity.setMaxCost(0d);
+
 		// Update the instance, and add the cost
-		quote.setUnboundCostCounter((int) quote.getInstances().stream().map(instanceResource::refresh)
-				.map(fc -> addCost(quote, fc)).filter(FloatingCost::isUnbound).count());
+		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::refresh)
+				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Update the storage, and add the cost
-		repository.getStorage(quote.getSubscription().getId()).stream().map(storageResource::refresh)
-				.forEach(fc -> addCost(quote, fc));
+		repository.getStorage(entity.getSubscription().getId()).stream().map(storageResource::refresh)
+				.forEach(fc -> addCost(entity, fc));
 
 		// Compute the the total cost
-		return refreshCost(quote.getSubscription().getId());
+		return updateCost(entity.getSubscription().getId());
 	}
 
 	@Override

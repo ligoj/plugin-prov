@@ -54,8 +54,7 @@ public class ProvUsageResource {
 	 * Return the usages available for a subscription.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available usages for the given subscription.
@@ -63,19 +62,21 @@ public class ProvUsageResource {
 	@GET
 	@Path("{subscription:\\d+}/usage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvUsage> findAll(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
+	public TableItem<ProvUsage> findAll(@PathParam("subscription") final int subscription,
+			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, repository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-				paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)), Function.identity());
+		return paginationJson.applyPagination(uriInfo,
+				repository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
+				Function.identity());
 	}
 
 	/**
-	 * Create the usage inside a quote. No cost are updated during this operation
-	 * since this new {@link ProvUsage} is not yet used.
+	 * Create the usage inside a quote. No cost are updated during this operation since this new {@link ProvUsage} is
+	 * not yet used.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param vo
 	 *            The quote usage.
 	 * @return The created usage identifier.
@@ -91,23 +92,19 @@ public class ProvUsageResource {
 	}
 
 	/**
-	 * Update the usage inside a quote. The computed cost are recursively updated
-	 * from the related instances to the quote total cost.<br>
-	 * The cost of all instances related to this usage will be updated to get the
-	 * new price.<br>
-	 * An instance related to this usage is either an instance explicitly linked to
-	 * this usage, either an instance linked to a quote having this usage as
-	 * default.
+	 * Update the usage inside a quote. The computed cost are recursively updated from the related instances to the
+	 * quote total cost.<br>
+	 * The cost of all instances related to this usage will be updated to get the new price.<br>
+	 * An instance related to this usage is either an instance explicitly linked to this usage, either an instance
+	 * linked to a quote having this usage as default.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param name
 	 *            The quote usage's name to update.
 	 * @param vo
 	 *            The new quote usage data.
-	 * @return The updated cost. Only relevant when at least one resource was
-	 *         associated to this usage.
+	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@PUT
 	@Path("{subscription:\\d+}/usage/{name}")
@@ -118,18 +115,16 @@ public class ProvUsageResource {
 	}
 
 	/**
-	 * Save or update the given usage entity from the {@link UsageEditionVo}. The
-	 * computed cost are recursively updated from the related instances to the quote
-	 * total cost.<br>
-	 * The cost of all instances related to this usage will be updated to get the
-	 * new price.<br>
-	 * An instance related to this usage is either an instance explicitly linked to
-	 * this usage, either an instance linked to a quote having this usage as
-	 * default.
+	 * Save or update the given usage entity from the {@link UsageEditionVo}. The computed cost are recursively updated
+	 * from the related instances to the quote total cost.<br>
+	 * The cost of all instances related to this usage will be updated to get the new term and related price.<br>
+	 * An instance related to this usage is either an instance explicitly linked to this usage, either an instance
+	 * linked to a quote having this usage as default.
 	 */
 	private UpdatedCost saveOrUpdate(final ProvUsage entity, final UsageEditionVo vo) {
 		// Check the associations and copy attributes to the entity
 		entity.setRate(vo.getRate());
+		entity.setDuration(vo.getDuration());
 		entity.setName(vo.getName());
 
 		final UpdatedCost cost = new UpdatedCost();
@@ -141,11 +136,11 @@ public class ProvUsageResource {
 			// Update the cost of all related instances
 			if (entity.equals(quote.getUsage())) {
 				// Update cost of all instances without explicit usage
-				quote.getInstances().stream().filter(i -> i.getUsage() == null).map(instanceResource::newUpdateCost)
-						.forEach(c -> costs.put(c.getId(), c.getResourceCost()));
+				quote.getInstances().stream().filter(i -> i.getUsage() == null)
+						.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
 			}
-			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage())).map(instanceResource::newUpdateCost)
-					.forEach(c -> costs.put(c.getId(), c.getResourceCost()));
+			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage()))
+					.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
 
 			// Save and update the costs
 			cost.setRelatedCosts(costs);
@@ -158,37 +153,35 @@ public class ProvUsageResource {
 	}
 
 	/**
-	 * Delete an usage. When the usage is associated to a quote or a resource, it is
-	 * replaced by a <code>null</code> reference.
+	 * Delete an usage. When the usage is associated to a quote or a resource, it is replaced by a <code>null</code>
+	 * reference.
 	 * 
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages
-	 *            from the associated provider.
+	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param name
 	 *            The {@link ProvUsage} name.
-	 * @return The updated cost. Only relevant when at least one resource was
-	 *         associated to this usage.
+	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@DELETE
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("{subscription:\\d+}/usage/{name}")
 	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("name") final String name) {
 		final ProvUsage entity = resource.findConfiguredByName(repository, name, subscription);
-		final ProvQuote configuration = entity.getConfiguration();
+		final ProvQuote quote = entity.getConfiguration();
 
 		final UpdatedCost cost = new UpdatedCost();
 		// Prepare the updated cost of updated instances
 		final Map<Integer, FloatingCost> costs = cost.getRelatedCosts();
 		cost.setRelatedCosts(costs);
 		// Update the cost of all related instances
-		if (entity.equals(configuration.getUsage())) {
+		if (entity.equals(quote.getUsage())) {
 			// Update cost of all instances without explicit usage
-			configuration.setUsage(null);
-			configuration.getInstances().stream().filter(i -> i.getUsage() == null).map(instanceResource::newUpdateCost)
-					.forEach(c -> costs.put(c.getId(), c.getResourceCost()));
+			quote.setUsage(null);
+			quote.getInstances().stream().filter(i -> i.getUsage() == null)
+					.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
 		}
-		configuration.getInstances().stream().filter(i -> entity.equals(i.getUsage())).peek(i -> i.setUsage(null))
-				.map(instanceResource::newUpdateCost).forEach(c -> costs.put(c.getId(), c.getResourceCost()));
+		quote.getInstances().stream().filter(i -> entity.equals(i.getUsage())).peek(i -> i.setUsage(null))
+				.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
 
 		// All references are deleted, delete the usage entity
 		repository.delete(entity);

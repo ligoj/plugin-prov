@@ -72,7 +72,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 						ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		refreshCost();
+		updateCost();
 	}
 
 	@Test
@@ -80,12 +80,12 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("Full Time");
 		usage.setRate(1);
-		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
-		checkCost(uResource.update(subscription, "Full Time", usage).getTotalCost(), 3315.808, 5765.408, false);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
+		checkCost(uResource.update(subscription, "Full Time", usage).getTotalCost(), 3165.4, 5615.0, false);
 		final QuoteEditionVo quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
-		checkCost(resource.update(subscription, quote), 3315.808, 5765.408, false);
+		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}
 
 	@Test
@@ -95,8 +95,8 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		usage.setRate(75);
 		final int id = uResource.create(subscription, usage);
 		checkCost(subscription, 4704.758, 7154.358, false);
-		resource.refreshCostAndResource(subscription);
-		checkCost(subscription, 3315.808, 5765.408, false);
+		resource.refresh(subscription);
+		checkCost(subscription, 3165.4, 5615.0, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
 		Assertions.assertEquals("DevV2", entity.getName());
@@ -113,40 +113,51 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Full Time");
-		checkCost(resource.update(subscription, quote), 3315.808, 5765.408, false);
+		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}
 
 	@Test
 	public void updateRateAndQuote() {
 		// Usage = 100%
-		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
 		// Usage -> 50% (attach the quote to a 50% usage)
 		final QuoteEditionVo quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Dev");
-		// Min = (3315.808 - 322.33 - 175.2[1y term])*.5 + 322.33 + 91.25 [1y
-		// term]
-		checkCost(resource.update(subscription, quote), 1906.909, 3770.909, false);
-		checkCost(subscription, 1906.909, 3770.909, false);
+		// Min = (3165.4 - 322.33 - 175.2[1y term])*.5 + 322.33 + 91.25 [1y term]
+		checkCost(resource.update(subscription, quote), 1743.865, 3607.865, false);
+		checkCost(subscription, 1743.865, 3607.865, false);
 		em.flush();
 		em.clear();
 
 		// Usage -> 75% (update the usage's rate from 50% to 75%)
-		final UsageEditionVo usage = new UsageEditionVo();
+		UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
-		// Min = (3315.808 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y
-		// term]
-		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2611.359, 4768.159, false);
-		checkCost(subscription, 2611.359, 4768.159, false);
+		// Min = (3165.4 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
+		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2454.633, 4611.433, false);
+		checkCost(subscription, 2454.633, 4611.433, false);
+		em.flush();
+		em.clear();
+
+		// Usage back to -> 100%
+		usage.setRate(100);
+		checkCost(uResource.update(subscription, "DevV2", usage).getTotalCost(), 3165.4, 5615.0, false);
+		resource.refresh(subscription);
+
+		// Usage -> duration extended to 12 month, the term is updated, cheapest monthly bill
+		usage.setDuration(12);
+		uResource.update(subscription, "DevV2", usage);
+		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals("DevV2", entity.getName());
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assertions.assertEquals(75, entity.getRate().intValue());
+		Assertions.assertEquals(100, entity.getRate().intValue());
+		Assertions.assertEquals(12, entity.getDuration().intValue());
 	}
 
 	@Test
@@ -158,8 +169,8 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Dev");
-		checkCost(resource.update(subscription, quote), 1965.469, 3829.469, false);
-		checkCost(subscription, 1965.469, 3829.469, false);
+		checkCost(resource.update(subscription, quote), 1802.425, 3666.425, false);
+		checkCost(subscription, 1802.425, 3666.425, false);
 		em.flush();
 		em.clear();
 
@@ -167,8 +178,8 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
-		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2640.639, 4797.439, false);
-		checkCost(subscription, 2640.639, 4797.439, false);
+		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2483.913, 4640.713, false);
+		checkCost(subscription, 2483.913, 4640.713, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
 		Assertions.assertEquals("DevV2", entity.getName());
@@ -189,9 +200,9 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		return cost;
 	}
 
-	private FloatingCost refreshCost() {
+	private FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
-		return checkCost(resource.refreshCost(subscription));
+		return checkCost(resource.updateCost(subscription));
 	}
 
 	private FloatingCost checkCost(final FloatingCost cost) {
@@ -233,7 +244,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		em.persist(quote);
 		em.flush();
 		em.clear();
-		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
 		Assertions.assertNotNull(usageRepository.findByName(subscription, "Dev"));
 		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
@@ -256,13 +267,13 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final ProvQuoteInstance server1 = qiRepository.findByName("server1");
 		server1.setUsage(usageRepository.findByName("Dev"));
 		em.persist(server1);
-		checkCost(resource.refreshCostAndResource(subscription), 3169.408, 5033.408, false);
+		checkCost(resource.refresh(subscription), 3019.0, 4883.0, false);
 
 		// Usage = 50% by default and 50% fixed for "server1"
 		final ProvQuote quote = repository.findByName("quote1");
 		quote.setUsage(usageRepository.findByName("Dev"));
 		em.persist(quote);
-		checkCost(resource.refreshCostAndResource(subscription), 1906.909, 3770.909, false);
+		checkCost(resource.refresh(subscription), 1743.865, 3607.865, false);
 
 		// Delete the usage
 		// Check the cost is now back at 100%
@@ -271,15 +282,15 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	}
 
 	private void checkUsage100AfterDelete(final UpdatedCost cost) {
-		checkCost(cost.getTotalCost(), 3315.808, 5765.408, false);
-		checkCost(subscription, 3315.808, 5765.408, false);
+		checkCost(cost.getTotalCost(), 3165.4, 5615.0, false);
+		checkCost(subscription, 3165.4, 5615.0, false);
 		Assertions.assertNull(usageRepository.findByName(subscription, "Dev"));
 		Assertions.assertEquals(1, usageRepository.findAllBy("name", "Dev").size());
 	}
 
 	private void attachUsageToQuote() {
 		// Usage = 100%
-		checkCost(resource.refreshCostAndResource(subscription), 3315.808, 5765.408, false);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
 		// Usage = 100% by default, but fixed for some instances
 		final ProvQuoteInstance server1 = qiRepository.findByName("server1");
@@ -291,6 +302,6 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		em.persist(server2);
 		em.flush();
 		em.clear();
-		checkCost(resource.refreshCostAndResource(subscription), 3169.408, 5033.408, false);
+		checkCost(resource.refresh(subscription), 3019.0, 4883.0, false);
 	}
 }

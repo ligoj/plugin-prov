@@ -15,8 +15,7 @@ import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 
 /**
- * An object related to a quote. Handle cost cost and association validation
- * against the quote.
+ * An object related to a quote. Handle cost cost and association validation against the quote.
  * 
  * @param <C>
  *            The related entity.
@@ -29,24 +28,22 @@ public interface QuoteRelated<C extends Costed> {
 	double HOURS_BY_MONTH = 24d * 365d / 12d;
 
 	/**
-	 * Return the {@link SubscriptionResource} instance. Used to resolve the related
-	 * subscription and validate the visibility.
+	 * Return the {@link SubscriptionResource} instance. Used to resolve the related subscription and validate the
+	 * visibility.
 	 * 
 	 * @return The {@link SubscriptionResource} instance.
 	 */
 	SubscriptionResource getSubscriptionResource();
 
 	/**
-	 * Return the {@link ProvQuoteRepository} instance. Used to resolve the right
-	 * quote.
+	 * Return the {@link ProvQuoteRepository} instance. Used to resolve the right quote.
 	 * 
 	 * @return The {@link ProvQuoteRepository} instance.
 	 */
 	ProvQuoteRepository getRepository();
 
 	/**
-	 * Return the quote associated to the given subscription. The visibility is
-	 * checked.
+	 * Return the quote associated to the given subscription. The visibility is checked.
 	 * 
 	 * @param subscription
 	 *            The linked subscription.
@@ -57,8 +54,7 @@ public interface QuoteRelated<C extends Costed> {
 	}
 
 	/**
-	 * Request a cost update of the given entity and report the delta to the the
-	 * global cost. The changes are persisted.
+	 * Request a cost update of the given entity and report the delta to the global cost. The changes are persisted.
 	 * 
 	 * @param repository
 	 *            The repository of the entity holding the cost.
@@ -85,8 +81,8 @@ public interface QuoteRelated<C extends Costed> {
 	}
 
 	/**
-	 * Add a cost to the quote related to given resource entity. The global cost is
-	 * not deeply computed, only delta is applied.
+	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
+	 * applied.
 	 * 
 	 * @param entity
 	 *            The configured entity, related to a quote.
@@ -127,8 +123,7 @@ public interface QuoteRelated<C extends Costed> {
 	}
 
 	/**
-	 * Round a cost to eliminate floating point artifact, and without required
-	 * {@link BigDecimal} usage (not yet)
+	 * Round a cost to eliminate floating point artifact, and without required {@link BigDecimal} usage (not yet)
 	 * 
 	 * @param value
 	 *            The value to round.
@@ -149,7 +144,8 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr, final Function<T, FloatingCost> costProvider) {
+	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr,
+			final Function<T, FloatingCost> costProvider) {
 		final FloatingCost cost = costProvider.apply(qr);
 		qr.setCost(cost.getMin());
 		qr.setMaxCost(cost.getMax());
@@ -164,7 +160,8 @@ public interface QuoteRelated<C extends Costed> {
 	 * @return The built {@link FloatingCost} instance.
 	 */
 	default FloatingCost toFloatingCost(final ProvQuote configuration) {
-		return new FloatingCost(configuration.getCost(), configuration.getMaxCost(), configuration.getUnboundCostCounter() > 0);
+		return new FloatingCost(configuration.getCost(), configuration.getMaxCost(),
+				configuration.getUnboundCostCounter() > 0);
 	}
 
 	/**
@@ -183,5 +180,13 @@ public interface QuoteRelated<C extends Costed> {
 		return Optional.ofNullable(object).orElseThrow(() -> new EntityNotFoundException(name));
 	}
 
+	/**
+	 * Refresh the resources and the related cost. This is a full optimization where lookups of the best prices is
+	 * performed. Note only the given entity is updated, the related quote's cost is not updated.
+	 * 
+	 * @param costed
+	 *            The entity to refresH.
+	 * @return The new computed price.
+	 */
 	FloatingCost refresh(final C costed);
 }

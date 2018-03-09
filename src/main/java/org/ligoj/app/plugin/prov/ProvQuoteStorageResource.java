@@ -89,7 +89,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of storage costs.
-		return resource.refreshCost(subscription);
+		return resource.updateCost(subscription);
 	}
 
 	/**

@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UsageEditionVo {
-	
+
 	/**
 	 * Unique name within a quote.
 	 */
@@ -29,5 +29,12 @@ public class UsageEditionVo {
 	@Max(100)
 	@NotNull
 	private Integer rate = 100;
+
+	/**
+	 * Usage duration in months.
+	 */
+	@Positive
+	@Max(72)
+	private int duration = 1;
 
 }

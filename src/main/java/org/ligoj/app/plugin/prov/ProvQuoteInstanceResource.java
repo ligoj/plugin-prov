@@ -145,10 +145,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Check the associations and copy attributes to the entity
 		final ProvQuote configuration = getQuoteFromSubscription(vo.getSubscription());
-		entity.setConfiguration(configuration);
 		final Subscription subscription = configuration.getSubscription();
 		final String providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
+		entity.setConfiguration(configuration);
 		entity.setPrice(ipRepository.findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(subscription.getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
@@ -217,36 +217,34 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of instances cost and related storage costs
-		return resource.refreshCost(subscription);
+		return resource.updateCost(subscription);
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteInstance instance) {
-		final ProvQuote quote = instance.getConfiguration();
+	public FloatingCost refresh(final ProvQuoteInstance qi) {
+		final ProvQuote quote = qi.getConfiguration();
 
 		// Find the lowest price
-		final ProvInstancePrice price = validateLookup("instance",
-				lookup(quote, instance.getCpu(), instance.getRam(), instance.getConstant(), instance.getOs(), null,
-						instance.getPrice().getTerm().getName(), instance.isEphemeral(),
-						Optional.ofNullable(instance.getLocation()).map(INamableBean::getName).orElse(null),
-						getUsageName(instance)),
-				instance.getName());
-		instance.setPrice(price);
-		return updateCost(instance);
+		qi.setPrice(validateLookup("instance",
+				lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null, qi.isEphemeral(),
+						Optional.ofNullable(qi.getLocation()).map(INamableBean::getName).orElse(null),
+						getUsageName(qi)),
+				qi.getName()));
+		return updateCost(qi);
 	}
 
 	/**
 	 * Return the usage applied to the given instance. May be <code>null</code>.
 	 */
-	private ProvUsage getUsage(final ProvQuoteInstance instance) {
-		return instance.getUsage() == null ? instance.getConfiguration().getUsage() : instance.getUsage();
+	private ProvUsage getUsage(final ProvQuoteInstance qi) {
+		return qi.getUsage() == null ? qi.getConfiguration().getUsage() : qi.getUsage();
 	}
 
 	/**
 	 * Return the usage name applied to the given instance. May be <code>null</code>.
 	 */
-	private String getUsageName(final ProvQuoteInstance instance) {
-		final ProvUsage usage = getUsage(instance);
+	private String getUsageName(final ProvQuoteInstance qi) {
+		final ProvUsage usage = getUsage(qi);
 		return usage == null ? null : usage.getName();
 	}
 
@@ -289,8 +287,6 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 *            The requested OS, default is "LINUX".
 	 * @param type
 	 *            Optional instance type name. May be <code>null</code>.
-	 * @param term
-	 *            Optional price term name. May be <code>null</code>.
 	 * @param ephemeral
 	 *            Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
 	 *            accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
@@ -308,15 +304,14 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram, @QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
-			@QueryParam("term") final String term, @QueryParam("ephemeral") final boolean ephemeral,
-			@QueryParam("location") final String location, @QueryParam("usage") final String usage) {
+			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
+			@QueryParam("usage") final String usage) {
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, term, ephemeral, location,
-				usage);
+		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, ephemeral, location, usage);
 	}
 
 	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final int ram,
-			final Boolean constant, final VmOs osName, final String type, final String term, final boolean ephemeral,
+			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
 			final String location, final String usageName) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
@@ -337,25 +332,21 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final Integer typeId = type == null ? null
 				: assertFound(itRepository.findByName(subscription, type), type).getId();
 
-		// Resolve the required term
-		final Integer termId = term == null ? null
-				: assertFound(iptRepository.findByName(subscription, term), term).getId();
-
 		// Return only the first matching instance
 		// Template instance
 		final QuoteInstanceLookup template = ipRepository
-				.findLowestPrice(node, cpu, ram, constant, os, termId, typeId, ephemeral, locationR, rate, duration,
+				.findLowestPrice(node, cpu, ram, constant, os, typeId, ephemeral, locationR, rate, duration,
 						PageRequest.of(0, 1))
 				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], (double) ip[2])).orElse(null);
 
 		// Custom instance
 		final QuoteInstanceLookup custom = ipRepository
-				.findLowestCustomPrice(node, Math.ceil(cpu), Math.ceil(ram / 1024), constant, os, termId, locationR,
+				.findLowestCustomPrice(node, Math.ceil(cpu), Math.ceil(ram / 1024), constant, os, locationR,
 						PageRequest.of(0, 1))
 				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], rate * (double) ip[1]))
 				.orElse(null);
 
-		// Select the best instance
+		// Select the best price term
 		if (template == null) {
 			return custom;
 		}
@@ -474,15 +465,15 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 * 
 	 * @param base
 	 *            The cost of one instance.
-	 * @param instance
+	 * @param qi
 	 *            The quote instance to compute.
 	 * @return The updated cost of this instance.
 	 */
-	public FloatingCost computeFloat(final double base, final ProvQuoteInstance instance) {
+	public FloatingCost computeFloat(final double base, final ProvQuoteInstance qi) {
 		final FloatingCost cost = new FloatingCost();
-		cost.setMin(base * instance.getMinQuantity());
-		cost.setMax(Optional.ofNullable(instance.getMaxQuantity()).orElse(instance.getMinQuantity()) * base);
-		cost.setUnbound(instance.isUnboundCost());
+		cost.setMin(base * qi.getMinQuantity());
+		cost.setMax(Optional.ofNullable(qi.getMaxQuantity()).orElse(qi.getMinQuantity()) * base);
+		cost.setUnbound(qi.isUnboundCost());
 		return cost;
 	}
 
@@ -509,8 +500,6 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 * @param headersIncluded
 	 *            When <code>true</code>, the first line is the headers and the given <code>headers</code> parameter is
 	 *            ignored. Otherwise the <code>headers</code> parameter is used.
-	 * @param term
-	 *            The default {@link ProvInstancePriceTerm} used when no one is defined in the CSV line.
 	 * @param usage
 	 *            The optional usage name. When not <code>null</code>, each quote instance will be associated to this
 	 *            usage.
@@ -528,7 +517,6 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			@Multipart(value = "csv-file") final InputStream uploadedFile,
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
-			@Multipart(value = "term", required = false) final String term,
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
@@ -556,10 +544,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Build entries
 		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull)
-				.forEach(i -> persist(i, subscription, term, usage, ramMultiplier));
+				.forEach(i -> persist(i, subscription, usage, ramMultiplier));
 	}
 
-	private void persist(final InstanceUpload upload, final int subscription, final String defaultTerm, String usage,
+	private void persist(final InstanceUpload upload, final int subscription, String usage,
 			final Integer ramMultiplier) {
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setCpu(round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
@@ -577,13 +565,10 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
 
-		// Choose the required term
-		final String term = upload.getTerm() == null ? defaultTerm : upload.getTerm();
-
 		// Find the lowest price
 		final ProvInstancePrice instancePrice = validateLookup(
 				"instance", lookup(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(), upload.getOs(),
-						upload.getType(), term, upload.isEphemeral(), upload.getLocation(), upload.getUsage()),
+						upload.getType(), upload.isEphemeral(), upload.getLocation(), upload.getUsage()),
 				upload.getName());
 
 		vo.setPrice(instancePrice.getId());

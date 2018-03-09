@@ -79,7 +79,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		refreshCost();
+		updateCost();
 	}
 
 	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
@@ -210,7 +210,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		quoteInstance.getConfiguration().setUnboundCostCounter(1);
 		em.flush();
 		em.clear();
-		resource.refreshCost(subscription);
+		resource.updateCost(subscription);
 		em.flush();
 		return quoteInstance;
 	}
@@ -538,9 +538,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(2, qiRepository.findByNameExpected("server1").getStorages().size());
 	}
 
-	private void refreshCost() {
+	private void updateCost() {
 		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.refreshCost(subscription);
+		final FloatingCost cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
 		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
