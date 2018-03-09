@@ -323,7 +323,7 @@ define(function () {
 			} else if (max / 1.3 > value) {
 				fullClass = 'fa-adjust fa-rotate-90 text-warning';
 			}
-			var rate = Math.round(value * 100 / max) / 100;
+			var rate = Math.round(value * 100 / max);
 			return (formatter ? formatter(value) : value) + '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
 				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>';
 		},
@@ -1198,7 +1198,7 @@ define(function () {
 			current.disableCreate($popup);
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + name,
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + encodeURIComponent(name),
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function (newCost) {
@@ -1235,7 +1235,7 @@ define(function () {
 			current.disableCreate($popup);
 			$.ajax({
 				type: oldName ? 'PUT' : 'POST',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage' + (oldName ? '/' + oldName : ''),
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage' + (oldName ? '/' + encodeURIComponent(oldName) : ''),
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
