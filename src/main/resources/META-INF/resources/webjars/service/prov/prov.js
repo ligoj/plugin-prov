@@ -1687,7 +1687,7 @@ define(function () {
 					segments: [{
 						value: conf.usage ? conf.usage.rate : 100,
 						tooltip: Handlebars.compile(current.$messages['service:prov:usage-default'])(conf.usage ? Math.round(conf.usage.rate) : 100),
-						color: 'orange'
+						color: '#168bca'
 					}]
 				};
 				if (usage.nbInstances && weightedRate.cost != rates.segments[0].value) {
@@ -1695,7 +1695,7 @@ define(function () {
 					rates.segments.push({
 						value: weightedRate.cost,
 						tooltip: Handlebars.compile(current.$messages['service:prov:usage-actual-cost'])(weightedRate.cost),
-						color: 'yellow'
+						color: '#376279'
 					});
 				}
 
