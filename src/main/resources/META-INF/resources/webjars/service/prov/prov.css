@@ -212,3 +212,24 @@ label[for="instance-max-variable-cost"] {
 .d3-text {
 	pointer-events: none;
 }
+
+.d3-donut path.color0 {
+    fill: #354499;
+}
+.d3-donut {
+	position: absolute;
+}
+.d3-donut>svg {
+	position: relative;
+    right: -139px;
+    top: -20px;
+}
+.d3-donut path.color1 {
+    fill: rgba(255,255,255,.3);
+}
+.d3-donut text {
+    font-size: 3em;
+    font-weight: 400;
+    line-height: 16em;
+    fill: #354499;
+}

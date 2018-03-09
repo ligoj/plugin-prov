@@ -845,7 +845,7 @@ define(function () {
 					// Create mode
 					_('usage-old-name').val('');
 					_('usage-name').val('');
-					_('usage-rate').val('100');
+					_('usage-rate').val(100);
 				} else {
 					// Update mode
 					var usage = event.relatedTarget;
@@ -853,7 +853,11 @@ define(function () {
 					_('usage-name').val(usage.name);
 					_('usage-rate').val(usage.rate);
 				}
+				_('usage-rate').trigger('change');
 			});
+			$('.usage-inputs input').on('change', current.synchronizeUsage);
+			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
+			
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
 			_('prov-terraform-execute').on('click', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
@@ -1018,6 +1022,37 @@ define(function () {
 				};
 			})($usageSelect2.originalSelect);
 			_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
+		},
+		
+		synchronizeUsage: function() {
+			var $input = $(this);
+			var id = $input.attr('id'); 
+			var val = $input.val();
+			if (id === 'usage-month') {
+				rate = val / 7.32;
+			} else if (id === 'usage-week') {
+				rate = val / 1.68;
+			} else if (id === 'usage-day') {
+				rate = val / 0.24;
+			} else {
+				rate = val;
+			}
+			if (rate) {
+				rate = parseInt(rate, 10);
+				if (id !== 'usage-day') {
+					_('usage-day').val(Math.ceil(rate * 24 / 100));
+				}
+				if (id !== 'usage-month') {
+					_('usage-month').val(Math.ceil(rate * 732.0 / 100));
+				}
+				if (id !== 'usage-week') {
+					_('usage-week').val(Math.ceil(rate * 168.0 / 100));
+				}
+				if (id !== 'usage-rate') {
+					_('usage-rate').val(Math.ceil(rate));
+				}
+				current.updateD3UsageRate(rate);
+			}
 		},
 
 		/**
@@ -2117,6 +2152,22 @@ define(function () {
 				}]
 			});
 			return current.storageTable;
+		},
+
+		contextDonut: null,
+		
+		/**
+		 * Donut of usage
+		 * @param {integer} rate The rate percent tage 1-100%
+		 */
+		updateD3UsageRate: function(rate) {
+			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
+				if (current.contextDonut) {
+					donut.update(current.contextDonut, rate);
+				} else {	
+					current.contextDonut = donut.create("#usage-chart", rate, 250, 250);
+				}
+			});
 		}
 	};
 	return current;
