@@ -315,7 +315,7 @@ define(function () {
 		 * Format the memory size.
 		 */
 		formatRam: function (sizeMB, mode, instance) {
-			if (mode === 'display' && instance && instance.price.type.ram > (sizeMB * 1.01)) {
+			if (mode === 'display' && instance) {
 				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
 					return formatManager.formatSize(value * 1024 * 1024, 3);
 				});
@@ -327,7 +327,7 @@ define(function () {
 		 * Format the memory size.
 		 */
 		formatCpu: function (value, mode, instance) {
-			if (mode === 'display' && instance && instance.price.type.cpu > value) {
+			if (mode === 'display' && instance) {
 				return current.formatEfficiency(value, instance.price.type.cpu);
 			}
 			return value;
@@ -341,22 +341,28 @@ define(function () {
 		 * @returns {string} The value to display containing the rate.
 		 */
 		formatEfficiency: function (value, max, formatter) {
-			var fullClass = 'fa-circle text-primary';
+			var fullClass = null;
 			max = max || value || 1;
-			if (max / 2.0 >= value) {
+			if (max / 2.0 > value) {
 				fullClass = 'fa-circle-o text-danger';
+			} else if (max / 1.65 > value) {
+				fullClass = 'fa-adjust fa-rotate-90 text-danger';
+			} else if (max / 1.5 > value) {
+				fullClass = 'fa-circle text-warning';
 			} else if (max / 1.3 > value) {
-				fullClass = 'fa-adjust fa-rotate-90 text-warning';
+				fullClass = 'fa-circle text-primary';
+			} else if (max / 1.01 > value) {
+				fullClass = 'fa-circle text-success';
 			}
 			var rate = Math.round(value * 100 / max);
-			return (formatter ? formatter(value) : value) + '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
-				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>';
+			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
+				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
 		},
 
 		/**
 		 * Format the storage size.
 		 */
-		formatStorage: function (sizeGB, mode) {
+		formatStorage: function (sizeGB, mode, data) {
 			return mode === 'sort' ? sizeGB : formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
 
