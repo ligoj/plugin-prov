@@ -363,7 +363,18 @@ define(function () {
 		 * Format the storage size.
 		 */
 		formatStorage: function (sizeGB, mode, data) {
-			return mode === 'sort' ? sizeGB : formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+			if (mode === 'sort') {
+				return sizeGB;
+			}
+			if (data && data.price.type.minimal > sizeGB) {
+				// Enable efficiency display
+				return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
+					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
+				});
+			}
+			
+			// No efficiency rendering can be done
+			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
