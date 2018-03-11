@@ -266,7 +266,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 12 month"),
 				"C11", "instance2", 102.48, "1y");
 		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 13 month"),
+				"C9", "instance2", 117.12, "on-demand2");
+		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 23 month"),
 				"C11", "instance2", 102.48, "1y");
+		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 24 month"),
+				"C11", "instance2", 102.48, "1y");
+		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 25 month"),
+				"C9", "instance2", 117.12, "on-demand2");
 		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month"), "C9",
 				"instance2", 29.28, "on-demand2");
 		assertPrice(iResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 12 month"), "C9",
@@ -857,6 +863,28 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
 		Assertions.assertEquals(InternetAccess.PUBLIC, configuration.getInstances().get(7).getInternet());
 		checkCost(configuration.getCost(), 4950.846, 7400.446, false);
+	}
+
+	@Test
+	public void uploadDefaultUsage() throws IOException {
+		iResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os" }, false, null, 1, "UTF-8");
+		final QuoteVo configuration = resource.getConfiguration(subscription);
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	public void uploadUsagePerEntry() throws IOException {
+		iResource.upload(subscription,
+				new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time 12 month".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 13 month", 1, "UTF-8");
+		final QuoteVo configuration = resource.getConfiguration(subscription);
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals("1y", configuration.getInstances().get(7).getPrice().getTerm().getName());
+		checkCost(configuration.getCost(), 4807.238, 7256.838, false);
 	}
 
 	@Test

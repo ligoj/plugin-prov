@@ -56,7 +56,7 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	@Query("SELECT ip,                                               "
 			+ " CASE                                                 "
 			+ "  WHEN t.period = 0 THEN (ip.cost * :rate * :duration)"
-			+ "  WHEN t.period <= :duration THEN ip.costPeriod       "
+			+ "  WHEN :duration <= t.period THEN ip.costPeriod       "
 			+ "  WHEN MOD (:duration, t.period) = 0 THEN ((:duration/t.period) * ip.costPeriod)"
 			+ "  ELSE (((:duration/t.period) +1) * ip.costPeriod) END AS totalCost,"
 			+ " CASE WHEN t.period = 0 THEN (ip.cost * :rate) ELSE ip.cost END AS monthlyCost"

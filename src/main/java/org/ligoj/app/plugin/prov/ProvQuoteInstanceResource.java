@@ -559,8 +559,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
 
-		vo.setUsage(upload.getUsage() == null ? usage
-				: resource.findConfiguredByName(usageRepository, upload.getUsage(), subscription).getName());
+		vo.setUsage(Optional.ofNullable(upload.getUsage())
+				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(null));
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
