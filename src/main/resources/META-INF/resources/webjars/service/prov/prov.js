@@ -430,11 +430,11 @@ define(function () {
 		 * Storage type key to markup/label mapping.
 		 */
 		storageLatency: {
-			'highest': 'fa fa-clock-o fa-fw',
-			'high': 'fa fa-snowflake-o fa-fw',
-			'medium': 'fa fa-thermometer-empty fa-fw',
-			'low': 'fa fa-thermometer-three-quarters fa-fw',
-			'lowest': 'fa fa-thermometer-full fa-fw',
+			'lowest': 'fa fa-star-o text-danger fa-fw',
+			'low': 'fa fa-star-half-o text-danger fa-fw',
+			'medium': 'fa fa-star-half-o fa-fw',
+			'good': 'fa fa-star text-primary fa-fw',
+			'best': 'fa fa-star text-success fa-fw',
 			'invalid': 'fa fa-ban fa-fw'
 		},
 
