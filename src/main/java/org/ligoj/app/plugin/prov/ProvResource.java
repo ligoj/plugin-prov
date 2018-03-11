@@ -251,7 +251,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Refresh the cost without updating the resources constraints.
 	 */
-	protected FloatingCost updateCost(final ProvQuote entity) {
+	private FloatingCost updateCost(final ProvQuote entity) {
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCost(0d);
 		entity.setMaxCost(0d);
@@ -320,6 +320,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 * 
+	 * @param repository
+	 *            The repository managing the entity to find.
 	 * @param id
 	 *            The requested configured identifier.
 	 * @param subscription

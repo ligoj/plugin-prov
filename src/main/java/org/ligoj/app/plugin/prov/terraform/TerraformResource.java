@@ -85,8 +85,8 @@ public class TerraformResource {
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:.*.tf}")
-	public Response getTerraform(@PathParam("subscription") final int subscription, @PathParam("file") final String file)
-			throws IOException {
+	public Response getTerraform(@PathParam("subscription") final int subscription,
+			@PathParam("file") final String file) throws IOException {
 		final Terraforming terra = getTerraform(subscription);
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		terra.terraform(output, subscription, resource.getConfiguration(subscription));
@@ -94,8 +94,7 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Get the log of the current or last Terraform execution of a given
-	 * subscription.
+	 * Get the log of the current or last Terraform execution of a given subscription.
 	 * 
 	 * @param subscription
 	 *            The related subscription.
@@ -157,13 +156,20 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Prepare the Terraform environment to apply the new environment. Note there is
-	 * no concurrency check.
+	 * Prepare the Terraform environment to apply the new environment. Note there is no concurrency check.
+	 * 
+	 * @param subscription
+	 *            The subscription related to this operation.
+	 * @param terra
+	 *            The Terraforming implementation.
+	 * @param quote
+	 *            The full quote details.
+	 * @return The generated Terraform file.
 	 */
-	protected File applyTerraform(final Subscription entity, final Terraforming terra, final QuoteVo configuration)
+	protected File applyTerraform(final Subscription subscription, final Terraforming terra, final QuoteVo quote)
 			throws IOException, InterruptedException {
-		final File logFile = toFile(entity, MAIN_LOG);
-		final File tfFile = toFile(entity, "main.tf");
+		final File logFile = toFile(subscription, MAIN_LOG);
+		final File tfFile = toFile(subscription, "main.tf");
 
 		// Clear the previous generated files
 		FileUtils.deleteQuietly(logFile);
@@ -173,7 +179,7 @@ public class TerraformResource {
 		boolean failed = true;
 		try {
 			// Start the task
-			runner.startTask(entity.getNode().getId(), t -> t.setStep(null));
+			runner.startTask(subscription.getNode().getId(), t -> t.setStep(null));
 
 			// Generate and persist the main Terraform file.
 			// This file is isolated from the other subscription, inside the
@@ -184,15 +190,16 @@ public class TerraformResource {
 			out = new FileWriter(logFile);
 
 			// Write the Terraform configuration in the 'main.tf' file
-			terra.terraform(mainTf, entity.getId(), configuration);
+			terra.terraform(mainTf, subscription.getId(), quote);
 
 			// Execute the Terraform commands
-			executeTerraform(entity, out, terraformUtils.getTerraformSequence(), terra.commandLineParameters(entity.getId()));
+			executeTerraform(subscription, out, terraformUtils.getTerraformSequence(),
+					terra.commandLineParameters(subscription.getId()));
 			failed = false;
 		} finally {
 			IOUtils.closeQuietly(mainTf);
 			IOUtils.closeQuietly(out);
-			runner.endTask(entity.getNode().getId(), failed);
+			runner.endTask(subscription.getNode().getId(), failed);
 		}
 
 		return logFile;
@@ -204,8 +211,7 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Execute the given Terraform commands. Note there is no concurrency check for
-	 * now.
+	 * Execute the given Terraform commands. Note there is no concurrency check for now.
 	 */
 	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands,
 			final String... additionalParameters) throws InterruptedException, IOException {
@@ -254,14 +260,12 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Check the subscription is visible, then check the associated provider support
-	 * Terraform generation and return the corresponding {@link Terraforming}
-	 * instance.
+	 * Check the subscription is visible, then check the associated provider support Terraform generation and return the
+	 * corresponding {@link Terraforming} instance.
 	 * 
 	 * @param subscription
 	 *            The related subscription.
-	 * @return {@link Terraforming} instance of this subscription. Never
-	 *         <code>null</code>.
+	 * @return {@link Terraforming} instance of this subscription. Never <code>null</code>.
 	 */
 	private Terraforming getTerraform(final int subscription) {
 		// Check the provider support the Terraform generation
@@ -269,7 +273,13 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Return the file reference from the given subscription.
+	 * Return the file reference from the given subscription. The file will relative to the related subscription.
+	 * 
+	 * @param subscription
+	 *            The subscription related to this operation.
+	 * @param file
+	 *            The requested last fragment of the requested file.
+	 * @return The Terraform resource file scoped by the given subscription.
 	 */
 	protected File toFile(final Subscription subscription, final String file) throws IOException {
 		// TODO Subscription identifier is implicit starting from API 1.0.9

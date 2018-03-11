@@ -47,6 +47,14 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 
 	/**
 	 * Check the lookup succeed.
+	 * 
+	 * @param resourceType
+	 *            The resource type you are looking for. Will be used to generate the error when not found.
+	 * @param lookup
+	 *            The expected not null lookup.
+	 * @param context
+	 *            The key identifier of the lookup. Will be used to generate the error when not found.
+	 * @return The price of the not <code>null</code> lookup. Never <code>null</code>.
 	 */
 	protected <T extends AbstractPrice<? extends AbstractNamedEntity<?>>> T validateLookup(final String resourceType,
 			final AbstractComputedPrice<T> lookup, final String context) {
@@ -57,10 +65,18 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	}
 
 	/**
-	 * Delete a configured entity and update the total cost of the associated quote.
+	 * Update the total cost of the associated quote, and then delete a configured entity.
+	 * 
+	 * @param repository
+	 *            The repository managing the entity to delete.
+	 * @param id
+	 *            The entity's identifier to delete.
+	 * @param callback
+	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
+	 * @return The new cost.
 	 */
-	protected <T extends AbstractQuoteResource> FloatingCost deleteAndUpdateCost(final RestRepository<T, Integer> repository,
-			final Integer id, final Consumer<T> callback) {
+	protected <T extends AbstractQuoteResource> FloatingCost deleteAndUpdateCost(
+			final RestRepository<T, Integer> repository, final Integer id, final Consumer<T> callback) {
 		// Check the entity exists and is visible
 		final T entity = resource.findConfigured(repository, id);
 
@@ -92,10 +108,10 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	}
 
 	/**
-	 * Compute the monthly cost of a quote instance.
+	 * Compute the monthly cost of the given resource.
 	 * 
-	 * @param qi
-	 *            The quote to evaluate.
+	 * @param qr
+	 *            The {@link Costed} to evaluate.
 	 * @return The cost of this instance.
 	 */
 	protected abstract FloatingCost getCost(final C qr);
