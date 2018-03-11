@@ -429,8 +429,8 @@ define(function () {
 		/**
 		 * Storage type key to markup/label mapping.
 		 */
-		storageLatency: {
-			'lowest': 'fa fa-star-o text-danger fa-fw',
+		rates: {
+			'worst': 'fa fa-star-o text-danger fa-fw',
 			'low': 'fa fa-star-half-o text-danger fa-fw',
 			'medium': 'fa fa-star-half-o fa-fw',
 			'good': 'fa fa-star text-primary fa-fw',
@@ -484,7 +484,7 @@ define(function () {
 		formatStorageLatency: function (latency, mode, clazz) {
 			var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
 			var text = id && current.$messages['service:prov:storage-latency-' + id];
-			clazz = current.storageLatency[id] + (typeof clazz === 'string' ? clazz : '');
+			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
 			if (mode === 'sort') {
 				return text;
 			}
