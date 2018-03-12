@@ -530,15 +530,15 @@
 								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-rate-help}}"></i></span>
 								<div class="input-group">
 									<input type="number" min="8" max="732" id="usage-month" class="form-control input-mini" required />
-									<div class="input-group-addon">/{{month}}</div>
+									<div class="input-group-addon">{{hours}}/{{month}}</div>
 								</div>
 								<div class="input-group">
 									<input type="number" min="2" max="168" id="usage-week" class="form-control input-mini" required />
-									<div class="input-group-addon">/{{week}}</div>
+									<div class="input-group-addon">{hours}}/{{week}}</div>
 								</div>
 								<div class="input-group">
 									<input type="number" min="1" max="24" id="usage-day" class="form-control input-mini" required />
-									<div class="input-group-addon">/{{day}}</div>
+									<div class="input-group-addon">{{hours}}/{{day}}</div>
 								</div>
 							</div>
 						</div>
