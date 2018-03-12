@@ -1077,30 +1077,31 @@ define(function () {
 			var $input = $(this);
 			var id = $input.attr('id'); 
 			var val = $input.val();
-			if (id === 'usage-month') {
-				rate = val / 7.32;
-			} else if (id === 'usage-week') {
-				rate = val / 1.68;
-			} else if (id === 'usage-day') {
-				rate = val / 0.24;
-			} else {
-				rate = val;
-			}
-			if (rate) {
-				rate = parseInt(rate, 10);
+			var percent = 100; // [1-100]
+			if (val) {
+				val = parseInt(val, 10);
+				if (id === 'usage-month') {
+					percent = val / 7.32;
+				} else if (id === 'usage-week') {
+					percent = val / 1.68;
+				} else if (id === 'usage-day') {
+					percent = val / 0.24;
+				} else {
+					percent = val;
+				}
 				if (id !== 'usage-day') {
-					_('usage-day').val(Math.ceil(rate * 24 / 100));
+					_('usage-day').val(Math.ceil(percent * 0.24));
 				}
 				if (id !== 'usage-month') {
-					_('usage-month').val(Math.ceil(rate * 732.0 / 100));
+					_('usage-month').val(Math.ceil(percent * 7.32));
 				}
 				if (id !== 'usage-week') {
-					_('usage-week').val(Math.ceil(rate * 168.0 / 100));
+					_('usage-week').val(Math.ceil(percent * 1.68));
 				}
 				if (id !== 'usage-rate') {
-					_('usage-rate').val(Math.ceil(rate));
+					_('usage-rate').val(Math.ceil(percent));
 				}
-				current.updateD3UsageRate(rate);
+				current.updateD3UsageRate(percent);
 			}
 		},
 
