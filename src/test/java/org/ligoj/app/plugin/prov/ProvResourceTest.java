@@ -130,7 +130,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(6, status.getNbPublicAccess());
 		Assertions.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
 		Assertions.assertEquals(175, status.getTotalStorage());
-		Assertions.assertEquals("region-1", status.getLocation());
+		Assertions.assertEquals("region-1", status.getLocation().getName());
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(vo.getCreatedDate());
 		Assertions.assertNotNull(vo.getLastModifiedBy());
 		Assertions.assertNotNull(vo.getLastModifiedDate());
-		Assertions.assertEquals("region-1", vo.getLocation());
+		Assertions.assertEquals("region-1", vo.getLocation().getName());
 
 		// Check compute
 		final List<ProvQuoteInstance> instances = vo.getInstances();
@@ -354,10 +354,17 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(cost, 5799.465, 9669.918, false);
 		ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
-		Assertions.assertEquals("region-1", quote2.getLocation().getName());
+
+		// Check location
+		final ProvLocation location = quote2.getLocation();
+		Assertions.assertEquals("region-1", location.getName());
+		Assertions.assertEquals("west", location.getPlacement());
+		Assertions.assertEquals("840", location.getCountryM49());
+		Assertions.assertEquals("021", location.getRegionM49());
+		Assertions.assertEquals("019", location.getContinentM49());
 
 		// CHeck the association on the quote
-		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation());
+		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation().getName());
 
 		// Check the "region-1" is the one related to our provider
 		Assertions.assertEquals("service:prov:test", repository.findByName("name1").getLocation().getNode().getId());

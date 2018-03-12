@@ -150,7 +150,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		DescribedBean.copy(vo, entity);
 		entity.setConfiguration(configuration);
 		entity.setPrice(ipRepository.findOneExpected(vo.getPrice()));
-		entity.setLocation(resource.findLocation(subscription.getId(), vo.getLocation()));
+		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription.getId())).orElse(null));
 		entity.setOs(ObjectUtils.defaultIfNull(vo.getOs(), entity.getPrice().getOs()));

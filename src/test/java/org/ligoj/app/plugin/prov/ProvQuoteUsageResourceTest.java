@@ -103,7 +103,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(id, entity.getId().intValue());
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals(75, entity.getRate().intValue());
-		Assertions.assertEquals(9, entity.getConfiguration().getUsages().size());
+		Assertions.assertEquals(12, entity.getConfiguration().getUsages().size());
 		entity.getConfiguration().setUsages(Collections.emptyList());
 	}
 
@@ -219,7 +219,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	@Test
 	public void findAll() {
 		final TableItem<ProvUsage> usages = uResource.findAll(subscription, newUriInfo());
-		Assertions.assertEquals(8, usages.getData().size());
+		Assertions.assertEquals(10, usages.getData().size());
 		Assertions.assertEquals("Dev", usages.getData().get(0).getName());
 		Assertions.assertEquals("Dev 11 month", usages.getData().get(1).getName());
 		Assertions.assertEquals(subscription,

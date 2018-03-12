@@ -145,7 +145,7 @@
 }
 #prov-location-summary .form-group {
 	left: 20px;
-	width: 250px;
+	width: 300px;
 	top: 67px
 }
 #prov-location-summary .form-group>div {
@@ -232,4 +232,12 @@ label[for="instance-max-variable-cost"] {
     font-weight: 400;
     line-height: 16em;
     fill: #354499;
+}
+
+.prov-location-api {
+	position: absolute;
+	right: 0;
+	white-space: nowrap;
+	margin-top: -10px;
+	margin-right: 5px;
 }

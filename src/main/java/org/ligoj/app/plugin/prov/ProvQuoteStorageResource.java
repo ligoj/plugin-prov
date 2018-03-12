@@ -159,7 +159,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		final ProvQuote quote = getQuoteFromSubscription(subscription);
 		final String node = quote.getSubscription().getNode().getRefined().getId();
 		entity.setConfiguration(quote);
-		entity.setLocation(resource.findLocation(subscription, vo.getLocation()));
+		entity.setLocation(resource.findLocation(node, vo.getLocation()));
 		entity.setPrice(findByTypeName(subscription, vo.getType(), vo.getLocation(), quote));
 		entity.setInstanceCompatible(vo.getInstanceCompatible());
 		entity.setLatency(vo.getLatency());

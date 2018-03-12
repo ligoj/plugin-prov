@@ -3,6 +3,7 @@ package org.ligoj.app.plugin.prov;
 import java.util.List;
 
 import org.ligoj.app.iam.SimpleUserOrg;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
@@ -36,7 +37,7 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * Default location of this quote.
 	 */
-	private String location;
+	private ProvLocation location;
 	
 	/**
 	 * Default usage of this quote. May be <code>null</code>.

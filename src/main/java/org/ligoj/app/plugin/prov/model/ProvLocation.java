@@ -17,6 +17,9 @@ import lombok.Setter;
 
 /**
  * Location for a VM provider. The name attribute is an unique location name within the VM provider.
+ * 
+ * @see <a href="https://unstats.un.org/unsd/methodology/m49/">unstats.un.org</a>
+ * @see <a href="https://en.wikipedia.org/wiki/UN_M.49">UN_M.49</a>
  */
 @Getter
 @Setter
@@ -31,5 +34,41 @@ public class ProvLocation extends AbstractDescribedEntity<Integer> {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
+
+	/**
+	 * Longitude of the data center.
+	 */
+	private Double longitude;
+
+	/**
+	 * Latitude of the data center
+	 */
+	private Double latitude;
+
+	/**
+	 * Region or city name inside the country. Values: Florida, Sydney, Beijing, Paris, ...
+	 */
+	private String subRegion;
+
+	/**
+	 * Placement inside the country, not at region or continent level. Values : north, west, east, south, central,
+	 * northwest,...
+	 */
+	private String placement;
+
+	/**
+	 * M49 country code: 840 (USA), 250 (France), ...
+	 */
+	private Integer countryM49;
+
+	/**
+	 * M49 region code: 154 (Northern Europe), 021 (Northern America), 155 (Western Europe)...
+	 */
+	private Integer regionM49;
+
+	/**
+	 * M49 continent code: 142 (Asia), 150 (Europe), 019 (Americas),...
+	 */
+	private Integer continentM49;
 
 }

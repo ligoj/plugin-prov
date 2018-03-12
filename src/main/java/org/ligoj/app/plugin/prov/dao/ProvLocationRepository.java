@@ -14,45 +14,34 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	/**
 	 * Return all {@link ProvLocation} related to given subscription identifier.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
+	 * @param node
+	 *            The node identifier to match.
 	 * @param criteria
 	 *            The optional criteria to match for the name.
 	 * @param pageRequest
 	 *            The page request for ordering.
 	 * @return The filtered {@link ProvLocation}.
 	 */
-	@Query("SELECT pl FROM ProvLocation pl, Subscription s INNER JOIN s.node AS sn INNER JOIN pl.node AS pln"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(pln.id, ':%')"
-			+ " AND (:criteria IS NULL OR UPPER(pl.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))"
-			+ " ORDER BY UPPER(pl.name)")
-	Page<ProvLocation> findAll(int subscription, String criteria, Pageable pageRequest);
-
-	/**
-	 * Return the {@link ProvLocation} by its identifier and also valid for the
-	 * given subscription.
-	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param id
-	 *            The entity's identifier to match.
-	 * @return The entity or <code>null</code>.
-	 */
-	@Query("SELECT pl FROM ProvLocation pl, Subscription s INNER JOIN s.node AS sn INNER JOIN pl.node AS pln"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(pln.id, ':%') AND pl.id = :id")
-	ProvLocation findById(int subscription, Integer id);
+	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
+			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%'))"
+			+ " AND (:criteria IS NULL                                              "
+			+ "   OR UPPER(pl.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%')"
+			+ "   OR UPPER(pl.description) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%')"
+			+ "   OR UPPER(pl.subRegion) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))"
+			+ " AND EXISTS (SELECT 1 FROM ProvInstancePrice ip WHERE ip.location = pl)")
+	Page<ProvLocation> findAll(String node, String criteria, Pageable pageRequest);
 
 	/**
 	 * Return the {@link ProvLocation} by it's name, ignoring the case.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
+	 * @param node
+	 *            The node identifier to match.
 	 * @param name
 	 *            The name to match.
 	 * 
 	 * @return The entity or <code>null</code>.
 	 */
-	@Query("SELECT pl FROM ProvLocation pl, Subscription s INNER JOIN s.node AS sn INNER JOIN pl.node AS pln"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(pln.id, ':%') AND UPPER(pl.name) = UPPER(:name)")
-	ProvLocation findByName(int subscription, String name);
+	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
+			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%')) AND UPPER(pl.name) = UPPER(:name)")
+	ProvLocation findByName(String node, String name);
 }

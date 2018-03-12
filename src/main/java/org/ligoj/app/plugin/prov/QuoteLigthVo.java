@@ -1,5 +1,6 @@
 package org.ligoj.app.plugin.prov;
 
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -50,6 +51,6 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	/**
 	 * The main location of this quote.
 	 */
-	private String location;
+	private ProvLocation location;
 
 }

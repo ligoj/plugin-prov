@@ -35,7 +35,6 @@ import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
-import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -100,8 +99,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvUsageRepository usageRepository;
 
 	static {
-		ORM_COLUMNS.put("id", "id");
 		ORM_COLUMNS.put("name", "name");
+		ORM_COLUMNS.put("description", "description");
 	}
 
 	@Override
@@ -137,8 +136,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisibleSubscription(subscription);
-		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(subscription,
+		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(node,
 				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
 				Function.identity());
 	}
@@ -148,19 +147,19 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 * 
-	 * @param subscription
-	 *            A visible subscription for the current principal.
+	 * @param node
+	 *            The provider node.
 	 * @param name
 	 *            The location name. Case is insensitive.
 	 * @return The visible location for the related subscription or <code>null</code>.
 	 */
-	public ProvLocation findLocation(final int subscription, final String name) {
+	public ProvLocation findLocation(final String node, final String name) {
 		if (StringUtils.isEmpty(name)) {
 			// No check
 			return null;
 		}
 		// Find the scoped location
-		return assertFound(locationRepository.findByName(subscription, name), name);
+		return assertFound(locationRepository.findByName(node, name), name);
 	}
 
 	/**
@@ -175,7 +174,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final ProvQuote entity = repository.getCompute(subscription.getId());
 		DescribedBean.copy(entity, vo);
 		vo.copyAuditData(entity, toUser());
-		vo.setLocation(Optional.ofNullable(entity.getLocation()).map(INamableBean::getName).orElse(null));
+		vo.setLocation(entity.getLocation());
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(repository.getStorage(subscription.getId()));
 		vo.setUsage(entity.getUsage());
@@ -204,7 +203,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setNbPublicAccess(((Long) compute[4]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
-		vo.setLocation(entity.getLocation().getName());
+		vo.setLocation(entity.getLocation());
 		return vo;
 	}
 
@@ -226,7 +225,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setDescription(quote.getDescription());
 
 		// TODO Check the location/usage change to avoid useless compute
-		entity.setLocation(findLocation(subscription, quote.getLocation()));
+		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), quote.getLocation()));
 		entity.setUsage(Optional.ofNullable(quote.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
 		return refresh(entity);

@@ -164,7 +164,7 @@ define(function () {
 
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
-		
+
 		/**
 		 * Format instance term detail
 		 */
@@ -178,7 +178,7 @@ define(function () {
 			// Instance details are available
 			var details = '<i class=\'fa fa-clock-o\'></i> ';
 			if (term.period) {
-				details += term.period + 'months period';
+				details += term.period + ' months period';
 			} else {
 				details = 'on demand, hourly (or less) billing period';
 			}
@@ -188,7 +188,7 @@ define(function () {
 
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
-		
+
 
 		/**
 		 * Format instance quantity
@@ -372,7 +372,7 @@ define(function () {
 					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
 				});
 			}
-			
+
 			// No efficiency rendering can be done
 			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
@@ -794,7 +794,7 @@ define(function () {
 
 		initializeUpload: function () {
 			var $popup = _('popup-prov-instance-import');
-			_('csv-headers-included').on('change', function() {
+			_('csv-headers-included').on('change', function () {
 				if ($(this).is(':checked')) {
 					// Useless input headers
 					_('csv-headers').closest('.form-group').addClass('hidden');
@@ -906,7 +906,7 @@ define(function () {
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
-			
+
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
 			_('prov-terraform-execute').on('click', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
@@ -1072,10 +1072,10 @@ define(function () {
 			})($usageSelect2.originalSelect);
 			_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
 		},
-		
-		synchronizeUsage: function() {
+
+		synchronizeUsage: function () {
 			var $input = $(this);
-			var id = $input.attr('id'); 
+			var id = $input.attr('id');
 			var val = $input.val();
 			var percent = 100; // [1-100]
 			if (val) {
@@ -1109,7 +1109,23 @@ define(function () {
 		 * Location Select2 configuration.
 		 */
 		locationSelect2: function (placeholder) {
-			return current.genericSelect2(placeholder, current.locationToText, 'location');
+			return current.genericSelect2(placeholder, current.locationToHtml, 'location', null, current.orderByName, 100);
+		},
+
+		/**
+		 * Order the array items by their 'text'
+		 */
+		orderByName: function(data) {
+			return data.sort(function (a, b) {
+				a = a.text.toLowerCase();
+				b = b.text.toLowerCase();
+				if (a > b) {
+					return 1;
+				} else if (a < b) {
+					return -1;
+				}
+				return 0;
+			});
 		},
 
 		/**
@@ -1132,7 +1148,8 @@ define(function () {
 		/**
 		 * Generic Ajax Select2 configuration.
 		 */
-		genericSelect2: function (placeholder, renderer, path, rendererResult) {
+		genericSelect2: function (placeholder, renderer, path, rendererResult, orderCallback, pageSize) {
+			pageSize = pageSize || 15;
 			return {
 				formatSelection: renderer,
 				formatResult: rendererResult || renderer,
@@ -1153,12 +1170,12 @@ define(function () {
 						return {
 							'search[value]': term, // search term
 							'q': term, // search term
-							'rows': 15,
+							'rows': pageSize,
 							'page': page,
-							'start': (page - 1) * 15,
+							'start': (page - 1) * pageSize,
 							'filters': '{}',
 							'sidx': 'name',
-							'length': 15,
+							'length': pageSize,
 							'columns[0][name]': 'name',
 							'order[0][column]': 0,
 							'order[0][dir]': 'asc',
@@ -1171,8 +1188,11 @@ define(function () {
 							result.push(this);
 							this.text = renderer(this);
 						});
+						if (orderCallback) {
+							orderCallback(result);
+						}
 						return {
-							more: data.recordsFiltered > page * 10,
+							more: data.recordsFiltered > page * pageSize,
 							results: result
 						};
 					}
@@ -1351,10 +1371,17 @@ define(function () {
 		},
 
 		/**
-		 * Location text renderer.
+		 * Location html renderer.
 		 */
-		locationToText: function (location) {
-			return location.text || location.name || location;
+		locationToHtml: function (location) {
+			var id = location.name;
+			debugger;
+			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
+			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
+			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
+			var name = m49 || id;
+			name += (placement && placement !== name) ? ' <span class="small">(' + placement + ')</span>' : '';
+			return (subRegion || m49) ? name + '<span class="pull-right x-small prov-location-api">' + id + '</span>' : id;
 		},
 
 		/**
@@ -2205,16 +2232,16 @@ define(function () {
 		},
 
 		contextDonut: null,
-		
+
 		/**
 		 * Donut of usage
 		 * @param {integer} rate The rate percent tage 1-100%
 		 */
-		updateD3UsageRate: function(rate) {
+		updateD3UsageRate: function (rate) {
 			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
 				if (current.contextDonut) {
 					donut.update(current.contextDonut, rate);
-				} else {	
+				} else {
 					current.contextDonut = donut.create("#usage-chart", rate, 250, 250);
 				}
 			});

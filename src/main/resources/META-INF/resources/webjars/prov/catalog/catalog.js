@@ -265,7 +265,7 @@ define(['sparkline'], function () {
 					// Continue polling for this catalog
 					current.scheduleUploadStep(node);
 				},
-				error: function() {
+				error: function () {
 					current.unscheduleUploadStep(node);
 				}
 			});
