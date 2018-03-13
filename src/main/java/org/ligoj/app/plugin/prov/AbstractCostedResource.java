@@ -12,6 +12,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
@@ -116,4 +117,10 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 */
 	protected abstract FloatingCost getCost(final C qr);
 
+	/**
+	 * Return the effective location applied to the given resource. Never <code>null</code>
+	 */
+	protected ProvLocation getLocation(final AbstractQuoteResource qr) {
+		return qr.getLocation() == null ? qr.getConfiguration().getLocation() : qr.getLocation();
+	}
 }

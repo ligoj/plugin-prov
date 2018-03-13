@@ -2064,7 +2064,7 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (updatedCost) {
-									current.saveAndUpdateCosts('storage', updatedCost, data, suggest);
+									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, qi.location);
 
 									// Keep the focus on this UI after the redraw of the row
 									$(function () {

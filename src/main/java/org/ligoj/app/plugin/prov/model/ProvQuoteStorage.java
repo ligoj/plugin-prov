@@ -50,7 +50,7 @@ public class ProvQuoteStorage extends AbstractQuoteResource {
 	private Integer size;
 
 	/**
-	 * Related storage with the price.
+	 * Resolved storage price configuration.
 	 */
 	@NotNull
 	@ManyToOne

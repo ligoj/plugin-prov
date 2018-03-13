@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
-import org.ligoj.app.MatcherUtil;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
@@ -43,7 +42,6 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
-import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -359,9 +357,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		final ProvLocation location = quote2.getLocation();
 		Assertions.assertEquals("region-1", location.getName());
 		Assertions.assertEquals("west", location.getPlacement());
-		Assertions.assertEquals("840", location.getCountryM49());
-		Assertions.assertEquals("021", location.getRegionM49());
-		Assertions.assertEquals("019", location.getContinentM49());
+		Assertions.assertEquals(840, location.getCountryM49().intValue());
+		Assertions.assertEquals(21, location.getRegionM49().intValue());
+		Assertions.assertEquals(19, location.getContinentM49().intValue());
+		Assertions.assertEquals("Virginia", location.getSubRegion());
 
 		// CHeck the association on the quote
 		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation().getName());
@@ -401,34 +400,6 @@ public class ProvResourceTest extends AbstractAppTest {
 		final ProvQuote quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-4", quote2.getLocation().getName());
-	}
-
-	/**
-	 * Update the location of the quote, impact some storages. And block some storages associated to instances not
-	 * located on the same location.
-	 */
-	@Test
-	public void updateLocationKoDifferentStorageAndQILocation() {
-		final ProvLocation location = locationRepository.findByName("region-1");
-
-		// Change the required location of all quote instance
-		qiRepository.findAll().forEach(ip -> ip.setLocation(location));
-
-		// Make sure there is no more world wild prices for instance, but keep
-		// the
-		// existing global storage locations
-		em.createQuery("FROM ProvInstancePrice WHERE location IS NULL", ProvInstancePrice.class).getResultList()
-				.forEach(ip -> ip.setLocation(location));
-		em.flush();
-		em.clear();
-
-		final QuoteEditionVo quote = new QuoteEditionVo();
-		quote.setName("name1");
-		quote.setDescription("description1");
-		quote.setLocation("region-2");
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			resource.update(subscription, quote);
-		}), "storage", "no-match-storage");
 	}
 
 	/**
@@ -547,7 +518,9 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void findLocations() {
 		final TableItem<ProvLocation> locations = resource.findLocations(subscription, newUriInfo());
-		Assertions.assertEquals(3, locations.getData().size());
+		
+		// 3 regions, but only 2 have associated prices
+		Assertions.assertEquals(2, locations.getData().size());
 		Assertions.assertEquals("region-1", locations.getData().get(0).getName());
 		Assertions.assertEquals("region-2", locations.getData().get(1).getName());
 		Assertions.assertEquals("region-4", locations.getData().get(2).getName());

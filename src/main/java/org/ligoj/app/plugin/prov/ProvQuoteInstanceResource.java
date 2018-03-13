@@ -48,12 +48,12 @@ import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
-import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -149,6 +149,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final String providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
 		entity.setConfiguration(configuration);
+		final ProvLocation oldLocation = getLocation(entity);
 		entity.setPrice(ipRepository.findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
@@ -173,8 +174,14 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		// Save and update the costs
 		final UpdatedCost cost = newUpdateCost(entity);
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
-		CollectionUtils.emptyIfNull(entity.getStorages())
-				.forEach(s -> storagesCosts.put(s.getId(), addCost(s, storageResource::updateCost)));
+		final boolean dirtyPrice = !oldLocation.equals(getLocation(entity));
+		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
+			if (dirtyPrice) {
+				// Location has changed, the available storage price is invalidated
+				storageResource.refresh(s);
+				storageResource.refreshCost(s);
+			}
+		}).forEach(s -> storagesCosts.put(s.getId(), addCost(s, storageResource::updateCost)));
 		cost.setRelatedCosts(storagesCosts);
 		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
 		return cost;
@@ -225,16 +232,13 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final ProvQuote quote = qi.getConfiguration();
 
 		// Find the lowest price
-		qi.setPrice(validateLookup("instance",
-				lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null, qi.isEphemeral(),
-						Optional.ofNullable(qi.getLocation()).map(INamableBean::getName).orElse(null),
-						getUsageName(qi)),
-				qi.getName()));
+		qi.setPrice(validateLookup("instance", lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(),
+				null, qi.isEphemeral(), getLocation(qi).getName(), getUsageName(qi)), qi.getName()));
 		return updateCost(qi);
 	}
 
 	/**
-	 * Return the usage applied to the given instance. May be <code>null</code>.
+	 * Return the effective usage applied to the given instance. May be <code>null</code>.
 	 */
 	private ProvUsage getUsage(final ProvQuoteInstance qi) {
 		return qi.getUsage() == null ? qi.getConfiguration().getUsage() : qi.getUsage();

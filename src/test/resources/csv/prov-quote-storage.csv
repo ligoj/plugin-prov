@@ -1,5 +1,5 @@
-quoteInstance.id!;price.id!;size;configuration.name;name;description;cost;maxCost;latency;optimized;instanceCompatible
-1;1;20;quote1;server1-root;server1-rootD;0;0;GOOD;IOPS;true
-1;2;10;quote1;server1-data;server1-dataD;0;0;MEDIUM;THROUGHPUT;true
-1;2;51;quote1;server1-temp;server1-tempD;0;0;MEDIUM;THROUGHPUT;true
+quoteInstance.name;price.id!;size;configuration.name;name;description;cost;maxCost;latency;optimized;instanceCompatible
+server1;1;20;quote1;server1-root;server1-rootD;0;0;GOOD;IOPS;true
+server1;2;10;quote1;server1-data;server1-dataD;0;0;MEDIUM;THROUGHPUT;true
+server1;2;51;quote1;server1-temp;server1-tempD;0;0;MEDIUM;THROUGHPUT;true
 ;1;13;quote1;shared-data;shared-dataD1;0;0;GOOD;IOPS;true

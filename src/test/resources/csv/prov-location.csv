@@ -1,6 +1,6 @@
-name;node.id;countryM49;regionM49;continentM49;placement
+name;node.id;countryM49;regionM49;continentM49;placement;subRegion
 region-1;service:prov:x
 region-3;service:prov:x
-region-1;service:prov:test;840;021;019;west
+region-1;service:prov:test;840;021;019;west;Virginia
 region-2;service:prov:test;840;021;019;north
 region-4;service:prov:test;250;155;150
