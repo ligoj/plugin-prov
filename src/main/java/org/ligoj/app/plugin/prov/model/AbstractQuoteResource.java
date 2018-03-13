@@ -7,10 +7,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
-import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,6 +51,5 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	 * Optional expected location for this resource.
 	 */
 	@ManyToOne
-	@JsonSerialize(using = ToNameSerializer.class)
 	private ProvLocation location;
 }

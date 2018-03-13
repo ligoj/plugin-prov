@@ -1575,13 +1575,14 @@ define(function () {
 			// Build the playload for business service
 			var suggest = {
 				price: _(type + '-price').select2('data'),
-				usage: _(type + '-usage').select2('data')
+				usage: _(type + '-usage').select2('data'),
+				location: _(type + '-location').select2('data')
 			};
 			var data = {
 				id: current.model.quote.id,
 				name: _(type + '-name').val(),
 				description: _(type + '-description').val(),
-				location: (_(type + '-location').select2('data') || {}).name,
+				location: (suggest.location || {}).name,
 				usage: (suggest.usage || {}).name,
 				subscription: current.model.subscription
 			};
@@ -1599,7 +1600,7 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage);
+					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.location);
 					$popup.modal('hide');
 				},
 				complete: function () {
@@ -1615,9 +1616,10 @@ define(function () {
 		 * @param {object} data The original data sent to the back-end.
 		 * @param {object} price The last know price suggest replacing the current price. When undefined, the original price is used.
 		 * @param {object} usage The last provided usage.
+		 * @param {object} location The last provided usage.
 		 * @return {object} The updated or created model.
 		 */
-		saveAndUpdateCosts: function (type, updatedCost, data, price, usage) {
+		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, location) {
 			var conf = current.model.configuration;
 			var id = updatedCost.id;
 			if (data.id) {
@@ -1637,6 +1639,7 @@ define(function () {
 			qx.price = (price || current.model.quote || qx).price;
 			qx.name = data.name;
 			qx.description = data.description;
+			qx.location = location;
 			qx.usage = usage;
 
 			// Specific data
