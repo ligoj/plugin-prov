@@ -124,7 +124,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	@Override
 	@GET
-	@Path("catalog/{node:service:prov:.+}")
+	@Path("catalog/{node:service:prov:[^/]+}")
 	public ImportCatalogStatus getTask(@PathParam("node") final String node) {
 		// Simple proxy with a different REST path
 		return LongTaskRunnerNode.super.getTask(nodeResource.checkWritableNode(node).getTool().getId());
