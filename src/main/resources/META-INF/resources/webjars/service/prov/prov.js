@@ -348,7 +348,7 @@ define(function () {
 			} else if (max / 1.65 > value) {
 				fullClass = 'fa-adjust fa-rotate-90 text-danger';
 			} else if (max / 1.5 > value) {
-				fullClass = 'fa-circle text-warning';
+				fullClass = 'fa-adjust fa-rotate-90 text-warning';
 			} else if (max / 1.3 > value) {
 				fullClass = 'fa-circle text-primary';
 			} else if (max / 1.01 > value) {
