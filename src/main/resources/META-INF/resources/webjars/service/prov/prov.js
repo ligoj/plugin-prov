@@ -1375,7 +1375,6 @@ define(function () {
 		 */
 		locationToHtml: function (location) {
 			var id = location.name;
-			debugger;
 			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
 			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
 			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
