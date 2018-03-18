@@ -6,7 +6,6 @@
 [![Build Status](https://semaphoreci.com/api/v1/ligoj/plugin-prov/branches/master/shields_badge.svg)](https://semaphoreci.com/ligoj/plugin-prov)
 [![Build Status](https://ci.appveyor.com/api/projects/status/u6i3563iv6f0omm7/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/ligoj/plugin-prov/badge.svg?branch=master)](https://coveralls.io/github/ligoj/plugin-prov?branch=master)
-[![Dependency Status](https://www.versioneye.com/user/projects/58caeda8dcaf9e0041b5b978/badge.svg?style=flat)](https://www.versioneye.com/user/projects/58caeda8dcaf9e0041b5b978)
 [![Quality Gate](https://sonarcloud.io/api/badges/gate?key=org.ligoj.plugin:plugin-prov)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-prov)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c815531da2f40dea89a57999ad7e5ca)](https://www.codacy.com/app/ligoj/plugin-prov?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ligoj/plugin-prov&amp;utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/ligoj/plugin-prov/badge)](https://www.codefactor.io/repository/github/ligoj/plugin-prov)
