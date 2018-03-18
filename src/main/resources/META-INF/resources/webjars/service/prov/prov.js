@@ -150,7 +150,7 @@ define(function () {
 			}
 			// Instance details are available
 			var details = type.description || '';
-			details += '<br><i class=\'fa fa-bolt fa-fw\'></i> ';
+			details += '<br><i class=\'fas fa-bolt fa-fw\'></i> ';
 			if (type.cpu) {
 				details += type.cpu;
 				details += ' ' + current.formatConstant(type.constant);
@@ -158,7 +158,7 @@ define(function () {
 				details += current.$messages['service:prov:instance-custom'];
 			}
 			if (type.ram) {
-				details += '<br><i class=\'fa fa-microchip fa-fw\'></i> ';
+				details += '<br><i class=\'fas fa-microchip fa-fw\'></i> ';
 				details += current.formatRam(type.ram);
 			}
 
@@ -176,7 +176,7 @@ define(function () {
 				return name;
 			}
 			// Instance details are available
-			var details = '<i class=\'fa fa-clock-o\'></i> ';
+			var details = '<i class=\'fas fa-clock\'></i> ';
 			if (term.period) {
 				details += term.period + ' months period';
 			} else {
@@ -344,7 +344,7 @@ define(function () {
 			var fullClass = null;
 			max = max || value || 1;
 			if (max / 2.0 > value) {
-				fullClass = 'fa-circle-o text-danger';
+				fullClass = 'fa-circle text-danger';
 			} else if (max / 1.65 > value) {
 				fullClass = 'fa-adjust fa-rotate-90 text-danger';
 			} else if (max / 1.5 > value) {
@@ -355,7 +355,7 @@ define(function () {
 				fullClass = 'fa-circle text-success';
 			}
 			var rate = Math.round(value * 100 / max);
-			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="fa ' + fullClass + '" data-toggle="tooltip" title="' +
+			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="fas ' + fullClass + '" data-toggle="tooltip" title="' +
 				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
 		},
 
@@ -426,8 +426,8 @@ define(function () {
 		 * OS key to markup/label mapping.
 		 */
 		os: {
-			'linux': ['Linux', 'fa fa-linux fa-fw'],
-			'windows': ['Windows', 'fa fa-windows fa-fw'],
+			'linux': ['Linux', 'fas fa-linux fa-fw'],
+			'windows': ['Windows', 'fas fa-windows fa-fw'],
 			'suse': ['SUSE', 'icon-suse fa-fw'],
 			'rhel': ['Red Hat Enterprise', 'icon-redhat fa-fw'],
 			'centos': ['CentOS', 'icon-centos fa-fw'],
@@ -438,30 +438,30 @@ define(function () {
 		 * Internet Access key to markup/label mapping.
 		 */
 		internet: {
-			'public': ['Public', 'fa fa-globe fa-fw'],
-			'private': ['Private', 'fa fa-lock fa-fw'],
-			'private_nat': ['NAT', 'fa fa-low-vision fa-fw']
+			'public': ['Public', 'fas fa-globe fa-fw'],
+			'private': ['Private', 'fas fa-lock fa-fw'],
+			'private_nat': ['NAT', 'fas fa-low-vision fa-fw']
 		},
 
 		/**
 		 * Storage type key to markup/label mapping.
 		 */
 		rates: {
-			'worst': 'fa fa-star-o text-danger fa-fw',
-			'low': 'fa fa-star-half-o text-danger fa-fw',
-			'medium': 'fa fa-star-half-o fa-fw',
-			'good': 'fa fa-star text-primary fa-fw',
-			'best': 'fa fa-star text-success fa-fw',
-			'invalid': 'fa fa-ban fa-fw'
+			'worst': 'far fa-star text-danger fa-fw',
+			'low': 'fas fa-star-half text-danger fa-fw',
+			'medium': 'fas fa-star-half fa-fw',
+			'good': 'fas fa-star text-primary fa-fw',
+			'best': 'fas fa-star text-success fa-fw',
+			'invalid': 'fas fa-ban fa-fw'
 		},
 
 		/**
 		 * Storage optimized key to markup/label mapping.
 		 */
 		storageOptimized: {
-			'throughput': 'fa fa-database fa-fw',
-			'durability': 'fa fa-archive fa-fw',
-			'iops': 'fa fa-flash fa-fw'
+			'throughput': 'fas fa-database fa-fw',
+			'durability': 'fas fa-archive fa-fw',
+			'iops': 'fas fa-flash fa-fw'
 		},
 
 		/**
@@ -1134,7 +1134,7 @@ define(function () {
 		usageSelect2: function (placeholder) {
 			return current.genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return usage.name + '<span class="pull-right small">(' + usage.rate + '%) ' +
-					'<a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="' + current.$messages.update + '" class="fa fa-fw fa-pencil"></i><a></span>';
+					'<a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="' + current.$messages.update + '" class="fas fa-fw fa-pencil-alt"></i><a></span>';
 			});
 		},
 
@@ -1943,7 +1943,7 @@ define(function () {
 			var allOss = {};
 			if (conf.instances.length) {
 				instances = {
-					name: '<i class="fa fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
+					name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
 					value: 0,
 					children: []
 				};
@@ -1951,7 +1951,7 @@ define(function () {
 			}
 			if (conf.storages.length) {
 				storages = {
-					name: '<i class="fa fa-database fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
+					name: '<i class="fas fa-database fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
 					value: 0,
 					children: []
 				};
@@ -2133,9 +2133,9 @@ define(function () {
 					orderable: false,
 					render: function () {
 						var link =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fa fa-pencil" data-toggle="tooltip" title="' +
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' +
 							current.$messages.update + '"></i></a>';
-						link += '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages.delete +
+						link += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete +
 							'"></i></a>';
 						return link;
 					}
@@ -2224,8 +2224,8 @@ define(function () {
 					orderable: false,
 					render: function () {
 						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fa fa-pencil" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						links += '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 						return links;
 					}
 				}]

@@ -13,7 +13,7 @@ define({
 	'service:prov:cpu-variable': 'Variable',
 	'service:prov:cpu-constant': 'Constant',
 	'service:prov:cpu-title': 'Système d\'exploitation',
-	'service:prov:cpu-help': 'Le CPU demandé. La meilleure instance correspondante à cette exigence peut inclure plus que cette quantité. Il est alors important de bien équilibrer la ressource (CPU/RAM) pour limiter cette perte.<div class=\'text-left\'><i class=\'fa fa-bolt fa-fw\'></i> CPU variable, dispose de crédit turbo.<br><i class=\'fa fa-minus fa-fw\'></i> CPU constant délivre une puissance continue.</div>',
+	'service:prov:cpu-help': 'Le CPU demandé. La meilleure instance correspondante à cette exigence peut inclure plus que cette quantité. Il est alors important de bien équilibrer la ressource (CPU/RAM) pour limiter cette perte.<div class=\'text-left\'><i class=\'fas fa-bolt fa-fw\'></i> CPU variable, dispose de crédit turbo.<br><i class=\'fas fa-minus fa-fw\'></i> CPU constant délivre une puissance continue.</div>',
 	'service:prov:ram': 'RAM',
 	'service:prov:ram-mega': 'Mo',
 	'service:prov:ram-giga': 'Go',

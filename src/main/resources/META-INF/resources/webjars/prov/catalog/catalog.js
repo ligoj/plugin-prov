@@ -77,10 +77,10 @@ define(['sparkline'], function () {
 						if (catalog.canImport) {
 							if (catalog.status.start && (catalog.status.end || 0) === 0) {
 								// Stop button
-								return '<a class="cancel"><i class="fa fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>'
+								return '<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>'
 							}
 							// Refresh button
-							return '<a class="import"><i class="fa fa-refresh" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+							return '<a class="import"><i class="fas fa-sync-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
 						}
 						// No update support
 						return '';
@@ -283,10 +283,10 @@ define(['sparkline'], function () {
 					// Update is finished
 					if (status.failed) {
 						// Failed
-						return '<i class="text-danger fa fa-circle-o"></i>';
+						return '<i class="text-danger far fa-circle"></i>';
 					}
 					// Success
-					return '<i class="text-success fa fa-circle-o"></i>';
+					return '<i class="text-success far fa-circle"></i>';
 				}
 
 				// Not finished
@@ -309,19 +309,19 @@ define(['sparkline'], function () {
 						return '';
 					}
 					// Started but not enough information to display a relevant pie chart
-					return '<i class="fa fa-circle-o-notch fa-spin"></i>';
+					return '<i class="fas fa-circle-notch fa-spin"></i>';
 				}
 				// Last case : never started
-				return '<i class="fa fa-circle-o"></i>';
+				return '<i class="far far-circle"></i>';
 			}
 
 			// No catalog update support
 			if (status.lastSuccess) {
 				// Fixed update date
-				return '<i class="fa fa-circle-o"></i>';
+				return '<i class="far far-circle"></i>';
 			}
 			// No information at all
-			return '<i class="fa fa-dot-circle-o"></i>';
+			return '<i class="far fa-dot-circle"></i>';
 		}
 	};
 	return current;

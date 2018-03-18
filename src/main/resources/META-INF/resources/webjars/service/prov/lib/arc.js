@@ -147,7 +147,7 @@ define(['d3', 'jquery'], function (d3, jQuery) {
 			this.tooltip = d3.select('body')
 				.append('div')
 				.attr('class', 'tooltip d3-tooltip tooltip-inner')
-				.html('<i class="fa icon-fixed-width icon-user"></i>');
+				.html('<i class="fas fa-fw fa-user"></i>');
 
 			this.generateArcs(chart, data);
 		},

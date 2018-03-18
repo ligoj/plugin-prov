@@ -5,20 +5,20 @@
 			<ul class="nav nav-pills" role="tablist">
 				<li class="pull-left row" id="prov-location-summary">
 					<div class="form-group">
-						<label class="control-label col-xs-1" for="quote-location"><i class="fa fa-map-marker" data-toggle="tooltip" title="{{quote-location}}"></i></label>
+						<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt" data-toggle="tooltip" title="{{quote-location}}"></i></label>
 						<div class="col-xs-10">
 							<input type="text" id="quote-location" class="form-control" required maxlength="50" />
 						</div>
 					</div>
 				</li>
-				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fa fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
+				<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i> {{{service:prov:instances-block}}} <span class="badge"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
 						<div class="summary">
-							 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fa fa-bolt"></i><span></span></span> 
-							 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fa fa-microchip"></i><span></span></span>
-							 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fa fa-globe"></i><span></span></span>
+							 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span></span></span> 
+							 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span></span></span>
+							 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span></span></span>
 						</div>
 					</a></li>
-				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fa fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span>
+				<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="fas fa-database"></i> {{{service:prov:storages-block}}} <span class="badge"></span>
 						<div class="summary">
 							<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
 						</div>
@@ -29,12 +29,12 @@
 						<div id="prov-sunburst"></div>
 						<div class="prov-usage-wrapper">
 							<div id="prov-usage"></div>
-							<label class="control-label col-" for="quote-usage"><i class="fa fa-clock-o fa-4x" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
+							<label class="control-label col-" for="quote-usage"><i class="fas fa-clock fa-4x" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
 							<div class="form-group">
 								<div class="col-">
 									<input type="text" id="quote-usage" class="form-control" />
 								</div>
-								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success col-"><i class="fa fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success col-"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
 							</div>
 						</div>	
 					</div>
@@ -42,13 +42,13 @@
 				<li class="pull-right prov-global-summary">
 					<h1 class="prov-project">
 						<span class="quote-name hidden-xs hidden-sm"></span>
-						<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="modal" data-target="#popup-prov-update"><i class="fa fa-pencil" data-toggle="tooltip" title="{{update}}"></i></span>
+						<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="modal" data-target="#popup-prov-update"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="{{update}}"></i></span>
 						<span class="hidden-xs hidden-sm"> / </span>
 						<span class="provider"></span>
 					</h1>
 					<h2 class="text-info prov-cost-wrapper">
 						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
-						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fa fa-refresh"></i></button>
+						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
 					</h2>
 				</li>
 			</ul>
@@ -65,7 +65,7 @@
 							<div class="form-group has-feedback">
 								<div class="col-xs-12 has-feedback">
 									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="prov-instances" />
-									<span class="fa fa-search form-control-feedback"></span>
+									<span class="fas fa-search form-control-feedback"></span>
 								</div>
 							</div>
 						</div>
@@ -74,16 +74,16 @@
 						<thead>
 							<tr>
 								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fa fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fa fa-bolt"></i> {{service:prov:cpu}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fa fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm"><i class="fa fa-clock-o"></i> {{service:prov:term}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm"><i class="far fa-clock"></i> {{service:prov:term}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:instance-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="fa fa-hdd-o"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:internet-title}}" class="hidden-xs icon"><i class="fa fa-fw fa-globe"></i></th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
-								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:internet-title}}" class="hidden-xs icon"><i class="fas fa-fw fa-globe"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+								<th><a class="delete-all"><i class="fas fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -104,7 +104,7 @@
 							<div class="form-group has-feedback">
 								<div class="col-xs-12 has-feedback">
 									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="prov-storages" />
-									<span class="fa fa-search form-control-feedback"></span>
+									<span class="fas fa-search form-control-feedback"></span>
 								</div>
 							</div>
 						</div>
@@ -113,14 +113,14 @@
 						<thead>
 							<tr>
 								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fa fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-latency-title}}">{{service:prov:storage-latency}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:storage-type}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-instance-title}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fa fa-usd"></i> {{service:prov:cost}}</th>
-								<th><a class="delete-all"><i class="fa fa-trash" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+								<th><a class="delete-all"><i class="fas fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -139,8 +139,8 @@
 					<span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu" role="menu">
-					<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="fa fa-download fa-fw"></i> {{download}}</a></li>
-					<li role="presentation"><a role="menuitem" class="disabled" id="prov-terraform-execute"><i class="fa fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[beta]</span></a></li>
+					<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="fas fa-download fa-fw"></i> {{download}}</a></li>
+					<li role="presentation"><a role="menuitem" class="disabled" id="prov-terraform-execute"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[beta]</span></a></li>
 				</ul>
 			</div>
 			<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
@@ -174,14 +174,14 @@
 							<label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-os" class="resource-query form-control" required />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-internet" data-toggle="tooltip" title="{{service:prov:internet-title}}">{{service:prov:internet}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-internet" class="form-control" required />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:internet-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:internet-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
@@ -191,17 +191,17 @@
 									<input type="number" min="0" max="999" id="instance-cpu" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn resource-query" id="instance-constant">
 										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											<span><i class="fa fa-ellipsis-h"></i></span>
+											<span><i class="fas fa-ellipsis-h"></i></span>
 											<span class="caret"></span>
 										</button>
 										<ul class="dropdown-menu">
-											<li class="active"><a><i class="fa fa-ellipsis-h fa-fw"></i> {{service:prov:cpu-any}}</a></li>
-											<li data-value="variable"><a><i class="fa fa-bolt fa-fw"></i> {{service:prov:cpu-variable}}</a></li>
-											<li data-value="constant"><a><i class="fa fa-minus fa-fw"></i> {{service:prov:cpu-constant}}</a></li>
+											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:cpu-any}}</a></li>
+											<li data-value="variable"><a><i class="fas fa-bolt fa-fw"></i> {{service:prov:cpu-variable}}</a></li>
+											<li data-value="constant"><a><i class="fas fa-minus fa-fw"></i> {{service:prov:cpu-constant}}</a></li>
 										</ul>
 									</div>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:cpu-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:cpu-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
@@ -220,21 +220,21 @@
 										</ul>
 									</div>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-usage" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-usage" class="resource-query form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-location" data-toggle="tooltip" title="{{service:prov:location-title}}">{{service:prov:location}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-location" class="resource-query form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -247,7 +247,7 @@
 									<label class="pull-left" for="instance-max-variable-cost">&nbsp;{{service:prov:instance-max-variable-cost}}</label>
 									<input type="number" min="0" id="instance-max-variable-cost" class="form-control input-mini" />
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-ephemeral-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:instance-ephemeral-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -262,21 +262,21 @@
 										<span>Auto-scale</span>
 									</label>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-term" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-term" class="form-control" required readonly/>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-price" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-price" class="form-control" required readonly />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
 							</div>
 						</div>
 					</div>
@@ -318,42 +318,42 @@
 									<input type="number" min="1" id="storage-size" class="resource-query form-control input-mini" required />
 									<span class="input-group-addon">{{service:prov:storage-giga}}</span>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-latency" data-toggle="tooltip" title="{{service:storage-latency-title}}">{{service:prov:storage-latency}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="storage-latency" class="resource-query form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-latency-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-latency-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-optimized" data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="storage-optimized" class="resource-query form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-instance" data-toggle="tooltip" title="{{service:prov:storage-instance-title}}">{{service:prov:instance}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="storage-instance" class="form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-instance-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-instance-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-location" data-toggle="tooltip" title="{{service:prov:location-title}}">{{service:prov:location}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="storage-location" class="resource-query form-control" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-price" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="storage-price" class="form-control" required/>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
 							</div>
 						</div>
 					</div>
@@ -377,7 +377,7 @@
 				<div class="modal-body">
 					<div class="form-horizontal">
 						<div class="alert alert-info import-options-details">
-							{{{instance-import-message}}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fa fa-question-circle faa-wrench animated-hover"></i></a>
+							{{{instance-import-message}}} <a data-toggle="collapse" href="#more-import-options-full" aria-controls="more-import-options-full"><i class="fas fa-question-circle faa-wrench animated-hover"></i></a>
 							<div id="more-import-options-full" class="collapse">
 								<br />Implicit CSV headers
 								<code>
@@ -408,7 +408,7 @@
 								<br /><code>nginx;0.5:1000;LINUX</code>
 								<br /><code>jetty;2:2048;LINUX;;;;m1.large;production2</code>
 								<br />
-								<br /><i class="fa fa-info-circle"></i> Trailing columns can be omitted if empty, default value or "false".
+								<br /><i class="fas fa-info-circle"></i> Trailing columns can be omitted if empty, default value or "false".
 							</div>
 						</div>
 						<div class="form-group required">
@@ -448,7 +448,7 @@
 							<label class="control-label col-sm-3" for="instance-usage-upload" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-usage-upload" class="form-control" placeholder="{{default}}" />
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
 							</div>
 							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
 						</div>
@@ -463,7 +463,7 @@
 											<input type="radio" name="memoryUnit" checked value="1024">{{service:prov:ram-giga}}</label>
 									</div>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
 							</div>
 						</div>
 						<div class="alert alert-info hide import-summary"></div>
@@ -534,7 +534,7 @@
 									<input type="number" min="1" max="100" id="usage-rate" class="form-control input-mini" required />
 									<span class="input-group-addon">%</span>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-rate-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-rate-help}}"></i></span>
 								<div class="input-group">
 									<input type="number" min="8" max="732" id="usage-month" class="form-control input-mini" required />
 									<div class="input-group-addon">{{hours}}/{{month}}</div>
@@ -556,7 +556,7 @@
 									<input type="number" min="0" max="72" id="usage-duration" class="form-control input-mini" required />
 									<div class="input-group-addon">{{months}}</div>
 								</div>
-								<span class="input-help"><i class="fa fa-question-circle-o" data-toggle="tooltip" title="{{service:prov:usage-duration-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-duration-help}}"></i></span>
 							</div>
 						</div>
 					</div>

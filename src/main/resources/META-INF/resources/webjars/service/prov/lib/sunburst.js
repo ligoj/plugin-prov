@@ -203,7 +203,7 @@ define(['d3', 'jquery'], function (d3, $) {
 		var tooltip = d3.select('body')
 			.append('div')
 			.attr('class', 'tooltip d3-tooltip tooltip-inner')
-			.html('<i class="fa icon-fixed-width icon-user"></i>');
+			.html('<i class="fa fa-fw fa-user"></i>');
 
 		var root = d3.hierarchy(data);
 		root.sum(function (d) {
