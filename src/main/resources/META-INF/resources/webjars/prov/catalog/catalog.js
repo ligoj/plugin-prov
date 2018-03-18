@@ -38,7 +38,7 @@ define(['sparkline'], function () {
 					data: 'node.name'
 				}, {
 					data: 'status.lastSuccess',
-					width: '100px',
+					width: '120px',
 					render: function (date, mode) {
 						if (mode === 'sort') {
 							return date;
