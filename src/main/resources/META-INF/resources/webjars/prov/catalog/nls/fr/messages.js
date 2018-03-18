@@ -1,3 +1,4 @@
 define({
-	'title': 'Catalogue'
+	'title': 'Catalogue',
+	'status-canceled': 'Annulation demandée pour {{this}}'
 });
