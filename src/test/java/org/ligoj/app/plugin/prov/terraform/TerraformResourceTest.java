@@ -211,6 +211,25 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	public void getVersion() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0",
+				"Terraform v0.0.1");
+		Assertions.assertEquals("0.0.1", resource.getVersion());
+	}
+
+	@Test
+	public void getVersionWrongOutput() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0", "WHAT?");
+		Assertions.assertNull(resource.getVersion());
+	}
+
+	@Test
+	public void getVersionExit1() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=1");
+		Assertions.assertNull(resource.getVersion());
+	}
+
+	@Test
 	public void applyTerraformExit1() {
 		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () -> {
 			applyTerraformExit(1, "Terraform exit code 1 -> aborted");
@@ -315,16 +334,23 @@ public class TerraformResourceTest extends AbstractAppTest {
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
+		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 
 		// Replace the CLI runner
 		resource.terraformUtils = new TerraformUtils() {
 
 			@Override
-			protected ProcessBuilder newBuilder(String... args) {
+			public ProcessBuilder newBuilder(String... args) {
 				return new ProcessBuilder(ArrayUtils.addAll(
 						new String[] { "java", "-cp", MOCK_PATH.getParent(),
 								"org.ligoj.app.plugin.prov.terraform.Main" },
 						customArgs.length > 0 ? customArgs : args));
+			}
+
+			@Override
+			protected PluginsClassLoader getClassLoader() {
+				return classLoader;
 			}
 		};
 		return resource;

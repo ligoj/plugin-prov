@@ -5,11 +5,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.GET;
@@ -55,6 +58,12 @@ public class TerraformResource {
 	 * Main log file.
 	 */
 	private static final String MAIN_LOG = "main.log";
+
+	/**
+	 * Terraform version output pattern matcher. Expected output is like : <code>Terraform v0.11.5<code>, and maybe
+	 * followed by some outputs like new lines or content to ignore.
+	 */
+	private static final Pattern TERRFORM_VERSION = Pattern.compile(".* v([^ ]+$)");
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
@@ -193,7 +202,7 @@ public class TerraformResource {
 			terra.terraform(mainTf, subscription.getId(), quote);
 
 			// Execute the Terraform commands
-			executeTerraform(subscription, out, terraformUtils.getTerraformSequence(),
+			execute(subscription, out, terraformUtils.getTerraformSequence(),
 					terra.commandLineParameters(subscription.getId()));
 			failed = false;
 		} finally {
@@ -213,7 +222,7 @@ public class TerraformResource {
 	/**
 	 * Execute the given Terraform commands. Note there is no concurrency check for now.
 	 */
-	private void executeTerraform(final Subscription subscription, final Writer out, final String[][] commands,
+	private void execute(final Subscription subscription, final Writer out, final String[][] commands,
 			final String... additionalParameters) throws InterruptedException, IOException {
 		final AtomicInteger step = new AtomicInteger(0);
 		// Reset the current step
@@ -221,7 +230,7 @@ public class TerraformResource {
 			// Next step, another transaction
 			runner.nextStep("service:prov:test:account", t -> t.setStep(TerraformStep.values()[step.get()]));
 
-			final int code = executeTerraform(subscription, out, ArrayUtils.addAll(command, additionalParameters));
+			final int code = execute(subscription, out, ArrayUtils.addAll(command, additionalParameters));
 			if (code == 0) {
 				// Nothing wrong, no change, only useless to go further
 				log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
@@ -244,12 +253,10 @@ public class TerraformResource {
 	/**
 	 * Execute the given Terraform command arguments
 	 */
-	private int executeTerraform(final Subscription subscription, final Writer out, final String[] command)
+	private int execute(final Subscription subscription, final Writer out, final String... command)
 			throws InterruptedException, IOException {
-		final ProcessBuilder builder = terraformUtils.newBuilder(command);
-		builder.redirectErrorStream(true);
-		// TODO Subscription identifier is implicit starting from API 1.0.9
-		builder.directory(toFile(subscription, MAIN_LOG).getParentFile());
+		final ProcessBuilder builder = terraformUtils.newBuilder(command).redirectErrorStream(true)
+				.directory(toFile(subscription, MAIN_LOG).getParentFile());
 		final Process process = builder.start();
 		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
 
@@ -257,6 +264,48 @@ public class TerraformResource {
 		int code = process.waitFor();
 		out.flush();
 		return code;
+	}
+
+	/**
+	 * Execute the given Terraform command arguments
+	 */
+	private int execute(final File directory, final Writer out, final String... command)
+			throws InterruptedException, IOException {
+		FileUtils.forceMkdir(directory);
+		final ProcessBuilder builder = terraformUtils.newBuilder(command).redirectErrorStream(true)
+				.directory(directory);
+		final Process process = builder.start();
+		IOUtils.copy(process.getInputStream(), out, StandardCharsets.UTF_8);
+
+		// Wait and get the code
+		int code = process.waitFor();
+		out.flush();
+		return code;
+	}
+
+	/**
+	 * Return the Terraform version.
+	 * 
+	 * @return The terraform version when succeed, or <code>null</code>.
+	 * @throws IOException
+	 *             Stream cannot be read.
+	 * @throws InterruptedException
+	 *             The process cannot be executed.
+	 */
+	public String getVersion() throws IOException, InterruptedException {
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		final int code = execute(terraformUtils.getHome().toFile(), new PrintWriter(bos), "-v");
+		final String output = bos.toString();
+		if (code == 0) {
+			final Matcher matcher = TERRFORM_VERSION.matcher(output.trim());
+			if (matcher.find()) {
+				return matcher.group(1);
+			}
+		}
+
+		// Version print failed
+		log.error("Unable to get Terraform version, code: {}, output: {}", code, output);
+		return null;
 	}
 
 	/**
@@ -282,7 +331,6 @@ public class TerraformResource {
 	 * @return The Terraform resource file scoped by the given subscription.
 	 */
 	protected File toFile(final Subscription subscription, final String file) throws IOException {
-		// TODO Subscription identifier is implicit starting from API 1.0.9
 		return PluginsClassLoader.getInstance().toFile(subscription, subscription.getId().toString(), file);
 	}
 }
