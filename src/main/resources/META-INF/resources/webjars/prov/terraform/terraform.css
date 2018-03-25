@@ -1,0 +1,8 @@
+.terraform-logo {
+	background-image: url(img/terraform-big.png);
+	height: 400px;
+	display: block;
+	background-repeat-x: no-repeat;
+	width: 400px;
+	background-size: cover;
+}

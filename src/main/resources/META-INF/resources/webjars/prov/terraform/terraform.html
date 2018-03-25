@@ -1,0 +1,28 @@
+<div class="row">
+	<div class="col-sm-4 hidden-xs">
+		<i class="terraform-logo"></i>
+		<a target="#blank" href="https://www.terraform.io/">www.terraform.io</a>
+	</div>
+	<div class="col-sm-8 col-xs-12">
+		<div class="form-horizontal terraform-details">
+			<div class="form-group">
+				<label class="control-label col-sm-3" for="terraform-version">{{version}}</label>
+				<div class="col-sm-9">
+					<input type="text" id="terraform-version" class="form-control input-medium" readonly />
+					<i class="fa far-question-circle"></i>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label col-sm-3" for="terraform-last-version">{{last-version}}</label>
+				<div class="col-sm-9">
+					<div class="input-group">
+						<input type="text" id="terraform-last-version" class="form-control input-medium" readonly />
+						<i class="fa far-question-circle"></i>
+						<button type="button" id="terraform-install" class="btn btn-primary addon"></button>
+						<a target="#blank" href="#" id="terraform-changelog">{{changelog}}</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

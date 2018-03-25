@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.cache.annotation.CacheRemoveAll;
+import javax.cache.annotation.CacheResult;
 import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,6 +35,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.resource.ServicePluginLocator;
+import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -79,6 +82,9 @@ public class TerraformResource {
 
 	@Autowired
 	protected TerraformUtils terraformUtils;
+
+	@Autowired
+	protected NodeResource nodeResource;
 
 	/**
 	 * Produce the Terraform configuration.
@@ -284,28 +290,58 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Return the Terraform version.
+	 * Return the Terraform versions : current and latest version.
 	 * 
-	 * @return The terraform version when succeed, or <code>null</code>.
+	 * @return The terraform version when succeed, or <code>null</code>. Is cached.
 	 * @throws IOException
 	 *             Stream cannot be read.
 	 * @throws InterruptedException
 	 *             The process cannot be executed.
 	 */
-	public String getVersion() throws IOException, InterruptedException {
-		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		final int code = execute(terraformUtils.getHome().toFile(), new PrintWriter(bos), "-v");
-		final String output = bos.toString();
-		if (code == 0) {
-			final Matcher matcher = TERRFORM_VERSION.matcher(output.trim());
-			if (matcher.find()) {
-				return matcher.group(1);
+	@CacheResult(cacheName = "terraform-version")
+	@Path("terraform/install")
+	@GET
+	public TerraformInformation getVersion() throws IOException, InterruptedException {
+		nodeResource.checkWritableNode(ProvResource.SERVICE_KEY);
+		final TerraformInformation result = new TerraformInformation();
+		if (terraformUtils.isInstalled()) {
+			result.setInstalled(true);
+			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			final int code = execute(terraformUtils.getHome().toFile(), new PrintWriter(bos), "-v");
+			final String output = bos.toString();
+			if (code == 0) {
+				final Matcher matcher = TERRFORM_VERSION.matcher(output.trim());
+				if (matcher.find()) {
+					result.setVersion(matcher.group(1));
+				}
+			} else {
+				log.error("Unable to get Terraform version, code: {}, output: {}", code, output);
 			}
 		}
+		result.setLastVersion(terraformUtils.getLastestVersion());
+		return result;
+	}
 
-		// Version print failed
-		log.error("Unable to get Terraform version, code: {}, output: {}", code, output);
-		return null;
+	/**
+	 * Install or update the Terraform binary. Note for now there is no check about current <code>terraform</code>
+	 * command is running and may this update to fail.
+	 * 
+	 * @param version
+	 *            The target version.
+	 * @return The installed and checked Terraform version.
+	 * @throws IOException
+	 *             Stream cannot be read.
+	 * @throws InterruptedException
+	 *             The process cannot be executed.
+	 */
+	@CacheRemoveAll(cacheName = "terraform-version")
+	@Path("terraform/version/{version:\\d+\\.\\d+\\.\\d+.*}")
+	@POST
+	public TerraformInformation install(@PathParam("version") final String version)
+			throws IOException, InterruptedException {
+		nodeResource.checkWritableNode(ProvResource.SERVICE_KEY);
+		terraformUtils.install(version);
+		return getVersion();
 	}
 
 	/**

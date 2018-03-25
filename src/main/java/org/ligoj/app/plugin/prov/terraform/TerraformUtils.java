@@ -18,6 +18,8 @@ import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.cache.annotation.CacheResult;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -119,7 +121,7 @@ public class TerraformUtils {
 			throw new BusinessException("terraform-not-found");
 		}
 		final String[] shell = getOsValue(shells);
-		final String bin = configuration.get(TERRAFORM_PATH, getOsValue(bins));
+		final String bin = getHome().resolve(configuration.get(TERRAFORM_PATH, getOsValue(bins))).toString();
 		return new ProcessBuilder(ArrayUtils.addAll(shell, bin + " " + StringUtils.join(ArrayUtils.addAll(args), ' ')));
 	}
 
@@ -200,54 +202,19 @@ public class TerraformUtils {
 
 	/**
 	 * Indicates the Terraform binary exists.
+	 * 
+	 * @return <code>true</code> when the Terraform binary exists.
 	 */
-	private boolean isInstalled() {
+	protected boolean isInstalled() {
 		return getTerraformBin().toFile().exists();
-	}
-
-	/**
-	 * Install latest version of Terraform in the current system using the default repository and the home directory. It
-	 * override the previous version :
-	 * <ul>
-	 * <li>Determine the last release</li>
-	 * <li>Determine the right package</li>
-	 * <li>Download</li>
-	 * <li>Unzip</li>
-	 * <li>Check the version</li>
-	 * </ul>
-	 * 
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
-	 */
-	public void install() throws IOException {
-		install(getHome().toFile());
-	}
-
-	/**
-	 * Install latest version of Terraform in the given directory. It override the previous version :
-	 * <ul>
-	 * <li>Determine the last release</li>
-	 * <li>Determine the right repository</li>
-	 * <li>Determine the right package</li>
-	 * <li>Download</li>
-	 * <li>Unzip</li>
-	 * <li>Check the version</li>
-	 * </ul>
-	 * 
-	 * @param toDir
-	 *            The target directory where Terraform will be installed.
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
-	 */
-	public void install(final File toDir) throws IOException {
-		install(toDir, configuration.get(CONF_REPO, BASE_REPO), getLastestVersion());
 	}
 
 	/**
 	 * Return the latest available version from the repository.
 	 * 
-	 * @return The latest available version from the repository. Never <code>null</code>.
+	 * @return The latest available version from the repository. <code>null</code> when undefined.
 	 */
+	@CacheResult(cacheName = "terraform-version-latest")
 	public String getLastestVersion() {
 		final Matcher matcher = VERSION_PATTERN.matcher(
 				StringUtils.defaultString(new CurlProcessor().get(configuration.get(CONF_REPO, BASE_REPO)), ""));
@@ -257,13 +224,51 @@ public class TerraformUtils {
 		}
 
 		// Unable to detect the latest version from the index
-		throw new BusinessException("terraform-lastest-version");
+		return null;
+	}
+
+	/**
+	 * Install latest version of Terraform in the current system using the default repository and the home directory. It
+	 * override the previous version :
+	 * <ul>
+	 * <li>Determine the last release</li>
+	 * <li>Determine the right repository</li>
+	 * <li>Determine the right distribution</li>
+	 * <li>Download</li>
+	 * <li>Unzip</li>
+	 * <li>Check the version</li>
+	 * </ul>
+	 * 
+	 * @throws IOException
+	 *             When unzip fails : download, unzip, write file,...
+	 */
+	public void install() throws IOException {
+		install(getLastestVersion());
+	}
+
+	/**
+	 * Install latest version of Terraform in the given directory. It override the previous version :
+	 * <ul>
+	 * <li>Determine the right repository</li>
+	 * <li>Determine the right distribution</li>
+	 * <li>Download</li>
+	 * <li>Unzip</li>
+	 * <li>Check the version</li>
+	 * </ul>
+	 * 
+	 * @param version
+	 *            The target version to install.
+	 * @throws IOException
+	 *             When unzip fails : download, unzip, write file,...
+	 */
+	public void install(final String version) throws IOException {
+		install(getHome().toFile(), configuration.get(CONF_REPO, BASE_REPO), version);
 	}
 
 	/**
 	 * Install latest version of Terraform in the current system using the default repository :
 	 * <ul>
-	 * <li>Determine the right package</li>
+	 * <li>Determine the right distribution</li>
 	 * <li>Download</li>
 	 * <li>Unzip</li>
 	 * <li>Check the version</li>
@@ -278,8 +283,9 @@ public class TerraformUtils {
 	 * @throws IOException
 	 *             When unzip fails : download, unzip, write file,...
 	 */
-	public void install(final File toDir, final String repository, final String version) throws IOException {
-		install(toDir, repository + "/" + version + "/terraform_" + version + "_" + getOsValue(distributions) + ".zip");
+	private void install(final File toDir, final String repository, final String version) throws IOException {
+		install(toDir, StringUtils.appendIfMissing(repository, "/") + version + "/terraform_" + version + "_"
+				+ getOsValue(distributions) + ".zip");
 	}
 
 	/**
@@ -297,7 +303,7 @@ public class TerraformUtils {
 	 * @throws IOException
 	 *             When unzip fails : download, unzip, write file,...
 	 */
-	public void install(final File toDir, final String url) throws IOException {
+	private void install(final File toDir, final String url) throws IOException {
 		unzip(toDir, new URL(url).openStream()).stream().forEach(f -> f.setExecutable(true));
 	}
 
@@ -313,10 +319,11 @@ public class TerraformUtils {
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	public List<File> unzip(final File toDir, final InputStream source) throws IOException {
-		final ZipInputStream zis = new ZipInputStream(source);
+		ZipInputStream zis = null;
 		final List<File> files = new ArrayList<>();
-		FileUtils.forceMkdir(toDir);
 		try {
+			zis = new ZipInputStream(source);
+			FileUtils.forceMkdir(toDir);
 			ZipEntry zipEntry = zis.getNextEntry();
 			while (zipEntry != null) {
 				final File file = new File(toDir, zipEntry.getName());
@@ -327,9 +334,8 @@ public class TerraformUtils {
 				zipEntry = zis.getNextEntry();
 			}
 		} finally {
-			zis.closeEntry();
+			IOUtils.closeQuietly(source);
 			IOUtils.closeQuietly(zis);
-			source.close();
 		}
 		return files;
 	}

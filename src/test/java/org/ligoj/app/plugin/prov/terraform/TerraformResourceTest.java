@@ -58,7 +58,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Rollback
 @Transactional
 public class TerraformResourceTest extends AbstractAppTest {
-	private static final File MOCK_PATH = new File("target/test-classes/terraform-test").getAbsoluteFile();
+	private static final File MOCK_PATH = new File("target/test-classes/terraform-it").getAbsoluteFile();
 
 	private int subscription;
 
@@ -84,6 +84,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		cacheManager.getCache("terraform-version-latest").clear();
+		cacheManager.getCache("terraform-version").clear();
 	}
 
 	@Test
@@ -214,19 +216,75 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void getVersion() throws Exception {
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0",
 				"Terraform v0.0.1");
-		Assertions.assertEquals("0.0.1", resource.getVersion());
+		final TerraformInformation version = resource.getVersion();
+		Assertions.assertEquals("0.0.1", version.getVersion());
+		Assertions.assertTrue(version.isInstalled());
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
 	}
 
 	@Test
 	public void getVersionWrongOutput() throws Exception {
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0", "WHAT?");
-		Assertions.assertNull(resource.getVersion());
+		final TerraformInformation version = resource.getVersion();
+		Assertions.assertNull(version.getVersion());
+		Assertions.assertTrue(version.isInstalled());
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
+	}
+
+	@Test
+	public void getVersionNotInstalled() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0", "WHAT?");
+
+		// Replace the CLI runner
+		resource.terraformUtils = new TerraformUtils() {
+
+			public boolean isInstalled() {
+				return false;
+			}
+
+			public String getLastestVersion() {
+				return "2.0.0";
+			}
+		};
+		final TerraformInformation version = resource.getVersion();
+		Assertions.assertNull(version.getVersion());
+		Assertions.assertFalse(version.isInstalled());
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
+	}
+	@Test
+	public void install() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0",
+				"Terraform v2.0.1");
+		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
+
+		// Replace the Terraform utility
+		resource.terraformUtils = new TerraformUtils() {
+
+			public void install(final String version) {
+				Assertions.assertEquals("2.0.0", version);
+			}
+
+			@Override
+			protected PluginsClassLoader getClassLoader() {
+				return classLoader;
+			}
+
+			public String getLastestVersion() {
+				return "2.0.0";
+			}
+		};
+		final TerraformInformation version = resource.install("2.0.0");
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
 	}
 
 	@Test
 	public void getVersionExit1() throws Exception {
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=1");
-		Assertions.assertNull(resource.getVersion());
+		final TerraformInformation version = resource.getVersion();
+		Assertions.assertNull(version.getVersion());
+		Assertions.assertTrue(version.isInstalled());
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
 	}
 
 	@Test
@@ -349,8 +407,16 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			@Override
+			protected boolean isInstalled() {
+				return true;
+			}
+			@Override
 			protected PluginsClassLoader getClassLoader() {
 				return classLoader;
+			}
+
+			public String getLastestVersion() {
+				return "2.0.0";
 			}
 		};
 		return resource;

@@ -523,8 +523,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(2, locations.getData().size());
 		Assertions.assertEquals("region-1", locations.getData().get(0).getName());
 		Assertions.assertEquals("region-2", locations.getData().get(1).getName());
-		Assertions.assertEquals("region-4", locations.getData().get(2).getName());
-		Assertions.assertEquals("service:prov:test", locations.getData().get(2).getNode().getId());
+		Assertions.assertEquals("service:prov:test", locations.getData().get(1).getNode().getId());
 	}
 
 	@Test

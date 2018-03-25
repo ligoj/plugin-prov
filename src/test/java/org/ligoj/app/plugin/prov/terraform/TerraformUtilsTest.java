@@ -6,9 +6,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.zip.ZipException;
+import java.io.InputStream;
 
 import javax.transaction.Transactional;
 
@@ -32,6 +32,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 /**
  * Test class of {@link TerraformUtils}
@@ -58,6 +61,8 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	@BeforeEach
 	public void reset() {
 		cacheManager.getCache("configuration").clear();
+		cacheManager.getCache("terraform-version-latest").clear();
+		cacheManager.getCache("terraform-version").clear();
 	}
 
 	@Test
@@ -67,6 +72,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void getOsValue() {
+		final TerraformUtils resource = new TerraformUtils();
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "UNKNOWN"));
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "FreeBSD"));
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "FreeBSD 1.0"));
@@ -102,12 +108,12 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	public void checkNewBuilderBsd(final String os) {
-		checkNewBuilder(os, new String[] { "sh", "-c", "terraform arg1 arg2" });
+		checkNewBuilder(os, new String[] { "sh", "-c" }, "terraform arg1 arg2");
 	}
 
 	@Test
 	public void newBuilderWindows() {
-		checkNewBuilder("Windows Server 2012", new String[] { "cmd.exe", "/c", "terraform.exe arg1 arg2" });
+		checkNewBuilder("Windows Server 2012", new String[] { "cmd.exe", "/c" }, "terraform.exe arg1 arg2");
 	}
 
 	@Test
@@ -126,7 +132,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 				Assertions.assertThrows(BusinessException.class, () -> utils.newBuilder("arg1", "arg2")).getMessage());
 	}
 
-	private void checkNewBuilder(final String os, final String[] args) {
+	private void checkNewBuilder(final String os, final String[] args, final String command) {
 		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
@@ -142,7 +148,9 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		};
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(utils);
 		final ProcessBuilder newBuilder = utils.newBuilder("arg1", "arg2");
-		Assertions.assertEquals(Arrays.asList(args), newBuilder.command());
+		Assertions.assertEquals(args[0], newBuilder.command().get(0));
+		Assertions.assertEquals(args[1], newBuilder.command().get(1));
+		Assertions.assertTrue(newBuilder.command().get(2).endsWith(command));
 	}
 
 	@Test
@@ -159,13 +167,18 @@ public class TerraformUtilsTest extends AbstractServerTest {
 			file = new File(pathDownload, "prov/terraform");
 		}
 		Assertions.assertTrue(file.exists());
-		Assertions.assertTrue(IOUtils.toString(new FileInputStream(file), "UTF-8").startsWith("#EMPTY"));
+		FileInputStream input = new FileInputStream(file);
+		try {
+			Assertions.assertTrue(IOUtils.toString(input, "UTF-8").startsWith("#EMPTY"));
+		} finally {
+			IOUtils.closeQuietly(input);
+		}
 	}
 
 	@Test
 	public void installInvalidZip() throws IOException {
 		final TerraformUtils utils = prepareForInstall("mock-server/prov/terraform/terraform-invalid.zip");
-		Assertions.assertThrows(ZipException.class, () -> utils.install());
+		Assertions.assertThrows(FileNotFoundException.class, () -> utils.install());
 	}
 
 	private TerraformUtils prepareForInstall(final String file) throws IOException {
@@ -177,13 +190,18 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		httpServer.stubFor(
-				get(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(
-						new ClassPathResource("mock-server/prov/terraform/terraform-index.html").getInputStream()))));
+		InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+				.getInputStream();
+		httpServer.stubFor(get(urlEqualTo("/"))
+				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		IOUtils.closeQuietly(inputStream);
+
 		// ZIP file
+		inputStream = new ClassPathResource(file).getInputStream();
 		httpServer.stubFor(get(urlEqualTo("/0.11.5/terraform_0.11.5_linux_amd64.zip"))
-				.willReturn(aResponse().withStatus(HttpStatus.SC_OK)
-						.withBody(IOUtils.toByteArray(new ClassPathResource(file).getInputStream()))));
+				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		IOUtils.closeQuietly(inputStream);
+
 		httpServer.start();
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
@@ -215,9 +233,11 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	public void getLastestVersionMock() throws IOException {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		httpServer.stubFor(
-				get(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(
-						new ClassPathResource("mock-server/prov/terraform/terraform-index.html").getInputStream()))));
+		InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+				.getInputStream();
+		httpServer.stubFor(get(urlEqualTo("/"))
+				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		IOUtils.closeQuietly(inputStream);
 		httpServer.start();
 		Assertions.assertEquals("0.11.5", resource.getLastestVersion());
 	}
@@ -225,7 +245,22 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	@Test
 	public void getLastestVersionNotAvailable() {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
-		Assertions.assertEquals("terraform-lastest-version",
-				Assertions.assertThrows(BusinessException.class, () -> resource.getLastestVersion()).getMessage());
+		Assertions.assertNull(resource.getLastestVersion());
+	}
+
+
+	/**
+	 * TODO Remove with API 2.2.4+
+	 */
+	@BeforeEach
+	@Override
+	public void prepareMockServer() {
+		if (httpServer != null) {
+			throw new IllegalStateException("A previous HTTP server was already created");
+		}
+		
+		// See https://github.com/tomakehurst/wiremock/issues/710
+		httpServer = new WireMockServer(WireMockConfiguration.options().port(MOCK_PORT).jettyStopTimeout(10000L));
+		System.setProperty("http.keepAlive", "false");
 	}
 }
