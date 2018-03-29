@@ -21,6 +21,7 @@
 		<url>https://github.com/ligoj/plugin-prov.git</url>
 	</scm>
 	<properties>
+		<sonar.sources>src/main/java,src/main/resources/META-INF/resources/webjars</sonar.sources>
 		<awaitility.version>3.0.0</awaitility.version>
 	</properties>
 
