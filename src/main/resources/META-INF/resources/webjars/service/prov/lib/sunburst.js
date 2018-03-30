@@ -1,10 +1,5 @@
 define(['d3', 'jquery'], function (d3, $) {
 	var sunburst = {};
-	var colors = function (s) {
-		return s.match(/.{6}/g).map(function (x) {
-			return '#' + x;
-		});
-	};
 	sunburst.arcTween = function (newAngle) {
 		return function (d) {
 			var interpolate = d3.interpolate(d.endAngle, newAngle);

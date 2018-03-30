@@ -142,14 +142,14 @@ define(function () {
 		 * Format instance detail
 		 */
 		formatInstance: function (name, mode, qi) {
-			var type = qi ? qi.price.type : null;
+			var type = qi ? qi.price.type : {};
 			name = type ? type.name : name;
-			if (mode === 'sort' || (type && typeof type.id === 'undefined')) {
+			if (mode === 'sort' || (typeof type.id === 'undefined')) {
 				// Use only the name
 				return name;
 			}
 			// Instance details are available
-			var details = type.description || '';
+			var details = type && type.description || '';
 			details += '<br><i class=\'fas fa-bolt fa-fw\'></i> ';
 			if (type.cpu) {
 				details += type.cpu;
@@ -426,8 +426,8 @@ define(function () {
 		 * OS key to markup/label mapping.
 		 */
 		os: {
-			'linux': ['Linux', 'fas fa-linux fa-fw'],
-			'windows': ['Windows', 'fas fa-windows fa-fw'],
+			'linux': ['Linux', 'fab fa-linux fa-fw'],
+			'windows': ['Windows', 'fab fa-windows fa-fw'],
 			'suse': ['SUSE', 'icon-suse fa-fw'],
 			'rhel': ['Red Hat Enterprise', 'icon-redhat fa-fw'],
 			'centos': ['CentOS', 'icon-centos fa-fw'],
@@ -480,7 +480,7 @@ define(function () {
 		 * Return the HTML markup from the Internet privacy key name.
 		 */
 		formatInternet: function (internet, mode, clazz) {
-			var cfg = (internet && current.internet[(internet.id || internet || 'public').toLowerCase()]) || current.internet.public;
+			var cfg = (internet && current.internet[(internet.id || internet).toLowerCase()]) || current.internet.public || 'public';
 			if (mode === 'sort') {
 				return cfg[0];
 			}
@@ -1077,7 +1077,7 @@ define(function () {
 			var $input = $(this);
 			var id = $input.attr('id');
 			var val = $input.val();
-			var percent = 100; // [1-100]
+			var percent; // [1-100]
 			if (val) {
 				val = parseInt(val, 10);
 				if (id === 'usage-month') {
@@ -1941,14 +1941,6 @@ define(function () {
 			var instances;
 			var storages;
 			var allOss = {};
-			if (conf.instances.length) {
-				instances = {
-					name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
-					value: 0,
-					children: []
-				};
-				data.children.push(instances);
-			}
 			if (conf.storages.length) {
 				storages = {
 					name: '<i class="fas fa-database fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
@@ -1956,49 +1948,56 @@ define(function () {
 					children: []
 				};
 				data.children.push(storages);
-			}
-			for (var i = 0; i < conf.instances.length; i++) {
-				var qi = conf.instances[i];
-				var oss = allOss[qi.os];
-				if (typeof oss === 'undefined') {
-					// First OS
-					oss = {
-						name: current.formatOs(qi.os, true, ' fa-2x'),
-						value: 0,
-						children: []
-					};
-					allOss[qi.os] = oss;
-					instances.children.push(oss);
+				var allOptimizations = {};
+				for (i = 0; i < conf.storages.length; i++) {
+					var qs = conf.storages[i];
+					var optimizations = allOptimizations[qs.price.type.latency];
+					if (typeof optimizations === 'undefined') {
+						// First optimization
+						optimizations = {
+							name: current.formatStorageLatency(qs.price.type.latency, true, ' fa-2x'),
+							value: 0,
+							children: []
+						};
+						allOptimizations[qs.price.type.latency] = optimizations;
+						storages.children.push(optimizations);
+					}
+					optimizations.value += qs.cost;
+					storages.value += qs.cost;
+					optimizations.children.push({
+						name: qs.name,
+						size: qs.cost
+					});
 				}
-				oss.value += qi.cost;
-				instances.value += qi.cost;
-				oss.children.push({
-					name: qi.name,
-					size: qi.cost
-				});
 			}
-			var allOptimizations = {};
-			for (i = 0; i < conf.storages.length; i++) {
-				var qs = conf.storages[i];
-				var optimizations = allOptimizations[qs.price.type.latency];
-				if (typeof optimizations === 'undefined') {
-					// First optimization
-					optimizations = {
-						name: current.formatStorageLatency(qs.price.type.latency, true, ' fa-2x'),
-						value: 0,
-						children: []
-					};
-					allOptimizations[qs.price.type.latency] = optimizations;
-					storages.children.push(optimizations);
+			if (conf.instances.length) {
+				instances = {
+					name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
+					value: 0,
+					children: []
+				};
+				data.children.push(instances);
+				for (var i = 0; i < conf.instances.length; i++) {
+					var qi = conf.instances[i];
+					var oss = allOss[qi.os];
+					if (typeof oss === 'undefined') {
+						// First OS
+						oss = {
+							name: current.formatOs(qi.os, true, ' fa-2x'),
+							value: 0,
+							children: []
+						};
+						allOss[qi.os] = oss;
+						instances.children.push(oss);
+					}
+					oss.value += qi.cost;
+					instances.value += qi.cost;
+					oss.children.push({
+						name: qi.name,
+						size: qi.cost
+					});
 				}
-				optimizations.value += qs.cost;
-				storages.value += qs.cost;
-				optimizations.children.push({
-					name: qs.name,
-					size: qs.cost
-				});
 			}
-
 			return data;
 		},
 
