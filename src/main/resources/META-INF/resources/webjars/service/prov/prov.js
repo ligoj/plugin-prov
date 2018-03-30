@@ -461,7 +461,7 @@ define(function () {
 		storageOptimized: {
 			'throughput': 'fas fa-database fa-fw',
 			'durability': 'fas fa-archive fa-fw',
-			'iops': 'fas fa-flash fa-fw'
+			'iops': 'fas fa-bolt fa-fw'
 		},
 
 		/**
