@@ -62,6 +62,11 @@ public class ProvLocation extends AbstractDescribedEntity<Integer> {
 	private Integer countryM49;
 
 	/**
+	 * ISO 3166-1-alpha-2  country code: US (USA), FR (France), ...
+	 */
+	private String countryA2;
+
+	/**
 	 * M49 region code: 154 (Northern Europe), 021 (Northern America), 155 (Western Europe)...
 	 */
 	private Integer regionM49;

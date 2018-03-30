@@ -95,6 +95,7 @@
   },
   "dependencies": {
     "d3": ">=4",
-    "cascade": "0.0.1"
+    "cascade": "0.0.1",
+    "flag-icon-css": "3.0.0"
   }
 }

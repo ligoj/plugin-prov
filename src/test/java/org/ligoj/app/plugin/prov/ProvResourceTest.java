@@ -358,6 +358,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("region-1", location.getName());
 		Assertions.assertEquals("west", location.getPlacement());
 		Assertions.assertEquals(840, location.getCountryM49().intValue());
+		Assertions.assertEquals("US", location.getCountryA2());
 		Assertions.assertEquals(21, location.getRegionM49().intValue());
 		Assertions.assertEquals(19, location.getContinentM49().intValue());
 		Assertions.assertEquals("Virginia", location.getSubRegion());
