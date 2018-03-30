@@ -112,6 +112,7 @@ define({
         'service:prov:location-help': 'Geographical location of this resource. Prices depend on the elected location. When undefined, the default quote\s location is used.',
         'service:prov:usage-failed': 'Usage {{this}} does not support all your requirements',
         'service:prov:usage': 'Usage',
+        'service:prov:usage-help': 'Chosen usage will infer the term, and the best cost. Available usages are at the subscription level. When undefined, the default usage is used. And when there is no default usage, it will be 100% for one month.',
         'service:prov:usage-upload-help': 'Usage to associate to each imported entry',
         'service:prov:usage-default': 'Default usage rate : {{this}}%',
         'service:prov:usage-actual-cost': 'Actual usage rate : {{this}}%',

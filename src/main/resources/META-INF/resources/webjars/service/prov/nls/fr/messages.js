@@ -111,6 +111,7 @@ define({
 	'service:prov:location-help': 'Emplacement géographique de cette resource. Les prix dépendent de l\emplacement sélectionné. Lorsque l\'emplacement n\'est pas défini, celui du devis est utilisé.',
 	'service:prov:usage-failed': 'L\'usage sélectionné {{this}} ne supporte pas toutes vos exigences',
 	'service:prov:usage': 'Utilisation',
+	'service:prov:usage-help': 'L\'utilisation choisie influencera le terme et le meilleur coût. Les utilisations disponibles sont au niveau de la souscription. Lorsqu\'elle est non définie, l\'utilisation par défaut au niveau de la souscription est utilisée. Lorsqu\'il n\'y a pas d\'utilisation par défaut, elle est à 100% pendant 1 mois.',
 	'service:prov:usage-upload-help': 'Utilisation à associer à chaque instance importée',
 	'service:prov:usage-default': 'Niveau d\'utilisation par défaut : {{this}}%',
 	'service:prov:usage-actual-cost': 'Niveau d\'utilisation actuel : {{this}}%',
