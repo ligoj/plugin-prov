@@ -16,6 +16,11 @@ define(function () {
 		 * Current quote.
 		 */
 		model: null,
+		
+		/**
+		 * Usage rate templates
+		 */
+		usageTemplates: {},
 
 		/**
 		 * Show the members of the given group
@@ -344,18 +349,18 @@ define(function () {
 			var fullClass = null;
 			max = max || value || 1;
 			if (max / 2.0 > value) {
-				fullClass = 'fa-circle text-danger';
+				fullClass = 'far fa-circle text-danger';
 			} else if (max / 1.65 > value) {
-				fullClass = 'fa-adjust fa-rotate-270 text-danger';
+				fullClass = 'fas fa-adjust fa-rotate-270 text-danger';
 			} else if (max / 1.5 > value) {
-				fullClass = 'fa-adjust fa-rotate-270 text-warning';
+				fullClass = 'fas fa-adjust fa-rotate-270 text-warning';
 			} else if (max / 1.3 > value) {
-				fullClass = 'fa-circle text-primary';
+				fullClass = 'fas fa-circle text-primary';
 			} else if (max / 1.01 > value) {
-				fullClass = 'fa-circle text-success';
+				fullClass = 'fas fa-circle text-success';
 			}
 			var rate = Math.round(value * 100 / max);
-			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="fas ' + fullClass + '" data-toggle="tooltip" title="' +
+			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
 				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
 		},
 
@@ -486,6 +491,10 @@ define(function () {
 			}
 			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+		},
+		
+		formatUsageTemplate: function (usage) {
+			return usage.text
 		},
 
 		/**
@@ -953,6 +962,30 @@ define(function () {
 					text: 'DEBIAN'
 				}]
 			});
+			
+			// Usage rate template
+			var usageTemplates = [
+				{
+					id: 29,
+					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h30 - 18h30'
+				}, {
+				 	id: 35,
+					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h00 - 20h00'
+				}
+			];
+			for (var i = 0; i < usageTemplates.length; i++) {
+				current.usageTemplates[usageTemplates[i].id] = usageTemplates[i];
+			}
+			_('usage-template').select2({
+				placeholder: 'Template',
+				allowClear: true,
+				formatSelection: current.formatUsageTemplate,
+				formatResult: current.formatUsageTemplate,
+				escapeMarkup: function (m) {
+					return m;
+				},
+				data: usageTemplates
+			});
 
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
@@ -1086,6 +1119,8 @@ define(function () {
 					percent = val / 1.68;
 				} else if (id === 'usage-day') {
 					percent = val / 0.24;
+				} else if (id === 'usage-template') {
+					percent = _('usage-template').select2('data').id;
 				} else {
 					percent = val;
 				}
@@ -1100,6 +1135,12 @@ define(function () {
 				}
 				if (id !== 'usage-rate') {
 					_('usage-rate').val(Math.ceil(percent));
+				}
+				if (id !== 'usage-template') {
+					_('usage-template').select2('data', 
+						current.usageTemplates[Math.ceil(percent)]
+						|| current.usageTemplates[Math.ceil(percent - 1)]
+						|| null);
 				}
 				current.updateD3UsageRate(percent);
 			}
