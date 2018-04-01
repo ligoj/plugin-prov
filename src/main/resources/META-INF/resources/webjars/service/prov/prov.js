@@ -346,9 +346,9 @@ define(function () {
 			if (max / 2.0 > value) {
 				fullClass = 'fa-circle text-danger';
 			} else if (max / 1.65 > value) {
-				fullClass = 'fa-adjust fa-rotate-90 text-danger';
+				fullClass = 'fa-adjust fa-rotate-270 text-danger';
 			} else if (max / 1.5 > value) {
-				fullClass = 'fa-adjust fa-rotate-90 text-warning';
+				fullClass = 'fa-adjust fa-rotate-270 text-warning';
 			} else if (max / 1.3 > value) {
 				fullClass = 'fa-circle text-primary';
 			} else if (max / 1.01 > value) {
@@ -1763,35 +1763,6 @@ define(function () {
 					_('prov-sunburst').addClass('hidden');
 				}
 			});
-
-			// Update the efficiency chart
-			require(['d3', '../main/service/prov/lib/arc'], function (d3, arcGenerator) {
-				var weightedRate = usage.weightedRate;
-				var rates = {
-					segments: [{
-						value: conf.usage ? conf.usage.rate : 100,
-						tooltip: Handlebars.compile(current.$messages['service:prov:usage-default'])(conf.usage ? Math.round(conf.usage.rate) : 100),
-						color: '#168bca'
-					}]
-				};
-				if (usage.nbInstances && weightedRate.cost != rates.segments[0].value) {
-					// [instance] Add the real usage rate with overrides
-					rates.segments.push({
-						value: weightedRate.cost,
-						tooltip: Handlebars.compile(current.$messages['service:prov:usage-actual-cost'])(weightedRate.cost),
-						color: '#376279'
-					});
-				}
-
-				// Render concentric rates
-				if (current.d3Arc) {
-					$.proxy(arcGenerator.update, arcGenerator)(rates);
-				} else {
-					_('prov-usage').empty();
-					current.d3Arc = arcGenerator;
-					$.proxy(arcGenerator.init, arcGenerator)('#prov-usage', rates, 90);
-				}
-			});
 		},
 
 		/**
@@ -2109,7 +2080,7 @@ define(function () {
 				}, {
 					data: 'ram',
 					className: 'truncate',
-					width: '48px',
+					width: '64px',
 					render: current.formatRam
 				}, {
 					data: 'price.term.name',

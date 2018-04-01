@@ -24,9 +24,9 @@
 
 #prov-dashboard {
 	position: relative;
-	width: 50%;
+	width: 0;
 	height: 0;
-	top: -30px;
+	top: -20px;
 }
 
 #prov-dashboard .svg-wrapper {
@@ -38,7 +38,7 @@
 	font-size: 75%;
 }
 
-#subscribe-configuration-prov .nav .prov-cost-wrapper {
+.nav-dashboard .prov-cost-wrapper {
 	font-size: 48px;
 	text-align: right;
 	margin-top: 0;
@@ -68,55 +68,6 @@
 	position: relative;
 }
 
-.prov-usage-wrapper {
-	width: 200px;
-	height: 0;
-	top: -9px;
-	position: relative;
-	left: 390px;
-}
-
-#prov-usage {
-	margin-left: 13px;
-	height: 0;
-}
-
-#prov-usage+.control-label {
-	position: relative;
-	top: 38px;
-	left: 5px;
-}
-	
-.prov-usage-wrapper .form-group {
-	position: relative;
-	top: 81px;
-}
-.prov-usage-wrapper .form-group>.control-label {
-	top: -141px;
-	position: relative;
-	left: -17px;
-	width: 0;
-}
-.prov-usage-wrapper .form-group .select2-container {
-	margin-top: -10px;
-}
-
-.prov-usage-wrapper .form-group>div {
-	margin-left: 24px;
-	width: 200px;
-}
-
-.prov-usage-wrapper .btn-success {
-	top: -44px;
-	width: 32px;
-	padding-left: 0px;
-	padding-right: 0px;
-	margin-top: 0;
-	margin-bottom: 0;
-	float: left;
-	margin-left: 22px;
-}
-
 .sunburst-part:hover {
 	filter: url(#sunburst-filter);
 }
@@ -133,25 +84,12 @@
 	position: relative;
 	margin-top: 0;
 }
-
-#prov-location-summary {
-	width: 0;
-}
 .cost-unit {
 	font-weight: bolder;
 }
 .cost-value {
 	top: -3px;
 }
-#prov-location-summary .form-group {
-	left: 20px;
-	width: 300px;
-	top: 67px
-}
-#prov-location-summary .form-group>div {
-	padding-left: 0;
-}
-
 
 #subscribe-configuration-prov .form-actions .dropdown {
 	display: inline;
@@ -165,6 +103,9 @@
 
 #instance-max-quantity+.checkbox.disabled, #instance-max-quantity+.checkbox.disabled * {
 	pointer-events: bounding-box;
+}
+#prov-defaults {
+	width: 100%;
 }
 @media (min-width: 768px) {
 	#prov-storages thead>tr>th:nth-child(4), #prov-storages thead>tr>th:nth-child(5) {
@@ -184,6 +125,9 @@
 	}
 	#prov-instances thead>tr>th:nth-child(7), #prov-storages thead>tr>th:nth-child(6) {
 		width: 50px;
+	}
+	#prov-defaults {
+		width: 350px;
 	}
 }
 label[for="instance-max-variable-cost"] {
@@ -242,8 +186,14 @@ label[for="instance-max-variable-cost"] {
 	margin-right: 5px;
 }
 
-#prov-location-summary label>i { 
+#prov-defaults label>i { 
 	vertical-align: top;
+}
+
+#quote-usage+.btn {
+	padding-left: 8px;
+	padding-right: 8px;
+	margin: 0;
 }
 
 .flag-icon {
