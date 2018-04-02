@@ -33,9 +33,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-
 /**
  * Test class of {@link TerraformUtils}
  */
@@ -246,21 +243,5 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	public void getLastestVersionNotAvailable() {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		Assertions.assertNull(resource.getLastestVersion());
-	}
-
-
-	/**
-	 * TODO Remove with API 2.2.4+
-	 */
-	@BeforeEach
-	@Override
-	public void prepareMockServer() {
-		if (httpServer != null) {
-			throw new IllegalStateException("A previous HTTP server was already created");
-		}
-		
-		// See https://github.com/tomakehurst/wiremock/issues/710
-		httpServer = new WireMockServer(WireMockConfiguration.options().port(MOCK_PORT).jettyStopTimeout(10000L));
-		System.setProperty("http.keepAlive", "false");
 	}
 }
