@@ -16,7 +16,7 @@ define(function () {
 		 * Current quote.
 		 */
 		model: null,
-		
+
 		/**
 		 * Usage rate templates
 		 */
@@ -101,6 +101,7 @@ define(function () {
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
+			debugger;
 			var result = current.$super('renderServiceLink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
 
 			// Help
@@ -182,7 +183,7 @@ define(function () {
 			}
 			// Instance details are available
 			var details = '<i class=\'fas fa-clock\'></i> ';
-			if (term.period) {
+			if (term && term.period) {
 				details += term.period + ' months period';
 			} else {
 				details = 'on demand, hourly (or less) billing period';
@@ -492,7 +493,7 @@ define(function () {
 			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
-		
+
 		formatUsageTemplate: function (usage) {
 			return usage.text
 		},
@@ -962,14 +963,14 @@ define(function () {
 					text: 'DEBIAN'
 				}]
 			});
-			
+
 			// Usage rate template
 			var usageTemplates = [
 				{
 					id: 29,
 					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h30 - 18h30'
 				}, {
-				 	id: 35,
+					id: 35,
 					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h00 - 20h00'
 				}
 			];
@@ -1137,7 +1138,7 @@ define(function () {
 					_('usage-rate').val(Math.ceil(percent));
 				}
 				if (id !== 'usage-template') {
-					_('usage-template').select2('data', 
+					_('usage-template').select2('data',
 						current.usageTemplates[Math.ceil(percent)]
 						|| current.usageTemplates[Math.ceil(percent - 1)]
 						|| null);
@@ -1156,7 +1157,7 @@ define(function () {
 		/**
 		 * Order the array items by their 'text'
 		 */
-		orderByName: function(data) {
+		orderByName: function (data) {
 			return data.sort(function (a, b) {
 				a = a.text.toLowerCase();
 				b = b.text.toLowerCase();
@@ -1424,7 +1425,7 @@ define(function () {
 			html = (subRegion || m49) ? html + '<span class="pull-right x-small prov-location-api">' + id + '</span>' : id;
 			if (location.countryA2) {
 				html += '<img class="pull-left flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + location.countryA2.toLowerCase()
-					 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
+					+ '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
 			}
 			return html;
 		},

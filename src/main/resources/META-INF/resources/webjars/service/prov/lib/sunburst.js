@@ -224,7 +224,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				return tooltip.style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
 			})
 			.on('mouseout', function (d) {
-				mouseout(d);
+				mouseout();
 				return tooltip.style('visibility', 'hidden');
 			});
 	};
