@@ -367,6 +367,6 @@ public class TerraformResource {
 	 * @return The Terraform resource file scoped by the given subscription.
 	 */
 	protected File toFile(final Subscription subscription, final String file) throws IOException {
-		return PluginsClassLoader.getInstance().toFile(subscription, subscription.getId().toString(), file);
+		return PluginsClassLoader.getInstance().toPath(subscription, subscription.getId().toString(), file).toFile();
 	}
 }

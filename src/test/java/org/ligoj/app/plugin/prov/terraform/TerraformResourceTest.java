@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
@@ -339,10 +341,10 @@ public class TerraformResourceTest extends AbstractAppTest {
 		try {
 			final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
 			scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader));
-			final File file = new File("");
+			final Path file = Paths.get("");
 			final Subscription entity = new Subscription();
 			entity.setId(15);
-			Mockito.when(classLoader.toFile(entity, "15", "some")).thenReturn(file);
+			Mockito.when(classLoader.toPath(entity, "15", "some")).thenReturn(file);
 			Assertions.assertSame(file, resource.toFile(entity, "some"));
 			Assertions.assertNotNull(PluginsClassLoader.getInstance());
 		} finally {
