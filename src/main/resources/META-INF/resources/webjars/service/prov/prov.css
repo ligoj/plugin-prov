@@ -42,7 +42,6 @@
 	font-size: 48px;
 	text-align: right;
 	margin-top: 0;
-	margin-top: 0;
 }
 #prov-gauge {
 	width: 180px;
@@ -203,7 +202,6 @@ label[for="instance-max-variable-cost"] {
 	position: relative;
 	display: inline-block;
 	width: 1em;
-	line-height: 1em;
 	line-height: 1em;
 	margin-top: 4px;
 	margin-left: -5px;

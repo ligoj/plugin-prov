@@ -109,7 +109,7 @@ define({
         'service:prov:location-failed': 'Location {{this}} does not support all your requirements',
         'service:prov:location': 'Location',
         'service:prov:location-title': 'Location of this resource',
-        'service:prov:location-help': 'Geographical location of this resource. Prices depend on the elected location. When undefined, the default quote\s location is used.',
+        'service:prov:location-help': 'Geographical location of this resource. Prices depend on the elected location. When undefined, the default quote\'s location is used.',
         'service:prov:usage-failed': 'Usage {{this}} does not support all your requirements',
         'service:prov:usage': 'Usage',
         'service:prov:usage-help': 'Chosen usage will infer the term, and the best cost. Available usages are at the subscription level. When undefined, the default usage is used. And when there is no default usage, it will be 100% for one month.',

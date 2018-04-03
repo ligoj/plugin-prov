@@ -101,7 +101,6 @@ define(function () {
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
-			debugger;
 			var result = current.$super('renderServiceLink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
 
 			// Help
