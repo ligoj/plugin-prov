@@ -5,8 +5,8 @@ package org.ligoj.app.plugin.prov.terraform;
 
 import java.util.function.Function;
 
-import javax.cache.expiry.AccessedExpiryPolicy;
 import javax.cache.expiry.Duration;
+import javax.cache.expiry.ModifiedExpiryPolicy;
 
 import org.ligoj.bootstrap.resource.system.cache.CacheManagerAware;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class ProvCache implements CacheManagerAware {
 	public void onCreate(final HazelcastCacheManager cacheManager, final Function<String, CacheConfig<?, ?>> provider) {
 		cacheManager.createCache("terraform-version", provider.apply("terraform-version"));
 		final CacheConfig<?, ?> tokens = provider.apply("terraform-version-latest");
-		tokens.setExpiryPolicyFactory(AccessedExpiryPolicy.factoryOf(Duration.ONE_DAY));
+		tokens.setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(Duration.ONE_DAY));
 		cacheManager.createCache("terraform-version-latest", tokens);
 	}
 
