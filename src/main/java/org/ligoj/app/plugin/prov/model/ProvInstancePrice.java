@@ -47,12 +47,6 @@ public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> {
 	 */
 	private Double costPeriod;
 
-	/**
-	 * The internal offer code.
-	 */
-	@NotNull
-	private String code;
-
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;

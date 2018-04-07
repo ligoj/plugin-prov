@@ -609,7 +609,8 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
 		Assertions.assertTrue(asJson.endsWith("\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"good\""
 				+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
-				+ ",\"instanceCompatible\":true},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
+				+ ",\"instanceCompatible\":true,\"availability\":99.99,\"durability\":99.999999999}"
+				+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result
 		assertCSP(lookup);

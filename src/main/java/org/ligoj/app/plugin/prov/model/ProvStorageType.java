@@ -8,6 +8,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
@@ -52,7 +53,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * The maximum supported size in "GiB". May be <code>null</code>.
 	 */
 	private Integer maximal;
-	
+
 	/**
 	 * IOPS. When <code>null</code> or <code>0</code>, is undefined.
 	 */
@@ -75,5 +76,16 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Node node;
+
+	/**
+	 * Optional advertised availability. When <code>null</code>, the availability is not provided.
+	 */
+	private Double availability;
+
+	/**
+	 * Optional advertised durability. When <code>null</code>, the durability is not provided.
+	 */
+	@Positive
+	private Double durability;
 
 }

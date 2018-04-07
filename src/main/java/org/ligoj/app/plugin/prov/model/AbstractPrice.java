@@ -24,6 +24,11 @@ import lombok.ToString;
 public abstract class AbstractPrice<T extends AbstractNamedEntity<?>> extends AbstractPersistable<Integer> {
 
 	/**
+	 * The internal offer code.
+	 */
+	private String code;
+
+	/**
 	 * The monthly cost of the resource. The meaning of this value depends on the implementing class.
 	 */
 	private double cost = 0;
