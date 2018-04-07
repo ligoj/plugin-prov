@@ -345,7 +345,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			final Subscription entity = new Subscription();
 			entity.setId(15);
 			Mockito.when(classLoader.toPath(entity, "15", "some")).thenReturn(file);
-			Assertions.assertSame(file, resource.toFile(entity, "some"));
+			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
 			Assertions.assertNotNull(PluginsClassLoader.getInstance());
 		} finally {
 			IOUtils.closeQuietly(scope);
