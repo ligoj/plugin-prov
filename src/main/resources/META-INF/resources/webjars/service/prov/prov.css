@@ -214,3 +214,6 @@ label[for="instance-max-variable-cost"] {
 	margin-top: 10px;
 	margin-left: 1px;
 }
+.popover, .tooltip-inner {
+	line-height: 1.2em;
+}
