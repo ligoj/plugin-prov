@@ -154,7 +154,7 @@ define(function () {
 				return name;
 			}
 			// Instance type details are available
-			var details = type.description ? type.description + '<br>' : '';
+			var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
 			details += '<i class=\'fas fa-bolt fa-fw\'></i> ';
 			details += type.cpuRate ? '<i class=\'' + current.rates[type.cpuRate] + '\'></i> ' : '';
 			if (type.cpu) {
@@ -192,7 +192,7 @@ define(function () {
 				return name;
 			}
 			// Storage type details are available
-			var details = type.description ? type.description + '<br>' : '';
+			var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
 			details += '<i class=\'far fa-hdd fa-fw\'></i> ';
 			details += formatManager.formatSize((type.minimal || 1) * 1024 * 1024 * 1024, 3) + ' - ';
 			details += type.maximal ? formatManager.formatSize(type.maximal * 1024 * 1024 * 1024, 3) : '∞';
