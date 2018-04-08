@@ -156,9 +156,7 @@ define(function () {
 			// Instance details are available
 			var details = type && type.description || '';
 			details += '<br><i class=\'fas fa-bolt fa-fw\'></i> ';
-			if (type.cpuRate) {
-				details += '<i class="' + current.rates[type.cpuRate] + '"></i> ';
-			}
+			details += type.cpuRate ? '<i class="' + current.rates[type.cpuRate] + '"></i> ' : '';
 			if (type.cpu) {
 				details += type.cpu;
 				details += ' ' + current.formatConstant(type.constant);
@@ -168,6 +166,7 @@ define(function () {
 
 			if (type.ram) {
 				details += '<br><i class=\'fas fa-microchip fa-fw\'></i> ';
+				details += type.ramRate ? '<i class="' + current.rates[type.ramRate] + '"></i> ' : '';
 				details += current.formatRam(type.ram);
 			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
