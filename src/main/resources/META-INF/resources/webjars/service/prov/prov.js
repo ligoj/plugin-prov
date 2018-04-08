@@ -156,17 +156,20 @@ define(function () {
 			// Instance details are available
 			var details = type && type.description || '';
 			details += '<br><i class=\'fas fa-bolt fa-fw\'></i> ';
+			if (type.cpuRate) {
+				details += '<i class="' + current.rates[type.cpuRate] + '"></i> ';
+			}
 			if (type.cpu) {
 				details += type.cpu;
 				details += ' ' + current.formatConstant(type.constant);
 			} else {
 				details += current.$messages['service:prov:instance-custom'];
 			}
+
 			if (type.ram) {
 				details += '<br><i class=\'fas fa-microchip fa-fw\'></i> ';
 				details += current.formatRam(type.ram);
 			}
-
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
