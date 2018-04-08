@@ -169,6 +169,12 @@ define(function () {
 				details += type.ramRate ? '<i class="' + current.rates[type.ramRate] + '"></i> ' : '';
 				details += current.formatRam(type.ram);
 			}
+
+			if (type.storageRate) {
+				details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
+				details += type.ramRate ? '<i class="' + current.rates[type.storageRate] + '"></i>' : '';
+				// TODO Add instance storage
+			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
