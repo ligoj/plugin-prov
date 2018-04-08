@@ -206,11 +206,13 @@ define(function () {
 			if (type.throughput) {
 				details += '<br><i class=\'' + current.storageOptimized.throughput + '\'></i> ' + type.throughput + ' MB/s';
 			}
-			if (type.durability) {
-				details += '<br><i class=\'fas fa-fw far-gem\'></i> <i class=\'' + type.durability + '%\'></i>';
+			if (type.durability9) {
+				var nines = '9'.repeat(type.durability9);
+				nines = type.durability9 < 3 ? '0'.repeat(3 - type.durability9) : nines;
+				details += '<br><i class=\'far fa-fw fa-gem\'></i> ' + nines.substring(0, 2) + '.' + nines.substring(2) + '%';
 			}
 			if (type.availability) {
-				details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> <i class=\'' + type.availability + '%\'></i>';
+				details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
 			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},

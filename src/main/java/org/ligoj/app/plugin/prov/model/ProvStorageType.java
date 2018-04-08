@@ -83,9 +83,16 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private Double availability;
 
 	/**
-	 * Optional advertised durability. When <code>null</code>, the durability is not provided.
+	 * Optional advertised durability with "9" digits:
+	 * <ul>
+	 * <li><code>1</code> means <code>90%</code></li>
+	 * <li><code>2</code> means <code>99%</code></li>
+	 * <li><code>3</code> means <code>99.9%</code></li>
+	 * <li><code>N</code> means <code>99.9{repeated N-2}%</code></li>
+	 * </ul>
+	 * When <code>null</code>, the durability is not provided.
 	 */
 	@Positive
-	private Double durability;
+	private Integer durability9;
 
 }
