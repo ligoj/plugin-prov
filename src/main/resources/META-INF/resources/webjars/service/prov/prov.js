@@ -175,6 +175,12 @@ define(function () {
 				details += type.ramRate ? '<i class="' + current.rates[type.storageRate] + '"></i>' : '';
 				// TODO Add instance storage
 			}
+
+			if (type.networkRate) {
+				details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
+				details += type.ramRate ? '<i class="' + current.rates[type.networkRate] + '"></i>' : '';
+				// TODO Add memory type
+			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
