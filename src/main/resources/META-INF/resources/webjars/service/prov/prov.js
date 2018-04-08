@@ -144,21 +144,21 @@ define(function () {
 		},
 
 		/**
-		 * Format instance detail
+		 * Format instance type details.
 		 */
-		formatInstance: function (name, mode, qi) {
+		formatInstanceType: function (name, mode, qi) {
 			var type = qi ? qi.price.type : {};
 			name = type ? type.name : name;
-			if (mode === 'sort' || (typeof type.id === 'undefined')) {
+			if (mode !== 'display' || (typeof type.id === 'undefined')) {
 				// Use only the name
 				return name;
 			}
-			// Instance details are available
-			var details = type && type.description || '';
-			details += '<br><i class=\'fas fa-bolt fa-fw\'></i> ';
-			details += type.cpuRate ? '<i class="' + current.rates[type.cpuRate] + '"></i> ' : '';
+			// Instance type details are available
+			var details = type.description ? type.description + '<br>' : '';
+			details += '<i class=\'fas fa-bolt fa-fw\'></i> ';
+			details += type.cpuRate ? '<i class=\'' + current.rates[type.cpuRate] + '\'></i> ' : '';
 			if (type.cpu) {
-				details += type.cpu;
+				details += '#' + type.cpu;
 				details += ' ' + current.formatConstant(type.constant);
 			} else {
 				details += current.$messages['service:prov:instance-custom'];
@@ -166,20 +166,51 @@ define(function () {
 
 			if (type.ram) {
 				details += '<br><i class=\'fas fa-microchip fa-fw\'></i> ';
-				details += type.ramRate ? '<i class="' + current.rates[type.ramRate] + '"></i> ' : '';
+				details += type.ramRate ? '<i class=\'' + current.rates[type.ramRate] + '\'></i> ' : '';
 				details += current.formatRam(type.ram);
 			}
 
 			if (type.storageRate) {
 				details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
-				details += type.ramRate ? '<i class="' + current.rates[type.storageRate] + '"></i>' : '';
+				details += type.ramRate ? '<i class=\'' + current.rates[type.storageRate] + '\'></i>' : '';
 				// TODO Add instance storage
 			}
 
 			if (type.networkRate) {
 				details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
-				details += type.ramRate ? '<i class="' + current.rates[type.networkRate] + '"></i>' : '';
+				details += type.ramRate ? '<i class=\'' + current.rates[type.networkRate] + '\'></i>' : '';
 				// TODO Add memory type
+			}
+			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		},
+		
+		formatStorageType: function (name, mode, qs) {
+			var type = qs ? qs.price.type : {};
+			name = type ? type.name : name;
+			if (mode !== 'display' || (typeof type.id === 'undefined')) {
+				// Use only the name
+				return name;
+			}
+			// Storage type details are available
+			var details = type.description ? type.description + '<br>' : '';
+			details += '<i class=\'far fa-hdd fa-fw\'></i> ';
+			details += formatManager.formatSize((type.minimal || 1) * 1024 * 1024 * 1024, 3) + ' - ';
+			details += type.maximal ? formatManager.formatSize(type.maximal * 1024 * 1024 * 1024, 3) : '∞';
+
+			if (type.latency) {
+				details += '<br><i class=\'fas fa-fw fa-stopwatch\'></i> <i class=\'' + current.rates[type.latency] + '\'></i>';
+			}
+			if (type.iops) {
+				details += '<br><i class=\'' + current.storageOptimized.iops + '\'></i> ' + type.iops + ' IOPS';
+			}
+			if (type.throughput) {
+				details += '<br><i class=\'' + current.storageOptimized.throughput + '\'></i> ' + type.throughput + ' MB/s';
+			}
+			if (type.durability) {
+				details += '<br><i class=\'fas fa-fw far-gem\'></i> <i class=\'' + type.durability + '%\'></i>';
+			}
+			if (type.availability) {
+				details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> <i class=\'' + type.availability + '%\'></i>';
 			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
@@ -2144,7 +2175,7 @@ define(function () {
 				}, {
 					data: 'price.type.name',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatInstance
+					render: current.formatInstanceType
 				}, {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
@@ -2239,8 +2270,9 @@ define(function () {
 					className: 'truncate hidden-xs',
 					render: current.formatStorageOptimized
 				}, {
-					data: 'price.type.name',
-					className: 'truncate hidden-xs hidden-sm hidden-md'
+					data: 'price.type',
+					className: 'truncate hidden-xs hidden-sm hidden-md',
+					render: current.formatStorageType
 				}, {
 					data: 'quoteInstance.name',
 					className: 'truncate hidden-xs hidden-sm'
