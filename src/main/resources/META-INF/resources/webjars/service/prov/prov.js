@@ -1466,13 +1466,14 @@ define(function () {
 			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
 			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
 			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-			var html = m49 || id;
-			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-			html = (subRegion || m49) ? html + '<span class="pull-right x-small prov-location-api">' + id + '</span>' : id;
+			var html = '';
 			if (location.countryA2) {
 				html += '<img class="pull-left flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + location.countryA2.toLowerCase()
 					+ '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
 			}
+			html += m49 || id;
+			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
+			html += (subRegion || m49) ? '<span class="pull-right x-small prov-location-api">' + id + '</span>' : id;
 			return html;
 		},
 
