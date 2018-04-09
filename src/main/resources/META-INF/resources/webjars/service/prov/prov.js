@@ -1468,8 +1468,8 @@ define(function () {
 			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
 			var html = '';
 			if (location.countryA2) {
-				html += '<img class="pull-left flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + location.countryA2.toLowerCase()
-					+ '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
+				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
+				html = '<img class="pull-left flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
 			}
 			html += m49 || id;
 			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
