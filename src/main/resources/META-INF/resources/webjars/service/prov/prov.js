@@ -126,15 +126,15 @@ define(function () {
 			var quote = subscription.data.quote;
 			var resources = [];
 			if (quote.nbInstances) {
-				resources.push(current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM');
-				resources.push(current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu']);
-				resources.push(current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam));
+				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
 			}
 			if (quote.nbPublicAccess) {
-				resources.push(current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess);
+				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess) + '</span>';
 			}
 			if (quote.totalStorage) {
-				resources.push(current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage));
+				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
 			}
 
 			return current.$super('generateCarousel')(subscription, [
