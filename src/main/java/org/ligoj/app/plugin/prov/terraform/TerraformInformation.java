@@ -12,6 +12,11 @@ import lombok.Setter;
 @Setter
 public class TerraformInformation implements Serializable {
 
+	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private String version;
 	private boolean installed;
 	private String lastVersion;

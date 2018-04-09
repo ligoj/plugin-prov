@@ -29,6 +29,11 @@ import lombok.Setter;
 public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implements PluginConfiguration, Costed {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Minimal monthly cost, computed during the creation and kept synchronized with
 	 * the updates.
 	 */

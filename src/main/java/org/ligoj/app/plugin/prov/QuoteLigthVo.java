@@ -14,6 +14,11 @@ import lombok.Setter;
 public class QuoteLigthVo extends DescribedBean<Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The amount of instances.
 	 */
 	private int nbInstances;

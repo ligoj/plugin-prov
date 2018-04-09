@@ -28,6 +28,11 @@ import lombok.Setter;
 public class ProvQuoteStorage extends AbstractQuoteResource {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Optional required latency class.
 	 */
 	@Enumerated(EnumType.ORDINAL)

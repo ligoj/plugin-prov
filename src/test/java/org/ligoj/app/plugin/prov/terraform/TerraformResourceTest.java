@@ -240,10 +240,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 		// Replace the CLI runner
 		resource.terraformUtils = new TerraformUtils() {
 
+			@Override
 			public boolean isInstalled() {
 				return false;
 			}
 
+			@Override
 			public String getLastestVersion() {
 				return "2.0.0";
 			}
@@ -263,6 +265,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		// Replace the Terraform utility
 		resource.terraformUtils = new TerraformUtils() {
 
+			@Override
 			public void install(final String version) {
 				Assertions.assertEquals("2.0.0", version);
 			}
@@ -272,6 +275,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 				return classLoader;
 			}
 
+			@Override
 			public String getLastestVersion() {
 				return "2.0.0";
 			}
@@ -417,6 +421,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 				return classLoader;
 			}
 
+			@Override
 			public String getLastestVersion() {
 				return "2.0.0";
 			}

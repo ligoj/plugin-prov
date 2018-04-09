@@ -32,6 +32,11 @@ import lombok.Setter;
 public class ProvStorageType extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The latency class.
 	 */
 	@NotNull

@@ -19,6 +19,11 @@ import lombok.Setter;
 public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Instance price configuration matching to the requirements.
 	 */
 	@NotNull

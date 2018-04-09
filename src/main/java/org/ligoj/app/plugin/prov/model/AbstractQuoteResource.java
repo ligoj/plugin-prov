@@ -25,6 +25,11 @@ import lombok.Setter;
 public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Integer> implements Costed {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The minimal computed monthly cost of the resource.
 	 */
 	@NotNull

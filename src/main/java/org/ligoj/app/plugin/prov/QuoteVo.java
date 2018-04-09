@@ -20,6 +20,11 @@ import lombok.Setter;
 public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Monthly cost, computed during the creation.
 	 */
 	private FloatingCost cost;

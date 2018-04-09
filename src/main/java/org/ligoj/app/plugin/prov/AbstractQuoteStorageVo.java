@@ -16,6 +16,11 @@ import lombok.Setter;
 public abstract class AbstractQuoteStorageVo extends DescribedBean<Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Size of the storage in "GiB" "Gibi Bytes"
 	 * 
 	 * @see https://en.wikipedia.org/wiki/Gibibyte
