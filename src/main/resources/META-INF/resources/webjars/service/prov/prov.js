@@ -1469,11 +1469,11 @@ define(function () {
 			var html = '';
 			if (location.countryA2) {
 				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-				html = '<img class="pull-left flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
+				html = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
 			}
 			html += m49 || id;
 			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-			html += (subRegion || m49) ? '<span class="pull-right x-small prov-location-api">' + id + '</span>' : id;
+			html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
 			return html;
 		},
 

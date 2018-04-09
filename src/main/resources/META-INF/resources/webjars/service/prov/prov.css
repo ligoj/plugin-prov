@@ -178,11 +178,23 @@ label[for="instance-max-variable-cost"] {
 }
 
 .prov-location-api {
-	position: absolute;
-	right: 0;
 	white-space: nowrap;
+	float: right;
+}
+
+.masonry-container .prov-location-api {
+	font-size: x-small;
+	position: absolute;
+	right: -8px;
+	top: -9px;
+}
+.select2-chosen .prov-location-api, .select2-result .prov-location-api {
+	float: right;
+	font-size: x-small;
+	position: absolute;
 	margin-top: -10px;
 	margin-right: 5px;
+	right: 0;
 }
 
 #prov-defaults label>i { 
@@ -210,9 +222,10 @@ label[for="instance-max-variable-cost"] {
 .flag-icon:before {
 	content: "\00a0";
 }
-.select2-chosen .flag-icon {
-	margin-top: 11px;
+img.flag-icon.prov-location-flag {
+	margin-top: -3px;
 	margin-left: 1px;
+	display: inline;
 }
 .popover, .tooltip-inner {
 	line-height: 1.2em;
