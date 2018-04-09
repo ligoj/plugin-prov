@@ -11,7 +11,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-prov</artifactId>
-	<version>1.5.5-SNAPSHOT</version>
+	<version>1.5.5</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Provisioning</name>
 
