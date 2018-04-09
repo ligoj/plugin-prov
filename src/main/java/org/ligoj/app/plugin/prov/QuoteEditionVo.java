@@ -15,6 +15,11 @@ import lombok.Setter;
 public class QuoteEditionVo extends DescribedBean<Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Default location name when not defined at instance/storage level.
 	 */
 	@NotNull

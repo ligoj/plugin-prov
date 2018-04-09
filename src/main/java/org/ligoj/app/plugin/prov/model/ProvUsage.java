@@ -27,6 +27,11 @@ import lombok.Setter;
 public class ProvUsage extends AbstractNamedEntity<Integer> implements Configurable<ProvQuote, Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The related quote.
 	 */
 	@NotNull

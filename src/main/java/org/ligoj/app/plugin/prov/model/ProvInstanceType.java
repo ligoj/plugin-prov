@@ -28,6 +28,11 @@ import lombok.Setter;
 public class ProvInstanceType extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Amount of CPU. When <code>0</code>, correspond to a custom instance.
 	 */
 	@NotNull

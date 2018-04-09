@@ -28,6 +28,11 @@ import lombok.Setter;
 public class ProvLocation extends AbstractDescribedEntity<Integer> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The related node (VM provider) of this location.
 	 */
 	@NotNull

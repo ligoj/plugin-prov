@@ -17,6 +17,11 @@ import lombok.Setter;
 public class QuoteStorageEditionVo extends AbstractQuoteStorageVo {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Optional required latency class.
 	 */
 	private Rate latency;

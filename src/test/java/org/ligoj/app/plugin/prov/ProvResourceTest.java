@@ -528,7 +528,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void checkSubscriptionStatus() throws Exception {
+	public void checkSubscriptionStatus() {
 		final AbstractProvResource res = new AbstractProvResource() {
 
 			@Override

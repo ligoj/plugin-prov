@@ -26,6 +26,11 @@ import lombok.Setter;
 public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> implements NodeScoped {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing
 	 * period below 1 month.
 	 */

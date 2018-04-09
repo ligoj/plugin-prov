@@ -28,6 +28,11 @@ import lombok.Setter;
 public class ProvQuoteInstance extends AbstractQuoteResource {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Related instance with the price.
 	 */
 	@NotNull
