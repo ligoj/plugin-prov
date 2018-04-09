@@ -57,6 +57,7 @@ define(function () {
 					$instances.rows.add(current.model.configuration.instances).draw();
 					$storages.rows.add(current.model.configuration.storages).draw();
 					_('quote-location').select2('data', current.model.configuration.location);
+					$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
 					_('quote-usage').select2('data', current.model.configuration.usage);
 				}
 			});
@@ -139,7 +140,7 @@ define(function () {
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
 				['service:prov:resources', resources.join(', ')],
-				['service:prov:location', current.$super('icon')('map-marker-alt', 'service:prov:location') + current.locationToHtml(quote.location)]
+				['service:prov:location', current.$super('icon')('map-marker-alt', 'service:prov:location') + current.locationToHtml(quote.location, true)]
 			], 1);
 		},
 
@@ -1114,8 +1115,10 @@ define(function () {
 					current.updateQuote({
 						location: event.added
 					}, 'location');
+					$('.location-wrapper').html(current.locationMap(event.added));
 				}
 			});
+			$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
 			_('prov-usage-delete').click(function () {
 				current.deleteUsage(_('usage-old-name').val());
 			});
@@ -1457,19 +1460,30 @@ define(function () {
 				}
 			});
 		},
+		
+		locationMap: function (location) {
+			if (location.longitude) {
+			// https://www.google.com/maps/place/33%C2%B048'00.0%22S+151%C2%B012'00.0%22E/@-33.8,151.1978113,3z
+			// http://www.google.com/maps/place/49.46800006494457,17.11514008755796/@49.46800006494457,17.11514008755796,17z
+//				html += '<a href="https://maps.google.com/?q=' + location.latitude + ',' + location.longitude + '" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
+				return '<a href="http://www.google.com/maps/place/' + location.latitude + ',' + location.longitude + '/@' + location.latitude + ',' + location.longitude + ',3z" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
+			} else {
+				return '';
+			}
+		},
 
 		/**
 		 * Location html renderer.
 		 */
-		locationToHtml: function (location) {
+		locationToHtml: function (location, map) {
 			var id = location.name;
 			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
 			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
 			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-			var html = '';
+			var html = map === true ? current.locationMap(location) : '';
 			if (location.countryA2) {
 				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-				html = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
+				html += '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
 			}
 			html += m49 || id;
 			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';

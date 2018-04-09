@@ -230,3 +230,8 @@ img.flag-icon.prov-location-flag {
 .popover, .tooltip-inner {
 	line-height: 1.2em;
 }
+.location-wrapper {
+	position: relative;
+	top: 9px;
+	right: 3px;
+}
