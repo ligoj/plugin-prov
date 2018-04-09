@@ -139,7 +139,7 @@ define(function () {
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
 				['service:prov:resources', resources.join(', ')],
-				['service:prov:location', current.$super('icon')('map-marker', 'service:prov:location') + quote.location]
+				['service:prov:location', current.$super('icon')('map-marker-alt', 'service:prov:location') + current.locationToHtml(quote.location)]
 			], 1);
 		},
 
