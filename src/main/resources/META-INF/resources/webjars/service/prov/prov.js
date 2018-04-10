@@ -716,7 +716,8 @@ define(function () {
 					suggests[i].id = suggests[i].id || suggests[i].price.id;
 				}
 				var suggest = suggests[0];
-				_('storage-price').select2({
+				debugger;
+				_('storage-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: current.formatStoragePriceHtml,
 					formatResult: current.formatStoragePriceHtml
@@ -750,7 +751,7 @@ define(function () {
 		instanceSetUiPrice: function (quote) {
 			if (quote && quote.price) {
 				var suggests = [quote];
-				_('instance-price').select2({
+				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
 						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
