@@ -23,7 +23,8 @@
 	<properties>
 		<!-- TODO Remove with 2.2.5+ API POM -->
 		<sonar.sources>src/main/java,src/main/resources/META-INF/resources/webjars</sonar.sources>
-		<sonar.coverage.exclusions>*.js</sonar.coverage.exclusions>
+		<sonar.coverage.exclusions>**/*.js</sonar.coverage.exclusions>
+		<sonar.cpd.exclusions>**/messages.js</sonar.cpd.exclusions>
 		<awaitility.version>3.0.0</awaitility.version>
 	</properties>
 
