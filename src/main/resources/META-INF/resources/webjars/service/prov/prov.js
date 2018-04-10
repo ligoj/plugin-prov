@@ -131,7 +131,7 @@ define(function () {
 				resources.push('<span class="sub-item">' + current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
 			}
 			if (quote.nbPublicAccess) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess) + '</span>';
+				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + '</span>');
 			}
 			if (quote.totalStorage) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
