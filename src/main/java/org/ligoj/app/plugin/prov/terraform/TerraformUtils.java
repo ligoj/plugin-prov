@@ -98,7 +98,6 @@ public class TerraformUtils {
 		shells.put("default", TERRAFORM_SHELL_LINUX);
 		distributions.put("windows", "windows_amd64");
 		distributions.put("mac", "darwin_amd64");
-		distributions.put("windows", "windows_amd64");
 		distributions.put("freebsd", "freebsd_amd64");
 		distributions.put("solaris", "solaris_amd64");
 		distributions.put("openbsd", "openbsd_amd64");
