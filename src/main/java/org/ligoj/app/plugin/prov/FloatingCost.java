@@ -1,5 +1,7 @@
 package org.ligoj.app.plugin.prov;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +12,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class FloatingCost {
+public class FloatingCost implements Serializable {
+
+	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Minimal monthly cost.
@@ -18,9 +25,8 @@ public class FloatingCost {
 	private double min;
 
 	/**
-	 * The maximal determined monthly cost. When the maximal cost cannot be
-	 * determined, the minimal cost is used and the {@link #unbound} is set to
-	 * <code>true</code>.
+	 * The maximal determined monthly cost. When the maximal cost cannot be determined, the minimal cost is used and the
+	 * {@link #unbound} is set to <code>true</code>.
 	 */
 	private double max;
 
@@ -29,10 +35,8 @@ public class FloatingCost {
 	 */
 	private boolean unbound;
 
-
 	/**
-	 * Default float where {@link #min} and {@link #max} are set to
-	 * <code>0</code>.
+	 * Default float where {@link #min} and {@link #max} are set to <code>0</code>.
 	 */
 	public FloatingCost() {
 		// No value

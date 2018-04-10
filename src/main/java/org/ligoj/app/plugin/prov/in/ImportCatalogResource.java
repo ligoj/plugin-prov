@@ -50,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogStatus, ImportCatalogStatusRepository> {
 
+	private static final String BY_NODE = "node.id";
+
 	@Autowired
 	private NodeResource nodeResource;
 
@@ -181,9 +183,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
 		task.setNbInstancePrices((int) ipRepository.countBy("type.node.id", node));
-		task.setNbInstanceTypes((int) itRepository.countBy("node.id", node));
-		task.setNbLocations((int) locationRepository.countBy("node.id", node));
-		task.setNbStorageTypes((int) stRepository.countBy("node.id", node));
+		task.setNbInstanceTypes((int) itRepository.countBy(BY_NODE, node));
+		task.setNbLocations((int) locationRepository.countBy(BY_NODE, node));
+		task.setNbStorageTypes((int) stRepository.countBy(BY_NODE, node));
 	}
 
 	/**

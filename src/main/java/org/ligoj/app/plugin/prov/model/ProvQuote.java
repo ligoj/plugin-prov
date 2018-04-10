@@ -64,6 +64,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 */
 	@NotNull
 	@ManyToOne
+	@JsonIgnore
 	private Subscription subscription;
 
 	/**
