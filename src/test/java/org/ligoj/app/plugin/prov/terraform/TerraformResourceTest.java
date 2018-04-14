@@ -225,6 +225,17 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	public void getVersionNotLatest() throws Exception {
+		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0",
+				"Terraform v0.0.1\n\nYour version of Terraform is out of date! The latest version\n"
+				+ "is 0.11.7. You can update by downloading from www.terraform.io/downloads.html");
+		final TerraformInformation version = resource.getVersion();
+		Assertions.assertEquals("0.0.1", version.getVersion());
+		Assertions.assertTrue(version.isInstalled());
+		Assertions.assertEquals("2.0.0", version.getLastVersion());
+	}
+
+	@Test
 	public void getVersionWrongOutput() throws Exception {
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), false, "error=0", "WHAT?");
 		final TerraformInformation version = resource.getVersion();

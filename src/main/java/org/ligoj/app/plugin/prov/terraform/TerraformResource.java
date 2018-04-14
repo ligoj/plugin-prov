@@ -66,7 +66,7 @@ public class TerraformResource {
 	 * Terraform version output pattern matcher. Expected output is like : <code>Terraform v0.11.5<code>, and maybe
 	 * followed by some outputs like new lines or content to ignore.
 	 */
-	private static final Pattern TERRFORM_VERSION = Pattern.compile(".* v([^ ]+$)");
+	private static final Pattern TERRFORM_VERSION = Pattern.compile(".* v([^\\s]+)\\s+.*");
 
 	@Autowired
 	protected SubscriptionResource subscriptionResource;
@@ -310,7 +310,8 @@ public class TerraformResource {
 			final int code = execute(terraformUtils.getHome().toFile(), new PrintWriter(bos), "-v");
 			final String output = bos.toString();
 			if (code == 0) {
-				final Matcher matcher = TERRFORM_VERSION.matcher(output.trim());
+				// Terraform v0.11.5
+				final Matcher matcher = TERRFORM_VERSION.matcher(output);
 				if (matcher.find()) {
 					result.setVersion(matcher.group(1));
 				}
