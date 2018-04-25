@@ -42,6 +42,7 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -362,6 +363,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(21, location.getRegionM49().intValue());
 		Assertions.assertEquals(19, location.getContinentM49().intValue());
 		Assertions.assertEquals("Virginia", location.getSubRegion());
+		Assertions.assertEquals(37.352d, location.getLongitude().doubleValue(), DELTA);
+		Assertions.assertEquals(-79.049d, location.getLatitude().doubleValue(), DELTA);
 
 		// CHeck the association on the quote
 		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation().getName());
@@ -519,7 +522,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void findLocations() {
 		final TableItem<ProvLocation> locations = resource.findLocations(subscription, newUriInfo());
-		
+
 		// 3 regions, but only 2 have associated prices
 		Assertions.assertEquals(2, locations.getData().size());
 		Assertions.assertEquals("region-1", locations.getData().get(0).getName());
@@ -626,5 +629,11 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class, () -> {
 			resource.findConfiguredByName(qiRepository, "server1", 0);
 		}).getMessage());
+	}
+
+	@Test
+	public void getInstalledEntities() {
+		Assertions.assertTrue(resource.getInstalledEntities().contains(SystemConfiguration.class));
+		Assertions.assertTrue(resource.getInstalledEntities().contains(Node.class));
 	}
 }

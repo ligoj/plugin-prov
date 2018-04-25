@@ -609,7 +609,27 @@ define(function () {
 				// Optimize id access
 				conf.storagesById[qs.id] = qs;
 			}
+			current.initializeTerraformStatus();
 			current.updateUiCost();
+		},
+		
+		/**
+		 * Refresh the Terraform status embedded in the quote.
+		 */
+		initializeTerraformStatus: function() {
+			if (current.model.configuration.terraformStatus) {
+				current.updateTerraformStatus(current.model.configuration.terraformStatus);
+				if (!current.model.configuration.terraformStatus.finished) {
+					// At least one snapshot is pending: track it
+					setTimeout(function () {
+						// Poll the unfinished snapshot
+						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
+					}, 10);
+				}
+			} else {
+				_('prov-terraform-status').addClass('hidden');
+				current.enableTerraform();
+			}
 		},
 
 		/**
@@ -966,7 +986,9 @@ define(function () {
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
-			_('prov-terraform-execute').on('click', current.terraform);
+			_('popup-prov-terraform').on('modal.shown',function() {
+				_('terraform-cidr').trigger('focus');
+			}).on('submit', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 
@@ -1293,15 +1315,99 @@ define(function () {
 		},
 
 		/**
+		 * Interval identifiers for polling
+		 */
+		polling: {},
+
+		/**
+		 * Stop the timer for polling
+		 */
+		pollStop: function (key) {
+			if (current.polling[key]) {
+				clearInterval(current.polling[key]);
+			}
+			delete current.polling[key];
+		},
+
+		/**
+		 * Timer for the polling.
+		 */
+		pollStart: function (key, id, synchronizeFunction) {
+			current.polling[key] = setInterval(function () {
+				synchronizeFunction(key, id);
+			}, 5000);
+		},
+
+		/**
+		 * Get the new Terraform status.
+		 */
+		synchronizeTerraform: function (key, subscription) {
+			current.pollStop(key);
+			current.polling[key] = '-';
+			$.ajax({
+				dataType: 'json',
+				url: REST_PATH + 'service/prov/' + subscription + '/terraform',
+				type: 'GET',
+				success: function (status) {
+					current.updateTerraformStatus(status);
+					if (status.finished) {
+						return;
+					}
+					// Continue polling for this Terraform
+					current.pollStart(key, subscription, current.synchronizeTerraform);
+				}
+			});
+		},
+
+		/**
+		 * Update the Terraform status.
+		 */
+		updateTerraformStatus: function (status) {
+			debugger;
+			_('prov-terraform-status').removeClass('hidden');
+			if (status.finished) {
+				// Stop the polling, update the buttons
+				current.enableTerraform();
+			} else {
+				current.disableTerraform();
+				// Update the tooltip for the progress
+				//  role="progressbar" aria-valuenow="2" aria-valuemin="0" aria-valuemax="100"
+				//  style="width: 5%"
+				// TODO Add % text in the last step
+				// TODO Change progress border style
+				// TODO Add tooltip to each step
+				// TODO Add a step-CSS class mapping, add generate and analysis states
+				var statusText = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
+				current.$super('$view').find('.vm-snapshot-create').attr('title', statusText);
+			}
+		},
+
+		enableTerraform: function () {
+			_('prov-terraform-execute').enable();
+		},
+		disableTerraform: function () {
+			_('prov-terraform-execute').disable();
+		},
+
+		/**
 		 * Execute the terraform deployment
 		 */
 		terraform: function () {
+			var subscription = current.model.subscription;
+			current.disableTerraform();
 			$.ajax({
 				type: 'POST',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/terraform',
+				url: REST_PATH + 'service/prov/' + subscription + '/terraform',
 				dataType: 'json',
 				success: function () {
 					notifyManager.notify(current.$messages['service:prov:terraform:started']);
+					setTimeout(function () {
+						// Poll the unfinished Terraform
+						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
+					}, 10);
+				},
+				error: function () {
+					current.enableTerraform();
 				}
 			});
 		},

@@ -1,0 +1,226 @@
+aws_key_pair.auth: Refreshing state... (ID: fdaugan)
+data.aws_availability_zones.available: Refreshing state...
+aws_vpc.this: Refreshing state... (ID: vpc-03c5d17556bab89e4)
+data.aws_ami.search: Refreshing state...
+aws_subnet.public[0]: Refreshing state... (ID: subnet-049f393fdf3764248)
+aws_subnet.public[1]: Refreshing state... (ID: subnet-0ef8ca377bdbcf174)
+aws_internet_gateway.this: Refreshing state... (ID: igw-097af45dc650707ce)
+aws_route_table.private[0]: Refreshing state... (ID: rtb-01c576bdebc989ebf)
+aws_route_table.private[1]: Refreshing state... (ID: rtb-0c8eb5eb6655cc8b4)
+aws_route_table.public: Refreshing state... (ID: rtb-088c0fc152280a5c0)
+aws_subnet.private[0]: Refreshing state... (ID: subnet-0a27799da6d73c0a0)
+aws_subnet.private[1]: Refreshing state... (ID: subnet-0855428961a0ac00c)
+aws_security_group.default: Refreshing state... (ID: sg-0ff7afa9207b73da3)
+aws_security_group.default_elb: Refreshing state... (ID: sg-0e12142e358e1dddb)
+aws_route.public_internet_gateway: Refreshing state... (ID: r-rtb-088c0fc152280a5c01080289494)
+aws_route_table_association.public[0]: Refreshing state... (ID: rtbassoc-01fafdf85ea4e8af6)
+aws_route_table_association.public[1]: Refreshing state... (ID: rtbassoc-015a38d93675f1c7a)
+aws_route_table_association.private[0]: Refreshing state... (ID: rtbassoc-0cbb734e7c379f7bd)
+aws_route_table_association.private[1]: Refreshing state... (ID: rtbassoc-0b7bc33a9b15005c3)
+aws_security_group_rule.egress: Refreshing state... (ID: sgrule-2036150982)
+aws_security_group_rule.ingress: Refreshing state... (ID: sgrule-1009002343)
+aws_instance.this: Refreshing state... (ID: i-065fcad249a528069)
+aws_lb_target_group.main: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...-1234-instance-B-Spot/ecb21eb1a476dc8c)
+aws_security_group_rule.ingress[0]: Refreshing state... (ID: sgrule-1846195546)
+aws_security_group_rule.ingress[1]: Refreshing state... (ID: sgrule-3632326895)
+aws_security_group_rule.egress: Refreshing state... (ID: sgrule-506823065)
+aws_instance.this: Refreshing state... (ID: i-0b6e487a988a63a5a)
+aws_lb_target_group.main: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...ligoj-1234-instance-A/1f7599e819edead2)
+aws_lb.application_no_logs: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/6eea932f21dfa416)
+aws_launch_configuration.this: Refreshing state... (ID: client-project-instance-B-Spot-20180423193820032900000001)
+aws_launch_configuration.this: Refreshing state... (ID: client-project-instance-D-ALB-Spot-20180423193820206500000002)
+aws_launch_configuration.this: Refreshing state... (ID: client-project-instance-C-ELB-20180423193820568000000003)
+aws_elb.this: Refreshing state... (ID: ligoj-1234-instance-C-ELB)
+aws_lb_target_group.main: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...j-1234-instance-C-ELB/df5554813d90fc00)
+aws_lb_target_group.main: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/a6cbb8efcf4079fe)
+aws_autoscaling_group.this: Refreshing state... (ID: client-project-instance-B-Spot-20180423193821018900000004)
+aws_autoscaling_group.this: Refreshing state... (ID: client-project-instance-C-ELB-20180423193823103400000005)
+aws_autoscaling_policy.out: Refreshing state... (ID: High CPU)
+aws_autoscaling_policy.in: Refreshing state... (ID: Low CPU)
+aws_lb_listener.frontend_http_tcp: Refreshing state... (ID: arn:aws:elasticloadbalancing:eu-west-3:...Spot/6eea932f21dfa416/35ecf6ebb57a6d6b)
+aws_autoscaling_group.this: Refreshing state... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001)
+aws_autoscaling_policy.out: Refreshing state... (ID: High CPU)
+aws_autoscaling_policy.in: Refreshing state... (ID: Low CPU)
+aws_cloudwatch_metric_alarm.in: Refreshing state... (ID: client-project-instance-B-Spot-autoscaling_group-scale_in-cpu)
+aws_autoscaling_policy.in: Refreshing state... (ID: Low CPU)
+aws_autoscaling_policy.out: Refreshing state... (ID: High CPU)
+data.template_file.md: Refreshing state...
+aws_cloudwatch_metric_alarm.out: Refreshing state... (ID: client-project-instance-B-Spot-autoscaling_group-scale_out-cpu)
+aws_cloudwatch_metric_alarm.out: Refreshing state... (ID: client-project-instance-C-ELB-autoscaling_group-scale_out-cpu)
+data.template_file.widgets: Refreshing state...
+aws_cloudwatch_metric_alarm.out: Refreshing state... (ID: client-project-instance-D-ALB-Spot-autoscaling_group-scale_out-cpu)
+aws_cloudwatch_dashboard.main: Refreshing state... (ID: client-project_eu-west-3)
+aws_cloudwatch_metric_alarm.in: Refreshing state... (ID: client-project-instance-C-ELB-autoscaling_group-scale_in-cpu)
+aws_cloudwatch_metric_alarm.in: Refreshing state... (ID: client-project-instance-D-ALB-Spot-autoscaling_group-scale_in-cpu)
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.out: Destroying... (ID: client-project-instance-C-ELB-autoscaling_group-scale_out-cpu)
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.in: Destroying... (ID: client-project-instance-C-ELB-autoscaling_group-scale_in-cpu)
+module.eu-west-3.module.instance-A.aws_instance.this: Destroying... (ID: i-0b6e487a988a63a5a)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.out: Destroying... (ID: client-project-instance-B-Spot-autoscaling_group-scale_out-cpu)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this: Destroying... (ID: i-065fcad249a528069)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.out: Destruction complete after 1s
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.out: Destruction complete after 1s
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.in: Destruction complete after 1s
+module.eu-west-3.module.vpc.aws_route.public_internet_gateway: Destroying... (ID: r-rtb-088c0fc152280a5c01080289494)
+module.eu-west-3.module.vpc.aws_route_table_association.private[1]: Destroying... (ID: rtbassoc-0b7bc33a9b15005c3)
+module.eu-west-3.aws_cloudwatch_dashboard.main: Destroying... (ID: client-project_eu-west-3)
+module.eu-west-3.module.vpc.aws_route.public_internet_gateway: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.aws_cloudwatch_metric_alarm.out: Destroying... (ID: client-project-instance-D-ALB-Spot-autoscaling_group-scale_out-cpu)
+module.eu-west-3.module.vpc.aws_route_table_association.private[1]: Destruction complete after 0s
+module.eu-west-3.module.sg_rule.aws_security_group_rule.egress: Destroying... (ID: sgrule-506823065)
+module.eu-west-3.module.instance-D-ALB-Spot.aws_cloudwatch_metric_alarm.out: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.aws_cloudwatch_metric_alarm.in: Destroying... (ID: client-project-instance-D-ALB-Spot-autoscaling_group-scale_in-cpu)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.egress: Destruction complete after 0s
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.in: Destroying... (ID: client-project-instance-B-Spot-autoscaling_group-scale_in-cpu)
+module.eu-west-3.aws_cloudwatch_dashboard.main: Destruction complete after 0s
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[1]: Destroying... (ID: sgrule-3632326895)
+module.eu-west-3.module.instance-D-ALB-Spot.aws_cloudwatch_metric_alarm.in: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_route_table_association.public[1]: Destroying... (ID: rtbassoc-015a38d93675f1c7a)
+module.eu-west-3.module.vpc.aws_route_table_association.public[1]: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_listener.frontend_http_tcp: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...Spot/6eea932f21dfa416/35ecf6ebb57a6d6b)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.in: Destruction complete after 0s
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.egress: Destroying... (ID: sgrule-2036150982)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_listener.frontend_http_tcp: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_route_table_association.private[0]: Destroying... (ID: rtbassoc-0cbb734e7c379f7bd)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[1]: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_route_table_association.public[0]: Destroying... (ID: rtbassoc-01fafdf85ea4e8af6)
+module.eu-west-3.module.vpc.aws_route_table_association.private[0]: Destruction complete after 1s
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[0]: Destroying... (ID: sgrule-1846195546)
+module.eu-west-3.module.vpc.aws_route_table_association.public[0]: Destruction complete after 1s
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.egress: Destruction complete after 1s
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.ingress: Destroying... (ID: sgrule-1009002343)
+module.eu-west-3.module.instance-A.module.alb.aws_lb_target_group.main: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...ligoj-1234-instance-A/1f7599e819edead2)
+module.eu-west-3.module.instance-A.module.alb.aws_lb_target_group.main: Destruction complete after 0s
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.out: Destroying... (ID: High CPU)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[0]: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.out: Destroying... (ID: High CPU)
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.ingress: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.in: Destroying... (ID: Low CPU)
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.out: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_internet_gateway.this: Destroying... (ID: igw-097af45dc650707ce)
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.out: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.aws_autoscaling_policy.out: Destroying... (ID: High CPU)
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.in: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.aws_autoscaling_policy.in: Destroying... (ID: Low CPU)
+module.eu-west-3.module.instance-D-ALB-Spot.aws_autoscaling_policy.out: Destruction complete after 0s
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.in: Destroying... (ID: Low CPU)
+module.eu-west-3.module.instance-D-ALB-Spot.aws_autoscaling_policy.in: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_route_table.private[1]: Destroying... (ID: rtb-0c8eb5eb6655cc8b4)
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.in: Destruction complete after 1s
+module.eu-west-3.module.vpc.aws_subnet.private[1]: Destroying... (ID: subnet-0855428961a0ac00c)
+module.eu-west-3.module.vpc.aws_route_table.private[1]: Destruction complete after 1s
+module.eu-west-3.module.vpc.aws_route_table.private[0]: Destroying... (ID: rtb-01c576bdebc989ebf)
+module.eu-west-3.module.vpc.aws_subnet.private[1]: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_subnet.private[0]: Destroying... (ID: subnet-0a27799da6d73c0a0)
+module.eu-west-3.module.vpc.aws_subnet.private[0]: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_route_table.public: Destroying... (ID: rtb-088c0fc152280a5c0)
+module.eu-west-3.module.vpc.aws_route_table.private[0]: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_autoscaling_group.this: Destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005)
+module.eu-west-3.module.vpc.aws_route_table.public: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_autoscaling_group.this: Destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001)
+module.eu-west-3.instance-B-Spot.aws_instance.this: Still destroying... (ID: i-065fcad249a528069, 10s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still destroying... (ID: i-0b6e487a988a63a5a, 10s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 10s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 10s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still destroying... (ID: i-0b6e487a988a63a5a, 20s elapsed)
+module.eu-west-3.instance-B-Spot.aws_instance.this: Still destroying... (ID: i-065fcad249a528069, 20s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 20s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 20s elapsed)
+module.eu-west-3.instance-B-Spot.aws_instance.this: Still destroying... (ID: i-065fcad249a528069, 30s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still destroying... (ID: i-0b6e487a988a63a5a, 30s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 30s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 30s elapsed)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this: Destruction complete after 40s
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_autoscaling_group.this: Destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004)
+module.eu-west-3.instance-A.aws_instance.this: Still destroying... (ID: i-0b6e487a988a63a5a, 40s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 40s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 40s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 10s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still destroying... (ID: i-0b6e487a988a63a5a, 50s elapsed)
+module.eu-west-3.module.instance-A.aws_instance.this: Destruction complete after 51s
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 50s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 50s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 50s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 20s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m0s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m0s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m0s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 30s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m10s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m10s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 40s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m20s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m20s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 50s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m30s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m30s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 1m0s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m40s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m40s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 1m10s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 1m50s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 1m50s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 1m50s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-B-Spot-20180423193821018900000004, 1m20s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m0s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-C-ELB-20180423193823103400000005, 2m0s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m0s elapsed)
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_autoscaling_group.this: Destruction complete after 1m26s
+module.eu-west-3.module.instance-B-Spot.module.alb.aws_lb_target_group.main: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...-1234-instance-B-Spot/ecb21eb1a476dc8c)
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_launch_configuration.this: Destroying... (ID: client-project-instance-B-Spot-20180423193820032900000001)
+module.eu-west-3.module.instance-B-Spot.module.alb.aws_lb_target_group.main: Destruction complete after 0s
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_launch_configuration.this: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_autoscaling_group.this: Destruction complete after 2m4s
+module.eu-west-3.module.instance-C-ELB.module.alb.aws_lb_target_group.main: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...j-1234-instance-C-ELB/df5554813d90fc00)
+module.eu-west-3.module.instance-C-ELB.module.elb.module.elb.aws_elb.this: Destroying... (ID: ligoj-1234-instance-C-ELB)
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_launch_configuration.this: Destroying... (ID: client-project-instance-C-ELB-20180423193820568000000003)
+module.eu-west-3.module.instance-C-ELB.module.alb.aws_lb_target_group.main: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_launch_configuration.this: Destruction complete after 0s
+module.eu-west-3.module.instance-C-ELB.module.elb.module.elb.aws_elb.this: Destruction complete after 0s
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m10s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m20s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m30s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m40s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 2m50s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.asg.aws_autoscaling_group.this: Still destroying... (ID: client-project-instance-D-ALB-Spot-20180423210329162800000001, 2m50s elapsed)
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_autoscaling_group.this: Destruction complete after 2m55s
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_launch_configuration.this: Destroying... (ID: client-project-instance-D-ALB-Spot-20180423193820206500000002)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_target_group.main: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/a6cbb8efcf4079fe)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_target_group.main: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_launch_configuration.this: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb.application_no_logs: Destroying... (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/6eea932f21dfa416)
+module.eu-west-3.aws_security_group.default: Destroying... (ID: sg-0ff7afa9207b73da3)
+module.eu-west-3.aws_key_pair.auth: Destroying... (ID: fdaugan)
+module.eu-west-3.aws_key_pair.auth: Destruction complete after 0s
+module.eu-west-3.aws_security_group.default: Destruction complete after 0s
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb.application_no_logs: Destruction complete after 0s
+module.eu-west-3.module.vpc.aws_subnet.public[0]: Destroying... (ID: subnet-049f393fdf3764248)
+module.eu-west-3.module.vpc.aws_subnet.public[1]: Destroying... (ID: subnet-0ef8ca377bdbcf174)
+module.eu-west-3.aws_security_group.default_elb: Destroying... (ID: sg-0e12142e358e1dddb)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 3m0s elapsed)
+module.eu-west-3.vpc.aws_subnet.public.0: Still destroying... (ID: subnet-049f393fdf3764248, 10s elapsed)
+module.eu-west-3.vpc.aws_subnet.public.1: Still destroying... (ID: subnet-0ef8ca377bdbcf174, 10s elapsed)
+module.eu-west-3.aws_security_group.default_elb: Still destroying... (ID: sg-0e12142e358e1dddb, 10s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 3m10s elapsed)
+module.eu-west-3.module.vpc.aws_subnet.public[0]: Destruction complete after 16s
+module.eu-west-3.vpc.aws_subnet.public.1: Still destroying... (ID: subnet-0ef8ca377bdbcf174, 20s elapsed)
+module.eu-west-3.aws_security_group.default_elb: Still destroying... (ID: sg-0e12142e358e1dddb, 20s elapsed)
+module.eu-west-3.vpc.aws_internet_gateway.this: Still destroying... (ID: igw-097af45dc650707ce, 3m20s elapsed)
+module.eu-west-3.module.vpc.aws_subnet.public[1]: Destruction complete after 26s
+module.eu-west-3.module.vpc.aws_internet_gateway.this: Destruction complete after 3m23s
+module.eu-west-3.aws_security_group.default_elb: Destruction complete after 27s
+module.eu-west-3.module.vpc.aws_vpc.this: Destroying... (ID: vpc-03c5d17556bab89e4)
+module.eu-west-3.module.vpc.aws_vpc.this: Destruction complete after 0s
+
+Destroy complete! Resources: 50 destroyed.

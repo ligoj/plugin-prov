@@ -39,7 +39,6 @@ public class InstanceUpload {
 	private Rate latency = Rate.GOOD;
 	private ProvStorageOptimized optimized = ProvStorageOptimized.IOPS;
 	private String type;
-	private String term;
 	private String location;
 
 	/**

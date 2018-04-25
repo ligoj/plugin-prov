@@ -599,15 +599,15 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 		// No change
 		checkCost(qiResource.update(vo).getTotalCost(), 3469.4, 7135.0, false);
-		
+
 		// "C1" -> "C7"
 		checkCost(resource.refresh(subscription), 3447.44, 7025.2, false);
 		vo.setPrice(ipRepository.findByExpected("code", "C7").getId());
-		
+
 		// No change
 		checkCost(qiResource.update(vo).getTotalCost(), 3447.44, 7025.2, false);
 		checkCost(resource.refresh(subscription), 3447.44, 7025.2, false);
-		
+
 		// Check the update failed because of "storage4"
 		vo.setLocation("region-2"); // "region-1" to "region-2"
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.update(vo)),
@@ -856,16 +856,18 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	public void uploadIncludedHeaders() throws IOException {
 		qiResource.upload(subscription, new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(),
 				null, true, "Full Time 12 month", 1, "UTF-8");
-		checkUpload();
+		final QuoteVo configuration = checkUpload();
+		Assertions.assertEquals(10.1d, configuration.getInstances().get(0).getMaxVariableCost(), DELTA);
 	}
 
-	private void checkUpload() {
+	private QuoteVo checkUpload() {
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assertions.assertEquals(18, configuration.getInstances().size());
 		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
 		Assertions.assertEquals(15, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14649.926, 17099.526, false);
+		return configuration;
 	}
 
 	@Test

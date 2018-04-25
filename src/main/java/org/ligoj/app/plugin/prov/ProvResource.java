@@ -41,6 +41,7 @@ import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -349,4 +350,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		Optional.ofNullable(repository.findBy("subscription.id", subscription)).ifPresent(c -> repository.delete(c));
 	}
 
+	@Override
+	public List<Class<?>> getInstalledEntities() {
+		return Arrays.asList(Node.class, SystemConfiguration.class);
+	}
 }

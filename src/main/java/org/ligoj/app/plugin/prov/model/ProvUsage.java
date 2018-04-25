@@ -48,9 +48,9 @@ public class ProvUsage extends AbstractNamedEntity<Integer> implements Configura
 	private Integer rate = 100;
 
 	/**
-	 * Duration of this usage in month. TODO Make this attribute as "int"
+	 * Duration of this usage in month.
 	 */
 	@Positive
-	private Integer duration = 1;
+	private int duration = 1;
 
 }

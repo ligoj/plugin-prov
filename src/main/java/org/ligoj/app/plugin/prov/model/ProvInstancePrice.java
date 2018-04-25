@@ -43,9 +43,8 @@ public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> {
 
 	/**
 	 * The cost for the period.<br>
-	 * TODO SHoud be moved to "double"
 	 */
-	private Double costPeriod;
+	private double costPeriod;
 
 	@NotNull
 	@ManyToOne

@@ -1,0 +1,85 @@
+Upgrading modules...
+- module.eu-west-3
+  Updating source "./eu-west-3"
+- module.eu-west-3.ami_amazon
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-ami-search?ref=primary-owners"
+- module.eu-west-3.instance-A
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-abstract-instance"
+- module.eu-west-3.instance-B-Spot
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-abstract-instance"
+- module.eu-west-3.instance-C-ELB
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-abstract-instance"
+- module.eu-west-3.instance-D-ALB-Spot
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-abstract-instance"
+- module.eu-west-3.vpc
+  Found version 1.30.0 of terraform-aws-modules/vpc/aws on registry.terraform.io
+  Updating source "terraform-aws-modules/vpc/aws"
+- module.eu-west-3.sg_rule
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-easy-sg_rule.git"
+- module.eu-west-3.sg_rule_elb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-easy-sg_rule.git"
+- module.eu-west-3.instance-A.asg
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-autoscaling?ref=spot_price"
+- module.eu-west-3.instance-A.elb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-elb?ref=optional-elb"
+- module.eu-west-3.instance-A.alb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-alb?ref=optional-access-logs"
+- module.eu-west-3.instance-A.elb.elb
+  Updating source "./modules/elb"
+- module.eu-west-3.instance-A.elb.elb_attachment
+  Updating source "./modules/elb_attachment"
+- module.eu-west-3.instance-B-Spot.asg
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-autoscaling?ref=spot_price"
+- module.eu-west-3.instance-B-Spot.elb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-elb?ref=optional-elb"
+- module.eu-west-3.instance-B-Spot.alb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-alb?ref=optional-access-logs"
+- module.eu-west-3.instance-B-Spot.elb.elb
+  Updating source "./modules/elb"
+- module.eu-west-3.instance-B-Spot.elb.elb_attachment
+  Updating source "./modules/elb_attachment"
+- module.eu-west-3.instance-C-ELB.asg
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-autoscaling?ref=spot_price"
+- module.eu-west-3.instance-C-ELB.elb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-elb?ref=optional-elb"
+- module.eu-west-3.instance-C-ELB.alb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-alb?ref=optional-access-logs"
+- module.eu-west-3.instance-C-ELB.elb.elb
+  Updating source "./modules/elb"
+- module.eu-west-3.instance-C-ELB.elb.elb_attachment
+  Updating source "./modules/elb_attachment"
+- module.eu-west-3.instance-D-ALB-Spot.asg
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-autoscaling?ref=spot_price"
+- module.eu-west-3.instance-D-ALB-Spot.elb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-elb?ref=optional-elb"
+- module.eu-west-3.instance-D-ALB-Spot.alb
+  Updating source "git::https://github.com/fabdouglas/terraform-aws-alb?ref=optional-access-logs"
+- module.eu-west-3.instance-D-ALB-Spot.elb.elb
+  Updating source "./modules/elb"
+- module.eu-west-3.instance-D-ALB-Spot.elb.elb_attachment
+  Updating source "./modules/elb_attachment"
+
+Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
+- Downloading plugin for provider "template" (1.0.0)...
+- Downloading plugin for provider "aws" (1.16.0)...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.template: version = "~> 1.0"
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.

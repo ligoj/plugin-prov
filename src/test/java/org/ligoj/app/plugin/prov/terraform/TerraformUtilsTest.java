@@ -9,6 +9,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.transaction.Transactional;
 
@@ -17,11 +21,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.HttpStatus;
+import org.eclipse.jetty.util.thread.ThreadClassLoaderScope;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractServerTest;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -243,5 +249,23 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	public void getLastestVersionNotAvailable() {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		Assertions.assertNull(resource.getLastestVersion());
+	}
+
+
+	@Test
+	public void toFile() throws IOException {
+		ThreadClassLoaderScope scope = null;
+		try {
+			final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+			scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader));
+			final Path file = Paths.get("");
+			final Subscription entity = new Subscription();
+			entity.setId(15);
+			Mockito.when(classLoader.toPath(entity, "some")).thenReturn(file);
+			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
+			Assertions.assertNotNull(PluginsClassLoader.getInstance());
+		} finally {
+			IOUtils.closeQuietly(scope);
+		}
 	}
 }

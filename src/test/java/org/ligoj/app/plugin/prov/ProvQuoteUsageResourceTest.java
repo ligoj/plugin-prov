@@ -157,7 +157,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("DevV2", entity.getName());
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals(100, entity.getRate().intValue());
-		Assertions.assertEquals(12, entity.getDuration().intValue());
+		Assertions.assertEquals(12, entity.getDuration());
 	}
 
 	@Test

@@ -1,0 +1,10 @@
+~ module.eu-west-3.aws_instance.i-name-of-instance-w1[1]
+  + module.eu-west-3.module.config.aws_default_network_acl.default
+any
+  any
+  + module.eu-west-3.module.config.aws_default_network_acl.default
+  - module.eu-west-3.module.config.aws_internet_gateway.default
+  ~ module.eu-west-3.aws_instance.i-name-of-instance-w1[1]
+  
+
+  + module.eu-west-3.module.config.aws_default_network_acl.default

@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -14,17 +17,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.cache.annotation.CacheResult;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.resource.plugin.CurlProcessor;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
@@ -37,16 +42,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TerraformUtils {
-
-	/**
-	 * Tarraform fag to disable interactive mode
-	 */
-	private static final String NO_INPUT = "-input=false";
-
-	/**
-	 * Tarraform fag to disable color mode
-	 */
-	private static final String NO_COLOR = "-no-color";
 
 	/**
 	 * Configuration key for Terraform command path
@@ -78,6 +73,9 @@ public class TerraformUtils {
 	private static final String[] TERRAFORM_SHELL_LINUX = { "sh", "-c" };
 	protected Map<String, String[]> shells = new HashMap<>();
 
+	@Autowired
+	protected ConfigurationResource configuration;
+
 	/**
 	 * Terraform binary file.
 	 */
@@ -89,9 +87,6 @@ public class TerraformUtils {
 	 * @see <a heref="https://www.terraform.io/downloads.html">terraform</a>
 	 */
 	protected Map<String, String> distributions = new HashMap<>();
-
-	@Autowired
-	protected ConfigurationResource configuration;
 
 	public TerraformUtils() {
 		shells.put("windows", TERRAFORM_SHELL_WIN);
@@ -156,13 +151,29 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Return the Terraform sequence with step names.
+	 * Return the Terraform commands.
 	 * 
-	 * @return The Terraform sequence with step names.
+	 * @return The Terraform commands. Each command correspond to a list of Terraform arguments. The first argument
+	 *         corresponds to the Terraform command name.
+	 * @see <a href="https://www.terraform.io/docs/commands/init.html">plan</a>
+	 * @see <a href="https://www.terraform.io/docs/commands/plan.html">plan</a>
+	 * @see <a href="https://www.terraform.io/docs/commands/show.html">show</a>
+	 * @see <a href="https://www.terraform.io/docs/commands/apply.html">apply</a>
+	 * @see <a href="https://www.terraform.io/docs/commands/destroy.html">apply</a>
 	 */
-	public String[][] getTerraformSequence() {
-		return new String[][] { { "plan", NO_INPUT, NO_COLOR, "-detailed-exitcode" }, { "apply", NO_INPUT, NO_COLOR },
-				{ "show", NO_INPUT, NO_COLOR } };
+	public List<String[]> getTerraformCommands() {
+		return Arrays.stream(getTerraformSequence()).map(String::trim)
+				.map(step -> configuration.get("service:prov:terraform:command-" + step, "-v"))
+				.map(step -> step.split(" ")).collect(Collectors.toList());
+	}
+
+	/**
+	 * Return the Terraform command names such as <code>init,plan</code>.
+	 * 
+	 * @return The Terraform command names such as <code>init,plan</code>.
+	 */
+	public String[] getTerraformSequence() {
+		return configuration.get("service:prov:terraform:sequence", "init").split(",");
 	}
 
 	/**
@@ -303,7 +314,58 @@ public class TerraformUtils {
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String url) throws IOException {
-		unzip(toDir, new URL(url).openStream()).stream().forEach(f -> f.setExecutable(true));
+		try (InputStream openStream = new URL(url).openStream()) {
+			unzip(toDir, openStream).stream().forEach(f -> f.setExecutable(true));
+		}
+	}
+
+	/**
+	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
+	 * <code>.terraform</code>.
+	 * 
+	 * @param subscription
+	 *            The source subscription.
+	 * @param out
+	 *            The target ZIP file stream.
+	 * @return The compressed files.
+	 * @throws IOException
+	 *             When zip fails : download, unzip, write file,...
+	 */
+	public List<File> zip(final Subscription subscription, final OutputStream out) throws IOException {
+		return zip(toFile(subscription).toPath(), out);
+	}
+
+	/**
+	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
+	 * <code>.terraform</code>.
+	 * 
+	 * @param fromDir
+	 *            The source directory containing the files.
+	 * @param out
+	 *            The target ZIP file stream.
+	 * @return The compressed files.
+	 * @throws IOException
+	 *             When zip fails : download, unzip, write file,...
+	 */
+	public List<File> zip(final java.nio.file.Path fromDir, final OutputStream out) throws IOException {
+		final List<File> files = new ArrayList<>();
+		try (ZipOutputStream zs = new ZipOutputStream(out)) {
+			Files.walk(fromDir).filter(path -> !Files.isDirectory(path))
+					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
+					.filter(path -> !path.toString().contains(".terraform")).forEach(path -> {
+						// Excludes ".terraform", secrets, and "*.ptf" files
+						final ZipEntry zipEntry = new ZipEntry(fromDir.relativize(path).toString());
+						try {
+							zs.putNextEntry(zipEntry);
+							Files.copy(path, zs);
+							zs.closeEntry();
+							files.add(path.toFile());
+						} catch (IOException e) {
+							System.err.println(e);
+						}
+					});
+		}
+		return files;
 	}
 
 	/**
@@ -318,24 +380,33 @@ public class TerraformUtils {
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	public List<File> unzip(final File toDir, final InputStream source) throws IOException {
-		ZipInputStream zis = null;
 		final List<File> files = new ArrayList<>();
-		try {
-			zis = new ZipInputStream(source);
+		try (ZipInputStream zis = new ZipInputStream(source)) {
 			FileUtils.forceMkdir(toDir);
 			ZipEntry zipEntry = zis.getNextEntry();
 			while (zipEntry != null) {
 				final File file = new File(toDir, zipEntry.getName());
 				files.add(file);
+				FileUtils.forceMkdirParent(file);
 				final FileOutputStream fos = new FileOutputStream(file);
 				zis.transferTo(fos);
 				fos.close();
 				zipEntry = zis.getNextEntry();
 			}
-		} finally {
-			IOUtils.closeQuietly(source);
-			IOUtils.closeQuietly(zis);
 		}
 		return files;
+	}
+
+	/**
+	 * Return the file reference from the given subscription. The file will relative to the related subscription.
+	 * 
+	 * @param subscription
+	 *            The subscription related to this operation.
+	 * @param fragments
+	 *            The requested sub path fragments.
+	 * @return The Terraform resource file scoped by the given subscription.
+	 */
+	public File toFile(final Subscription subscription, final String... fragments) throws IOException {
+		return PluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();
 	}
 }

@@ -1,0 +1,1122 @@
+module.eu-west-3.aws_key_pair.auth: Creating...
+  fingerprint: "" => "<computed>"
+  key_name:    "" => "fdaugan"
+  public_key:  "" => "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCvFu4Db/aA+VQlJIM830iK0X+XXhhrYkFsq2tY/FCPoMgY0rxskh/yrEw8tIo3dod3S3H/xPpZlUixVJC5vwoRH8HJMOW3al0fVaveScxGWc7EbnS9v2jdCKPe5zb66bk7FM7TdmkpXKFzNljfJ2YNSY0Bw5Bh7KAjsE/WSccKa1QZwSIb6LVrUzDq8XEsX+ACTRYefF4HbNcob97uPIvf3B6ECbTW14nNQKkuDxcMbfG2QYTg50Ajfmm9AyUiaY3XBk652RGKyY8RyifglgihP8qm6TWibT5Bwd7nGhBHwXFGtfr7Pajra+/wlYQRT5EklU7F0aTFIKUY1FkMCr0BpY6+k8Nj1btwF4xcpqqkHLceApsD3N4vpCzwoLg6ozYti0mT5NJQ+YCgScZiJzCzzifLZFiTrUMFR57/J6iFlLK3ZCcugWl2rdYXb/DeP7GStDHZQO6VPf6rtpSQeBTjKl/pUuyMzthk7AAZnjN0rvAWi8Doef0KKdnDEHzApYuJfHlB1s2d8qysgDw4ORvojVzv6NO1ItGBik9pFoj4tgScgtiJLBMsW1nOzBcAJ6I0VxNBZY3mlj+olZ3enhxlouv9T2cotsw1Nao2mm7410o4noY7dt/uVaWOcowP+7m8s4rFONT+4WXHn7yOGrf1Vya+A2hLDwBKFeB3DnfgqQ== fdaugan"
+module.eu-west-3.module.vpc.aws_vpc.this: Creating...
+  assign_generated_ipv6_cidr_block: "" => "false"
+  cidr_block:                       "" => "10.0.0.0/16"
+  default_network_acl_id:           "" => "<computed>"
+  default_route_table_id:           "" => "<computed>"
+  default_security_group_id:        "" => "<computed>"
+  dhcp_options_id:                  "" => "<computed>"
+  enable_classiclink:               "" => "<computed>"
+  enable_classiclink_dns_support:   "" => "<computed>"
+  enable_dns_hostnames:             "" => "false"
+  enable_dns_support:               "" => "true"
+  instance_tenancy:                 "" => "default"
+  ipv6_association_id:              "" => "<computed>"
+  ipv6_cidr_block:                  "" => "<computed>"
+  main_route_table_id:              "" => "<computed>"
+  tags.%:                           "" => "3"
+  tags.Name:                        "" => "client-project"
+  tags.ligoj:project:               "" => "7890"
+  tags.ligoj:subscription:          "" => "1234"
+module.eu-west-3.aws_key_pair.auth: Creation complete after 0s (ID: fdaugan)
+module.eu-west-3.module.vpc.aws_vpc.this: Creation complete after 1s (ID: vpc-03c5d17556bab89e4)
+module.eu-west-3.module.vpc.aws_internet_gateway.this: Creating...
+  tags.%:                  "0" => "3"
+  tags.Name:               "" => "client-project"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.private[0]: Creating...
+  propagating_vgws.#:      "" => "<computed>"
+  route.#:                 "" => "<computed>"
+  tags.%:                  "" => "3"
+  tags.Name:               "" => "client-project-private-eu-west-3a"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.private[1]: Creating...
+  propagating_vgws.#:      "" => "<computed>"
+  route.#:                 "" => "<computed>"
+  tags.%:                  "" => "3"
+  tags.Name:               "" => "client-project-private-eu-west-3b"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_subnet.public[1]: Creating...
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "eu-west-3b"
+  cidr_block:                      "" => "10.0.102.0/24"
+  ipv6_cidr_block:                 "" => "<computed>"
+  ipv6_cidr_block_association_id:  "" => "<computed>"
+  map_public_ip_on_launch:         "" => "true"
+  tags.%:                          "" => "3"
+  tags.Name:                       "" => "client-project-public-eu-west-3b"
+  tags.ligoj:project:              "" => "7890"
+  tags.ligoj:subscription:         "" => "1234"
+  vpc_id:                          "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.public: Creating...
+  propagating_vgws.#:      "" => "<computed>"
+  route.#:                 "" => "<computed>"
+  tags.%:                  "" => "3"
+  tags.Name:               "" => "client-project-public"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.public: Creation complete after 1s (ID: rtb-088c0fc152280a5c0)
+module.eu-west-3.module.vpc.aws_subnet.public[0]: Creating...
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "eu-west-3a"
+  cidr_block:                      "" => "10.0.101.0/24"
+  ipv6_cidr_block:                 "" => "<computed>"
+  ipv6_cidr_block_association_id:  "" => "<computed>"
+  map_public_ip_on_launch:         "" => "true"
+  tags.%:                          "" => "3"
+  tags.Name:                       "" => "client-project-public-eu-west-3a"
+  tags.ligoj:project:              "" => "7890"
+  tags.ligoj:subscription:         "" => "1234"
+  vpc_id:                          "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.private[0]: Creation complete after 1s (ID: rtb-01c576bdebc989ebf)
+module.eu-west-3.module.vpc.aws_subnet.private[1]: Creating...
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "eu-west-3b"
+  cidr_block:                      "" => "10.0.2.0/24"
+  ipv6_cidr_block:                 "" => "<computed>"
+  ipv6_cidr_block_association_id:  "" => "<computed>"
+  map_public_ip_on_launch:         "" => "false"
+  tags.%:                          "" => "3"
+  tags.Name:                       "" => "client-project-private-eu-west-3b"
+  tags.ligoj:project:              "" => "7890"
+  tags.ligoj:subscription:         "" => "1234"
+  vpc_id:                          "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table.private[1]: Creation complete after 1s (ID: rtb-0c8eb5eb6655cc8b4)
+module.eu-west-3.module.vpc.aws_subnet.private[0]: Creating...
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "eu-west-3a"
+  cidr_block:                      "" => "10.0.1.0/24"
+  ipv6_cidr_block:                 "" => "<computed>"
+  ipv6_cidr_block_association_id:  "" => "<computed>"
+  map_public_ip_on_launch:         "" => "false"
+  tags.%:                          "" => "3"
+  tags.Name:                       "" => "client-project-private-eu-west-3a"
+  tags.ligoj:project:              "" => "7890"
+  tags.ligoj:subscription:         "" => "1234"
+  vpc_id:                          "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_internet_gateway.this: Creation complete after 1s (ID: igw-097af45dc650707ce)
+module.eu-west-3.aws_security_group.default: Creating...
+  arn:                     "" => "<computed>"
+  description:             "" => "Default SG for all EC2"
+  egress.#:                "" => "<computed>"
+  ingress.#:               "" => "<computed>"
+  name:                    "" => "client-project"
+  owner_id:                "" => "<computed>"
+  revoke_rules_on_delete:  "" => "false"
+  tags.%:                  "" => "3"
+  tags.Name:               "" => "client-project"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_subnet.public[1]: Creation complete after 1s (ID: subnet-0ef8ca377bdbcf174)
+module.eu-west-3.aws_security_group.default_elb: Creating...
+  arn:                     "" => "<computed>"
+  description:             "" => "Default SG for all ELBs"
+  egress.#:                "" => "<computed>"
+  ingress.#:               "" => "<computed>"
+  name:                    "" => "client-project-elb"
+  owner_id:                "" => "<computed>"
+  revoke_rules_on_delete:  "" => "false"
+  tags.%:                  "" => "3"
+  tags.Name:               "" => "client-project"
+  tags.ligoj:project:      "" => "7890"
+  tags.ligoj:subscription: "" => "1234"
+  vpc_id:                  "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_subnet.private[0]: Creation complete after 1s (ID: subnet-0a27799da6d73c0a0)
+module.eu-west-3.module.vpc.aws_subnet.public[0]: Creation complete after 1s (ID: subnet-049f393fdf3764248)
+module.eu-west-3.module.vpc.aws_subnet.private[1]: Creation complete after 1s (ID: subnet-0855428961a0ac00c)
+module.eu-west-3.module.vpc.aws_route.public_internet_gateway: Creating...
+  destination_cidr_block:     "" => "0.0.0.0/0"
+  destination_prefix_list_id: "" => "<computed>"
+  egress_only_gateway_id:     "" => "<computed>"
+  gateway_id:                 "" => "igw-097af45dc650707ce"
+  instance_id:                "" => "<computed>"
+  instance_owner_id:          "" => "<computed>"
+  nat_gateway_id:             "" => "<computed>"
+  network_interface_id:       "" => "<computed>"
+  origin:                     "" => "<computed>"
+  route_table_id:             "" => "rtb-088c0fc152280a5c0"
+  state:                      "" => "<computed>"
+module.eu-west-3.module.vpc.aws_route_table_association.public[0]: Creating...
+  route_table_id: "" => "rtb-088c0fc152280a5c0"
+  subnet_id:      "" => "subnet-049f393fdf3764248"
+module.eu-west-3.module.instance-B-Spot.module.alb.aws_lb_target_group.main: Creating...
+  arn:                                "" => "<computed>"
+  arn_suffix:                         "" => "<computed>"
+  deregistration_delay:               "" => "15"
+  health_check.#:                     "" => "1"
+  health_check.0.healthy_threshold:   "" => "2"
+  health_check.0.interval:            "" => "5"
+  health_check.0.matcher:             "" => "200-299"
+  health_check.0.path:                "" => "/"
+  health_check.0.port:                "" => "traffic-port"
+  health_check.0.protocol:            "" => "HTTP"
+  health_check.0.timeout:             "" => "3"
+  health_check.0.unhealthy_threshold: "" => "2"
+  name:                               "" => "ligoj-1234-instance-B-Spot"
+  port:                               "" => "80"
+  protocol:                           "" => "HTTP"
+  stickiness.#:                       "" => "1"
+  stickiness.0.cookie_duration:       "" => "15"
+  stickiness.0.enabled:               "" => "true"
+  stickiness.0.type:                  "" => "lb_cookie"
+  tags.%:                             "" => "3"
+  tags.Name:                          "" => "ligoj-1234-instance-B-Spot"
+  tags.ligoj:project:                 "" => "7890"
+  tags.ligoj:subscription:            "" => "1234"
+  target_type:                        "" => "instance"
+  vpc_id:                             "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table_association.public[0]: Creation complete after 0s (ID: rtbassoc-01fafdf85ea4e8af6)
+module.eu-west-3.module.vpc.aws_route_table_association.public[1]: Creating...
+  route_table_id: "" => "rtb-088c0fc152280a5c0"
+  subnet_id:      "" => "subnet-0ef8ca377bdbcf174"
+module.eu-west-3.module.vpc.aws_route_table_association.public[1]: Creation complete after 0s (ID: rtbassoc-015a38d93675f1c7a)
+module.eu-west-3.module.vpc.aws_route.public_internet_gateway: Creation complete after 0s (ID: r-rtb-088c0fc152280a5c01080289494)
+module.eu-west-3.module.vpc.aws_route_table_association.private[1]: Creating...
+  route_table_id: "" => "rtb-0c8eb5eb6655cc8b4"
+  subnet_id:      "" => "subnet-0855428961a0ac00c"
+module.eu-west-3.module.vpc.aws_route_table_association.private[0]: Creating...
+  route_table_id: "" => "rtb-01c576bdebc989ebf"
+  subnet_id:      "" => "subnet-0a27799da6d73c0a0"
+module.eu-west-3.module.vpc.aws_route_table_association.private[0]: Creation complete after 0s (ID: rtbassoc-0cbb734e7c379f7bd)
+module.eu-west-3.module.instance-A.module.alb.aws_lb_target_group.main: Creating...
+  arn:                                "" => "<computed>"
+  arn_suffix:                         "" => "<computed>"
+  deregistration_delay:               "" => "15"
+  health_check.#:                     "" => "1"
+  health_check.0.healthy_threshold:   "" => "2"
+  health_check.0.interval:            "" => "5"
+  health_check.0.matcher:             "" => "200-299"
+  health_check.0.path:                "" => "/"
+  health_check.0.port:                "" => "traffic-port"
+  health_check.0.protocol:            "" => "HTTP"
+  health_check.0.timeout:             "" => "3"
+  health_check.0.unhealthy_threshold: "" => "2"
+  name:                               "" => "ligoj-1234-instance-A"
+  port:                               "" => "80"
+  protocol:                           "" => "HTTP"
+  stickiness.#:                       "" => "1"
+  stickiness.0.cookie_duration:       "" => "15"
+  stickiness.0.enabled:               "" => "true"
+  stickiness.0.type:                  "" => "lb_cookie"
+  tags.%:                             "" => "3"
+  tags.Name:                          "" => "ligoj-1234-instance-A"
+  tags.ligoj:project:                 "" => "7890"
+  tags.ligoj:subscription:            "" => "1234"
+  target_type:                        "" => "instance"
+  vpc_id:                             "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.vpc.aws_route_table_association.private[1]: Creation complete after 0s (ID: rtbassoc-0b7bc33a9b15005c3)
+module.eu-west-3.module.instance-C-ELB.module.alb.aws_lb_target_group.main: Creating...
+  arn:                                "" => "<computed>"
+  arn_suffix:                         "" => "<computed>"
+  deregistration_delay:               "" => "15"
+  health_check.#:                     "" => "1"
+  health_check.0.healthy_threshold:   "" => "2"
+  health_check.0.interval:            "" => "5"
+  health_check.0.matcher:             "" => "200-299"
+  health_check.0.path:                "" => "/"
+  health_check.0.port:                "" => "traffic-port"
+  health_check.0.protocol:            "" => "HTTP"
+  health_check.0.timeout:             "" => "3"
+  health_check.0.unhealthy_threshold: "" => "2"
+  name:                               "" => "ligoj-1234-instance-C-ELB"
+  port:                               "" => "80"
+  protocol:                           "" => "HTTP"
+  stickiness.#:                       "" => "1"
+  stickiness.0.cookie_duration:       "" => "15"
+  stickiness.0.enabled:               "" => "true"
+  stickiness.0.type:                  "" => "lb_cookie"
+  tags.%:                             "" => "3"
+  tags.Name:                          "" => "ligoj-1234-instance-C-ELB"
+  tags.ligoj:project:                 "" => "7890"
+  tags.ligoj:subscription:            "" => "1234"
+  target_type:                        "" => "instance"
+  vpc_id:                             "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.aws_security_group.default: Creation complete after 1s (ID: sg-0ff7afa9207b73da3)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this: Creating...
+  ami:                                       "" => "ami-cae150b7"
+  associate_public_ip_address:               "" => "<computed>"
+  availability_zone:                         "" => "<computed>"
+  ephemeral_block_device.#:                  "" => "<computed>"
+  get_password_data:                         "" => "false"
+  instance_state:                            "" => "<computed>"
+  instance_type:                             "" => "t2.micro"
+  ipv6_address_count:                        "" => "<computed>"
+  ipv6_addresses.#:                          "" => "<computed>"
+  key_name:                                  "" => "fdaugan"
+  network_interface.#:                       "" => "<computed>"
+  network_interface_id:                      "" => "<computed>"
+  password_data:                             "" => "<computed>"
+  placement_group:                           "" => "<computed>"
+  primary_network_interface_id:              "" => "<computed>"
+  private_dns:                               "" => "<computed>"
+  private_ip:                                "" => "<computed>"
+  public_dns:                                "" => "<computed>"
+  public_ip:                                 "" => "<computed>"
+  root_block_device.#:                       "" => "1"
+  root_block_device.0.delete_on_termination: "" => "true"
+  root_block_device.0.volume_id:             "" => "<computed>"
+  root_block_device.0.volume_size:           "" => "8"
+  root_block_device.0.volume_type:           "" => "gp2"
+  security_groups.#:                         "" => "<computed>"
+  source_dest_check:                         "" => "true"
+  subnet_id:                                 "" => "subnet-049f393fdf3764248"
+  tags.%:                                    "" => "3"
+  tags.Name:                                 "" => "client-project-instance-B-Spot"
+  tags.ligoj:project:                        "" => "7890"
+  tags.ligoj:subscription:                   "" => "1234"
+  tenancy:                                   "" => "<computed>"
+  volume_tags.%:                             "" => "3"
+  volume_tags.Name:                          "" => "client-project"
+  volume_tags.ligoj:project:                 "" => "7890"
+  volume_tags.ligoj:subscription:            "" => "1234"
+  vpc_security_group_ids.#:                  "" => "1"
+  vpc_security_group_ids.3694072858:         "" => "sg-0ff7afa9207b73da3"
+module.eu-west-3.aws_security_group.default_elb: Creation complete after 1s (ID: sg-0e12142e358e1dddb)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.egress: Creating...
+  cidr_blocks.#:            "" => "1"
+  cidr_blocks.0:            "" => "0.0.0.0/0"
+  from_port:                "" => "0"
+  protocol:                 "" => "-1"
+  security_group_id:        "" => "sg-0ff7afa9207b73da3"
+  self:                     "" => "false"
+  source_security_group_id: "" => "<computed>"
+  to_port:                  "" => "0"
+  type:                     "" => "egress"
+module.eu-west-3.module.instance-B-Spot.module.alb.aws_lb_target_group.main: Creation complete after 1s (ID: arn:aws:elasticloadbalancing:eu-west-3:...-1234-instance-B-Spot/ecb21eb1a476dc8c)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[0]: Creating...
+  cidr_blocks.#:            "" => "1"
+  cidr_blocks.0:            "" => "0.0.0.0/0"
+  description:              "" => "HTTP"
+  from_port:                "" => "80"
+  protocol:                 "" => "tcp"
+  security_group_id:        "" => "sg-0ff7afa9207b73da3"
+  self:                     "" => "false"
+  source_security_group_id: "" => "<computed>"
+  to_port:                  "" => "80"
+  type:                     "" => "ingress"
+module.eu-west-3.module.sg_rule.aws_security_group_rule.egress: Creation complete after 1s (ID: sgrule-506823065)
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[1]: Creating...
+  cidr_blocks.#:            "" => "1"
+  cidr_blocks.0:            "" => "0.0.0.0/0"
+  description:              "" => "Public"
+  from_port:                "" => "22"
+  protocol:                 "" => "tcp"
+  security_group_id:        "" => "sg-0ff7afa9207b73da3"
+  self:                     "" => "false"
+  source_security_group_id: "" => "<computed>"
+  to_port:                  "" => "22"
+  type:                     "" => "ingress"
+module.eu-west-3.module.instance-C-ELB.module.alb.aws_lb_target_group.main: Creation complete after 1s (ID: arn:aws:elasticloadbalancing:eu-west-3:...j-1234-instance-C-ELB/df5554813d90fc00)
+module.eu-west-3.module.instance-A.aws_instance.this: Creating...
+  ami:                                               "" => "ami-cae150b7"
+  associate_public_ip_address:                       "" => "<computed>"
+  availability_zone:                                 "" => "<computed>"
+  ebs_block_device.#:                                "" => "1"
+  ebs_block_device.4209339125.delete_on_termination: "" => "true"
+  ebs_block_device.4209339125.device_name:           "" => "/dev/xvdz"
+  ebs_block_device.4209339125.encrypted:             "" => "<computed>"
+  ebs_block_device.4209339125.snapshot_id:           "" => "<computed>"
+  ebs_block_device.4209339125.volume_id:             "" => "<computed>"
+  ebs_block_device.4209339125.volume_size:           "" => "50"
+  ebs_block_device.4209339125.volume_type:           "" => "gp2"
+  ephemeral_block_device.#:                          "" => "<computed>"
+  get_password_data:                                 "" => "false"
+  instance_state:                                    "" => "<computed>"
+  instance_type:                                     "" => "t2.micro"
+  ipv6_address_count:                                "" => "<computed>"
+  ipv6_addresses.#:                                  "" => "<computed>"
+  key_name:                                          "" => "fdaugan"
+  network_interface.#:                               "" => "<computed>"
+  network_interface_id:                              "" => "<computed>"
+  password_data:                                     "" => "<computed>"
+  placement_group:                                   "" => "<computed>"
+  primary_network_interface_id:                      "" => "<computed>"
+  private_dns:                                       "" => "<computed>"
+  private_ip:                                        "" => "<computed>"
+  public_dns:                                        "" => "<computed>"
+  public_ip:                                         "" => "<computed>"
+  root_block_device.#:                               "" => "1"
+  root_block_device.0.delete_on_termination:         "" => "true"
+  root_block_device.0.volume_id:                     "" => "<computed>"
+  root_block_device.0.volume_size:                   "" => "50"
+  root_block_device.0.volume_type:                   "" => "gp2"
+  security_groups.#:                                 "" => "<computed>"
+  source_dest_check:                                 "" => "true"
+  subnet_id:                                         "" => "subnet-049f393fdf3764248"
+  tags.%:                                            "" => "3"
+  tags.Name:                                         "" => "client-project-instance-A"
+  tags.ligoj:project:                                "" => "7890"
+  tags.ligoj:subscription:                           "" => "1234"
+  tenancy:                                           "" => "<computed>"
+  volume_tags.%:                                     "" => "3"
+  volume_tags.Name:                                  "" => "client-project"
+  volume_tags.ligoj:project:                         "" => "7890"
+  volume_tags.ligoj:subscription:                    "" => "1234"
+  vpc_security_group_ids.#:                          "" => "1"
+  vpc_security_group_ids.3694072858:                 "" => "sg-0ff7afa9207b73da3"
+module.eu-west-3.module.instance-A.module.alb.aws_lb_target_group.main: Creation complete after 1s (ID: arn:aws:elasticloadbalancing:eu-west-3:...ligoj-1234-instance-A/1f7599e819edead2)
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_launch_configuration.this: Creating...
+  associate_public_ip_address:               "" => "false"
+  ebs_optimized:                             "" => "false"
+  enable_monitoring:                         "" => "true"
+  image_id:                                  "" => "ami-cae150b7"
+  instance_type:                             "" => "t2.micro"
+  key_name:                                  "" => "fdaugan"
+  name:                                      "" => "<computed>"
+  name_prefix:                               "" => "client-project-instance-B-Spot-"
+  root_block_device.#:                       "" => "1"
+  root_block_device.0.delete_on_termination: "" => "true"
+  root_block_device.0.iops:                  "" => "<computed>"
+  root_block_device.0.volume_size:           "" => "8"
+  root_block_device.0.volume_type:           "" => "gp2"
+  security_groups.#:                         "" => "1"
+  security_groups.3694072858:                "" => "sg-0ff7afa9207b73da3"
+  spot_price:                                "" => "0.132"
+  user_data:                                 "" => "384f01927779f43e3457e925320b58a1f567385d"
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[0]: Creation complete after 0s (ID: sgrule-1846195546)
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_launch_configuration.this: Creating...
+  associate_public_ip_address:                       "" => "false"
+  ebs_block_device.#:                                "" => "1"
+  ebs_block_device.1324366927.delete_on_termination: "" => "true"
+  ebs_block_device.1324366927.device_name:           "" => "/dev/xvdz"
+  ebs_block_device.1324366927.encrypted:             "" => "<computed>"
+  ebs_block_device.1324366927.iops:                  "" => "<computed>"
+  ebs_block_device.1324366927.no_device:             "" => ""
+  ebs_block_device.1324366927.snapshot_id:           "" => "<computed>"
+  ebs_block_device.1324366927.volume_size:           "" => "50"
+  ebs_block_device.1324366927.volume_type:           "" => "gp2"
+  ebs_optimized:                                     "" => "false"
+  enable_monitoring:                                 "" => "true"
+  image_id:                                          "" => "ami-cae150b7"
+  instance_type:                                     "" => "t2.micro"
+  key_name:                                          "" => "fdaugan"
+  name:                                              "" => "<computed>"
+  name_prefix:                                       "" => "client-project-instance-D-ALB-Spot-"
+  root_block_device.#:                               "" => "1"
+  root_block_device.0.delete_on_termination:         "" => "true"
+  root_block_device.0.iops:                          "" => "<computed>"
+  root_block_device.0.volume_size:                   "" => "50"
+  root_block_device.0.volume_type:                   "" => "gp2"
+  security_groups.#:                                 "" => "1"
+  security_groups.3694072858:                        "" => "sg-0ff7afa9207b73da3"
+  spot_price:                                        "" => "0.132"
+  user_data:                                         "" => "384f01927779f43e3457e925320b58a1f567385d"
+module.eu-west-3.module.sg_rule.aws_security_group_rule.ingress[1]: Creation complete after 0s (ID: sgrule-3632326895)
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_launch_configuration.this: Creating...
+  associate_public_ip_address:               "" => "false"
+  ebs_optimized:                             "" => "false"
+  enable_monitoring:                         "" => "true"
+  image_id:                                  "" => "ami-cae150b7"
+  instance_type:                             "" => "t2.micro"
+  key_name:                                  "" => "fdaugan"
+  name:                                      "" => "<computed>"
+  name_prefix:                               "" => "client-project-instance-C-ELB-"
+  root_block_device.#:                       "" => "1"
+  root_block_device.0.delete_on_termination: "" => "true"
+  root_block_device.0.iops:                  "" => "<computed>"
+  root_block_device.0.volume_size:           "" => "8"
+  root_block_device.0.volume_type:           "" => "gp2"
+  security_groups.#:                         "" => "1"
+  security_groups.3694072858:                "" => "sg-0ff7afa9207b73da3"
+  user_data:                                 "" => "384f01927779f43e3457e925320b58a1f567385d"
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_launch_configuration.this: Creation complete after 1s (ID: client-project-instance-B-Spot-20180423193820032900000001)
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.egress: Creating...
+  cidr_blocks.#:            "" => "1"
+  cidr_blocks.0:            "" => "0.0.0.0/0"
+  from_port:                "" => "0"
+  protocol:                 "" => "-1"
+  security_group_id:        "" => "sg-0e12142e358e1dddb"
+  self:                     "" => "false"
+  source_security_group_id: "" => "<computed>"
+  to_port:                  "" => "0"
+  type:                     "" => "egress"
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_launch_configuration.this: Creation complete after 1s (ID: client-project-instance-D-ALB-Spot-20180423193820206500000002)
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.ingress: Creating...
+  cidr_blocks.#:            "" => "1"
+  cidr_blocks.0:            "" => "0.0.0.0/0"
+  description:              "" => "Public"
+  from_port:                "" => "80"
+  protocol:                 "" => "tcp"
+  security_group_id:        "" => "sg-0e12142e358e1dddb"
+  self:                     "" => "false"
+  source_security_group_id: "" => "<computed>"
+  to_port:                  "" => "80"
+  type:                     "" => "ingress"
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_launch_configuration.this: Creation complete after 1s (ID: client-project-instance-C-ELB-20180423193820568000000003)
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_autoscaling_group.this: Creating...
+  arn:                            "" => "<computed>"
+  default_cooldown:               "" => "60"
+  desired_capacity:               "" => "1"
+  enabled_metrics.#:              "" => "8"
+  enabled_metrics.119681000:      "" => "GroupStandbyInstances"
+  enabled_metrics.1940933563:     "" => "GroupTotalInstances"
+  enabled_metrics.308948767:      "" => "GroupPendingInstances"
+  enabled_metrics.3267518000:     "" => "GroupTerminatingInstances"
+  enabled_metrics.3394537085:     "" => "GroupDesiredCapacity"
+  enabled_metrics.3551801763:     "" => "GroupInServiceInstances"
+  enabled_metrics.4118539418:     "" => "GroupMinSize"
+  enabled_metrics.4136111317:     "" => "GroupMaxSize"
+  force_delete:                   "" => "false"
+  health_check_grace_period:      "" => "120"
+  health_check_type:              "" => "EC2"
+  launch_configuration:           "" => "client-project-instance-B-Spot-20180423193820032900000001"
+  load_balancers.#:               "" => "1"
+  load_balancers.0:               "" => ""
+  max_size:                       "" => "1"
+  metrics_granularity:            "" => "1Minute"
+  min_elb_capacity:               "" => "0"
+  min_size:                       "" => "1"
+  name:                           "" => "<computed>"
+  name_prefix:                    "" => "client-project-instance-B-Spot-"
+  protect_from_scale_in:          "" => "false"
+  service_linked_role_arn:        "" => "<computed>"
+  tags.#:                         "" => "4"
+  tags.0.%:                       "" => "3"
+  tags.0.key:                     "" => "Name"
+  tags.0.propagate_at_launch:     "" => "1"
+  tags.0.value:                   "" => "client-project-instance-B-Spot"
+  tags.1.%:                       "" => "3"
+  tags.1.key:                     "" => "Name"
+  tags.1.propagate_at_launch:     "" => "true"
+  tags.1.value:                   "" => "client-project-instance-B-Spot"
+  tags.2.%:                       "" => "3"
+  tags.2.key:                     "" => "ligoj:project"
+  tags.2.propagate_at_launch:     "" => "true"
+  tags.2.value:                   "" => "7890"
+  tags.3.%:                       "" => "3"
+  tags.3.key:                     "" => "ligoj:subscription"
+  tags.3.propagate_at_launch:     "" => "true"
+  tags.3.value:                   "" => "1234"
+  termination_policies.#:         "" => "1"
+  termination_policies.0:         "" => "Default"
+  vpc_zone_identifier.#:          "" => "2"
+  vpc_zone_identifier.3626863324: "" => "subnet-049f393fdf3764248"
+  vpc_zone_identifier.691570553:  "" => "subnet-0ef8ca377bdbcf174"
+  wait_for_capacity_timeout:      "" => "3m"
+  wait_for_elb_capacity:          "" => "0"
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.egress: Creation complete after 0s (ID: sgrule-2036150982)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb.application_no_logs: Creating...
+  access_logs.#:              "" => "<computed>"
+  arn:                        "" => "<computed>"
+  arn_suffix:                 "" => "<computed>"
+  dns_name:                   "" => "<computed>"
+  enable_deletion_protection: "" => "false"
+  enable_http2:               "" => "true"
+  idle_timeout:               "" => "60"
+  internal:                   "" => "false"
+  ip_address_type:            "" => "ipv4"
+  load_balancer_type:         "" => "application"
+  name:                       "" => "ligoj-1234-instance-D-ALB-Spot"
+  security_groups.#:          "" => "1"
+  security_groups.4080338502: "" => "sg-0e12142e358e1dddb"
+  subnet_mapping.#:           "" => "<computed>"
+  subnets.#:                  "" => "2"
+  subnets.3626863324:         "" => "subnet-049f393fdf3764248"
+  subnets.691570553:          "" => "subnet-0ef8ca377bdbcf174"
+  tags.%:                     "" => "3"
+  tags.Name:                  "" => "ligoj-1234-instance-D-ALB-Spot"
+  tags.ligoj:project:         "" => "7890"
+  tags.ligoj:subscription:    "" => "1234"
+  vpc_id:                     "" => "<computed>"
+  zone_id:                    "" => "<computed>"
+module.eu-west-3.module.sg_rule_elb.aws_security_group_rule.ingress: Creation complete after 0s (ID: sgrule-1009002343)
+module.eu-west-3.module.instance-C-ELB.module.elb.module.elb.aws_elb.this: Creating...
+  arn:                                    "" => "<computed>"
+  availability_zones.#:                   "" => "<computed>"
+  connection_draining:                    "" => "true"
+  connection_draining_timeout:            "" => "10"
+  cross_zone_load_balancing:              "" => "true"
+  dns_name:                               "" => "<computed>"
+  health_check.#:                         "" => "1"
+  health_check.0.healthy_threshold:       "" => "2"
+  health_check.0.interval:                "" => "30"
+  health_check.0.target:                  "" => "HTTP:80/"
+  health_check.0.timeout:                 "" => "5"
+  health_check.0.unhealthy_threshold:     "" => "2"
+  idle_timeout:                           "" => "60"
+  instances.#:                            "" => "<computed>"
+  internal:                               "" => "false"
+  listener.#:                             "" => "1"
+  listener.3057123346.instance_port:      "" => "80"
+  listener.3057123346.instance_protocol:  "" => "HTTP"
+  listener.3057123346.lb_port:            "" => "80"
+  listener.3057123346.lb_protocol:        "" => "HTTP"
+  listener.3057123346.ssl_certificate_id: "" => ""
+  name:                                   "" => "ligoj-1234-instance-C-ELB"
+  security_groups.#:                      "" => "1"
+  security_groups.4080338502:             "" => "sg-0e12142e358e1dddb"
+  source_security_group:                  "" => "<computed>"
+  source_security_group_id:               "" => "<computed>"
+  subnets.#:                              "" => "2"
+  subnets.3626863324:                     "" => "subnet-049f393fdf3764248"
+  subnets.691570553:                      "" => "subnet-0ef8ca377bdbcf174"
+  tags.%:                                 "" => "3"
+  tags.Name:                              "" => "ligoj-1234-instance-C-ELB"
+  tags.ligoj:project:                     "" => "7890"
+  tags.ligoj:subscription:                "" => "1234"
+  zone_id:                                "" => "<computed>"
+module.eu-west-3.module.instance-C-ELB.module.elb.module.elb.aws_elb.this: Creation complete after 2s (ID: ligoj-1234-instance-C-ELB)
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_autoscaling_group.this: Creating...
+  arn:                            "" => "<computed>"
+  default_cooldown:               "" => "60"
+  desired_capacity:               "" => "5"
+  enabled_metrics.#:              "" => "8"
+  enabled_metrics.119681000:      "" => "GroupStandbyInstances"
+  enabled_metrics.1940933563:     "" => "GroupTotalInstances"
+  enabled_metrics.308948767:      "" => "GroupPendingInstances"
+  enabled_metrics.3267518000:     "" => "GroupTerminatingInstances"
+  enabled_metrics.3394537085:     "" => "GroupDesiredCapacity"
+  enabled_metrics.3551801763:     "" => "GroupInServiceInstances"
+  enabled_metrics.4118539418:     "" => "GroupMinSize"
+  enabled_metrics.4136111317:     "" => "GroupMaxSize"
+  force_delete:                   "" => "false"
+  health_check_grace_period:      "" => "120"
+  health_check_type:              "" => "ELB"
+  launch_configuration:           "" => "client-project-instance-C-ELB-20180423193820568000000003"
+  load_balancers.#:               "" => "1"
+  load_balancers.1375843314:      "" => "ligoj-1234-instance-C-ELB"
+  max_size:                       "" => "5"
+  metrics_granularity:            "" => "1Minute"
+  min_elb_capacity:               "" => "0"
+  min_size:                       "" => "5"
+  name:                           "" => "<computed>"
+  name_prefix:                    "" => "client-project-instance-C-ELB-"
+  protect_from_scale_in:          "" => "false"
+  service_linked_role_arn:        "" => "<computed>"
+  tags.#:                         "" => "4"
+  tags.0.%:                       "" => "3"
+  tags.0.key:                     "" => "Name"
+  tags.0.propagate_at_launch:     "" => "1"
+  tags.0.value:                   "" => "client-project-instance-C-ELB"
+  tags.1.%:                       "" => "3"
+  tags.1.key:                     "" => "Name"
+  tags.1.propagate_at_launch:     "" => "true"
+  tags.1.value:                   "" => "client-project-instance-C-ELB"
+  tags.2.%:                       "" => "3"
+  tags.2.key:                     "" => "ligoj:project"
+  tags.2.propagate_at_launch:     "" => "true"
+  tags.2.value:                   "" => "7890"
+  tags.3.%:                       "" => "3"
+  tags.3.key:                     "" => "ligoj:subscription"
+  tags.3.propagate_at_launch:     "" => "true"
+  tags.3.value:                   "" => "1234"
+  termination_policies.#:         "" => "1"
+  termination_policies.0:         "" => "Default"
+  vpc_zone_identifier.#:          "" => "2"
+  vpc_zone_identifier.3626863324: "" => "subnet-049f393fdf3764248"
+  vpc_zone_identifier.691570553:  "" => "subnet-0ef8ca377bdbcf174"
+  wait_for_capacity_timeout:      "" => "3m"
+  wait_for_elb_capacity:          "" => "0"
+module.eu-west-3.instance-B-Spot.aws_instance.this: Still creating... (10s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still creating... (10s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (10s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still creating... (10s elapsed)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this: Provisioning with 'remote-exec'...
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Host: 35.180.16.135
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.module.instance-A.aws_instance.this: Provisioning with 'remote-exec'...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Host: 35.180.51.25
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Host: 35.180.16.135
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.instance-B-Spot.aws_instance.this: Still creating... (20s elapsed)
+module.eu-west-3.instance-A.aws_instance.this: Still creating... (20s elapsed)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Host: 35.180.16.135
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (20s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still creating... (20s elapsed)
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Host: 35.180.16.135
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Connected!
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Loaded plugins: priorities, update-motd,
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):               : upgrade-helper
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): No packages marked for update
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Loaded plugins: priorities, update-motd,
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):               : upgrade-helper
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Package initscripts-9.03.58-1.39.amzn1.x86_64 already installed and latest version
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Resolving Dependencies
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ---> Package nginx.x86_64 1:1.12.1-1.33.amzn1 will be installed
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Processing Dependency: libprofiler.so.0()(64bit) for package: 1:nginx-1.12.1-1.33.amzn1.x86_64
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ---> Package gperftools-libs.x86_64 0:2.0-11.5.amzn1 will be installed
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Processing Dependency: libunwind.so.8()(64bit) for package: gperftools-libs-2.0-11.5.amzn1.x86_64
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ---> Package libunwind.x86_64 0:1.1-10.8.amzn1 will be installed
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): --> Finished Dependency Resolution
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Dependencies Resolved
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):  Package     Arch   Version
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):                         Repository
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):                                    Size
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Installing:
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):  nginx       x86_64 1:1.12.1-1.33.amzn1
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):                         amzn-main 561 k
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Installing for dependencies:
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):  gperftools-libs
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):              x86_64 2.0-11.5.amzn1
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):                         amzn-main 570 k
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):  libunwind   x86_64 1.1-10.8.amzn1
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):                         amzn-main  72 k
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Transaction Summary
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Install  1 Package (+2 Dependent packages)
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Total download size: 1.2 M
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Installed size: 2.9 M
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Downloading packages:
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): (1/3): libunwind-1 |  72 kB   00:00
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): (3/3): nginx-1 53% | 642 kB   --:-- ETA
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): (2/3): gperftools- | 570 kB   00:00
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): (3/3): nginx-1.12. | 561 kB   00:00
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): ----------------------------------------
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Total      2.4 MB/s | 1.2 MB  00:00
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Running transaction check
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Running transaction test
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Transaction test succeeded
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Running transaction
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : libunwin [         ] 1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : libunwin [#####    ] 1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : libunwin [#######  ] 1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : libunwin [######## ] 1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : libunwind-1.1-10.8   1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [         ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [#        ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [##       ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [###      ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [####     ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [#####    ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [######   ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [#######  ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftoo [######## ] 2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : gperftools-libs-2.   2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [         ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [#        ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [##       ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [###      ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [####     ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [#####    ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [######   ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [#######  ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx- [######## ] 3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Installing : 1:nginx-1.12.1-1.3   3/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Verifying  : libunwind-1.1-10.8   1/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Verifying  : gperftools-libs-2.   2/3
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   Verifying  : 1:nginx-1.12.1-1.3   3/3
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Installed:
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   nginx.x86_64 1:1.12.1-1.33.amzn1
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Dependency Installed:
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   gperftools-libs.x86_64 0:2.0-11.5.amzn1
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec):   libunwind.x86_64 0:1.1-10.8.amzn1
+
+module.eu-west-3.module.instance-B-Spot.aws_instance.this (remote-exec): Complete!
+module.eu-west-3.module.instance-B-Spot.aws_instance.this ([  OK  ]xec): Starting nginx: 
+module.eu-west-3.module.instance-B-Spot.aws_instance.this: Creation complete after 28s (ID: i-065fcad249a528069)
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Host: 35.180.51.25
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.instance-A.aws_instance.this: Still creating... (30s elapsed)
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Host: 35.180.51.25
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (30s elapsed)
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still creating... (30s elapsed)
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Host: 35.180.51.25
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.instance-A.aws_instance.this: Still creating... (40s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (40s elapsed)
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connecting to remote host via SSH...
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Host: 35.180.51.25
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   User: ec2-user
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Password: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Private key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   SSH Agent: true
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Checking Host Key: false
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Connected!
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Loaded plugins: priorities, update-motd,
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):               : upgrade-helper
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): No packages marked for update
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Loaded plugins: priorities, update-motd,
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):               : upgrade-helper
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Package initscripts-9.03.58-1.39.amzn1.x86_64 already installed and latest version
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Resolving Dependencies
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ---> Package nginx.x86_64 1:1.12.1-1.33.amzn1 will be installed
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Processing Dependency: libprofiler.so.0()(64bit) for package: 1:nginx-1.12.1-1.33.amzn1.x86_64
+module.eu-west-3.instance-C-ELB.asg.aws_autoscaling_group.this: Still creating... (40s elapsed)
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ---> Package gperftools-libs.x86_64 0:2.0-11.5.amzn1 will be installed
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Processing Dependency: libunwind.so.8()(64bit) for package: gperftools-libs-2.0-11.5.amzn1.x86_64
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Running transaction check
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ---> Package libunwind.x86_64 0:1.1-10.8.amzn1 will be installed
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): --> Finished Dependency Resolution
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Dependencies Resolved
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):  Package     Arch   Version
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):                         Repository
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):                                    Size
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Installing:
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):  nginx       x86_64 1:1.12.1-1.33.amzn1
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):                         amzn-main 561 k
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Installing for dependencies:
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):  gperftools-libs
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):              x86_64 2.0-11.5.amzn1
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):                         amzn-main 570 k
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):  libunwind   x86_64 1.1-10.8.amzn1
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):                         amzn-main  72 k
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Transaction Summary
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ========================================
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Install  1 Package (+2 Dependent packages)
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Total download size: 1.2 M
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Installed size: 2.9 M
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Downloading packages:
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): (2/3): libunwin 0% |    0 B   --:-- ETA
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): (1/3): libunwind-1 |  72 kB   00:00
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): (2/3): gperftools- | 570 kB   00:00
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): (3/3): nginx-1.12. | 561 kB   00:00
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): ----------------------------------------
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Total      1.8 MB/s | 1.2 MB  00:00
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Running transaction check
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Running transaction test
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Transaction test succeeded
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Running transaction
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : libunwin [         ] 1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : libunwin [#####    ] 1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : libunwin [#######  ] 1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : libunwin [######## ] 1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : libunwind-1.1-10.8   1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [         ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [#        ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [##       ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [###      ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [####     ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [#####    ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [######   ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [#######  ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftoo [######## ] 2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : gperftools-libs-2.   2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [         ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [#        ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [##       ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [###      ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [####     ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [#####    ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [######   ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [#######  ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx- [######## ] 3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Installing : 1:nginx-1.12.1-1.3   3/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Verifying  : libunwind-1.1-10.8   1/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Verifying  : gperftools-libs-2.   2/3
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   Verifying  : 1:nginx-1.12.1-1.3   3/3
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Installed:
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   nginx.x86_64 1:1.12.1-1.33.amzn1
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Dependency Installed:
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   gperftools-libs.x86_64 0:2.0-11.5.amzn1
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec):   libunwind.x86_64 0:1.1-10.8.amzn1
+
+module.eu-west-3.module.instance-A.aws_instance.this (remote-exec): Complete!
+module.eu-west-3.module.instance-A.aws_instance.this (remot[  OK  ] Starting nginx: 
+module.eu-west-3.module.instance-A.aws_instance.this: Creation complete after 46s (ID: i-0b6e487a988a63a5a)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (50s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (50s elapsed)
+module.eu-west-3.module.instance-C-ELB.module.asg.aws_autoscaling_group.this: Creation complete after 48s (ID: client-project-instance-C-ELB-20180423193823103400000005)
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.out: Creating...
+  adjustment_type:          "" => "PercentChangeInCapacity"
+  arn:                      "" => "<computed>"
+  autoscaling_group_name:   "" => "client-project-instance-C-ELB-20180423193823103400000005"
+  cooldown:                 "" => "300"
+  metric_aggregation_type:  "" => "<computed>"
+  min_adjustment_magnitude: "" => "1"
+  name:                     "" => "High CPU"
+  policy_type:              "" => "SimpleScaling"
+  scaling_adjustment:       "" => "20"
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.in: Creating...
+  adjustment_type:          "" => "PercentChangeInCapacity"
+  arn:                      "" => "<computed>"
+  autoscaling_group_name:   "" => "client-project-instance-C-ELB-20180423193823103400000005"
+  cooldown:                 "" => "300"
+  metric_aggregation_type:  "" => "<computed>"
+  min_adjustment_magnitude: "" => "1"
+  name:                     "" => "Low CPU"
+  policy_type:              "" => "SimpleScaling"
+  scaling_adjustment:       "" => "-20"
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.in: Creation complete after 1s (ID: Low CPU)
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.in: Creating...
+  actions_enabled:                       "" => "true"
+  alarm_actions.#:                       "" => "1"
+  alarm_actions.301621912:               "" => "arn:aws:autoscaling:eu-west-3:000000000000:scalingPolicy:6dfe8581-a2f0-4e2e-805e-8e66f0d76581:autoScalingGroupName/client-project-instance-C-ELB-20180423193823103400000005:policyName/Low CPU"
+  alarm_description:                     "" => "{\"Name\":\"client-project-instance-C-ELB\",\"ScaleType\":\"in\",\"ligoj:project\":\"7890\",\"ligoj:subscription\":\"1234\"}"
+  alarm_name:                            "" => "client-project-instance-C-ELB-autoscaling_group-scale_in-cpu"
+  comparison_operator:                   "" => "LessThanOrEqualToThreshold"
+  dimensions.%:                          "" => "1"
+  dimensions.AutoScalingGroupName:       "" => "client-project-instance-C-ELB-20180423193823103400000005"
+  evaluate_low_sample_count_percentiles: "" => "<computed>"
+  evaluation_periods:                    "" => "2"
+  metric_name:                           "" => "CPUUtilization"
+  namespace:                             "" => "AWS/EC2"
+  period:                                "" => "60"
+  statistic:                             "" => "Average"
+  threshold:                             "" => "20"
+  treat_missing_data:                    "" => "missing"
+module.eu-west-3.module.instance-C-ELB.aws_autoscaling_policy.out: Creation complete after 1s (ID: High CPU)
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.out: Creating...
+  actions_enabled:                       "" => "true"
+  alarm_actions.#:                       "" => "1"
+  alarm_actions.809578585:               "" => "arn:aws:autoscaling:eu-west-3:000000000000:scalingPolicy:3274919f-6868-4fcf-a7c1-136ed65554f6:autoScalingGroupName/client-project-instance-C-ELB-20180423193823103400000005:policyName/High CPU"
+  alarm_description:                     "" => "{\"Name\":\"client-project-instance-C-ELB\",\"ScaleType\":\"out\",\"ligoj:project\":\"7890\",\"ligoj:subscription\":\"1234\"}"
+  alarm_name:                            "" => "client-project-instance-C-ELB-autoscaling_group-scale_out-cpu"
+  comparison_operator:                   "" => "GreaterThanOrEqualToThreshold"
+  dimensions.%:                          "" => "1"
+  dimensions.AutoScalingGroupName:       "" => "client-project-instance-C-ELB-20180423193823103400000005"
+  evaluate_low_sample_count_percentiles: "" => "<computed>"
+  evaluation_periods:                    "" => "2"
+  metric_name:                           "" => "CPUUtilization"
+  namespace:                             "" => "AWS/EC2"
+  period:                                "" => "60"
+  statistic:                             "" => "Average"
+  threshold:                             "" => "75"
+  treat_missing_data:                    "" => "missing"
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.in: Creation complete after 0s (ID: client-project-instance-C-ELB-autoscaling_group-scale_in-cpu)
+module.eu-west-3.module.instance-C-ELB.aws_cloudwatch_metric_alarm.out: Creation complete after 0s (ID: client-project-instance-C-ELB-autoscaling_group-scale_out-cpu)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (1m0s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m0s elapsed)
+module.eu-west-3.instance-B-Spot.asg.aws_autoscaling_group.this: Still creating... (1m10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m10s elapsed)
+module.eu-west-3.module.instance-B-Spot.module.asg.aws_autoscaling_group.this: Creation complete after 1m17s (ID: client-project-instance-B-Spot-20180423193821018900000004)
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.out: Creating...
+  adjustment_type:          "" => "PercentChangeInCapacity"
+  arn:                      "" => "<computed>"
+  autoscaling_group_name:   "" => "client-project-instance-B-Spot-20180423193821018900000004"
+  cooldown:                 "" => "300"
+  metric_aggregation_type:  "" => "<computed>"
+  min_adjustment_magnitude: "" => "1"
+  name:                     "" => "High CPU"
+  policy_type:              "" => "SimpleScaling"
+  scaling_adjustment:       "" => "20"
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.in: Creating...
+  adjustment_type:          "" => "PercentChangeInCapacity"
+  arn:                      "" => "<computed>"
+  autoscaling_group_name:   "" => "client-project-instance-B-Spot-20180423193821018900000004"
+  cooldown:                 "" => "300"
+  metric_aggregation_type:  "" => "<computed>"
+  min_adjustment_magnitude: "" => "1"
+  name:                     "" => "Low CPU"
+  policy_type:              "" => "SimpleScaling"
+  scaling_adjustment:       "" => "-20"
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.in: Creation complete after 1s (ID: Low CPU)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.in: Creating...
+  actions_enabled:                       "" => "true"
+  alarm_actions.#:                       "" => "1"
+  alarm_actions.2506114769:              "" => "arn:aws:autoscaling:eu-west-3:000000000000:scalingPolicy:1672cffc-57eb-476c-9141-b62c5ae28b02:autoScalingGroupName/client-project-instance-B-Spot-20180423193821018900000004:policyName/Low CPU"
+  alarm_description:                     "" => "{\"Name\":\"client-project-instance-B-Spot\",\"ScaleType\":\"in\",\"ligoj:project\":\"7890\",\"ligoj:subscription\":\"1234\"}"
+  alarm_name:                            "" => "client-project-instance-B-Spot-autoscaling_group-scale_in-cpu"
+  comparison_operator:                   "" => "LessThanOrEqualToThreshold"
+  dimensions.%:                          "" => "1"
+  dimensions.AutoScalingGroupName:       "" => "client-project-instance-B-Spot-20180423193821018900000004"
+  evaluate_low_sample_count_percentiles: "" => "<computed>"
+  evaluation_periods:                    "" => "2"
+  metric_name:                           "" => "CPUUtilization"
+  namespace:                             "" => "AWS/EC2"
+  period:                                "" => "60"
+  statistic:                             "" => "Average"
+  threshold:                             "" => "20"
+  treat_missing_data:                    "" => "missing"
+module.eu-west-3.module.instance-B-Spot.aws_autoscaling_policy.out: Creation complete after 1s (ID: High CPU)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.out: Creating...
+  actions_enabled:                       "" => "true"
+  alarm_actions.#:                       "" => "1"
+  alarm_actions.2274215667:              "" => "arn:aws:autoscaling:eu-west-3:000000000000:scalingPolicy:739d3060-f257-4af7-b505-2e108e61ad3e:autoScalingGroupName/client-project-instance-B-Spot-20180423193821018900000004:policyName/High CPU"
+  alarm_description:                     "" => "{\"Name\":\"client-project-instance-B-Spot\",\"ScaleType\":\"out\",\"ligoj:project\":\"7890\",\"ligoj:subscription\":\"1234\"}"
+  alarm_name:                            "" => "client-project-instance-B-Spot-autoscaling_group-scale_out-cpu"
+  comparison_operator:                   "" => "GreaterThanOrEqualToThreshold"
+  dimensions.%:                          "" => "1"
+  dimensions.AutoScalingGroupName:       "" => "client-project-instance-B-Spot-20180423193821018900000004"
+  evaluate_low_sample_count_percentiles: "" => "<computed>"
+  evaluation_periods:                    "" => "2"
+  metric_name:                           "" => "CPUUtilization"
+  namespace:                             "" => "AWS/EC2"
+  period:                                "" => "60"
+  statistic:                             "" => "Average"
+  threshold:                             "" => "75"
+  treat_missing_data:                    "" => "missing"
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.out: Creation complete after 0s (ID: client-project-instance-B-Spot-autoscaling_group-scale_out-cpu)
+module.eu-west-3.module.instance-B-Spot.aws_cloudwatch_metric_alarm.in: Creation complete after 0s (ID: client-project-instance-B-Spot-autoscaling_group-scale_in-cpu)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (1m50s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m0s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m10s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m20s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m30s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m40s elapsed)
+module.eu-west-3.instance-D-ALB-Spot.alb.aws_lb.application_no_logs: Still creating... (2m50s elapsed)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb.application_no_logs: Creation complete after 2m53s (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/6eea932f21dfa416)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_target_group.main: Creating...
+  arn:                                "" => "<computed>"
+  arn_suffix:                         "" => "<computed>"
+  deregistration_delay:               "" => "15"
+  health_check.#:                     "" => "1"
+  health_check.0.healthy_threshold:   "" => "2"
+  health_check.0.interval:            "" => "5"
+  health_check.0.matcher:             "" => "200-299"
+  health_check.0.path:                "" => "/"
+  health_check.0.port:                "" => "traffic-port"
+  health_check.0.protocol:            "" => "HTTP"
+  health_check.0.timeout:             "" => "3"
+  health_check.0.unhealthy_threshold: "" => "2"
+  name:                               "" => "ligoj-1234-instance-D-ALB-Spot"
+  port:                               "" => "80"
+  protocol:                           "" => "HTTP"
+  stickiness.#:                       "" => "1"
+  stickiness.0.cookie_duration:       "" => "15"
+  stickiness.0.enabled:               "" => "true"
+  stickiness.0.type:                  "" => "lb_cookie"
+  tags.%:                             "" => "3"
+  tags.Name:                          "" => "ligoj-1234-instance-D-ALB-Spot"
+  tags.ligoj:project:                 "" => "7890"
+  tags.ligoj:subscription:            "" => "1234"
+  target_type:                        "" => "instance"
+  vpc_id:                             "" => "vpc-03c5d17556bab89e4"
+module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_autoscaling_group.this: Creating...
+  arn:                            "" => "<computed>"
+  default_cooldown:               "" => "60"
+  desired_capacity:               "" => "5"
+  enabled_metrics.#:              "" => "8"
+  enabled_metrics.119681000:      "" => "GroupStandbyInstances"
+  enabled_metrics.1940933563:     "" => "GroupTotalInstances"
+  enabled_metrics.308948767:      "" => "GroupPendingInstances"
+  enabled_metrics.3267518000:     "" => "GroupTerminatingInstances"
+  enabled_metrics.3394537085:     "" => "GroupDesiredCapacity"
+  enabled_metrics.3551801763:     "" => "GroupInServiceInstances"
+  enabled_metrics.4118539418:     "" => "GroupMinSize"
+  enabled_metrics.4136111317:     "" => "GroupMaxSize"
+  force_delete:                   "" => "false"
+  health_check_grace_period:      "" => "120"
+  health_check_type:              "" => "ELB"
+  launch_configuration:           "" => "client-project-instance-D-ALB-Spot-20180423193820206500000002"
+  load_balancers.#:               "" => "1"
+  load_balancers.3681854554:      "" => "arn:aws:elasticloadbalancing:eu-west-3:000000000000:loadbalancer/app/ligoj-1234-instance-D-ALB-Spot/6eea932f21dfa416"
+  max_size:                       "" => "5"
+  metrics_granularity:            "" => "1Minute"
+  min_elb_capacity:               "" => "0"
+  min_size:                       "" => "5"
+  name:                           "" => "<computed>"
+  name_prefix:                    "" => "client-project-instance-D-ALB-Spot-"
+  protect_from_scale_in:          "" => "false"
+  service_linked_role_arn:        "" => "<computed>"
+  tags.#:                         "" => "4"
+  tags.0.%:                       "" => "3"
+  tags.0.key:                     "" => "Name"
+  tags.0.propagate_at_launch:     "" => "1"
+  tags.0.value:                   "" => "client-project-instance-D-ALB-Spot"
+  tags.1.%:                       "" => "3"
+  tags.1.key:                     "" => "Name"
+  tags.1.propagate_at_launch:     "" => "true"
+  tags.1.value:                   "" => "client-project-instance-D-ALB-Spot"
+  tags.2.%:                       "" => "3"
+  tags.2.key:                     "" => "ligoj:project"
+  tags.2.propagate_at_launch:     "" => "true"
+  tags.2.value:                   "" => "7890"
+  tags.3.%:                       "" => "3"
+  tags.3.key:                     "" => "ligoj:subscription"
+  tags.3.propagate_at_launch:     "" => "true"
+  tags.3.value:                   "" => "1234"
+  termination_policies.#:         "" => "1"
+  termination_policies.0:         "" => "Default"
+  vpc_zone_identifier.#:          "" => "2"
+  vpc_zone_identifier.3626863324: "" => "subnet-049f393fdf3764248"
+  vpc_zone_identifier.691570553:  "" => "subnet-0ef8ca377bdbcf174"
+  wait_for_capacity_timeout:      "" => "3m"
+  wait_for_elb_capacity:          "" => "0"
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_target_group.main: Creation complete after 0s (ID: arn:aws:elasticloadbalancing:eu-west-3:...4-instance-D-ALB-Spot/a6cbb8efcf4079fe)
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_listener.frontend_http_tcp: Creating...
+  arn:                               "" => "<computed>"
+  default_action.#:                  "" => "1"
+  default_action.0.target_group_arn: "" => "arn:aws:elasticloadbalancing:eu-west-3:000000000000:targetgroup/ligoj-1234-instance-D-ALB-Spot/a6cbb8efcf4079fe"
+  default_action.0.type:             "" => "forward"
+  load_balancer_arn:                 "" => "arn:aws:elasticloadbalancing:eu-west-3:000000000000:loadbalancer/app/ligoj-1234-instance-D-ALB-Spot/6eea932f21dfa416"
+  port:                              "" => "80"
+  protocol:                          "" => "HTTP"
+  ssl_policy:                        "" => "<computed>"
+module.eu-west-3.module.instance-D-ALB-Spot.module.alb.aws_lb_listener.frontend_http_tcp: Creation complete after 1s (ID: arn:aws:elasticloadbalancing:eu-west-3:...Spot/6eea932f21dfa416/35ecf6ebb57a6d6b)
+
+Error: Error applying plan:
+
+1 error(s) occurred:
+
+* module.eu-west-3.module.instance-D-ALB-Spot.module.asg.aws_autoscaling_group.this: 1 error(s) occurred:
+
+* aws_autoscaling_group.this: Error creating AutoScaling Group: ValidationError: Provided Load Balancers may not be valid. Please ensure they exist and try again.
+	status code: 400, request id: 00000000-0000-0000-0000-000000000000
+
+Terraform does not automatically rollback in the face of errors.
+Instead, your Terraform state file has been partially updated with
+any resources that successfully completed. Please address the error
+above and apply again to incrementally change your infrastructure.
