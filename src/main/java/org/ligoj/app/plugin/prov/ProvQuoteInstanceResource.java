@@ -217,7 +217,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	@Path("{subscription:\\d+}/instance")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost deleteAll(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 
 		// Delete all instance with cascaded delete for storages
 		qiRepository.deleteAll(qiRepository.findAllBy("configuration.subscription.id", subscription));
@@ -374,7 +374,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstancePriceTerm> findPriceTerm(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
@@ -395,7 +395,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstanceType> findAll(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				itRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
@@ -524,7 +524,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
-		subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		subscriptionResource.checkVisible(subscription).getNode().getId();
 		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
 		// Check headers validity

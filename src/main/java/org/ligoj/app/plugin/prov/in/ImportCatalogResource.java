@@ -53,6 +53,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	private static final String BY_NODE = "node.id";
 
 	@Autowired
+	@Getter
 	private NodeResource nodeResource;
 
 	@Autowired

@@ -50,7 +50,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @return The quote if the visibility has been checked.
 	 */
 	default ProvQuote getQuoteFromSubscription(final int subscription) {
-		return getRepository().findBy("subscription", getSubscriptionResource().checkVisibleSubscription(subscription));
+		return getRepository().findBy("subscription", getSubscriptionResource().checkVisible(subscription));
 	}
 
 	/**

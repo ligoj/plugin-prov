@@ -2,6 +2,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Path("{subscription:\\d+}")
 	@Override
 	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
-		return getConfiguration(subscriptionResource.checkVisibleSubscription(subscription));
+		return getConfiguration(subscriptionResource.checkVisible(subscription));
 	}
 
 	/**
@@ -136,7 +137,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		final String node = subscriptionResource.checkVisibleSubscription(subscription).getNode().getId();
+		final String node = subscriptionResource.checkVisible(subscription).getNode().getId();
 		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(node,
 				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
 				Function.identity());

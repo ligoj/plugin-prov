@@ -3,16 +3,21 @@ package org.ligoj.app.plugin.prov.terraform;
 import java.util.function.Supplier;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.dao.NodeRepository;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.TerraformStatusRepository;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
+import org.ligoj.app.resource.node.NodeResource;
+import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +41,33 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	private NodeRepository nodeRepository;
 
 	@Autowired
+	@Getter
+	private NodeResource nodeResource;
+
+	@Autowired
+	@Getter
+	private SubscriptionResource subscriptionResource;
+
+	@Autowired
 	protected ServicePluginLocator locator;
 
 	@Override
 	public Supplier<TerraformStatus> newTask() {
 		return TerraformStatus::new;
+	}
+
+	/**
+	 * Return the Terraform status from the given subscription identifier.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier.
+	 * @return The Terraform status from the given subscription identifier.
+	 */
+	@GET
+	@Path("{subscription:\\d+}/terraform")
+	public TerraformStatus getTask(@PathParam("subscription") final int subscription) {
+		final Subscription entity = getSubscriptionResource().checkVisible(subscription);
+		return LongTaskRunnerNode.super.getTask(entity.getNode().getId());
 	}
 
 }

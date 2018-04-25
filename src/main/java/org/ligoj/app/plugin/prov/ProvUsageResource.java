@@ -64,7 +64,7 @@ public class ProvUsageResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvUsage> findAll(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				repository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),

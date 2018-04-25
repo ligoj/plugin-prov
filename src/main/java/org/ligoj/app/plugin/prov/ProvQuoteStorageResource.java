@@ -84,7 +84,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@Path("{subscription:\\d+}/storage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost deleteAll(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 
 		// Delete all storages related to any instance, then the instances
 		qsRepository.deleteAll(qsRepository.findAllBy("configuration.subscription.id", subscription));
@@ -227,7 +227,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvStorageType> findType(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
