@@ -135,14 +135,14 @@
 			</div>
 		</fieldset>
 		<div class="form-actions row">
-			<div id="prov-terraform-status" class="col-xs-12 col-sm-8 col-md-8 col-lg-9 hidden">
+			<div id="prov-terraform-status" class="col-xs-12 col-sm-8 col-md-8 col-lg-9 invisible">
 				<div class="progress">
-					<div class="progress-bar progress-bar-info status-generate"></div>
-					<div class="progress-bar progress-bar-info status-init"></div>
-					<div class="progress-bar status-plan"></div>
-					<div class="progress-bar progress-bar-info status-analysis"></div>
-					<div class="progress-bar progress-bar-success status-apply completed"></div>
-					<div class="progress-bar progress-bar-success progress-bar-striped active status-apply completing"></div>
+					<div class="progress-bar progress-bar-info status-generate" style="width: 10%" data-toggle="tooltip" title="{{service:prov:terraform:status-generate}}"></div>
+					<div class="progress-bar progress-bar-info status-init" style="width: 10%" data-toggle="tooltip" title="{{service:prov:terraform:status-init}}"></div>
+					<div class="progress-bar status-plan" data-toggle="tooltip" title="{{service:prov:terraform:status-plan}}"></div>
+					<div class="progress-bar progress-bar-success status-apply completed" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar progress-bar-success progress-bar-striped active status-apply completing" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar progress-bar-danger progress-bar-striped active status-error completing" data-toggle="tooltip" title=""></div>
 				</div>
 			</div>
 			<div class="col-x-12 col-sm-4 col-md-4 col-lg-3">
@@ -153,7 +153,7 @@
 					</button>
 					<ul class="dropdown-menu" role="menu">
 						<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="fas fa-download fa-fw"></i> {{download}}</a></li>
-						<li role="presentation"><a role="menuitem" id="prov-terraform-execute" data-toggle="modal" data-target="#popup-prov-terraform"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[beta]</span></a></li>
+						<li role="presentation"><a role="menuitem" id="prov-terraform-execute" data-toggle="modal" data-target="#popup-prov-terraform"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[BETA]</span></a></li>
 					</ul>
 				</div>
 				<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
@@ -600,7 +600,7 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-cidr">{{service:prov:terraform:cidr}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="terraform-cidr" class="form-control" required value="10.0.0.0/16" />
+								<input type="text" id="terraform-cidr" class="form-control" required value="10.0.0.0/16" placeholder="10.0.0.0/16" />
 							</div>
 						</div>
 						<div class="form-group required">
@@ -624,13 +624,13 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-public-key">{{service:prov:terraform:public-key}}</label>
 							<div class="col-sm-8">
-								<textarea type="text" id="terraform-public-key" class="form-control" required value="ssh-rsa ..." />
+								<textarea type="text" id="terraform-public-key" class="form-control" required placeholder="ssh-rsa ..." />
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" class="btn btn-raised"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} &nbsp;<span class="text-danger pull-right x-small">[beta]</span></button>
+					<input type="submit" class="btn btn-raised btn-success" value="{{service:prov:terraform:execute}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>

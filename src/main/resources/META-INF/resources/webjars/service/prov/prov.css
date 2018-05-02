@@ -238,3 +238,6 @@ img.flag-icon.prov-location-flag {
 #prov-terraform-status .progress {
 	height: 20px;
 }
+.progress.bg-danger {
+	background-color: #e25757;
+}

@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -100,6 +101,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Autowired
 	private ProvUsageRepository usageRepository;
 
+	@Autowired
+	protected TerraformRunnerResource runner;
+
 	static {
 		ORM_COLUMNS.put("name", "name");
 		ORM_COLUMNS.put("description", "description");
@@ -121,6 +125,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Path("{subscription:\\d+}")
 	@Override
 	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
+		// Check the visibility
 		return getConfiguration(subscriptionResource.checkVisible(subscription));
 	}
 
@@ -165,7 +170,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the quote configuration from a validated subscription.
+	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
+	 * checked.
 	 * 
 	 * @param subscription
 	 *            A visible subscription for the current principal.
@@ -182,6 +188,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setUsage(entity.getUsage());
 		// Also copy the pre-computed cost
 		vo.setCost(toFloatingCost(entity));
+		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		return vo;
 	}
 

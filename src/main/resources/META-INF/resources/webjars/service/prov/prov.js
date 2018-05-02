@@ -184,7 +184,7 @@ define(function () {
 			}
 			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
-		
+
 		formatStorageType: function (name, mode, qs) {
 			var type = qs ? qs.price.type : {};
 			name = type ? type.name : name;
@@ -612,22 +612,22 @@ define(function () {
 			current.initializeTerraformStatus();
 			current.updateUiCost();
 		},
-		
+
 		/**
 		 * Refresh the Terraform status embedded in the quote.
 		 */
-		initializeTerraformStatus: function() {
+		initializeTerraformStatus: function () {
 			if (current.model.configuration.terraformStatus) {
 				current.updateTerraformStatus(current.model.configuration.terraformStatus);
-				if (!current.model.configuration.terraformStatus.finished) {
+				if (typeof current.model.configuration.terraformStatus.end === 'undefined') {
 					// At least one snapshot is pending: track it
 					setTimeout(function () {
 						// Poll the unfinished snapshot
-						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
+						current.pollStart('terraform-' + current.model.subscription, current.model.subscription, current.synchronizeTerraform);
 					}, 10);
 				}
 			} else {
-				_('prov-terraform-status').addClass('hidden');
+				_('prov-terraform-status').addClass('invisible');
 				current.enableTerraform();
 			}
 		},
@@ -736,7 +736,6 @@ define(function () {
 					suggests[i].id = suggests[i].id || suggests[i].price.id;
 				}
 				var suggest = suggests[0];
-				debugger;
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: current.formatStoragePriceHtml,
@@ -986,8 +985,12 @@ define(function () {
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.tf');
-			_('popup-prov-terraform').on('modal.shown',function() {
+			_('popup-prov-terraform').on('shown.bs.modal', function () {
 				_('terraform-cidr').trigger('focus');
+			}).on('show.bs.modal', function () {
+				if (_('terraform-key-name').val() === "") {
+					_('terraform-key-name').val(current.$parent.model.pkey);
+				}
 			}).on('submit', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
@@ -1350,7 +1353,7 @@ define(function () {
 				type: 'GET',
 				success: function (status) {
 					current.updateTerraformStatus(status);
-					if (status.finished) {
+					if (status.end) {
 						return;
 					}
 					// Continue polling for this Terraform
@@ -1363,23 +1366,77 @@ define(function () {
 		 * Update the Terraform status.
 		 */
 		updateTerraformStatus: function (status) {
-			debugger;
-			_('prov-terraform-status').removeClass('hidden');
-			if (status.finished) {
+			_('prov-terraform-status').removeClass('invisible');
+			if (status.end) {
 				// Stop the polling, update the buttons
 				current.enableTerraform();
 			} else {
 				current.disableTerraform();
-				// Update the tooltip for the progress
-				//  role="progressbar" aria-valuenow="2" aria-valuemin="0" aria-valuemax="100"
-				//  style="width: 5%"
-				// TODO Add % text in the last step
-				// TODO Change progress border style
-				// TODO Add tooltip to each step
-				// TODO Add a step-CSS class mapping, add generate and analysis states
-				var statusText = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
-				current.$super('$view').find('.vm-snapshot-create').attr('title', statusText);
 			}
+			var $status = _('prov-terraform-status');
+			var sequence = status.sequence || "";
+			var command = null;
+			var total = 1;
+			$status.find('.progress-bar').removeClass('active');
+
+			// Update the tooltip for the progress
+			var generate = 10;
+			var init = 10;
+			var plan = 20;
+			var apply = 60;
+			var completed = 0;
+			var completing = 0;
+			if (sequence.indexOf("init") === -1) {
+				init = 0;
+				apply += 5;
+				plan += 5;
+			}
+			if (sequence.indexOf("apply") === -1) {
+				init = 0;
+				plan += apply;
+				apply = 0;
+			}
+			if (typeof status.commandIndex === 'undefined') {
+				// Generating
+				$status.find('.status-generate').addClass('active');
+				plan = 0;
+				init = 0;
+				apply = 0;
+			} else {
+				command = sequence.split(',')[status.commandIndex];
+				if (command === 'init') {
+					// Terraforming: init
+					$status.find('.status-init').addClass('active');
+					plan = 0;
+					apply = 0;
+					last = '.status-init';
+				} else if (command === 'plan') {
+					// Terraforming: plan
+					$status.find('.status-plan').addClass('active');
+					apply = 0;
+				} else if (command === 'apply') {
+					// Terraforming: apply
+					$status.find('.status-apply').removeClass('hidden');
+					$status.find('.status-apply.completing').addClass('active');
+					total = status.added + status.deleted + status.updated;
+					completed = total == 0 ? 0 : (apply * status.completed / total);
+					completing = total == 0 ? 0 : (apply * status.completing / total);
+				}
+			}
+			$status.find('.status-generate').css({ width: generate + '%' });
+			$status.find('.status-init').css({ width: init + '%' });
+			$status.find('.status-plan').css({ width: plan + '%' });
+			$status.find('.status-apply.completed').css({ width: + (total == 0 ? apply : Math.round(completed)) + '%' });
+			$status.find('.status-apply.completing').css({ width: Math.round(completing) + '%' });
+			$status.find('.status-error').css({ width: Math.round(completing) + '%' });
+			if (command === 'apply') {
+				// Add percent text
+				$status.find('.status-apply.completed').text(total === 0 ? '' : (Math.round(completed / total) + '%'));
+				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([completed, total]));
+				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(completing));
+			}
+
+			// TODO Change progress border style
 		},
 
 		enableTerraform: function () {
@@ -1395,10 +1452,21 @@ define(function () {
 		terraform: function () {
 			var subscription = current.model.subscription;
 			current.disableTerraform();
+			var data = {
+				context: {
+					'key_name': _('terraform-key-name').val(),
+					'private_subnets': _('terraform-private-subnets').val(),
+					'public_subnets': _('terraform-public-subnets').val(),
+					'public_key': _('terraform-public-key').val(),
+					'cidr': _('terraform-cidr').val()
+				}
+			}
 			$.ajax({
 				type: 'POST',
 				url: REST_PATH + 'service/prov/' + subscription + '/terraform',
 				dataType: 'json',
+				data: JSON.stringify(data),
+				contentType: 'application/json',
 				success: function () {
 					notifyManager.notify(current.$messages['service:prov:terraform:started']);
 					setTimeout(function () {
@@ -1567,12 +1635,12 @@ define(function () {
 				}
 			});
 		},
-		
+
 		locationMap: function (location) {
 			if (location.longitude) {
-			// https://www.google.com/maps/place/33%C2%B048'00.0%22S+151%C2%B012'00.0%22E/@-33.8,151.1978113,3z
-			// http://www.google.com/maps/place/49.46800006494457,17.11514008755796/@49.46800006494457,17.11514008755796,17z
-//				html += '<a href="https://maps.google.com/?q=' + location.latitude + ',' + location.longitude + '" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
+				// https://www.google.com/maps/place/33%C2%B048'00.0%22S+151%C2%B012'00.0%22E/@-33.8,151.1978113,3z
+				// http://www.google.com/maps/place/49.46800006494457,17.11514008755796/@49.46800006494457,17.11514008755796,17z
+				//				html += '<a href="https://maps.google.com/?q=' + location.latitude + ',' + location.longitude + '" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
 				return '<a href="http://www.google.com/maps/place/' + location.latitude + ',' + location.longitude + '/@' + location.latitude + ',' + location.longitude + ',3z" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
 			} else {
 				return '';

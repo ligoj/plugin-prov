@@ -7,6 +7,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
 
 import lombok.Getter;
@@ -28,6 +29,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Monthly cost, computed during the creation.
 	 */
 	private FloatingCost cost;
+
+	/**
+	 * The optional Terraform status.
+	 */
+	private TerraformStatus terraformStatus;
 
 	/**
 	 * Quoted instance.

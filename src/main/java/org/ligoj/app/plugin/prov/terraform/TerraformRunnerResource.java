@@ -1,7 +1,9 @@
 package org.ligoj.app.plugin.prov.terraform;
 
-import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -24,7 +26,6 @@ import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
 import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
-import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,54 +69,74 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 		return TerraformStatus::new;
 	}
 
-	private static final Pattern PATTERN = Pattern.compile("^[^\\s:]+: (Creating...|Creation complete after)");
+	private static final Pattern PATTERN = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)...|([A-Za-z]+) complete after)");
+
+	private static final Set<String> COMPLETED_OPERATIONS = new HashSet<>(
+			Arrays.asList("Destruction", "Creation", "Modifications"));
+
+	private static final Set<String> PENDING_OPERATIONS = new HashSet<>(
+			Arrays.asList("Creating", "Modifying", "Destroying"));
 
 	/**
 	 * Return the Terraform status from the given subscription identifier.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier.
-	 * @return The Terraform status from the given subscription identifier.
+	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
+	 *         associated to this subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/terraform")
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public TerraformStatus getTask(@PathParam("subscription") final int subscription) {
-		final Subscription entity = getSubscriptionResource().checkVisible(subscription);
-		TerraformStatus status = LongTaskRunnerNode.super.getTask(entity.getNode().getId());
-		if (status.getSubscription() != subscription) {
+		return getTaskInternal(getSubscriptionResource().checkVisible(subscription));
+	}
+
+	/**
+	 * Return the Terraform status from the given subscription.
+	 * 
+	 * @param subscription
+	 *            The subscription entity.
+	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
+	 *         associated to this subscription.
+	 */
+	@org.springframework.transaction.annotation.Transactional(readOnly = true)
+	public TerraformStatus getTaskInternal(final Subscription subscription) {
+		final TerraformStatus status = LongTaskRunnerNode.super.getTask(subscription.getNode().getId());
+		if (status == null || status.getSubscription() != subscription.getId()) {
 			// Subscription is valid but not related to the current task
 			// Another subscription is running on this node
-			throw new BusinessException("concurrent-terraform-account", entity.getNode().getId());
+			return null;
 		}
 
-		completeProgress(entity, status);
+		completeProgress(subscription, status);
 		return status;
 	}
 
 	/**
-	 * Update the given status with the actual progress of appliance.
+	 * Update the given status with the actual progress of appliance. Is based on the "apply.log" file when present.
 	 * 
 	 * @param subscription
 	 *            subscription requesting the task.
 	 * @param status
 	 *            The status to update.
 	 */
-	protected void completeProgress(final Subscription subscription, final TerraformStatus status) {
+	private void completeProgress(final Subscription subscription, final TerraformStatus status) {
 		final AtomicInteger creating = new AtomicInteger();
 		final AtomicInteger created = new AtomicInteger();
-		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "apply.log").toPath())) {
+		try (Stream<String> stream = utils.toFile(subscription, "apply.log").exists()
+				? Files.lines(utils.toFile(subscription, "apply.log").toPath())
+				: Arrays.stream(new String[0])) {
 			stream.map(PATTERN::matcher).filter(Matcher::find).forEach(matcher -> {
-				if (matcher.group(1).equals("Creating...")) {
+				if (PENDING_OPERATIONS.contains(matcher.group(2))) {
 					creating.incrementAndGet();
-				} else {
+				} else if (COMPLETED_OPERATIONS.contains(matcher.group(2))) {
 					creating.decrementAndGet();
 					created.incrementAndGet();
 				}
 			});
-		} catch (IOException e) {
+		} catch (final Exception e) {
 			log.warn("Unable to read log file", e);
-
 		}
 		status.setProcessing(creating.get());
 		status.setCompleted(created.get());

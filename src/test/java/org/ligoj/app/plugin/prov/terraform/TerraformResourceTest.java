@@ -99,7 +99,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	@Test
 	public void generateAndExecuteNotSupported() {
 		Assertions.assertEquals("terraform-no-supported", Assertions.assertThrows(BusinessException.class, () -> {
-			newResource(null).generateAndExecute(subscription);
+			newResource(null).generateAndExecute(subscription, new Context());
 		}).getMessage());
 	}
 
@@ -148,8 +148,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformResource resource = new TerraformResource() {
 
 			@Override
-			protected void generateAndExecute(final Subscription entity, final Terraforming terra,
-					final QuoteVo configuration, final List<String[]> sequence) throws IOException {
+			public void generateAndExecute(final Terraforming terra, final Context context) throws IOException {
 				throw new IOException();
 			}
 		};
@@ -165,12 +164,13 @@ public class TerraformResourceTest extends AbstractAppTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class))
 				.thenReturn(Mockito.mock(Terraforming.class));
-		resource.generateAndExecute(subscription);
+		resource.generateAndExecute(subscription, new Context());
 	}
 
 	@Test
 	public void generateAndExecute() {
-		final TerraformStatus status = newResource(Mockito.mock(Terraforming.class)).generateAndExecute(subscription);
+		final TerraformStatus status = newResource(Mockito.mock(Terraforming.class)).generateAndExecute(subscription,
+				new Context());
 		Assertions.assertEquals(subscription, status.getSubscription());
 	}
 
@@ -204,8 +204,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 	private void generateAndExecute(final TerraformResource resource, final Terraforming terraforming,
 			final QuoteVo quote) throws IOException, InterruptedException {
 		final List<String[]> sequence = utils.getTerraformCommands();
-		resource.startTask(getSubscription(), sequence);
-		resource.generateAndExecute(getSubscription(), terraforming, quote, sequence);
+		final Context context = new Context();
+		context.setSubscription(getSubscription());
+		context.setSequence(sequence);
+		context.setQuote(quote);
+		resource.startTask(context);
+		resource.generateAndExecute(terraforming, context);
 	}
 
 	@Test
@@ -273,14 +277,14 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Mockito.doAnswer(i -> {
 			FileUtils.touch(tf);
 			return null;
-		}).when(terraforming).generate(Mockito.any(), Mockito.any());
+		}).when(terraforming).generate(Mockito.any());
 		return terraforming;
 	}
 
 	@Test
 	private void generateAndExecuteIOE() throws IOException {
 		final Terraforming terraforming = Mockito.mock(Terraforming.class);
-		Mockito.doThrow(new IOException()).when(terraforming).generate(Mockito.any(), Mockito.any());
+		Mockito.doThrow(new IOException()).when(terraforming).generate(Mockito.any());
 
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class),
 				(s, f) -> new File("random-place/random-place"), false);
@@ -448,17 +452,19 @@ public class TerraformResourceTest extends AbstractAppTest {
 			 * Prepare the Terraform environment to apply the new environment. Note there is no concurrency check.
 			 */
 			@Override
-			protected void generateAndExecute(final Subscription entity, final Terraforming terra,
-					final QuoteVo configuration, final List<String[]> sequence)
+			public void generateAndExecute(final Terraforming terra, final Context context)
 					throws IOException, InterruptedException {
 				if (dryRun) {
 					// Ignore this call
 					return;
 				}
-				super.generateAndExecute(entity, terra, configuration, sequence);
+				super.generateAndExecute(terra, context);
 			}
 		};
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		resource.self = resource;
+		resource.resource = new ProvResource();
+		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.resource);
 
 		// Replace the plugin locator
 		final ServicePluginLocator locator = Mockito.mock(ServicePluginLocator.class);
@@ -553,16 +559,37 @@ public class TerraformResourceTest extends AbstractAppTest {
 		startTask(resource, subscription);
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
-		Assertions.assertEquals(1, task.getCompleted());
+		Assertions.assertEquals(3, task.getCompleted());
 		Assertions.assertEquals(1, task.getProcessing());
+	}
+
+	@Test
+	public void getTaskNotYetApply() throws IOException {
+		final TerraformResource resource = newResource(newTerraforming());
+		startTask(resource, subscription);
+		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
+		Assertions.assertEquals(subscription, task.getSubscription());
+		Assertions.assertEquals(0, task.getCompleted());
+		Assertions.assertEquals(0, task.getProcessing());
+	}
+
+	@Test
+	public void getTaskError() throws IOException {
+		final TerraformResource resource = newResource(newTerraforming());
+		startTask(resource, subscription);
+		resource.runner.utils = Mockito.mock(TerraformUtils.class);
+		Mockito.doThrow(new IOException()).when(resource.runner.utils).toFile(Mockito.any(), Mockito.any());
+		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
+		Assertions.assertEquals(subscription, task.getSubscription());
+		Assertions.assertEquals(0, task.getCompleted());
+		Assertions.assertEquals(0, task.getProcessing());
 	}
 
 	@Test
 	public void getTaskLockedDifferentSubscription() throws IOException {
 		final TerraformResource resource = newResource(newTerraforming());
 		startTask(resource, -1);
-		Assertions.assertEquals("concurrent-terraform-account", Assertions
-				.assertThrows(BusinessException.class, () -> runner.getTask(getSubscription().getId())).getMessage());
+		Assertions.assertNull(runner.getTask(getSubscription().getId()));
 	}
 
 	@Test

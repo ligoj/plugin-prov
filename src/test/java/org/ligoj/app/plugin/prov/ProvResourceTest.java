@@ -156,6 +156,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		vo = resource.getConfiguration(subscription);
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 
+		Assertions.assertNull(vo.getTerraformStatus());
 		Assertions.assertNotNull(vo.getId());
 		Assertions.assertNotNull(vo.getCreatedBy());
 		Assertions.assertNotNull(vo.getCreatedDate());

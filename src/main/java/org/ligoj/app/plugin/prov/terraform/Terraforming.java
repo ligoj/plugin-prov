@@ -2,9 +2,6 @@ package org.ligoj.app.plugin.prov.terraform;
 
 import java.io.IOException;
 
-import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.prov.QuoteVo;
-
 /**
  * Contract for Terraform compliant provider.
  * 
@@ -13,16 +10,13 @@ import org.ligoj.app.plugin.prov.QuoteVo;
 public interface Terraforming {
 
 	/**
-	 * Generate the Terraform configuration files. There is no constraint of file naming but the <code>.tf</code>
-	 * extension name.
+	 * Generate the Terraform configuration files.
 	 * 
-	 * @param subscription
-	 *            The subscription.
-	 * @param quote
-	 *            The fetched configuration : instance and storage.
+	 * @param context
+	 *            The Terraform context holding the subscription, the quote and the user inputs.
 	 * @throws IOException
 	 *             When Terraform content cannot be written.
 	 */
-	void generate(Subscription subscription, QuoteVo quote) throws IOException;
+	void generate(Context context) throws IOException;
 
 }

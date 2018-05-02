@@ -25,7 +25,7 @@ public class TerraformStatus extends AbstractLongTaskNode {
 	private int subscription;
 
 	/**
-	 * The command index within the sequence. May be <code>null</code>
+	 * The command index within the sequence currently executed. May be <code>null</code> when not yet started.
 	 */
 	private Integer commandIndex;
 
