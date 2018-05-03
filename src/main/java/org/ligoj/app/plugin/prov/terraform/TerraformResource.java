@@ -157,7 +157,7 @@ public class TerraformResource {
 		// Start the task
 		context.setSubscription(entity);
 		context.setSequence(utils.getTerraformCommands());
-		context.getContext().entrySet().stream().forEach(e->e.setValue(StringUtils.trim(e.getValue())));
+		context.getContext().entrySet().stream().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
 
 		// The Terraform execution will done into another thread
 		final TerraformStatus task = startTask(context);
@@ -182,9 +182,9 @@ public class TerraformResource {
 		final TerraformStatus task = runner.startTask(context.getSubscription().getNode().getId(), t -> {
 			t.setCommandIndex(null);
 			t.setSequence(context.getSequence().stream().map(s -> s[0]).collect(Collectors.joining(",")));
-			t.setAdded(0);
-			t.setDeleted(0);
-			t.setUpdated(0);
+			t.setToAdd(0);
+			t.setToDestroy(0);
+			t.setToChange(0);
 			t.setProcessing(0);
 			t.setCompleted(0);
 			t.setSubscription(context.getSubscription().getId());
@@ -223,10 +223,10 @@ public class TerraformResource {
 	 */
 	private void generate(final Terraforming terra, final Context context) throws IOException {
 		// Cleanup the previous generated logs and files
-		for (final File file : FileUtils.listFiles(utils.toFile(context.getSubscription()),
-				new String[] { "tf", "tfvars", "log", "ptf" }, true)) {
-			FileUtils.deleteQuietly(file);
-		}
+		final java.nio.file.Path parent = utils.toFile(context.getSubscription()).toPath();
+		Files.walk(parent).filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup"))
+				.filter(path -> !parent.equals(path)).filter(path -> !path.toString().contains(".terraform"))
+				.map(java.nio.file.Path::toFile).forEach(FileUtils::deleteQuietly);
 
 		// Write the Terraform configuration files
 		terra.generate(context);
@@ -309,9 +309,9 @@ public class TerraformResource {
 			log.warn("Unable to get the full workload from the 'show' command", e);
 		}
 		// Update the status
-		status.setAdded(added.get());
-		status.setDeleted(deleted.get());
-		status.setUpdated(updated.get());
+		status.setToAdd(added.get());
+		status.setToDestroy(deleted.get());
+		status.setToChange(updated.get());
 	}
 
 	private void handleCode(final Subscription subscription, final FileOutputStream out, final int code)

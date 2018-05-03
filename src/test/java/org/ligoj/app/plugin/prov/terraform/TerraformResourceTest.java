@@ -164,11 +164,25 @@ public class TerraformResourceTest extends AbstractAppTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class))
 				.thenReturn(Mockito.mock(Terraforming.class));
-		resource.generateAndExecute(subscription, new Context());
+		final Context context = new Context();
+		context.add("key", "  value  ");
+		resource.generateAndExecute(subscription, context);
+		Assertions.assertEquals("value", context.get("key"));
 	}
 
 	@Test
-	public void generateAndExecute() {
+	public void computeWorkloadError() throws IOException {
+		final TerraformResource resource = new TerraformResource();
+		resource.utils = Mockito.mock(TerraformUtils.class);
+		Mockito.doThrow(new IOException()).when(resource.utils).toFile(Mockito.any(), Mockito.any());
+		final TerraformStatus status = new TerraformStatus();
+		status.setToAdd(1);
+		resource.computeWorkload(getSubscription(), status);
+		Assertions.assertEquals(0, status.getToAdd());
+	}
+
+	@Test
+	public void generateAndExecute() throws IOException {
 		final TerraformStatus status = newResource(Mockito.mock(Terraforming.class)).generateAndExecute(subscription,
 				new Context());
 		Assertions.assertEquals(subscription, status.getSubscription());
@@ -216,6 +230,13 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void generateAndExecuteInternal() throws IOException, InterruptedException {
 		final File log = new File(MOCK_PATH, "apply.log");
 		final File tf = new File(MOCK_PATH, "main.tf");
+		final File terraformDir = new File(MOCK_PATH, ".terraform");
+		FileUtils.forceMkdir(terraformDir);
+		FileUtils.touch(new File(MOCK_PATH, "any.tfstate"));
+		FileUtils.touch(new File(MOCK_PATH, "terraform.tfstate.backup"));
+		FileUtils.touch(new File(MOCK_PATH, ".terraform/foo.tf"));
+		FileUtils.touch(new File(MOCK_PATH, "bar.tf"));
+		FileUtils.touch(new File(MOCK_PATH, "any.ext"));
 		final Terraforming terraforming = newTerraforming();
 		final TerraformResource resource = newResource(terraforming, false);
 		writeOldFiles();
@@ -232,6 +253,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(IOUtils.toString(new File(MOCK_PATH, "plan.log").toURI(), "UTF-8").contains("plan"));
 		Assertions.assertTrue(IOUtils.toString(new File(MOCK_PATH, "show.log").toURI(), "UTF-8").contains("show"));
 		Assertions.assertTrue(IOUtils.toString(new File(MOCK_PATH, "apply.log").toURI(), "UTF-8").contains("apply"));
+		Assertions.assertTrue(terraformDir.exists());
+		Assertions.assertFalse(new File(MOCK_PATH, "bar.tf").exists());
+		Assertions.assertFalse(new File(MOCK_PATH, "any.ext").exists());
+		Assertions.assertTrue(new File(MOCK_PATH, "any.tfstate").exists());
+		Assertions.assertTrue(new File(MOCK_PATH, "terraform.tfstate.backup").exists());
+		Assertions.assertTrue(new File(MOCK_PATH, ".terraform/foo.tf").exists());
 
 		// Check the log file is well handled
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -255,9 +282,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("apply", task.getSequence().split(",")[task.getCommandIndex()]);
 		Assertions.assertEquals(0, task.getCompleted());
 		Assertions.assertEquals(0, task.getProcessing());
-		Assertions.assertEquals(0, task.getAdded());
-		Assertions.assertEquals(0, task.getDeleted());
-		Assertions.assertEquals(0, task.getUpdated());
+		Assertions.assertEquals(0, task.getToAdd());
+		Assertions.assertEquals(0, task.getToDestroy());
+		Assertions.assertEquals(0, task.getToChange());
 		Assertions.assertTrue(task.isFinished());
 		Assertions.assertTrue(task.isFinished());
 	}
@@ -601,16 +628,16 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(0, task.getCompleted());
 		Assertions.assertEquals(0, task.getProcessing());
-		Assertions.assertEquals(3, task.getAdded());
-		Assertions.assertEquals(2, task.getUpdated());
-		Assertions.assertEquals(1, task.getDeleted());
+		Assertions.assertEquals(3, task.getToAdd());
+		Assertions.assertEquals(2, task.getToChange());
+		Assertions.assertEquals(1, task.getToDestroy());
 	}
 
 	private void startTask(final TerraformResource resource, final int subscription) {
 		resource.runner.startTask("service:prov:test:account", t -> {
-			t.setAdded(0);
-			t.setDeleted(0);
-			t.setUpdated(0);
+			t.setToAdd(0);
+			t.setToDestroy(0);
+			t.setToChange(0);
 			t.setProcessing(0);
 			t.setCompleted(0);
 			t.setSubscription(subscription);
