@@ -138,7 +138,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 		} catch (final Exception e) {
 			log.warn("Unable to read log file", e);
 		}
-		status.setProcessing(creating.get());
+		status.setCompleting(creating.get());
 		status.setCompleted(created.get());
 	}
 

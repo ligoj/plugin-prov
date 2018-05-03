@@ -281,7 +281,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("init,plan,show,apply", task.getSequence());
 		Assertions.assertEquals("apply", task.getSequence().split(",")[task.getCommandIndex()]);
 		Assertions.assertEquals(0, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(0, task.getToAdd());
 		Assertions.assertEquals(0, task.getToDestroy());
 		Assertions.assertEquals(0, task.getToChange());
@@ -565,7 +565,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(0, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 	}
 
 	@Test
@@ -576,7 +576,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(44, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 	}
 
 	@Test
@@ -587,7 +587,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(3, task.getCompleted());
-		Assertions.assertEquals(1, task.getProcessing());
+		Assertions.assertEquals(1, task.getCompleting());
 	}
 
 	@Test
@@ -597,7 +597,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(0, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 	}
 
 	@Test
@@ -609,7 +609,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		final TerraformStatus task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(0, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 	}
 
 	@Test
@@ -627,7 +627,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		resource.computeWorkload(getSubscription());
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(0, task.getCompleted());
-		Assertions.assertEquals(0, task.getProcessing());
+		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(3, task.getToAdd());
 		Assertions.assertEquals(2, task.getToChange());
 		Assertions.assertEquals(1, task.getToDestroy());
@@ -638,7 +638,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			t.setToAdd(0);
 			t.setToDestroy(0);
 			t.setToChange(0);
-			t.setProcessing(0);
+			t.setCompleting(0);
 			t.setCompleted(0);
 			t.setSubscription(subscription);
 		});

@@ -991,6 +991,13 @@ define(function () {
 				if (_('terraform-key-name').val() === "") {
 					_('terraform-key-name').val(current.$parent.model.pkey);
 				}
+				
+				// Target platform
+				var target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
+				$.each(current.model.parameters, function (parameter, value) {
+					target.push('<strong>' + current.$messages[parameter] + '</strong>&nbsp;' + value);
+				});
+				$('.terraform-target').html(target.join('<br>'));
 			}).on('submit', current.terraform);
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
@@ -1374,68 +1381,100 @@ define(function () {
 				current.disableTerraform();
 			}
 			var $status = _('prov-terraform-status');
-			var sequence = status.sequence || "";
+			var sequence = (status.sequence || "").split(',');
 			var command = null;
-			var total = 1;
 			$status.find('.progress-bar').removeClass('active');
+			var commandIndex = typeof status.commandIndex === 'undefined' ? -1 : status.commandIndex;
 
-			// Update the tooltip for the progress
-			var generate = 10;
-			var init = 10;
-			var plan = 20;
-			var apply = 60;
-			var completed = 0;
-			var completing = 0;
-			if (sequence.indexOf("init") === -1) {
-				init = 0;
-				apply += 5;
-				plan += 5;
+			// Compute the progress percentage since "init" and "apply" commands are optional
+			var width = {
+				generate : 10,
+				init : 10,
+				plan : 20,
+				apply: 60,
+				completed: 0,
+				completing : 0
 			}
-			if (sequence.indexOf("apply") === -1) {
-				init = 0;
-				plan += apply;
-				apply = 0;
+			if ($.inArray("init", sequence) === -1) {
+				width.init = 0;
+				width.apply += 5;
+				width.plan += 5;
 			}
-			if (typeof status.commandIndex === 'undefined') {
+			if ($.inArray("apply", sequence) === -1) {
+				width.init = 0;
+				width.plan += width.apply;
+				width.apply = 0;
+			}
+			if (commandIndex === -1) {
 				// Generating
-				$status.find('.status-generate').addClass('active');
-				plan = 0;
-				init = 0;
-				apply = 0;
+				$status.find('.status-generate');
+				width.plan = 0;
+				width.init = 0;
+				width.apply = 0;
+				command = 'generate';
 			} else {
-				command = sequence.split(',')[status.commandIndex];
-				if (command === 'init') {
-					// Terraforming: init
-					$status.find('.status-init').addClass('active');
-					plan = 0;
-					apply = 0;
-					last = '.status-init';
-				} else if (command === 'plan') {
-					// Terraforming: plan
-					$status.find('.status-plan').addClass('active');
-					apply = 0;
-				} else if (command === 'apply') {
-					// Terraforming: apply
-					$status.find('.status-apply').removeClass('hidden');
-					$status.find('.status-apply.completing').addClass('active');
-					total = status.added + status.deleted + status.updated;
-					completed = total == 0 ? 0 : (apply * status.completed / total);
-					completing = total == 0 ? 0 : (apply * status.completing / total);
+				command = sequence[commandIndex];
+			}
+			status.command = command;
+			
+			
+			// Update the tooltip for the progress
+			var total = 0;
+			if (command === 'init') {
+				width.plan = 0;
+				width.apply = 0;
+			} else if (command === 'plan') {
+				width.apply = 0;
+			} else if (commandIndex !== -1 && $.inArray("apply", sequence) >= 0 && $.inArray("apply", sequence) <= commandIndex) {
+				total = status.toAdd + status.toDestroy + status.toChange;
+				width.completed = total === 0 ? width.apply : Math.round(width.apply * status.completed / total);
+				width.completing = total === 0 ? 0 : Math.round(width.apply * status.completing / total);
+
+				// Add percent text only for the apply
+				$status.find('.status-apply.completed').text(total === 0 ? '' : (Math.round(status.completed * 100 / total) + '%'));
+				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([status.completed, total]));
+				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(status.completing));
+			}
+			
+			// Update the progress width
+			$status.find('.status-generate').css({ width: width.generate + '%' });
+			$status.find('.status-init').css({ width: width.init + '%' });
+			$status.find('.status-plan').css({ width: width.plan + '%' });
+			$status.find('.status-apply.completed').css({  width: width.completed  + '%' });
+			$status.find('.status-apply.completing').css({ width: width.completing + '%' });
+			
+			// Update the progress tooltips
+			for( var i = -1; i < sequence.length; i++) {
+				var commandI = i === -1 ? 'generate' : sequence[i];
+				var $progressI = $status.find('.status-' + commandI);
+				var activeEnablement = (i === commandIndex && typeof status.end === 'undefined') ? 'addClass' : 'removeClass';
+				if (commandI === 'apply') {
+					$progressI.filter('.completing')[activeEnablement]('active progress-bar-striped');
+				} else {
+					var succeed = i < commandIndex || status.failed !== true;
+					$progressI[activeEnablement]('active progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
 				}
 			}
-			$status.find('.status-generate').css({ width: generate + '%' });
-			$status.find('.status-init').css({ width: init + '%' });
-			$status.find('.status-plan').css({ width: plan + '%' });
-			$status.find('.status-apply.completed').css({ width: + (total == 0 ? apply : Math.round(completed)) + '%' });
-			$status.find('.status-apply.completing').css({ width: Math.round(completing) + '%' });
-			$status.find('.status-error').css({ width: Math.round(completing) + '%' });
-			if (command === 'apply') {
-				// Add percent text
-				$status.find('.status-apply.completed').text(total === 0 ? '' : (Math.round(completed / total) + '%'));
-				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([completed, total]));
-				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(completing));
-			}
+			
+			// Update the status text
+			status.startDate = formatManager.formatDateTime(status.start);
+			status.endDate = status.end ? formatManager.formatDateTime(status.end)  : '';
+			$status.find('.status').html(Handlebars.compile(current.$messages['service:prov:terraform:status'])(status));
 
+			// Update the error style of progress bars
+			var $progress = $status.find('.status-' + command).removeClass('hidden');
+			$status.find('.error').removeClass('error');
+			if (status.failed) {
+				// Change the color to "red" for the last executed command
+				if (command === 'apply') {
+					// Need to add an extra progress for the non being/completed tasks
+					$progress.addClass('error');
+					$status.find('.status-error').css({ width: Math.round(apply - completed - completing) + '%' });
+				} else {
+					$progress.addClass('error');
+				}
+			}
+			
 			// TODO Change progress border style
 		},
 
@@ -1473,6 +1512,8 @@ define(function () {
 						// Poll the unfinished Terraform
 						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
 					}, 10);
+					_('popup-prov-terraform').modal('hide');
+					current.updateTerraformStatus({});
 				},
 				error: function () {
 					current.enableTerraform();

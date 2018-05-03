@@ -201,12 +201,6 @@ label[for="instance-max-variable-cost"] {
 	vertical-align: top;
 }
 
-#quote-usage+.btn {
-	padding-left: 8px;
-	padding-right: 8px;
-	margin: 0;
-}
-
 .flag-icon {
 	background-size: contain;
 	background-position: 50%;
@@ -230,14 +224,22 @@ img.flag-icon.prov-location-flag {
 .popover, .tooltip-inner {
 	line-height: 1.2em;
 }
-.location-wrapper {
+.select2-addon {
 	position: relative;
 	top: 9px;
 	right: 3px;
 }
+.select2-addon .btn {
+	padding-left: 8px;
+	padding-right: 8px;
+	margin: 0;
+	top: -8px;
+	left: -6px;
+}
+
 #prov-terraform-status .progress {
 	height: 20px;
 }
-.progress.bg-danger {
+.progress .progress-bar.error {
 	background-color: #e25757;
 }

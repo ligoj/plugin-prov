@@ -185,7 +185,7 @@ public class TerraformResource {
 			t.setToAdd(0);
 			t.setToDestroy(0);
 			t.setToChange(0);
-			t.setProcessing(0);
+			t.setCompleting(0);
 			t.setCompleted(0);
 			t.setSubscription(context.getSubscription().getId());
 		});

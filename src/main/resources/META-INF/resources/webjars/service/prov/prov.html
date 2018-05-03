@@ -9,16 +9,16 @@
 						<div class="col-xs-10">
 							<input type="text" id="quote-location" class="form-control" required maxlength="50" />
 						</div>
-						<span class="location-wrapper"></span>
+						<span class="location-wrapper select2-addon"></span>
 					</div>
 					<div class="form-group">
 						<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
 						<div class="col-xs-10">
-							<div class="input-group">
-								<input type="text" id="quote-usage" class="form-control" />
-								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
-							</div>
+							<input type="text" id="quote-usage" class="form-control" />
 						</div>
+						<span class="select2-addon">
+							<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+						</span>
 					</div>
 				</div>
 				<div id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md col-lg-9">
@@ -137,13 +137,14 @@
 		<div class="form-actions row">
 			<div id="prov-terraform-status" class="col-xs-12 col-sm-8 col-md-8 col-lg-9 invisible">
 				<div class="progress">
-					<div class="progress-bar progress-bar-info status-generate" style="width: 10%" data-toggle="tooltip" title="{{service:prov:terraform:status-generate}}"></div>
-					<div class="progress-bar progress-bar-info status-init" style="width: 10%" data-toggle="tooltip" title="{{service:prov:terraform:status-init}}"></div>
-					<div class="progress-bar status-plan" data-toggle="tooltip" title="{{service:prov:terraform:status-plan}}"></div>
+					<div class="progress-bar progress-bar-info status-generate" style="width: 10%" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar progress-bar-info status-init" style="width: 10%" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar status-plan" data-toggle="tooltip" title=""></div>
 					<div class="progress-bar progress-bar-success status-apply completed" data-toggle="tooltip" title=""></div>
-					<div class="progress-bar progress-bar-success progress-bar-striped active status-apply completing" data-toggle="tooltip" title=""></div>
-					<div class="progress-bar progress-bar-danger progress-bar-striped active status-error completing" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar progress-bar-success status-apply completing progress-bar-striped" data-toggle="tooltip" title=""></div>
+					<div class="progress-bar progress-bar-danger error" data-toggle="tooltip" title="Not executed"></div>
 				</div>
+				<span class="status"><span></span>
 			</div>
 			<div class="col-x-12 col-sm-4 col-md-4 col-lg-3">
 				<div class="dropdown">
@@ -597,6 +598,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
+						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div></div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-cidr">{{service:prov:terraform:cidr}}</label>
 							<div class="col-sm-8">
