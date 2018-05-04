@@ -991,7 +991,7 @@ define(function () {
 				if (_('terraform-key-name').val() === "") {
 					_('terraform-key-name').val(current.$parent.model.pkey);
 				}
-				
+
 				// Target platform
 				var target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
 				$.each(current.model.parameters, function (parameter, value) {
@@ -1388,12 +1388,12 @@ define(function () {
 
 			// Compute the progress percentage since "init" and "apply" commands are optional
 			var width = {
-				generate : 10,
-				init : 10,
-				plan : 20,
+				generate: 10,
+				init: 10,
+				plan: 20,
 				apply: 60,
 				completed: 0,
-				completing : 0
+				completing: 0
 			}
 			if ($.inArray("init", sequence) === -1) {
 				width.init = 0;
@@ -1416,8 +1416,8 @@ define(function () {
 				command = sequence[commandIndex];
 			}
 			status.command = command;
-			
-			
+
+
 			// Update the tooltip for the progress
 			var total = 0;
 			if (command === 'init') {
@@ -1435,16 +1435,16 @@ define(function () {
 				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([status.completed, total]));
 				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(status.completing));
 			}
-			
+
 			// Update the progress width
 			$status.find('.status-generate').css({ width: width.generate + '%' });
 			$status.find('.status-init').css({ width: width.init + '%' });
 			$status.find('.status-plan').css({ width: width.plan + '%' });
-			$status.find('.status-apply.completed').css({  width: width.completed  + '%' });
+			$status.find('.status-apply.completed').css({ width: width.completed + '%' });
 			$status.find('.status-apply.completing').css({ width: width.completing + '%' });
-			
+
 			// Update the progress tooltips
-			for( var i = -1; i < sequence.length; i++) {
+			for (var i = -1; i < sequence.length; i++) {
 				var commandI = i === -1 ? 'generate' : sequence[i];
 				var $progressI = $status.find('.status-' + commandI);
 				var activeEnablement = (i === commandIndex && typeof status.end === 'undefined') ? 'addClass' : 'removeClass';
@@ -1455,10 +1455,10 @@ define(function () {
 					$progressI[activeEnablement]('active progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
 				}
 			}
-			
+
 			// Update the status text
 			status.startDate = formatManager.formatDateTime(status.start);
-			status.endDate = status.end ? formatManager.formatDateTime(status.end)  : '';
+			status.endDate = status.end ? formatManager.formatDateTime(status.end) : '';
 			$status.find('.status').html(Handlebars.compile(current.$messages['service:prov:terraform:status'])(status));
 
 			// Update the error style of progress bars
@@ -1474,7 +1474,7 @@ define(function () {
 					$progress.addClass('error');
 				}
 			}
-			
+
 			// TODO Change progress border style
 		},
 
@@ -1491,11 +1491,13 @@ define(function () {
 		terraform: function () {
 			var subscription = current.model.subscription;
 			current.disableTerraform();
+
+			// Complete the Terraform inputs
 			var data = {
 				context: {
 					'key_name': _('terraform-key-name').val(),
-					'private_subnets': _('terraform-private-subnets').val(),
-					'public_subnets': _('terraform-public-subnets').val(),
+					'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(',')).map(function (s) { return s.trim(); }).join('","') + '"',
+					'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(',')).map(function (s) { return s.trim(); }).join('","') + '"',
 					'public_key': _('terraform-public-key').val(),
 					'cidr': _('terraform-cidr').val()
 				}
