@@ -12,6 +12,10 @@
 	width: 85px;
 }
 
+.masonry-container .node.service-prov.mode-th td.key {
+	font-size: x-small;
+}
+
 .masonry-container .node.service-prov .price {
 	max-width: 53px;
 	display: inline-block;
@@ -242,4 +246,8 @@ img.flag-icon.prov-location-flag {
 }
 .progress .progress-bar.error {
 	background-color: #e25757;
+}
+
+.prov-global-summary {
+	margin-right: 16px;
 }
