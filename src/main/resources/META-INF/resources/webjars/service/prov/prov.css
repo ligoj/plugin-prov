@@ -251,3 +251,7 @@ img.flag-icon.prov-location-flag {
 .prov-global-summary {
 	margin-right: 16px;
 }
+
+#prov-terraform-status .status-apply.active {
+	text-align: right;
+}
