@@ -4,7 +4,7 @@ define(['d3', 'jquery'], function (d3) {
 			return [percent, 100 - percent];
 		},
 
-		create: function (selector, value, width, height, duration) {
+		create: function (selector, value, width, height, duration, transition) {
 			duration = duration || 1500;
 			transition = transition || 200;
 			width = width || window.innerWidth - 20;
