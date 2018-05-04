@@ -181,7 +181,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	@Test
 	public void installInvalidZip() throws IOException {
 		final TerraformUtils utils = prepareForInstall("mock-server/prov/terraform/terraform-invalid.zip");
-		Assertions.assertThrows(FileNotFoundException.class, () -> utils.install());
+		Assertions.assertThrows(FileNotFoundException.class, utils::install);
 	}
 
 	private TerraformUtils prepareForInstall(final String file) throws IOException {
@@ -227,13 +227,13 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getLastestVersion() {
-		final String version = resource.getLastestVersion();
+	public void getLatestVersion() {
+		final String version = resource.getLatestVersion();
 		Assertions.assertEquals(3, StringUtils.split(version, '.').length);
 	}
 
 	@Test
-	public void getLastestVersionMock() throws IOException {
+	public void getLatestVersionMock() throws IOException {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
 		InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
@@ -242,13 +242,13 @@ public class TerraformUtilsTest extends AbstractServerTest {
 				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
 		IOUtils.closeQuietly(inputStream);
 		httpServer.start();
-		Assertions.assertEquals("0.11.5", resource.getLastestVersion());
+		Assertions.assertEquals("0.11.5", resource.getLatestVersion());
 	}
 
 	@Test
-	public void getLastestVersionNotAvailable() {
+	public void getLatestVersionNotAvailable() {
 		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
-		Assertions.assertNull(resource.getLastestVersion());
+		Assertions.assertNull(resource.getLatestVersion());
 	}
 
 

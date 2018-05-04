@@ -19,7 +19,7 @@ public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 
 	/**
 	 * The monthly cost of 1GiB (Gibibyte Bytes).
-	 * @see https://en.wikipedia.org/wiki/Gibibyte
+	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
 	 */
 	private double costGb = 0;
 

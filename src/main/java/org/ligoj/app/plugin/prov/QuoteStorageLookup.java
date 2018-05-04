@@ -12,7 +12,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class QuoteStorageLoopup extends AbstractComputedPrice<ProvStoragePrice> {
+public class QuoteStorageLookup extends AbstractComputedPrice<ProvStoragePrice> {
 
 	/**
 	 * The requested size.

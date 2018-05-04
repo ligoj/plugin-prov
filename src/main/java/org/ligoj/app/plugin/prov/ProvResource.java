@@ -87,7 +87,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvLocationRepository locationRepository;
 
 	@Autowired
-	protected IamProvider[] iamProvider;
+	private IamProvider[] iamProvider;
 
 	@Autowired
 	private PaginationJson paginationJson;
@@ -102,7 +102,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvUsageRepository usageRepository;
 
 	@Autowired
-	protected TerraformRunnerResource runner;
+	private TerraformRunnerResource runner;
 
 	static {
 		ORM_COLUMNS.put("name", "name");
@@ -307,7 +307,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	@Override
-	public void create(final int subscription) throws Exception {
+	public void create(final int subscription) {
 		// Add an empty quote
 		final ProvQuote quote = new ProvQuote();
 		quote.setSubscription(subscriptionRepository.findOne(subscription));
@@ -344,7 +344,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			final RestRepository<T, K> repository, final K id, final int subscription) {
 		// Simple proxy call but with public visibility
 		final T entity = findConfigured(repository, id);
-		if (entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
+		if (entity.getConfiguration().getSubscription().getId() != subscription) {
 			// Associated project is not visible, reject the configuration access
 			throw new EntityNotFoundException(id.toString());
 		}

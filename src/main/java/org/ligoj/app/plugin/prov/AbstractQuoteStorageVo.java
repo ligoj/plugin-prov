@@ -23,7 +23,7 @@ public abstract class AbstractQuoteStorageVo extends DescribedBean<Integer> {
 	/**
 	 * Size of the storage in "GiB" "Gibi Bytes"
 	 * 
-	 * @see https://en.wikipedia.org/wiki/Gibibyte
+	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
 	 */
 	@Positive
 	@NotNull

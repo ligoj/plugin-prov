@@ -55,7 +55,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				// we construct the scale from the
 				// node's assigned color. Our scale
 				// will range from darker than the
-				// node's color to brigher than the
+				// node's color to brighter than the
 				// node's color.
 				var startColor = d3.hcl(d.color)
 					.darker(),

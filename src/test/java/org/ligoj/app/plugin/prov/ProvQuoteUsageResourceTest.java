@@ -256,9 +256,9 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 
 	@Test
 	public void deleteNotOwned() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			checkUsage100AfterDelete(uResource.delete(0, "Dev"));
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () ->
+			checkUsage100AfterDelete(uResource.delete(0, "Dev"))
+		);
 	}
 
 	@Test

@@ -58,7 +58,7 @@ define(['cascade'], function ($cascade) {
 			} else  {
 				// Not available
 				_('terraform-changelog').addClass('hidden')
-				validationManager.addError(_('terraform-last-version').val(''), 'terraform-lastest-version');
+				validationManager.addError(_('terraform-last-version').val(''), 'terraform-latest-version');
 			}
 		},
 

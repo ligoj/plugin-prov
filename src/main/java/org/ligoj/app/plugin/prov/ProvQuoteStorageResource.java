@@ -75,7 +75,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Delete all storages from a quote. The total cost is updated.
-	 * 
+	 *
 	 * @param subscription
 	 *            The related subscription.
 	 * @return The updated computed cost.
@@ -96,7 +96,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Create the storage inside a quote.
-	 * 
+	 *
 	 * @param vo
 	 *            The quote storage details.
 	 * @return The created instance cost details with identifier.
@@ -110,7 +110,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Update the storage inside a quote.
-	 * 
+	 *
 	 * @param vo
 	 *            The quote storage update.
 	 * @return The new cost configuration.
@@ -146,7 +146,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Save or update the storage inside a quote.
-	 * 
+	 *
 	 * @param entity
 	 *            The storage entity to update.
 	 * @param vo
@@ -201,7 +201,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Delete a storage from a quote. The total cost is updated.
-	 * 
+	 *
 	 * @param id
 	 *            The {@link ProvQuoteStorage}'s identifier to delete.
 	 * @return The updated computed cost.
@@ -215,7 +215,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Return the storage types the instance inside a quote.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the storages from the associated provider.
 	 * @param uriInfo
@@ -236,7 +236,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Return the available storage types from the provider linked to the given subscription..
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
 	 * @param size
@@ -254,7 +254,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	@GET
 	@Path("{subscription:\\d+}/storage-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public List<QuoteStorageLoopup> lookup(@PathParam("subscription") final int subscription,
+	public List<QuoteStorageLookup> lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
 			@QueryParam("instance") final Integer instance,
 			@QueryParam("optimized") final ProvStorageOptimized optimized,
@@ -264,7 +264,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, optimized, location);
 	}
 
-	private List<QuoteStorageLoopup> lookup(final ProvQuote configuration, final int size, final Rate latency,
+	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
 			final Integer instance, final ProvStorageOptimized optimized, final String location) {
 
 		// Get the attached node and check the security on this subscription
@@ -288,8 +288,8 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 	/**
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
-	private QuoteStorageLoopup newPrice(final ProvStoragePrice sp, final int size, final double cost) {
-		final QuoteStorageLoopup result = new QuoteStorageLoopup();
+	private QuoteStorageLookup newPrice(final ProvStoragePrice sp, final int size, final double cost) {
+		final QuoteStorageLookup result = new QuoteStorageLookup();
 		result.setCost(cost);
 		result.setPrice(sp);
 		result.setSize(size);
@@ -305,7 +305,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 
 	/**
 	 * Compute the cost of a storage.
-	 * 
+	 *
 	 * @param storagePrice
 	 *            The storage to evaluate.
 	 * @param size

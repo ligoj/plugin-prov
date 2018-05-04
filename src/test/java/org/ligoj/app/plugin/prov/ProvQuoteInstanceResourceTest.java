@@ -222,9 +222,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	@Test
 	public void lookupTypeNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", true, null, null);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", true, null, null));
 	}
 
 	/**
@@ -318,9 +317,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setName("server1-bis");
 		vo.setRam(1);
 		vo.setCpu(0.5);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.update(vo));
 	}
 
 	@Test
@@ -499,7 +496,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		// Check the cost is the same
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
-		updatedCost = qiResource.update(vo);
+		qiResource.update(vo);
 		checkUpdatedCost();
 	}
 
@@ -515,9 +512,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.update(vo);
-		}), "os", "incompatible-os");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.update(vo)),
+				"os", "incompatible-os");
 	}
 
 	@Test
@@ -654,9 +650,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	private void logQuote() {
 		final QuoteVo vo3 = resource.getConfiguration(subscription);
-		vo3.getInstances().stream().forEach(q -> log.info(q.getName() + " -cost " + q.getCost() + " -type "
+		vo3.getInstances().forEach(q -> log.info(q.getName() + " -cost " + q.getCost() + " -type "
 				+ q.getPrice().getType().getName() + " -code " + q.getPrice().getCode()));
-		vo3.getStorages().stream().forEach(
+		vo3.getStorages().forEach(
 				q -> log.info(q.getName() + " -cost " + q.getCost() + " - type " + q.getPrice().getType().getName()));
 	}
 
@@ -729,9 +725,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setMaxVariableCost(210.9);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.create(vo);
-		}), "os", "incompatible-os");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.create(vo)),
+				"os", "incompatible-os");
 	}
 
 	@Test
@@ -768,9 +763,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(100);
 		vo.setMaxQuantity(10);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.create(vo);
-		}), "maxQuantity", "Min");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.create(vo)),
+				"maxQuantity", "Min");
 	}
 
 	@Test
@@ -789,9 +783,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findInstancePriceTermNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-			qiResource.findPriceTerm(-1, newUriInfo());
-		});
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
+				() -> qiResource.findPriceTerm(-1, newUriInfo()));
 	}
 
 	@Test
@@ -803,9 +796,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	@Test
 	public void findInstancePriceTermNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.findPriceTerm(subscription, newUriInfo());
-		});
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.findPriceTerm(subscription, newUriInfo()));
 	}
 
 	@Test
@@ -825,9 +817,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findInstanceNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-			qiResource.findAll(-1, newUriInfo());
-		});
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findAll(-1, newUriInfo()));
 	}
 
 	@Test
@@ -839,9 +829,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	@Test
 	public void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.findAll(subscription, newUriInfo());
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAll(subscription, newUriInfo()));
 	}
 
 	@Test
@@ -1020,10 +1008,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void uploadInvalidUsageForSubscription() {
-		Assertions.assertEquals("Full Time2", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time2".getBytes("UTF-8")),
-					new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8");
-		}).getMessage());
+		Assertions.assertEquals("Full Time2",
+				Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.upload(subscription,
+						new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time2".getBytes("UTF-8")),
+						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
+						.getMessage());
 	}
 
 	/**
@@ -1031,10 +1020,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void uploadInvalidLocationForSubscription() {
-		Assertions.assertEquals("region-3", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-3".getBytes("UTF-8")),
-					new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1, "UTF-8");
-		}).getMessage());
+		Assertions.assertEquals("region-3",
+				Assertions.assertThrows(EntityNotFoundException.class,
+						() -> qiResource.upload(subscription,
+								new ByteArrayInputStream("ANY;0.5;500;LINUX;region-3".getBytes("UTF-8")),
+								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+								"UTF-8"))
+						.getMessage());
 	}
 
 	/**
@@ -1042,10 +1034,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void uploadInvalidLocation() {
-		Assertions.assertEquals("region-ZZ", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;region-ZZ".getBytes("UTF-8")),
-					new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1, "UTF-8");
-		}).getMessage());
+		Assertions.assertEquals("region-ZZ",
+				Assertions.assertThrows(EntityNotFoundException.class,
+						() -> qiResource.upload(subscription,
+								new ByteArrayInputStream("ANY;0.5;500;LINUX;region-ZZ".getBytes("UTF-8")),
+								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+								"UTF-8"))
+						.getMessage());
 	}
 
 	/**
@@ -1053,35 +1048,37 @@ public class ProvQuoteInstanceResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void uploadInvalidUsage() {
-		Assertions.assertEquals("any", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX;any".getBytes("UTF-8")),
-					new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8");
-		}).getMessage());
+		Assertions.assertEquals("any",
+				Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.upload(subscription,
+						new ByteArrayInputStream("ANY;0.5;500;LINUX;any".getBytes("UTF-8")),
+						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
+						.getMessage());
 	}
 
 	@Test
 	public void uploadInstanceNotFound() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null,
-					false, "Full Time 12 month", 1024, "UTF-8");
-		}), "instance", "no-match-instance");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
+				() -> qiResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")),
+						null, false, "Full Time 12 month", 1024, "UTF-8")),
+				"instance", "no-match-instance");
 	}
 
 	@Test
 	public void uploadStorageNotFound() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.upload(subscription,
-					new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT".getBytes("UTF-8")),
-					new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, false,
-					"Full Time 12 month", 1, "UTF-8");
-		}), "storage", "NotNull");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
+				() -> qiResource.upload(subscription,
+						new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT".getBytes("UTF-8")),
+						new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, false,
+						"Full Time 12 month", 1, "UTF-8")),
+				"storage", "NotNull");
 	}
 
 	@Test
 	public void uploadInvalidHeader() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qiResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")), new String[] { "any" },
-					false, "Full Time 12 month", 1, "UTF-8");
-		}), "headers", "invalid-header");
+		MatcherUtil.assertThrows(
+				Assertions.assertThrows(ValidationJsonException.class,
+						() -> qiResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")),
+								new String[] { "any" }, false, "Full Time 12 month", 1, "UTF-8")),
+				"headers", "invalid-header");
 	}
 }

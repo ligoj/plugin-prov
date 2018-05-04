@@ -9,7 +9,7 @@ define({
 		'error' : {
 			'terraform-not-installed': 'Not installed',
 			'terraform-cmd-error': 'Command error',
-			'terraform-lastest-version': 'Not available'
+			'terraform-latest-version': 'Not available'
 		}
 	},
 	fr: true

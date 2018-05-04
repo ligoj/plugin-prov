@@ -19,12 +19,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.cache.annotation.CacheResult;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +43,7 @@ import org.springframework.stereotype.Component;
  * Terraform utilities.
  */
 @Component
+@Slf4j
 public class TerraformUtils {
 
 	/**
@@ -50,8 +53,8 @@ public class TerraformUtils {
 
 	/**
 	 * Default base repository URL composed by <code>%V</code> for the version and <code>%D</code> for the distribution.
-	 * 
-	 * @see a href="https://releases.hashicorp.com/terraform/0.11.5/terraform_0.11.5_linux_amd64.zip">0.11.5 on
+	 *
+	 * @see <a href="https://releases.hashicorp.com/terraform/0.11.5/terraform_0.11.5_linux_amd64.zip">0.11.5 on
 	 *      Linux></a>
 	 */
 	private static final String BASE_REPO = "https://releases.hashicorp.com/terraform/";
@@ -71,7 +74,7 @@ public class TerraformUtils {
 	 */
 	private static final String[] TERRAFORM_SHELL_WIN = { "cmd.exe", "/c" };
 	private static final String[] TERRAFORM_SHELL_LINUX = { "sh", "-c" };
-	protected Map<String, String[]> shells = new HashMap<>();
+	private final Map<String, String[]> shells = new HashMap<>();
 
 	@Autowired
 	protected ConfigurationResource configuration;
@@ -79,14 +82,14 @@ public class TerraformUtils {
 	/**
 	 * Terraform binary file.
 	 */
-	protected Map<String, String> bins = new HashMap<>();
+	protected final Map<String, String> bins = new HashMap<>();
 
 	/**
 	 * Hashicorp distributions.
-	 * 
-	 * @see <a heref="https://www.terraform.io/downloads.html">terraform</a>
+	 *
+	 * @see <a href="https://www.terraform.io/downloads.html">terraform</a>
 	 */
-	protected Map<String, String> distributions = new HashMap<>();
+	private final Map<String, String> distributions = new HashMap<>();
 
 	public TerraformUtils() {
 		shells.put("windows", TERRAFORM_SHELL_WIN);
@@ -103,11 +106,10 @@ public class TerraformUtils {
 
 	/**
 	 * A new {@link ProcessBuilder} with the given arguments
-	 * 
-	 * @param The
-	 *            process arguments.
-	 * @param The
-	 *            new {@link ProcessBuilder} instance.
+	 *
+	 * @param args
+	 *            The process arguments.
+	 * @return The new {@link ProcessBuilder} instance.
 	 */
 	public ProcessBuilder newBuilder(final String... args) {
 		// Check Terraform is available
@@ -123,12 +125,12 @@ public class TerraformUtils {
 	 * Return the map value associated to the closest key of given OS. For sample, when current OS is
 	 * <code>Windows 10</code>, the match with use <code>windows 10</code>, then <code>windows</code>, then
 	 * <code>default</code>, then <code>null</code>.
-	 * 
+	 *
 	 * @param map
 	 *            The OS mapping.
 	 * @return The map value associated to the closest key of given OS. <code>null</code> when not found.
 	 */
-	protected <T> T getOsValue(final Map<String, T> map) {
+	private <T> T getOsValue(final Map<String, T> map) {
 		return getOsValue(map, getCurrentOs());
 	}
 
@@ -136,7 +138,7 @@ public class TerraformUtils {
 	 * Return the map value associated to the closest key of given OS. For sample, when <param>os</param> is
 	 * <code>Windows 10</code>, the match with use <code>windows 10</code>, then <code>windows</code>, then
 	 * <code>default</code>, then <code>null</code>.
-	 * 
+	 *
 	 * @param map
 	 *            The OS mapping.
 	 * @param os
@@ -152,7 +154,7 @@ public class TerraformUtils {
 
 	/**
 	 * Return the Terraform commands.
-	 * 
+	 *
 	 * @return The Terraform commands. Each command correspond to a list of Terraform arguments. The first argument
 	 *         corresponds to the Terraform command name.
 	 * @see <a href="https://www.terraform.io/docs/commands/init.html">plan</a>
@@ -169,7 +171,7 @@ public class TerraformUtils {
 
 	/**
 	 * Return the Terraform command names such as <code>init,plan</code>.
-	 * 
+	 *
 	 * @return The Terraform command names such as <code>init,plan</code>.
 	 */
 	public String[] getTerraformSequence() {
@@ -178,7 +180,7 @@ public class TerraformUtils {
 
 	/**
 	 * Return the provisioning home.
-	 * 
+	 *
 	 * @return The provisioning home path.
 	 */
 	protected Path getHome() {
@@ -187,7 +189,7 @@ public class TerraformUtils {
 
 	/**
 	 * Return the plugin class loader if available.
-	 * 
+	 *
 	 * @return The provisioning home path.
 	 */
 	protected PluginsClassLoader getClassLoader() {
@@ -196,7 +198,7 @@ public class TerraformUtils {
 
 	/**
 	 * Return the current OS name.
-	 * 
+	 *
 	 * @return The current OS name.
 	 */
 	protected String getCurrentOs() {
@@ -212,7 +214,7 @@ public class TerraformUtils {
 
 	/**
 	 * Indicates the Terraform binary exists.
-	 * 
+	 *
 	 * @return <code>true</code> when the Terraform binary exists.
 	 */
 	protected boolean isInstalled() {
@@ -221,11 +223,11 @@ public class TerraformUtils {
 
 	/**
 	 * Return the latest available version from the repository.
-	 * 
+	 *
 	 * @return The latest available version from the repository. <code>null</code> when undefined.
 	 */
 	@CacheResult(cacheName = "terraform-version-latest")
-	public String getLastestVersion() {
+	public String getLatestVersion() {
 		final Matcher matcher = VERSION_PATTERN.matcher(
 				StringUtils.defaultString(new CurlProcessor().get(configuration.get(CONF_REPO, BASE_REPO)), ""));
 		if (matcher.find()) {
@@ -248,12 +250,12 @@ public class TerraformUtils {
 	 * <li>Unzip</li>
 	 * <li>Check the version</li>
 	 * </ul>
-	 * 
+	 *
 	 * @throws IOException
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	public void install() throws IOException {
-		install(getLastestVersion());
+		install(getLatestVersion());
 	}
 
 	/**
@@ -265,7 +267,7 @@ public class TerraformUtils {
 	 * <li>Unzip</li>
 	 * <li>Check the version</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param version
 	 *            The target version to install.
 	 * @throws IOException
@@ -283,7 +285,7 @@ public class TerraformUtils {
 	 * <li>Unzip</li>
 	 * <li>Check the version</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param toDir
 	 *            The target directory where Terraform will be installed.
 	 * @param repository
@@ -305,7 +307,7 @@ public class TerraformUtils {
 	 * <li>Unzip</li>
 	 * <li>Check the version</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param toDir
 	 *            The target directory where Terraform will be installed.
 	 * @param url
@@ -315,14 +317,14 @@ public class TerraformUtils {
 	 */
 	private void install(final File toDir, final String url) throws IOException {
 		try (InputStream openStream = new URL(url).openStream()) {
-			unzip(toDir, openStream).stream().forEach(f -> f.setExecutable(true));
+			unzip(toDir, openStream).forEach(f -> f.setExecutable(true));
 		}
 	}
 
 	/**
 	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
 	 * <code>.terraform</code>.
-	 * 
+	 *
 	 * @param subscription
 	 *            The source subscription.
 	 * @param out
@@ -338,7 +340,7 @@ public class TerraformUtils {
 	/**
 	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
 	 * <code>.terraform</code>.
-	 * 
+	 *
 	 * @param fromDir
 	 *            The source directory containing the files.
 	 * @param out
@@ -349,8 +351,8 @@ public class TerraformUtils {
 	 */
 	public List<File> zip(final java.nio.file.Path fromDir, final OutputStream out) throws IOException {
 		final List<File> files = new ArrayList<>();
-		try (ZipOutputStream zs = new ZipOutputStream(out)) {
-			Files.walk(fromDir).filter(path -> !Files.isDirectory(path))
+		try (ZipOutputStream zs = new ZipOutputStream(out); Stream<Path> stream = Files.walk(fromDir)) {
+			stream.filter(path -> !Files.isDirectory(path))
 					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
 					.filter(path -> !path.toString().contains(".terraform")).forEach(path -> {
 						// Excludes ".terraform", secrets, and "*.ptf" files
@@ -361,7 +363,7 @@ public class TerraformUtils {
 							zs.closeEntry();
 							files.add(path.toFile());
 						} catch (IOException e) {
-							System.err.println(e);
+							log.error("Unable to create Zip file from {}", fromDir, e);
 						}
 					});
 		}
@@ -370,7 +372,7 @@ public class TerraformUtils {
 
 	/**
 	 * Unzip all files from the given ZIP stream to target directory and return the unziped files.
-	 * 
+	 *
 	 * @param toDir
 	 *            The target directory where uncompressed files will be placed.
 	 * @param source
@@ -399,12 +401,14 @@ public class TerraformUtils {
 
 	/**
 	 * Return the file reference from the given subscription. The file will relative to the related subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription related to this operation.
 	 * @param fragments
 	 *            The requested sub path fragments.
 	 * @return The Terraform resource file scoped by the given subscription.
+	 * @throws IOException
+	 *             When the parent directories creation failed.
 	 */
 	public File toFile(final Subscription subscription, final String... fragments) throws IOException {
 		return PluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();

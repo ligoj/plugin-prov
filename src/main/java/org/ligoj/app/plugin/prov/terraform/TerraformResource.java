@@ -69,10 +69,10 @@ public class TerraformResource {
 	private static final Pattern SHOW_CHANGE = Pattern.compile("^\\s*([\\-~+])");
 
 	@Autowired
-	protected SubscriptionResource subscriptionResource;
+	private SubscriptionResource subscriptionResource;
 
 	@Autowired
-	protected SubscriptionRepository subscriptionRepository;
+	private SubscriptionRepository subscriptionRepository;
 
 	@Autowired
 	protected ProvResource resource;
@@ -90,41 +90,36 @@ public class TerraformResource {
 	protected TerraformResource self;
 
 	@Autowired
-	protected NodeResource nodeResource;
+	private NodeResource nodeResource;
 
 	/**
 	 * Download the Terraform configuration files including the state in zipped format.
-	 * 
+	 *
 	 * @param subscription
 	 *            The related subscription.
 	 * @param file
 	 *            The target file name.
 	 * @return the {@link Response} ready to be consumed.
-	 * @throws IOException
-	 *             When Terraform content cannot be written.
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:.*.zip}")
-	public Response download(@PathParam("subscription") final int subscription, @PathParam("file") final String file)
-			throws IOException {
+	public Response download(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
 		final Subscription subscription2 = subscriptionResource.checkVisible(subscription);
 		return AbstractToolPluginResource.download(o -> utils.zip(subscription2, o), file).build();
 	}
 
 	/**
 	 * Get the log of the current or last Terraform execution of a given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The related subscription.
 	 * @return the streaming {@link Response} with output.
-	 * @throws IOException
-	 *             When Terraform logs cannot be read.
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("{subscription:\\d+}/terraform.log")
-	public Response getLog(@PathParam("subscription") final int subscription) throws IOException {
+	public Response getLog(@PathParam("subscription") final int subscription) {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 		final StreamingOutput so = o -> {
 			// Copy log of each command
@@ -140,9 +135,12 @@ public class TerraformResource {
 
 	/**
 	 * Apply (plan, apply, show) the Terraform configuration.
-	 * 
+	 *
 	 * @param subscription
 	 *            The related subscription.
+	 * @param context
+	 *            The Terraform user inputs. Will be completed and passed to Terraform commands.
+	 * @return The Terraform status. Never <code>null</code>.
 	 */
 	@POST
 	@Path("{subscription:\\d+}/terraform")
@@ -157,7 +155,7 @@ public class TerraformResource {
 		// Start the task
 		context.setSubscription(entity);
 		context.setSequence(utils.getTerraformCommands());
-		context.getContext().entrySet().stream().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
+		context.getContext().entrySet().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
 
 		// The Terraform execution will done into another thread
 		final TerraformStatus task = startTask(context);
@@ -179,7 +177,7 @@ public class TerraformResource {
 	}
 
 	protected TerraformStatus startTask(final Context context) {
-		final TerraformStatus task = runner.startTask(context.getSubscription().getNode().getId(), t -> {
+		return runner.startTask(context.getSubscription().getNode().getId(), t -> {
 			t.setCommandIndex(null);
 			t.setSequence(context.getSequence().stream().map(s -> s[0]).collect(Collectors.joining(",")));
 			t.setToAdd(0);
@@ -189,16 +187,19 @@ public class TerraformResource {
 			t.setCompleted(0);
 			t.setSubscription(context.getSubscription().getId());
 		});
-		return task;
 	}
 
 	/**
 	 * Prepare the Terraform environment to apply the new environment. Note there is no concurrency check.
-	 * 
+	 *
 	 * @param terra
 	 *            The Terraforming implementation.
 	 * @param context
 	 *            The Terraform context holding the subscription, the quote and the user inputs.
+	 * @throws IOException
+	 *             When files or logs cannot cannot be generated.
+	 * @throws InterruptedException
+	 *             When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public void generateAndExecute(final Terraforming terra, final Context context)
@@ -235,7 +236,7 @@ public class TerraformResource {
 	/**
 	 * Check the associated provider support Terraform generation and return the corresponding {@link Terraforming}
 	 * instance.
-	 * 
+	 *
 	 * @param node
 	 *            The related node.
 	 * @return {@link Terraforming} instance of this node. Never <code>null</code>.
@@ -269,23 +270,19 @@ public class TerraformResource {
 
 	/**
 	 * Compute the workload from the plan's log and update the status related to the given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription related to this operation.
-	 * @throws IOException
-	 *             When <code>show.log</code> cannot be read.
 	 */
-	protected void computeWorkload(final Subscription subscription) throws IOException {
+	protected void computeWorkload(final Subscription subscription) {
 		runner.nextStep(subscription.getNode().getId(), t -> computeWorkload(subscription, t));
 	}
 
 	/**
 	 * Compute the workload from the plan's log.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription related to this operation.
-	 * @throws IOException
-	 *             When <code>show.log</code> cannot be read.
 	 */
 	protected void computeWorkload(final Subscription subscription, final TerraformStatus status) {
 		final AtomicInteger added = new AtomicInteger();
@@ -354,7 +351,7 @@ public class TerraformResource {
 
 	/**
 	 * Return the Terraform versions : current and latest version.
-	 * 
+	 *
 	 * @return The terraform version when succeed, or <code>null</code>. Is cached.
 	 * @throws IOException
 	 *             Stream cannot be read.
@@ -382,14 +379,14 @@ public class TerraformResource {
 				log.error("Unable to get Terraform version, code: {}, output: {}", code, output);
 			}
 		}
-		result.setLastVersion(utils.getLastestVersion());
+		result.setLastVersion(utils.getLatestVersion());
 		return result;
 	}
 
 	/**
 	 * Install or update the Terraform binary. Note for now there is no check about current <code>terraform</code>
 	 * command is running and may this update to fail.
-	 * 
+	 *
 	 * @param version
 	 *            The target version.
 	 * @return The installed and checked Terraform version.

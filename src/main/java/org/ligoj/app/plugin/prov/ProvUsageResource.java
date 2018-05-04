@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
 public class ProvUsageResource {
 
 	@Autowired
-	protected SubscriptionResource subscriptionResource;
+	private SubscriptionResource subscriptionResource;
 
 	@Autowired
 	private PaginationJson paginationJson;

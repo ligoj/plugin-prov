@@ -558,7 +558,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		vo.setEphemeral(upload.isEphemeral());
 		vo.setInternet(upload.getInternet());
 		vo.setMaxVariableCost(upload.getMaxVariableCost());
-		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).map(q -> q <= 0 ? null : q).orElse(null));
+		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());

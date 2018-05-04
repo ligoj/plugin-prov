@@ -94,17 +94,15 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	public void cancelNotExistNode() {
-		Assertions.assertEquals("read-only-node", Assertions.assertThrows(BusinessException.class, () -> {
-			newResource().cancel("service:prov:any");
-		}).getMessage());
+		Assertions.assertEquals("read-only-node", Assertions
+				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:any")).getMessage());
 	}
 
 	@Test
 	public void cancelNotVisible() {
 		initSpringSecurityContext("any");
-		Assertions.assertEquals("read-only-node", Assertions.assertThrows(BusinessException.class, () -> {
-			newResource().cancel("service:prov:test");
-		}).getMessage());
+		Assertions.assertEquals("read-only-node", Assertions
+				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:test")).getMessage());
 	}
 
 	@Test
@@ -113,9 +111,8 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		final ImportCatalogStatus status = newStatus();
 		status.setEnd(new Date());
-		Assertions.assertEquals("Already finished", Assertions.assertThrows(BusinessException.class, () -> {
-			resource.cancel("service:prov:test");
-		}).getMessage());
+		Assertions.assertEquals("Already finished", Assertions
+				.assertThrows(BusinessException.class, () -> resource.cancel("service:prov:test")).getMessage());
 	}
 
 	@Test

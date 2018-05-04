@@ -67,7 +67,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Mapping from instance type name to the rating performance.
 	 */
-	private Map<String, Map<String, Rate>> mapRate = new HashMap<>();
+	private final Map<String, Map<String, Rate>> mapRate = new HashMap<>();
 
 	/**
 	 * Return the most precise rate from a name.

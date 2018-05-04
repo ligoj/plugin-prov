@@ -144,7 +144,7 @@
 					<div class="progress-bar progress-bar-success status-apply completing progress-bar-striped" data-toggle="tooltip" title=""></div>
 					<div class="progress-bar progress-bar-danger error" data-toggle="tooltip" title="Not executed"></div>
 				</div>
-				<span class="status"><span></span>
+				<span class="status"></span>
 			</div>
 			<div class="col-x-12 col-sm-4 col-md-4 col-lg-3">
 				<div class="dropdown">
@@ -161,7 +161,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-instance" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
+	<form id="popup-prov-instance" class="modal fade" tabindex="-1" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -303,7 +303,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-storage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="qs-modal-title" data-prov-type="storage" autocomplete="off">
+	<form id="popup-prov-storage" class="modal fade" tabindex="-1" aria-labelledby="qs-modal-title" data-prov-type="storage" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -380,7 +380,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-instance-import" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post" autocomplete="off">
+	<form id="popup-prov-instance-import" class="modal fade" tabindex="-1" aria-labelledby="import-modal-title" enctype="multipart/form-data" method="post" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -491,14 +491,14 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-update" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="u-modal-title" autocomplete="off">
+	<form id="popup-prov-update" class="modal fade" tabindex="-1" aria-labelledby="u-update-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="u-modal-title">{{service:prov:quote}}</h4>
+					<h4 class="modal-title" id="u-update-title">{{service:prov:quote}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
@@ -523,7 +523,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-usage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="r-modal-title" autocomplete="off">
+	<form id="popup-prov-usage" class="modal fade" tabindex="-1" aria-labelledby="r-modal-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -587,7 +587,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="u-modal-title" autocomplete="off">
+	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" aria-labelledby="u-modal-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -626,7 +626,7 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-public-key">{{service:prov:terraform:public-key}}</label>
 							<div class="col-sm-8">
-								<textarea type="text" id="terraform-public-key" class="form-control" required placeholder="ssh-rsa ..." />
+								<textarea id="terraform-public-key" class="form-control" required placeholder="ssh-rsa ..." ></textarea>
 							</div>
 						</div>
 					</div>

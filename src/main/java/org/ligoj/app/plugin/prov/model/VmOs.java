@@ -42,7 +42,7 @@ public enum VmOs {
 	 */
 	private final VmOs pricingOs;
 
-	private VmOs(VmOs pricingOs) {
+	VmOs(VmOs pricingOs) {
 		this.pricingOs = pricingOs;
 	}
 

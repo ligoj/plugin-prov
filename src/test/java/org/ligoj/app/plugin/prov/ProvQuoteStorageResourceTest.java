@@ -589,7 +589,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorage() {
-		final QuoteStorageLoopup price = qsResource.lookup(subscription, 2, null, null, ProvStorageOptimized.IOPS, null)
+		final QuoteStorageLookup price = qsResource.lookup(subscription, 2, null, null, ProvStorageOptimized.IOPS, null)
 				.get(0);
 
 		// Check the storage result
@@ -603,7 +603,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void lookupStorageHighContraints() throws IOException {
-		final QuoteStorageLoopup lookup = qsResource.lookup(subscription, 1024, Rate.GOOD, null, null, null).get(0);
+		final QuoteStorageLookup lookup = qsResource.lookup(subscription, 1024, Rate.GOOD, null, null, null).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
@@ -617,7 +617,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(215.04, lookup.getCost(), DELTA);
 	}
 
-	private QuoteStorageLoopup assertCSP(final QuoteStorageLoopup price) {
+	private QuoteStorageLookup assertCSP(final QuoteStorageLookup price) {
 		final ProvStoragePrice sp = price.getPrice();
 		final ProvStorageType st = sp.getType();
 		Assertions.assertNotNull(sp.getId());

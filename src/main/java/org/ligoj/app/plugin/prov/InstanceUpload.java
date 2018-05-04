@@ -65,7 +65,7 @@ public class InstanceUpload {
 
 	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
-	 * {@link #quantityMax} or {@link #quantityMin}. When <code>null</code>, there is no limit. Only relevant for
+	 * {@link #maxQuantity} or {@link #minQuantity}. When <code>null</code>, there is no limit. Only relevant for
 	 * variable instance price type such as AWS Spot.
 	 */
 	@PositiveOrZero

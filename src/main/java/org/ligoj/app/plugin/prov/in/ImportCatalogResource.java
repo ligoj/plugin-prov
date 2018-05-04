@@ -71,19 +71,19 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	protected ImportCatalogStatusRepository taskRepository;
 
 	@Autowired
-	protected ProvInstancePriceRepository ipRepository;
+	private ProvInstancePriceRepository ipRepository;
 
 	@Autowired
-	protected ProvStorageTypeRepository stRepository;
+	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
-	protected ProvInstanceTypeRepository itRepository;
+	private ProvInstanceTypeRepository itRepository;
 
 	@Autowired
-	protected ProvLocationRepository locationRepository;
+	private ProvLocationRepository locationRepository;
 
 	@Autowired
-	protected ProvQuoteRepository repository;
+	private ProvQuoteRepository repository;
 
 	/**
 	 * Update the catalog prices of related provider. Asynchronous operation.

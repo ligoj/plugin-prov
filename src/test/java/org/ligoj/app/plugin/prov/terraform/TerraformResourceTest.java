@@ -98,9 +98,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 	@Test
 	public void generateAndExecuteNotSupported() {
-		Assertions.assertEquals("terraform-no-supported", Assertions.assertThrows(BusinessException.class, () -> {
-			newResource(null).generateAndExecute(subscription, new Context());
-		}).getMessage());
+		Assertions.assertEquals("terraform-no-supported", Assertions.assertThrows(BusinessException.class, () ->
+			newResource(null).generateAndExecute(subscription, new Context())
+		).getMessage());
 	}
 
 	@Test
@@ -120,9 +120,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 		FileUtils.forceMkdir(new File(MOCK_PATH, "module"));
 		FileUtils.write(new File(MOCK_PATH, "module/some.tf"), "module.", StandardCharsets.UTF_8);
 
-		final FileOutputStream zipOut = new FileOutputStream(zipFile);
-		((StreamingOutput) resource.download(subscription, "sample.zip").getEntity()).write(zipOut);
-		zipOut.close();
+		try(final FileOutputStream zipOut = new FileOutputStream(zipFile)) {
+			((StreamingOutput) resource.download(subscription, "sample.zip").getEntity()).write(zipOut);
+		}
 
 		// Unzip and check the files
 		final List<File> files = resource.utils.unzip(target, new FileInputStream(zipFile));
@@ -182,7 +182,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void generateAndExecute() throws IOException {
+	public void generateAndExecute() {
 		final TerraformStatus status = newResource(Mockito.mock(Terraforming.class)).generateAndExecute(subscription,
 				new Context());
 		Assertions.assertEquals(subscription, status.getSubscription());
@@ -196,10 +196,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void getTerraformLogEmpty() throws IOException {
 		final TerraformResource resource = newResource(newTerraforming(), false);
 		// Check the log file is well handled
-		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-		final String string = bos.toString(StandardCharsets.UTF_8);
-		Assertions.assertEquals("", string);
+		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
+			final String string = bos.toString(StandardCharsets.UTF_8);
+			Assertions.assertEquals("", string);
+		}
 	}
 
 	@Test
@@ -209,10 +210,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 		writeOldFiles();
 		final TerraformResource resource = newResource(newTerraforming(), false);
 		// Check the log file is well handled
-		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-		final String string = bos.toString(StandardCharsets.UTF_8);
-		Assertions.assertEquals("old-init.old-plan.old-show.old-apply.", string);
+		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()){
+			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
+			final String string = bos.toString(StandardCharsets.UTF_8);
+			Assertions.assertEquals("old-init.old-plan.old-show.old-apply.", string);
+		}
 	}
 
 	private void generateAndExecute(final TerraformResource resource, final Terraforming terraforming,
@@ -261,13 +263,14 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(new File(MOCK_PATH, ".terraform/foo.tf").exists());
 
 		// Check the log file is well handled
-		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-		final String string = bos.toString(StandardCharsets.UTF_8);
-		Assertions.assertTrue(string.contains("init"));
-		Assertions.assertTrue(string.contains("plan"));
-		Assertions.assertTrue(string.contains("show"));
-		Assertions.assertTrue(string.contains("apply"));
+		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
+			final String string = bos.toString(StandardCharsets.UTF_8);
+			Assertions.assertTrue(string.contains("init"));
+			Assertions.assertTrue(string.contains("plan"));
+			Assertions.assertTrue(string.contains("show"));
+			Assertions.assertTrue(string.contains("apply"));
+		}
 
 		// Check the task status
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
@@ -315,9 +318,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class),
 				(s, f) -> new File("random-place/random-place"), false);
-		Assertions.assertThrows(IOException.class, () -> {
-			generateAndExecute(resource, terraforming, null);
-		});
+		Assertions.assertThrows(IOException.class, () ->
+			generateAndExecute(resource, terraforming, null)
+		);
 		// Nice, as expected, but more check to do
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertNotNull(task);
@@ -373,7 +376,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			@Override
-			public String getLastestVersion() {
+			public String getLatestVersion() {
 				return "2.0.0";
 			}
 		};
@@ -404,7 +407,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			@Override
-			public String getLastestVersion() {
+			public String getLatestVersion() {
 				return "2.0.0";
 			}
 		};
@@ -423,9 +426,9 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 	@Test
 	public void executeExit1() {
-		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () -> {
-			generateAndExecuteExit(1, "Terraform exit code 1 -> aborted");
-		}).getMessage());
+		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () ->
+			generateAndExecuteExit(1, "Terraform exit code 1 -> aborted")
+		).getMessage());
 	}
 
 	private void generateAndExecuteExit(final int code, final String message) throws Exception {
@@ -527,7 +530,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 			}
 
 			@Override
-			public String getLastestVersion() {
+			public String getLatestVersion() {
 				return "2.0.0";
 			}
 

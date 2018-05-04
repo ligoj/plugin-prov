@@ -28,6 +28,6 @@ public enum Rate {
 	/**
 	 * Best performance
 	 */
-	BEST;
+	BEST
 
 }

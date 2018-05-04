@@ -117,7 +117,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getSusbcriptionStatus() {
+	public void getSubscriptionStatus() {
 		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
@@ -133,7 +133,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getSusbcriptionStatusEmpty() {
+	public void getSubscriptionStatusEmpty() {
 		final QuoteLigthVo status = resource.getSusbcriptionStatus(getSubscription("mda", ProvResource.SERVICE_KEY));
 		Assertions.assertEquals("quote2", status.getName());
 		Assertions.assertEquals("quoteD2", status.getDescription());
@@ -187,7 +187,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("on-demand1", price.getTerm().getName());
 		Assertions.assertEquals("15 minutes fragment", price.getTerm().getDescription());
 		final ProvInstanceType instance = price.getType();
-		Assertions.assertNotNull(instance.getId().intValue());
+		Assertions.assertNotNull(instance.getId());
 		Assertions.assertEquals("instance1", instance.getName());
 		Assertions.assertEquals("instanceD1", instance.getDescription());
 		Assertions.assertEquals(0.5, instance.getCpu(), 0.0001);
@@ -364,8 +364,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(21, location.getRegionM49().intValue());
 		Assertions.assertEquals(19, location.getContinentM49().intValue());
 		Assertions.assertEquals("Virginia", location.getSubRegion());
-		Assertions.assertEquals(37.352d, location.getLongitude().doubleValue(), DELTA);
-		Assertions.assertEquals(-79.049d, location.getLatitude().doubleValue(), DELTA);
+		Assertions.assertEquals(37.352d, location.getLongitude(), DELTA);
+		Assertions.assertEquals(-79.049d, location.getLatitude(), DELTA);
 
 		// CHeck the association on the quote
 		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation().getName());
@@ -416,9 +416,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-x");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.update(subscription, quote);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> resource.update(subscription, quote));
 	}
 
 	/**
@@ -430,9 +428,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-3");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.update(subscription, quote);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> resource.update(subscription, quote));
 	}
 
 	@Test
@@ -509,12 +505,12 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(computedInstancePrice.toString().contains("cost=1.23"));
 		Assertions.assertTrue(computedInstancePrice.toString().contains("name=instance1"));
 
-		final QuoteStorageLoopup computedStoragePrice = new QuoteStorageLoopup();
+		final QuoteStorageLookup computedStoragePrice = new QuoteStorageLookup();
 		computedStoragePrice.setCost(1.23);
 		final ProvStoragePrice sp = new ProvStoragePrice();
-		final ProvStorageType stype = new ProvStorageType();
-		stype.setName("type1");
-		sp.setType(stype);
+		final ProvStorageType sType = new ProvStorageType();
+		sType.setName("type1");
+		sp.setType(sType);
 		computedStoragePrice.setPrice(sp);
 		Assertions.assertTrue(computedStoragePrice.toString().contains("cost=1.23"));
 		Assertions.assertTrue(computedStoragePrice.toString().contains("name=type1"));
@@ -580,9 +576,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		locationRepository.deleteAll();
 		em.flush();
 		em.clear();
-		Assertions.assertEquals("service:prov-no-catalog", Assertions.assertThrows(BusinessException.class, () -> {
-			resource.create(subscription.getId());
-		}).getMessage());
+		Assertions.assertEquals("service:prov-no-catalog", Assertions
+				.assertThrows(BusinessException.class, () -> resource.create(subscription.getId())).getMessage());
 	}
 
 	@Test
@@ -613,23 +608,23 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Test
 	public void findConfiguredNotFound() {
 		final ProvQuoteInstance qi = qiRepository.findByName("server1");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.findConfigured(qiRepository, qi.getId(), 0).getName();
-		});
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> resource.findConfigured(qiRepository, qi.getId(), 0).getName());
 	}
 
 	@Test
 	public void findConfiguredByNameNotFoundInvalidName() {
-		Assertions.assertEquals("serverAAAAA", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.findConfiguredByName(qiRepository, "serverAAAAA", subscription);
-		}).getMessage());
+		Assertions.assertEquals("serverAAAAA",
+				Assertions
+						.assertThrows(EntityNotFoundException.class,
+								() -> resource.findConfiguredByName(qiRepository, "serverAAAAA", subscription))
+						.getMessage());
 	}
 
 	@Test
 	public void findConfiguredByNameNotFoundInvalidSub() {
-		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			resource.findConfiguredByName(qiRepository, "server1", 0);
-		}).getMessage());
+		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class,
+				() -> resource.findConfiguredByName(qiRepository, "server1", 0)).getMessage());
 	}
 
 	@Test
