@@ -1420,18 +1420,19 @@ define(function () {
 
 			// Update the tooltip for the progress
 			var total = 0;
+			$status.find('.status-apply.completed').html('');
 			if (command === 'init') {
 				width.plan = 0;
 				width.apply = 0;
 			} else if (command === 'plan') {
 				width.apply = 0;
 			} else if (commandIndex !== -1 && $.inArray("apply", sequence) >= 0 && $.inArray("apply", sequence) <= commandIndex) {
-				total = status.toAdd + status.toDestroy + status.toChange;
+				total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
 				width.completed = total === 0 ? width.apply : Math.round(width.apply * status.completed / total);
 				width.completing = total === 0 ? 0 : Math.round(width.apply * status.completing / total);
 
 				// Add percent text only for the apply
-				$status.find('.status-apply.completed').text(total === 0 ? '' : (Math.round(status.completed * 100 / total) + '%'));
+				$status.find('.status-apply.completed').html(total === 0 ? '' : (Math.round(status.completed * 100 / total) + '%&nbsp;'));
 				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([status.completed, total]));
 				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(status.completing));
 			}
@@ -1446,13 +1447,13 @@ define(function () {
 			// Update the progress tooltips
 			for (var i = -1; i < sequence.length; i++) {
 				var commandI = i === -1 ? 'generate' : sequence[i];
-				var $progressI = $status.find('.status-' + commandI);
 				var activeEnablement = (i === commandIndex && typeof status.end === 'undefined') ? 'addClass' : 'removeClass';
+				var $progressI = $status.find('.status-' + commandI)[activeEnablement]('active');
 				if (commandI === 'apply') {
-					$progressI.filter('.completing')[activeEnablement]('active progress-bar-striped');
+					$progressI.filter('.completing')[activeEnablement]('progress-bar-striped');
 				} else {
 					var succeed = i < commandIndex || status.failed !== true;
-					$progressI[activeEnablement]('active progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
+					$progressI[activeEnablement]('progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
 				}
 			}
 
@@ -1468,11 +1469,14 @@ define(function () {
 				// Change the color to "red" for the last executed command
 				if (command === 'apply') {
 					// Need to add an extra progress for the non being/completed tasks
-					$progress.addClass('error');
-					$status.find('.status-error').css({ width: Math.round(apply - completed - completing) + '%' });
+					$progress.filter('.completing').addClass('error');
+					$status.find('.status-error').css({ width: Math.round(width.apply - width.completed - width.completing) + '%' });
 				} else {
 					$progress.addClass('error');
+					$status.find('.status-error').css({ width: '0%' });
 				}
+			} else {
+				$status.find('.status-error').css({ width: '0%' });
 			}
 
 			// TODO Change progress border style
@@ -1496,8 +1500,8 @@ define(function () {
 			var data = {
 				context: {
 					'key_name': _('terraform-key-name').val(),
-					'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(',')).map(function (s) { return s.trim(); }).join('","') + '"',
-					'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(',')).map(function (s) { return s.trim(); }).join('","') + '"',
+					'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
+					'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
 					'public_key': _('terraform-public-key').val(),
 					'cidr': _('terraform-cidr').val()
 				}

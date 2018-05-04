@@ -1,6 +1,7 @@
 ~ module.eu-west-3.aws_instance.i-name-of-instance-w1[1]
   + module.eu-west-3.module.config.aws_default_network_acl.default
 any
+<= module.eu-west-1.data.template_file.md
   any
   + module.eu-west-3.module.config.aws_default_network_acl.default
   - module.eu-west-3.module.config.aws_internet_gateway.default
@@ -8,3 +9,5 @@ any
   
 
   + module.eu-west-3.module.config.aws_default_network_acl.default
+-/+ module.eu-west-1.aws_instance.instanceir (new resource required)
+  

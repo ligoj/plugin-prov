@@ -306,7 +306,8 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(0, task.getToAdd());
 		Assertions.assertEquals(0, task.getToDestroy());
-		Assertions.assertEquals(0, task.getToChange());
+		Assertions.assertEquals(0, task.getToReplace());
+		Assertions.assertEquals(0, task.getToUpdate());
 		Assertions.assertTrue(task.isFinished());
 		Assertions.assertTrue(task.isFinished());
 	}
@@ -652,15 +653,17 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, task.getCompleted());
 		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(3, task.getToAdd());
-		Assertions.assertEquals(2, task.getToChange());
+		Assertions.assertEquals(2, task.getToUpdate());
 		Assertions.assertEquals(1, task.getToDestroy());
+		Assertions.assertEquals(1, task.getToReplace());
 	}
 
 	private void startTask(final TerraformResource resource, final int subscription) {
 		resource.runner.startTask("service:prov:test:account", t -> {
 			t.setToAdd(0);
 			t.setToDestroy(0);
-			t.setToChange(0);
+			t.setToUpdate(0);
+			t.setToReplace(0);
 			t.setCompleting(0);
 			t.setCompleted(0);
 			t.setSubscription(subscription);

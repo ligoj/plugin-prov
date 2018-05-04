@@ -66,7 +66,7 @@ public class TerraformResource {
 	/**
 	 * Pattern filtering the row corresponding to a change.
 	 */
-	private static final Pattern SHOW_CHANGE = Pattern.compile("^\\s*([\\-~+])");
+	private static final Pattern SHOW_CHANGE = Pattern.compile("^\\s*([\\-~+/]+)");
 
 	@Autowired
 	private SubscriptionResource subscriptionResource;
@@ -182,7 +182,8 @@ public class TerraformResource {
 			t.setSequence(context.getSequence().stream().map(s -> s[0]).collect(Collectors.joining(",")));
 			t.setToAdd(0);
 			t.setToDestroy(0);
-			t.setToChange(0);
+			t.setToUpdate(0);
+			t.setToReplace(0);
 			t.setCompleting(0);
 			t.setCompleted(0);
 			t.setSubscription(context.getSubscription().getId());
@@ -289,16 +290,19 @@ public class TerraformResource {
 		final AtomicInteger added = new AtomicInteger();
 		final AtomicInteger deleted = new AtomicInteger();
 		final AtomicInteger updated = new AtomicInteger();
+		final AtomicInteger replaced = new AtomicInteger();
 
 		// Iterate over each line
 		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "show.log").toPath())) {
 			stream.map(SHOW_CHANGE::matcher).filter(Matcher::find).forEach(matcher -> {
 				// Detect the type of this change
-				final char type = matcher.group(1).charAt(0);
-				if (type == '+') {
+				final String type = matcher.group(1);
+				if (type.equals("+")) {
 					added.incrementAndGet();
-				} else if (type == '-') {
+				} else if (type.equals("-")) {
 					deleted.incrementAndGet();
+				} else if (type.equals("-/+")) {
+					replaced.incrementAndGet();
 				} else {
 					updated.incrementAndGet();
 				}
@@ -308,8 +312,10 @@ public class TerraformResource {
 		}
 		// Update the status
 		status.setToAdd(added.get());
+		status.setToReplace(replaced.get());
 		status.setToDestroy(deleted.get());
-		status.setToChange(updated.get());
+		status.setToReplace(replaced.get());
+		status.setToUpdate(updated.get());
 	}
 
 	private void handleCode(final Subscription subscription, final FileOutputStream out, final int code)

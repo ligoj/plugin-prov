@@ -40,6 +40,11 @@ public class TerraformStatus extends AbstractLongTaskNode {
 	private int toAdd;
 
 	/**
+	 * Resources to be replaced. Count as 2 changes.
+	 */
+	private int toReplace;
+
+	/**
 	 * Resources to be deleted.
 	 */
 	private int toDestroy;
@@ -47,16 +52,16 @@ public class TerraformStatus extends AbstractLongTaskNode {
 	/**
 	 * Resources to be updated.
 	 */
-	private int toChange;
+	private int toUpdate;
 
 	/**
-	 * Resources being processed. Only computed while requesting the task.
+	 * Changes being processed. Only computed while requesting the task.
 	 */
 	@Transient
 	private int completing;
 
 	/**
-	 * Completed resources. Only computed while requesting the task.
+	 * Changes resources. Only computed while requesting the task.
 	 */
 	@Transient
 	private int completed;
