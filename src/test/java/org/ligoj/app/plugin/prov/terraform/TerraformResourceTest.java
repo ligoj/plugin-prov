@@ -96,11 +96,28 @@ public class TerraformResourceTest extends AbstractAppTest {
 		cacheManager.getCache("terraform-version").clear();
 	}
 
+	/**
+	 * Converage only code for interface and beans only used by implementors.
+	 */
+	@Test
+	public void coverage() {
+		InstanceMode.values()[InstanceMode.AUTO_SCALING.ordinal()].name();
+		final Context context = new Context();
+		context.setInstances(context.getInstances());
+		context.setLocation(context.getLocation());
+		context.setModes(context.getModes());
+		context.setContext(context.getContext());
+		context.setQuote(context.getQuote());
+	}
+
 	@Test
 	public void generateAndExecuteNotSupported() {
-		Assertions.assertEquals("terraform-no-supported", Assertions.assertThrows(BusinessException.class, () ->
-			newResource(null).generateAndExecute(subscription, new Context())
-		).getMessage());
+		Assertions
+				.assertEquals("terraform-no-supported",
+						Assertions
+								.assertThrows(BusinessException.class,
+										() -> newResource(null).generateAndExecute(subscription, new Context()))
+								.getMessage());
 	}
 
 	@Test
@@ -120,7 +137,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		FileUtils.forceMkdir(new File(MOCK_PATH, "module"));
 		FileUtils.write(new File(MOCK_PATH, "module/some.tf"), "module.", StandardCharsets.UTF_8);
 
-		try(final FileOutputStream zipOut = new FileOutputStream(zipFile)) {
+		try (final FileOutputStream zipOut = new FileOutputStream(zipFile)) {
 			((StreamingOutput) resource.download(subscription, "sample.zip").getEntity()).write(zipOut);
 		}
 
@@ -196,7 +213,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 	public void getTerraformLogEmpty() throws IOException {
 		final TerraformResource resource = newResource(newTerraforming(), false);
 		// Check the log file is well handled
-		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
 			final String string = bos.toString(StandardCharsets.UTF_8);
 			Assertions.assertEquals("", string);
@@ -210,7 +227,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		writeOldFiles();
 		final TerraformResource resource = newResource(newTerraforming(), false);
 		// Check the log file is well handled
-		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()){
+		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
 			final String string = bos.toString(StandardCharsets.UTF_8);
 			Assertions.assertEquals("old-init.old-plan.old-show.old-apply.", string);
@@ -236,6 +253,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		FileUtils.forceMkdir(terraformDir);
 		FileUtils.touch(new File(MOCK_PATH, "any.tfstate"));
 		FileUtils.touch(new File(MOCK_PATH, "terraform.tfstate.backup"));
+		FileUtils.touch(new File(MOCK_PATH, "some.keep.tf"));
 		FileUtils.touch(new File(MOCK_PATH, ".terraform/foo.tf"));
 		FileUtils.touch(new File(MOCK_PATH, "bar.tf"));
 		FileUtils.touch(new File(MOCK_PATH, "any.ext"));
@@ -260,10 +278,11 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertFalse(new File(MOCK_PATH, "any.ext").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, "any.tfstate").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, "terraform.tfstate.backup").exists());
+		Assertions.assertTrue(new File(MOCK_PATH, "some.keep.tf").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, ".terraform/foo.tf").exists());
 
 		// Check the log file is well handled
-		try(final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
 			final String string = bos.toString(StandardCharsets.UTF_8);
 			Assertions.assertTrue(string.contains("init"));
@@ -318,9 +337,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class),
 				(s, f) -> new File("random-place/random-place"), false);
-		Assertions.assertThrows(IOException.class, () ->
-			generateAndExecute(resource, terraforming, null)
-		);
+		Assertions.assertThrows(IOException.class, () -> generateAndExecute(resource, terraforming, null));
 		// Nice, as expected, but more check to do
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertNotNull(task);
@@ -426,9 +443,12 @@ public class TerraformResourceTest extends AbstractAppTest {
 
 	@Test
 	public void executeExit1() {
-		Assertions.assertEquals("aborted", Assertions.assertThrows(BusinessException.class, () ->
-			generateAndExecuteExit(1, "Terraform exit code 1 -> aborted")
-		).getMessage());
+		Assertions
+				.assertEquals("aborted",
+						Assertions
+								.assertThrows(BusinessException.class,
+										() -> generateAndExecuteExit(1, "Terraform exit code 1 -> aborted"))
+								.getMessage());
 	}
 
 	private void generateAndExecuteExit(final int code, final String message) throws Exception {
