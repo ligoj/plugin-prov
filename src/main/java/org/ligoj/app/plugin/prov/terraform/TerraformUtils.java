@@ -104,10 +104,9 @@ public class TerraformUtils {
 	/**
 	 * A new {@link ProcessBuilder} with the given arguments
 	 * 
-	 * @param The
-	 *            process arguments.
-	 * @param The
-	 *            new {@link ProcessBuilder} instance.
+	 * @param args
+	 *            The process arguments.
+	 * @return The new {@link ProcessBuilder} instance.
 	 */
 	public ProcessBuilder newBuilder(final String... args) {
 		// Check Terraform is available
@@ -405,6 +404,8 @@ public class TerraformUtils {
 	 * @param fragments
 	 *            The requested sub path fragments.
 	 * @return The Terraform resource file scoped by the given subscription.
+	 * @throws IOException
+	 *             When the parent directories creation failed.
 	 */
 	public File toFile(final Subscription subscription, final String... fragments) throws IOException {
 		return PluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();

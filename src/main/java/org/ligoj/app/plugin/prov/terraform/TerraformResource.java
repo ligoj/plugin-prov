@@ -143,6 +143,9 @@ public class TerraformResource {
 	 * 
 	 * @param subscription
 	 *            The related subscription.
+	 * @param context
+	 *            The Terraform user inputs. Will be completed and passed to Terraform commands.
+	 * @return The Terraform status. Never <code>null</code>.
 	 */
 	@POST
 	@Path("{subscription:\\d+}/terraform")
@@ -199,6 +202,10 @@ public class TerraformResource {
 	 *            The Terraforming implementation.
 	 * @param context
 	 *            The Terraform context holding the subscription, the quote and the user inputs.
+	 * @throws IOException
+	 *             When files or logs cannot cannot be generated.
+	 * @throws InterruptedException
+	 *             When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public void generateAndExecute(final Terraforming terra, final Context context)

@@ -64,7 +64,7 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 
 	/**
 	 * The requested OS. May be different from the one related by
-	 * {@link #instancePrice}, but refers to {@link VmOs#toPricingOs()}
+	 * {@link #price}, but refers to {@link VmOs#toPricingOs()}
 	 */
 	@NotNull
 	private VmOs os;
@@ -94,7 +94,7 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 
 	/**
 	 * The maximal quantity of this instance. May be <code>null</code> when unbound
-	 * maximal, otherwise must be greater than {@link #quantityMin}
+	 * maximal, otherwise must be greater than {@link #minQuantity}
 	 */
 	@PositiveOrZero
 	private Integer maxQuantity = 1;

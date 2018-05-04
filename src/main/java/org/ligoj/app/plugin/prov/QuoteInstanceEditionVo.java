@@ -64,7 +64,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 
 	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance,
-	 * does not consider the {@link #quantityMax} or {@link #quantityMin}. When
+	 * does not consider the {@link #minQuantity} or {@link #maxQuantity}. When
 	 * <code>null</code>, there is no limit. Only relevant for variable instance
 	 * price type such as AWS Spot.
 	 */
@@ -86,7 +86,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 
 	/**
 	 * The maximal quantity of this instance. When defined, must be greater than
-	 * {@link #quantityMin}
+	 * {@link #minQuantity}
 	 */
 	@PositiveOrZero
 	private Integer maxQuantity;
