@@ -35,8 +35,13 @@ public enum VmOs {
 	/**
 	 * Debian
 	 */
-	DEBIAN(LINUX);
-	
+	DEBIAN(LINUX),
+
+	/**
+	 * Fedora
+	 */
+	FEDORA(LINUX);
+
 	/**
 	 * The related pricing OS.
 	 */
