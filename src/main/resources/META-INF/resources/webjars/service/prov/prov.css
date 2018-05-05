@@ -255,3 +255,9 @@ img.flag-icon.prov-location-flag {
 #prov-terraform-status .status-apply.active {
 	text-align: right;
 }
+
+#prov-terraform-status .progress .progress-bar:not(:first-child) {
+	border-left-color: gray;
+	border-left-style: solid;
+	border-left-width: 1px;
+}

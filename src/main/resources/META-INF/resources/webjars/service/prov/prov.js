@@ -1463,6 +1463,11 @@ define(function () {
 					var succeed = i < commandIndex || status.failed !== true;
 					$progressI[activeEnablement]('progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
 				}
+				if (i > commandIndex) {
+					$progressI.addClass('hidden');
+				} else {
+					$progressI.removeClass('hidden');
+				}
 			}
 
 			// Update the status text
