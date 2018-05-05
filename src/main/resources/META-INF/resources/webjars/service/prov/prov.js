@@ -484,7 +484,9 @@ define(function () {
 			'suse': ['SUSE', 'icon-suse fa-fw'],
 			'rhel': ['Red Hat Enterprise', 'icon-redhat fa-fw'],
 			'centos': ['CentOS', 'icon-centos fa-fw'],
-			'debian': ['Debian', 'icon-debian fa-fw']
+			'debian': ['Debian', 'icon-debian fa-fw'],
+			'fedora': ['Fedora', 'icon-fedora fa-fw'],
+			'ubuntu': ['Ubuntu', 'icon-ubuntu fa-fw']
 		},
 
 		/**
@@ -1041,6 +1043,12 @@ define(function () {
 				}, {
 					id: 'DEBIAN',
 					text: 'DEBIAN'
+				}, {
+					id: 'UBUNTU',
+					text: 'UBUNTU'
+				}, {
+					id: 'FEDORA',
+					text: 'FEDORA'
 				}]
 			});
 

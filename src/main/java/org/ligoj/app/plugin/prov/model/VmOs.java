@@ -40,7 +40,12 @@ public enum VmOs {
 	/**
 	 * Fedora
 	 */
-	FEDORA(LINUX);
+	FEDORA(LINUX),
+
+	/**
+	 * Ubuntu
+	 */
+	UBUNTU(LINUX);
 
 	/**
 	 * The related pricing OS.
