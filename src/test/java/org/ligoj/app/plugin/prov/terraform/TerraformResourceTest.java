@@ -254,6 +254,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		FileUtils.touch(new File(MOCK_PATH, "any.tfstate"));
 		FileUtils.touch(new File(MOCK_PATH, "terraform.tfstate.backup"));
 		FileUtils.touch(new File(MOCK_PATH, "some.keep.tf"));
+		FileUtils.touch(new File(MOCK_PATH, "sub-dir/other.keep.tf"));
 		FileUtils.touch(new File(MOCK_PATH, ".terraform/foo.tf"));
 		FileUtils.touch(new File(MOCK_PATH, "bar.tf"));
 		FileUtils.touch(new File(MOCK_PATH, "any.ext"));
@@ -279,6 +280,7 @@ public class TerraformResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(new File(MOCK_PATH, "any.tfstate").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, "terraform.tfstate.backup").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, "some.keep.tf").exists());
+		Assertions.assertTrue(new File(MOCK_PATH, "sub-dir/other.keep.tf").exists());
 		Assertions.assertTrue(new File(MOCK_PATH, ".terraform/foo.tf").exists());
 
 		// Check the log file is well handled

@@ -228,7 +228,7 @@ public class TerraformResource {
 		final java.nio.file.Path parent = utils.toFile(context.getSubscription()).toPath();
 		Files.walk(parent)
 				.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf"))
-				.filter(path -> !parent.equals(path)).filter(path -> !path.toString().contains(".terraform"))
+				.filter(path -> !path.toFile().isDirectory()).filter(path -> !path.toString().contains(".terraform"))
 				.map(java.nio.file.Path::toFile).forEach(FileUtils::deleteQuietly);
 
 		// Write the Terraform configuration files
