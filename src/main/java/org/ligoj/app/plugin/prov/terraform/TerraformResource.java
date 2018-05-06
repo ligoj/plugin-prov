@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +19,7 @@ import javax.cache.annotation.CacheRemoveAll;
 import javax.cache.annotation.CacheResult;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -176,6 +178,46 @@ public class TerraformResource {
 		return task;
 	}
 
+	/**
+	 * Terraform destroy
+	 *
+	 * @param subscription
+	 *            The related subscription.
+	 * @return The Terraform status. Never <code>null</code>.
+	 */
+	@DELETE
+	@Path("{subscription:\\d+}/terraform")
+	public TerraformStatus destroy(@PathParam("subscription") final int subscription) {
+		final Subscription entity = subscriptionResource.checkVisible(subscription);
+
+		// Check the provider support the Terraform generation
+		final Terraforming terra = getImpl(entity.getNode());
+		log.info("Terraform destroy request for {} ({})", subscription, entity);
+		final SecurityContext securityContext = SecurityContextHolder.getContext();
+		// Start the task
+		final Context context = new Context();
+		context.setSubscription(entity);
+		context.setSequence(Collections.singletonList(
+				new String[] { "destroy", "-auto-approve", "-input=false", "-no-color", "-parallelism=5" }));
+		// The Terraform execution will done into another thread
+		final TerraformStatus task = startTask(context);
+		Executors.newSingleThreadExecutor().submit(() -> {
+			// Restore the context
+			log.info("Terraform (destroy) start for {} ({})", entity.getId(), entity);
+			try {
+				SecurityContextHolder.setContext(securityContext);
+				Thread.sleep(50);
+				self.destroy(terra, context);
+				log.info("Terraform destroy succeed for {} ({})", entity.getId(), entity);
+			} catch (final Exception e) {
+				// The error is not put in the Terraform logger for security
+				log.error("Terraform destroy failed for {}", entity, e);
+			}
+			return null;
+		});
+		return task;
+	}
+
 	protected TerraformStatus startTask(final Context context) {
 		return runner.startTask(context.getSubscription().getNode().getId(), t -> {
 			t.setCommandIndex(null);
@@ -214,9 +256,9 @@ public class TerraformResource {
 			execute(context);
 			failed = false;
 		} finally {
+			runner.endTask(context.getSubscription().getNode().getId(), failed);
 			// Delete the secret file whatever
 			FileUtils.deleteQuietly(utils.toFile(context.getSubscription(), "secrets.auto.tfvars"));
-			runner.endTask(context.getSubscription().getNode().getId(), failed);
 		}
 	}
 
@@ -233,6 +275,33 @@ public class TerraformResource {
 
 		// Write the Terraform configuration files
 		terra.generate(context);
+	}
+
+	/**
+	 * Destroy without generation
+	 *
+	 * @param terra
+	 *            The Terraforming implementation.
+	 * @param context
+	 *            The Terraform context holding the subscription, the quote and the user inputs.
+	 * @throws IOException
+	 *             When files or logs cannot cannot be generated.
+	 * @throws InterruptedException
+	 *             When Terraform execution has been interrupted.
+	 */
+	@Transactional(value = TxType.REQUIRES_NEW)
+	public void destroy(final Terraforming terra, final Context context) throws IOException, InterruptedException {
+		boolean failed = true;
+		try {
+			FileUtils.deleteQuietly(utils.toFile(context.getSubscription(), "destroy.log"));
+			terra.generateSecrets(context);
+			execute(context);
+			failed = false;
+		} finally {
+			runner.endTask(context.getSubscription().getNode().getId(), failed);
+			// Delete the secret file whatever
+			FileUtils.deleteQuietly(utils.toFile(context.getSubscription(), "secrets.auto.tfvars"));
+		}
 	}
 
 	/**
@@ -264,9 +333,12 @@ public class TerraformResource {
 			} finally {
 				IOUtils.closeQuietly(out);
 			}
+
+			// Complete the workload as needed
 			if ("show".equals(command[0])) {
 				computeWorkload(subscription);
 			}
+
 		}
 	}
 

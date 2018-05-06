@@ -153,8 +153,9 @@
 						<span class="caret"></span>
 					</button>
 					<ul class="dropdown-menu" role="menu">
-						<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="fas fa-download fa-fw"></i> {{download}}</a></li>
+						<li role="presentation"><a role="menuitem" href="" id="prov-terraform-download"><i class="far fa-file-archive fa-fw"></i> {{download}}</a></li>
 						<li role="presentation"><a role="menuitem" id="prov-terraform-execute" data-toggle="modal" data-target="#popup-prov-terraform"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[BETA]</span></a></li>
+						<li role="presentation"><a role="menuitem" id="prov-terraform-destroy" data-toggle="modal" data-target="#popup-prov-terraform-destroy"><i class="far fa-trash-alt fa-fw"></i> {{service:prov:terraform:destroy}}</a></li>
 					</ul>
 				</div>
 				<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
@@ -633,6 +634,32 @@
 				</div>
 				<div class="modal-footer">
 					<input type="submit" class="btn btn-raised btn-success" value="{{service:prov:terraform:execute}}">
+					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+				</div>
+			</div>
+		</div>
+	</form>
+	<form id="popup-prov-terraform-destroy" class="modal fade" tabindex="-1" aria-labelledby="d-modal-title" autocomplete="off">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="d-modal-title">{{service:prov:terraform:destroy}}</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-horizontal">
+						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div></div>
+						<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <span class="terraform-destroy-alert"></span></div>
+						<div class="form-group required">
+							<label for="terraform-destroy-confirm">{{service:prov:terraform:destroy-confirm}}</label>
+							<input type="text" id="terraform-destroy-confirm" required class="form-control" placeholder="{{project}}" />
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<input type="submit" class="btn btn-raised btn-success" value="{{service:prov:terraform:destroy}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>

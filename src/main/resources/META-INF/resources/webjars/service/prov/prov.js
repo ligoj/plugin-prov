@@ -995,12 +995,29 @@ define(function () {
 				}
 
 				// Target platform
-				var target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
-				$.each(current.model.parameters, function (parameter, value) {
-					target.push('<strong>' + current.$messages[parameter] + '</strong>&nbsp;' + value);
-				});
-				$('.terraform-target').html(target.join('<br>'));
+				current.updateTerraformTarget()
 			}).on('submit', current.terraform);
+			_('popup-prov-terraform-destroy').on('shown.bs.modal', function () {
+				_('terraform-confirm-destroy').trigger('focus');
+			}).on('show.bs.modal', function () {
+				current.updateTerraformTarget();
+				_('terraform-destroy-confirm').val('').trigger('change');
+				$('.terraform-destroy-alert').html(Handlebars.compile(current.$messages['service:prov:terraform:destroy-alert'])(current.$parent.model.pkey));
+			}).on('submit', function () {
+				// Delete only when exact match
+				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
+					current.terraformDestroy();
+				}
+			});
+
+			// Live state ot Terraform destroy buttons
+			_('terraform-destroy-confirm').on('change keyup', function () {
+				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
+					_('popup-prov-terraform-destroy').find('input[type="submit"]').removeClass('disabled');
+				} else {
+					_('popup-prov-terraform-destroy').find('input[type="submit"]').addClass('disabled');
+				}
+			})
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 
@@ -1503,24 +1520,40 @@ define(function () {
 		},
 
 		/**
-		 * Execute the terraform deployment
+		 * Update the Terraform target data.
 		 */
-		terraform: function () {
+		updateTerraformTarget: function () {
+			var target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
+			target.push('<strong>' + current.$messages.project + '</strong>&nbsp;' + current.$parent.model.pkey);
+			$.each(current.model.parameters, function (parameter, value) {
+				target.push('<strong>' + current.$messages[parameter] + '</strong>&nbsp;' + value);
+			});
+			$('.terraform-target').html(target.join('<br>'));
+		},
+
+		/**
+		 * Execute the terraform destroy
+		 */
+		terraformDestroy: function () {
+			current.terraformAction(_('popup-prov-terraform-destroy'), {}, 'DELETE');
+		},
+
+		/**
+		 * Execute the terraform action.
+		 * @param {jQuery} $popup The JQuery popup source to hide on success.
+		 * @param {Number} context The Terraform context.
+		 * @param {Number} method The REST method.
+		 */
+		terraformAction: function ($popup, context, method) {
 			var subscription = current.model.subscription;
 			current.disableTerraform();
 
 			// Complete the Terraform inputs
 			var data = {
-				context: {
-					'key_name': _('terraform-key-name').val(),
-					'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
-					'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
-					'public_key': _('terraform-public-key').val(),
-					'cidr': _('terraform-cidr').val()
-				}
+				context: context
 			}
 			$.ajax({
-				type: 'POST',
+				type: method,
 				url: REST_PATH + 'service/prov/' + subscription + '/terraform',
 				dataType: 'json',
 				data: JSON.stringify(data),
@@ -1531,13 +1564,26 @@ define(function () {
 						// Poll the unfinished Terraform
 						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
 					}, 10);
-					_('popup-prov-terraform').modal('hide');
+					$popup.modal('hide');
 					current.updateTerraformStatus({});
 				},
 				error: function () {
 					current.enableTerraform();
 				}
 			});
+		},
+
+		/**
+		 * Execute the terraform deployment
+		 */
+		terraform: function () {
+			current.terraformAction(_('popup-prov-terraform'), {
+				'key_name': _('terraform-key-name').val(),
+				'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
+				'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
+				'public_key': _('terraform-public-key').val(),
+				'cidr': _('terraform-cidr').val()
+			}, 'POST');
 		},
 
 		/**
@@ -2175,7 +2221,7 @@ define(function () {
 
 		/**
 		 * Update the model a deleted quote storage
-		 * @param id Option identifier to delete. When not defined, all items are deleted.
+		 * @param {Number} id Option identifier to delete. When not defined, all items are deleted.
 		 */
 		storageDelete: function (id) {
 			var conf = current.model.configuration;
