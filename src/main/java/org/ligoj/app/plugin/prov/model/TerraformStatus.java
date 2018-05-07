@@ -1,11 +1,14 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.ligoj.app.model.AbstractLongTaskNode;
+import org.ligoj.app.plugin.prov.terraform.TerraformSequence;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +21,12 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_TERRAFORM_STATUS", uniqueConstraints = @UniqueConstraint(columnNames = "locked"))
 public class TerraformStatus extends AbstractLongTaskNode {
+
+	/**
+	 * The sequence type.
+	 */
+	@Enumerated(EnumType.STRING)
+	private TerraformSequence type;
 
 	/**
 	 * The subscription identifier requesting this task.

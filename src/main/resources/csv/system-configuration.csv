@@ -1,7 +1,9 @@
 name;value
-service:prov:terraform:sequence;init,plan,show,apply
+service:prov:terraform:sequence-create;clean,generate,init,secrets,plan,show,apply
 service:prov:terraform:command-init;init -input=false -no-color -upgrade=true
 service:prov:terraform:command-plan;plan -no-color -out=plan.ptf
 service:prov:terraform:command-show;show plan.ptf -no-color
 service:prov:terraform:command-apply;apply plan.ptf -parallelism=5 -no-color
-service:prov:terraform:command-destroy;destroy -auto-approve
+service:prov:terraform:command-destroy;destroy -auto-approve -input=false -no-color -parallelism=5
+service:prov:terraform:command-state-list;state list
+service:prov:terraform:sequence-destroy;clean,secrets,state-list,destroy

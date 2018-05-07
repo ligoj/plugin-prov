@@ -1,0 +1,8 @@
+aws_vpc.this1: Refreshing state... (ID: vpc-1)
+data.aws_availability_zones.available: Refreshing state...
+aws_vpc.this2: Refreshing state... (ID: vpc-2)
+data.aws_ami.search: Refreshing state...
+module.eu-west-3.aws_vpc.this1: Destroying... (ID: vpc-1)
+module.eu-west-3.aws_vpc.this2: Destroying... (ID: vpc-2)
+module.eu-west-3.aws_vpc.this1: Still destroying... (ID: i-0, 10s elapsed)
+module.eu-west-3.aws_vpc.this2: Destruction complete after 0s

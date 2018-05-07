@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +27,8 @@ import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.hazelcast.util.function.BiConsumer;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -69,17 +70,19 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 		return TerraformStatus::new;
 	}
 
-	private static final Pattern PATTERN = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)...|([A-Za-z]+) complete after)");
+	private static final Pattern PATTERN_APPLY = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)\\.|([A-Za-z]+) complete)()");
+	private static final Pattern PATTERN_DESTROY = Pattern
+			.compile("^(.+: (Destroying)\\.|.+: (Destruction) complete|data\\.[^:]+:+ (Refreshing))");
 
 	private static final Set<String> COMPLETED_OPERATIONS = new HashSet<>(
-			Arrays.asList("Destruction", "Creation", "Modifications"));
+			Arrays.asList("Destruction", "Creation", "Modifications", "Refreshing"));
 
 	private static final Set<String> PENDING_OPERATIONS = new HashSet<>(
 			Arrays.asList("Creating", "Modifying", "Destroying"));
 
 	/**
 	 * Return the Terraform status from the given subscription identifier.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier.
 	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
@@ -94,7 +97,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 
 	/**
 	 * Return the Terraform status from the given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription entity.
 	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
@@ -102,44 +105,96 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	 */
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public TerraformStatus getTaskInternal(final Subscription subscription) {
-		final TerraformStatus status = LongTaskRunnerNode.super.getTask(subscription.getNode().getId());
+		final TerraformStatus status = getTask(subscription.getNode().getId());
 		if (status == null || status.getSubscription() != subscription.getId()) {
 			// Subscription is valid but not related to the current task
 			// Another subscription is running on this node
 			return null;
 		}
 
-		completeProgress(subscription, status);
+		// Complete with log contents
+		if (status.getSequence().contains("apply")) {
+			completeProgress(subscription, status, "apply.log", this::parseApplyLogLine);
+		}
+		if (status.getSequence().contains("destroy")) {
+			completeProgress(subscription, status, "destroy.log", this::parseDestroyLogLine);
+		}
 		return status;
 	}
 
 	/**
-	 * Update the given status with the actual progress of appliance. Is based on the "apply.log" file when present.
-	 * 
+	 * Update the given status with the actual progress of appliance. Is based on the given log file when present.
+	 *
 	 * @param subscription
 	 *            subscription requesting the task.
 	 * @param status
 	 *            The status to update.
 	 */
-	private void completeProgress(final Subscription subscription, final TerraformStatus status) {
-		final AtomicInteger creating = new AtomicInteger();
-		final AtomicInteger created = new AtomicInteger();
-		try (Stream<String> stream = utils.toFile(subscription, "apply.log").exists()
-				? Files.lines(utils.toFile(subscription, "apply.log").toPath())
+	private void completeProgress(final Subscription subscription, final TerraformStatus status, final String file,
+			BiConsumer<TerraformStatus, Stream<String>> apply) {
+		// Parse each line of the log file
+		try (Stream<String> stream = utils.toFile(subscription, file).exists()
+				? Files.lines(utils.toFile(subscription, file).toPath())
 				: Arrays.stream(new String[0])) {
-			stream.map(PATTERN::matcher).filter(Matcher::find).forEach(matcher -> {
-				if (PENDING_OPERATIONS.contains(matcher.group(2))) {
-					creating.incrementAndGet();
-				} else if (COMPLETED_OPERATIONS.contains(matcher.group(2))) {
-					creating.decrementAndGet();
-					created.incrementAndGet();
-				}
-			});
+			// Parse the line with RegEx
+			apply.accept(status, stream);
 		} catch (final Exception e) {
-			log.warn("Unable to read log file", e);
+			log.warn("Unable to read log file {}", file, e);
 		}
-		status.setCompleting(creating.get());
-		status.setCompleted(created.get());
+	}
+
+	/**
+	 * Parse the given apply log stream and update the completing and completed cursors in the given status.
+	 *
+	 * @param status
+	 *            The status to update.
+	 * @param stream
+	 *            The line stream.
+	 */
+	protected void parseApplyLogLine(final TerraformStatus status, final Stream<String> stream) {
+		parseLogLine(status, stream, PATTERN_APPLY);
+	}
+
+	/**
+	 * Parse the given state log stream and update the completing and completed cursors in the given status.
+	 *
+	 * @param doing
+	 *            The pending actions being processed counter.
+	 * @param done
+	 *            The completed actions counter.
+	 * @param stream
+	 *            The line stream.
+	 */
+	protected void parseDestroyLogLine(final TerraformStatus status, final Stream<String> stream) {
+		parseLogLine(status, stream, PATTERN_DESTROY);
+	}
+
+	/**
+	 * Parse the given log stream and update the completing and completed cursors in the given status.
+	 *
+	 * @param status
+	 *            The status to update.
+	 * @param stream
+	 *            The line stream.
+	 * @param pattern
+	 *            The {@link Pattern} mating each line with capture groups.
+	 *            <ul>
+	 *            <li>Group 2 corresponds to a pending action</li>
+	 *            <li>Group 3 corresponds to a completed action associated to a pending action</li>
+	 *            <li>Group 4 corresponds to a completed action</li>
+	 *            </ul>
+	 */
+	private void parseLogLine(final TerraformStatus status, final Stream<String> stream, final Pattern pattern) {
+		stream.map(pattern::matcher).filter(Matcher::find).forEach(matcher -> {
+			if (COMPLETED_OPERATIONS.contains(matcher.group(3))) {
+				status.setCompleting(status.getCompleting() - 1);
+				status.setCompleted(status.getCompleted() + 1);
+			} else if (COMPLETED_OPERATIONS.contains(matcher.group(4))) {
+				status.setCompleted(status.getCompleted() + 1);
+			} else if (PENDING_OPERATIONS.contains(matcher.group(2))) {
+				status.setCompleting(status.getCompleting() + 1);
+			}
+		});
 	}
 
 }

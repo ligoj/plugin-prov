@@ -1,0 +1,4 @@
+module.eu-west-3.aws_availability_zones.available
+module.eu-west-3.aws_instance.instance_linux
+module.eu-west-3.template_file.md
+

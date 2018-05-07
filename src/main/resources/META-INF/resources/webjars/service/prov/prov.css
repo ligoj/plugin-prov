@@ -243,6 +243,7 @@ img.flag-icon.prov-location-flag {
 
 #prov-terraform-status .progress {
 	height: 20px;
+	margin-bottom: 0;
 }
 .progress .progress-bar.error {
 	background-color: #e25757;
@@ -252,12 +253,11 @@ img.flag-icon.prov-location-flag {
 	margin-right: 16px;
 }
 
-#prov-terraform-status .status-apply.active {
+#prov-terraform-status .completed {
 	text-align: right;
+	position: relative;
 }
 
 #prov-terraform-status .progress .progress-bar:not(:first-child) {
-	border-left-color: gray;
-	border-left-style: solid;
-	border-left-width: 1px;
+	outline: 1px solid white;
 }

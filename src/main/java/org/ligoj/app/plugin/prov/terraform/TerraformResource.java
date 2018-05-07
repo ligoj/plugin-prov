@@ -6,14 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.cache.annotation.CacheRemoveAll;
 import javax.cache.annotation.CacheResult;
@@ -30,7 +29,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
@@ -65,11 +63,6 @@ public class TerraformResource {
 	 */
 	private static final Pattern TERRFORM_VERSION = Pattern.compile(".* v([^\\s]+)\\s+.*");
 
-	/**
-	 * Pattern filtering the row corresponding to a change.
-	 */
-	private static final Pattern SHOW_CHANGE = Pattern.compile("^\\s*([\\-~+/]+)");
-
 	@Autowired
 	private SubscriptionResource subscriptionResource;
 
@@ -92,7 +85,46 @@ public class TerraformResource {
 	protected TerraformResource self;
 
 	@Autowired
+	protected TerraformBaseCommand executableCommand;
+
+	@Autowired
 	private NodeResource nodeResource;
+
+	/**
+	 * Mappging of command name to action. Some of these actions correspond to a real Terraform command, some are juste
+	 * proxying a Java function.
+	 */
+	private final Map<String, TerraformAction> commandMapping = new HashMap<>();
+
+	/**
+	 * Base constructor initializing the Terraform command mapping.
+	 */
+	public TerraformResource() {
+		// Configure the mapping
+		commandMapping.put("generate", new TerraformAction() {
+
+			@Override
+			public void execute(final Context context, final OutputStream out, final String... arguments)
+					throws IOException {
+				getImpl(context.getSubscription().getNode()).generate(context);
+			}
+		});
+		commandMapping.put("secrets", new TerraformAction() {
+
+			@Override
+			public void execute(final Context context, final OutputStream out, final String... arguments)
+					throws IOException {
+				getImpl(context.getSubscription().getNode()).generateSecrets(context);
+			}
+		});
+		commandMapping.put("clean", new TerraformAction() {
+			@Override
+			public void execute(final Context context, final OutputStream out, final String... arguments)
+					throws IOException {
+				clean(context.getSubscription());
+			}
+		});
+	}
 
 	/**
 	 * Download the Terraform configuration files including the state in zipped format.
@@ -125,7 +157,7 @@ public class TerraformResource {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 		final StreamingOutput so = o -> {
 			// Copy log of each command
-			for (String[] commands : utils.getTerraformCommands()) {
+			for (final String[] commands : utils.getTerraformCommands(TerraformSequence.CREATE)) {
 				final File log = utils.toFile(entity, commands[0] + ".log");
 				if (log.exists()) {
 					FileUtils.copyFile(log, o);
@@ -136,7 +168,7 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Apply (plan, apply, show) the Terraform configuration.
+	 * Terraform creation sequence.
 	 *
 	 * @param subscription
 	 *            The related subscription.
@@ -146,32 +178,58 @@ public class TerraformResource {
 	 */
 	@POST
 	@Path("{subscription:\\d+}/terraform")
-	public TerraformStatus generateAndExecute(@PathParam("subscription") final int subscription,
-			final Context context) {
+	public TerraformStatus create(@PathParam("subscription") final int subscription, final Context context) {
+		return sequenceNewThread(subscription, context, TerraformSequence.CREATE);
+	}
+
+	/**
+	 * Terraform destroy sequence.
+	 *
+	 * @param subscription
+	 *            The related subscription.
+	 * @param context
+	 *            The Terraform user inputs. Will be completed and passed to Terraform commands.
+	 * @return The Terraform status. Never <code>null</code>.
+	 */
+	@DELETE
+	@Path("{subscription:\\d+}/terraform")
+	public TerraformStatus destroy(@PathParam("subscription") final int subscription, final Context context) {
+		return sequenceNewThread(subscription, context, TerraformSequence.DESTROY);
+	}
+
+	/**
+	 * Execute a sequence.
+	 */
+	private TerraformStatus sequenceNewThread(final int subscription, final Context context, final TerraformSequence sequence) {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 
 		// Check the provider support the Terraform generation
-		final Terraforming terra = getImpl(entity.getNode());
-		log.info("Terraform request for {} ({})", subscription, entity);
+		getImpl(entity.getNode());
+		log.info("Terraform {} request for {} ({})", sequence, subscription, entity);
+
+		// Save the security context
 		final SecurityContext securityContext = SecurityContextHolder.getContext();
-		// Start the task
+
+		// Create the context
 		context.setSubscription(entity);
-		context.setSequence(utils.getTerraformCommands());
+		context.setSequence(utils.getTerraformCommands(sequence));
+
+		// Trim the user input from the context
 		context.getContext().entrySet().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
 
 		// The Terraform execution will done into another thread
-		final TerraformStatus task = startTask(context);
+		final TerraformStatus task = startTask(context, sequence);
 		Executors.newSingleThreadExecutor().submit(() -> {
 			// Restore the context
-			log.info("Terraform start for {} ({})", entity.getId(), entity);
+			log.info("Terraform {} start for {} ({})", sequence, subscription, entity);
 			try {
 				SecurityContextHolder.setContext(securityContext);
 				Thread.sleep(50);
-				self.generateAndExecute(terra, context);
-				log.info("Terraform succeed for {} ({})", entity.getId(), entity);
+				self.sequenceNewTransaction(context);
+				log.info("Terraform {} succeed for {} ({})", sequence, subscription, entity);
 			} catch (final Exception e) {
 				// The error is not put in the Terraform logger for security
-				log.error("Terraform failed for {}", entity, e);
+				log.error("Terraform {} failed for {} ({})", sequence, subscription, entity, e);
 			}
 			return null;
 		});
@@ -179,61 +237,31 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Terraform destroy
+	 * Start a new task with a new context.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @return The Terraform status. Never <code>null</code>.
+	 * @param context
+	 *            The new context.
+	 * @param type
+	 *            The sequence type.
+	 * @return The new Terraform status.
 	 */
-	@DELETE
-	@Path("{subscription:\\d+}/terraform")
-	public TerraformStatus destroy(@PathParam("subscription") final int subscription) {
-		final Subscription entity = subscriptionResource.checkVisible(subscription);
-
-		// Check the provider support the Terraform generation
-		final Terraforming terra = getImpl(entity.getNode());
-		log.info("Terraform destroy request for {} ({})", subscription, entity);
-		final SecurityContext securityContext = SecurityContextHolder.getContext();
-		// Start the task
-		final Context context = new Context();
-		context.setSubscription(entity);
-		context.setSequence(Collections.singletonList(
-				new String[] { "destroy", "-auto-approve", "-input=false", "-no-color", "-parallelism=5" }));
-		// The Terraform execution will done into another thread
-		final TerraformStatus task = startTask(context);
-		Executors.newSingleThreadExecutor().submit(() -> {
-			// Restore the context
-			log.info("Terraform (destroy) start for {} ({})", entity.getId(), entity);
-			try {
-				SecurityContextHolder.setContext(securityContext);
-				Thread.sleep(50);
-				self.destroy(terra, context);
-				log.info("Terraform destroy succeed for {} ({})", entity.getId(), entity);
-			} catch (final Exception e) {
-				// The error is not put in the Terraform logger for security
-				log.error("Terraform destroy failed for {}", entity, e);
-			}
-			return null;
-		});
-		return task;
-	}
-
-	protected TerraformStatus startTask(final Context context) {
+	protected TerraformStatus startTask(final Context context, final TerraformSequence type) {
 		return runner.startTask(context.getSubscription().getNode().getId(), t -> {
-			t.setCommandIndex(null);
 			t.setSequence(context.getSequence().stream().map(s -> s[0]).collect(Collectors.joining(",")));
+			t.setSubscription(context.getSubscription().getId());
+			t.setCommandIndex(null); // Not yet boot
+			t.setType(type);
 			t.setToAdd(0);
 			t.setToDestroy(0);
 			t.setToUpdate(0);
 			t.setToReplace(0);
 			t.setCompleting(0);
 			t.setCompleted(0);
-			t.setSubscription(context.getSubscription().getId());
 		});
 	}
 
 	/**
-	 * Prepare the Terraform environment to apply the new environment. Note there is no concurrency check.
+	 * Prepare the Terraform environment to apply/destroy the new environment. Note there is no concurrency check.
 	 *
 	 * @param terra
 	 *            The Terraforming implementation.
@@ -245,15 +273,12 @@ public class TerraformResource {
 	 *             When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
-	public void generateAndExecute(final Terraforming terra, final Context context)
-			throws IOException, InterruptedException {
-
+	public void sequenceNewTransaction(final Context context) throws IOException, InterruptedException {
 		boolean failed = true;
 		try {
 			context.setQuote(resource.getConfiguration(context.getSubscription().getId()));
 			context.setSubscription(subscriptionRepository.findOneExpected(context.getSubscription().getId()));
-			generate(terra, context);
-			execute(context);
+			sequenceInternal(context);
 			failed = false;
 		} finally {
 			runner.endTask(context.getSubscription().getNode().getId(), failed);
@@ -263,45 +288,17 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Cleanup and generate the Terraform files
+	 * Delete all files (including logs) that could generated again and we don't need to track.
+	 *
+	 * @param subscription
+	 *            The related subscription.
 	 */
-	private void generate(final Terraforming terra, final Context context) throws IOException {
-		// Cleanup the previous generated logs and files
-		final java.nio.file.Path parent = utils.toFile(context.getSubscription()).toPath();
+	protected void clean(final Subscription subscription) throws IOException {
+		final java.nio.file.Path parent = utils.toFile(subscription).toPath();
 		Files.walk(parent)
 				.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf"))
 				.filter(path -> !path.toFile().isDirectory()).filter(path -> !path.toString().contains(".terraform"))
 				.map(java.nio.file.Path::toFile).forEach(FileUtils::deleteQuietly);
-
-		// Write the Terraform configuration files
-		terra.generate(context);
-	}
-
-	/**
-	 * Destroy without generation
-	 *
-	 * @param terra
-	 *            The Terraforming implementation.
-	 * @param context
-	 *            The Terraform context holding the subscription, the quote and the user inputs.
-	 * @throws IOException
-	 *             When files or logs cannot cannot be generated.
-	 * @throws InterruptedException
-	 *             When Terraform execution has been interrupted.
-	 */
-	@Transactional(value = TxType.REQUIRES_NEW)
-	public void destroy(final Terraforming terra, final Context context) throws IOException, InterruptedException {
-		boolean failed = true;
-		try {
-			FileUtils.deleteQuietly(utils.toFile(context.getSubscription(), "destroy.log"));
-			terra.generateSecrets(context);
-			execute(context);
-			failed = false;
-		} finally {
-			runner.endTask(context.getSubscription().getNode().getId(), failed);
-			// Delete the secret file whatever
-			FileUtils.deleteQuietly(utils.toFile(context.getSubscription(), "secrets.auto.tfvars"));
-		}
 	}
 
 	/**
@@ -320,112 +317,33 @@ public class TerraformResource {
 	/**
 	 * Execute the given Terraform commands. Note there is no concurrency check for now.
 	 */
-	private void execute(final Context context) throws InterruptedException, IOException {
+	private void sequenceInternal(final Context context) throws InterruptedException, IOException {
 		// Execute the sequence
 		final Subscription subscription = context.getSubscription();
-		for (final String[] command : context.getSequence()) {
-			// Next step, another command
+
+		// Execute each command
+		for (final String[] arguments : context.getSequence()) {
+			final String command = arguments[0];
+
+			// Move forward the shared sequence index
 			runner.nextStep(subscription.getNode().getId(),
 					t -> t.setCommandIndex(t.getCommandIndex() == null ? 0 : t.getCommandIndex() + 1));
-			final FileOutputStream out = new FileOutputStream(utils.toFile(subscription, command[0] + ".log"));
-			try {
-				handleCode(subscription, out, execute(subscription, out, command));
-			} finally {
-				IOUtils.closeQuietly(out);
+			try (final FileOutputStream out = new FileOutputStream(utils.toFile(subscription, command + ".log"))) {
+				// Execute this command: real Terraform or bean's function
+				getAction(command).execute(context, out, arguments);
 			}
-
-			// Complete the workload as needed
-			if ("show".equals(command[0])) {
-				computeWorkload(subscription);
-			}
-
 		}
 	}
 
 	/**
-	 * Compute the workload from the plan's log and update the status related to the given subscription.
+	 * Return the executor corresponding to the given command.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
+	 * @param command
+	 *            The requested command, such as <code>appy</code>, <code>clean</code> ,...
+	 * @return The executor corresponding to the given command.
 	 */
-	protected void computeWorkload(final Subscription subscription) {
-		runner.nextStep(subscription.getNode().getId(), t -> computeWorkload(subscription, t));
-	}
-
-	/**
-	 * Compute the workload from the plan's log.
-	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 */
-	protected void computeWorkload(final Subscription subscription, final TerraformStatus status) {
-		final AtomicInteger added = new AtomicInteger();
-		final AtomicInteger deleted = new AtomicInteger();
-		final AtomicInteger updated = new AtomicInteger();
-		final AtomicInteger replaced = new AtomicInteger();
-
-		// Iterate over each line
-		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "show.log").toPath())) {
-			stream.map(SHOW_CHANGE::matcher).filter(Matcher::find).forEach(matcher -> {
-				// Detect the type of this change
-				final String type = matcher.group(1);
-				if (type.equals("+")) {
-					added.incrementAndGet();
-				} else if (type.equals("-")) {
-					deleted.incrementAndGet();
-				} else if (type.equals("-/+")) {
-					replaced.incrementAndGet();
-				} else {
-					updated.incrementAndGet();
-				}
-			});
-		} catch (final IOException e) {
-			log.warn("Unable to get the full workload from the 'show' command", e);
-		}
-		// Update the status
-		status.setToAdd(added.get());
-		status.setToReplace(replaced.get());
-		status.setToDestroy(deleted.get());
-		status.setToReplace(replaced.get());
-		status.setToUpdate(updated.get());
-	}
-
-	private void handleCode(final Subscription subscription, final FileOutputStream out, final int code)
-			throws IOException {
-		if (code == 0) {
-			// Nothing wrong, no change, only useless to go further
-			log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> no need to continue").getBytes());
-		} else if (code != 2) {
-			// Something goes wrong
-			log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> aborted").getBytes());
-			throw new BusinessException("aborted");
-		}
-	}
-
-	/**
-	 * Execute the given Terraform command arguments
-	 */
-	private int execute(final Subscription subscription, final OutputStream out, final String... command)
-			throws InterruptedException, IOException {
-		return execute(utils.toFile(subscription), out, command);
-	}
-
-	/**
-	 * Execute the given Terraform command arguments
-	 */
-	private int execute(final File directory, final OutputStream out, final String... command)
-			throws InterruptedException, IOException {
-		FileUtils.forceMkdir(directory);
-		final ProcessBuilder builder = utils.newBuilder(command).redirectErrorStream(true).directory(directory);
-		final Process process = builder.start();
-		process.getInputStream().transferTo(out);
-
-		// Wait and get the code
-		final int code = process.waitFor();
-		out.flush();
-		return code;
+	protected TerraformAction getAction(final String command) {
+		return commandMapping.getOrDefault(command, executableCommand);
 	}
 
 	/**
@@ -446,7 +364,7 @@ public class TerraformResource {
 		if (utils.isInstalled()) {
 			result.setInstalled(true);
 			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			final int code = execute(utils.getHome().toFile(), bos, "-v");
+			final int code = executableCommand.execute(utils.getHome().toFile(), bos, "-v");
 			final String output = bos.toString();
 			if (code == 0) {
 				// Terraform v0.11.5

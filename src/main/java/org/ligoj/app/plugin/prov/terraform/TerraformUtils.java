@@ -26,7 +26,6 @@ import java.util.zip.ZipOutputStream;
 
 import javax.cache.annotation.CacheResult;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +37,8 @@ import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Terraform utilities.
@@ -155,6 +156,8 @@ public class TerraformUtils {
 	/**
 	 * Return the Terraform commands.
 	 *
+	 * @param type
+	 *            The Terraform sequence type (list of commands)
 	 * @return The Terraform commands. Each command correspond to a list of Terraform arguments. The first argument
 	 *         corresponds to the Terraform command name.
 	 * @see <a href="https://www.terraform.io/docs/commands/init.html">plan</a>
@@ -163,19 +166,32 @@ public class TerraformUtils {
 	 * @see <a href="https://www.terraform.io/docs/commands/apply.html">apply</a>
 	 * @see <a href="https://www.terraform.io/docs/commands/destroy.html">apply</a>
 	 */
-	public List<String[]> getTerraformCommands() {
-		return Arrays.stream(getTerraformSequence()).map(String::trim)
-				.map(step -> configuration.get("service:prov:terraform:command-" + step, "-v"))
-				.map(step -> step.split(" ")).collect(Collectors.toList());
+	public List<String[]> getTerraformCommands(final TerraformSequence type) {
+		return Arrays.stream(getTerraformSequence(type)).map(String::trim).map(this::getTerraformArguments)
+				.collect(Collectors.toList());
 	}
 
 	/**
-	 * Return the Terraform command names such as <code>init,plan</code>.
+	 * Return the Terraform arguments used for the given command
 	 *
+	 * @param command
+	 *            The Terraform command such as <code>init,plan</code>.
+	 * @return The argument list for this command such as <code>init -no-color</code> for the command <code>init</code>.
+	 */
+	private String[] getTerraformArguments(final String command) {
+		return configuration.get("service:prov:terraform:command-" + command, command + " -v").split(" ");
+	}
+
+	/**
+	 * Return the Terraform command names such as <code>generate,init,plan</code>.
+	 *
+	 * @param type
+	 *            The Terraform sequence type (list of commands)
 	 * @return The Terraform command names such as <code>init,plan</code>.
 	 */
-	public String[] getTerraformSequence() {
-		return configuration.get("service:prov:terraform:sequence", "init").split(",");
+	public String[] getTerraformSequence(final TerraformSequence type) {
+		final String key = "service:prov:terraform:sequence-" + type.name().toLowerCase();
+		return configuration.get(key, "clean").split(",");
 	}
 
 	/**

@@ -620,7 +620,7 @@ define(function () {
 		 */
 		initializeTerraformStatus: function () {
 			if (current.model.configuration.terraformStatus) {
-				current.updateTerraformStatus(current.model.configuration.terraformStatus);
+				current.updateTerraformStatus(current.model.configuration.terraformStatus, true);
 				if (typeof current.model.configuration.terraformStatus.end === 'undefined') {
 					// At least one snapshot is pending: track it
 					setTimeout(function () {
@@ -1370,7 +1370,7 @@ define(function () {
 		pollStart: function (key, id, synchronizeFunction) {
 			current.polling[key] = setInterval(function () {
 				synchronizeFunction(key, id);
-			}, 5000);
+			}, 1000);
 		},
 
 		/**
@@ -1397,119 +1397,16 @@ define(function () {
 		/**
 		 * Update the Terraform status.
 		 */
-		updateTerraformStatus: function (status) {
-			_('prov-terraform-status').removeClass('invisible');
+		updateTerraformStatus: function (status, reset) {
 			if (status.end) {
 				// Stop the polling, update the buttons
 				current.enableTerraform();
 			} else {
 				current.disableTerraform();
 			}
-			var $status = _('prov-terraform-status');
-			var sequence = (status.sequence || "").split(',');
-			var command = null;
-			$status.find('.progress-bar').removeClass('active');
-			var commandIndex = typeof status.commandIndex === 'undefined' ? -1 : status.commandIndex;
-
-			// Compute the progress percentage since "init" and "apply" commands are optional
-			var width = {
-				generate: 10,
-				init: 10,
-				plan: 20,
-				apply: 60,
-				completed: 0,
-				completing: 0
-			}
-			if ($.inArray("init", sequence) === -1) {
-				width.init = 0;
-				width.apply += 5;
-				width.plan += 5;
-			}
-			if ($.inArray("apply", sequence) === -1) {
-				width.init = 0;
-				width.plan += width.apply;
-				width.apply = 0;
-			}
-			if (commandIndex === -1) {
-				// Generating
-				$status.find('.status-generate');
-				width.plan = 0;
-				width.init = 0;
-				width.apply = 0;
-				command = 'generate';
-			} else {
-				command = sequence[commandIndex];
-			}
-			status.command = command;
-
-
-			// Update the tooltip for the progress
-			var total = 0;
-			$status.find('.status-apply.completed').html('');
-			if (command === 'init') {
-				width.plan = 0;
-				width.apply = 0;
-			} else if (command === 'plan') {
-				width.apply = 0;
-			} else if (commandIndex !== -1 && $.inArray("apply", sequence) >= 0 && $.inArray("apply", sequence) <= commandIndex) {
-				total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
-				width.completed = total === 0 ? width.apply : Math.round(width.apply * status.completed / total);
-				width.completing = total === 0 ? 0 : Math.round(width.apply * status.completing / total);
-
-				// Add percent text only for the apply
-				$status.find('.status-apply.completed').html(total === 0 ? '' : (Math.round(status.completed * 100 / total) + '%&nbsp;'));
-				$status.find('.status-apply.completed').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completed'])([status.completed, total]));
-				$status.find('.status-apply.completing').attr('data-original-title', Handlebars.compile(current.$messages['service:prov:terraform:status-apply-completing'])(status.completing));
-			}
-
-			// Update the progress width
-			$status.find('.status-generate').css({ width: width.generate + '%' });
-			$status.find('.status-init').css({ width: width.init + '%' });
-			$status.find('.status-plan').css({ width: width.plan + '%' });
-			$status.find('.status-apply.completed').css({ width: width.completed + '%' });
-			$status.find('.status-apply.completing').css({ width: width.completing + '%' });
-
-			// Update the progress tooltips
-			for (var i = -1; i < sequence.length; i++) {
-				var commandI = i === -1 ? 'generate' : sequence[i];
-				var activeEnablement = (i === commandIndex && typeof status.end === 'undefined') ? 'addClass' : 'removeClass';
-				var $progressI = $status.find('.status-' + commandI)[activeEnablement]('active');
-				if (commandI === 'apply') {
-					$progressI.filter('.completing')[activeEnablement]('progress-bar-striped');
-				} else {
-					var succeed = i < commandIndex || status.failed !== true;
-					$progressI[activeEnablement]('progress-bar-striped').attr('data-original-title', '<i class="fas fa-' + (succeed ? 'check-circle' : 'exclamation-circle') + '"></i>&nbsp;' + current.$messages['service:prov:terraform:status-' + commandI]);
-				}
-				if (i > commandIndex) {
-					$progressI.addClass('hidden');
-				} else {
-					$progressI.removeClass('hidden');
-				}
-			}
-
-			// Update the status text
-			status.startDate = formatManager.formatDateTime(status.start);
-			status.endDate = status.end ? formatManager.formatDateTime(status.end) : '';
-			$status.find('.status').html(Handlebars.compile(current.$messages['service:prov:terraform:status'])(status));
-
-			// Update the error style of progress bars
-			var $progress = $status.find('.status-' + command).removeClass('hidden');
-			$status.find('.error').removeClass('error');
-			if (status.failed) {
-				// Change the color to "red" for the last executed command
-				if (command === 'apply') {
-					// Need to add an extra progress for the non being/completed tasks
-					$progress.filter('.completing').addClass('error');
-					$status.find('.status-error').css({ width: Math.round(width.apply - width.completed - width.completing) + '%' });
-				} else {
-					$progress.addClass('error');
-					$status.find('.status-error').css({ width: '0%' });
-				}
-			} else {
-				$status.find('.status-error').css({ width: '0%' });
-			}
-
-			// TODO Change progress border style
+			require(['../main/service/prov/terraform'], function (terraform) {
+				terraform[reset?'reset':'update'](status, _('prov-terraform-status'), current.$messages);
+			});
 		},
 
 		enableTerraform: function () {
@@ -1565,7 +1462,7 @@ define(function () {
 						current.pollStart('terraform-' + subscription, subscription, current.synchronizeTerraform);
 					}, 10);
 					$popup.modal('hide');
-					current.updateTerraformStatus({});
+					current.updateTerraformStatus({}, true);
 				},
 				error: function () {
 					current.enableTerraform();
