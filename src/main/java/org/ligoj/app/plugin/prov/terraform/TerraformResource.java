@@ -151,16 +151,18 @@ public class TerraformResource {
 	 * @return the streaming {@link Response} with output.
 	 */
 	@GET
-	@Produces(MediaType.TEXT_HTML)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("{subscription:\\d+}/terraform.log")
 	public Response getLog(@PathParam("subscription") final int subscription) {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 		final StreamingOutput so = o -> {
 			// Copy log of each command
-			for (final String[] commands : utils.getTerraformCommands(TerraformSequence.CREATE)) {
-				final File log = utils.toFile(entity, commands[0] + ".log");
+			for (final String command : runner.getTask(subscription).getSequence().split(",")) {
+				final File log = utils.toFile(entity, command + ".log");
 				if (log.exists()) {
+					o.write(("---- " + command + " ----\n").getBytes());
 					FileUtils.copyFile(log, o);
+					o.write("\n".getBytes());
 				}
 			}
 		};

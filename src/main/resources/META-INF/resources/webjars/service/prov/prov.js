@@ -987,6 +987,7 @@ define(function () {
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
+			_('prov-terraform-status').find('.logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
 			_('popup-prov-terraform').on('shown.bs.modal', function () {
 				_('terraform-cidr').trigger('focus');
 			}).on('show.bs.modal', function () {
