@@ -89,8 +89,8 @@ define([], function () {
 
                         // Add percent text only for the apply
                         $progressI.filter('.completed')
-                            .html(total === 0 ? '' : '&nbsp;' + (Math.round(status.completed * 100 / total) + '%&nbsp;'))
-                            .attr('data-original-title', Handlebars.compile($messages['service:prov:terraform:status-completed'])([commandI, status.completed, total]))
+                            .html(total === 0 ? '' : ('&nbsp;' + (full ? '100' : Math.round(status.completed * 100 / total)) + '%&nbsp;'))
+                            .attr('data-original-title', Handlebars.compile($messages['service:prov:terraform:status-completed'])([commandI, full ? total : status.completed, total]))
                             .css('width', completed + '%');
                         $progressI.filter('.completing')
                             .attr('data-original-title', Handlebars.compile($messages['service:prov:terraform:status-completing'])([commandI, status.completing]))
