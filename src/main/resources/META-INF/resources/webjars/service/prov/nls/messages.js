@@ -99,6 +99,7 @@ define({
         'service:prov:nb-instances': 'Number of instances',
         'service:prov:cost-month': 'Month',
         'service:prov:efficiency-title': 'Global efficiency of this quote : CPU, RAM and storage',
+        'service:prov:terraform:download': 'Download workspace',
         'service:prov:terraform:target': 'Target provider parameters',
         'service:prov:terraform:execute': 'Execute',
         'service:prov:terraform:destroy': 'Destroy',
