@@ -266,8 +266,6 @@ public class TerraformResource {
 	/**
 	 * Prepare the Terraform environment to apply/destroy the new environment. Note there is no concurrency check.
 	 *
-	 * @param terra
-	 *            The Terraforming implementation.
 	 * @param context
 	 *            The Terraform context holding the subscription, the quote and the user inputs.
 	 * @throws IOException
@@ -295,6 +293,8 @@ public class TerraformResource {
 	 *
 	 * @param subscription
 	 *            The related subscription.
+	 * @throws IOException
+	 *             When files or logs cannot cannot be deleted.
 	 */
 	protected void clean(final Subscription subscription) throws IOException {
 		final java.nio.file.Path parent = utils.toFile(subscription).toPath();

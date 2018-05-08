@@ -86,6 +86,8 @@ public class TerraformBaseCommand implements TerraformAction {
 	 *            The target log outputs.
 	 * @param arguments
 	 *            The Terraform arguments passed to the executable.
+	 * @return the exit value of the process represented by this {@code Process} object. By convention, the value
+	 *         {@code 0} indicates normal termination.
 	 * @throws InterruptedException
 	 *             When the execution is interrupted.
 	 * @throws IOException

@@ -158,10 +158,8 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Parse the given state log stream and update the completing and completed cursors in the given status.
 	 *
-	 * @param doing
-	 *            The pending actions being processed counter.
-	 * @param done
-	 *            The completed actions counter.
+	 * @param status
+	 *            The status to update.
 	 * @param stream
 	 *            The line stream.
 	 */

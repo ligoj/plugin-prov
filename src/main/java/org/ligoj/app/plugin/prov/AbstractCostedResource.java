@@ -1,4 +1,3 @@
-
 package org.ligoj.app.plugin.prov;
 
 import java.util.function.Consumer;
@@ -48,7 +47,7 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 
 	/**
 	 * Check the lookup succeed.
-	 * 
+	 *
 	 * @param resourceType
 	 *            The resource type you are looking for. Will be used to generate the error when not found.
 	 * @param lookup
@@ -56,6 +55,8 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 * @param context
 	 *            The key identifier of the lookup. Will be used to generate the error when not found.
 	 * @return The price of the not <code>null</code> lookup. Never <code>null</code>.
+	 * @param <T>
+	 *            The price type.
 	 */
 	protected <T extends AbstractPrice<? extends AbstractNamedEntity<?>>> T validateLookup(final String resourceType,
 			final AbstractComputedPrice<T> lookup, final String context) {
@@ -67,7 +68,7 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 
 	/**
 	 * Update the total cost of the associated quote, and then delete a configured entity.
-	 * 
+	 *
 	 * @param repository
 	 *            The repository managing the entity to delete.
 	 * @param id
@@ -75,6 +76,8 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 * @param callback
 	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
 	 * @return The new cost.
+	 * @param <T>
+	 *            The quote resource type.
 	 */
 	protected <T extends AbstractQuoteResource> FloatingCost deleteAndUpdateCost(
 			final RestRepository<T, Integer> repository, final Integer id, final Consumer<T> callback) {
@@ -99,7 +102,7 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 
 	/**
 	 * Update the actual monthly cost of given resource.
-	 * 
+	 *
 	 * @param qr
 	 *            The {@link Costed} to update cost.
 	 * @return The new cost.
@@ -110,15 +113,19 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 
 	/**
 	 * Compute the monthly cost of the given resource.
-	 * 
+	 *
 	 * @param qr
-	 *            The {@link Costed} to evaluate.
+	 *            The {@link Costed} resource to evaluate.
 	 * @return The cost of this instance.
 	 */
 	protected abstract FloatingCost getCost(final C qr);
 
 	/**
-	 * Return the effective location applied to the given resource. Never <code>null</code>
+	 * Return the effective location applied to the given resource.
+	 *
+	 * @param qr
+	 *            The {@link Costed} resource to evaluate.
+	 * @return The related location. Never <code>null</code>.
 	 */
 	protected ProvLocation getLocation(final AbstractQuoteResource qr) {
 		return qr.getLocation() == null ? qr.getConfiguration().getLocation() : qr.getLocation();

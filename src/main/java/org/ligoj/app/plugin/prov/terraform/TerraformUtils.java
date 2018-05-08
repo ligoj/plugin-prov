@@ -136,7 +136,7 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Return the map value associated to the closest key of given OS. For sample, when <param>os</param> is
+	 * Return the map value associated to the closest key of given OS. For sample, when <code>os</code> is
 	 * <code>Windows 10</code>, the match with use <code>windows 10</code>, then <code>windows</code>, then
 	 * <code>default</code>, then <code>null</code>.
 	 *
@@ -145,6 +145,8 @@ public class TerraformUtils {
 	 * @param os
 	 *            The OS to search.
 	 * @return The map value associated to the closest key of given OS. <code>null</code> when not found.
+	 * @param <T>
+	 *            The mapped type ot the given <code>os</code>.
 	 */
 	protected <T> T getOsValue(final Map<String, T> map, final String os) {
 		final String[] osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
