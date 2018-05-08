@@ -38,25 +38,17 @@ define([], function () {
             });
 
             // Complement to 100%
-            debugger;
             var ratio = 100 / (sum || 0.01);
             $.each(configuration, function (command, configurationI) {
                 configurationI.width *= ratio;
             });
-            var command = '';
-            if (commandIndex === -1) {
-                command = 'generate';
-            } else {
-                command = sequence[commandIndex];
-            }
-            status.command = command;
 
             // Update the progress tooltips and witdh
             var $progress = $status.find('.progress');
             var sumWidth = 0;
             var lastWidth = 0;
-            for (var i = -1; i <= commandIndex; i++) {
-                var commandI = i === -1 ? 'generate' : sequence[i];
+            for (var i = 0; i <= commandIndex; i++) {
+                var commandI = sequence[i];
                 var active = i === commandIndex;
                 var previous = i < commandIndex;
                 var configurationI = configuration[commandI];
@@ -72,8 +64,7 @@ define([], function () {
                             $progress.append($(current.template)
                                 .addClass('status-' + commandI)
                                 .addClass(configurationI.classes)
-                                .addClass('completing')
-                                .addClass('progress-bar-striped'));
+                                .addClass('completing'));
                         }
                     }
                     $progressI = $progress.find('.status-' + commandI);
@@ -92,8 +83,9 @@ define([], function () {
                     if (active) {
                         // Update 2 progressbars: each one has a part of the reserved width
                         var total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
-                        var completed = total === 0 ? configurationI.width : (configurationI.width * status.completed / total);
-                        var completing = total === 0 ? 0 : (configurationI.width * status.completing / total);
+                        var full = total === 0 || status.end && !status.failed;
+                        var completed = full ? configurationI.width : (configurationI.width * status.completed / total);
+                        var completing = full ? 0 : (configurationI.width * status.completing / total);
 
                         // Add percent text only for the apply
                         $progressI.filter('.completed')
@@ -103,14 +95,6 @@ define([], function () {
                         $progressI.filter('.completing')
                             .attr('data-original-title', Handlebars.compile($messages['service:prov:terraform:status-completing'])([commandI, status.completing]))
                             .css('width', completing + '%');
-                        if (status.failed) {
-                            // The completing part failed
-                            $progressI.filter('.completing')
-                                .removeClass('active')
-                                .addClass('error')
-                                .removeClass(configurationI.classes)
-                                .addClass('progress-bar-danger');
-                        }
                         configurationI.width = completed + completing;
                     } else {
                         // Remove useless 'completing'  bar
@@ -123,10 +107,29 @@ define([], function () {
                     $progressI
                         .attr('data-original-title', '<i class="fas fa-' + (status.failed ? 'exclamation-circle' : 'check-circle') + '"></i>&nbsp;' + $messages['service:prov:terraform:status-' + commandI])
                         .css('width', widthI + '%');
+
+                    if (!active) {
+                        $progressI.removeClass('progress-bar-striped').removeClass('active');
+                    }
                 }
             }
 
+            var $lastProgress = $progress.find('.progress-bar:last-child').filter(':not(.completed)');
+            if (status.failed) {
+                // The completing part failed
+                $lastProgress.removeClass('active')
+                    .addClass('error')
+                    .addClass('progress-bar-striped')
+                    .addClass('progress-bar-danger')
+                    .removeClass('progress-bar-success').removeClass('progress-bar-warning').removeClass('progress-bar-primary').removeClass('progress-bar-info').removeClass('progress-bar-inverse');
+            } else if (status.end) {
+                $lastProgress.removeClass('active').removeClass('progress-bar-striped');
+            } else {
+                $lastProgress.addClass('active').addClass('progress-bar-striped');
+            }
+
             // Update the status text
+            status.command = commandIndex === -1 ? '?' : sequence[commandIndex];
             status.startDate = formatManager.formatDateTime(status.start);
             status.endDate = status.end ? formatManager.formatDateTime(status.end) : '';
             $status.find('.status').html(Handlebars.compile($messages['service:prov:terraform:status'])(status));

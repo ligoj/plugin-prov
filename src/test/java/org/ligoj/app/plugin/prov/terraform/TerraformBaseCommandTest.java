@@ -53,7 +53,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	@Test
 	public void executeStateList() throws Exception {
 		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
-		FileUtils.write(new File(MOCK_PATH, "state.log"), "  + module\n", StandardCharsets.UTF_8);
+		FileUtils.write(new File(MOCK_PATH, "state.log"), "module\n\nSome Text\n", StandardCharsets.UTF_8);
 		execute(resource, "state", "list");
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(1, task.getToDestroy());

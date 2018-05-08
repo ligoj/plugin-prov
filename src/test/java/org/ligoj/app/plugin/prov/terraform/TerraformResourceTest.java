@@ -241,7 +241,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 		final TerraformStatus status = resource.destroy(subscription, new Context());
 		Assertions.assertEquals(subscription, status.getSubscription());
 		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
-		Assertions.assertEquals(TerraformSequence.CREATE, task.getType());
+		Assertions.assertEquals(TerraformSequence.DESTROY, task.getType());
 	}
 
 	@Test

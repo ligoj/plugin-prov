@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.resource.BusinessException;
@@ -30,6 +29,11 @@ public class TerraformBaseCommand implements TerraformAction {
 	 * Pattern filtering the row corresponding to a change.
 	 */
 	private static final Pattern SHOW_CHANGE = Pattern.compile("^\\s*([\\-~+/]+)");
+
+	/**
+	 * Pattern filtering the row corresponding to a state entry.
+	 */
+	private static final Pattern STATE_CHANGE = Pattern.compile("^[^\\s]+$");
 
 	@Autowired
 	protected TerraformUtils utils;
@@ -130,7 +134,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	 */
 	protected void computeWorkloadState(final Subscription subscription, final TerraformStatus status) {
 		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
-			status.setToDestroy((int) stream.filter(StringUtils::isNotBlank).count());
+			status.setToDestroy((int) stream.map(STATE_CHANGE::matcher).filter(Matcher::find).count());
 		} catch (final IOException e) {
 			log.warn("Unable to get the full workload from the 'state' command", e);
 		}

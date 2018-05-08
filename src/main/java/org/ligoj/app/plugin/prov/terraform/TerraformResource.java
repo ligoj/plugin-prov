@@ -200,7 +200,8 @@ public class TerraformResource {
 	/**
 	 * Execute a sequence.
 	 */
-	private TerraformStatus sequenceNewThread(final int subscription, final Context context, final TerraformSequence sequence) {
+	private TerraformStatus sequenceNewThread(final int subscription, final Context context,
+			final TerraformSequence sequence) {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 
 		// Check the provider support the Terraform generation
@@ -296,7 +297,8 @@ public class TerraformResource {
 	protected void clean(final Subscription subscription) throws IOException {
 		final java.nio.file.Path parent = utils.toFile(subscription).toPath();
 		Files.walk(parent)
-				.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf"))
+				.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
+						".keep.auto.tfvars"))
 				.filter(path -> !path.toFile().isDirectory()).filter(path -> !path.toString().contains(".terraform"))
 				.map(java.nio.file.Path::toFile).forEach(FileUtils::deleteQuietly);
 	}
