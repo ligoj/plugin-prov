@@ -14,6 +14,7 @@ define([], function () {
             $status.removeClass('invisible');
             var sequence = (status.sequence || '').split(',');
             var commandIndex = typeof status.commandIndex === 'undefined' ? -1 : status.commandIndex;
+            status.command = commandIndex === -1 ? '?' : sequence[commandIndex];
 
             // Compute the progress percentage since "init" and "apply" commands are optional
             var configuration = {
@@ -45,8 +46,7 @@ define([], function () {
 
             // Update the progress tooltips and witdh
             var $progress = $status.find('.progress');
-            var sumWidth = 0;
-            var lastWidth = 0;
+            var finished = typeof status.end !== 'undefined';
             for (var i = 0; i <= commandIndex; i++) {
                 var commandI = sequence[i];
                 var active = i === commandIndex;
@@ -79,6 +79,7 @@ define([], function () {
                 }
 
                 var widthI = configurationI.width;
+                var text = '';
                 if (configurationI.details) {
                     if (active) {
                         // Update 2 progressbars: each one has a part of the reserved width
@@ -88,8 +89,8 @@ define([], function () {
                         var completing = full ? 0 : (configurationI.width * status.completing / total);
 
                         // Add percent text only for the apply
+                        text = '&nbsp;' + (full ? '100' : Math.round(status.completed * 100 / total)) + '%&nbsp;';
                         $progressI.filter('.completed')
-                            .html(total === 0 ? '' : ('&nbsp;' + (full ? '100' : Math.round(status.completed * 100 / total)) + '%&nbsp;'))
                             .attr('data-original-title', Handlebars.compile($messages['service:prov:terraform:status-completed'])([commandI, full ? total : status.completed, total]))
                             .css('width', completed + '%');
                         $progressI.filter('.completing')
@@ -112,6 +113,13 @@ define([], function () {
                         $progressI.removeClass('progress-bar-striped').removeClass('active');
                     }
                 }
+                if (active && (status.failed || !finished)) {
+                    // Add an overlay text above the progres
+                    $progressI.not('.completing')
+                        .html('<span class="progress-text">' + ($messages['service:prov:terraform:status-' + status.command] || Handlebars.compile($messages['service:prov:terraform:status-command'])(status.command)) + '</span>' + text);
+                } else {
+                    $progressI.not('.completing').empty();
+                }
             }
 
             var $lastProgress = $progress.find('.progress-bar:last-child').filter(':not(.completed)');
@@ -123,13 +131,14 @@ define([], function () {
                     .addClass('progress-bar-danger')
                     .removeClass('progress-bar-success').removeClass('progress-bar-warning').removeClass('progress-bar-primary').removeClass('progress-bar-info').removeClass('progress-bar-inverse');
             } else if (status.end) {
+                // The last progress is not running anymore
                 $lastProgress.removeClass('active').removeClass('progress-bar-striped');
             } else {
+                // The last progress is running
                 $lastProgress.addClass('active').addClass('progress-bar-striped');
             }
 
             // Update the status text
-            status.command = commandIndex === -1 ? '?' : sequence[commandIndex];
             status.startDate = formatManager.formatDateTime(status.start);
             status.endDate = status.end ? formatManager.formatDateTime(status.end) : '';
             $status.find('.status').html(Handlebars.compile($messages['service:prov:terraform:status'])(status));
