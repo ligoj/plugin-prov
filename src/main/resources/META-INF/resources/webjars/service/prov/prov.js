@@ -987,7 +987,17 @@ define(function () {
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
-			_('prov-terraform-status').find('.logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
+			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
+
+			// render the dashboard
+			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
+				var $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
+				if ($tool.dashboardLink) {
+					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
+				} else {
+					$dashboard.addClass('hidden');
+				}
+			});
 			_('popup-prov-terraform').on('shown.bs.modal', function () {
 				_('terraform-cidr').trigger('focus');
 			}).on('show.bs.modal', function () {
@@ -1402,11 +1412,12 @@ define(function () {
 			if (status.end) {
 				// Stop the polling, update the buttons
 				current.enableTerraform();
+				'chart-area'
 			} else {
 				current.disableTerraform();
 			}
 			require(['../main/service/prov/terraform'], function (terraform) {
-				terraform[reset?'reset':'update'](status, _('prov-terraform-status'), current.$messages);
+				terraform[reset ? 'reset' : 'update'](status, _('prov-terraform-status'), current.$messages);
 			});
 		},
 

@@ -118,6 +118,7 @@ define({
         'service:prov:terraform:status-command': 'Terraform <strong>{{this}}</strong> command',
         'service:prov:terraform:status-completed': 'Terraform <strong>{{[0]}}</strong>: {{[1]}}/{{[2]}} completed changes',
         'service:prov:terraform:status-completing': 'Terraform <strong>{{[0]}}</strong>: completing {{[1]}} changes',
+        'service:prov:terraform-dashboard': 'Live provider dashboard',
         'instance-import-message': 'Import instances from a CSV file, <code> ;</code> as separator',
         'instance-import-sample': 'Sample',
         'service:prov:cost-refresh-title': 'Refresh (full compute) the global cost',

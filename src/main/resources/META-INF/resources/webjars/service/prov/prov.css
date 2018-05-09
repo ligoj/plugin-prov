@@ -280,3 +280,10 @@ img.flag-icon.prov-location-flag {
 	border-right-width: 1px;
 	padding-right: 2px;
 }
+.terraform-dashboard {
+	width: 0px;
+	height: 0px;
+	position: absolute;
+	top: 21px;
+	left: 15px;
+}
