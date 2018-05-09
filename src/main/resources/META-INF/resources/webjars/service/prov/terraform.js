@@ -106,7 +106,8 @@ define([], function () {
                     }
                 } else {
                     $progressI
-                        .attr('data-original-title', '<i class="fas fa-' + (status.failed ? 'exclamation-circle' : 'check-circle') + '"></i>&nbsp;' + $messages['service:prov:terraform:status-' + commandI])
+                        .attr('data-original-title', '<i class="fas fa-' + (status.failed ? 'exclamation-circle' : 'check-circle') + '"></i>&nbsp;'
+                            + ($messages['service:prov:terraform:status-' + commandI] || Handlebars.compile($messages['service:prov:terraform:status-command'])(commandI)))
                         .css('width', widthI + '%');
 
                     if (!active) {
@@ -116,7 +117,8 @@ define([], function () {
                 if (active && (status.failed || !finished)) {
                     // Add an overlay text above the progres
                     $progressI.not('.completing')
-                        .html('<span class="progress-text">' + ($messages['service:prov:terraform:status-' + status.command] || Handlebars.compile($messages['service:prov:terraform:status-command'])(status.command)) + '</span>' + text);
+                        .html('<span class="progress-text">'
+                            + ($messages['service:prov:terraform:status-' + commandI] || Handlebars.compile($messages['service:prov:terraform:status-command'])(commandI)) + '</span>' + text);
                 } else {
                     $progressI.not('.completing').empty();
                 }
