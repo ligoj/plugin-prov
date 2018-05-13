@@ -7,17 +7,17 @@ install:
       }
             
       (new-object System.Net.WebClient).DownloadFile(
-        'http://www.us.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.zip',
+        'http://www.us.apache.org/dist/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3-bin.zip',
         'C:\maven-bin.zip'
       )
       [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
   - ps: |
      $env:JAVA_HOME="c:/Program Files/Java/jdk9"
   - cmd: SET    
-  - cmd: SET PATH=C:\maven\apache-maven-3.5.2\bin;%PATH%
-  - cmd: SET M2_HOME=C:\maven\apache-maven-3.5.2
+  - cmd: SET PATH=C:\maven\apache-maven-3.5.3\bin;%PATH%
+  - cmd: SET M2_HOME=C:\maven\apache-maven-3.5.3
   - cmd: SET MAVEN_OPTS=-Xmx2g
-  - cmd: SET MAVEN_HOME=C:\maven\apache-maven-3.5.2
+  - cmd: SET MAVEN_HOME=C:\maven\apache-maven-3.5.3
   - cmd: SET
 
 build_script:
