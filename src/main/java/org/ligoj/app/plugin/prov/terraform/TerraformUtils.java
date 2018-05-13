@@ -246,11 +246,13 @@ public class TerraformUtils {
 	 */
 	@CacheResult(cacheName = "terraform-version-latest")
 	public String getLatestVersion() {
-		final Matcher matcher = VERSION_PATTERN.matcher(
-				StringUtils.defaultString(new CurlProcessor().get(configuration.get(CONF_REPO, BASE_REPO)), ""));
-		if (matcher.find()) {
-			// Version has been found
-			return matcher.group(1);
+		try (CurlProcessor curl = new CurlProcessor()) {
+			final Matcher matcher = VERSION_PATTERN
+					.matcher(StringUtils.defaultString(curl.get(configuration.get(CONF_REPO, BASE_REPO)), ""));
+			if (matcher.find()) {
+				// Version has been found
+				return matcher.group(1);
+			}
 		}
 
 		// Unable to detect the latest version from the index

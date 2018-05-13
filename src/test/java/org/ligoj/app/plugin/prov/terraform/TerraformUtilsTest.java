@@ -170,11 +170,8 @@ public class TerraformUtilsTest extends AbstractServerTest {
 			file = new File(pathDownload, "prov/terraform");
 		}
 		Assertions.assertTrue(file.exists());
-		FileInputStream input = new FileInputStream(file);
-		try {
+		try (FileInputStream input = new FileInputStream(file)) {
 			Assertions.assertTrue(IOUtils.toString(input, "UTF-8").startsWith("#EMPTY"));
-		} finally {
-			IOUtils.closeQuietly(input);
 		}
 	}
 
@@ -191,19 +188,19 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		pathDownload.mkdirs();
 		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
-		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
+		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
-				.getInputStream();
-		httpServer.stubFor(get(urlEqualTo("/"))
-				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
-		IOUtils.closeQuietly(inputStream);
+		try (InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+				.getInputStream()) {
+			httpServer.stubFor(get(urlEqualTo("/"))
+					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		}
 
 		// ZIP file
-		inputStream = new ClassPathResource(file).getInputStream();
-		httpServer.stubFor(get(urlEqualTo("/0.11.5/terraform_0.11.5_linux_amd64.zip"))
-				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
-		IOUtils.closeQuietly(inputStream);
+		try (InputStream inputStream = new ClassPathResource(file).getInputStream()) {
+			httpServer.stubFor(get(urlEqualTo("/0.11.5/terraform_0.11.5_linux_amd64.zip"))
+					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		}
 
 		httpServer.start();
 		final TerraformUtils utils = new TerraformUtils() {
@@ -234,38 +231,33 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void getLatestVersionMock() throws IOException {
-		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
+		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
-				.getInputStream();
-		httpServer.stubFor(get(urlEqualTo("/"))
-				.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
-		IOUtils.closeQuietly(inputStream);
+		try (InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+				.getInputStream()) {
+			httpServer.stubFor(get(urlEqualTo("/"))
+					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
+		}
 		httpServer.start();
 		Assertions.assertEquals("0.11.5", resource.getLatestVersion());
 	}
 
 	@Test
 	public void getLatestVersionNotAvailable() {
-		configuration.saveOrUpdate("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
+		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		Assertions.assertNull(resource.getLatestVersion());
 	}
 
-
 	@Test
 	public void toFile() throws IOException {
-		ThreadClassLoaderScope scope = null;
-		try {
-			final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
-			scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader));
+		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		try (ThreadClassLoaderScope scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
 			final Path file = Paths.get("");
 			final Subscription entity = new Subscription();
 			entity.setId(15);
 			Mockito.when(classLoader.toPath(entity, "some")).thenReturn(file);
 			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
 			Assertions.assertNotNull(PluginsClassLoader.getInstance());
-		} finally {
-			IOUtils.closeQuietly(scope);
 		}
 	}
 }
