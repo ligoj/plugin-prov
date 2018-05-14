@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.cache.annotation.CacheRemoveAll;
 import javax.cache.annotation.CacheResult;
@@ -298,11 +299,12 @@ public class TerraformResource {
 	 */
 	protected void clean(final Subscription subscription) throws IOException {
 		final java.nio.file.Path parent = utils.toFile(subscription).toPath();
-		Files.walk(parent)
-				.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
-						".keep.auto.tfvars"))
-				.filter(path -> !path.toFile().isDirectory()).filter(path -> !path.toString().contains(".terraform"))
-				.map(java.nio.file.Path::toFile).forEach(FileUtils::deleteQuietly);
+		try (Stream<java.nio.file.Path> files = Files.walk(parent)) {
+			files.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
+					".keep.auto.tfvars")).filter(path -> !path.toFile().isDirectory())
+					.filter(path -> !path.toString().contains(".terraform")).map(java.nio.file.Path::toFile)
+					.forEach(FileUtils::deleteQuietly);
+		}
 	}
 
 	/**
@@ -332,7 +334,7 @@ public class TerraformResource {
 			// Move forward the shared sequence index
 			runner.nextStep(subscription.getNode().getId(),
 					t -> t.setCommandIndex(t.getCommandIndex() == null ? 0 : t.getCommandIndex() + 1));
-			try (final FileOutputStream out = new FileOutputStream(utils.toFile(subscription, command + ".log"))) {
+			try (FileOutputStream out = new FileOutputStream(utils.toFile(subscription, command + ".log"))) {
 				// Execute this command: real Terraform or bean's function
 				getAction(command).execute(context, out, arguments);
 			}

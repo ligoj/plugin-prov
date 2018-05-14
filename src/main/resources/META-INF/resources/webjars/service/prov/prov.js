@@ -1412,7 +1412,6 @@ define(function () {
 			if (status.end) {
 				// Stop the polling, update the buttons
 				current.enableTerraform();
-				'chart-area'
 			} else {
 				current.disableTerraform();
 			}

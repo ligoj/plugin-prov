@@ -50,7 +50,6 @@ define([], function () {
             for (var i = 0; i <= commandIndex; i++) {
                 var commandI = sequence[i];
                 var active = i === commandIndex;
-                var previous = i < commandIndex;
                 var configurationI = configuration[commandI];
                 var $progressI = $progress.find('.status-' + commandI);
                 if ($progressI.length === 0 && (configurationI.width || configurationI.details)) {
@@ -148,9 +147,8 @@ define([], function () {
             // Update the error style of progress bars
             if (status.failed && $progress.find('.status-error').length === 0) {
                 var notExecuted = 100;
-                for (var i = 0; i <= commandIndex; i++) {
-                    var configurationI = configuration[sequence[i]];
-                    notExecuted -= configurationI.width;
+                for (var j = 0; j <= commandIndex; j++) {
+                    notExecuted -= configuration[sequence[j]].width;
                 }
                 $progress.append($(current.template).addClass('status-error').addClass('progress-bar-danger').css('width', notExecuted + '%'));
             }

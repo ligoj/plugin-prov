@@ -47,6 +47,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TerraformUtils {
 
+	private static final String OS_DEFAULT = "default";
+	private static final String OS_WINDOWS = "windows";
+
 	/**
 	 * Configuration key for Terraform command path
 	 */
@@ -93,16 +96,16 @@ public class TerraformUtils {
 	private final Map<String, String> distributions = new HashMap<>();
 
 	public TerraformUtils() {
-		shells.put("windows", TERRAFORM_SHELL_WIN);
-		shells.put("default", TERRAFORM_SHELL_LINUX);
-		distributions.put("windows", "windows_amd64");
+		shells.put(OS_WINDOWS, TERRAFORM_SHELL_WIN);
+		shells.put(OS_DEFAULT, TERRAFORM_SHELL_LINUX);
+		distributions.put(OS_WINDOWS, "windows_amd64");
 		distributions.put("mac", "darwin_amd64");
 		distributions.put("freebsd", "freebsd_amd64");
 		distributions.put("solaris", "solaris_amd64");
 		distributions.put("openbsd", "openbsd_amd64");
-		distributions.put("default", "linux_amd64");
-		bins.put("windows", "terraform.exe");
-		bins.put("default", "terraform");
+		distributions.put(OS_DEFAULT, "linux_amd64");
+		bins.put(OS_WINDOWS, "terraform.exe");
+		bins.put(OS_DEFAULT, "terraform");
 	}
 
 	/**
@@ -152,7 +155,7 @@ public class TerraformUtils {
 		final String[] osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
 		return IntStream.iterate(osParts.length, i -> --i).limit(osParts.length)
 				.mapToObj(i -> map.get(StringUtils.join(osParts, " ", 0, i))).filter(Objects::nonNull).findFirst()
-				.orElseGet(() -> map.get("default"));
+				.orElseGet(() -> map.get(OS_DEFAULT));
 	}
 
 	/**

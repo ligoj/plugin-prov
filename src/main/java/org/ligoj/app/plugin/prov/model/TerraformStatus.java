@@ -1,5 +1,7 @@
 package org.ligoj.app.plugin.prov.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -20,7 +22,12 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_TERRAFORM_STATUS", uniqueConstraints = @UniqueConstraint(columnNames = "locked"))
-public class TerraformStatus extends AbstractLongTaskNode {
+public class TerraformStatus extends AbstractLongTaskNode implements Serializable {
+
+	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The sequence type.
