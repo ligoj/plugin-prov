@@ -7,12 +7,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.zip.ZipOutputStream;
 
 import javax.transaction.Transactional;
 
@@ -31,6 +34,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.resource.plugin.PluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -259,5 +263,35 @@ public class TerraformUtilsTest extends AbstractServerTest {
 			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
 			Assertions.assertNotNull(PluginsClassLoader.getInstance());
 		}
+	}
+
+	@Test
+	public void zipUnzip() throws IOException {
+		final Path from = new File("target/test-classes/terraform-zip").toPath();
+		final File toZip = new File("target/test-classes/terraform-out.zip");
+		FileUtils.deleteQuietly(toZip);
+		try (FileOutputStream toStream = new FileOutputStream(toZip)) {
+			resource.zip(from, toStream);
+		}
+		final File to = new File("target/test-classes/terraform-out");
+		FileUtils.deleteQuietly(to);
+		FileUtils.forceMkdir(to);
+		try (FileInputStream fromStream = new FileInputStream(toZip)) {
+			resource.unzip(fromStream, to);
+		}
+		Assertions.assertEquals("bar1",
+				FileUtils.readFileToString(new File(to, "module/bar1.tf"), StandardCharsets.UTF_8));
+		Assertions.assertEquals("bar0", FileUtils.readFileToString(new File(to, "bar0.tf"), StandardCharsets.UTF_8));
+		Assertions.assertFalse(new File(to, "plan.ptf").exists());
+		Assertions.assertFalse(new File(to, "secrets.auto.tfvars").exists());
+		Assertions.assertFalse(new File(to, ".terraform/foo.tf").exists());
+	}
+
+	@Test
+	public void addEntryFailed() throws IOException {
+		final Path from = new File("target/test-classes/terraform-logs", "init.log").toPath();
+		final ZipOutputStream zs = Mockito.mock(ZipOutputStream.class);
+		Mockito.doThrow(new IOException()).when(zs).putNextEntry(ArgumentMatchers.any());
+		resource.addEntry(new File("target/test-classes/terraform-logs").toPath(), from, zs);
 	}
 }

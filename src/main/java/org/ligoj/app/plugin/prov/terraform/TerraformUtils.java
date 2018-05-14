@@ -340,7 +340,7 @@ public class TerraformUtils {
 	 */
 	private void install(final File toDir, final String url) throws IOException {
 		try (InputStream openStream = new URL(url).openStream()) {
-			unzip(toDir, openStream).forEach(f -> f.setExecutable(true));
+			unzip(openStream, toDir).forEach(f -> f.setExecutable(true));
 		}
 	}
 
@@ -373,38 +373,49 @@ public class TerraformUtils {
 	 *             When zip fails : download, unzip, write file,...
 	 */
 	public List<File> zip(final java.nio.file.Path fromDir, final OutputStream out) throws IOException {
-		final List<File> files = new ArrayList<>();
 		try (ZipOutputStream zs = new ZipOutputStream(out); Stream<Path> stream = Files.walk(fromDir)) {
-			stream.filter(path -> !Files.isDirectory(path))
+			return stream.filter(path -> !Files.isDirectory(path))
+					// Excludes ".terraform", secrets, and "*.ptf" files
 					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
-					.filter(path -> !path.toString().contains(".terraform")).forEach(path -> {
-						// Excludes ".terraform", secrets, and "*.ptf" files
-						final ZipEntry zipEntry = new ZipEntry(fromDir.relativize(path).toString());
-						try {
-							zs.putNextEntry(zipEntry);
-							Files.copy(path, zs);
-							zs.closeEntry();
-							files.add(path.toFile());
-						} catch (IOException e) {
-							log.error("Unable to create Zip file from {}", fromDir, e);
-						}
-					});
+					.filter(path -> !path.toString().contains(".terraform")).map(path -> addEntry(fromDir, path, zs))
+					.collect(Collectors.toList());
 		}
-		return files;
+	}
+
+	/**
+	 * Add a Zip entry to given Zip.
+	 *
+	 * @param fromDir
+	 *            The root directory of the source file. Used to compute the internal path inside the Zip.
+	 * @param path
+	 *            the entry to add.
+	 * @param zs
+	 *            The target Zip.
+	 * @return The added file.
+	 */
+	protected File addEntry(final java.nio.file.Path fromDir, Path path, ZipOutputStream zs) {
+		try {
+			zs.putNextEntry(new ZipEntry(fromDir.relativize(path).toString()));
+			Files.copy(path, zs);
+			zs.closeEntry();
+		} catch (IOException e) {
+			log.error("Unable to create Zip file from {}", fromDir, e);
+		}
+		return path.toFile();
 	}
 
 	/**
 	 * Unzip all files from the given ZIP stream to target directory and return the unziped files.
 	 *
-	 * @param toDir
-	 *            The target directory where uncompressed files will be placed.
 	 * @param source
 	 *            The source ZIP file stream.
+	 * @param toDir
+	 *            The target directory where uncompressed files will be placed.
 	 * @return The uncompressed files.
 	 * @throws IOException
 	 *             When unzip fails : download, unzip, write file,...
 	 */
-	public List<File> unzip(final File toDir, final InputStream source) throws IOException {
+	public List<File> unzip(final InputStream source, final File toDir) throws IOException {
 		final List<File> files = new ArrayList<>();
 		try (ZipInputStream zis = new ZipInputStream(source)) {
 			FileUtils.forceMkdir(toDir);

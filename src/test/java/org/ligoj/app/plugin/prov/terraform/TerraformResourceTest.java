@@ -45,7 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TerraformResourceTest extends AbstractTerraformTest {
 
 	/**
-	 * Converage only code for interface and beans only used by implementors.
+	 * Coverage only code for interface and beans only used by implementors.
 	 */
 	@Test
 	public void coverage() {
@@ -87,7 +87,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 		}
 
 		// Unzip and check the files
-		final List<File> files = resource.utils.unzip(target, new FileInputStream(zipFile));
+		final List<File> files = resource.utils.unzip(new FileInputStream(zipFile), target);
 		Assertions.assertTrue(files.stream().noneMatch(f -> f.getName().endsWith(".ptf")));
 		Assertions.assertTrue(files.stream().noneMatch(f -> f.getName().contains(".terraform")));
 		Assertions.assertTrue(files.stream().noneMatch(f -> f.getName().contains("secret")));
@@ -133,24 +133,36 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTerraformLogEmpty() throws IOException {
+	public void getLogEmpty() throws IOException {
 		final TerraformResource resource = newResource(newTerraforming());
-		// Check the log file is well handled
+		startTask(resource, subscription);
 		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-			final String string = bos.toString(StandardCharsets.UTF_8);
-			Assertions.assertEquals("", string);
+			Assertions.assertEquals("", bos.toString(StandardCharsets.UTF_8));
 		}
 	}
 
 	@Test
-	public void getTerraformLog() throws IOException {
+	public void getLogNoTask() throws IOException {
 		writeOldFiles();
 		final TerraformResource resource = newResource(newTerraforming());
 		// Check the log file is well handled
 		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-			Assertions.assertEquals("old-init.old-plan.old-show.old-apply.", bos.toString(StandardCharsets.UTF_8));
+			Assertions.assertEquals("", bos.toString(StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void getLog() throws IOException {
+		writeOldFiles();
+		final TerraformResource resource = newResource(newTerraforming());
+		startTask(resource, subscription, "init,plan,show");
+		// Check the log file is well handled
+		try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
+			Assertions.assertEquals("---- init ----\nold-init.\n---- plan ----\nold-plan.\n---- show ----\nold-show.\n",
+					bos.toString(StandardCharsets.UTF_8));
 		}
 	}
 

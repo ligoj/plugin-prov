@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
@@ -92,7 +93,7 @@ public class TerraformResource {
 	private NodeResource nodeResource;
 
 	/**
-	 * Mappging of command name to action. Some of these actions correspond to a real Terraform command, some are juste
+	 * Mapping of command name to action. Some of these actions correspond to a real Terraform command, some are just
 	 * proxying a Java function.
 	 */
 	private final Map<String, TerraformAction> commandMapping = new HashMap<>();
@@ -158,7 +159,8 @@ public class TerraformResource {
 		final Subscription entity = subscriptionResource.checkVisible(subscription);
 		final StreamingOutput so = o -> {
 			// Copy log of each command
-			for (final String command : runner.getTask(subscription).getSequence().split(",")) {
+			for (final String command : Optional.ofNullable(runner.getTask(subscription))
+					.map(s -> s.getSequence().split(",")).orElse(ArrayUtils.EMPTY_STRING_ARRAY)) {
 				final File log = utils.toFile(entity, command + ".log");
 				if (log.exists()) {
 					o.write(("---- " + command + " ----\n").getBytes());
