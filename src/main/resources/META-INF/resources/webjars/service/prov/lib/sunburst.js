@@ -1,3 +1,6 @@
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 define(['d3', 'jquery'], function (d3, $) {
 	var sunburst = {};
 	sunburst.arcTween = function (newAngle) {

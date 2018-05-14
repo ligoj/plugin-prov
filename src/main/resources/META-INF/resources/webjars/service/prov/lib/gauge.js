@@ -1,10 +1,8 @@
 define(['d3'], function (d3) {
 
-	/*!
-	 * @license Open source under BSD 2-clause (http://choosealicense.com/licenses/bsd-2-clause/)
-	 * Copyright (c) 2015, Curtis Bratton
-	 * All rights reserved.
-	 */
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 	(function (d3) {
 		var idGenerator = (function () {
 			var count = 0;

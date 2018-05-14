@@ -1,3 +1,6 @@
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 define([], function () {
     var current = {
         template: '<div class="progress-bar" data-toggle="tooltip" title=""></div>',
