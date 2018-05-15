@@ -270,7 +270,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void zipUnzip() throws IOException {
-		final Path from = new File("target/test-classes/terraform-zip").toPath();
+		final Path from = new File("target/test-classes/terraform-zip-unzip").toPath();
 		final File toZip = new File("target/test-classes/terraform-out.zip");
 		FileUtils.deleteQuietly(toZip);
 		try (FileOutputStream toStream = new FileOutputStream(toZip)) {

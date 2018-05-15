@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +14,6 @@ import java.util.function.BiFunction;
 import javax.transaction.Transactional;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
