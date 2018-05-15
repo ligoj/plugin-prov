@@ -70,7 +70,7 @@ define([], function () {
                         }
                     }
                     $progressI = $progress.find('.status-' + commandI);
-                    $progressI.addClass(configurationI.classes || 'progress-bar-inverse')
+                    $progressI.addClass(configurationI.classes || 'progress-bar-inverse');
                 }
 
                 // Animation toggles
@@ -167,6 +167,5 @@ define([], function () {
         }
     };
 
-
     return current;
-})
+});

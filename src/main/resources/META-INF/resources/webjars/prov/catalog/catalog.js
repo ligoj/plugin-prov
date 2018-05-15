@@ -80,7 +80,7 @@ define(['sparkline'], function () {
 						if (catalog.canImport) {
 							if (catalog.status.start && (catalog.status.end || 0) === 0) {
 								// Stop button
-								return '<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>'
+								return '<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>';
 							}
 							// Refresh button
 							return '<a class="import"><i class="fas fa-sync-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
@@ -151,7 +151,7 @@ define(['sparkline'], function () {
 						]);
 				}
 				// Last case : never started
-				return current.$messages['status-new']
+				return current.$messages['status-new'];
 			}
 
 			// No catalog update support
