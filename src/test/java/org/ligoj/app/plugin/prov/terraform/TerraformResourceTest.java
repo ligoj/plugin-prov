@@ -209,7 +209,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void create() throws IOException, InterruptedException {
+	public void create() throws IOException {
 		final File log = new File(MOCK_PATH, "apply.log");
 		final TerraformResource resource = mockResource(newTerraforming(), (s, f) -> null, new TerraformResource() {
 
@@ -597,7 +597,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskNotStarted() throws IOException {
+	public void getTaskNotStarted() {
 		Assertions.assertNull(runner.getTask(getSubscription().getId()));
 	}
 

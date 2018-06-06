@@ -156,7 +156,7 @@ public class TerraformUtils {
 	 */
 	protected <T> T getOsValue(final Map<String, T> map, final String os) {
 		final String[] osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
-		return IntStream.iterate(osParts.length, i -> --i).limit(osParts.length)
+		return IntStream.iterate(osParts.length, i -> i - 1).limit(osParts.length)
 				.mapToObj(i -> map.get(StringUtils.join(osParts, " ", 0, i))).filter(Objects::nonNull).findFirst()
 				.orElseGet(() -> map.get(OS_DEFAULT));
 	}
