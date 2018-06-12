@@ -238,7 +238,7 @@ define(['sparkline'], function () {
 				// Already polling
 				return;
 			}
-			current.synchronizeUploadStep(node)
+			current.synchronizeUploadStep(node);
 		},
 
 		unscheduleUploadStep: function (node) {

@@ -32,7 +32,7 @@ define(['d3', 'jquery'], function (d3) {
 				.data(context.pie(current.calcPercent(0)))
 				.enter().append("path")
 				.attr("class", function (d, i) {
-					return "color" + i
+					return "color" + i;
 				})
 				.attr("d", context.arc)
 				.each(function (d) {
@@ -57,7 +57,7 @@ define(['d3', 'jquery'], function (d3) {
 			context.path = context.path.data(context.pie(current.calcPercent(value)));
 			context.path.transition().duration(context.duration).attrTween("d", function (a) {
 				var i = d3.interpolate(this._current, a);
-				var i2 = d3.interpolate(context.progress, value)
+				var i2 = d3.interpolate(context.progress, value);
 				this._current = i(0);
 				return function (t) {
 					context.text.text(current.format(i2(t) / 100));

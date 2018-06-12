@@ -164,11 +164,11 @@ public class TerraformBaseCommand implements TerraformAction {
 			stream.map(SHOW_CHANGE::matcher).filter(Matcher::find).forEach(matcher -> {
 				// Detect the type of this change
 				final String type = matcher.group(1);
-				if (type.equals("+")) {
+				if ("+".equals(type)) {
 					added.incrementAndGet();
-				} else if (type.equals("-")) {
+				} else if ("-".equals(type)) {
 					deleted.incrementAndGet();
-				} else if (type.equals("-/+")) {
+				} else if ("-/+".equals(type)) {
 					replaced.incrementAndGet();
 				} else {
 					updated.incrementAndGet();

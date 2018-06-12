@@ -32,7 +32,7 @@ define(['cascade'], function ($cascade) {
 		
 		updateTerraformInformation: function(model) {
 			current.model = model;
-			var $form = $('.terraform-details')
+			var $form = $('.terraform-details');
 			validationManager.reset($form);
 			if (model.installed) {
 				if (model.version) {
@@ -60,7 +60,7 @@ define(['cascade'], function ($cascade) {
 				_('terraform-install').removeClass('hidden').html('<i class="fa far-arrow-alt-circle-down"></i> ' + current.$messages.install);
 			} else  {
 				// Not available
-				_('terraform-changelog').addClass('hidden')
+				_('terraform-changelog').addClass('hidden');
 				validationManager.addError(_('terraform-last-version').val(''), 'terraform-latest-version');
 			}
 		},

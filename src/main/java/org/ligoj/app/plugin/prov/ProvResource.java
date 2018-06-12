@@ -73,7 +73,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Ordered/mapped columns.
 	 */
-	static final Map<String, String> ORM_COLUMNS = new HashMap<>();
+	protected static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
 	@Autowired
 	@Getter
@@ -134,7 +134,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Return the locations available for a subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the locations from the associated provider.
 	 * @param uriInfo
@@ -156,7 +156,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
 	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
-	 * 
+	 *
 	 * @param node
 	 *            The provider node.
 	 * @param name
@@ -175,7 +175,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
 	 * checked.
-	 * 
+	 *
 	 * @param subscription
 	 *            A visible subscription for the current principal.
 	 * @return The configuration with computed data.
@@ -197,7 +197,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Return the quote status linked to given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The parent subscription identifier.
 	 * @return The quote status (summary only) linked to given subscription.
@@ -221,7 +221,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription to update
 	 * @param quote
@@ -246,7 +246,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
 	 * updated.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription to compute
 	 * @return The updated computed cost.
@@ -279,7 +279,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Execute the lookup for each resource and compute the total cost.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription to compute
 	 * @return The updated computed cost.
@@ -330,7 +330,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Check the visibility of a configured entity and check the ownership by the given subscription.
-	 * 
+	 *
 	 * @param repository
 	 *            The repository managing the entity to find.
 	 * @param id

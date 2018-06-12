@@ -90,7 +90,7 @@ define(['d3', 'jquery'], function (d3, $) {
 						idx: i
 					};
 				}).sort(function (a, b) {
-					return b.value - a.value
+					return b.value - a.value;
 				}).forEach(function (child, i) {
 					d.children[child.idx].color = colors(i);
 				});

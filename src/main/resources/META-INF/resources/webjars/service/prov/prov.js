@@ -2220,7 +2220,7 @@ define(function () {
 				};
 				data.children.push(storages);
 				var allOptimizations = {};
-				for (i = 0; i < conf.storages.length; i++) {
+				for (var i = 0; i < conf.storages.length; i++) {
 					var qs = conf.storages[i];
 					var optimizations = allOptimizations[qs.price.type.latency];
 					if (typeof optimizations === 'undefined') {

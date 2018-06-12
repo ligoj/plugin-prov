@@ -18,7 +18,6 @@
         "Handlebars": true,
         "traceLog": true,
         "formatManager": true,
-        "define": true,
-        "Handlebars": true
+        "define": true
     }
  }

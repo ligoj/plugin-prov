@@ -46,6 +46,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStatus, TerraformStatusRepository> {
 
+	private static final Pattern PATTERN_APPLY = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)\\.|([A-Za-z]+) complete)()");
+	private static final Pattern PATTERN_DESTROY = Pattern
+			.compile("^(.+: (Destroying)\\.|.+: (Destruction) complete|data\\.[^:]+:+ (Refreshing))");
+
+	private static final Set<String> COMPLETED_OPERATIONS = new HashSet<>(
+			Arrays.asList("Destruction", "Creation", "Modifications", "Refreshing"));
+
+	private static final Set<String> PENDING_OPERATIONS = new HashSet<>(
+			Arrays.asList("Creating", "Modifying", "Destroying"));
+
 	@Autowired
 	@Getter
 	protected TerraformStatusRepository taskRepository;
@@ -72,16 +82,6 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	public Supplier<TerraformStatus> newTask() {
 		return TerraformStatus::new;
 	}
-
-	private static final Pattern PATTERN_APPLY = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)\\.|([A-Za-z]+) complete)()");
-	private static final Pattern PATTERN_DESTROY = Pattern
-			.compile("^(.+: (Destroying)\\.|.+: (Destruction) complete|data\\.[^:]+:+ (Refreshing))");
-
-	private static final Set<String> COMPLETED_OPERATIONS = new HashSet<>(
-			Arrays.asList("Destruction", "Creation", "Modifications", "Refreshing"));
-
-	private static final Set<String> PENDING_OPERATIONS = new HashSet<>(
-			Arrays.asList("Creating", "Modifying", "Destroying"));
 
 	/**
 	 * Return the Terraform status from the given subscription identifier.

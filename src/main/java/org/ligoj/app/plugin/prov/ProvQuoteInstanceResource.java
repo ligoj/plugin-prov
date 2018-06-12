@@ -111,7 +111,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Create the instance inside a quote.
-	 * 
+	 *
 	 * @param vo
 	 *            The quote instance.
 	 * @return The created instance cost details with identifier.
@@ -125,7 +125,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Update the instance inside a quote.
-	 * 
+	 *
 	 * @param vo
 	 *            The quote instance to update.
 	 * @return The new cost configuration.
@@ -211,7 +211,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Delete all instances from a quote. The total cost is updated.
-	 * 
+	 *
 	 * @param subscription
 	 *            The related subscription.
 	 * @return The updated computed cost.
@@ -257,7 +257,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Delete an instance from a quote. The total cost is updated.
-	 * 
+	 *
 	 * @param id
 	 *            The {@link ProvQuoteInstance}'s identifier to delete.
 	 * @return The updated computed cost.
@@ -280,7 +280,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Create the instance inside a quote.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param cpu
@@ -330,8 +330,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final String locationR = location == null ? configuration.getLocation().getName() : location;
 
 		// Compute the rate to use
-		final ProvUsage usage = usageName == null ? ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT)
-				: resource.findConfiguredByName(usageRepository, usageName, subscription);
+		final ProvUsage usage = getUsage(configuration, usageName);
 		final double rate = usage.getRate() / 100d;
 		final int duration = usage.getDuration();
 
@@ -363,9 +362,15 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		return custom.getCost() < template.getCost() ? custom : template;
 	}
 
+	private ProvUsage getUsage(final ProvQuote configuration, final String name) {
+		return Optional.ofNullable(name)
+				.map(n -> resource.findConfiguredByName(usageRepository, n, configuration.getSubscription().getId()))
+				.orElseGet(() -> ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT));
+	}
+
 	/**
 	 * Return the instance price type available for a subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param uriInfo
@@ -386,7 +391,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Return the instance types inside a quote.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param uriInfo
@@ -437,7 +442,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Compute the monthly cost of a custom requested resource.
-	 * 
+	 *
 	 * @param cpu
 	 *            The requested CPU.
 	 * @param ram
@@ -453,7 +458,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Compute the monthly cost of a custom requested resource.
-	 * 
+	 *
 	 * @param requested
 	 *            The request resource amount.
 	 * @param cost
@@ -469,7 +474,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Compute the cost using minimal and maximal quantity of related instance. no rounding there.
-	 * 
+	 *
 	 * @param base
 	 *            The cost of one instance.
 	 * @param qi
@@ -497,7 +502,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Upload a file of quote in add mode.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the locations from the associated provider.
 	 * @param uploadedFile
@@ -565,9 +570,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
-
 		vo.setUsage(Optional.ofNullable(upload.getUsage())
-				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(null));
+				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
@@ -610,7 +614,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	/**
 	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
-	 * 
+	 *
 	 * @param entity
 	 *            The quote instance to update.
 	 * @return The new computed cost.

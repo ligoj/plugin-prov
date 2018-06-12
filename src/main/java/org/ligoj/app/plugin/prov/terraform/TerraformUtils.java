@@ -375,7 +375,7 @@ public class TerraformUtils {
 	 * @throws IOException
 	 *             When zip fails : download, unzip, write file,...
 	 */
-	public List<File> zip(final java.nio.file.Path fromDir, final OutputStream out) throws IOException {
+	public List<File> zip(final Path fromDir, final OutputStream out) throws IOException {
 		try (ZipOutputStream zs = new ZipOutputStream(out); Stream<Path> stream = Files.walk(fromDir)) {
 			return stream.filter(path -> !Files.isDirectory(path))
 					// Excludes ".terraform", secrets, and "*.ptf" files
@@ -396,7 +396,7 @@ public class TerraformUtils {
 	 *            The target Zip.
 	 * @return The added file.
 	 */
-	protected File addEntry(final java.nio.file.Path fromDir, Path path, ZipOutputStream zs) {
+	protected File addEntry(final Path fromDir, Path path, ZipOutputStream zs) {
 		try {
 			zs.putNextEntry(new ZipEntry(fromDir.relativize(path).toString()));
 			Files.copy(path, zs);
