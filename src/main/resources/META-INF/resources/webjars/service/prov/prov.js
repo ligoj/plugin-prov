@@ -1871,7 +1871,7 @@ define(function () {
 		save: function (type) {
 			var $popup = _('popup-prov-' + type);
 
-			// Build the playload for business service
+			// Build the playload for API service
 			var suggest = {
 				price: _(type + '-price').select2('data'),
 				usage: _(type + '-usage').select2('data'),
