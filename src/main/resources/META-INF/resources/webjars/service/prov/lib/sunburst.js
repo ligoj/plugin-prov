@@ -198,10 +198,14 @@ define(['d3', 'jquery'], function (d3, $) {
 		feMerge.append("feMergeNode")
 			.attr("in", "SourceGraphic");
 
-		var tooltip = d3.select('body')
-			.append('div')
-			.attr('class', 'tooltip d3-tooltip tooltip-inner')
-			.html('<i class="fa fa-fw fa-user"></i>');
+		var tooltip;
+		if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+			tooltip = d3.select('body')
+				.append('div')
+				.attr('class', 'tooltip d3-tooltip tooltip-inner');
+		} else {
+			tooltip = d3.select('body .d3-tooltip.tooltip-inner');
+		}
 
 		var root = d3.hierarchy(data);
 		root.sum(function (d) {
