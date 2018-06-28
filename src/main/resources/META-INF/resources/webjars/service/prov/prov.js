@@ -137,7 +137,7 @@ define(function () {
 				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + '</span>');
 			}
 			if (quote.totalStorage) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('far-hdd', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
 			}
 
 			return current.$super('generateCarousel')(subscription, [
@@ -517,7 +517,7 @@ define(function () {
 		 * Storage optimized key to markup/label mapping.
 		 */
 		storageOptimized: {
-			'throughput': 'fas fa-database fa-fw',
+			'throughput': 'far fa-hdd fa-fw',
 			'durability': 'fas fa-archive fa-fw',
 			'iops': 'fas fa-bolt fa-fw'
 		},
@@ -2214,7 +2214,7 @@ define(function () {
 			var allOss = {};
 			if (conf.storages.length) {
 				storages = {
-					name: '<i class="fas fa-database fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
+					name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
 					value: 0,
 					children: []
 				};
