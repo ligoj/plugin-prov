@@ -32,13 +32,22 @@ define(function () {
 			current.model = subscription;
 			delete current.d3Arc;
 			delete current.d3Gauge;
-			current.initOdometer();
-			current.optimizeModel();
-			current.initializeForm();
-			current.initializeUpload();
-			_('subscribe-configuration-prov').removeClass('hide');
-			$('.provider').text(current.model.node.name);
-			_('name-prov').val(current.model.configuration.name);
+			require(['text!../main/service/prov/menu.html'], function(menu) {
+				_('service-prov-menu').empty().remove();
+				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
+				current.initOdometer();
+				current.optimizeModel();
+				current.initializeForm();
+				current.initializeUpload();
+				_('subscribe-configuration-prov').removeClass('hide');
+				$('.provider').text(current.model.node.name);
+				_('name-prov').val(current.model.configuration.name);
+			});
+		},
+		
+		unload: function() {
+			// Clean the shared menu
+			_('service-prov-menu').empty().remove();
 		},
 
 		/**
@@ -517,7 +526,7 @@ define(function () {
 		 * Storage optimized key to markup/label mapping.
 		 */
 		storageOptimized: {
-			'throughput': 'far fa-hdd fa-fw',
+			'throughput': 'fas fa-angle-double-right fa-fw',
 			'durability': 'fas fa-archive fa-fw',
 			'iops': 'fas fa-bolt fa-fw'
 		},

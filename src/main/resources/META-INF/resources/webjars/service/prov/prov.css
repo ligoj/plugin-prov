@@ -287,3 +287,11 @@ img.flag-icon.prov-location-flag {
 	top: 21px;
 	left: 15px;
 }
+.prov-menu-separator {
+	background-color: grey;
+	height: 4px;
+	margin-top: 2px;
+	margin-bottom: 3px;
+	margin-left: -20px;
+	border-style: inset;
+}
