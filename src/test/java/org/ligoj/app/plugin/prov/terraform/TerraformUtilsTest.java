@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractServerTest;
 import org.ligoj.app.model.Subscription;
-import org.ligoj.app.resource.plugin.PluginsClassLoader;
+import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
@@ -128,11 +128,11 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void newBuilderNotInstalled() {
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(EMPTY_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
-			protected PluginsClassLoader getClassLoader() {
+			protected LigojPluginsClassLoader getClassLoader() {
 				return classLoader;
 			}
 
@@ -143,11 +143,11 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	private void checkNewBuilder(final String os, final String[] args, final String command) {
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
-			protected PluginsClassLoader getClassLoader() {
+			protected LigojPluginsClassLoader getClassLoader() {
 				return classLoader;
 			}
 
@@ -193,7 +193,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		// Prepare the download
 		final File pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
 		pathDownload.mkdirs();
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
@@ -212,7 +212,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		httpServer.start();
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
-			protected PluginsClassLoader getClassLoader() {
+			protected LigojPluginsClassLoader getClassLoader() {
 				return classLoader;
 			}
 
@@ -257,14 +257,14 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void toFile() throws IOException {
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		try (ThreadClassLoaderScope scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
 			final Path file = Paths.get("");
 			final Subscription entity = new Subscription();
 			entity.setId(15);
 			Mockito.when(classLoader.toPath(entity, "some")).thenReturn(file);
 			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
-			Assertions.assertNotNull(PluginsClassLoader.getInstance());
+			Assertions.assertNotNull(LigojPluginsClassLoader.getInstance());
 		}
 	}
 

@@ -30,7 +30,7 @@ import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
-import org.ligoj.app.resource.plugin.PluginsClassLoader;
+import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -426,7 +426,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	public void install() throws Exception {
 		final TerraformResource resource = newResource(Mockito.mock(Terraforming.class), "error=0", "Terraform v2.0.1");
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 
 		// Replace the Terraform utility
@@ -438,7 +438,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 			}
 
 			@Override
-			protected PluginsClassLoader getClassLoader() {
+			protected LigojPluginsClassLoader getClassLoader() {
 				return classLoader;
 			}
 

@@ -34,7 +34,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.ligoj.app.model.Subscription;
-import org.ligoj.app.resource.plugin.PluginsClassLoader;
+import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.core.curl.CurlProcessor;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -216,8 +216,8 @@ public class TerraformUtils {
 	 *
 	 * @return The provisioning home path.
 	 */
-	protected PluginsClassLoader getClassLoader() {
-		return PluginsClassLoader.getInstance();
+	protected LigojPluginsClassLoader getClassLoader() {
+		return LigojPluginsClassLoader.getInstance();
 	}
 
 	/**
@@ -448,6 +448,6 @@ public class TerraformUtils {
 	 *             When the parent directories creation failed.
 	 */
 	public File toFile(final Subscription subscription, final String... fragments) throws IOException {
-		return PluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();
+		return LigojPluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();
 	}
 }

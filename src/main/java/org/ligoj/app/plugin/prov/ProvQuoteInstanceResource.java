@@ -347,8 +347,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Custom instance
 		final QuoteInstanceLookup custom = ipRepository
-				.findLowestCustomPrice(node, Math.ceil(cpu), Math.ceil(ram / 1024), constant, os, locationR,
-						PageRequest.of(0, 1))
+				.findLowestCustomPrice(node, Math.ceil(cpu), ram / 1024, constant, os, locationR, PageRequest.of(0, 1))
 				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], rate * (double) ip[1]))
 				.orElse(null);
 

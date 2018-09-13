@@ -26,7 +26,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.resource.plugin.PluginsClassLoader;
+import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.Mockito;
@@ -78,7 +78,7 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 
 	protected TerraformUtils newTerraformUtils(final BiFunction<Subscription, String[], File> toFile,
 			final String... customArgs) {
-		final PluginsClassLoader classLoader = Mockito.mock(PluginsClassLoader.class);
+		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 
 		// Replace the CLI runner
@@ -98,7 +98,7 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 			}
 
 			@Override
-			protected PluginsClassLoader getClassLoader() {
+			protected LigojPluginsClassLoader getClassLoader() {
 				return classLoader;
 			}
 
