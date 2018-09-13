@@ -1205,7 +1205,7 @@ define(function () {
 			});
 			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
-			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage']))
+			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
 				.select2('data', current.model.configuration.usage)
 				.on('change', function (event) {
 					current.updateQuote({
