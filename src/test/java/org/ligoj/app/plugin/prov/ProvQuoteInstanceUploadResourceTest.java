@@ -282,11 +282,53 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
-	public void uploadInvalidHeader() {
+	public void uploadMissingRequiredHeader() {
 		MatcherUtil.assertThrows(
 				Assertions.assertThrows(ValidationJsonException.class,
 						() -> qiuResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")),
 								new String[] { "any" }, false, "Full Time 12 month", 1, "UTF-8")),
-				"headers", "invalid-header");
+				"csv-file", "missing-header");
+	}
+
+	@Test
+	public void uploadAmbiguousHeader() {
+		MatcherUtil.assertThrows(
+				Assertions.assertThrows(ValidationJsonException.class,
+						() -> qiuResource.upload(subscription, new ByteArrayInputStream("ANY;ANY".getBytes("UTF-8")),
+								new String[] { "vcpu", "core" }, false, "Full Time 12 month", 1, "UTF-8")),
+				"csv-file", "ambiguous-header");
+	}
+
+	@Test
+	public void uploadIgnoredInvalidHeader() throws IOException {
+		qiuResource.upload(subscription,
+				new ByteArrayInputStream("ANY;ignored value1;0.5;500;any-value2;LINUX".getBytes("UTF-8")),
+				new String[] { "name", "ignore", "cpu", "ram", "ignore", "os" }, false, null, 1, "UTF-8");
+		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	public void uploadAlternativeHeader() throws IOException {
+		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+				new String[] { "name", "vCPU", "memory", "system" }, false, null, 1, "UTF-8");
+		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	public void uploadWildcardHeader() throws IOException {
+		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+				new String[] { "instance_name", "cpu #", "instance ram (GB)", " os " }, false, null, 1, "UTF-8");
+		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	public void uploadPriorizedHeader() throws IOException {
+		qiuResource.upload(subscription,
+				new ByteArrayInputStream("real name;alt. name;2,4;0.5;500;info;LINUX".getBytes("UTF-8")), new String[] {
+						"name", "instance_name", "frequency cpu", "cpus", "instance ram (GB)", "   os(1)", "os" },
+				false, null, 1, "UTF-8");
+		final QuoteVo configuration = resource.getConfiguration(subscription);
+		Assertions.assertEquals("real name", configuration.getInstances().get(7).getName());
+		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
 	}
 }

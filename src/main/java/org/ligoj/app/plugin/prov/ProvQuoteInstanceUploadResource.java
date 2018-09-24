@@ -13,8 +13,14 @@ import java.io.Reader;
 import java.io.SequenceInputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -24,6 +30,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,17 +46,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * The instance part of the provisioning from upload.
+ * The instance part of the provisioning from upload CSV file.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteInstanceUploadResource {
+	private static final List<String> MINIMAL_HEADERS = List.of("name", "cpu", "ram", "os");
 	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
-	private static final String[] ACCEPTED_HEADERS = { "name", "cpu", "ram", "constant", "os", "disk", "latency",
-			"optimized", "term", "type", "internet", "maxCost", "minQuantity", "maxQuantity", "maxVariableCost",
-			"ephemeral", "location", "usage" };
+
+	/**
+	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
+	 */
+	private static final List<String> ACCEPTED_HEADERS = List.of("name", "cpu:(vcpu|core|processor)s?", "ram:memory",
+			"constant", "os:(system|operating system)", "disk", "latency", "optimized", "type", "internet",
+			"minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost", "ephemeral:preemptive", "location:region",
+			"usage:use");
+
+	/**
+	 * Patterns from the most to the least exact match of header.
+	 */
+	private static final List<Function<String[], String>> MATCH_HEADERS = List.of(a -> a[0],
+			a -> a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")"),
+			a -> (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")) + ".*",
+			a -> ".*" + (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")),
+			a -> ".*" + (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")) + ".*");
 
 	@Autowired
 	private CsvForBean csvForBean;
@@ -67,16 +90,49 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceResource qResource;
 
-
 	/**
-	 * Check column's name validity
+	 * Check column's name, tying to match to valid headers. All rejected columns are dropped and replaced by an empty
+	 * string <code>""</code>.
+	 *
+	 * @param headers
+	 *            The given headers.
+	 * @return The mapped and valid columns. Some may be empty and would be dropped.
 	 */
-	private void checkHeaders(final String[] expected, final String... columns) {
-		for (final String column : columns) {
-			if (!ArrayUtils.contains(expected, column.trim())) {
-				throw new ValidationJsonException("headers", "invalid-header", column);
-			}
-		}
+	private String[] checkHeaders(final String... headers) {
+		// Headers (K) mapped to input ones (V)
+		final Map<String, String> mapped = new HashMap<>();
+
+		// For each pattern, from the most precise match to the least one
+		// Check the compliance of the given header against the accepted values
+		MATCH_HEADERS.stream().forEach(c -> {
+			// Headers (K) mapped to input ones (V) for this match level
+			final Map<String, String> localMapped = new HashMap<>();
+			Arrays.stream(headers).forEach(h -> ACCEPTED_HEADERS.stream().map(a -> a.split(":"))
+					.filter(a -> match(c, a, h)).filter(a -> !mapped.containsKey(a[0])).forEach(array -> {
+						final String previous = localMapped.put(array[0], h);
+						if (previous != null) {
+							// Ambiguous header
+							throw new ValidationJsonException("csv-file", "ambiguous-header", "header", array[0],
+									"name1", previous, "name2", h);
+						}
+					}));
+			// Complete the global set
+			mapped.putAll(localMapped);
+		});
+
+		// Check the mandatory headers
+		CollectionUtils.removeAll(MINIMAL_HEADERS, mapped.keySet()).stream().findFirst().ifPresent(h -> {
+			throw new ValidationJsonException("csv-file", "missing-header", "header", h);
+		});
+
+		// Return validated header and dropped ones : empty string = ""
+		return Arrays.stream(headers).map(MapUtils.invertMap(mapped)::get).map(StringUtils::trimToEmpty)
+				.toArray(String[]::new);
+	}
+
+	private boolean match(final Function<String[], String> c, final String[] namePattern, final String value) {
+		return Pattern.compile("(" + namePattern[0] + "|" + c.apply(namePattern) + ")", Pattern.CASE_INSENSITIVE)
+				.matcher(value.trim()).matches();
 	}
 
 	/**
@@ -115,23 +171,27 @@ public class ProvQuoteInstanceUploadResource {
 		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
 		// Check headers validity
-		final String[] sanitizeColumns;
-		final Reader reader;
+		final String[] headersArray;
+		final InputStream fileNoHeader;
 		if (headersIncluded) {
 			// Header at first line
-			final String rawFile = IOUtils.toString(uploadedFile, safeEncoding);
-			sanitizeColumns = StringUtils.defaultString(new BufferedReader(new StringReader(rawFile)).readLine(), "")
-					.replace(',', ';').split(";");
-			reader = new StringReader(rawFile);
+			final BufferedReader br = new BufferedReader(
+					new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
+			headersArray = StringUtils.defaultString(br.readLine(), "").replace(',', ';').split(";");
+			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
+
 		} else {
 			// Headers are provided separately
-			sanitizeColumns = ArrayUtils.isEmpty(headers) ? DEFAULT_HEADERS : headers;
-			reader = new InputStreamReader(new SequenceInputStream(new ByteArrayInputStream(
-					(StringUtils.chop(ArrayUtils.toString(sanitizeColumns)).substring(1).replace(',', ';') + "\n")
-							.getBytes(safeEncoding)),
-					uploadedFile), safeEncoding);
+			headersArray = ArrayUtils.isEmpty(headers) ? DEFAULT_HEADERS : headers;
+			fileNoHeader = uploadedFile;
 		}
-		checkHeaders(ACCEPTED_HEADERS, sanitizeColumns);
+
+		final String[] headersArray2 = checkHeaders(headersArray);
+		final String headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(',', ';')
+				+ "\n";
+		final Reader reader = new InputStreamReader(
+				new SequenceInputStream(new ByteArrayInputStream(headersString.getBytes(safeEncoding)), fileNoHeader),
+				safeEncoding);
 
 		// Build entries
 		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull)
