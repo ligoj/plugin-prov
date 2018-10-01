@@ -643,7 +643,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(instance.getConstant());
 		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
 		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
-		Assertions.assertEquals(10, instance.getMinQuantity().intValue());
+		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());
 	}
@@ -686,7 +686,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 6790.958, 9240.558, true);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertNull(instance.getMaxVariableCost());
-		Assertions.assertEquals(10, instance.getMinQuantity().intValue());
+		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertNull(instance.getMaxQuantity());
 		Assertions.assertTrue(instance.isUnboundCost());
 	}

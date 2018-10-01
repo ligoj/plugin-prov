@@ -93,7 +93,7 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 */
 	@NotNull
 	@PositiveOrZero
-	private Integer minQuantity = 1;
+	private int minQuantity = 1;
 
 	/**
 	 * The maximal quantity of this instance. May be <code>null</code> when unbound

@@ -177,7 +177,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(quoteInstance.getConstant());
 		Assertions.assertEquals(InternetAccess.PUBLIC, quoteInstance.getInternet());
 		Assertions.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
-		Assertions.assertEquals(2, quoteInstance.getMinQuantity().intValue());
+		Assertions.assertEquals(2, quoteInstance.getMinQuantity());
 		Assertions.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
 		final ProvInstancePrice price = quoteInstance.getPrice();
 		Assertions.assertEquals(146.4, price.getCost(), DELTA);
@@ -200,7 +200,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		// No minimal for this instance price
 		Assertions.assertNull(instances.get(1).getMaxVariableCost());
 
-		Assertions.assertEquals(1, instances.get(3).getMinQuantity().intValue());
+		Assertions.assertEquals(1, instances.get(3).getMinQuantity());
 		Assertions.assertEquals(1, instances.get(3).getMaxQuantity().intValue());
 
 		// Check the constant CPU requirement

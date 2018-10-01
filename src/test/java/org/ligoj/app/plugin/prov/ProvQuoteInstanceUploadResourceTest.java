@@ -72,7 +72,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assertions.assertEquals(18, configuration.getInstances().size());
 		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
-		Assertions.assertEquals(1, configuration.getInstances().get(17).getMinQuantity().intValue());
+		Assertions.assertEquals(1, configuration.getInstances().get(17).getMinQuantity());
 		Assertions.assertEquals(1, configuration.getInstances().get(17).getMaxQuantity().intValue());
 		Assertions.assertNull(configuration.getInstances().get(17).getMaxVariableCost());
 		Assertions.assertEquals("dynamic", configuration.getInstances().get(12).getPrice().getType().getName());
@@ -105,7 +105,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertEquals(1, qi.getMinQuantity());
 		Assertions.assertTrue(qi.getPrice().getTerm().isEphemeral());
 		Assertions.assertTrue(qi.getPrice().getTerm().isVariable());
 		Assertions.assertEquals(1000, qi.getMaxQuantity().intValue());
@@ -125,7 +125,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertEquals(1, qi.getMinQuantity());
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4833.068, 7282.668, false);
@@ -143,7 +143,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final QuoteVo configuration = resource.getConfiguration(subscription);
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvQuoteInstance qi = configuration.getInstances().get(7);
-		Assertions.assertEquals(1, qi.getMinQuantity().intValue());
+		Assertions.assertEquals(1, qi.getMinQuantity());
 		Assertions.assertNull(qi.getMaxQuantity());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4833.068, 7282.668, true);
