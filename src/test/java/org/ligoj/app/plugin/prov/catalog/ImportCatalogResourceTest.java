@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov.in;
+package org.ligoj.app.plugin.prov.catalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +21,9 @@ import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.catalog.CatalogVo;
+import org.ligoj.app.plugin.prov.catalog.ImportCatalogResource;
+import org.ligoj.app.plugin.prov.catalog.ImportCatalogService;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;

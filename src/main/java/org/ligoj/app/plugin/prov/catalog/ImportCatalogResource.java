@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov.in;
+package org.ligoj.app.plugin.prov.catalog;
 
 import java.util.List;
 import java.util.Map;
