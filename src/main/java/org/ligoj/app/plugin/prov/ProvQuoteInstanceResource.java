@@ -368,7 +368,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	}
 
 	/**
-	 * Return the instance types inside a quote.
+	 * Return the instance types inside available for the related catalog.
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
@@ -377,9 +377,9 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 * @return The valid instance types for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance")
+	@Path("{subscription:\\d+}/type")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvInstanceType> findAll(@PathParam("subscription") final int subscription,
+	public TableItem<ProvInstanceType> findAllTypes(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,

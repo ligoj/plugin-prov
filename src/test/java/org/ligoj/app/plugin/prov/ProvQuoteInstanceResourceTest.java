@@ -740,14 +740,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findInstance() {
-		final TableItem<ProvInstanceType> tableItem = qiResource.findAll(subscription, newUriInfo());
+		final TableItem<ProvInstanceType> tableItem = qiResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(13, tableItem.getRecordsTotal());
 		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	public void findInstanceCriteria() {
-		final TableItem<ProvInstanceType> tableItem = qiResource.findAll(subscription, newUriInfo("sTance1"));
+		final TableItem<ProvInstanceType> tableItem = qiResource.findAllTypes(subscription, newUriInfo("sTance1"));
 		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
 		Assertions.assertEquals("instance10", tableItem.getData().get(1).getName());
@@ -755,18 +755,18 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findInstanceNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findAll(-1, newUriInfo()));
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findAllTypes(-1, newUriInfo()));
 	}
 
 	@Test
 	public void findInstanceAnotherSubscription() {
 		Assertions.assertEquals(1,
-				qiResource.findAll(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+				qiResource.findAllTypes(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
 	public void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAll(subscription, newUriInfo()));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAllTypes(subscription, newUriInfo()));
 	}
 }
