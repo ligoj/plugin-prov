@@ -167,7 +167,7 @@ public class ProvQuoteInstanceUploadResource {
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
-		subscriptionResource.checkVisible(subscription).getNode().getId();
+		subscriptionResource.checkVisible(subscription);
 		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
 		// Check headers validity
