@@ -174,7 +174,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
-	 * checked.
+	 * previously checked.
 	 *
 	 * @param subscription
 	 *            A visible subscription for the current principal.
