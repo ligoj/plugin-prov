@@ -295,3 +295,9 @@ img.flag-icon.prov-location-flag {
 	margin-left: -20px;
 	border-style: inset;
 }
+.efficiency.pull-right {
+	position: relative;
+	width: 0;
+	height: 0;
+	left: -11px;
+}
