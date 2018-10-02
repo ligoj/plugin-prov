@@ -283,7 +283,7 @@ public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteSt
 			return Collections.emptyList();
 		}
 
-		return spRepository.findLowestPrice(node, size, latency, instance, optimized, iLocation, PageRequest.of(0, 10))
+		return spRepository.findLowestPrice(node, size, Rate.WORST, instance, optimized, iLocation, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size)))
 				.collect(Collectors.toList());
 	}

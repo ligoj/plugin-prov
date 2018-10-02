@@ -11,8 +11,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.SequenceInputStream;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -194,8 +196,19 @@ public class ProvQuoteInstanceUploadResource {
 				safeEncoding);
 
 		// Build entries
-		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull)
-				.forEach(i -> persist(i, subscription, usage, ramMultiplier));
+		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull).forEach(i -> {
+			try {
+				persist(i, subscription, usage, ramMultiplier);
+			} catch (final ValidationJsonException e) {
+				// Wrap error
+				final Map<String, List<Map<String, Serializable>>> errors = e.getErrors();
+				new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
+						.forEach(errors::remove);
+				errors.put("csv-file", List.of(
+						Map.of("parameters", (Serializable) Map.of("name", i.getName()), "rule", "csv-invalid-entry")));
+				throw e;
+			}
+		});
 	}
 
 	private void persist(final InstanceUpload upload, final int subscription, String usage,

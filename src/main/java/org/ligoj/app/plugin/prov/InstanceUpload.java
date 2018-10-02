@@ -39,8 +39,8 @@ public class InstanceUpload {
 	private Boolean constant;
 	private VmOs os;
 	private Double disk;
-	private Rate latency = Rate.GOOD;
-	private ProvStorageOptimized optimized = ProvStorageOptimized.IOPS;
+	private Rate latency = Rate.MEDIUM;
+	private ProvStorageOptimized optimized;
 	private String type;
 	private String location;
 
