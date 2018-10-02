@@ -1,17 +1,19 @@
 <div id="service-prov-menu">
 	<div class="prov-menu-separator"></div>
 	<ul class="nav nav-pills nav-stacked" role="tablist">
-		<li role="presentation" class="active"><a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i> {{{service:prov:instances-block}}} <span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
-				<div class="summary">
-					 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span></span></span> 
-					 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span></span></span>
-					 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span></span></span>
-				</div>
+		<li role="presentation" class="active">
+			<a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i><span>  {{{service:prov:instances-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
+			<div class="summary">
+				 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span></span></span> 
+				 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span></span></span>
+				 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span></span></span>
+			</div>
 			</a></li>
-		<li role="presentation"><a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i> {{{service:prov:storages-block}}} <span class="prov-resource-counter badge pull-right"></span>
-				<div class="summary">
-					<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
-				</div>
+		<li role="presentation">
+			<a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i><span> {{{service:prov:storages-block}}} </span><span class="prov-resource-counter badge pull-right"></span>
+			<div class="summary">
+				<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
+			</div>
 		</a></li>
 	</ul>
 </div>
