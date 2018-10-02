@@ -2,7 +2,7 @@
  	background-image: url(terraform/img/terraform.png);
  	height: 16px;
     display: inline-block;
-    background-repeat-x: no-repeat;
+    background-repeat: no-repeat;
  }
  .nav-pills li:hover i.terraform, .nav-pills li.active .nav-icon.terraform {
  	background-image: url(terraform/img/terraformw.png);
