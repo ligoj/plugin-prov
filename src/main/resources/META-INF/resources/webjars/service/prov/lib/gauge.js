@@ -252,7 +252,7 @@ define(['d3'], function (d3) {
 									}
 									config.set("waveAnimateTime", config.get("waveAnimateTime") * 1.5);
 								}
-								if (counter <= 5) {
+								if (counter <= 6) {
 									config.set("counter", counter + 1);
 									wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
 									animateWave();
@@ -309,7 +309,7 @@ define(['d3'], function (d3) {
 					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"));
 					value = newValue;
 					config.set("counter", 0);
-					if (typeof config.get("waveAnimateTimeInit")) {
+					if (config.get("waveAnimateTimeInit")) {
 						config.set("waveAnimateTime", config.get("waveAnimateTimeInit"));
 					}
 					animateWave();
