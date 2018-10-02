@@ -154,7 +154,7 @@ define(function () {
 				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + '</span>');
 			}
 			if (quote.totalStorage) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('far-hdd', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('fas fa-hdd', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
 			}
 
 			return current.$super('generateCarousel')(subscription, [
@@ -962,6 +962,7 @@ define(function () {
 			});
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
+			current.databaseNewTable();
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -2526,6 +2527,65 @@ define(function () {
 				}]
 			});
 			return current.storageTable;
+		},
+
+		/**
+		 * Initialize the database datatables from the whole quote
+		 */
+		databaseNewTable: function () {
+			current.databaseTable = _('prov-databases').dataTable({
+				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				data: current.model.configuration.databases || [],
+				destroy: true,
+				searching: true,
+				createdRow: function (nRow, data) {
+					$(nRow).attr('data-id', data.id);
+				},
+				columns: [{
+					data: 'name',
+					className: 'truncate'
+				}, {
+					data: 'price.vendor',
+					className: 'truncate',
+					render: current.formatDatabaseVendor
+				}, {
+					data: 'quoteInstance.minQuantity',
+					className: 'hidden-xs',
+					render: function (value, mode, data) {
+						if (value) {
+							return current.formatQuantity(value, mode, data);
+						}
+						// No related instance
+						return 1;
+					}
+				}, {
+					data: 'size',
+					width: '36px',
+					className: 'truncate',
+					type: 'num',
+					render: current.formatStorage
+				}, {
+					data: 'price.type',
+					className: 'truncate hidden-xs hidden-sm hidden-md',
+					render: current.formatInstanceType
+				}, {
+					data: 'cost',
+					className: 'truncate hidden-xs',
+					type: 'num',
+					render: current.formatCost
+				}, {
+					data: null,
+					width: '32px',
+					orderable: false,
+					render: function () {
+						var links =
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-database"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return links;
+					}
+				}]
+			});
+			return current.databaseTable;
 		},
 
 		contextDonut: null,
