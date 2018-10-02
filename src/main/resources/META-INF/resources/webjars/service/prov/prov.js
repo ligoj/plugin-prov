@@ -268,7 +268,7 @@ define(function () {
 		 */
 		formatQuantity: function (quantity, mode, instance) {
 			instance = typeof instance === 'undefined' ? quantity : (instance.quoteInstance || instance);
-			if (mode === 'sort' || typeof instance === 'undefined') {
+			if (mode === 'sort' || mode === 'filter' || typeof instance === 'undefined') {
 				return quantity;
 			}
 
@@ -301,7 +301,7 @@ define(function () {
 		 * @return The formated cost.
 		 */
 		formatCost: function (cost, mode, obj, noRichText) {
-			if (mode === 'sort') {
+			if (mode === 'sort' || mode === 'filter') {
 				return cost;
 			}
 
@@ -388,6 +388,9 @@ define(function () {
 		 * Format the memory size.
 		 */
 		formatRam: function (sizeMB, mode, instance) {
+			if (mode === 'sort' || mode === 'filter') {
+				return sizeMB;
+			}
 			if (mode === 'display' && instance) {
 				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
 					return formatManager.formatSize(value * 1024 * 1024, 3);
@@ -430,7 +433,7 @@ define(function () {
 				fullClass = 'fas fa-circle text-success';
 			}
 			var rate = Math.round(value * 100 / max);
-			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
+			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
 				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
 		},
 
@@ -438,7 +441,7 @@ define(function () {
 		 * Format the storage size.
 		 */
 		formatStorage: function (sizeGB, mode, data) {
-			if (mode === 'sort') {
+			if (mode === 'sort' || mode === 'filter') {
 				return sizeGB;
 			}
 			if (data && data.price.type.minimal > sizeGB) {
@@ -488,13 +491,11 @@ define(function () {
 					sum += storage.size;
 				});
 			}
-			if (mode === 'sort') {
-				// Return only the sum
-				return sum;
+			if (mode === 'display') {
+				// Need to build a Select2 tags markup
+				return '<input type="text" class="storages-tags" data-instance="' + instance.id + '">';
 			}
-
-			// Need to build a Select2 tags markup
-			return '<input type="text" class="storages-tags" data-instance="' + instance.id + '">';
+			return sum;
 		},
 
 		/**
@@ -546,7 +547,7 @@ define(function () {
 		 */
 		formatOs: function (os, mode, clazz) {
 			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
-			if (mode === 'sort') {
+			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
 			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
@@ -583,7 +584,7 @@ define(function () {
 			var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
 			var text = id && current.$messages['service:prov:storage-latency-' + id];
 			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
-			if (mode === 'sort') {
+			if (mode === 'sort' || mode === 'filter') {
 				return text;
 			}
 
@@ -1014,7 +1015,7 @@ define(function () {
 			// render the dashboard
 			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
 				var $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
-				if ($tool.dashboardLink) {
+				if ($tool && $tool.dashboardLink) {
 					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
 				} else {
 					$dashboard.addClass('hidden');
@@ -2380,6 +2381,7 @@ define(function () {
 				}, {
 					data: 'minQuantity',
 					className: 'hidden-xs',
+					type: 'num',
 					render: current.formatQuantity
 				}, {
 					data: 'os',
@@ -2390,11 +2392,13 @@ define(function () {
 					data: 'cpu',
 					className: 'truncate',
 					width: '48px',
+					type: 'num',
 					render: current.formatCpu
 				}, {
 					data: 'ram',
 					className: 'truncate',
 					width: '64px',
+					type: 'num',
 					render: current.formatRam
 				}, {
 					data: 'price.term.name',
@@ -2488,6 +2492,7 @@ define(function () {
 					data: 'size',
 					width: '36px',
 					className: 'truncate',
+					type: 'num',
 					render: current.formatStorage
 				}, {
 					data: 'price.type.latency',
