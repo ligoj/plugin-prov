@@ -246,10 +246,13 @@ define(['d3'], function (d3) {
 							.attr('transform', 'translate(' + waveAnimateScale(1) + ',0)')
 							.on("end", function () {
 								var counter = config.get("counter");
-								if (counter%2  === 0) {
+								if (counter %2  === 0) {
+									if (typeof config.get("waveAnimateTimeInit") === 'undefined') {
+										config.set("waveAnimateTimeInit", config.get("waveAnimateTime"));
+									}
 									config.set("waveAnimateTime", config.get("waveAnimateTime") * 1.5);
 								}
-								if (counter <= 10) {
+								if (counter <= 5) {
 									config.set("counter", counter + 1);
 									wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
 									animateWave();
@@ -306,6 +309,9 @@ define(['d3'], function (d3) {
 					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"));
 					value = newValue;
 					config.set("counter", 0);
+					if (typeof config.get("waveAnimateTimeInit")) {
+						config.set("waveAnimateTime", config.get("waveAnimateTimeInit"));
+					}
 					animateWave();
 				});
 
