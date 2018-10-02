@@ -16,6 +16,11 @@ define(function () {
 		storageTable: null,
 
 		/**
+		 * Database table
+		 */
+		databaseTable: null,
+
+		/**
 		 * Current quote.
 		 */
 		model: null,
@@ -32,7 +37,7 @@ define(function () {
 			current.model = subscription;
 			delete current.d3Arc;
 			delete current.d3Gauge;
-			require(['text!../main/service/prov/menu.html'], function(menu) {
+			require(['text!../main/service/prov/menu.html'], function (menu) {
 				_('service-prov-menu').empty().remove();
 				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
 				current.initOdometer();
@@ -42,10 +47,13 @@ define(function () {
 				_('subscribe-configuration-prov').removeClass('hide');
 				$('.provider').text(current.model.node.name);
 				_('name-prov').val(current.model.configuration.name);
+				var now = moment();
+				$('.prov-export-instances-inline').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-inline-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
+				$('.prov-export-instances-split').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-split-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
 			});
 		},
-		
-		unload: function() {
+
+		unload: function () {
 			// Clean the shared menu
 			_('service-prov-menu').empty().remove();
 		},

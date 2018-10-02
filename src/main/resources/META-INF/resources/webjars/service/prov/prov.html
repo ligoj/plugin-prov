@@ -47,6 +47,16 @@
 							<div class="btn-group">
 								<button type="button" data-toggle="modal" data-target="#popup-prov-instance" class="btn btn-success btn-raised">{{new}}</button>
 								<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
+								<div class="btn-group">
+									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+											{{service:prov:export:instances}}
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" role="menu">
+										<li role="presentation"><a role="menuitem" href="#" class="prov-export-instances-inline">{{service:prov:export:instances:inline}}</a></li>
+										<li role="presentation"><a role="menuitem" href="#" class="prov-export-instances-split">{{service:prov:export:instances:split}}</a></li>
+									</ul>
+								</div>
 							</div>
 						</div>
 						<div class="col-sm-2">
@@ -101,7 +111,7 @@
 						<thead>
 							<tr>
 								<th>{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i></th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-latency-title}}">{{service:prov:storage-latency}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</th>
