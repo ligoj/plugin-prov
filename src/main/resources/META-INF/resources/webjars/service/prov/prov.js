@@ -2036,7 +2036,7 @@ define(function () {
 					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
 						textColor: '#FF4444',
 						textVertPosition: 0.6,
-						waveAnimateTime: 1200,
+						waveAnimateTime: 600,
 						waveHeight: 0.9,
 						backgroundColor: '#e0e0e0'
 					});

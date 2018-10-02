@@ -238,14 +238,22 @@ define(['d3'], function (d3) {
 				var waveGroupXPosition = fillCircleMargin + fillCircleRadius * 2 - waveClipWidth;
 
 				if (config.get("waveAnimate")) {
+					config.set("counter", 0);
 					var animateWave = function () {
 						wave.transition()
 							.duration(config.get("waveAnimateTime"))
 							.ease(d3.easeLinear)
 							.attr('transform', 'translate(' + waveAnimateScale(1) + ',0)')
 							.on("end", function () {
-								wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
-								animateWave();
+								var counter = config.get("counter");
+								if (counter%2  === 0) {
+									config.set("waveAnimateTime", config.get("waveAnimateTime") * 1.5);
+								}
+								if (counter <= 10) {
+									config.set("counter", counter + 1);
+									wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
+									animateWave();
+								}
 							});
 					};
 					animateWave();
@@ -297,6 +305,8 @@ define(['d3'], function (d3) {
 				gauge.on("valueChanged", function (newValue) {
 					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"));
 					value = newValue;
+					config.set("counter", 0);
+					animateWave();
 				});
 
 				gauge.on("destroy", function () {
