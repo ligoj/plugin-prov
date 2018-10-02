@@ -416,7 +416,9 @@ define(function () {
 		formatEfficiency: function (value, max, formatter) {
 			var fullClass = null;
 			max = max || value || 1;
-			if (max / 2.0 > value) {
+			if (value === 0) {
+				value = max;
+			} else if (max / 2.0 > value) {
 				fullClass = 'far fa-circle text-danger';
 			} else if (max / 1.65 > value) {
 				fullClass = 'fas fa-adjust fa-rotate-270 text-danger';
