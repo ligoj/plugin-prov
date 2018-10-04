@@ -62,9 +62,9 @@ public class ProvQuoteInstanceUploadResource {
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name", "cpu:(vcpu|core|processor)s?", "ram:memory",
-			"constant", "os:(system|operating system)", "disk", "latency", "optimized", "type", "internet",
-			"minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost", "ephemeral:preemptive", "location:region",
-			"usage:use");
+			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
+			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
+			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
