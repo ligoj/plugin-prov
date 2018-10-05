@@ -306,6 +306,8 @@ define(['d3'], function (d3) {
 
 				// Event to update the value
 				gauge.on("valueChanged", function (newValue) {
+					waveGroup.interrupt().transition();
+					wave.interrupt().transition();
 					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"));
 					value = newValue;
 					config.set("counter", 0);
