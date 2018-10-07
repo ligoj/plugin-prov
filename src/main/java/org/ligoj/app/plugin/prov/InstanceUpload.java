@@ -3,6 +3,9 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
@@ -38,10 +41,15 @@ public class InstanceUpload {
 	 */
 	private Boolean constant;
 	private VmOs os;
-	private Double disk;
-	private Rate latency = Rate.MEDIUM;
-	private ProvStorageOptimized optimized;
+
+	/**
+	 * Optional instance type.
+	 */
 	private String type;
+
+	/**
+	 * Optional location name.
+	 */
 	private String location;
 
 	/**
@@ -79,4 +87,18 @@ public class InstanceUpload {
 	 */
 	private boolean ephemeral;
 
+	/**
+	 * Ordered disk sizes.
+	 */
+	private List<Double> disk = new ArrayList<>();
+
+	/**
+	 * Ordered disk latencies.
+	 */
+	private List<Rate> latency = List.of(Rate.MEDIUM);
+
+	/**
+	 * Ordered disk optimizations.
+	 */
+	private List<ProvStorageOptimized> optimized = new ArrayList<>();
 }

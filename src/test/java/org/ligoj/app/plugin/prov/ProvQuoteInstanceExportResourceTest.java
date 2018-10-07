@@ -90,7 +90,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
 				"JIRA;4.0;6000;LINUX;Full Time 12 month;on-demand1;;1;1;10.1;;false;dynamic;PRIVATE;990.861552"
-						+ ";270;storage1;GOOD;IOPS;56.7",
+						+ ";270;storage1;GOOD;;56.7",
 				lines.get(1));
 		em.flush();
 		em.clear();

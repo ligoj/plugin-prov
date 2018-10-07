@@ -61,7 +61,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
 		Assertions.assertEquals(15, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
-		checkCost(configuration.getCost(), 14620.206, 17069.806, false);
+		checkCost(configuration.getCost(), 14649.926, 17099.526, false);
 		return configuration;
 	}
 

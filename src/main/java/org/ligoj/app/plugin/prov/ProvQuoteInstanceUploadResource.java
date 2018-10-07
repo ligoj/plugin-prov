@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -239,28 +240,34 @@ public class ProvQuoteInstanceUploadResource {
 		final int qi = newInstance.getId();
 
 		// Storage part
-		final Integer size = Optional.ofNullable(upload.getDisk()).map(Double::intValue).orElse(0);
-		if (size > 0) {
+		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
+			final int size = upload.getDisk().get(index).intValue();
 			// Size is provided, propagate the upload properties
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
-			svo.setName(vo.getName());
+			svo.setName(vo.getName() + (index == 0 ? "":index));
 			svo.setQuoteInstance(qi);
 			svo.setSize(size);
-			svo.setLatency(upload.getLatency());
+			svo.setLatency(getItem(upload.getLatency(), index));
 			svo.setInstanceCompatible(true);
-			svo.setOptimized(upload.getOptimized());
+			svo.setOptimized(getItem(upload.getOptimized(), index));
 			svo.setLocation(upload.getLocation());
 
 			// Find the nicest storage
 			svo.setType(storageResource
-					.lookup(subscription, size, upload.getLatency(), qi, upload.getOptimized(), upload.getLocation())
-					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
-					.getPrice().getType().getName());
+					.lookup(subscription, size, svo.getLatency(), qi, svo.getOptimized(), upload.getLocation()).stream()
+					.findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice()
+					.getType().getName());
 
 			// Default the storage name to the instance name
 			svo.setSubscription(subscription);
 			storageResource.create(svo);
-		}
+		});
+	}
 
+	private <T> T getItem(final List<T> items, final int index) {
+		if (items.isEmpty()) {
+			return null;
+		}
+		return items.get(Math.min(items.size() - 1, index));
 	}
 }
