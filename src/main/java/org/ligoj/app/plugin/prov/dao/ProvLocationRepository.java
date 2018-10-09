@@ -3,6 +3,9 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
+import javax.cache.annotation.CacheKey;
+import javax.cache.annotation.CacheResult;
+
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
@@ -16,7 +19,7 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 
 	/**
 	 * Return all {@link ProvLocation} related to given subscription identifier.
-	 * 
+	 *
 	 * @param node
 	 *            The node identifier to match.
 	 * @param criteria
@@ -36,15 +39,30 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 
 	/**
 	 * Return the {@link ProvLocation} by it's name, ignoring the case.
-	 * 
+	 *
 	 * @param node
 	 *            The node identifier to match.
 	 * @param name
 	 *            The name to match.
-	 * 
+	 *
 	 * @return The entity or <code>null</code>.
 	 */
 	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
 			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%')) AND UPPER(pl.name) = UPPER(:name)")
 	ProvLocation findByName(String node, String name);
+
+	/**
+	 * Return the {@link ProvLocation} identifier by it's name, ignoring the case.
+	 *
+	 * @param node
+	 *            The node identifier to match.
+	 * @param name
+	 *            The name to match.
+	 *
+	 * @return The entity identifier or <code>null</code>.
+	 */
+	@CacheResult(cacheName = "prov-location")
+	@Query("SELECT pl.id FROM ProvLocation pl INNER JOIN pl.node n WHERE"
+			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%')) AND UPPER(pl.name) = UPPER(:name)")
+	Integer toId(@CacheKey String node, @CacheKey String name);
 }

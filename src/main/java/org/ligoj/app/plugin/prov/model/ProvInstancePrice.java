@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -25,9 +27,10 @@ import lombok.ToString;
 @Setter
 @Entity
 @ToString(of = { "os", "term", "tenancy", "license" }, callSuper = true)
-@Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "type", "os", "term",
-		"tenancy", "license", "location" }))
-public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> {
+@Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = {
+		@UniqueConstraint(columnNames = { "type", "os", "term", "tenancy", "license", "location" }),
+		@UniqueConstraint(columnNames = "code") })
+public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implements Serializable {
 
 	/**
 	 * The optional initial cost required to use this instance. May be <code>null</code>.

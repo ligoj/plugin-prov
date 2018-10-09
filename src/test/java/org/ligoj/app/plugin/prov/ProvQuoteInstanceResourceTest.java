@@ -90,7 +90,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstanceLocationNotFoundButWorldwideService() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-xxx", "Full Time 12 month");
+				"region-2", "Full Time 12 month");
 		checkInstance(lookup);
 	}
 
@@ -101,13 +101,12 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	public void lookupInstanceLocationNotFound() {
 		Assertions.assertEquals("instance2",
 				qiResource
-						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-xxx", "Full Time 12 month")
+						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-1", "Full Time 12 month")
 						.getPrice().getType().getName());
 
 		final ProvLocation location = locationRepository.findByName("region-1");
 
-		// Add location constraint on the first matching instances to exclude
-		// them
+		// Add location constraint on the first matching instances to exclude them
 		ipRepository.findAllBy("type.name", "instance2").forEach(ip -> ip.setLocation(location));
 		ipRepository.findAllBy("type.name", "dynamic").forEach(ip -> ip.setLocation(location));
 		em.flush();
@@ -116,6 +115,17 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Instance 2 is not available in this region
 		Assertions.assertEquals("instance4",
 				qiResource
+						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-2", "Full Time 12 month")
+						.getPrice().getType().getName());
+	}
+
+	/**
+	 * Search instance type within a non existing region
+	 */
+	@Test
+	public void lookupLocationNotFound() {
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource
 						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-xxx", "Full Time 12 month")
 						.getPrice().getType().getName());
 	}
@@ -755,7 +765,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findInstanceNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findAllTypes(-1, newUriInfo()));
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
+				() -> qiResource.findAllTypes(-1, newUriInfo()));
 	}
 
 	@Test
@@ -767,6 +778,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAllTypes(subscription, newUriInfo()));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.findAllTypes(subscription, newUriInfo()));
 	}
 }

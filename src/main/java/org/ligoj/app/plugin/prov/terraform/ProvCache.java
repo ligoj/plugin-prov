@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 
 import com.hazelcast.cache.HazelcastCacheManager;
 import com.hazelcast.config.CacheConfig;
+import com.hazelcast.config.EvictionConfig;
+import com.hazelcast.config.EvictionPolicy;
 
 /**
  * Provisioning data cache configurations.
@@ -26,6 +28,11 @@ public class ProvCache implements CacheManagerAware {
 		final CacheConfig<?, ?> tokens = provider.apply("terraform-version-latest");
 		tokens.setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(Duration.ONE_DAY));
 		cacheManager.createCache("terraform-version-latest", tokens);
+
+		final CacheConfig<?, ?> tokens2 = provider.apply("prov-location");
+		tokens2.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
+				.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
+		cacheManager.createCache("prov-location", tokens2);
 	}
 
 }

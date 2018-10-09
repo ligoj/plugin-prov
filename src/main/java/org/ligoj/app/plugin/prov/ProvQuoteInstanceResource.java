@@ -31,6 +31,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
@@ -78,6 +79,9 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
+	private ProvLocationRepository locationRepository;
 
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
@@ -159,7 +163,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final boolean dirtyPrice = !oldLocation.equals(getLocation(entity));
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
 			if (dirtyPrice) {
-				// Location has changed, the available storage price is invalidated
+				// Location has changed, the available storage price need a refresh
 				storageResource.refresh(s);
 				storageResource.refreshCost(s);
 			}
@@ -306,7 +310,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final VmOs os = Optional.ofNullable(osName).map(VmOs::toPricingOs).orElse(null);
 
 		// Resolve the location to use
-		final String locationR = location == null ? configuration.getLocation().getName() : location;
+		final int locationR = location == null ? configuration.getLocation().getId()
+				: assertFound(locationRepository.toId(node, location), location).intValue();
 
 		// Compute the rate to use
 		final ProvUsage usage = getUsage(configuration, usageName);
@@ -322,12 +327,13 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final QuoteInstanceLookup template = ipRepository
 				.findLowestPrice(node, cpu, ram, constant, os, typeId, ephemeral, locationR, rate, duration,
 						PageRequest.of(0, 1))
-				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], (double) ip[2])).orElse(null);
+				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
 
 		// Custom instance
 		final QuoteInstanceLookup custom = ipRepository
-				.findLowestCustomPrice(node, Math.ceil(cpu), ram / 1024, constant, os, locationR, PageRequest.of(0, 1))
-				.stream().findFirst().map(ip -> newPrice((ProvInstancePrice) ip[0], rate * (double) ip[1]))
+				.findLowestCustomPrice(node, Math.ceil(cpu), Math.round(ram / 1024), constant, os, locationR,
+						PageRequest.of(0, 1))
+				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], rate * (double) rs[1]))
 				.orElse(null);
 
 		// Select the best price term
