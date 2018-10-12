@@ -212,8 +212,13 @@ public class ProvQuoteInstanceUploadResource {
 		});
 	}
 
+	/**
+	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
+	 * {@link ProvQuoteStorage} entities.
+	 */
 	private void persist(final InstanceUpload upload, final int subscription, String usage,
 			final Integer ramMultiplier) {
+		// Validate the upload object
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
 		vo.setCpu(qResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setEphemeral(upload.isEphemeral());
@@ -223,6 +228,8 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
+		vo.setOs(upload.getOs());
+		vo.setConstant(upload.getConstant());
 		vo.setUsage(Optional.ofNullable(upload.getUsage())
 				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
 		vo.setRam(
@@ -230,21 +237,20 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setSubscription(subscription);
 
 		// Find the lowest price
-		final ProvInstancePrice instancePrice = qResource.validateLookup("instance",
-				qResource.lookup(subscription, vo.getCpu(), vo.getRam(), upload.getConstant(), upload.getOs(),
-						upload.getType(), upload.isEphemeral(), upload.getLocation(), upload.getUsage()),
-				upload.getName());
+		vo.setPrice(qResource.validateLookup("instance",
+				qResource.lookup(subscription, vo.getCpu(), vo.getRam(), vo.getConstant(), vo.getOs(), upload.getType(),
+						vo.isEphemeral(), vo.getLocation(), vo.getUsage()),
+				vo.getName()).getId());
 
-		vo.setPrice(instancePrice.getId());
-		final UpdatedCost newInstance = qResource.create(vo);
-		final int qi = newInstance.getId();
+		// Create the quote instance from the validated inputs
+		final int qi = qResource.create(vo).getId();
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
 			final int size = upload.getDisk().get(index).intValue();
 			// Size is provided, propagate the upload properties
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
-			svo.setName(vo.getName() + (index == 0 ? "":index));
+			svo.setName(vo.getName() + (index == 0 ? "" : index));
 			svo.setQuoteInstance(qi);
 			svo.setSize(size);
 			svo.setLatency(getItem(upload.getLatency(), index));
@@ -254,7 +260,7 @@ public class ProvQuoteInstanceUploadResource {
 
 			// Find the nicest storage
 			svo.setType(storageResource
-					.lookup(subscription, size, svo.getLatency(), qi, svo.getOptimized(), upload.getLocation()).stream()
+					.lookup(subscription, size, svo.getLatency(), qi, svo.getOptimized(), svo.getLocation()).stream()
 					.findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice()
 					.getType().getName());
 

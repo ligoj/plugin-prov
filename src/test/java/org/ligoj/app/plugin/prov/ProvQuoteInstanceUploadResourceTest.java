@@ -61,7 +61,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("on-demand1", configuration.getInstances().get(17).getPrice().getTerm().getName());
 		Assertions.assertEquals(15, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
-		checkCost(configuration.getCost(), 14649.926, 17099.526, false);
+		checkCost(configuration.getCost(), 14584.046, 17033.646, false);
 		return configuration;
 	}
 
@@ -78,7 +78,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("dynamic", configuration.getInstances().get(12).getPrice().getType().getName());
 		Assertions.assertEquals(14, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
-		checkCost(configuration.getCost(), 14613.486, 17063.086, false);
+		checkCost(configuration.getCost(), 14547.606, 16997.206, false);
 	}
 
 	@Test
@@ -104,13 +104,14 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 				false, "Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
-		final ProvQuoteInstance qi = configuration.getInstances().get(7);
+		final ProvQuoteInstance qi = configuration.getInstances().get(7); // The last one
+		Assertions.assertEquals("ANY", qi.getName());
 		Assertions.assertEquals(1, qi.getMinQuantity());
-		Assertions.assertTrue(qi.getPrice().getTerm().isEphemeral());
-		Assertions.assertTrue(qi.getPrice().getTerm().isVariable());
+		Assertions.assertEquals("1y", qi.getPrice().getTerm().getName());
+		Assertions.assertFalse(qi.getPrice().getTerm().isVariable());
 		Assertions.assertEquals(1000, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
-		checkCost(configuration.getCost(), 4833.068, 135464.358, false);
+		checkCost(configuration.getCost(), 4814.768, 117164.358, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 210, false);
@@ -135,7 +136,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1, qi.getMinQuantity());
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
-		checkCost(configuration.getCost(), 4833.068, 7282.668, false);
+		checkCost(configuration.getCost(), 4814.768, 7264.368, false);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, false);
@@ -153,7 +154,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1, qi.getMinQuantity());
 		Assertions.assertNull(qi.getMaxQuantity());
 		Assertions.assertEquals(5, configuration.getStorages().size());
-		checkCost(configuration.getCost(), 4833.068, 7282.668, true);
+		checkCost(configuration.getCost(), 4814.768, 7264.368, true);
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, true);
