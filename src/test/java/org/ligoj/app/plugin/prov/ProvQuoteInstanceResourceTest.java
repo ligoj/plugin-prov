@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -70,8 +71,55 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstance() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null,
-				"Full Time 12 month");
+				"Full Time 12 month", null, null);
 		checkInstance(lookup);
+	}
+
+	/**
+	 * Basic case, almost no requirements but license.
+	 */
+	@Test
+	public void lookupInstanceLicenseIncluded() {
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
+				null, "Full Time 12 month", "INCLUDED", null);
+
+		// Check the instance result
+		final ProvInstancePrice pi = lookup.getPrice();
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals("C12", pi.getCode());
+		Assertions.assertNull(pi.getLicense());
+	}
+
+	/**
+	 * Basic case, almost no requirements but license.
+	 */
+	@Test
+	public void lookupInstanceLicenseByol() {
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
+				null, "Full Time 12 month", "BYOL", null);
+
+		// Check the instance result
+		final ProvInstancePrice pi = lookup.getPrice();
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals("C120", pi.getCode());
+		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
+		Assertions.assertEquals("BYOL", pi.getLicense());
+	}
+
+	/**
+	 * Basic case, almost no requirements but software.
+	 */
+	@Test
+	public void lookupInstanceSoftware() {
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
+				null, "Full Time 12 month", null, "SQL Web");
+
+		// Check the instance result
+		final ProvInstancePrice pi = lookup.getPrice();
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals("C121", pi.getCode());
+		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
+		Assertions.assertNull(pi.getLicense());
 	}
 
 	/**
@@ -80,7 +128,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstanceLocation() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-1", "Full Time 12 month");
+				"region-1", "Full Time 12 month", null, null);
 		checkInstance(lookup);
 	}
 
@@ -90,7 +138,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstanceLocationNotFoundButWorldwideService() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-2", "Full Time 12 month");
+				"region-2", "Full Time 12 month", null, null);
 		checkInstance(lookup);
 	}
 
@@ -99,10 +147,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLocationNotFound() {
-		Assertions.assertEquals("instance2",
-				qiResource
-						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-1", "Full Time 12 month")
-						.getPrice().getType().getName());
+		Assertions.assertEquals("instance2", qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
+				"region-1", "Full Time 12 month", null, null).getPrice().getType().getName());
 
 		final ProvLocation location = locationRepository.findByName("region-1");
 
@@ -113,10 +159,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		em.clear();
 
 		// Instance 2 is not available in this region
-		Assertions.assertEquals("instance4",
-				qiResource
-						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-2", "Full Time 12 month")
-						.getPrice().getType().getName());
+		Assertions.assertEquals("instance4", qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
+				"region-2", "Full Time 12 month", null, null).getPrice().getType().getName());
 	}
 
 	/**
@@ -124,10 +168,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource
-						.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, "region-xxx", "Full Time 12 month")
-						.getPrice().getType().getName());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, 1, 2000, null,
+				VmOs.LINUX, null, true, "region-xxx", "Full Time 12 month", null, null).getPrice().getType().getName());
 	}
 
 	private void checkInstance(final QuoteInstanceLookup lookup) {
@@ -151,9 +193,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceHighContraints() throws IOException {
-		final QuoteInstanceLookup lookup = new ObjectMapperTrim().readValue(new ObjectMapperTrim().writeValueAsString(
-				qiResource.lookup(subscription, 3, 9, true, VmOs.WINDOWS, null, false, null, "Full Time 12 month")),
-				QuoteInstanceLookup.class);
+		final QuoteInstanceLookup lookup = new ObjectMapperTrim()
+				.readValue(
+						new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription, 3, 9, true,
+								VmOs.WINDOWS, null, false, null, "Full Time 12 month", null, null)),
+						QuoteInstanceLookup.class);
 		final ProvInstancePrice pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance9", pi.getType().getName());
@@ -176,14 +220,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceNoMatch() {
-		Assertions.assertNull(
-				qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, true, null, "Full Time 12 month"));
+		Assertions.assertNull(qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, true, null,
+				"Full Time 12 month", null, null));
 	}
 
 	@Test
 	public void lookupTypeNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", true, null, null));
+				() -> qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", true, null, null, null, null));
 	}
 
 	/**
@@ -192,7 +236,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstanceOnlyCustom() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 999, 0, null, VmOs.LINUX, null, true, null,
-				"Full Time 12 month");
+				"Full Time 12 month", null, null);
 
 		// Check the custom instance
 		final ProvInstancePrice pi = lookup.getPrice();
@@ -214,8 +258,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceCustomIsCheaper() {
-		assertPrice(qiResource.lookup(subscription, 1, 16000, null, VmOs.LINUX, null, true, null, "Dev"), "C74",
-				"dynamic", 145.825, "on-demand1");
+		assertPrice(qiResource.lookup(subscription, 1, 16000, null, VmOs.LINUX, null, true, null, "Dev", null, null),
+				"C74", "dynamic", 146.842, "on-demand1");
 	}
 
 	/**
@@ -223,37 +267,37 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceVariableDuration() {
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev"), "C9",
-				"instance2", 58.56, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 11 month"),
-				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 12 month"),
-				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 13 month"),
-				"C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 23 month"),
-				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 24 month"),
-				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 25 month"),
-				"C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month"), "C9",
-				"instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 12 month"), "C9",
-				"instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 13 month"), "C9",
-				"instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev", null, null),
+				"C9", "instance2", 58.56, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 11 month",
+				null, null), "C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 12 month",
+				null, null), "C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 13 month",
+				null, null), "C9", "instance2", 117.12, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 23 month",
+				null, null), "C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 24 month",
+				null, null), "C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 25 month",
+				null, null), "C9", "instance2", 117.12, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
+				null), "C9", "instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 12 month", null,
+				null), "C9", "instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 13 month", null,
+				null), "C9", "instance2", 29.28, "on-demand2");
 
 		ProvUsage usage = usageRepository.findByName("Dev 11 month");
 		usage.setRate(90);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month"), "C9",
-				"instance2", 105.408, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
+				null), "C9", "instance2", 105.408, "on-demand2");
 
 		usage.setRate(98);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month"), "C11",
-				"instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
+				null), "C11", "instance2", 102.48, "1y");
 
 	}
 
@@ -716,36 +760,67 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstanceTerm() {
-		final TableItem<ProvInstancePriceTerm> tableItem = qiResource.findPriceTerm(subscription, newUriInfo());
+	public void findInstanceTerms() {
+		final TableItem<ProvInstancePriceTerm> tableItem = qiResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstancePriceTermCriteria() {
-		final TableItem<ProvInstancePriceTerm> tableItem = qiResource.findPriceTerm(subscription, newUriInfo("deMand"));
+	public void findInstancePriceTermsCriteria() {
+		final TableItem<ProvInstancePriceTerm> tableItem = qiResource.findPriceTerms(subscription,
+				newUriInfo("deMand"));
 		Assertions.assertEquals(2, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstancePriceTermNotExistsSubscription() {
+	public void findInstancePriceTermsNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
-				() -> qiResource.findPriceTerm(-1, newUriInfo()));
+				() -> qiResource.findPriceTerms(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findInstancePriceTermAnotherSubscription() {
+	public void findInstancePriceTermsAnotherSubscription() {
 		Assertions.assertEquals(1,
-				qiResource.findPriceTerm(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+				qiResource.findPriceTerms(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findInstancePriceTermNotVisibleSubscription() {
+	public void findInstancePriceTermsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.findPriceTerm(subscription, newUriInfo()));
+				() -> qiResource.findPriceTerms(subscription, newUriInfo()));
+	}
+
+	@Test
+	public void findLicenses() {
+		final List<String> tableItem = qiResource.findLicenses(subscription, VmOs.WINDOWS);
+		Assertions.assertEquals(2, tableItem.size());
+		Assertions.assertEquals("INCLUDED", tableItem.get(0));
+		Assertions.assertEquals("BYOL", tableItem.get(1));
+	}
+
+	@Test
+	public void findLicensesNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.findLicenses(subscription, VmOs.WINDOWS));
+	}
+
+	@Test
+	public void findSoftwares() {
+		final List<String> tableItem = qiResource.findSoftwares(subscription, VmOs.WINDOWS);
+		Assertions.assertEquals(2, tableItem.size());
+		Assertions.assertEquals("", tableItem.get(0));
+		Assertions.assertEquals("SQL Web", tableItem.get(1));
+	}
+
+	@Test
+	public void findSoftwaresNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.findSoftwares(subscription, VmOs.WINDOWS));
 	}
 
 	@Test

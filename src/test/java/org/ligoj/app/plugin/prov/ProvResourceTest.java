@@ -41,6 +41,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
+import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -307,6 +308,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("quote2", vo.getName());
 		Assertions.assertEquals("quoteD2", vo.getDescription());
 		Assertions.assertNotNull(vo.getId());
+		Assertions.assertNull(vo.getLicense());
 		checkCost0(vo.getCost());
 
 		// Check compute
@@ -378,7 +380,78 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
+	 * Update the default license model of the quote, impact all instances using the default license model.
+	 */
+	@Test
+	public void updateLicense() {
+		final Subscription subscription = new Subscription();
+		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscription);
+
+		final ProvQuote configuration = new ProvQuote();
+		configuration.setSubscription(subscription);
+		configuration.setName("new");
+		final Node provider = subscription.getNode().getRefined();
+		configuration.setLocation(locationRepository.findAllBy("node.id", provider.getId()).get(0));
+		em.persist(configuration);
+
+		final ProvUsage usage = new ProvUsage();
+		usage.setConfiguration(configuration);
+		usage.setDuration(12);
+		usage.setRate(100);
+		usage.setName("usage");
+		em.persist(usage);
+
+		configuration.setUsage(usage);
+		em.merge(configuration);
+
+		final ProvQuoteInstance instance = new ProvQuoteInstance();
+		instance.setConfiguration(configuration);
+		instance.setCpu(1D);
+		instance.setRam(2000);
+		instance.setName("instance");
+		instance.setOs(VmOs.WINDOWS);
+		instance.setCost(0D);
+		instance.setMaxCost(0D);
+		instance.setPrice(ipRepository.findBy("code", "C12"));
+		em.persist(instance);
+		em.flush();
+		em.clear();
+
+		// Check the configuration before the update
+		checkCost(resource.refresh(subscription.getId()), 175.68, 175.68, false);
+		final ProvQuoteInstance instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet.getPrice().getCode());
+
+		final QuoteEditionVo quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setLicense("BYOL");
+		quote.setUsage("usage");
+		checkCost(resource.update(subscription.getId(), quote), 102.49, 102.49, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C120", instanceGet2.getPrice().getCode());
+
+		quote.setLicense("INCLUDED");
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+
+		quote.setLicense(null);
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet4.getPrice().getCode());
+	}
+
+	/**
+	 * Update the location of the quote, impact all instances using the default location. Cost still updated.
 	 */
 	@Test
 	public void updateLocationDifferentQILocation() {

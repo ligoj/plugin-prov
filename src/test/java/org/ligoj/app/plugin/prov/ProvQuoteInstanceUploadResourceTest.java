@@ -82,18 +82,27 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
-	public void uploadFixedInstance() throws IOException {
+	public void uploadFixedInstanceType() throws IOException {
 		qiuResource.upload(subscription,
 				new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10;true".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "type", "ephemeral" }, false, "Full Time 12 month", 1,
 				"UTF-8");
-		final QuoteVo configuration = getConfiguration();
+		QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		final ProvInstancePriceTerm term = configuration.getInstances().get(7).getPrice().getTerm();
-		Assertions.assertEquals("on-demand1", term.getName());
-		Assertions.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals("1y", term.getName());
+		Assertions.assertEquals("instance10", configuration.getInstances().get(7).getPrice().getType().getName());
 		Assertions.assertEquals(4, configuration.getStorages().size());
-		checkCost(configuration.getCost(), 4950.846, 7400.446, false);
+		checkCost(configuration.getCost(), 6344.438, 8794.038, false);
+
+		// A refresh erases the instance type constraint
+		em.flush();
+		em.clear();
+		resource.refresh(subscription);
+		configuration = getConfiguration();
+		Assertions.assertEquals("1y", term.getName());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		checkCost(configuration.getCost(), 3267.88, 5717.48, false);
 	}
 
 	@Test
@@ -168,9 +177,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 				"Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
-		Assertions.assertEquals("dynamic", configuration.getInstances().get(7).getPrice().getType().getName());
 		Assertions.assertEquals(InternetAccess.PUBLIC, configuration.getInstances().get(7).getInternet());
-		checkCost(configuration.getCost(), 4950.846, 7400.446, false);
 	}
 
 	@Test
@@ -273,10 +280,13 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadInstanceNotFound() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
-				() -> qiuResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")),
-						null, false, "Full Time 12 month", 1024, "UTF-8")),
-				"csv-file.instance", "no-match-instance");
+		MatcherUtil
+				.assertThrows(
+						Assertions.assertThrows(ValidationJsonException.class,
+								() -> qiuResource.upload(subscription,
+										new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null, false,
+										"Full Time 12 month", 1024, "UTF-8")),
+						"csv-file.instance", "no-match-instance");
 	}
 
 	@Test

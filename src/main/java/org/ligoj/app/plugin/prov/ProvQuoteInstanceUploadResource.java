@@ -41,7 +41,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -65,7 +66,7 @@ public class ProvQuoteInstanceUploadResource {
 	private static final List<String> ACCEPTED_HEADERS = List.of("name", "cpu:(vcpu|core|processor)s?", "ram:memory",
 			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
 			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
-			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)");
+			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -229,6 +230,8 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
 		vo.setOs(upload.getOs());
+		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
+		vo.setSoftware(upload.getSoftware());
 		vo.setConstant(upload.getConstant());
 		vo.setUsage(Optional.ofNullable(upload.getUsage())
 				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
@@ -239,7 +242,7 @@ public class ProvQuoteInstanceUploadResource {
 		// Find the lowest price
 		vo.setPrice(qResource.validateLookup("instance",
 				qResource.lookup(subscription, vo.getCpu(), vo.getRam(), vo.getConstant(), vo.getOs(), upload.getType(),
-						vo.isEphemeral(), vo.getLocation(), vo.getUsage()),
+						vo.isEphemeral(), vo.getLocation(), vo.getUsage(), vo.getLicense(), vo.getSoftware()),
 				vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs

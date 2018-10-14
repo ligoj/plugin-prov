@@ -37,26 +37,23 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Minimal monthly cost, computed during the creation and kept synchronized with
-	 * the updates.
+	 * Minimal monthly cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@NotNull
 	@PositiveOrZero
 	private Double cost = 0d;
 
 	/**
-	 * Maximal determined monthly cost, computed during the creation and kept
-	 * synchronized with the updates. When there are unbound maximal quantities
-	 * (<code>null</code>), the minimal cost is used and the
-	 * {@link #unboundCostCounter} is incremented.
+	 * Maximal determined monthly cost, computed during the creation and kept synchronized with the updates. When there
+	 * are unbound maximal quantities (<code>null</code>), the minimal cost is used and the {@link #unboundCostCounter}
+	 * is incremented.
 	 */
 	@NotNull
 	@PositiveOrZero
 	private Double maxCost = 0d;
 
 	/**
-	 * The amount unbound maximal quantities. Would be used to track the unbound
-	 * monthly bills on different scenarios.
+	 * The amount unbound maximal quantities. Would be used to track the unbound monthly bills on different scenarios.
 	 */
 	@NotNull
 	@PositiveOrZero
@@ -103,6 +100,11 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 */
 	@ManyToOne
 	private ProvUsage usage;
+
+	/**
+	 * Optional license model. <code>null</code> value corresponds to {@value ProvQuoteInstance#LICENSE_INCLUDED}.
+	 */
+	private String license;
 
 	@Override
 	@JsonIgnore

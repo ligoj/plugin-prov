@@ -74,11 +74,16 @@ define(function () {
 				success: function (data) {
 					current.model = data;
 					current.optimizeModel();
-					$instances.rows.add(current.model.configuration.instances).draw();
-					$storages.rows.add(current.model.configuration.storages).draw();
-					_('quote-location').select2('data', current.model.configuration.location);
-					$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
-					_('quote-usage').select2('data', current.model.configuration.usage);
+					var configuration = data.configuration;
+					$instances.rows.add(configuration.instances).draw();
+					$storages.rows.add(configuration.storages).draw();
+					_('quote-location').select2('data', configuration.location);
+					$('.location-wrapper').html(current.locationMap(configuration.location));
+					_('quote-usage').select2('data', configuration.usage);
+					_('quote-license').select2('data', configuration.license ? {
+						id: configuration.license,
+						text: current.formatLicense(configuration.license)
+					} : null);
 				}
 			});
 		},
@@ -962,7 +967,6 @@ define(function () {
 			});
 			current.initializeDataTableEvents('instance');
 			current.initializeDataTableEvents('storage');
-			current.databaseNewTable();
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -977,82 +981,7 @@ define(function () {
 				_('quote-name').val(current.model.configuration.name);
 				_('quote-description').val(current.model.configuration.description || '');
 			});
-			_('popup-prov-usage').on('shown.bs.modal', function () {
-				_('usage-name').trigger('focus');
-			}).on('submit', function (e) {
-				e.preventDefault();
-				current.saveOrUpdateUsage({
-					name: _('usage-name').val(),
-					rate: parseInt(_('usage-rate').val() || '100', 10),
-					duration: parseInt(_('usage-duration').val() || '1', 10)
-				}, _('usage-old-name').val());
-			}).on('show.bs.modal', function (event) {
-				if ($(event.relatedTarget).is('.btn-success')) {
-					// Create mode
-					_('usage-old-name').val('');
-					_('usage-name').val('');
-					_('usage-rate').val(100);
-					_('usage-duration').val(1);
-				} else {
-					// Update mode
-					var usage = event.relatedTarget;
-					_('usage-old-name').val(usage.name);
-					_('usage-name').val(usage.name);
-					_('usage-rate').val(usage.rate);
-					_('usage-duration').val(usage.duration);
-				}
-				validationManager.reset($(this));
-				validationManager.mapping.name = 'usage-name';
-				validationManager.mapping.rate = 'usage-rate';
-				validationManager.mapping.duration = 'usage-duration';
-				_('usage-rate').trigger('change');
-			});
-			$('.usage-inputs input').on('change', current.synchronizeUsage);
-			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 
-			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
-			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
-
-			// render the dashboard
-			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
-				var $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
-				if ($tool && $tool.dashboardLink) {
-					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
-				} else {
-					$dashboard.addClass('hidden');
-				}
-			});
-			_('popup-prov-terraform').on('shown.bs.modal', function () {
-				_('terraform-cidr').trigger('focus');
-			}).on('show.bs.modal', function () {
-				if (_('terraform-key-name').val() === "") {
-					_('terraform-key-name').val(current.$parent.model.pkey);
-				}
-
-				// Target platform
-				current.updateTerraformTarget()
-			}).on('submit', current.terraform);
-			_('popup-prov-terraform-destroy').on('shown.bs.modal', function () {
-				_('terraform-confirm-destroy').trigger('focus');
-			}).on('show.bs.modal', function () {
-				current.updateTerraformTarget();
-				_('terraform-destroy-confirm').val('').trigger('change');
-				$('.terraform-destroy-alert').html(Handlebars.compile(current.$messages['service:prov:terraform:destroy-alert'])(current.$parent.model.pkey));
-			}).on('submit', function () {
-				// Delete only when exact match
-				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
-					current.terraformDestroy();
-				}
-			});
-
-			// Live state ot Terraform destroy buttons
-			_('terraform-destroy-confirm').on('change keyup', function () {
-				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
-					_('popup-prov-terraform-destroy').find('input[type="submit"]').removeClass('disabled');
-				} else {
-					_('popup-prov-terraform-destroy').find('input[type="submit"]').addClass('disabled');
-				}
-			})
 			$('.cost-refresh').on('click', current.refreshCost);
 			$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 
@@ -1103,30 +1032,10 @@ define(function () {
 					text: 'FEDORA'
 				}]
 			});
-
-			// Usage rate template
-			var usageTemplates = [
-				{
-					id: 29,
-					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h30 - 18h30'
-				}, {
-					id: 35,
-					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h00 - 20h00'
-				}
-			];
-			for (var i = 0; i < usageTemplates.length; i++) {
-				current.usageTemplates[usageTemplates[i].id] = usageTemplates[i];
-			}
-			_('usage-template').select2({
-				placeholder: 'Template',
-				allowClear: true,
-				formatSelection: current.formatUsageTemplate,
-				formatResult: current.formatUsageTemplate,
-				escapeMarkup: function (m) {
-					return m;
-				},
-				data: usageTemplates
-			});
+			
+			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.termToText, function() {
+				return 'instance-software/' + _('instance-os').val();
+			}));
 
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
@@ -1202,7 +1111,69 @@ define(function () {
 				_('instance-cpu').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
-			_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
+			_('storage-price').on('change', function (event) {
+				current.updateInstanceCompatible(event.added);
+			});
+			current.initializeTerraform();
+			current.initializeLocation();
+			current.initializeUsage();
+			current.initializeLicense();
+		},
+		
+		
+		/**
+		 * Configure location.
+		 */
+		initializeTerraform: function() {		
+			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
+			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
+			_('popup-prov-terraform').on('shown.bs.modal', function () {
+				_('terraform-cidr').trigger('focus');
+			}).on('show.bs.modal', function () {
+				if (_('terraform-key-name').val() === "") {
+					_('terraform-key-name').val(current.$parent.model.pkey);
+				}
+
+				// Target platform
+				current.updateTerraformTarget()
+			}).on('submit', current.terraform);
+			_('popup-prov-terraform-destroy').on('shown.bs.modal', function () {
+				_('terraform-confirm-destroy').trigger('focus');
+			}).on('show.bs.modal', function () {
+				current.updateTerraformTarget();
+				_('terraform-destroy-confirm').val('').trigger('change');
+				$('.terraform-destroy-alert').html(Handlebars.compile(current.$messages['service:prov:terraform:destroy-alert'])(current.$parent.model.pkey));
+			}).on('submit', function () {
+				// Delete only when exact match
+				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
+					current.terraformDestroy();
+				}
+			});
+
+			// Live state ot Terraform destroy buttons
+			_('terraform-destroy-confirm').on('change keyup', function () {
+				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
+					_('popup-prov-terraform-destroy').find('input[type="submit"]').removeClass('disabled');
+				} else {
+					_('popup-prov-terraform-destroy').find('input[type="submit"]').addClass('disabled');
+				}
+			})
+
+			// render the dashboard
+			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
+				var $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
+				if ($tool && $tool.dashboardLink) {
+					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
+				} else {
+					$dashboard.addClass('hidden');
+				}
+			});
+		},
+
+		/**
+		 * Configure location.
+		 */
+		initializeLocation: function() {		
 			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
 				if (event.added) {
 					current.updateQuote({
@@ -1212,11 +1183,74 @@ define(function () {
 				}
 			});
 			$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
+			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
+			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
+		},	
+
+		/**
+		 * Configure usage.
+		 */
+		initializeUsage: function() {
+			_('popup-prov-usage').on('shown.bs.modal', function () {
+				_('usage-name').trigger('focus');
+			}).on('submit', function (e) {
+				e.preventDefault();
+				current.saveOrUpdateUsage({
+					name: _('usage-name').val(),
+					rate: parseInt(_('usage-rate').val() || '100', 10),
+					duration: parseInt(_('usage-duration').val() || '1', 10)
+				}, _('usage-old-name').val());
+			}).on('show.bs.modal', function (event) {
+				if ($(event.relatedTarget).is('.btn-success')) {
+					// Create mode
+					_('usage-old-name').val('');
+					_('usage-name').val('');
+					_('usage-rate').val(100);
+					_('usage-duration').val(1);
+				} else {
+					// Update mode
+					var usage = event.relatedTarget;
+					_('usage-old-name').val(usage.name);
+					_('usage-name').val(usage.name);
+					_('usage-rate').val(usage.rate);
+					_('usage-duration').val(usage.duration);
+				}
+				validationManager.reset($(this));
+				validationManager.mapping.name = 'usage-name';
+				validationManager.mapping.rate = 'usage-rate';
+				validationManager.mapping.duration = 'usage-duration';
+				_('usage-rate').trigger('change');
+			});
+			$('.usage-inputs input').on('change', current.synchronizeUsage);
+			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
 			_('prov-usage-delete').click(function () {
 				current.deleteUsage(_('usage-old-name').val());
 			});
-			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
-			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
+
+			// Usage rate template
+			var usageTemplates = [
+				{
+					id: 29,
+					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h30 - 18h30'
+				}, {
+					id: 35,
+					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h00 - 20h00'
+				}
+			];
+			for (var i = 0; i < usageTemplates.length; i++) {
+				current.usageTemplates[usageTemplates[i].id] = usageTemplates[i];
+			}
+			_('usage-template').select2({
+				placeholder: 'Template',
+				allowClear: true,
+				formatSelection: current.formatUsageTemplate,
+				formatResult: current.formatUsageTemplate,
+				escapeMarkup: function (m) {
+					return m;
+				},
+				data: usageTemplates
+			});
+			_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
 			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
 				.select2('data', current.model.configuration.usage)
 				.on('change', function (event) {
@@ -1224,10 +1258,6 @@ define(function () {
 						usage: event.added || null
 					}, 'usage', true);
 				});
-			_('storage-price').on('change', function (event) {
-				current.updateInstanceCompatible(event.added);
-			});
-
 			var $usageSelect2 = _('quote-usage').data('select2');
 			if (typeof $usageSelect2.originalSelect === 'undefined') {
 				$usageSelect2.originalSelect = $usageSelect2.onSelect;
@@ -1247,6 +1277,30 @@ define(function () {
 				};
 			})($usageSelect2.originalSelect);
 			_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
+		},
+
+		/**
+		 * Configure license.
+		 */
+		initializeLicense: function() {
+			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function() {
+				return 'instance-license/' + _('instance-os').val();
+			}));
+			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, function() {
+				return 'instance-license/WINDOWS';
+			})).select2('data',  current.model.configuration.license ? {
+						id: current.model.configuration.license,
+						text: current.formatLicense(current.model.configuration.license)
+					} : null)
+				.on('change', function (event) {
+					current.updateQuote({
+						license: event.added || null
+					}, 'license', true);
+				});
+		},
+		
+		formatLicense: function(license) {
+			return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license ;
 		},
 
 		synchronizeUsage: function () {
@@ -1331,6 +1385,7 @@ define(function () {
 
 		/**
 		 * Generic Ajax Select2 configuration.
+		 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
 		 */
 		genericSelect2: function (placeholder, renderer, path, rendererResult, orderCallback, pageSize) {
 			pageSize = pageSize || 15;
@@ -1347,7 +1402,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + path;
+						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path(): path);
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -1368,9 +1423,16 @@ define(function () {
 					},
 					results: function (data, page) {
 						var result = [];
-						$(data.data).each(function () {
-							result.push(this);
-							this.text = renderer(this);
+						$((typeof data.data === 'undefined') ? data : data.data).each(function (index, item) {
+							if (typeof item === 'string') {
+								item = {
+									id:  item,
+									text: renderer(item)
+								};
+							} else {
+								item.text = renderer(item);
+							}
+							result.push(item);
 						});
 						if (orderCallback) {
 							orderCallback(result);
@@ -1549,9 +1611,14 @@ define(function () {
 				name: conf.name,
 				description: conf.description,
 				location: conf.location,
+				license: conf.license,
 				usage: conf.usage
 			}, data || {});
-			jsonData.location = jsonData.location.name ? jsonData.location.name : jsonData.location;
+			jsonData.location = jsonData.location.name || jsonData.location;
+			
+			if (jsonData.license) {
+				jsonData.license = jsonData.license.id || jsonData.license;
+			}
 			if (jsonData.usage) {
 				jsonData.usage = jsonData.usage.name;
 			} else {
@@ -1573,6 +1640,7 @@ define(function () {
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage || conf.usage;
+					conf.license = jsonData.license;
 
 					// UI feedback
 					$popup.modal('hide');
@@ -1789,6 +1857,8 @@ define(function () {
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
 			data.os = _('instance-os').val().toLowerCase();
+			data.license = _('instance-license').val().toLowerCase() || null;
+			data.software = _('instance-software').val().toLowerCase() || null;
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.price = _('instance-price').select2('data').price.id;
 		},
@@ -1842,6 +1912,15 @@ define(function () {
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
 			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
+			var license = (quote.id && (quote.license || quote.price.license)) || null;
+			if (license) {
+				license = {
+					id: license,
+					text: current.formatLicense(license)
+				}
+			}
+			_('instance-license').select2('data', license);
+			_('instance-software').select2('data', current.select2IdentityData((quote.id && (quote.software || quote.price.software)) || null));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
@@ -2527,65 +2606,6 @@ define(function () {
 				}]
 			});
 			return current.storageTable;
-		},
-
-		/**
-		 * Initialize the database datatables from the whole quote
-		 */
-		databaseNewTable: function () {
-			current.databaseTable = _('prov-databases').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.databases || [],
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
-				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
-					data: 'price.vendor',
-					className: 'truncate',
-					render: current.formatDatabaseVendor
-				}, {
-					data: 'quoteInstance.minQuantity',
-					className: 'hidden-xs',
-					render: function (value, mode, data) {
-						if (value) {
-							return current.formatQuantity(value, mode, data);
-						}
-						// No related instance
-						return 1;
-					}
-				}, {
-					data: 'size',
-					width: '36px',
-					className: 'truncate',
-					type: 'num',
-					render: current.formatStorage
-				}, {
-					data: 'price.type',
-					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatInstanceType
-				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					type: 'num',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-database"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
-						return links;
-					}
-				}]
-			});
-			return current.databaseTable;
 		},
 
 		contextDonut: null,

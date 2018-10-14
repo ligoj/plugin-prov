@@ -5,6 +5,8 @@
 package org.ligoj.app.plugin.prov;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
@@ -149,6 +152,8 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
+		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
+		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
 
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkConstraints(entity);
@@ -218,8 +223,11 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final ProvQuote quote = qi.getConfiguration();
 
 		// Find the lowest price
-		qi.setPrice(validateLookup("instance", lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(),
-				null, qi.isEphemeral(), getLocation(qi).getName(), getUsageName(qi)), qi.getName()));
+		qi.setPrice(
+				validateLookup("instance",
+						lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null, qi.isEphemeral(),
+								getLocation(qi).getName(), getUsageName(qi), qi.getLicense(), qi.getSoftware()),
+						qi.getName()));
 		return updateCost(qi);
 	}
 
@@ -281,9 +289,14 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	 *            Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
 	 *            accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 * @param location
-	 *            Optional location name. May be <code>null</code>.
+	 *            Optional location name. When <code>null</code>, the global quote's location is used.
 	 * @param usage
 	 *            Optional usage name. May be <code>null</code>.
+	 * @param license
+	 *            Optional license model. When <code>null</code>, the global quote's license is used.
+	 * @param software
+	 *            Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint
+	 *            is added. WHen <code>null</code>, installed software is also accepted.
 	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
 	 *         custom instance type.
 	 */
@@ -295,14 +308,16 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			@DefaultValue(value = "1") @QueryParam("ram") final int ram, @QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
 			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
-			@QueryParam("usage") final String usage) {
+			@QueryParam("usage") final String usage, @QueryParam("license") final String license,
+			@QueryParam("software") final String software) {
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, ephemeral, location, usage);
+		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, ephemeral, location, usage,
+				license, software);
 	}
 
 	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final int ram,
 			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
-			final String location, final String usageName) {
+			final String location, final String usageName, final String license, final String software) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 
@@ -322,28 +337,34 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 		final Integer typeId = type == null ? null
 				: assertFound(itRepository.findByName(subscription, type), type).getId();
 
+		// Resolve the right license model
+		final String licenseR = getLicense(configuration, license, os);
+		final String softwareR = StringUtils.trimToNull(software);
+
 		// Return only the first matching instance
-		// Template instance
-		final QuoteInstanceLookup template = ipRepository
-				.findLowestPrice(node, cpu, ram, constant, os, typeId, ephemeral, locationR, rate, duration,
-						PageRequest.of(0, 1))
+		return ipRepository
+				.findLowestPrice(node, cpu, ram, constant, os, typeId, ephemeral, locationR, rate, duration, licenseR,
+						softwareR, PageRequest.of(0, 1))
 				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
+	}
 
-		// Custom instance
-		final QuoteInstanceLookup custom = ipRepository
-				.findLowestCustomPrice(node, Math.ceil(cpu), Math.round(ram / 1024), constant, os, locationR,
-						PageRequest.of(0, 1))
-				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], rate * (double) rs[1]))
-				.orElse(null);
-
-		// Select the best price term
-		if (template == null) {
-			return custom;
+	/**
+	 * Compute the right license value.
+	 */
+	private String getLicense(final ProvQuote configuration, final String license, final VmOs os) {
+		String licenseR = license;
+		if (license == null) {
+			// Dual license modes are managed only for WINDOWS OS for now
+			licenseR = os == VmOs.WINDOWS ? configuration.getLicense() : null;
 		}
-		if (custom == null) {
-			return template;
+		if (ProvQuoteInstance.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
+			// Database handle included license as 'null'
+			licenseR = null;
 		}
-		return custom.getCost() < template.getCost() ? custom : template;
+		if (licenseR != null) {
+			licenseR.toUpperCase(Locale.ENGLISH);
+		}
+		return licenseR;
 	}
 
 	private ProvUsage getUsage(final ProvQuote configuration, final String name) {
@@ -364,13 +385,52 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 	@GET
 	@Path("{subscription:\\d+}/instance-price-term")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvInstancePriceTerm> findPriceTerm(@PathParam("subscription") final int subscription,
+	public TableItem<ProvInstancePriceTerm> findPriceTerms(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
+	}
+
+	/**
+	 * Return the available instance licenses for a subscription.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param os
+	 *            The filtered OS.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The available licenses for the given subscription.
+	 */
+	@GET
+	@Path("{subscription:\\d+}/instance-license/{os}")
+	public List<String> findLicenses(@PathParam("subscription") final int subscription,
+			@PathParam("os") final VmOs os) {
+		final List<String> result = ipRepository
+				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
+		return result;
+	}
+
+	/**
+	 * Return the available instance software for a subscription.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param os
+	 *            The filtered OS.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The available softwares for the given subscription.
+	 */
+	@GET
+	@Path("{subscription:\\d+}/instance-software/{os}")
+	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
+			@PathParam("os") final VmOs os) {
+		return ipRepository.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
 	}
 
 	/**

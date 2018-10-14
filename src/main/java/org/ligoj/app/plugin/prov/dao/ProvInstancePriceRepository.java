@@ -5,6 +5,9 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.List;
 
+import javax.cache.annotation.CacheKey;
+import javax.cache.annotation.CacheResult;
+
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -27,6 +30,35 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 */
 	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
 	List<ProvInstancePrice> findAll(String node, String location);
+
+	/**
+	 * Return all licenses related to given node identifier.
+	 *
+	 * @param node
+	 *            The node linked to the subscription. Is a node identifier within a provider.
+	 * @param os
+	 *            The filtered OS.
+	 * @return The filtered licenses.
+	 */
+	@CacheResult(cacheName = "prov-license")
+	@Query("SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i "
+			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%')) AND ip.os=:os ORDER BY ip.license")
+	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
+
+	/**
+	 * Return all softwares related to given node identifier.
+	 *
+	 * @param node
+	 *            The node linked to the subscription. Is a node identifier within a provider.
+	 * @param os
+	 *            The filtered OS.
+	 * @return The filtered softwares.
+	 */
+	@CacheResult(cacheName = "prov-software")
+	@Query("SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i "
+			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
+			+ "   AND ip.os=:os AND ip.software IS NOT NULL ORDER BY ip.software")
+	List<String> findAllSoftwares(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -52,50 +84,35 @@ public interface ProvInstancePriceRepository extends RestRepository<ProvInstance
 	 *            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
 	 * @param duration
 	 *            The duration in month. Minimum is 1.
+	 * @param license
+	 *            Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param software
+	 *            Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 *            <code>null</code>, installed software is also accepted.
 	 * @param pageable
 	 *            The page control to return few item.
 	 * @return The minimum instance price or <code>null</code>.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " CASE                                                 "
+			+ "  WHEN i.cpu = 0 THEN (((CEIL(:cpu) * ip.costCpu)"
+			+ "                      + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate * :duration)"
 			+ "  WHEN t.period = 0 THEN (ip.cost * :rate * :duration)"
-			+ "  WHEN MOD (:duration, t.period) = 0 THEN ((:duration/t.period) * ip.costPeriod)"
-			+ "  ELSE (((:duration/t.period) +1) * ip.costPeriod) END AS totalCost,"
-			+ " CASE WHEN t.period = 0 THEN (ip.cost * :rate) ELSE ip.cost END AS monthlyCost"
+			+ "  ELSE (CEIL(:duration/t.period) * ip.costPeriod) END AS totalCost,"
+			+ " CASE                                                 "
+			+ "  WHEN i.cpu = 0 THEN (((:cpu * ip.costCpu) + (:ram * ip.costRam / 1024)) *:rate)"
+			+ "  WHEN t.period = 0 THEN (ip.cost * :rate)            "
+			+ "  ELSE ip.cost END AS monthlyCost                     "
 			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
 			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "  AND (:type IS NULL OR i.id = :type) AND i.cpu>= :cpu AND i.ram>=:ram"
+			+ "  AND (:type IS NULL OR i.id = :type)  AND (i.cpu = 0 OR (i.cpu>= :cpu AND i.ram>=:ram))"
 			+ "  AND (:os IS NULL OR ip.os=:os) AND (:constant IS NULL OR i.constant = :constant)"
-			+ "  AND i.cpu > 0 AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ "  AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
+			+ "  AND (:software IS NULL OR :software = ip.software)   "
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestPrice(String node, double cpu, int ram, Boolean constant, VmOs os, Integer type,
-			boolean ephemeral, int location, double rate, double duration, Pageable pageable);
-
-	/**
-	 * Return the lowest custom instance price configuration from the minimal requirements.
-	 *
-	 * @param node
-	 *            The requested provider node.
-	 * @param cpu
-	 *            The minimum CPU.
-	 * @param ram
-	 *            The minimum RAM in MB.
-	 * @param constant
-	 *            The optional constant CPU behavior constraint.
-	 * @param os
-	 *            The requested OS.
-	 * @param location
-	 *            The requested location identifier.
-	 * @param pageable
-	 *            The page control to return few item.
-	 * @return The minimum instance price or <code>null</code>.
-	 */
-	@Query("SELECT ip, (:cpu * ip.costCpu + :ram * ip.costRam) AS monthlyCost"
-			+ " FROM #{#entityName} ip INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
-			+ " WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ " AND i.cpu = 0 AND ip.os=:os AND (:constant IS NULL OR i.constant = :constant)"
-			+ " AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY monthlyCost ASC           ")
-	List<Object[]> findLowestCustomPrice(String node, double cpu, double ram, Boolean constant, VmOs os, int location,
+	List<Object[]> findLowestPrice(String node, double cpu, double ram, Boolean constant, VmOs os, Integer type,
+			boolean ephemeral, int location, double rate, double duration, String license, String software,
 			Pageable pageable);
 
 }

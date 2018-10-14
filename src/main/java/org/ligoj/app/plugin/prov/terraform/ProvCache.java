@@ -33,6 +33,8 @@ public class ProvCache implements CacheManagerAware {
 		tokens2.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
 				.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
 		cacheManager.createCache("prov-location", tokens2);
+		cacheManager.createCache("prov-license", provider.apply("prov-license"));
+		cacheManager.createCache("prov-software", provider.apply("prov-software"));
 	}
 
 }

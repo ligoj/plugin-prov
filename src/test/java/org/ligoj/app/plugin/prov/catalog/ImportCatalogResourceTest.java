@@ -148,7 +148,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(status.isFinished());
 		Assertions.assertFalse(status.isFailed());
 		Assertions.assertNotEquals(0, status.getLastSuccess().getTime());
-		Assertions.assertEquals(101, status.getNbInstancePrices().intValue());
+		Assertions.assertEquals(103, status.getNbInstancePrices().intValue());
 		Assertions.assertEquals(13, status.getNbInstanceTypes().intValue());
 		Assertions.assertEquals(3, status.getNbLocations().intValue());
 		Assertions.assertEquals(4, status.getNbStorageTypes().intValue());

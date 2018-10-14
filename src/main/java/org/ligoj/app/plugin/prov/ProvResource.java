@@ -189,6 +189,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setInstances(entity.getInstances());
 		vo.setStorages(repository.getStorage(subscription.getId()));
 		vo.setUsage(entity.getUsage());
+		vo.setLicense(entity.getLicense());
+
 		// Also copy the pre-computed cost
 		vo.setCost(toFloatingCost(entity));
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
@@ -240,6 +242,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), quote.getLocation()));
 		entity.setUsage(Optional.ofNullable(quote.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
+		entity.setLicense(quote.getLicense());
 		return refresh(entity);
 	}
 

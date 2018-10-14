@@ -28,9 +28,14 @@ import lombok.ToString;
 @Entity
 @ToString(of = { "os", "term", "tenancy", "license" }, callSuper = true)
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "type", "os", "term", "tenancy", "license", "location" }),
+		@UniqueConstraint(columnNames = { "location", "type", "os", "term", "tenancy", "license" }),
 		@UniqueConstraint(columnNames = "code") })
 public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implements Serializable {
+
+	/**
+	 * Bring your own license.
+	 */
+	public static final String LICENSE_BYOL = "BYOL";
 
 	/**
 	 * The optional initial cost required to use this instance. May be <code>null</code>.
@@ -70,7 +75,13 @@ public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implement
 	private VmOs os;
 
 	/**
-	 * Optional license model.
+	 * Optional built-in license model. Special license term is {@value #LICENSE_BYOL}. When <code>null</code>, license
+	 * is included in the price or not applicable.
 	 */
 	private String license;
+
+	/**
+	 * Optional built-in software.
+	 */
+	private String software;
 }

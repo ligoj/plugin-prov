@@ -60,16 +60,14 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private VmOs os;
 
 	/**
-	 * The optional requested CPU behavior. When <code>false</code>, the CPU is
-	 * variable, with boost mode.
+	 * The optional requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
 	 */
 	private Boolean constant;
 
 	/**
-	 * The optional maximum monthly cost you want to pay. Only for one instance,
-	 * does not consider the {@link #minQuantity} or {@link #maxQuantity}. When
-	 * <code>null</code>, there is no limit. Only relevant for variable instance
-	 * price type such as AWS Spot.
+	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
+	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
+	 * variable instance price type such as AWS Spot.
 	 */
 	@Positive
 	private Double maxVariableCost;
@@ -88,8 +86,7 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	private Integer minQuantity = 1;
 
 	/**
-	 * The maximal quantity of this instance. When defined, must be greater than
-	 * {@link #minQuantity}
+	 * The maximal quantity of this instance. When defined, must be greater than {@link #minQuantity}
 	 */
 	@PositiveOrZero
 	private Integer maxQuantity;
@@ -98,14 +95,25 @@ public class QuoteInstanceEditionVo extends DescribedBean<Integer> {
 	 * The instance could be terminated by the provider. Default <code>false</code>.
 	 */
 	private boolean ephemeral;
-	
+
 	/**
 	 * Optional required location name. When <code>null</code>, the default quote's one will be used.
 	 */
 	private String location;
-	
+
 	/**
 	 * Optional applied usage name. When <code>null</code>, the default quote's one will be used.
 	 */
 	private String usage;
+
+	/**
+	 * Optional license model. When <code>null</code>, global's configuration is used. "BYOL" and "INCLUDED" are
+	 * accepted.
+	 */
+	private String license;
+
+	/**
+	 * Optional built-in software.
+	 */
+	private String software;
 }

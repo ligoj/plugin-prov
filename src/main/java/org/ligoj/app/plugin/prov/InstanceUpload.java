@@ -101,4 +101,15 @@ public class InstanceUpload {
 	 * Ordered disk optimizations.
 	 */
 	private List<ProvStorageOptimized> optimized = new ArrayList<>();
+
+	/**
+	 * Optional license model. When <code>null</code>, global's license is used. "INCLUDED" and "BYOL" values are
+	 * accepted.
+	 */
+	private String license;
+
+	/**
+	 * Optional built-in software.
+	 */
+	private String software;
 }

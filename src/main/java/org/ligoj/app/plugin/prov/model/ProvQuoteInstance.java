@@ -21,19 +21,25 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A configured instance inside a quote. Name is unique inside a quote. The
- * instance cost does not include the associated storages.
+ * A configured instance inside a quote. Name is unique inside a quote. The instance cost does not include the
+ * associated storages.
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
+@Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
+		"configuration" }))
 public class ProvQuoteInstance extends AbstractQuoteResource {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Included license.
+	 */
+	public static final String LICENSE_INCLUDED = "INCLUDED";
 
 	/**
 	 * Related instance with the price.
@@ -50,10 +56,9 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	private Double cpu;
 
 	/**
-	 * The optional maximum monthly cost you want to pay. Only for one instance,
-	 * does not consider the {@link #minQuantity} or {@link #maxQuantity}. When
-	 * <code>null</code>, there is no limit. Only relevant for variable instance
-	 * price type such as AWS Spot.
+	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
+	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
+	 * variable instance price type such as AWS Spot.
 	 */
 	@Positive
 	private Double maxVariableCost;
@@ -66,15 +71,14 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	private Integer ram;
 
 	/**
-	 * The requested OS. May be different from the one related by
-	 * {@link #price}, but refers to {@link VmOs#toPricingOs()}
+	 * The requested OS. May be different from the one related by {@link #price}, but refers to
+	 * {@link VmOs#toPricingOs()}
 	 */
 	@NotNull
 	private VmOs os;
 
 	/**
-	 * The requested CPU behavior. When <code>false</code>, the CPU is variable,
-	 * with boost mode.
+	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
 	 */
 	private Boolean constant;
 
@@ -96,8 +100,8 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	private int minQuantity = 1;
 
 	/**
-	 * The maximal quantity of this instance. May be <code>null</code> when unbound
-	 * maximal, otherwise must be greater than {@link #minQuantity}
+	 * The maximal quantity of this instance. May be <code>null</code> when unbound maximal, otherwise must be greater
+	 * than {@link #minQuantity}
 	 */
 	@PositiveOrZero
 	private Integer maxQuantity = 1;
@@ -112,6 +116,17 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 * The instance could be terminated by the provider.
 	 */
 	private boolean ephemeral;
+
+	/**
+	 * Optional license model. When <code>null</code>, the configuration license model will be used. May be
+	 * {@value #LICENSE_INCLUDED}.
+	 */
+	private String license;
+
+	/**
+	 * Optional software.
+	 */
+	private String software;
 
 	@Override
 	@JsonIgnore

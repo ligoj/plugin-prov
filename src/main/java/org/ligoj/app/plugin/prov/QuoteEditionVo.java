@@ -29,8 +29,14 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private String location;
 
 	/**
-	 * The usage name. May be <code>null</code> for a full usage.
+	 * Optional usage name. May be <code>null</code> for a full usage.
 	 */
 	private String usage;
+
+	/**
+	 * Optional license model. <code>null</code> value corresponds to
+	 * {@value org.ligoj.app.plugin.prov.model.ProvQuoteInstance#LICENSE_INCLUDED}.
+	 */
+	private String license;
 
 }

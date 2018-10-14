@@ -47,14 +47,19 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Related storages instance.
 	 */
 	private List<ProvQuoteStorage> storages;
-	
+
 	/**
 	 * Default location of this quote.
 	 */
 	private ProvLocation location;
-	
+
 	/**
 	 * Default usage of this quote. May be <code>null</code>.
 	 */
 	private ProvUsage usage;
+
+	/**
+	 * Default license model. May be <code>null</code>, equivalent to 'INCLUDED'.
+	 */
+	private String license;
 }
