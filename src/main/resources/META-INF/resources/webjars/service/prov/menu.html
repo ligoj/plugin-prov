@@ -1,5 +1,34 @@
 <div id="service-prov-menu">
 	<div class="prov-menu-separator"></div>
+	<div id="prov-defaults">
+		<form class="form-horizontal" autocomplete="off">
+			<fieldset>
+				<div class="form-group">
+					<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt" data-toggle="tooltip" title="{{quote-location}}"></i></label>
+					<div class="col-xs-10">
+						<input type="text" id="quote-location" class="form-control" required maxlength="50" />
+					</div>
+					<span class="location-wrapper select2-addon"></span>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
+					<div class="col-xs-10">
+						<input type="text" id="quote-usage" class="form-control" />
+					</div>
+					<span class="select2-addon">
+						<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+					</span>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-1" for="quote-license"><i class="fas fa-cart-arrow-down" data-toggle="tooltip" title="{{quote-license}}"></i></label>
+					<div class="col-xs-10">
+						<input type="text" id="quote-license" class="form-control" />
+					</div>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+
 	<ul class="nav nav-pills nav-stacked" role="tablist">
 		<li role="presentation" class="active">
 			<a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i><span>  {{{service:prov:instances-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
