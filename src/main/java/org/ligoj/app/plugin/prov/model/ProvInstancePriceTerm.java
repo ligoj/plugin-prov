@@ -37,7 +37,7 @@ public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> impl
 	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing
 	 * period below 1 month.
 	 */
-	private int period = 0;
+	private double period = 0;
 
 	/**
 	 * The related node (VM provider) of this instance.
