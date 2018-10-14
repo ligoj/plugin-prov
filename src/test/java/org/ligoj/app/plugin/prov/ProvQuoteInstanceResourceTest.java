@@ -811,9 +811,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void findSoftwares() {
 		final List<String> tableItem = qiResource.findSoftwares(subscription, VmOs.WINDOWS);
-		Assertions.assertEquals(2, tableItem.size());
-		Assertions.assertEquals("", tableItem.get(0));
-		Assertions.assertEquals("SQL Web", tableItem.get(1));
+		Assertions.assertEquals(1, tableItem.size());
+		Assertions.assertEquals("SQL Web", tableItem.get(0));
 	}
 
 	@Test
