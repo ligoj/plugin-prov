@@ -149,6 +149,7 @@ label[for="instance-max-variable-cost"] {
 	z-index: 1031;
 	visibility: hidden;
 	font-size: 14px;
+	text-align: left;
 }
 .d3-tooltip .tooltip-text {
 	vertical-align: super;

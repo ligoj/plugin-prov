@@ -16,11 +16,6 @@ define(function () {
 		storageTable: null,
 
 		/**
-		 * Database table
-		 */
-		databaseTable: null,
-
-		/**
 		 * Current quote.
 		 */
 		model: null,
@@ -2151,7 +2146,25 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (conf.cost.min) {
 					sunburst.init('#prov-sunburst', current.toD3(), function (data) {
-						return data.name + ', cost: ' + current.formatCost(data.size || data.value);
+						var tooltip;
+						if (data.type === 'latency') {
+							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
+						} else if (data.type === 'os') {
+							tooltip = current.formatOs(data.name, true, ' fa-2x');
+						} else if (data.type === 'instance') {
+							var instance = current.model.configuration.instancesById[data.name];
+							tooltip = 'Name: ' + instance.name
+							 + '</br>Type: ' + instance.price.type.name
+							 + '</br>OS: ' + current.formatOs(instance.price.os, true)
+							 + '</br>Term: ' + instance.price.term.name
+							 + '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
+						} else if (data.type === 'storage') {
+							var storage = current.model.configuration.storagesById[data.name];
+							tooltip = 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
+						} else {
+							tooltip = data.name;
+						}
+						return '<span class="tooltip-text">' + tooltip + '<br/>Cost: ' + current.formatCost(data.size || data.value) + '</span>';
 					});
 					_('prov-sunburst').removeClass('hidden');
 				} else {
@@ -2326,7 +2339,8 @@ define(function () {
 					if (typeof optimizations === 'undefined') {
 						// First optimization
 						optimizations = {
-							name: current.formatStorageLatency(qs.price.type.latency, true, ' fa-2x'),
+							name: qs.price.type.latency,
+							type: 'latency',
 							value: 0,
 							children: []
 						};
@@ -2336,7 +2350,8 @@ define(function () {
 					optimizations.value += qs.cost;
 					storages.value += qs.cost;
 					optimizations.children.push({
-						name: qs.name,
+						name: qs.id,
+						type: 'storage',
 						size: qs.cost
 					});
 				}
@@ -2354,7 +2369,8 @@ define(function () {
 					if (typeof oss === 'undefined') {
 						// First OS
 						oss = {
-							name: current.formatOs(qi.os, true, ' fa-2x'),
+							name: qi.os,
+							type: 'os',
 							value: 0,
 							children: []
 						};
@@ -2364,7 +2380,8 @@ define(function () {
 					oss.value += qi.cost;
 					instances.value += qi.cost;
 					oss.children.push({
-						name: qi.name,
+						name: qi.id,
+						type: 'instance',
 						size: qi.cost
 					});
 				}
