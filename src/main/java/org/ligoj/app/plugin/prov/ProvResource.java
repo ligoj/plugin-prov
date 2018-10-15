@@ -24,6 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
@@ -190,6 +191,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setStorages(repository.getStorage(subscription.getId()));
 		vo.setUsage(entity.getUsage());
 		vo.setLicense(entity.getLicense());
+		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(),100));
 
 		// Also copy the pre-computed cost
 		vo.setCost(toFloatingCost(entity));
@@ -243,6 +245,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setUsage(Optional.ofNullable(quote.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
 		entity.setLicense(quote.getLicense());
+		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		return refresh(entity);
 	}
 

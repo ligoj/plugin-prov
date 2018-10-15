@@ -10,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -106,6 +108,16 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 */
 	private String license;
 
+	/**
+	 * Rate applied to required RAM to lookup the suiting instance type. This rate is divided by <code>100</code>, then
+	 * multiplied to the required RAM of each memory before calling the lookup. Value lesser than <code>100</code>
+	 * allows the lookup to elect an instance having less RAM than the requested one. Value greater than
+	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.
+	 */
+	@Min(50)
+	@Max(150)
+	private Integer ramAdjustedRate = 100;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {
@@ -117,4 +129,5 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	public ProvQuote getConfiguration() {
 		return this;
 	}
+
 }

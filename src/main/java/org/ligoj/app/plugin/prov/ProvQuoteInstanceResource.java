@@ -320,8 +320,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 			final String location, final String usageName, final String license, final String software) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-
-		// Resolve
+		final double ramR = Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100) * ram / 100);
 		final VmOs os = Optional.ofNullable(osName).map(VmOs::toPricingOs).orElse(null);
 
 		// Resolve the location to use
@@ -343,7 +342,7 @@ public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteI
 
 		// Return only the first matching instance
 		return ipRepository
-				.findLowestPrice(node, cpu, ram, constant, os, typeId, ephemeral, locationR, rate, duration, licenseR,
+				.findLowestPrice(node, cpu, ramR, constant, os, typeId, ephemeral, locationR, rate, duration, licenseR,
 						softwareR, PageRequest.of(0, 1))
 				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
 	}

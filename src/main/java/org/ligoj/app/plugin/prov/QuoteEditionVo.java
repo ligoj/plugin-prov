@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -38,5 +40,16 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	 * {@value org.ligoj.app.plugin.prov.model.ProvQuoteInstance#LICENSE_INCLUDED}.
 	 */
 	private String license;
+
+	/**
+	 * Rate applied to required RAM to lookup the suiting instance type. This rate is divided by <code>100</code>, then
+	 * multiplied to the required RAM of each memory before calling the lookup. Values lesser than <code>100</code>
+	 * allows the lookup to elect an instance having less RAM than the requested one. Value greater than
+	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.
+	 */
+	@Min(50)
+	@Max(150)
+	@NotNull
+	private Integer ramAdjustedRate = 100;
 
 }

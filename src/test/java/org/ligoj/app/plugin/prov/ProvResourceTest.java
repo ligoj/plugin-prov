@@ -379,11 +379,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("service:prov:test", repository.findByName("name1").getLocation().getNode().getId());
 	}
 
-	/**
-	 * Update the default license model of the quote, impact all instances using the default license model.
-	 */
-	@Test
-	public void updateLicense() {
+	private  ProvQuote newProvQuote() {
 		final Subscription subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -423,6 +419,50 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(resource.refresh(subscription.getId()), 175.68, 175.68, false);
 		final ProvQuoteInstance instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet.getPrice().getCode());
+
+		return configuration;
+	}
+	/**
+	 * Update the RAM adjust rate.
+	 */
+	@Test
+	public void updateRamAdjustRate() {
+		final ProvQuote configuration = newProvQuote();
+		final Subscription subscription = configuration.getSubscription();
+
+		final QuoteEditionVo quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setUsage("usage");
+		quote.setRamAdjustedRate(100);
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet2.getPrice().getCode());
+
+		quote.setRamAdjustedRate(50);
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+
+		quote.setRamAdjustedRate(150);
+		checkCost(resource.update(subscription.getId(), quote), 702.72, 702.72, false);
+		em.flush();
+		em.clear();
+		final ProvQuoteInstance instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
+	}
+
+	/**
+	 * Update the default license model of the quote, impact all instances using the default license model.
+	 */
+	@Test
+	public void updateLicense() {
+		final ProvQuote configuration = newProvQuote();
+		final Subscription subscription = configuration.getSubscription();
 
 		final QuoteEditionVo quote = new QuoteEditionVo();
 		quote.setName("new1");

@@ -1113,11 +1113,38 @@ define(function () {
 			current.initializeLocation();
 			current.initializeUsage();
 			current.initializeLicense();
+			current.initializeRamAdjustedRate();
 		},
 		
+		/**
+		 * Configure RAM adjust rate.
+		 */
+		initializeRamAdjustedRate: function() {		
+			require(['jquery-ui'], function() {
+				var handle = $('#quote-ram-adjust-handle');
+				$( '#quote-ram-adjust').slider({
+					min: 50,
+					max: 150,
+					animate: true,
+					step: 5,
+					value: current.model.configuration.ramAdjustedRate,
+					create: function() {
+						handle.text($(this).slider('value') + '%');
+					},
+					slide: function(event, ui) {
+						handle.text(ui.value + '%');
+					},
+					change: function(event, slider) {
+						current.updateQuote({
+							ramAdjustedRate: slider.value
+						}, 'ramAdjustedRate', true);
+					}
+				});			
+			});
+		},
 		
 		/**
-		 * Configure location.
+		 * Configure Terraform.
 		 */
 		initializeTerraform: function() {		
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
@@ -1607,6 +1634,7 @@ define(function () {
 				description: conf.description,
 				location: conf.location,
 				license: conf.license,
+				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage
 			}, data || {});
 			jsonData.location = jsonData.location.name || jsonData.location;
@@ -1636,6 +1664,7 @@ define(function () {
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage || conf.usage;
 					conf.license = jsonData.license;
+					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 
 					// UI feedback
 					$popup.modal('hide');

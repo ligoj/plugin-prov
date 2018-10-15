@@ -317,3 +317,57 @@ img.flag-icon.prov-location-flag {
 	margin-left: 8px;
 	margin-right: 8px;
 }
+#quote-ram-adjust-handle {
+	width: 3em;
+	height: 1.6em;
+	top: 50%;
+	margin-top: -.8em;
+	text-align: center;
+	line-height: 1.6em;
+	border: 1px solid #c5c5c5;
+    background: #f6f6f6;
+    font-weight: normal;
+    color: #454545;
+	margin-left: -.6em;
+	position: absolute;
+	z-index: 2;
+	cursor: default;
+	-ms-touch-action: none;
+	touch-action: none;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+	border-top-right-radius: 3px;
+	border-top-left-radius: 3px;    
+    
+    
+}
+#quote-ram-adjust {
+    border: 1px solid #c5c5c5;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    color: #333333;
+    font-size: 1em;
+    height: .8em;
+    position: relative;
+    text-align: left;
+}
+#quote-ram-adjust-handle.ui-state-active, #quote-ram-adjust-handle.ui-state-hover {
+	border: 1px solid #003eff;
+	background: #007fff;
+	font-weight: normal;
+	color: #ffffff;
+}
+#quote-ram-adjust:active,
+#quote-ram-adjust:hover {
+	border: 1px solid #dcdedf;
+	background: #ecefef;
+	font-weight: normal;
+	color: #ffffff;
+}
+.slider-wrapper {
+	margin-top: 8px;
+}
