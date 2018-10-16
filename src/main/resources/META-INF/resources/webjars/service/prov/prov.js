@@ -2584,10 +2584,6 @@ define(function () {
 					className: 'truncate hidden-xs hidden-sm',
 					render: current.formatQiStorages
 				}, {
-					data: 'internet',
-					className: 'hidden-xs',
-					render: current.formatInternet
-				}, {
 					data: 'cost',
 					className: 'truncate hidden-xs',
 					render: current.formatCost
