@@ -951,6 +951,7 @@ define(function () {
 					var table = current[$(this).closest('[data-prov-type]').data('prov-type') + 'Table'];
 					if (table) {
 						table.fnFilter($(this).val());
+						current.updateUiCost();
 					}
 				}
 			});
@@ -1647,6 +1648,17 @@ define(function () {
 			} else {
 				delete jsonData.usage;
 			}
+			
+			// Check the changes
+			if (conf.name === jsonData.name
+				&& conf.description === jsonData.description
+				&& (conf.location && conf.location.name) === jsonData.location
+				&& (conf.usage && conf.usage.name) === jsonData.usage
+				&& conf.license === jsonData.license
+				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
+				// No change
+				return;
+			}
 
 			$.ajax({
 				type: 'PUT',
@@ -2112,17 +2124,17 @@ define(function () {
 			current.formatCost(conf.cost, $('.cost'));
 
 			var $instance = $('.nav-pills [href="#tab-instance"] > .badge');
-			$instance.find('.odo-wrapper').text(usage.nbInstances || 0);
-			$instance.find('.odo-wrapper-unbound').text(usage.unbound ? '+' : '');
+			$instance.find('.odo-wrapper').text(usage.instance.nbInstances || 0);
+			$instance.find('.odo-wrapper-unbound').text(usage.instance.unbound ? '+' : '');
 			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
 
 			// Update the summary
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
-			if (usage.cpu.available) {
+			if (usage.instance.cpu.available) {
 				$summary.removeClass('hidden');
-				$summary.filter('.cpu').find('span').text(usage.cpu.available);
-				$summary.filter('.ram').find('span').text(current.formatRam(usage.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
-				$summary.filter('.internet').find('span').text(usage.publicAccess);
+				$summary.filter('.cpu').find('span').text(usage.instance.cpu.available);
+				$summary.filter('.ram').find('span').text(current.formatRam(usage.instance.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
+				$summary.filter('.internet').find('span').text(usage.instance.publicAccess);
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -2136,7 +2148,7 @@ define(function () {
 
 			// Update the gauge : reserved / available
 			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
-				if (typeof current.d3Gauge === 'undefined') {
+				if (typeof current.d3Gauge === 'undefined' && usage.cost) {
 					current.d3Gauge = d3;
 					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
 						textColor: '#FF4444',
@@ -2145,36 +2157,18 @@ define(function () {
 						waveHeight: 0.9,
 						backgroundColor: '#e0e0e0'
 					});
-					current.updateUiCost();
-					return;
-				}
-				var weight = 0;
-				var weightUsage = 0;
-				if (usage.cpu.available) {
-					weightUsage += 50 * usage.cpu.reserved / usage.cpu.available;
-					weight += 50;
-				}
-				if (usage.ram.available) {
-					weightUsage += 10 * usage.ram.reserved / usage.ram.available;
-					weight += 10;
-				}
-				if (usage.storage.available) {
-					weightUsage += usage.storage.reserved / usage.storage.available;
-					weight += 1;
-				}
-				if (d3.select('#prov-gauge').on('valueChanged') && weight) {
-					_('prov-gauge').removeClass('hidden');
-					// Weight average of average...
-					d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightUsage * 100 / weight));
+					$(function() {
+						current.updateGauge(d3, usage);
+					});
 				} else {
-					$('#prov-gauge').addClass('hidden');
+					current.updateGauge(d3, usage);
 				}
 			});
 
 			// Update the sunburst total resource capacity
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (conf.cost.min) {
-					sunburst.init('#prov-sunburst', current.toD3(), function (data) {
+					sunburst.init('#prov-sunburst', current.toD3(usage), function (data) {
 						var tooltip;
 						if (data.type === 'latency') {
 							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
@@ -2203,6 +2197,46 @@ define(function () {
 		},
 
 		/**
+		 * Update the gauge value depending on the computed usage.
+		 */
+		updateGauge: function(d3, usage) {
+			var weight = 0;
+			var weightUsage = 0;
+			if (usage.instance.cpu.available) {
+				weightUsage += 50 * usage.instance.cpu.reserved / usage.instance.cpu.available;
+				weight += 50;
+			}
+			if (usage.instance.ram.available) {
+				weightUsage += 10 * usage.instance.ram.reserved / usage.instance.ram.available;
+				weight += 10;
+			}
+			if (usage.storage.available) {
+				weightUsage += usage.storage.reserved / usage.storage.available;
+				weight += 1;
+			}
+			if (d3.select('#prov-gauge').on('valueChanged') && weight) {
+				_('prov-gauge').removeClass('hidden');
+				// Weight average of average...
+				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightUsage * 100 / weight));
+			} else {
+				$('#prov-gauge').addClass('hidden');
+			}
+		},
+		
+		getFilteredData: function(type) {
+			var result = [];
+			if (current[type + 'Table'] && current[type + 'Table'].fnSettings().oPreviousSearch.sSearch) {
+				var data = _('prov-' + type + 's').DataTable().rows( { filter : 'applied'} ).data();
+				for(var index = 0;index < data.length; index++) {
+					result.push(data[index]);
+				}
+			} else {
+				result = current.model.configuration[type + 's'] || {};
+			}
+			return result;
+		},
+
+		/**
 		 * Compute the global resource usage of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
@@ -2223,10 +2257,13 @@ define(function () {
 			var weightedRateCost = 0;
 			var i;
 			var instanceCost = 0;
+			var storageCost = 0;
+			var instances = current.getFilteredData('instance');
+			var storages = current.getFilteredData('storage');
 
 			// Instance statistics
-			for (i = 0; i < conf.instances.length; i++) {
-				var qi = conf.instances[i];
+			for (i = 0; i < instances.length; i++) {
+				var qi = instances[i];
 				var rate = qi.usage ? qi.usage.rate : defaultRate;
 				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
@@ -2243,31 +2280,37 @@ define(function () {
 			}
 
 			// Storage statistics
-			for (i = 0; i < conf.storages.length; i++) {
-				var qs = conf.storages[i];
+			for (i = 0; i < storages.length; i++) {
+				var qs = storages[i];
 				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
 				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
 				storageReserved += qs.size * nb;
+				storageCost += qs.cost;
 			}
 			return {
-				publicAccess: publicAccess,
-				nbInstances: nbInstances,
-				unbound: nbInstancesUnbound,
-				weightedRate: {
-					instance: nbInstances ? Math.round(weightedRateInstance / nbInstances) : 0,
-					cost: instanceCost ? Math.round(weightedRateCost / instanceCost) : 0
-				},
-				ram: {
-					available: ramAvailable,
-					reserved: ramReserved
-				},
-				cpu: {
-					available: cpuAvailable,
-					reserved: cpuReserved
+				cost: instanceCost + storageCost,
+				instance: {
+					ram: {
+						available: ramAvailable,
+						reserved: ramReserved
+					},
+					cpu: {
+						available: cpuAvailable,
+						reserved: cpuReserved
+					},
+					publicAccess: publicAccess,
+					nbInstances: nbInstances,
+					unbound: nbInstancesUnbound,
+					weightedRate: {
+						instance: nbInstances ? Math.round(weightedRateInstance / nbInstances) : 0,
+						cost: instanceCost ? Math.round(weightedRateCost / instanceCost) : 0
+					},
+					filtered: instances
 				},
 				storage: {
 					available: storageAvailable,
-					reserved: storageReserved
+					reserved: storageReserved,
+					filtered: storages
 				}
 			};
 		},
@@ -2344,26 +2387,28 @@ define(function () {
 			return deletedStorages;
 		},
 
-		toD3: function () {
+		toD3: function (usage) {
 			var conf = current.model.configuration;
 			var data = {
 				name: 'Total',
-				value: conf.cost,
+				value: usage.cost,
 				children: []
 			};
-			var instances;
-			var storages;
+			var d3instances;
+			var d3storages;
 			var allOss = {};
-			if (conf.storages.length) {
-				storages = {
+			var instances = usage.instance.filtered;
+			var storages = usage.storage.filtered;
+			if (storages.length) {
+				d3storages = {
 					name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
 					value: 0,
 					children: []
 				};
-				data.children.push(storages);
+				data.children.push(d3storages);
 				var allOptimizations = {};
-				for (var i = 0; i < conf.storages.length; i++) {
-					var qs = conf.storages[i];
+				for (var i = 0; i < storages.length; i++) {
+					var qs = storages[i];
 					var optimizations = allOptimizations[qs.price.type.latency];
 					if (typeof optimizations === 'undefined') {
 						// First optimization
@@ -2374,10 +2419,10 @@ define(function () {
 							children: []
 						};
 						allOptimizations[qs.price.type.latency] = optimizations;
-						storages.children.push(optimizations);
+						d3storages.children.push(optimizations);
 					}
 					optimizations.value += qs.cost;
-					storages.value += qs.cost;
+					d3storages.value += qs.cost;
 					optimizations.children.push({
 						name: qs.id,
 						type: 'storage',
@@ -2385,15 +2430,15 @@ define(function () {
 					});
 				}
 			}
-			if (conf.instances.length) {
-				instances = {
+			if (instances.length) {
+				d3instances = {
 					name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
 					value: 0,
 					children: []
 				};
-				data.children.push(instances);
-				for (var i = 0; i < conf.instances.length; i++) {
-					var qi = conf.instances[i];
+				data.children.push(d3instances);
+				for (var i = 0; i < instances.length; i++) {
+					var qi = instances[i];
 					var oss = allOss[qi.os];
 					if (typeof oss === 'undefined') {
 						// First OS
@@ -2404,10 +2449,10 @@ define(function () {
 							children: []
 						};
 						allOss[qi.os] = oss;
-						instances.children.push(oss);
+						d3instances.children.push(oss);
 					}
 					oss.value += qi.cost;
-					instances.value += qi.cost;
+					d3instances.value += qi.cost;
 					oss.children.push({
 						name: qi.id,
 						type: 'instance',
