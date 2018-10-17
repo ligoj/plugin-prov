@@ -154,6 +154,7 @@ define({
         'service:prov:usage-rate-help': 'Usage rate corresponding to the time the corresponding resource must be available. 100% implies always up.',
         'service:prov:usage-duration': 'Duration',
         'service:prov:usage-duration-help': 'Estimated duration for this usage. Depending on this value the best term is determined.',
+        'service:prov:usage-template-full': 'Full time',
         'service:prov:export:instances': 'Export',
         'service:prov:export:instances:inline': 'Inlined, compatible import',
         'service:prov:export:instances:split': 'One line per resource',

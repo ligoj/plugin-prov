@@ -1258,6 +1258,9 @@ define(function () {
 				}, {
 					id: 35,
 					text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h00 - 20h00'
+				}, {
+					id: 100,
+					text: current.$messages['service:prov:usage-template-full']
 				}
 			];
 			for (var i = 0; i < usageTemplates.length; i++) {
