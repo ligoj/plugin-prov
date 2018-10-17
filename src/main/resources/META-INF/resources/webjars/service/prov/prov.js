@@ -2200,24 +2200,20 @@ define(function () {
 		 * Update the gauge value depending on the computed usage.
 		 */
 		updateGauge: function(d3, usage) {
-			var weight = 0;
-			var weightUsage = 0;
+			var weightCost = 0;
 			if (usage.instance.cpu.available) {
-				weightUsage += 50 * usage.instance.cpu.reserved / usage.instance.cpu.available;
-				weight += 50;
+				weightCost += usage.instance.cost * 0.8 * usage.instance.cpu.reserved / usage.instance.cpu.available;
 			}
 			if (usage.instance.ram.available) {
-				weightUsage += 10 * usage.instance.ram.reserved / usage.instance.ram.available;
-				weight += 10;
+				weightCost += usage.instance.cost * 0.2 * usage.instance.ram.reserved / usage.instance.ram.available;
 			}
 			if (usage.storage.available) {
-				weightUsage += usage.storage.reserved / usage.storage.available;
-				weight += 1;
+				weightCost += usage.storage.cost * usage.storage.reserved / usage.storage.available;
 			}
-			if (d3.select('#prov-gauge').on('valueChanged') && weight) {
+			if (d3.select('#prov-gauge').on('valueChanged') && usage.cost) {
 				_('prov-gauge').removeClass('hidden');
 				// Weight average of average...
-				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightUsage * 100 / weight));
+				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightCost * 100 / usage.cost));
 			} else {
 				$('#prov-gauge').addClass('hidden');
 			}
@@ -2253,18 +2249,16 @@ define(function () {
 			var nb = 0;
 			var publicAccess = 0;
 			var defaultRate = conf.usage ? conf.usage.rate : 100;
-			var weightedRateInstance = 0;
-			var weightedRateCost = 0;
 			var i;
 			var instanceCost = 0;
 			var storageCost = 0;
 			var instances = current.getFilteredData('instance');
 			var storages = current.getFilteredData('storage');
+			var ramAdjustedRate = conf.ramAdjustedRate / 100;
 
 			// Instance statistics
 			for (i = 0; i < instances.length; i++) {
 				var qi = instances[i];
-				var rate = qi.usage ? qi.usage.rate : defaultRate;
 				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
 				nbInstances += nb;
@@ -2272,10 +2266,8 @@ define(function () {
 				cpuAvailable += qi.price.type.cpu * nb;
 				cpuReserved += qi.cpu * nb;
 				ramAvailable += qi.price.type.ram * nb;
-				ramReserved += qi.ram * nb;
-				weightedRateInstance += rate * nb;
+				ramReserved += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
 				instanceCost += cost;
-				weightedRateCost += cost * rate;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 			}
 
@@ -2287,6 +2279,7 @@ define(function () {
 				storageReserved += qs.size * nb;
 				storageCost += qs.cost;
 			}
+
 			return {
 				cost: instanceCost + storageCost,
 				instance: {
@@ -2301,16 +2294,14 @@ define(function () {
 					publicAccess: publicAccess,
 					nbInstances: nbInstances,
 					unbound: nbInstancesUnbound,
-					weightedRate: {
-						instance: nbInstances ? Math.round(weightedRateInstance / nbInstances) : 0,
-						cost: instanceCost ? Math.round(weightedRateCost / instanceCost) : 0
-					},
-					filtered: instances
+					filtered: instances,
+					cost: instanceCost
 				},
 				storage: {
 					available: storageAvailable,
 					reserved: storageReserved,
-					filtered: storages
+					filtered: storages,
+					cost: storageCost
 				}
 			};
 		},
