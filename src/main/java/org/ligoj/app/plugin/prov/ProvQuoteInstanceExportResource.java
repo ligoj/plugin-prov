@@ -7,6 +7,11 @@ package org.ligoj.app.plugin.prov;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
@@ -18,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.INamableBean;
@@ -56,7 +62,10 @@ public class ProvQuoteInstanceExportResource {
 		final QuoteVo vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				final int max = vo.getInstances().stream().mapToInt(qi -> qi.getStorages().size()).max().orElse(0);
+				final Map<Integer, List<ProvQuoteStorage>> qsByQi = new HashMap<>();
+				vo.getStorages().stream().filter(qs -> qs.getQuoteInstance() != null)
+						.forEach(qs -> qsByQi.computeIfAbsent(qs.getQuoteInstance().getId(), ArrayList::new).add(qs));
+				final int max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
 
 				// Minimal headers
 				writer.format("%s" + StringUtils.repeat(";%s", 20), "name", "cpu", "ram", "os", "usage", "term",
@@ -68,17 +77,17 @@ public class ProvQuoteInstanceExportResource {
 						+ "Latency" + ";disk" + i + "Optimized" + ";disk" + i + "Cost"));
 				vo.getInstances().forEach(qi -> {
 					// Write quote instance
-					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), qi.getCpu(), qi.getRam(),
-							qi.getOs(), toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
-							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
-							toString(qi.getMaxVariableCost()), toString(qi.getConstant()), qi.isEphemeral(),
-							toString(qi.getPrice().getType()), qi.getInternet(), toString(qi.getLicense()),
-							qi.getCost());
+					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), toString(qi.getCpu()),
+							toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
+							toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+							toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
+							toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
+							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()));
 					// Write related storage
-					qi.getStorages()
+					qsByQi.getOrDefault(qi.getId(), Collections.emptyList())
 							.forEach(qs -> writer.format(StringUtils.repeat(";%s", 5), qs.getSize(),
 									toString(qs.getPrice().getType()), toString(qs.getLatency()),
-									toString(qs.getOptimized()), qs.getCost()));
+									toString(qs.getOptimized()), toString(qs.getCost())));
 				});
 				writer.flush();
 			}
@@ -109,17 +118,19 @@ public class ProvQuoteInstanceExportResource {
 
 				// Write quote instances
 				vo.getInstances().forEach(qi -> {
-					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), qi.getCpu(), qi.getRam(),
-							qi.getOs(), toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
-							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
-							toString(qi.getMaxVariableCost()), toString(qi.getConstant()), qi.isEphemeral(),
-							toString(qi.getPrice().getType()), qi.getInternet(), toString(qi.getLicense()),
-							qi.getCost());
+					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), toString(qi.getCpu()),
+							toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
+							toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+							toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
+							toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
+							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()));
 				});
 				// Write quote storages
-				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s", toString(qs),
-						toString(qs.getLocation()), qs.getCost(), qs.getSize(), toString(qs.getPrice().getType()),
-						toString(qs.getQuoteInstance()), toString(qs.getLatency()), toString(qs.getOptimized())));
+				vo.getStorages()
+						.forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s", toString(qs),
+								toString(qs.getLocation()), toString(qs.getCost()), qs.getSize(),
+								toString(qs.getPrice().getType()), toString(qs.getQuoteInstance()),
+								toString(qs.getLatency()), toString(qs.getOptimized())));
 				writer.flush();
 			}
 		}, file).build();
@@ -137,5 +148,13 @@ public class ProvQuoteInstanceExportResource {
 	 */
 	private String toString(final Object optional) {
 		return optional == null ? "" : optional.toString();
+	}
+
+	/**
+	 * Return the 'toDecimal' of a nullable object.
+	 */
+	private String toString(final Double optional) {
+		return optional == null ? ""
+				: String.valueOf(Math.round(optional * 1000d) / 1000d).replace('.', ',').replaceFirst(",0$", "");
 	}
 }

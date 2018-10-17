@@ -47,14 +47,14 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 				lines.get(0));
 
 		// Instance with multiple disks
-		Assertions.assertEquals("server1;0.5;2000;LINUX;;on-demand1;;2;10;10.1;true;false;instance1;PUBLIC;;292.8"
-				+ ";20;storage1;GOOD;IOPS;8.4" + ";10;storage2;MEDIUM;THROUGHPUT;155.6"
-				+ ";51;storage2;MEDIUM;THROUGHPUT;155.6", lines.get(1));
+		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8"
+				+ ";20;storage1;GOOD;IOPS;8,4" + ";10;storage2;MEDIUM;THROUGHPUT;155.6"
+				+ ";51;storage2;MEDIUM;THROUGHPUT;155,6", lines.get(1));
 
 		// Instance without disk
-		Assertions.assertEquals("server2;0.25;1000;LINUX;;on-demand2;;1;1;;;true;instance1;PRIVATE;;128.1",
+		Assertions.assertEquals("server2;0,25;1000;LINUX;;on-demand2;;1;1;;;true;instance1;PRIVATE;;128,1",
 				lines.get(2));
-		Assertions.assertEquals("server4;1.0;2000;DEBIAN;;on-demand1;;1;1;;false;false;instance3;PUBLIC;;292.8",
+		Assertions.assertEquals("server4;1;2000;DEBIAN;;on-demand1;;1;1;;false;false;instance3;PUBLIC;;292,8",
 				lines.get(4));
 	}
 
@@ -89,8 +89,8 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		final List<String> lines = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
-				"JIRA;4.0;6000;LINUX;Full Time 12 month;on-demand1;;1;1;10.1;true;false;dynamic;PRIVATE;;990.861552"
-						+ ";270;storage1;GOOD;;56.7",
+				"JIRA;4;6000;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;false;dynamic;PRIVATE;;990,862"
+						+ ";270;storage1;GOOD;;56,7",
 				lines.get(1));
 		em.flush();
 		em.clear();
@@ -138,11 +138,11 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 				lines.get(0));
 
 		// Instance data
-		Assertions.assertEquals("server1;0.5;2000;LINUX;;on-demand1;;2;10;10.1;true;false;instance1;PUBLIC;;292.8",
+		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8",
 				lines.get(1));
 
 		// Storage data
-		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155.6;;51;storage2;server1;MEDIUM;THROUGHPUT", lines.get(10));
+		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155,6;;51;storage2;server1;MEDIUM;THROUGHPUT", lines.get(10));
 	}
 
 	private List<String> export() throws IOException {
