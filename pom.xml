@@ -21,6 +21,7 @@
 	</scm>
 	<properties>
 		<awaitility.version>3.1.0</awaitility.version>
+		<bootstrap.version>2.4.4</bootstrap.version>
 	</properties>
 
 	<dependencies>
