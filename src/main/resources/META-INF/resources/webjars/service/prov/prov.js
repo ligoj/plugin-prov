@@ -32,6 +32,7 @@ define(function () {
 			current.model = subscription;
 			delete current.d3Arc;
 			delete current.d3Gauge;
+			$('.loader-wrapper').addClass('hidden');
 			require(['text!../main/service/prov/menu.html'], function (menu) {
 				_('service-prov-menu').empty().remove();
 				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
@@ -1669,6 +1670,9 @@ define(function () {
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(jsonData),
+				beforeSend: function() {
+					$('.loader-wrapper').removeClass('hidden');
+				},
 				success: function (newCost) {
 					// Update the UI
 					$('.quote-name').text(jsonData.name);
@@ -1692,6 +1696,7 @@ define(function () {
 					}
 				},
 				complete: function () {
+					$('.loader-wrapper').addClass('hidden');
 					current.enableCreate($popup);
 				},
 				error: function () {
