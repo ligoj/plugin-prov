@@ -926,6 +926,7 @@ define(function () {
 						validationManager.reset($popup);
 						validationManager.mapping.DEFAULT = 'csv-file';
 						$('.import-summary').html('Processing...');
+						$('.loader-wrapper').removeClass('hidden');
 					},
 					success: function () {
 						$popup.modal('hide');
@@ -934,6 +935,7 @@ define(function () {
 						current.reload();
 					},
 					complete: function () {
+						$('.loader-wrapper').addClass('hidden');
 						$('.import-summary').html('').addClass('hidden');
 						// Restore the optional inputs
 						$popup.find('input.temp-disabled').removeAttr('disabled').removeAttr('readonly').removeClass('temp-disabled').closest('.select2-container').select2('enable', true);
