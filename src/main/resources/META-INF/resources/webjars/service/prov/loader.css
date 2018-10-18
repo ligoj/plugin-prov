@@ -1,10 +1,11 @@
 .loader-wrapper {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 100px;
-    height: 100px;
-    z-index: 1000;
+	position: fixed;
+	top: 40%;
+	left: 50%;
+	width: 100px;
+	height: 100px;
+	z-index: 10000;
+	pointer-events: none;
 }
 .loader-central {
     display: block;
