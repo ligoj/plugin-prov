@@ -191,7 +191,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setStorages(repository.getStorage(subscription.getId()));
 		vo.setUsage(entity.getUsage());
 		vo.setLicense(entity.getLicense());
-		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(),100));
+		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100));
 
 		// Also copy the pre-computed cost
 		vo.setCost(toFloatingCost(entity));
@@ -303,7 +303,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setCost(0d);
 		entity.setMaxCost(0d);
 
-		// Update the instance, and add the cost
+		// Update the instances, and add the cost
 		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::refresh)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
@@ -311,8 +311,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		repository.getStorage(entity.getSubscription().getId()).stream().map(storageResource::refresh)
 				.forEach(fc -> addCost(entity, fc));
 
-		// Compute the the total cost
-		return updateCost(entity.getSubscription().getId());
+		return toFloatingCost(entity);
 	}
 
 	@Override
