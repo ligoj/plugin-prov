@@ -64,7 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @Slf4j
-public class ProvQuoteInstanceResource extends AbstractCostedResource<ProvQuoteInstance> {
+public class ProvQuoteInstanceResource
+		extends AbstractCostedResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance> {
 
 	/**
 	 * The default usage : 100% for 1 month.

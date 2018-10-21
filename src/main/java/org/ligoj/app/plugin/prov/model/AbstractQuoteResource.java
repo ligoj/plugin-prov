@@ -20,12 +20,16 @@ import lombok.Setter;
 
 /**
  * A resource with floating cost.
+ *
+ * @param <T>
+ *            Price configuration type.
  */
 @Getter
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Integer> implements Costed {
+public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends AbstractDescribedEntity<Integer>
+		implements Costed {
 
 	/**
 	 * SID
@@ -37,11 +41,11 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	 */
 	@NotNull
 	@PositiveOrZero
-	private Double cost;
+	private double cost;
 
 	/**
-	 * Maximal determined monthly cost of the resource. When there is an unbound
-	 * maximal (<code>null</code>) quantity, the minimal cost is used.
+	 * Maximal determined monthly cost of the resource. When there is an unbound maximal (<code>null</code>) quantity,
+	 * the minimal cost is used.
 	 */
 	@NotNull
 	@PositiveOrZero
@@ -60,4 +64,11 @@ public abstract class AbstractQuoteResource extends AbstractDescribedEntity<Inte
 	 */
 	@ManyToOne
 	private ProvLocation location;
+
+	/**
+	 * Return resolved price configuration.
+	 * @Return Resolved price configuration.
+	 */
+	public abstract P getPrice();
+
 }

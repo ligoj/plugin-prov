@@ -48,7 +48,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 		// Instance with multiple disks
 		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8"
-				+ ";20;storage1;GOOD;IOPS;8,4" + ";10;storage2;MEDIUM;THROUGHPUT;155.6"
+				+ ";20;storage1;GOOD;IOPS;8,4" + ";10;storage2;MEDIUM;THROUGHPUT;155,6"
 				+ ";51;storage2;MEDIUM;THROUGHPUT;155,6", lines.get(1));
 
 		// Instance without disk

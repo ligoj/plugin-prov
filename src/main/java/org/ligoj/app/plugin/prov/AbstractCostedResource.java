@@ -27,12 +27,16 @@ import lombok.Getter;
 
 /**
  * The common features of a costed entity.
+ * @param <C> Quoted resource type.
+ * @param <P> Quoted resource price type.
+ * @param <T> Quoted resource price type type.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public abstract class AbstractCostedResource<C extends AbstractQuoteResource> implements QuoteRelated<C> {
+public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
+		implements QuoteRelated<C> {
 
 	@Autowired
 	protected PaginationJson paginationJson;
@@ -61,8 +65,7 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 * @param <T>
 	 *            The price type.
 	 */
-	protected <T extends AbstractPrice<? extends AbstractNamedEntity<?>>> T validateLookup(final String resourceType,
-			final AbstractComputedPrice<T> lookup, final String context) {
+	protected P validateLookup(final String resourceType, final AbstractComputedPrice<P> lookup, final String context) {
 		if (lookup == null) {
 			throw new ValidationJsonException(resourceType, "no-match-" + resourceType, "resource", context);
 		}
@@ -79,13 +82,13 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 * @param callback
 	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
 	 * @return The new cost.
-	 * @param <T>
+	 * @param <CC>
 	 *            The quote resource type.
 	 */
-	protected <T extends AbstractQuoteResource> FloatingCost deleteAndUpdateCost(
-			final RestRepository<T, Integer> repository, final Integer id, final Consumer<T> callback) {
+	protected <CC extends AbstractQuoteResource<?>> FloatingCost deleteAndUpdateCost(
+			final RestRepository<CC, Integer> repository, final Integer id, final Consumer<CC> callback) {
 		// Check the entity exists and is visible
-		final T entity = resource.findConfigured(repository, id);
+		final CC entity = resource.findConfigured(repository, id);
 
 		// Remove the cost of this entity
 		addCost(entity, e -> {
@@ -130,7 +133,7 @@ public abstract class AbstractCostedResource<C extends AbstractQuoteResource> im
 	 *            The {@link Costed} resource to evaluate.
 	 * @return The related location. Never <code>null</code>.
 	 */
-	protected ProvLocation getLocation(final AbstractQuoteResource qr) {
+	protected ProvLocation getLocation(final C qr) {
 		return qr.getLocation() == null ? qr.getConfiguration().getLocation() : qr.getLocation();
 	}
 }

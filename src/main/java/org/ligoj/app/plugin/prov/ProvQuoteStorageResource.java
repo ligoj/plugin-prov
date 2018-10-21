@@ -39,7 +39,6 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -56,10 +55,8 @@ import org.springframework.stereotype.Service;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public class ProvQuoteStorageResource extends AbstractCostedResource<ProvQuoteStorage> {
-
-	@Autowired
-	protected ServicePluginLocator locator;
+public class ProvQuoteStorageResource
+		extends AbstractCostedResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage> {
 
 	@Autowired
 	private ProvQuoteInstanceResource qiResource;

@@ -29,7 +29,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteInstance extends AbstractQuoteResource {
+public class ProvQuoteInstance extends AbstractQuoteResource<ProvInstancePrice> {
 
 	/**
 	 * SID
@@ -40,13 +40,6 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 	 * Included license.
 	 */
 	public static final String LICENSE_INCLUDED = "INCLUDED";
-
-	/**
-	 * Related instance with the price.
-	 */
-	@NotNull
-	@ManyToOne
-	private ProvInstancePrice price;
 
 	/**
 	 * The requested CPU.
@@ -134,4 +127,10 @@ public class ProvQuoteInstance extends AbstractQuoteResource {
 		return maxQuantity == null;
 	}
 
+	/**
+	 * Resolved price configuration.
+	 */
+	@NotNull
+	@ManyToOne
+	private ProvInstancePrice price;
 }

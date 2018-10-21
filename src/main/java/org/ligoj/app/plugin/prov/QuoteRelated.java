@@ -19,7 +19,7 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 
 /**
  * An object related to a quote. Handle cost cost and association validation against the quote.
- * 
+ *
  * @param <C>
  *            The related entity.
  */
@@ -33,21 +33,21 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Return the {@link SubscriptionResource} instance. Used to resolve the related subscription and validate the
 	 * visibility.
-	 * 
+	 *
 	 * @return The {@link SubscriptionResource} instance.
 	 */
 	SubscriptionResource getSubscriptionResource();
 
 	/**
 	 * Return the {@link ProvQuoteRepository} instance. Used to resolve the right quote.
-	 * 
+	 *
 	 * @return The {@link ProvQuoteRepository} instance.
 	 */
 	ProvQuoteRepository getRepository();
 
 	/**
 	 * Return the quote associated to the given subscription. The visibility is checked.
-	 * 
+	 *
 	 * @param subscription
 	 *            The linked subscription.
 	 * @return The quote if the visibility has been checked.
@@ -58,7 +58,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Request a cost update of the given entity and report the delta to the global cost. The changes are persisted.
-	 * 
+	 *
 	 * @param repository
 	 *            The repository of the entity holding the cost.
 	 * @param entity
@@ -86,7 +86,7 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
 	 * applied.
-	 * 
+	 *
 	 * @param entity
 	 *            The configured entity, related to a quote.
 	 * @param costUpdater
@@ -112,7 +112,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Update the quote's cost minimal and maximal values.
-	 * 
+	 *
 	 * @param entity
 	 *            The quote entity.
 	 * @param fc
@@ -127,7 +127,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Round a cost to eliminate floating point artifact, and without required {@link BigDecimal} usage (not yet)
-	 * 
+	 *
 	 * @param value
 	 *            The value to round.
 	 * @return The rounded value with 4 decimals.
@@ -138,7 +138,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Update the actual monthly cost of given resource.
-	 * 
+	 *
 	 * @param qr
 	 *            The {@link AbstractQuoteResource} to update cost.
 	 * @param costProvider
@@ -147,7 +147,7 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuoteResource> FloatingCost updateCost(final T qr,
+	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
 			final Function<T, FloatingCost> costProvider) {
 		final FloatingCost cost = costProvider.apply(qr);
 		qr.setCost(cost.getMin());
@@ -157,7 +157,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Extract the costs from a quote and build a new {@link FloatingCost}
-	 * 
+	 *
 	 * @param configuration
 	 *            The quote configuration.
 	 * @return The built {@link FloatingCost} instance.
@@ -169,7 +169,7 @@ public interface QuoteRelated<C extends Costed> {
 
 	/**
 	 * Check and return the non <code>null</code> object.
-	 * 
+	 *
 	 * @param object
 	 *            The object to test.
 	 * @param name
@@ -186,7 +186,7 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Refresh the resources and the related cost. This is a full optimization where lookups of the best prices is
 	 * performed. Note only the given entity is updated, the related quote's cost is not updated.
-	 * 
+	 *
 	 * @param costed
 	 *            The entity to refresH.
 	 * @return The new computed price.

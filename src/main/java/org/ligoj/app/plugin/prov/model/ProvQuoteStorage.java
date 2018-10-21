@@ -28,7 +28,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteStorage extends AbstractQuoteResource {
+public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 
 	/**
 	 * SID
@@ -58,13 +58,6 @@ public class ProvQuoteStorage extends AbstractQuoteResource {
 	private Integer size;
 
 	/**
-	 * Resolved storage price configuration.
-	 */
-	@NotNull
-	@ManyToOne
-	private ProvStoragePrice price;
-
-	/**
 	 * Optional linked quoted instance.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -77,4 +70,10 @@ public class ProvQuoteStorage extends AbstractQuoteResource {
 		return getQuoteInstance() != null && getQuoteInstance().isUnboundCost();
 	}
 
+	/**
+	 * Resolved price configuration.
+	 */
+	@NotNull
+	@ManyToOne
+	private ProvStoragePrice price;
 }
