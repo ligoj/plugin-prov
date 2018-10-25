@@ -1400,7 +1400,7 @@ define(function () {
 		 */
 		usageSelect2: function (placeholder) {
 			return current.genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return usage.name + '<span class="pull-right small">(' + usage.rate + '%) ' +
+				return usage.name + '<span class="select2-usage-summary pull-right"><span class="x-small">(' + usage.rate + '%) </span>' +
 					'<a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="' + current.$messages.update + '" class="fas fa-fw fa-pencil-alt"></i><a></span>';
 			});
 		},
