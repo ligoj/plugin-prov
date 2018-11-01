@@ -6,8 +6,6 @@ package org.ligoj.app.plugin.prov.dao;
 import java.util.List;
 
 import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -50,28 +48,6 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
 			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription")
 	ProvQuote getCompute(int subscription);
-
-	/**
-	 * Return the storage quote details from the related subscription.
-	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
-	 * @return The storage quote details with the optional linked instance.
-	 */
-	@Query("FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.price qsp INNER JOIN FETCH qsp.type LEFT JOIN FETCH qs.quoteInstance"
-			+ " WHERE qs.configuration.subscription.id = :subscription")
-	List<ProvQuoteStorage> getStorages(int subscription);
-
-	/**
-	 * Return the support quote details from the related subscription.
-	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
-	 * @return The support quote details with the optional linked instance.
-	 */
-	@Query("FROM ProvQuoteSupport AS qs INNER JOIN FETCH qs.price qsp INNER JOIN FETCH qsp.type"
-			+ " WHERE qs.configuration.subscription.id = :subscription")
-	List<ProvQuoteSupport> getSupports(int subscription);
 
 	/**
 	 * Return the amount of quotes based on the related node.

@@ -64,8 +64,8 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	@Test
 	public void exportInlineImport() throws IOException {
 		// Empty
-		qiResource.deleteAll(subscription);
 		qsResource.deleteAll(subscription);
+		qiResource.deleteAll(subscription);
 		em.flush();
 		em.clear();
 		QuoteVo configuration = resource.getConfiguration(subscription);

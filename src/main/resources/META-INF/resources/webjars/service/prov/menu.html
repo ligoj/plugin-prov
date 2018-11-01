@@ -33,6 +33,12 @@
 						</div>
 					</div>
 				</div>
+				<div class="form-group">
+					<label class="control-label col-xs-1" for="quote-support"><i class="fas fa-headset" data-toggle="tooltip" title="{{quote-support}}"></i></label>
+					<div class="col-xs-10">
+						<input type="text" id="quote-support" class="form-control" />
+					</div>
+				</div>
 			</fieldset>
 		</form>
 	</div>
@@ -50,17 +56,6 @@
 			<a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i><span> {{{service:prov:storages-block}}} </span><span class="prov-resource-counter badge pull-right"></span>
 			<div class="summary">
 				<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
-			</div>
-		</a></li>
-		<li role="presentation">
-			<a href="#tab-database" aria-controls="tab-database" role="tab" data-toggle="pill"><i class="icon-database-alt2"></i><span>  {{{service:prov:databases-block}}} </span><span class="prov-resource-counter badge pull-right"></span>
-			<div class="summary">
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="MySQL"><i class="icon-mysql"></i><span class="prov-database-counter mysql"></span></span>
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="Oracle"><i class="icon-oracle"></i><span class="prov-database-counter oracle"></span></span>
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="PostgreSQL"><i class="icon-postgres"></i><span class="prov-database-counter postgres"></span></span>
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="MariaDB"><i class="icon-mariadb"></i><span class="prov-database-counter mariadb"></span></span>
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="Microsoft SQL Server"><i class="icon-mssql"></i><span class="prov-database-counter mssql"></span></span>
-				<span class="hidden badge size" data-toggle="tooltip" data-placement="bottom" title="Amazon Aurora"><i class="icon-aws"></i><span class="prov-database-counter aurora"></span></span>
 			</div>
 		</a></li>
 	</ul>

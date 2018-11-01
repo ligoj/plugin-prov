@@ -32,12 +32,16 @@ import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
@@ -102,7 +106,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
+	private ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
 	private ProvQuoteStorageResource qsResource;
+
+	@Autowired
+	private ProvQuoteStorageRepository qsRepository;
+
+	@Autowired
+	private ProvQuoteSupportRepository qs2Repository;
 
 	@Autowired
 	private ProvQuoteSupportResource qspResource;
@@ -193,12 +206,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.copyAuditData(quote, toUser());
 		vo.setLocation(quote.getLocation());
 		vo.setInstances(quote.getInstances());
-		vo.setStorages(repository.getStorages(subscription.getId()));
+		vo.setStorages(qsRepository.findAll(subscription.getId()));
 		vo.setUsage(quote.getUsage());
 		vo.setLicense(quote.getLicense());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
-		vo.setSupports(repository.getSupports(subscription.getId()));
+		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 
 		// Also copy the costs
 		final boolean unbound = quote.isUnboundCost();
@@ -279,24 +292,25 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
 			Function<ProvQuoteStorage, FloatingCost> storageFunction) {
+		final int subscription = entity.getSubscription().getId();
+
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
 		entity.setMaxCostNoSupport(0d);
 
 		// Add the compute cost, and update the unbound cost
-		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceFunction)
+		entity.setUnboundCostCounter((int) qiRepository.findAll(subscription).stream().map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the storage cost
-		repository.getStorages(entity.getSubscription().getId()).stream().map(storageFunction)
-				.forEach(fc -> addCost(entity, fc));
+		qsRepository.findAll(subscription).stream().map(storageFunction).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
 		return refreshSupportCost(entity).round();
 	}
 
 	public FloatingCost refreshSupportCost(final ProvQuote entity) {
-		final FloatingCost support = repository.getSupports(entity.getSubscription().getId()).stream()
+		final FloatingCost support = qs2Repository.findAll(entity.getSubscription().getId()).stream()
 				.map(qspResource::getCost).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
@@ -306,9 +320,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
-		cost.setTotalCost(refreshSupportCost(quote));
-		quote.getSupports().stream().forEach(
-				s -> cost.getRelatedCosts().computeIfAbsent("support", k -> new HashMap<>()).put(s.getId(), s.toFloatingCost()));
+		cost.setTotal(refreshSupportCost(quote));
+		quote.getSupports().stream().forEach(s -> cost.getRelated()
+				.computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>()).put(s.getId(), s.toFloatingCost()));
 		return cost;
 	}
 

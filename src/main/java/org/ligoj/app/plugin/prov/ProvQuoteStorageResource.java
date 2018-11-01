@@ -39,6 +39,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -83,15 +84,18 @@ public class ProvQuoteStorageResource
 	@DELETE
 	@Path("{subscription:\\d+}/storage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost deleteAll(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisible(subscription);
+	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
+		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
+		final UpdatedCost cost = new UpdatedCost(0);
+		cost.getDeleted().put(ResourceType.STORAGE, qsRepository.findAllIdentifiers(subscription));
 
 		// Delete all storages related to any instance, then the instances
 		qsRepository.deleteAll(qsRepository.findAllBy("configuration.subscription.id", subscription));
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of storage costs.
-		return resource.updateCost(subscription);
+		resource.updateCost(subscription);
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	/**
@@ -179,7 +183,7 @@ public class ProvQuoteStorageResource
 
 		// Save and update the costs
 		final UpdatedCost cost = refreshCost(entity);
-		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q -> cost.getRelatedCosts().put("instance",
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q -> cost.getRelated().put(ResourceType.INSTANCE,
 				Collections.singletonMap(q.getId(), qiResource.updateCost(q))));
 		return resource.refreshSupportCost(cost, quote);
 	}
@@ -209,8 +213,9 @@ public class ProvQuoteStorageResource
 	@DELETE
 	@Path("storage/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost delete(@PathParam("id") final int id) {
-		return resource.refreshSupportCost(deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
+	public UpdatedCost delete(@PathParam("id") final int id) {
+		return resource.refreshSupportCost(new UpdatedCost(id),
+				deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
 	}
 
 	/**

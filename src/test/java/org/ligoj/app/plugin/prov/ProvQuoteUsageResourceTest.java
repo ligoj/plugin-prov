@@ -84,7 +84,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		usage.setName("Full Time");
 		usage.setRate(1);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-		checkCost(uResource.update(subscription, "Full Time", usage).getTotalCost(), 3165.4, 5615.0, false);
+		checkCost(uResource.update(subscription, "Full Time", usage).getTotal(), 3165.4, 5615.0, false);
 		final QuoteEditionVo quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
@@ -140,14 +140,14 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		usage.setName("DevV2");
 		usage.setRate(75);
 		// Min = (3165.4 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
-		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2454.633, 4611.433, false);
+		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2454.633, 4611.433, false);
 		checkCost(subscription, 2454.633, 4611.433, false);
 		em.flush();
 		em.clear();
 
 		// Usage back to -> 100%
 		usage.setRate(100);
-		checkCost(uResource.update(subscription, "DevV2", usage).getTotalCost(), 3165.4, 5615.0, false);
+		checkCost(uResource.update(subscription, "DevV2", usage).getTotal(), 3165.4, 5615.0, false);
 		resource.refresh(subscription);
 
 		// Usage -> duration extended to 12 month, the term is updated, cheapest monthly bill
@@ -181,7 +181,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
-		checkCost(uResource.update(subscription, "Dev", usage).getTotalCost(), 2483.913, 4640.713, false);
+		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2483.913, 4640.713, false);
 		checkCost(subscription, 2483.913, 4640.713, false);
 
 		final ProvUsage entity = usageRepository.findByName("DevV2");
@@ -285,7 +285,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 	}
 
 	private void checkUsage100AfterDelete(final UpdatedCost cost) {
-		checkCost(cost.getTotalCost(), 3165.4, 5615.0, false);
+		checkCost(cost.getTotal(), 3165.4, 5615.0, false);
 		checkCost(subscription, 3165.4, 5615.0, false);
 		Assertions.assertNull(usageRepository.findByName(subscription, "Dev"));
 		Assertions.assertEquals(1, usageRepository.findAllBy("name", "Dev").size());

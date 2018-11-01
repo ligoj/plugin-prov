@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -149,6 +150,28 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, false);
+	}
+
+	@Test
+	public void uploadMultipleDisks() throws IOException {
+		qiuResource.upload(subscription,
+				new ByteArrayInputStream("ANY;0.5;500;LINUX;1,0,10;true;true".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "ephemeral" }, false,
+				"Full Time 12 month", 1, "UTF-8");
+		final QuoteVo configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		final ProvQuoteInstance qi = configuration.getInstances().get(7);
+		Assertions.assertEquals(1, qi.getMinQuantity());
+		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
+		Assertions.assertEquals(6, configuration.getStorages().size());
+		checkCost(configuration.getCost(), 4816.868, 7266.468, false);
+		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
+		Assertions.assertEquals(2, storagesFloatingCost.size()); // 1GB and 10GB disks
+		final Iterator<FloatingCost> storages = storagesFloatingCost.values().iterator();
+		checkCost(storages.next(), 0.21, 0.21, false);
+		Assertions.assertEquals("ANY", qsRepository.findAllBy("cost", .21d).get(0).getName());
+		checkCost(storages.next(), 2.1, 2.1, false);
+		Assertions.assertEquals("ANY2", qsRepository.findAllBy("cost", 2.1d).get(0).getName());
 	}
 
 	@Test

@@ -3,10 +3,14 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.Map;
 
+import org.ligoj.app.plugin.prov.model.ResourceType;
+
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -14,26 +18,35 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class UpdatedCost {
 
 	/**
-	 * The quote resource identifier.
+	 * The quote resource identifier. For mass operation this object is <code>null</code>.
 	 */
-	private int id;
+	private final Integer id;
 
 	/**
 	 * The new total quote cost.
 	 */
-	private FloatingCost totalCost;
+	private FloatingCost total;
 
 	/**
-	 * The new resource cost.
+	 * The new resource cost. <code>null</code> for deleted resource.
 	 */
-	private FloatingCost resourceCost;
+	private FloatingCost cost;
 
 	/**
 	 * The new related costs of the update resource. For sample, storage for associated instance. The primary key is the
-	 * resource type: instance, storage, support. The secondary key is the resource identifier.
+	 * resource type: <code>instance</code>, <code>storage</code>, <code>support</code>. The secondary key is the
+	 * resource identifier.
 	 */
-	private Map<String, Map<Integer, FloatingCost>> relatedCosts = new HashMap<>();
+	private Map<ResourceType, Map<Integer, FloatingCost>> related = new EnumMap<>(ResourceType.class);
+
+	/**
+	 * The new related deleted costs of the update resource. For sample, storage for associated instance. The primary
+	 * key is the resource type: <code>instance</code>, <code>storage</code>, <code>support</code>. The secondary key is
+	 * the resource identifier.
+	 */
+	private Map<ResourceType, Collection<Integer>> deleted = new EnumMap<>(ResourceType.class);
 }

@@ -4,57 +4,33 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.ligoj.app.AbstractAppTest;
-import org.ligoj.app.model.Node;
-import org.ligoj.app.model.Project;
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvResource}
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
-@Rollback
-@Transactional
-public class ProvQuoteStorageResourceTest extends AbstractAppTest {
-
-	private static final double DELTA = 0.01d;
-
-	@Autowired
-	private ProvResource resource;
+public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteStorageResource qsResource;
@@ -70,32 +46,6 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvStoragePriceRepository spRepository;
-
-	private int subscription;
-
-	@BeforeEach
-	public void prepareData() throws IOException {
-		// Only with Spring context
-		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
-				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		updateCost();
-	}
-
-	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
-		checkCost(status.getCost(), min, max, unbound);
-		return status;
-	}
-
-	private void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assertions.assertEquals(min, cost.getMin(), DELTA);
-		Assertions.assertEquals(max, cost.getMax(), DELTA);
-		Assertions.assertEquals(unbound, cost.isUnbound());
-	}
 
 	/**
 	 * Attempt to attach a storage incompatible to an instance.
@@ -124,9 +74,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage3");
 		vo.setSize(1);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getTotalCost(), 4706.908, 7156.508, false);
-		checkCost(cost.getResourceCost(), 2.15, 2.15, false);
-		Assertions.assertEquals(0, cost.getRelatedCosts().size());
+		checkCost(cost.getTotal(), 4706.908, 7156.508, false);
+		checkCost(cost.getCost(), 2.15, 2.15, false);
+		Assertions.assertEquals(0, cost.getRelated().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -150,10 +100,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getTotalCost(), 4919.798, 8229.558, false);
-		checkCost(cost.getResourceCost(), 215.04, 1075.2, false);
-		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 1464.0, false);
+		checkCost(cost.getTotal(), 4919.798, 8229.558, false);
+		checkCost(cost.getCost(), 215.04, 1075.2, false);
+		Assertions.assertEquals(1, cost.getRelated().size());
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 1464.0, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -180,10 +130,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(quoteInstance.getId());
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getTotalCost(), 4919.798, 4919.798, true);
-		checkCost(cost.getResourceCost(), 215.04, 215.04, true);
-		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getTotal(), 4919.798, 4919.798, true);
+		checkCost(cost.getCost(), 215.04, 215.04, true);
+		Assertions.assertEquals(1, cost.getRelated().size());
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 292.8, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -227,9 +177,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setType("storage1");
 		vo.setSize(256);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getTotalCost(), 4758.518, 7208.118, false);
-		checkCost(cost.getResourceCost(), 53.76, 53.76, false);
-		Assertions.assertEquals(0, cost.getRelatedCosts().size());
+		checkCost(cost.getTotal(), 4758.518, 7208.118, false);
+		checkCost(cost.getCost(), 53.76, 53.76, false);
+		Assertions.assertEquals(0, cost.getRelated().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -258,7 +208,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server2").getId());
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getResourceCost(), 107.52, 107.52, false);
+		checkCost(cost.getCost(), 107.52, 107.52, false);
 
 		// No change
 		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 107.52, 107.52, false);
@@ -272,7 +222,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		vo.setId(cost.getId());
 
 		// Cost is the same since the type still match the constraints
-		checkCost(qsResource.update(vo).getResourceCost(), 107.52, 107.52, false);
+		checkCost(qsResource.update(vo).getCost(), 107.52, 107.52, false);
 
 		// The cost changed since a best type matches to the constraints
 		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
@@ -335,9 +285,9 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// STORAGE_COST = STORAGE_COST * STORAGE.INSTANCE.MIN
 		// ............ = 4.2 * 1
 		UpdatedCost cost = qsResource.update(vo);
-		checkCost(cost.getTotalCost(), 4700.558, 4700.558, true);
-		checkCost(cost.getResourceCost(), 4.2, 4.2, false);
-		Assertions.assertEquals(0, cost.getRelatedCosts().size());
+		checkCost(cost.getTotal(), 4700.558, 4700.558, true);
+		checkCost(cost.getCost(), 4.2, 4.2, false);
+		Assertions.assertEquals(0, cost.getRelated().size());
 
 		// Check the exact new cost
 		checkCost(subscription, 4700.558, 4700.558, true);
@@ -348,10 +298,10 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Attach back this storage to "server1
 		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
 		cost = qsResource.update(vo);
-		checkCost(cost.getTotalCost(), 4704.758, 4704.758, true);
-		checkCost(cost.getResourceCost(), 8.4, 8.4, true);
-		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getTotal(), 4704.758, 4704.758, true);
+		checkCost(cost.getCost(), 8.4, 8.4, true);
+		Assertions.assertEquals(1, cost.getRelated().size());
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 292.8, true);
 
 		checkCost(subscription, 4704.758, 4704.758, true);
 		Assertions.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());
@@ -539,17 +489,6 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		// Check the associations
 		Assertions.assertNull(qsRepository.findOne(id));
 		Assertions.assertEquals(2, qiRepository.findByNameExpected("server1").getStorages().size());
-	}
-
-	private void updateCost() {
-		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.updateCost(subscription);
-		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
-		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
-		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4704.758, 7154.358, false);
-		em.flush();
-		em.clear();
 	}
 
 	@Test

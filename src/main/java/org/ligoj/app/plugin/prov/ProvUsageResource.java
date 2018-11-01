@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -130,9 +132,8 @@ public class ProvUsageResource {
 		entity.setDuration(vo.getDuration());
 		entity.setName(vo.getName());
 
-		final UpdatedCost cost = new UpdatedCost();
 		// Prepare the updated cost of updated instances
-		final Map<String, Map<Integer, FloatingCost>> costs = cost.getRelatedCosts();
+		final Map<ResourceType, Map<Integer, FloatingCost>> costs = new EnumMap<>(ResourceType.class);
 		final ProvQuote quote = entity.getConfiguration();
 		if (entity.getId() != null) {
 
@@ -140,19 +141,19 @@ public class ProvUsageResource {
 			if (entity.equals(quote.getUsage())) {
 				// Update cost of all instances without explicit usage
 				quote.getInstances().stream().filter(i -> i.getUsage() == null)
-						.forEach(i -> costs.computeIfAbsent("instance", k -> new HashMap<>()).put(i.getId(),
+						.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
 								instanceResource.addCost(i, instanceResource::refresh)));
 			}
 			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage()))
-					.forEach(i -> costs.computeIfAbsent("storage", k -> new HashMap<>()).put(i.getId(),
+					.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
 							instanceResource.addCost(i, instanceResource::refresh)));
 
 			// Save and update the costs
-			cost.setRelatedCosts(costs);
 		}
 
 		repository.saveAndFlush(entity);
-		cost.setId(entity.getId());
+		final UpdatedCost cost = new UpdatedCost(entity.getId());
+		cost.setRelated(costs);
 
 		// Update accordingly the support costs
 		return resource.refreshSupportCost(cost, quote);
@@ -174,20 +175,19 @@ public class ProvUsageResource {
 	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("name") final String name) {
 		final ProvUsage entity = resource.findConfiguredByName(repository, name, subscription);
 		final ProvQuote quote = entity.getConfiguration();
-
-		final UpdatedCost cost = new UpdatedCost();
+		final UpdatedCost cost = new UpdatedCost(entity.getId());
 		// Prepare the updated cost of updated instances
-		final Map<String, Map<Integer, FloatingCost>> costs = cost.getRelatedCosts();
+		final Map<ResourceType, Map<Integer, FloatingCost>> costs = cost.getRelated();
 		// Update the cost of all related instances
 		if (entity.equals(quote.getUsage())) {
 			// Update cost of all instances without explicit usage
 			quote.setUsage(null);
 			quote.getInstances().stream().filter(i -> i.getUsage() == null)
-					.forEach(i -> costs.computeIfAbsent("instance", k -> new HashMap<>()).put(i.getId(),
+					.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
 							instanceResource.addCost(i, instanceResource::refresh)));
 		}
 		quote.getInstances().stream().filter(i -> entity.equals(i.getUsage())).peek(i -> i.setUsage(null))
-				.forEach(i -> costs.computeIfAbsent("storage", k -> new HashMap<>()).put(i.getId(),
+				.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
 						instanceResource.addCost(i, instanceResource::refresh)));
 
 		// All references are deleted, delete the usage entity

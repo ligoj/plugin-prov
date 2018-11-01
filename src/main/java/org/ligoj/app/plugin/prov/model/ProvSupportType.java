@@ -125,17 +125,17 @@ public class ProvSupportType extends AbstractDescribedEntity<Integer> implements
 	private Long slaBusinessCriticalSystemDown;
 
 	/**
-	 * General guidance.
+	 * General guidance support.
 	 */
 	private boolean generalGuidance;
 
 	/**
-	 * Contextual guidance based on your use-case.
+	 * Contextual guidance based on your use-case support.
 	 */
 	private boolean contextualGuidance;
 
 	/**
-	 * Consultative review and guidance based on your applications.
+	 * Consultative review and guidance based on your applications support.
 	 */
 	private boolean contextualReview;
 

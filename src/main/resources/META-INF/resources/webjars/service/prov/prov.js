@@ -6,21 +6,6 @@ define(function () {
 	var current = {
 
 		/**
-		 * Instance table
-		 */
-		instanceTable: null,
-
-		/**
-		 * Storage table
-		 */
-		storageTable: null,
-
-		/**
-		 * Database table
-		 */
-		databaseTable: null,
-
-		/**
 		 * Current quote.
 		 */
 		model: null,
@@ -81,6 +66,7 @@ define(function () {
 					_('quote-location').select2('data', configuration.location);
 					$('.location-wrapper').html(current.locationMap(configuration.location));
 					_('quote-usage').select2('data', configuration.usage);
+					_('quote-support').select2('data', configuration.supports);
 					_('quote-license').select2('data', configuration.license ? {
 						id: configuration.license,
 						text: current.formatLicense(configuration.license)
@@ -549,6 +535,15 @@ define(function () {
 		},
 
 		/**
+		 * Support access type key to markup/label mapping.
+		 */
+		supportAccessType: {
+			'technical': 'fas fa-wrench fa-fw',
+			'billing': 'fas fa-dollar-sign fa-fw',
+			'all': 'fas fa-users fa-fw'
+		},
+
+		/**
 		 * Return the HTML markup from the OS key name.
 		 */
 		formatOs: function (os, mode, clazz) {
@@ -610,22 +605,51 @@ define(function () {
 		},
 
 		/**
+		 * Return the HTML markup from the support access type.
+		 */
+		formatSupportAccess: function (type, withText, clazz) {
+			if (type) {
+				var id = (type.id || type).toLowerCase();
+				var text = current.$messages['service:prov:support-access-' + id];
+				clazz = current.supportAccessType[id] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+			}
+		},
+
+	/**
+		 * Return the HTML markup from the support level type.
+		 */
+		formatSupportLevel: function (type, withText, clazz) {
+			if (type) {
+				var id = (type.id || type).toLowerCase();
+				var text = current.$messages['service:prov:support-access-' + id];
+				clazz = current.supportAccessType[id] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+			}
+		},
+		
+
+		/**
 		 * Associate the storages to the instances
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			var instances = conf.instances;
 			var i;
+
+			// Instances
 			conf.instancesById = {};
 			conf.instanceCost = 0;
-			conf.storageCost = 0;
+			var instances = conf.instances;
 			for (i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				// Optimize id access
 				conf.instancesById[qi.id] = qi;
 				conf.instanceCost += qi.cost;
 			}
+
+			// Storage
 			conf.storagesById = {};
+			conf.storageCost = 0;
 			var storages = conf.storages;
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
@@ -639,6 +663,17 @@ define(function () {
 
 				// Optimize id access
 				conf.storagesById[qs.id] = qs;
+			}
+
+			// Support
+			conf.supportsById = {};
+			conf.supportCost = 0;
+			var supports = conf.supports;
+			for (i = 0; i < supports.length; i++) {
+				var qi = supports[i];
+				// Optimize id access
+				conf.supportsById[qi.id] = qi;
+				conf.supportCost += qi.cost;
 			}
 			current.initializeTerraformStatus();
 			current.updateUiCost();
@@ -817,21 +852,49 @@ define(function () {
 		},
 
 		/**
+		 * Set the current support price.
+		 */
+		supportSetUiPrice: function (quote) {
+			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
+				var suggests = quote;
+				if (!$.isArray(quote)) {
+					// Single price
+					suggests = [quote];
+				}
+				for (var i = 0; i < suggests.length; i++) {
+					suggests[i].id = suggests[i].id || suggests[i].price.id;
+				}
+				var suggest = suggests[0];
+				_('support-price').select2('destroy').select2({
+					data: suggests,
+					formatSelection: function (qi) {
+						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+					},
+					formatResult: function (qi) {
+						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+					}
+				}).select2('data', suggest);
+			} else {
+				_('support-price').select2('data', null);
+			}
+		},
+
+		/**
 		 * Initialize data tables and popup event : delete and details
 		 */
 		initializeDataTableEvents: function (type) {
 			// Delete the selected instance from the quote
 			var $table = _('prov-' + type + 's');
 			var dataTable = current[type + 'NewTable']();
+			current[type + 'Table'] = dataTable;
 			// Delete a single row/item
 			$table.on('click', '.delete', function () {
 				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
 				$.ajax({
 					type: 'DELETE',
 					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
-					success: function (updatedTotalCost) {
-						current.model.configuration.cost = updatedTotalCost;
-						current.deleteCallback(type, resource);
+					success: function (updatedCost) {
+						current.defaultCallback(type, updatedCost);
 					}
 				});
 			});
@@ -840,14 +903,8 @@ define(function () {
 				$.ajax({
 					type: 'DELETE',
 					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
-					success: function (updatedTotalCost) {
-						// Update the model
-						current.model.configuration.cost = updatedTotalCost;
-						current[type + 'Delete']();
-						// Update the UI
-						notifyManager.notify(current.$messages['service:prov:' + type + '-cleared']);
-						$table.DataTable().clear().draw();
-						current.updateUiCost();
+					success: function (updatedCost) {
+						current.defaultCallback(type, updatedCost);
 					}
 				});
 			});
@@ -871,33 +928,6 @@ define(function () {
 				current.model.quote = quote;
 				current.toUi(type, quote);
 			});
-		},
-
-		deleteCallback: function (type, resource) {
-			// Update the model
-			var relatedResources = current[type + 'Delete'](resource.id) || [];
-
-			// Update the UI
-			notifyManager.notify(Handlebars.compile(current.$messages['service:prov:' + type + '-deleted'])([resource.id, resource.name]));
-			$('.tooltip').remove();
-			_('prov-' + type + 's').DataTable().rows(function (index, data) {
-				return data.id === resource.id;
-			}).remove().draw(false);
-
-			// With related cost, other UI table need to be updated
-			var relatedType = type === 'instance' ? 'storage' : 'instance';
-			if (type === 'instance') {
-				Object.keys(relatedResources).forEach(function (index) {
-					_('prov-storages').DataTable().rows(function (_i, data) {
-						return data.id === relatedResources[index];
-					}).remove().draw(false);
-				});
-			} else {
-				Object.keys(relatedResources).forEach(function (index) {
-					current.redrawResource(relatedType, relatedResources[index]);
-				});
-			}
-			current.updateUiCost();
 		},
 
 		initializeUpload: function () {
@@ -969,9 +999,9 @@ define(function () {
 					$.proxy(current.checkResource, $(this))();
 				}
 			});
-			current.initializeDataTableEvents('instance');
-			current.initializeDataTableEvents('storage');
-			current.databaseNewTable();
+			$(['instance', 'storage', 'support']).each(function (_i, type) {
+				current.initializeDataTableEvents(type);
+			});
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -1005,6 +1035,46 @@ define(function () {
 					};
 				}
 			});
+
+			$('.support-access').select2({
+				formatSelection: current.formatSupportAccess,
+				formatResult: current.formatSupportAccess,
+				allowClear: true,
+				placeholder: 'None',
+				escapeMarkup: function (m) {
+					return m;
+				},
+				data: [{
+					id: 'technical',
+					text: 'technical'
+				}, {
+					id: 'billing',
+					text: 'billing'
+				}, {
+					id: 'all',
+					text: 'all'
+				}]
+			});
+			_('support-level').select2({
+				formatSelection: current.formatSupportLevel,
+				formatResult: current.formatSupportLevel,
+				allowClear: true,
+				placeholder: 'None',
+				escapeMarkup: function (m) {
+					return m;
+				},
+				data: [{
+					id: 1,
+					text: 'general'
+				}, {
+					id: 2,
+					text: 'contextual'
+				}, {
+					id: 3,
+					text: 'review'
+				}]
+			});
+
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
@@ -1037,8 +1107,8 @@ define(function () {
 					text: 'FEDORA'
 				}]
 			});
-			
-			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.termToText, function() {
+
+			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.termToText, function () {
 				return 'instance-software/' + _('instance-os').val();
 			}));
 
@@ -1125,38 +1195,38 @@ define(function () {
 			current.initializeLicense();
 			current.initializeRamAdjustedRate();
 		},
-		
+
 		/**
 		 * Configure RAM adjust rate.
 		 */
-		initializeRamAdjustedRate: function() {		
-			require(['jquery-ui'], function() {
+		initializeRamAdjustedRate: function () {
+			require(['jquery-ui'], function () {
 				var handle = $('#quote-ram-adjust-handle');
-				$( '#quote-ram-adjust').slider({
+				$('#quote-ram-adjust').slider({
 					min: 50,
 					max: 150,
 					animate: true,
 					step: 5,
 					value: current.model.configuration.ramAdjustedRate,
-					create: function() {
+					create: function () {
 						handle.text($(this).slider('value') + '%');
 					},
-					slide: function(event, ui) {
+					slide: function (event, ui) {
 						handle.text(ui.value + '%');
 					},
-					change: function(event, slider) {
+					change: function (event, slider) {
 						current.updateQuote({
 							ramAdjustedRate: slider.value
 						}, 'ramAdjustedRate', true);
 					}
-				});			
+				});
 			});
 		},
-		
+
 		/**
 		 * Configure Terraform.
 		 */
-		initializeTerraform: function() {		
+		initializeTerraform: function () {
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
 			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
 			_('popup-prov-terraform').on('shown.bs.modal', function () {
@@ -1205,7 +1275,7 @@ define(function () {
 		/**
 		 * Configure location.
 		 */
-		initializeLocation: function() {		
+		initializeLocation: function () {
 			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
 				if (event.added) {
 					current.updateQuote({
@@ -1217,12 +1287,12 @@ define(function () {
 			$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
 			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
-		},	
+		},
 
 		/**
 		 * Configure usage.
 		 */
-		initializeUsage: function() {
+		initializeUsage: function () {
 			_('popup-prov-usage').on('shown.bs.modal', function () {
 				_('usage-name').trigger('focus');
 			}).on('submit', function (e) {
@@ -1317,25 +1387,25 @@ define(function () {
 		/**
 		 * Configure license.
 		 */
-		initializeLicense: function() {
-			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function() {
+		initializeLicense: function () {
+			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function () {
 				return 'instance-license/' + _('instance-os').val();
 			}));
-			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, function() {
+			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, function () {
 				return 'instance-license/WINDOWS';
-			})).select2('data',  current.model.configuration.license ? {
-						id: current.model.configuration.license,
-						text: current.formatLicense(current.model.configuration.license)
-					} : null)
+			})).select2('data', current.model.configuration.license ? {
+				id: current.model.configuration.license,
+				text: current.formatLicense(current.model.configuration.license)
+			} : null)
 				.on('change', function (event) {
 					current.updateQuote({
 						license: event.added || null
 					}, 'license', true);
 				});
 		},
-		
-		formatLicense: function(license) {
-			return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license ;
+
+		formatLicense: function (license) {
+			return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
 		},
 
 		synchronizeUsage: function () {
@@ -1436,7 +1506,7 @@ define(function () {
 				},
 				ajax: {
 					url: function () {
-						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path(): path);
+						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path);
 					},
 					dataType: 'json',
 					data: function (term, page) {
@@ -1460,7 +1530,7 @@ define(function () {
 						$((typeof data.data === 'undefined') ? data : data.data).each(function (index, item) {
 							if (typeof item === 'string') {
 								item = {
-									id:  item,
+									id: item,
 									text: renderer(item)
 								};
 							} else {
@@ -1650,7 +1720,7 @@ define(function () {
 				usage: conf.usage
 			}, data || {});
 			jsonData.location = jsonData.location.name || jsonData.location;
-			
+
 			if (jsonData.license) {
 				jsonData.license = jsonData.license.id || jsonData.license;
 			}
@@ -1659,7 +1729,7 @@ define(function () {
 			} else {
 				delete jsonData.usage;
 			}
-			
+
 			// Check the changes
 			if (conf.name === jsonData.name
 				&& conf.description === jsonData.description
@@ -1677,7 +1747,7 @@ define(function () {
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(jsonData),
-				beforeSend: function() {
+				beforeSend: function () {
 					$('.loader-wrapper').removeClass('hidden');
 				},
 				success: function (newCost) {
@@ -1783,8 +1853,8 @@ define(function () {
 					$popup.modal('hide');
 
 					// Handle updated cost
-					if (newCost.totalCost) {
-						current.reloadAsNeed(newCost.totalCost, forceUpdateUi);
+					if (newCost.tota) {
+						current.reloadAsNeed(newCost.total, forceUpdateUi);
 					}
 				},
 				complete: function () {
@@ -1840,14 +1910,14 @@ define(function () {
 		/**
 		 * Redraw an resource table row from its identifier
 		 * @param {String} type Resource type : 'instance', 'storage'.
-		 * @param {number|Object} resource Quote resource or its identifier.
+		 * @param {number|Object} resourceOrId Quote resource or its identifier.
 		 */
-		redrawResource: function (type, resource) {
-			resource = resource && (resource.id || resource);
-			if (resource) {
+		redrawResource: function (type, resourceOrId) {
+			var id = resourceOrId && (resourceOrId.id || resourceOrId);
+			if (id) {
 				// The instance is valid
 				_('prov-' + type + 's').DataTable().rows(function (index, data) {
-					return data.id === resource;
+					return data.id === id;
 				}).invalidate().draw();
 			}
 		},
@@ -1855,22 +1925,15 @@ define(function () {
 		storageCommitToModel: function (data, model) {
 			model.size = parseInt(data.size, 10);
 
-			// Redraw the previous instance
-			if (model.quoteInstance) {
-				current.redrawResource('instance', model.quoteInstance);
-				current.detachStorage(model);
-			}
-
 			// Redraw the newly attached instance
 			if (data.quoteInstance) {
 				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
 				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
 				model.quoteInstance.storages.push(model);
-				current.redrawResource('instance', model.quoteInstance);
 			}
 		},
 
-		instanceCommitToModel: function (data, model, updatedCost) {
+		instanceCommitToModel: function (data, model) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
@@ -1879,15 +1942,6 @@ define(function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.os = data.os;
-
-			// Also update the related resources costs
-			var conf = current.model.configuration;
-			Object.keys(updatedCost.relatedCosts).forEach(function (id) {
-				var qs = conf.storagesById[id];
-				conf.storageCost += updatedCost.relatedCosts[id].min - qs.cost;
-				qs.cost = updatedCost.relatedCosts[id].min;
-				qs.maxCost = updatedCost.relatedCosts[id].max;
-			});
 		},
 
 		storageUiToData: function (data) {
@@ -1978,6 +2032,34 @@ define(function () {
 		},
 
 		/**
+		 * Fill the support popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		supportToUi: function (quote) {
+			_('support-seats').val(quote.seats || null);
+			_('support-level').select2('data', quote.level || null);
+
+			// Access types
+			_('support-access-api').select2('data', quote.accessApi || null);
+			_('support-access-mail').select2('data', quote.accessMail || null);
+			_('support-access-phone').select2('data', quote.accessPhone || null);
+			_('support-access-chat').select2('data', quote.accessChat || null);
+			current.supportSetUiPrice(quote);
+		},
+
+		/**
+		 * Fill the storage popup with given entity.
+		 * @param {Object} model, the entity corresponding to the quote.
+		 */
+		storageToUi: function (quote) {
+			_('storage-size').val((quote && quote.size) || '10');
+			_('storage-latency').select2('data', current.select2IdentityData((quote.price && quote.price.type.latency) || null));
+			_('storage-optimized').select2('data', current.select2IdentityData((quote.price && quote.price.type.optimized) || null));
+			_('storage-instance').select2('data', quote.quoteInstance || null);
+			current.storageSetUiPrice(quote);
+		},
+
+		/**
 		 * Auto select the right RAM unit depending on the RAM amount.
 		 * @param {int} ram, the RAM value in MB.
 		 */
@@ -1994,18 +2076,6 @@ define(function () {
 			}
 
 			_('instance-ram-unit').find('.btn span:first-child').text(_('instance-ram-unit').find('li.active a').text());
-		},
-
-		/**
-		 * Fill the storage popup with given entity.
-		 * @param {Object} model, the entity corresponding to the quote.
-		 */
-		storageToUi: function (quote) {
-			_('storage-size').val((quote && quote.size) || '10');
-			_('storage-latency').select2('data', current.select2IdentityData((quote.price && quote.price.type.latency) || null));
-			_('storage-optimized').select2('data', current.select2IdentityData((quote.price && quote.price.type.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || null);
-			current.storageSetUiPrice(quote);
 		},
 
 		select2IdentityData: function (id) {
@@ -2071,17 +2141,10 @@ define(function () {
 		 */
 		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, location) {
 			var conf = current.model.configuration;
-			var id = updatedCost.id;
-			if (data.id) {
-				notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
-			} else {
-				notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
-			}
 
 			// Update the model
-			conf.cost = updatedCost.totalCost;
-			var qx = conf[type + 'sById'][data.id] || {
-				id: id,
+			var qx = conf[type + 'sById'][updatedCost.id] || {
+				id: updatedCost.id,
 				cost: 0
 			};
 
@@ -2093,36 +2156,10 @@ define(function () {
 			qx.usage = usage;
 
 			// Specific data
-			current[type + 'CommitToModel'](data, qx, updatedCost);
-
-			// Update the model cost
-			var delta = updatedCost.resourceCost.min - qx.cost;
-			conf[type + 'Cost'] += delta;
-			qx.cost = updatedCost.resourceCost.min;
-			qx.maxCost = updatedCost.resourceCost.max;
-
-			// Update the UI
-			var $table = _('prov-' + type + 's');
-			if (data.id) {
-				// Update : Redraw the row
-				current.redrawResource(type, data.id);
-			} else {
-				// Create
-				conf[type + 's'].push(qx);
-				conf[type + 'sById'][id] = qx;
-
-				// Add the new row
-				$table.DataTable().row.add(qx).draw(false);
-			}
+			current[type + 'CommitToModel'](data, qx);
 
 			// With related cost, other UI table need to be updated
-			var relatedType = type === 'instance' ? 'storage' : 'instance';
-			Object.keys(updatedCost.relatedCosts).forEach(function (id) {
-				current.redrawResource(relatedType, parseInt(id, 10));
-			});
-
-			// Update the UI costs only now
-			current.updateUiCost();
+			current.defaultCallback(type, updatedCost, qx);
 			return qx;
 		},
 
@@ -2172,7 +2209,7 @@ define(function () {
 						waveHeight: 0.9,
 						backgroundColor: '#e0e0e0'
 					});
-					$(function() {
+					$(function () {
 						current.updateGauge(d3, usage);
 					});
 				} else {
@@ -2192,13 +2229,16 @@ define(function () {
 						} else if (data.type === 'instance') {
 							var instance = current.model.configuration.instancesById[data.name];
 							tooltip = 'Name: ' + instance.name
-							 + '</br>Type: ' + instance.price.type.name
-							 + '</br>OS: ' + current.formatOs(instance.price.os, true)
-							 + '</br>Term: ' + instance.price.term.name
-							 + '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
+								+ '</br>Type: ' + instance.price.type.name
+								+ '</br>OS: ' + current.formatOs(instance.price.os, true)
+								+ '</br>Term: ' + instance.price.term.name
+								+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
 						} else if (data.type === 'storage') {
 							var storage = current.model.configuration.storagesById[data.name];
 							tooltip = 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
+						} else if (data.type === 'support') {
+							var support = current.model.configuration.supportsById[data.name];
+							tooltip = 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
 						} else {
 							tooltip = data.name;
 						}
@@ -2214,7 +2254,7 @@ define(function () {
 		/**
 		 * Update the gauge value depending on the computed usage.
 		 */
-		updateGauge: function(d3, usage) {
+		updateGauge: function (d3, usage) {
 			var weightCost = 0;
 			if (usage.instance.cpu.available) {
 				weightCost += usage.instance.cost * 0.8 * usage.instance.cpu.reserved / usage.instance.cpu.available;
@@ -2233,12 +2273,12 @@ define(function () {
 				$('#prov-gauge').addClass('hidden');
 			}
 		},
-		
-		getFilteredData: function(type) {
+
+		getFilteredData: function (type) {
 			var result = [];
 			if (current[type + 'Table'] && current[type + 'Table'].fnSettings().oPreviousSearch.sSearch) {
-				var data = _('prov-' + type + 's').DataTable().rows( { filter : 'applied'} ).data();
-				for(var index = 0;index < data.length; index++) {
+				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
+				for (var index = 0; index < data.length; index++) {
 					result.push(data[index]);
 				}
 			} else {
@@ -2253,25 +2293,20 @@ define(function () {
 		 */
 		computeUsage: function () {
 			var conf = current.model.configuration;
+			var nb = 0;
+			var i;
+
+			// Instance statistics
+			var publicAccess = 0;
+			var instances = current.getFilteredData('instance');
 			var ramAvailable = 0;
 			var ramReserved = 0;
 			var cpuAvailable = 0;
 			var cpuReserved = 0;
-			var storageAvailable = 0;
-			var storageReserved = 0;
+			var instanceCost = 0;
+			var ramAdjustedRate = conf.ramAdjustedRate / 100;
 			var nbInstances = 0;
 			var nbInstancesUnbound = false;
-			var nb = 0;
-			var publicAccess = 0;
-			var defaultRate = conf.usage ? conf.usage.rate : 100;
-			var i;
-			var instanceCost = 0;
-			var storageCost = 0;
-			var instances = current.getFilteredData('instance');
-			var storages = current.getFilteredData('storage');
-			var ramAdjustedRate = conf.ramAdjustedRate / 100;
-
-			// Instance statistics
 			for (i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var cost = qi.cost.min || qi.cost || 0;
@@ -2287,6 +2322,10 @@ define(function () {
 			}
 
 			// Storage statistics
+			var storageAvailable = 0;
+			var storageReserved = 0;
+			var storageCost = 0;
+			var storages = current.getFilteredData('storage');
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
 				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
@@ -2295,8 +2334,15 @@ define(function () {
 				storageCost += qs.cost;
 			}
 
+			// Support statistics
+			var supportCost = 0;
+			var supports = current.getFilteredData('support');
+			for (i = 0; i < supports.length; i++) {
+				supportCost += supports[i].cost;
+			}
+
 			return {
-				cost: instanceCost + storageCost,
+				cost: instanceCost + storageCost + supportCost,
 				instance: {
 					ram: {
 						available: ramAvailable,
@@ -2317,29 +2363,12 @@ define(function () {
 					reserved: storageReserved,
 					filtered: storages,
 					cost: storageCost
+				},
+				support: {
+					filtered: supports,
+					cost: supportCost
 				}
 			};
-		},
-
-		/**
-		 * Update the model a deleted quote storage
-		 * @param {Number} id Option identifier to delete. When not defined, all items are deleted.
-		 */
-		storageDelete: function (id) {
-			var conf = current.model.configuration;
-			for (var i = conf.storages.length; i-- > 0;) {
-				var storage = conf.storages[i];
-				if (typeof id === 'undefined' || storage.id === id) {
-					conf.storages.splice(i, 1);
-					conf.storageCost -= storage.cost;
-					var instance = storage.quoteInstance && storage.quoteInstance.id;
-					current.detachStorage(storage);
-					if (id) {
-						// Unique item to delete
-						return instance && [instance];
-					}
-				}
-			}
 		},
 
 		/**
@@ -2359,112 +2388,87 @@ define(function () {
 			}
 		},
 
-		/**
-		 * Update the model and the association with a deleted quote instance
-		 * @param id Option identifier to delete. When not defined, all items are deleted.
-		 * @return The related storage resource identifiers also deleted.
-		 */
-		instanceDelete: function (id) {
-			var conf = current.model.configuration;
-			var deletedStorages = [];
-			for (var i = conf.instances.length; i-- > 0;) {
-				var qi = conf.instances[i];
-				if (typeof id === 'undefined' || qi.id === id) {
-					conf.instances.splice(i, 1);
-					conf.instanceCost -= qi.cost;
-					delete conf.instancesById[qi.id];
-					// Also delete the related storages
-					for (var s = conf.storages.length; s-- > 0;) {
-						var qs = conf.storages[s];
-						if (qs.quoteInstance && qs.quoteInstance.id === qi.id) {
-							// Delete the associated storages
-							conf.storages.splice(s, 1);
-							conf.storageCost -= qs.cost;
-							delete conf.storagesById[qs.id];
-							deletedStorages.push(qs.id);
-						}
-					}
-					if (id) {
-						// Unique item to delete
-						break;
-					}
-				}
-			}
-			return deletedStorages;
-		},
-
 		toD3: function (usage) {
-			var conf = current.model.configuration;
 			var data = {
 				name: 'Total',
 				value: usage.cost,
 				children: []
 			};
-			var d3instances;
-			var d3storages;
+			var storages = usage.storage.filtered;
+			var d3storages = {
+				name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
+				value: 0,
+				children: []
+			};
+			data.children.push(d3storages);
+			var allOptimizations = {};
+			for (var i = 0; i < storages.length; i++) {
+				var qs = storages[i];
+				var optimizations = allOptimizations[qs.price.type.latency];
+				if (typeof optimizations === 'undefined') {
+					// First optimization
+					optimizations = {
+						name: qs.price.type.latency,
+						type: 'latency',
+						value: 0,
+						children: []
+					};
+					allOptimizations[qs.price.type.latency] = optimizations;
+					d3storages.children.push(optimizations);
+				}
+				optimizations.value += qs.cost;
+				d3storages.value += qs.cost;
+				optimizations.children.push({
+					name: qs.id,
+					type: 'storage',
+					size: qs.cost
+				});
+			}
 			var allOss = {};
 			var instances = usage.instance.filtered;
-			var storages = usage.storage.filtered;
-			if (storages.length) {
-				d3storages = {
-					name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
-					value: 0,
-					children: []
-				};
-				data.children.push(d3storages);
-				var allOptimizations = {};
-				for (var i = 0; i < storages.length; i++) {
-					var qs = storages[i];
-					var optimizations = allOptimizations[qs.price.type.latency];
-					if (typeof optimizations === 'undefined') {
-						// First optimization
-						optimizations = {
-							name: qs.price.type.latency,
-							type: 'latency',
-							value: 0,
-							children: []
-						};
-						allOptimizations[qs.price.type.latency] = optimizations;
-						d3storages.children.push(optimizations);
-					}
-					optimizations.value += qs.cost;
-					d3storages.value += qs.cost;
-					optimizations.children.push({
-						name: qs.id,
-						type: 'storage',
-						size: qs.cost
-					});
+			var d3instances = {
+				name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
+				value: 0,
+				children: []
+			};
+			data.children.push(d3instances);
+			for (var i = 0; i < instances.length; i++) {
+				var qi = instances[i];
+				var oss = allOss[qi.os];
+				if (typeof oss === 'undefined') {
+					// First OS
+					oss = {
+						name: qi.os,
+						type: 'os',
+						value: 0,
+						children: []
+					};
+					allOss[qi.os] = oss;
+					d3instances.children.push(oss);
 				}
+				oss.value += qi.cost;
+				d3instances.value += qi.cost;
+				oss.children.push({
+					name: qi.id,
+					type: 'instance',
+					size: qi.cost
+				});
 			}
-			if (instances.length) {
-				d3instances = {
-					name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
-					value: 0,
-					children: []
-				};
-				data.children.push(d3instances);
-				for (var i = 0; i < instances.length; i++) {
-					var qi = instances[i];
-					var oss = allOss[qi.os];
-					if (typeof oss === 'undefined') {
-						// First OS
-						oss = {
-							name: qi.os,
-							type: 'os',
-							value: 0,
-							children: []
-						};
-						allOss[qi.os] = oss;
-						d3instances.children.push(oss);
-					}
-					oss.value += qi.cost;
-					d3instances.value += qi.cost;
-					oss.children.push({
-						name: qi.id,
-						type: 'instance',
-						size: qi.cost
-					});
-				}
+			var supports = usage.support.filtered;
+			var d3supports = {
+				name: '<i class="fas fa-help fa-2x"></i> ' + current.$messages['service:prov:support-block'],
+				value: 0,
+				children: []
+			};
+			data.children.push(d3supports);
+			for (var i = 0; i < supports.length; i++) {
+				var support = supports[i];
+				d3supports.value += support.cost;
+				d3supports.children.push({
+					name: support.id,
+					type: 'support',
+					size: support.cost
+				});
 			}
 			return data;
 		},
@@ -2473,7 +2477,7 @@ define(function () {
 		 * Initialize the instance datatables from the whole quote
 		 */
 		instanceNewTable: function () {
-			current.instanceTable = _('prov-instances').dataTable({
+			return _('prov-instances').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				data: current.model.configuration.instances,
 				destroy: true,
@@ -2544,9 +2548,8 @@ define(function () {
 							$.ajax({
 								type: 'DELETE',
 								url: REST_PATH + 'service/prov/storage/' + qs.id,
-								success: function (updatedTotalCost) {
-									current.model.configuration.cost = updatedTotalCost;
-									current.deleteCallback('storage', qs);
+								success: function (updatedCost) {
+									current.defaultCallback('storage', updatedCost);
 								}
 							});
 						}
@@ -2607,8 +2610,71 @@ define(function () {
 					}
 				}]
 			});
+		},
 
-			return current.instanceTable;
+		/**
+		 * Initialize the instance datatables from the whole quote
+		 */
+		supportNewTable: function () {
+			return _('prov-supports').dataTable({
+				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				data: current.model.configuration.supports,
+				destroy: true,
+				searching: true,
+				createdRow: function (nRow, data) {
+					$(nRow).attr('data-id', data.id);
+				},
+				columns: [{
+					data: 'name',
+					className: 'truncate'
+				}, {
+					data: 'seats',
+					className: 'hidden-xs',
+					width: '64px',
+					type: 'num',
+					// render: current.formatSeats
+				}, {
+					data: 'api',
+					className: 'hidden-xs hidden-sm hidden-md',
+					width: '24px',
+				}, {
+					data: 'phone',
+					className: 'hidden-xs hidden-sm hidden-md',
+					width: '24px',
+				}, {
+					data: 'mail',
+					className: 'hidden-xs hidden-sm hidden-md',
+					width: '24px',
+				}, {
+					data: 'chat',
+					className: 'hidden-xs hidden-sm hidden-md',
+					width: '24px',
+				}, {
+					data: 'level',
+					width: '48px',
+					render: current.formatInstanceTerm
+				}, {
+					data: 'price.type.name',
+					className: 'truncate',
+					// render: current.formatOs
+				}, {
+					data: 'cost',
+					className: 'truncate hidden-xs',
+					render: current.formatCost
+				}, {
+					data: null,
+					width: '32px',
+					orderable: false,
+					render: function () {
+						var link =
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-support"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' +
+							current.$messages.update + '"></i></a>';
+						link += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete +
+							'"></i></a>';
+						return link;
+					}
+				}]
+			});
 		},
 
 		/**
@@ -2640,7 +2706,7 @@ define(function () {
 		 * Initialize the storage datatables from the whole quote
 		 */
 		storageNewTable: function () {
-			current.storageTable = _('prov-storages').dataTable({
+			return _('prov-storages').dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				data: current.model.configuration.storages,
 				destroy: true,
@@ -2698,67 +2764,124 @@ define(function () {
 					}
 				}]
 			});
-			return current.storageTable;
 		},
 
 		/**
-		 * Initialize the database datatables from the whole quote
+		 * Default Ajax callback after a deletion, update or create. This function looks the updated resources (identifiers), the deletd resources and the new updated costs.
+		 * @param {string} type The related resource type.
+		 * @param {object} updatedCost The new costs details.
+		 * @param {object} resource Optional resource to update or create. When null, its a deletion.
 		 */
-		databaseNewTable: function () {
-			current.databaseTable = _('prov-databases').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.databases || [],
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
-				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
-					data: 'price.vendor',
-					className: 'truncate',
-					render: current.formatDatabaseVendor
-				}, {
-					data: 'quoteInstance.minQuantity',
-					className: 'hidden-xs',
-					render: function (value, mode, data) {
-						if (value) {
-							return current.formatQuantity(value, mode, data);
-						}
-						// No related instance
-						return 1;
+		defaultCallback: function (type, updatedCost, resource) {
+			var related = updatedCost.related || {};
+			var deleted = updatedCost.deleted || {};
+			var conf = current.model.configuration;
+			var nbCreated = 0;
+			var nbUpdated = 0;
+			var nbDeleted = 0;
+			var createdSample = null;
+			var updatedSample = null;
+			var deletedSample = null;
+			conf.cost = updatedCost.total;
+
+			// Look the deleted resources
+			Object.keys(deleted).forEach(function (type) {
+				// For each deleted resource of this type, update the UI and the cost in the model
+				for (var i = deleted[type].length; i-- > 0;) {
+					var resource = current.delete(type.toLowerCase(), deleted[type][i]);
+					if (nbDeleted++ === 0) {
+						deletedSample = resource.name;
 					}
-				}, {
-					data: 'size',
-					width: '36px',
-					className: 'truncate',
-					type: 'num',
-					render: current.formatStorage
-				}, {
-					data: 'price.type',
-					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatInstanceType
-				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					type: 'num',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-database"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
-						return links;
-					}
-				}]
+				}
 			});
-			return current.databaseTable;
-		}
+
+			// Look the updated resources
+			Object.keys(related).forEach(function (key) {
+				// For each updated resource of this type, update the UI and the cost in the model
+				Object.keys(related[key]).forEach(function (id) {
+					var type = type.toLowerCase();
+					var resource = conf[type + 'sById'][id];
+					var cost = related[key][id];
+					conf[type + 'Cost'] += cost.min - resource.cost;
+					resource.cost = cost.min;
+					resource.maxCost = cost.max;
+					if (nbUpdated++ === 0) {
+						updatedSample = resource.name;
+					}
+					current.redrawResource(type, id);
+				});
+			});
+
+			// Update the current object
+			if (resource) {
+				resource.cost = updatedCost.cost.min;
+				resource.maxCost = updatedCost.cost.max;
+				if (conf[type + 'sById'][updatedCost.id]) {
+					// Update : Redraw the row
+					nbUpdated++;
+					updatedSample = resource.name;
+					current.redrawResource(type, updatedCost.id);
+				} else {
+					conf[type + 's'].push(resource);
+					conf[type + 'sById'][updatedCost.id] = resource;
+					resource.id = updatedCost.id;
+					nbCreated++;
+					createdSample = resource.name;
+					_('prov-' + type + 's').DataTable().row.add(resource).draw(false);
+				}
+			} else if (updatedCost.id) {
+				// Delete this object
+				deleted++;
+				deletedSample = current.delete(type, updatedCost.id).name;
+			}
+
+			// Notify callback
+			var message = [];
+			if (nbCreated) {
+				message.push(Handlebars.compile(current.$messages['service:prov:created'])({ count: nbCreated, sample: createdSample, more: nbCreated - 1 }));
+			}
+			if (nbUpdated) {
+				message.push(Handlebars.compile(current.$messages['service:prov:updated'])({ count: nbUpdated, sample: updatedSample, more: nbUpdated - 1 }));
+			}
+			if (nbDeleted) {
+				message.push(Handlebars.compile(current.$messages['service:prov:deleted'])({ count: nbDeleted, sample: deletedSample, more: nbDeleted - 1 }));
+			}
+			if (message.length) {
+				notifyManager.notify(message.join('<br>'));
+			}
+			$('.tooltip').remove(); // TODO Generalize
+			current.updateUiCost();
+		},
+
+		/**
+		 * Delete a resource.
+		 * @param {string} type The resource type.
+		 * @param {integer} id The resource identifier.
+		 */
+		delete: function (type, id) {
+			var conf = current.model.configuration;
+			var resourcesById = conf[type + 'sById'][id];
+			var resources = conf[type + 's'];
+			for (var i = resources.length; i-- > 0;) {
+				var resource = resources[i];
+				if (resource.id === id) {
+					resources.splice(i, 1);
+					conf[type + 'Cost'] -= resource.cost;
+					delete resourcesById[resource.id];
+					if (type === 'storage' && resource.quoteInstance && resource.quoteInstance.id) {
+						// Also redraw the instance
+						var qi = resource.quoteInstance.id;
+						current.detachStorage(resource);
+						current.redrawResource('instance', qi);
+					}
+					_('prov-' + type + 's').DataTable().rows(function (_i, data) {
+						return data.id === id;
+					}).remove().draw(false);
+					return resource;
+				}
+			}
+		},
+
 	};
 	return current;
 });

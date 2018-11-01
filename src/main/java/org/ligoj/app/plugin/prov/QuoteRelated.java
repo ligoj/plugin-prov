@@ -76,10 +76,9 @@ public interface QuoteRelated<C extends Costed> {
 		final FloatingCost floatingCost = addCost(entity, costUpdater);
 		repository.saveAndFlush(entity);
 
-		final UpdatedCost cost = new UpdatedCost();
-		cost.setId(entity.getId());
-		cost.setResourceCost(floatingCost);
-		cost.setTotalCost(entity.getConfiguration().toFloatingCost());
+		final UpdatedCost cost = new UpdatedCost(entity.getId());
+		cost.setCost(floatingCost);
+		cost.setTotal(entity.getConfiguration().toFloatingCost());
 		return cost;
 	}
 

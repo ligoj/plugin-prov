@@ -5,6 +5,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,6 +46,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -174,7 +176,7 @@ public class ProvQuoteInstanceResource
 			}
 		}).forEach(s -> storagesCosts.put(s.getId(), addCost(s, storageResource::updateCost)));
 		final UpdatedCost cost = newUpdateCost(entity);
-		cost.getRelatedCosts().put("storage", storagesCosts);
+		cost.getRelated().put(ResourceType.STORAGE, storagesCosts);
 		return resource.refreshSupportCost(cost, quote);
 	}
 
@@ -207,15 +209,20 @@ public class ProvQuoteInstanceResource
 	@DELETE
 	@Path("{subscription:\\d+}/instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost deleteAll(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisible(subscription);
+	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
+		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
+		final UpdatedCost cost = new UpdatedCost(0);
+		cost.getDeleted().put(ResourceType.INSTANCE, qiRepository.findAllIdentifiers(subscription));
+		cost.getDeleted().put(ResourceType.STORAGE, qsRepository.findAllAttachedIdentifiers(subscription));
 
-		// Delete all instance with cascaded delete for storages
-		qiRepository.deleteAll(qiRepository.findAllBy("configuration.subscription.id", subscription));
+		// Delete all instances with cascaded delete for storages
+		qsRepository.deleteAllAttached(subscription);
+		qiRepository.deleteAllBySubscription(subscription);
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of instances cost and related storage costs
-		return resource.updateCost(subscription);
+		resource.updateCost(subscription);
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	@Override
@@ -254,15 +261,16 @@ public class ProvQuoteInstanceResource
 	@DELETE
 	@Path("instance/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost delete(@PathParam("id") final int id) {
-		// Delete the instance and also the attached storage
-		return resource.refreshSupportCost(deleteAndUpdateCost(qiRepository, id, i -> {
+	public UpdatedCost delete(@PathParam("id") final int id) {
+		final UpdatedCost cost = new UpdatedCost(id);
+		return resource.refreshSupportCost(cost, deleteAndUpdateCost(qiRepository, id, i -> {
 			// Delete the relate storages
-			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply));
+			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), e -> cost.getDeleted()
+					.computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
 
 			// Decrement the unbound counter
-			final ProvQuote quote = i.getConfiguration();
-			quote.setUnboundCostCounter(quote.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
+			final ProvQuote q = i.getConfiguration();
+			q.setUnboundCostCounter(q.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
 		}));
 	}
 
@@ -536,7 +544,7 @@ public class ProvQuoteInstanceResource
 	 *            The quote instance to update.
 	 * @return The new computed cost.
 	 */
-	public UpdatedCost newUpdateCost(final ProvQuoteInstance entity) {
+	private UpdatedCost newUpdateCost(final ProvQuoteInstance entity) {
 		return newUpdateCost(qiRepository, entity, this::updateCost);
 	}
 

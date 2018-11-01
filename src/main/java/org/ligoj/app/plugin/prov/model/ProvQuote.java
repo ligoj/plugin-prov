@@ -58,25 +58,29 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 * Minimal monthly support cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@PositiveOrZero
-	private double costSupport = 0d;
+	@NotNull
+	private Double costSupport = 0d;
 
 	/**
 	 * Maximal monthly support cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@PositiveOrZero
-	private double maxCostSupport = 0d;
+	@NotNull
+	private Double maxCostSupport = 0d;
 
 	/**
 	 * Minimal monthly cost without cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@PositiveOrZero
-	private double costNoSupport = 0d;
+	@NotNull
+	private Double costNoSupport = 0d;
 
 	/**
 	 * Maximal monthly cost without cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@PositiveOrZero
-	private double maxCostNoSupport = 0d;
+	@NotNull
+	private Double maxCostNoSupport = 0d;
 
 	/**
 	 * The amount unbound maximal quantities. Would be used to track the unbound monthly bills on different scenarios.

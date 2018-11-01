@@ -28,9 +28,13 @@ import lombok.Getter;
 
 /**
  * The common features of a costed entity.
- * @param <C> Quoted resource type.
- * @param <P> Quoted resource price type.
- * @param <T> Quoted resource price type type.
+ *
+ * @param <C>
+ *            Quoted resource type.
+ * @param <P>
+ *            Quoted resource price type.
+ * @param <T>
+ *            Quoted resource price type type.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)

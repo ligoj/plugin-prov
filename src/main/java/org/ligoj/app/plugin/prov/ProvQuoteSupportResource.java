@@ -26,16 +26,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -73,15 +74,17 @@ public class ProvQuoteSupportResource
 	@DELETE
 	@Path("{subscription:\\d+}/support")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost deleteAll(@PathParam("subscription") final int subscription) {
-		subscriptionResource.checkVisible(subscription);
+	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
+		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
+		final UpdatedCost cost = new UpdatedCost(0);
+		cost.getDeleted().put(ResourceType.SUPPORT, qsRepository.findAllIdentifiers(subscription));
 
 		// Delete all storages related to any instance, then the instances
 		qsRepository.deleteAll(qsRepository.findAllBy("configuration.subscription.id", subscription));
 
 		// Update the cost. Note the effort could be reduced to a simple
 		// subtract of storage costs.
-		return resource.updateCost(subscription);
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	/**
@@ -170,10 +173,17 @@ public class ProvQuoteSupportResource
 		}
 
 		// Save and update the costs
-		return resource.refreshSupportCost(refreshCost(entity), quote);
+		return newUpdateCost(entity);
 	}
 
-	protected UpdatedCost refreshCost(final ProvQuoteSupport entity) {
+	/**
+	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
+	 *
+	 * @param entity
+	 *            The quote instance to update.
+	 * @return The new computed cost.
+	 */
+	protected UpdatedCost newUpdateCost(final ProvQuoteSupport entity) {
 		return newUpdateCost(qsRepository, entity, this::updateCost);
 	}
 
@@ -181,8 +191,8 @@ public class ProvQuoteSupportResource
 	public <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
 		// Report the delta to the quote
 		final ProvQuote quote = entity.getConfiguration();
-		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - oldCost));
-		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMaxCost));
+		quote.setCost(round(quote.getCost() + entity.getCost() - oldCost));
+		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMaxCost));
 	}
 
 	/**
@@ -195,8 +205,9 @@ public class ProvQuoteSupportResource
 	@DELETE
 	@Path("support/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost delete(@PathParam("id") final int id) {
-		return resource.refreshSupportCost(deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
+	public UpdatedCost delete(@PathParam("id") final int id) {
+		return resource.refreshSupportCost(new UpdatedCost(id),
+				deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
 	}
 
 	/**
@@ -278,7 +289,8 @@ public class ProvQuoteSupportResource
 				.filter(sp -> compare(generalGuidance, sp.getType().isGeneralGuidance()))
 				.filter(sp -> compare(contextualGuidance, sp.getType().isContextualGuidance()))
 				.filter(sp -> compare(contextualReview, sp.getType().isContextualReview()))
-				.map(sp -> newPrice(quote, sp, seats)).collect(Collectors.toList());
+				.map(sp -> newPrice(quote, sp, seats)).sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost()))
+				.collect(Collectors.toList());
 	}
 
 	private boolean compare(final SupportType quote, final SupportType provided) {
@@ -303,27 +315,28 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	public FloatingCost getCost(final ProvQuoteSupport quotePlan) {
-		final ProvQuote entity = quotePlan.getConfiguration();
-		final ProvSupportPrice price = quotePlan.getPrice();
+	public FloatingCost getCost(final ProvQuoteSupport entity) {
+		final ProvQuote quote = entity.getConfiguration();
+		final ProvSupportPrice price = entity.getPrice();
 		final int[] rates = toIntArray(price.getRate());
 		final int[] limits = toIntArray(price.getLimit());
-		final Integer seats = quotePlan.getSeats();
-		return new FloatingCost(getCost(seats, entity.getCostNoSupport(), price, rates, limits),
-				getCost(seats, entity.getMaxCostNoSupport(), price, rates, limits), entity.isUnboundCost()).round();
+		final Integer seats = entity.getSeats();
+		return new FloatingCost(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
+				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.isUnboundCost()).round();
 	}
 
 	private int[] toIntArray(String rawString) {
-		return Arrays.stream(ObjectUtils.defaultIfNull(rawString, "").split(",")).mapToInt(Integer::parseInt).toArray();
+		return Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(rawString, ""), ","))
+				.mapToInt(Integer::parseInt).toArray();
 	}
 
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,
 			final int[] limits) {
-		// Compute the cost of the seats
-		final double seatsCost = seats == null ? 0 : (seats * price.getCost());
-
-		// Add the cost of the rates
-		return computeRates(cost, price.getMin(), rates, limits) + seatsCost;
+		// Compute the group of required seats
+		final int nb = Math.max(1,
+				price.getType().getSeats() == null ? 1 : (int) Math.ceil((double) seats / price.getType().getSeats()));
+		// Compute the cost of the seats and the rates
+		return nb * (computeRates(cost, price.getMin(), rates, limits) + price.getCost());
 	}
 
 	/**

@@ -7,28 +7,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.ligoj.app.AbstractAppTest;
-import org.ligoj.app.model.Node;
-import org.ligoj.app.model.Project;
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.SupportType;
@@ -38,26 +23,14 @@ import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvQuoteSupportResource}
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
-@Rollback
-@Transactional
-public class ProvQuoteSupportResourceTest extends AbstractAppTest {
-
-	private static final double DELTA = 0.01d;
+public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteSupportResource qsResource;
-
-	@Autowired
-	private ProvResource resource;
 
 	@Autowired
 	private ProvQuoteSupportRepository qsRepository;
@@ -65,32 +38,13 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvSupportPriceRepository spRepository;
 
-	private int subscription;
-
+	@Override
 	@BeforeEach
 	public void prepareData() throws IOException {
-		// Only with Spring context
-		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class,
-						ProvSupportType.class, ProvStorageType.class, ProvSupportPrice.class, ProvStoragePrice.class,
-						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+		super.prepareData();
+		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class },
 				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-		updateCost();
-	}
-
-	private void updateCost() {
-
-		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.updateCost(subscription);
-		Assertions.assertEquals(3165.4, cost.getMin(), DELTA);
-		Assertions.assertEquals(5615.0, cost.getMax(), DELTA);
-		Assertions.assertFalse(cost.isUnbound());
-		em.flush();
-		em.clear();
 	}
 
 	@Test
@@ -137,18 +91,6 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 				new int[] { 150000, 500000, 1000000 }));
 	}
 
-	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
-		checkCost(status.getCost(), min, max, unbound);
-		return status;
-	}
-
-	private void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assertions.assertEquals(min, cost.getMin(), DELTA);
-		Assertions.assertEquals(max, cost.getMax(), DELTA);
-		Assertions.assertEquals(unbound, cost.isUnbound());
-	}
-
 	@Test
 	public void create() {
 		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
@@ -157,23 +99,22 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		vo.setDescription("support1D");
 		vo.setType("support1");
 		vo.setSeats(3);
-		resource.refresh(subscription);resource.getConfiguration(subscription);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getTotalCost(), 3551.94, 6246.5, false);
-		checkCost(cost.getResourceCost(), 386.54, 631.5, false);
-		Assertions.assertEquals(0, cost.getRelatedCosts().size());
+		checkCost(cost.getTotal(), 3541.94, 6236.5, false);
+		checkCost(cost.getCost(), 376.54, 621.5, false);
+		Assertions.assertEquals(0, cost.getRelated().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 3551.94, 6246.5, false);
+		checkCost(subscription, 3541.94, 6236.5, false);
 		final ProvQuoteSupport support = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("support-name1", support.getName());
 		Assertions.assertEquals("support1D", support.getDescription());
 		Assertions.assertEquals("support1", support.getPrice().getType().getName());
 		Assertions.assertEquals(3, support.getSeats().intValue());
-		Assertions.assertEquals(386.54, support.getCost(), DELTA);
+		Assertions.assertEquals(376.54, support.getCost(), DELTA);
 		Assertions.assertFalse(support.isUnboundCost());
 	}
 
@@ -187,13 +128,35 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	public void createMultipleSupport() {
+		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("support-name1");
+		vo.setDescription("support1D");
+		vo.setType("support1");
+		vo.setSeats(10); // Too much seats for only ONE support1 -> nb = 3 (2x4 + 2 unused)
+		final UpdatedCost cost = qsResource.create(vo);
+		// support1 : cost=5;min=10;rates=20,15,10;limits=100,1000;seats=4
+		// base cost: 3165.4 5615.0
+		// support : CEIL(10/4)*(5+0.2*100+0.15*900+0,1*2165.4)
+		// support : 3*(5+20+135+216.54)
+		// support : 3*376.54
+		// support : 1129.62
+		// total : 4295.02 7479.5
+
+		checkCost(cost.getTotal(), 4295.02, 7479.5, false);
+		checkCost(cost.getCost(), 1129.62, 1864.5, false);
+		Assertions.assertEquals(0, cost.getRelated().size());
+	}
+
+	@Test
 	public void createInvalidRequirement() {
 		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
 		vo.setDescription("support1D");
 		vo.setType("support1");
-		vo.setSeats(10); // Too much seats for support1 (max 4)
+		vo.setSeats(null); // Unlimited seats
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"type", "type-incompatible-requirements");
 	}
@@ -209,10 +172,10 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		vo.setAccessApi(SupportType.ALL);
 		vo.setAccessPhone(SupportType.TECHNICAL);
 		final UpdatedCost cost = qsResource.create(vo);
-		checkCost(cost.getResourceCost(), 386.54, 631.5, false);
+		checkCost(cost.getCost(), 376.54, 621.5, false);
 
 		// No change
-		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 386.54, 631.5, false);
+		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 376.54, 621.5, false);
 		Assertions.assertEquals("support1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 
 		// Change some constraints
@@ -221,17 +184,17 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		vo.setId(cost.getId());
 
 		// Cost is the same since the type still match the constraints
-		checkCost(qsResource.update(vo).getResourceCost(), 386.54, 631.5, false);
-		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 386.54, 631.5, false);
+		checkCost(qsResource.update(vo).getCost(), 376.54, 621.5, false);
+		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 376.54, 621.5, false);
 
 		// Change the last important constraints
 		vo.setAccessApi(null);
 
 		// Cost is the same since the type still match the constraints
-		checkCost(qsResource.update(vo).getResourceCost(), 386.54, 631.5, false);
+		checkCost(qsResource.update(vo).getCost(), 376.54, 621.5, false);
 
 		// The cost changed since a best type matches to the constraints
-		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 386.54, 631.5, false);
+		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 376.54, 621.5, false);
 		Assertions.assertEquals("support1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
@@ -242,21 +205,8 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(2, qsRepository.count());
 		em.flush();
 		em.clear();
-
-		// support1: 20,15,10 - 100,1000
-		// = 3*5 + 0.2*100 + 0.15*900 + (3165,4-1000)*0,1
-		// = 15 + 20 + 135 + 216,54
-		// = 386,54
-		//
-		// support2: 15,10,5 - 400,4000
-		// = 4*2 + 0.15*400 + 0.1*2765.4
-		// = 8 + 60 + 276.54
-		// = 344,54
-		//
-		//
-		// = 3165,4 + 731,08
-		// = 3896,48
-		checkCost(resource.refresh(subscription), 3896.48, 6755.25, false);
+		// @see #delete() for details of this computation
+		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
 
 		checkCost(qsResource.deleteAll(subscription), 3165.4, 5615.0, false);
 
@@ -277,19 +227,19 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// support1: 20,15,10 - 100,1000
-		// = 3*5 + 0.2*100 + 0.15*900 + (3165,4-1000)*0,1
-		// = 15 + 20 + 135 + 216,54
-		// = 386,54
+		// = CEIL(3/4)*(5+0.2*100+0.15*900+0,1*2165.4)
+		// = 1*(5+20+135+216.54)
+		// = 376.54
 		//
 		// support2: 15,10,5 - 400,4000
-		// = 4*2 + 0.15*400 + 0.1*2765.4
-		// = 8 + 60 + 276.54
-		// = 344,54
+		// = CEIL(4/10)*(2+0.15*400+0.1*2765.4)
+		// = 1*(2 + 60 + 276.54)
+		// = 338.54
 		//
 		//
-		// = 3165,4 + 731,08
-		// = 3896,48
-		checkCost(resource.refresh(subscription), 3896.48, 6755.25, false);
+		// = 3165.4 + 715.08
+		// = 3880.48
+		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
 		em.flush();
 		em.clear();
 
@@ -303,9 +253,9 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		// = 3165,4 + 344,54
 		// = 3509,94
 
-		checkCost(qsResource.delete(id), 3509.94, 6123.75, false);
-		checkCost(subscription, 3509.94, 6123.75, false);
-		checkCost(resource.refresh(subscription), 3509.94, 6123.75, false);
+		checkCost(qsResource.delete(id), 3503.94, 6117.75, false);
+		checkCost(subscription, 3503.94, 6117.75, false);
+		checkCost(resource.refresh(subscription), 3503.94, 6117.75, false);
 
 		// Check the associations
 		Assertions.assertNull(qsRepository.findOne(id));
@@ -368,26 +318,26 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 
 		// Check the support result
 		assertCSP(price);
-		Assertions.assertEquals(386.54, price.getCost(), DELTA);
+		Assertions.assertEquals(376.54, price.getCost(), DELTA);
 		Assertions.assertEquals(3, price.getSeats().intValue());
 		Assertions.assertTrue(price.toString().endsWith("type=AbstractNamedEntity(name=support1))), seats=3)"));
 	}
 
 	/**
-	 * Advanced case, all requirements.
+	 * Lookup zero seat.
 	 */
 	@Test
-	public void lookupHighContraints() throws IOException {
+	public void lookupNoSeat() throws IOException {
 		final QuoteSupportLookup lookup = qsResource
 				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, false, false, false).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
-		Assertions.assertTrue(asJson.startsWith("{\"cost\":371.54,\"price\":{\"id\":"));
+		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
 		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));
 
 		// Check the support result
 		assertCSP(lookup);
-		Assertions.assertEquals(371.54, lookup.getCost(), DELTA);
+		Assertions.assertEquals(376.54, lookup.getCost(), DELTA);
 	}
 
 	private QuoteSupportLookup assertCSP(final QuoteSupportLookup price) {
@@ -397,6 +347,26 @@ public class ProvQuoteSupportResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(st.getId());
 		Assertions.assertEquals("support1", st.getName());
 		return price;
+	}
+
+	/**
+	 * Lookup unlimited seat.
+	 */
+	@Test
+	public void lookupUnlimitedSeat() throws IOException {
+		// Support1 is now unlimited seats
+		spRepository.findBy("type.name", "support1").getType().setSeats(null);
+
+		final QuoteSupportLookup lookup = qsResource
+				.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, false, false, false).get(0);
+		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
+		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
+		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
+		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));
+
+		// Check the support result
+		assertCSP(lookup);
+		Assertions.assertEquals(376.54, lookup.getCost(), DELTA);
 	}
 
 	/**

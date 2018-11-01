@@ -19,6 +19,8 @@ import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,12 @@ public abstract class AbstractImportCatalogResource {
 	@Autowired
 	protected ProvStorageTypeRepository stRepository;
 
+	@Autowired
+	protected ProvSupportTypeRepository st2Repository;
+
+	@Autowired
+	protected ProvSupportPriceRepository sp2Repository;
+
 	@Setter
 	@Getter
 	@Autowired
@@ -74,7 +82,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Return the most precise rate from a name.
-	 * 
+	 *
 	 * @param type
 	 *            The rating mapping name.
 	 * @param name
@@ -93,10 +101,10 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Read a rate mapping file.
-	 * 
+	 *
 	 * @param type
 	 *            The target mapping table name to fill.
-	 * 
+	 *
 	 * @throws IOException
 	 *             When the JSON mapping file cannot be read.
 	 */
