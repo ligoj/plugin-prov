@@ -15,6 +15,7 @@ import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
@@ -81,11 +82,11 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 *            The entity's identifier to delete.
 	 * @param callback
 	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
-	 * @return The new cost.
+	 * @return The parent quote configuration.
 	 * @param <CC>
 	 *            The quote resource type.
 	 */
-	protected <CC extends AbstractQuoteResource<?>> FloatingCost deleteAndUpdateCost(
+	protected <CC extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
 			final RestRepository<CC, Integer> repository, final Integer id, final Consumer<CC> callback) {
 		// Check the entity exists and is visible
 		final CC entity = resource.findConfigured(repository, id);
@@ -94,7 +95,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 		addCost(entity, e -> {
 			e.setCost(0d);
 			e.setMaxCost(0d);
-			return new FloatingCost(0);
+			return new FloatingCost();
 		});
 
 		// Callback before the deletion
@@ -102,7 +103,8 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 
 		// Delete the entity
 		repository.deleteById(id);
-		return toFloatingCost(entity.getConfiguration());
+
+		return entity.getConfiguration();
 
 	}
 

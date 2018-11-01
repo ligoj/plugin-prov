@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import org.ligoj.app.model.Configurable;
+import org.ligoj.app.plugin.prov.FloatingCost;
 
 /**
  * A configured and also costed entity.
@@ -23,7 +24,7 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	 *
 	 * @return The computed max cost of this quoted element.
 	 */
-	Double getMaxCost();
+	double getMaxCost();
 
 	/**
 	 * Indicates the {@link #getMaxCost()} is unbound.
@@ -31,4 +32,13 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	 * @return <code>true</code> when the {@link #getMaxCost()} is unbound.
 	 */
 	boolean isUnboundCost();
+
+	/**
+	 * Return the {@link FloatingCost} from the costs of this entity.
+	 *
+	 * @return The {@link FloatingCost} from the costs of this entity.
+	 */
+	default FloatingCost toFloatingCost() {
+		return new FloatingCost(getCost(), getMaxCost(), isUnboundCost());
+	}
 }

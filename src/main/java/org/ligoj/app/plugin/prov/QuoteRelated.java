@@ -79,7 +79,7 @@ public interface QuoteRelated<C extends Costed> {
 		final UpdatedCost cost = new UpdatedCost();
 		cost.setId(entity.getId());
 		cost.setResourceCost(floatingCost);
-		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
+		cost.setTotalCost(entity.getConfiguration().toFloatingCost());
 		return cost;
 	}
 
@@ -104,24 +104,43 @@ public interface QuoteRelated<C extends Costed> {
 		final FloatingCost newCost = costUpdater.apply(entity);
 
 		// Report the delta to the quote
-		final ProvQuote configuration = entity.getConfiguration();
-		configuration.setCost(round(configuration.getCost() + entity.getCost() - oldCost));
-		configuration.setMaxCost(round(configuration.getMaxCost() + entity.getMaxCost() - oldMaxCost));
+		addCost(entity, oldCost, oldMaxCost);
 		return newCost;
+	}
+
+	/**
+	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
+	 * applied.
+	 *
+	 * @param entity
+	 *            The configured entity, related to a quote.
+	 * @param oldCost
+	 *            The old cost.
+	 * @param oldMaxCost
+	 *            The old maximum cost.
+	 * @param <T>
+	 *            The entity type holding the cost.
+	 * @return The new computed cost.
+	 */
+	default <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
+		// Report the delta to the quote
+		final ProvQuote quote = entity.getConfiguration();
+		quote.setCostNoSupport(round(quote.getCostNoSupport() + entity.getCost() - oldCost));
+		quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + entity.getMaxCost() - oldMaxCost));
 	}
 
 	/**
 	 * Update the quote's cost minimal and maximal values.
 	 *
-	 * @param entity
+	 * @param quote
 	 *            The quote entity.
 	 * @param fc
 	 *            The cost to add. May be a negative value.
 	 * @return The formal {@code fc} parameter.
 	 */
-	default FloatingCost addCost(final ProvQuote entity, final FloatingCost fc) {
-		entity.setCost(round(entity.getCost() + fc.getMin()));
-		entity.setMaxCost(round(entity.getMaxCost() + fc.getMax()));
+	default FloatingCost addCost(final ProvQuote quote, final FloatingCost fc) {
+		quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
+		quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
 		return fc;
 	}
 
@@ -150,21 +169,9 @@ public interface QuoteRelated<C extends Costed> {
 	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
 			final Function<T, FloatingCost> costProvider) {
 		final FloatingCost cost = costProvider.apply(qr);
-		qr.setCost(cost.getMin());
-		qr.setMaxCost(cost.getMax());
+		qr.setCost(cost.getMin()); // TODO round
+		qr.setMaxCost(cost.getMax()); // TODO round
 		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
-	}
-
-	/**
-	 * Extract the costs from a quote and build a new {@link FloatingCost}
-	 *
-	 * @param configuration
-	 *            The quote configuration.
-	 * @return The built {@link FloatingCost} instance.
-	 */
-	default FloatingCost toFloatingCost(final ProvQuote configuration) {
-		return new FloatingCost(configuration.getCost(), configuration.getMaxCost(),
-				configuration.getUnboundCostCounter() > 0);
 	}
 
 	/**

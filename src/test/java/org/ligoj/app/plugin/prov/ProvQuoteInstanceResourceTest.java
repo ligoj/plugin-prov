@@ -441,7 +441,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(updatedCost.getResourceCost(), 292.8, 1464, false);
 
 		// Check the related storage prices
-		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().get("storage").size());
 
 		// Check the cost is the same
 		checkUpdatedCost();
@@ -476,11 +476,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 4398.558, 4398.558, true);
 
 		// Check the related storage prices
-		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().get("storage").size());
 		qs = qsRepository.findByNameExpected("server1-root");
-		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMin(), DELTA);
-		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get(qs.getId()).getMax(), DELTA);
-		Assertions.assertTrue(updatedCost.getRelatedCosts().get(qs.getId()).isUnbound());
+		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get("storage").get(qs.getId()).getMin(), DELTA);
+		Assertions.assertEquals(4.2, updatedCost.getRelatedCosts().get("storage").get(qs.getId()).getMax(), DELTA);
+		Assertions.assertTrue(updatedCost.getRelatedCosts().get("storage").get(qs.getId()).isUnbound());
 		Assertions.assertTrue(qs.isUnboundCost());
 		Assertions.assertEquals(4.2, qs.getCost(), DELTA);
 		Assertions.assertEquals(4.2, qs.getMaxCost(), DELTA);
@@ -534,7 +534,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 4460.778, 11460.758, false);
 
 		// Check the related storage prices
-		Assertions.assertEquals(3, updatedCost.getRelatedCosts().size());
+		Assertions.assertEquals(3, updatedCost.getRelatedCosts().get("storage").size());
 
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("server1-bis", instance.getName());
@@ -683,7 +683,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 6790.958, 10283.658, false);
 		checkCost(updatedCost.getResourceCost(), 2086.2, 3129.3, false);
-		Assertions.assertTrue(updatedCost.getRelatedCosts().isEmpty());
+		Assertions.assertEquals(1, updatedCost.getRelatedCosts().size());
+		Assertions.assertTrue(updatedCost.getRelatedCosts().get("storage").isEmpty());
 		checkCost(subscription, 6790.958, 10283.658, false);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals("serverZ", instance.getName());
@@ -736,7 +737,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Check the exact new cost
 		checkCost(updatedCost.getTotalCost(), 6790.958, 9240.558, true);
 		checkCost(updatedCost.getResourceCost(), 2086.2, 2086.2, true);
-		Assertions.assertTrue(updatedCost.getRelatedCosts().isEmpty());
+		Assertions.assertTrue(updatedCost.getRelatedCosts().get("storage").isEmpty());
 		checkCost(subscription, 6790.958, 9240.558, true);
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertNull(instance.getMaxVariableCost());

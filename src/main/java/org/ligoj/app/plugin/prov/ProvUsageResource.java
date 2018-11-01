@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -55,7 +56,7 @@ public class ProvUsageResource {
 
 	/**
 	 * Return the usages available for a subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param uriInfo
@@ -77,7 +78,7 @@ public class ProvUsageResource {
 	/**
 	 * Create the usage inside a quote. No cost are updated during this operation since this new {@link ProvUsage} is
 	 * not yet used.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param vo
@@ -88,9 +89,8 @@ public class ProvUsageResource {
 	@Path("{subscription:\\d+}/usage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public int create(@PathParam("subscription") final int subscription, final UsageEditionVo vo) {
-		final ProvQuote configuration = resource.getQuoteFromSubscription(subscription);
 		final ProvUsage entity = new ProvUsage();
-		entity.setConfiguration(configuration);
+		entity.setConfiguration(resource.getQuoteFromSubscription(subscription));
 		return saveOrUpdate(entity, vo).getId();
 	}
 
@@ -100,7 +100,7 @@ public class ProvUsageResource {
 	 * The cost of all instances related to this usage will be updated to get the new price.<br>
 	 * An instance related to this usage is either an instance explicitly linked to this usage, either an instance
 	 * linked to a quote having this usage as default.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param name
@@ -131,19 +131,21 @@ public class ProvUsageResource {
 		entity.setName(vo.getName());
 
 		final UpdatedCost cost = new UpdatedCost();
+		// Prepare the updated cost of updated instances
+		final Map<String, Map<Integer, FloatingCost>> costs = cost.getRelatedCosts();
+		final ProvQuote quote = entity.getConfiguration();
 		if (entity.getId() != null) {
-			final ProvQuote quote = entity.getConfiguration();
-			// Prepare the updated cost of updated instances
-			final Map<Integer, FloatingCost> costs = cost.getRelatedCosts();
-			cost.setRelatedCosts(costs);
+
 			// Update the cost of all related instances
 			if (entity.equals(quote.getUsage())) {
 				// Update cost of all instances without explicit usage
 				quote.getInstances().stream().filter(i -> i.getUsage() == null)
-						.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
+						.forEach(i -> costs.computeIfAbsent("instance", k -> new HashMap<>()).put(i.getId(),
+								instanceResource.addCost(i, instanceResource::refresh)));
 			}
 			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage()))
-					.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
+					.forEach(i -> costs.computeIfAbsent("storage", k -> new HashMap<>()).put(i.getId(),
+							instanceResource.addCost(i, instanceResource::refresh)));
 
 			// Save and update the costs
 			cost.setRelatedCosts(costs);
@@ -151,14 +153,15 @@ public class ProvUsageResource {
 
 		repository.saveAndFlush(entity);
 		cost.setId(entity.getId());
-		cost.setTotalCost(resource.toFloatingCost(entity.getConfiguration()));
-		return cost;
+
+		// Update accordingly the support costs
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	/**
 	 * Delete an usage. When the usage is associated to a quote or a resource, it is replaced by a <code>null</code>
 	 * reference.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the usages from the associated provider.
 	 * @param name
@@ -174,24 +177,24 @@ public class ProvUsageResource {
 
 		final UpdatedCost cost = new UpdatedCost();
 		// Prepare the updated cost of updated instances
-		final Map<Integer, FloatingCost> costs = cost.getRelatedCosts();
-		cost.setRelatedCosts(costs);
+		final Map<String, Map<Integer, FloatingCost>> costs = cost.getRelatedCosts();
 		// Update the cost of all related instances
 		if (entity.equals(quote.getUsage())) {
 			// Update cost of all instances without explicit usage
 			quote.setUsage(null);
 			quote.getInstances().stream().filter(i -> i.getUsage() == null)
-					.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
+					.forEach(i -> costs.computeIfAbsent("instance", k -> new HashMap<>()).put(i.getId(),
+							instanceResource.addCost(i, instanceResource::refresh)));
 		}
 		quote.getInstances().stream().filter(i -> entity.equals(i.getUsage())).peek(i -> i.setUsage(null))
-				.forEach(i -> costs.put(i.getId(), instanceResource.addCost(i, instanceResource::refresh)));
+				.forEach(i -> costs.computeIfAbsent("storage", k -> new HashMap<>()).put(i.getId(),
+						instanceResource.addCost(i, instanceResource::refresh)));
 
 		// All references are deleted, delete the usage entity
 		repository.delete(entity);
 
-		// Save and update the costs
-		cost.setTotalCost(resource.toFloatingCost(entity.getConfiguration()));
-		return cost;
+		// Update accordingly the support costs
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 }

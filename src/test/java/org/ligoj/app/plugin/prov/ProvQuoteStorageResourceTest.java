@@ -153,7 +153,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		checkCost(cost.getTotalCost(), 4919.798, 8229.558, false);
 		checkCost(cost.getResourceCost(), 215.04, 1075.2, false);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 1464.0, false);
+		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 1464.0, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -183,7 +183,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		checkCost(cost.getTotalCost(), 4919.798, 4919.798, true);
 		checkCost(cost.getResourceCost(), 215.04, 215.04, true);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 292.8, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -351,7 +351,7 @@ public class ProvQuoteStorageResourceTest extends AbstractAppTest {
 		checkCost(cost.getTotalCost(), 4704.758, 4704.758, true);
 		checkCost(cost.getResourceCost(), 8.4, 8.4, true);
 		Assertions.assertEquals(1, cost.getRelatedCosts().size());
-		checkCost(cost.getRelatedCosts().get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getRelatedCosts().get("instance").get(vo.getQuoteInstance()), 292.8, 292.8, true);
 
 		checkCost(subscription, 4704.758, 4704.758, true);
 		Assertions.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());

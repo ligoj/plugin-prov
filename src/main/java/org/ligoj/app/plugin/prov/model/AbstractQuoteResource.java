@@ -49,7 +49,7 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 	 */
 	@NotNull
 	@PositiveOrZero
-	private Double maxCost;
+	private double maxCost;
 
 	/**
 	 * The parent quote.
@@ -67,6 +67,7 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 
 	/**
 	 * Return resolved price configuration.
+	 *
 	 * @Return Resolved price configuration.
 	 */
 	public abstract P getPrice();

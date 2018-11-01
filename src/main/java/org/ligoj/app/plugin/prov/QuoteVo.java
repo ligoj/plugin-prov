@@ -9,6 +9,7 @@ import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
@@ -29,9 +30,19 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Monthly cost, computed during the creation.
+	 * Monthly cost, including support.
 	 */
 	private FloatingCost cost;
+
+	/**
+	 * Monthly cost without support.
+	 */
+	private FloatingCost costNoSupport;
+
+	/**
+	 * Monthly support cost, based on {@link #cost}.
+	 */
+	private FloatingCost costSupport;
 
 	/**
 	 * The optional Terraform status.
@@ -47,6 +58,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Related storages instance.
 	 */
 	private List<ProvQuoteStorage> storages;
+
+	/**
+	 * Related supports instance.
+	 */
+	private List<ProvQuoteSupport> supports;
 
 	/**
 	 * Default location of this quote.

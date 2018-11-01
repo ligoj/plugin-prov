@@ -179,9 +179,9 @@ public class ProvQuoteStorageResource
 
 		// Save and update the costs
 		final UpdatedCost cost = refreshCost(entity);
-		Optional.ofNullable(entity.getQuoteInstance())
-				.ifPresent(q -> cost.setRelatedCosts(Collections.singletonMap(q.getId(), qiResource.updateCost(q))));
-		return cost;
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q -> cost.getRelatedCosts().put("instance",
+				Collections.singletonMap(q.getId(), qiResource.updateCost(q))));
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	protected UpdatedCost refreshCost(final ProvQuoteStorage entity) {
@@ -210,7 +210,7 @@ public class ProvQuoteStorageResource
 	@Path("storage/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost delete(@PathParam("id") final int id) {
-		return deleteAndUpdateCost(qsRepository, id, Function.identity()::apply);
+		return resource.refreshSupportCost(deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
 	}
 
 	/**

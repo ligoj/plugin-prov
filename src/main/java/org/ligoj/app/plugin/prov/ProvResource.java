@@ -36,6 +36,8 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
@@ -97,10 +99,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private PaginationJson paginationJson;
 
 	@Autowired
-	private ProvQuoteInstanceResource instanceResource;
+	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
-	private ProvQuoteStorageResource storageResource;
+	private ProvQuoteStorageResource qsResource;
+
+	@Autowired
+	private ProvQuoteSupportResource qspResource;
 
 	@Autowired
 	private ProvUsageRepository usageRepository;
@@ -183,19 +188,23 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	public QuoteVo getConfiguration(final Subscription subscription) {
 		final QuoteVo vo = new QuoteVo();
-		final ProvQuote entity = repository.getCompute(subscription.getId());
-		DescribedBean.copy(entity, vo);
-		vo.copyAuditData(entity, toUser());
-		vo.setLocation(entity.getLocation());
-		vo.setInstances(entity.getInstances());
-		vo.setStorages(repository.getStorage(subscription.getId()));
-		vo.setUsage(entity.getUsage());
-		vo.setLicense(entity.getLicense());
-		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100));
-
-		// Also copy the pre-computed cost
-		vo.setCost(toFloatingCost(entity));
+		final ProvQuote quote = repository.getCompute(subscription.getId());
+		DescribedBean.copy(quote, vo);
+		vo.copyAuditData(quote, toUser());
+		vo.setLocation(quote.getLocation());
+		vo.setInstances(quote.getInstances());
+		vo.setStorages(repository.getStorages(subscription.getId()));
+		vo.setUsage(quote.getUsage());
+		vo.setLicense(quote.getLicense());
+		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
+		vo.setSupports(repository.getSupports(subscription.getId()));
+
+		// Also copy the costs
+		final boolean unbound = quote.isUnboundCost();
+		vo.setCostNoSupport(new FloatingCost(quote.getCostNoSupport(), quote.getMaxCostNoSupport(), unbound));
+		vo.setCostSupport(new FloatingCost(quote.getCostSupport(), quote.getMaxCostSupport(), unbound));
+		vo.setCost(quote.toFloatingCost());
 		return vo;
 	}
 
@@ -212,7 +221,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final Object[] storage = repository.getStorageSummary(subscription).get(0);
 		final ProvQuote entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
-		vo.setCost(toFloatingCost(entity));
+		vo.setCost(entity.toFloatingCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
 		vo.setTotalCpu((Double) compute[2]);
 		vo.setTotalRam(((Long) compute[3]).intValue());
@@ -262,25 +271,45 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch instances) to refresh
-		return updateCost(repository.getCompute(subscription));
+		return updateCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost);
 	}
 
 	/**
 	 * Refresh the cost without updating the resources constraints.
 	 */
-	private FloatingCost updateCost(final ProvQuote entity) {
+	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
+			Function<ProvQuoteStorage, FloatingCost> storageFunction) {
 		// Reset the costs to 0, will be updated further in this process
-		entity.setCost(0d);
-		entity.setMaxCost(0d);
+		entity.setCostNoSupport(0d);
+		entity.setMaxCostNoSupport(0d);
 
 		// Add the compute cost, and update the unbound cost
-		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::updateCost)
+		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the storage cost
-		repository.getStorage(entity.getSubscription().getId()).stream().map(storageResource::updateCost)
+		repository.getStorages(entity.getSubscription().getId()).stream().map(storageFunction)
 				.forEach(fc -> addCost(entity, fc));
-		return toFloatingCost(entity);
+
+		// Return the rounded computation
+		return refreshSupportCost(entity).round();
+	}
+
+	public FloatingCost refreshSupportCost(final ProvQuote entity) {
+		final FloatingCost support = repository.getSupports(entity.getSubscription().getId()).stream()
+				.map(qspResource::getCost).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
+		entity.setCostSupport(round(support.getMin()));
+		entity.setMaxCostSupport(round(support.getMax()));
+		entity.setCost(round(entity.getCostSupport() + entity.getCostNoSupport()));
+		entity.setMaxCost(round(entity.getMaxCostSupport() + entity.getMaxCostNoSupport()));
+		return entity.toFloatingCost();
+	}
+
+	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
+		cost.setTotalCost(refreshSupportCost(quote));
+		quote.getSupports().stream().forEach(
+				s -> cost.getRelatedCosts().computeIfAbsent("support", k -> new HashMap<>()).put(s.getId(), s.toFloatingCost()));
+		return cost;
 	}
 
 	/**
@@ -299,19 +328,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Override
 	public FloatingCost refresh(final ProvQuote entity) {
-		// Reset the costs to 0, will be updated further in this process
-		entity.setCost(0d);
-		entity.setMaxCost(0d);
-
-		// Update the instances, and add the cost
-		entity.setUnboundCostCounter((int) entity.getInstances().stream().map(instanceResource::refresh)
-				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
-
-		// Update the storage, and add the cost
-		repository.getStorage(entity.getSubscription().getId()).stream().map(storageResource::refresh)
-				.forEach(fc -> addCost(entity, fc));
-
-		return toFloatingCost(entity);
+		return updateCost(entity, qiResource::refresh, qsResource::refresh);
 	}
 
 	@Override

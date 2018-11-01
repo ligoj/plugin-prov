@@ -134,11 +134,11 @@ public class ProvQuoteInstanceResource
 				- BooleanUtils.toInteger(entity.isUnboundCost());
 
 		// Check the associations and copy attributes to the entity
-		final ProvQuote configuration = getQuoteFromSubscription(vo.getSubscription());
-		final Subscription subscription = configuration.getSubscription();
+		final ProvQuote quote = getQuoteFromSubscription(vo.getSubscription());
+		final Subscription subscription = quote.getSubscription();
 		final String providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
-		entity.setConfiguration(configuration);
+		entity.setConfiguration(quote);
 		final ProvLocation oldLocation = getLocation(entity);
 		entity.setPrice(ipRepository.findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
@@ -161,10 +161,9 @@ public class ProvQuoteInstanceResource
 		checkOs(entity);
 
 		// Update the unbound increment of the global quote
-		configuration.setUnboundCostCounter(configuration.getUnboundCostCounter() + deltaUnbound);
+		quote.setUnboundCostCounter(quote.getUnboundCostCounter() + deltaUnbound);
 
 		// Save and update the costs
-		final UpdatedCost cost = newUpdateCost(entity);
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
 		final boolean dirtyPrice = !oldLocation.equals(getLocation(entity));
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
@@ -174,9 +173,9 @@ public class ProvQuoteInstanceResource
 				storageResource.refreshCost(s);
 			}
 		}).forEach(s -> storagesCosts.put(s.getId(), addCost(s, storageResource::updateCost)));
-		cost.setRelatedCosts(storagesCosts);
-		cost.setTotalCost(toFloatingCost(entity.getConfiguration()));
-		return cost;
+		final UpdatedCost cost = newUpdateCost(entity);
+		cost.getRelatedCosts().put("storage", storagesCosts);
+		return resource.refreshSupportCost(cost, quote);
 	}
 
 	/**
@@ -221,14 +220,12 @@ public class ProvQuoteInstanceResource
 
 	@Override
 	public FloatingCost refresh(final ProvQuoteInstance qi) {
-		final ProvQuote quote = qi.getConfiguration();
-
 		// Find the lowest price
-		qi.setPrice(
-				validateLookup("instance",
-						lookup(quote, qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null, qi.isEphemeral(),
-								getLocation(qi).getName(), getUsageName(qi), qi.getLicense(), qi.getSoftware()),
-						qi.getName()));
+		qi.setPrice(validateLookup("instance",
+				lookup(qi.getConfiguration(), qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null,
+						qi.isEphemeral(), getLocation(qi).getName(), getUsageName(qi), qi.getLicense(),
+						qi.getSoftware()),
+				qi.getName()));
 		return updateCost(qi);
 	}
 
@@ -259,15 +256,14 @@ public class ProvQuoteInstanceResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost delete(@PathParam("id") final int id) {
 		// Delete the instance and also the attached storage
-		return deleteAndUpdateCost(qiRepository, id, i -> {
+		return resource.refreshSupportCost(deleteAndUpdateCost(qiRepository, id, i -> {
 			// Delete the relate storages
 			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), Function.identity()::apply));
 
 			// Decrement the unbound counter
-			final ProvQuote configuration = i.getConfiguration();
-			configuration.setUnboundCostCounter(
-					configuration.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
-		});
+			final ProvQuote quote = i.getConfiguration();
+			quote.setUnboundCostCounter(quote.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
+		}));
 	}
 
 	/**

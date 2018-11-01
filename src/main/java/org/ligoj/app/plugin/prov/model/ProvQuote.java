@@ -39,20 +39,44 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Minimal monthly cost, computed during the creation and kept synchronized with the updates.
+	 * Minimal monthly cost, computed during the creation and kept synchronized with the updates. Includes support cost.
 	 */
 	@NotNull
 	@PositiveOrZero
-	private Double cost = 0d;
+	private double cost = 0d;
 
 	/**
-	 * Maximal determined monthly cost, computed during the creation and kept synchronized with the updates. When there
-	 * are unbound maximal quantities (<code>null</code>), the minimal cost is used and the {@link #unboundCostCounter}
-	 * is incremented.
+	 * Maximal determined monthly cost, computed during the creation and kept synchronized with the updates. Includes
+	 * support cost. When there are unbound maximal quantities (<code>unboundCostCounter &gt; 0</code>), the
+	 * {@link #getUnboundCostCounter()} is incremented. Otherwise, this value is equals to {@link #getCost()}
 	 */
 	@NotNull
 	@PositiveOrZero
-	private Double maxCost = 0d;
+	private double maxCost = 0d;
+
+	/**
+	 * Minimal monthly support cost, computed during the creation and kept synchronized with the updates.
+	 */
+	@PositiveOrZero
+	private double costSupport = 0d;
+
+	/**
+	 * Maximal monthly support cost, computed during the creation and kept synchronized with the updates.
+	 */
+	@PositiveOrZero
+	private double maxCostSupport = 0d;
+
+	/**
+	 * Minimal monthly cost without cost, computed during the creation and kept synchronized with the updates.
+	 */
+	@PositiveOrZero
+	private double costNoSupport = 0d;
+
+	/**
+	 * Maximal monthly cost without cost, computed during the creation and kept synchronized with the updates.
+	 */
+	@PositiveOrZero
+	private double maxCostNoSupport = 0d;
 
 	/**
 	 * The amount unbound maximal quantities. Would be used to track the unbound monthly bills on different scenarios.
@@ -89,6 +113,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvQuoteStorage> storages;
+
+	/**
+	 * Quoted supports.
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvQuoteSupport> supports;
 
 	/**
 	 * Default location constraint.

@@ -1,0 +1,4 @@
+type.name;cost;min;rate;limit
+support1;5;10;20,15,10;100,1000
+support2;2;30;15,10,5;400,4000
+supportX;5;10;20,15,10;100,5000

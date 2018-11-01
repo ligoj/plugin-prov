@@ -32,8 +32,8 @@ public class UpdatedCost {
 	private FloatingCost resourceCost;
 
 	/**
-	 * The new related costs of the update resource. For sample, storage for
-	 * associated instance.Ò
+	 * The new related costs of the update resource. For sample, storage for associated instance. The primary key is the
+	 * resource type: instance, storage, support. The secondary key is the resource identifier.
 	 */
-	private Map<Integer, FloatingCost> relatedCosts = new HashMap<>();
+	private Map<String, Map<Integer, FloatingCost>> relatedCosts = new HashMap<>();
 }

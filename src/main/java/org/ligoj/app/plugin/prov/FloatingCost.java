@@ -48,12 +48,38 @@ public class FloatingCost implements Serializable {
 
 	/**
 	 * Constructor to define a fixed float.
-	 * 
+	 *
 	 * @param base
 	 *            The minimal and maximal value.
 	 */
 	public FloatingCost(double base) {
 		min = base;
 		max = base;
+	}
+
+	/**
+	 * Add a another floating cost.
+	 *
+	 * @param other
+	 *            Another cost.
+	 * @return This object.
+	 */
+	public FloatingCost add(final FloatingCost other) {
+		min += other.getMin();
+		max += other.getMax();
+		return this;
+	}
+
+	/**
+	 * Return a new instance with round values.
+	 *
+	 * @return A new instance with round values.
+	 */
+	public FloatingCost round() {
+		return new FloatingCost(round(min), round(max), unbound);
+	}
+
+	private double round(final double value) {
+		return Math.round(value * 1000d) / 1000d;
 	}
 }

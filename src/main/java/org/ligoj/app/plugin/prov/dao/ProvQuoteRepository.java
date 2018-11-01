@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -17,11 +18,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 
 	/**
 	 * Return the compute quote summary from the related subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The quote with aggregated details : Quote, amount of instances, total
-	 *         RAM and total CPU.
+	 * @return The quote with aggregated details : Quote, amount of instances, total RAM and total CPU.
 	 */
 	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
 			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.instances AS qi"
@@ -30,11 +30,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 
 	/**
 	 * Return the storage quote summary from the related subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The quote with aggregated details : Quote, amount of storages and
-	 *         total storage.
+	 * @return The quote with aggregated details : Quote, amount of storages and total storage.
 	 */
 	@Query("SELECT q, COALESCE(SUM(CASE WHEN qs.id IS NULL THEN 0 ELSE COALESCE(qi.minQuantity,1) END),0),"
 			+ " COALESCE(SUM(qs.size*COALESCE(qi.minQuantity,1)),0) FROM ProvQuote q LEFT JOIN q.storages AS qs"
@@ -43,11 +42,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 
 	/**
 	 * Return the compute quote details from the related subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
-	 * @return The compute quote details : Quote, instance details and price
-	 *         details.
+	 * @return The compute quote details : Quote, instance details and price details.
 	 */
 	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
 			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription")
@@ -55,17 +53,29 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 
 	/**
 	 * Return the storage quote details from the related subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier linking the quote.
 	 * @return The storage quote details with the optional linked instance.
 	 */
 	@Query("FROM ProvQuoteStorage AS qs INNER JOIN FETCH qs.price qsp INNER JOIN FETCH qsp.type LEFT JOIN FETCH qs.quoteInstance"
 			+ " WHERE qs.configuration.subscription.id = :subscription")
-	List<ProvQuoteStorage> getStorage(int subscription);
+	List<ProvQuoteStorage> getStorages(int subscription);
+
+	/**
+	 * Return the support quote details from the related subscription.
+	 *
+	 * @param subscription
+	 *            The subscription identifier linking the quote.
+	 * @return The support quote details with the optional linked instance.
+	 */
+	@Query("FROM ProvQuoteSupport AS qs INNER JOIN FETCH qs.price qsp INNER JOIN FETCH qsp.type"
+			+ " WHERE qs.configuration.subscription.id = :subscription")
+	List<ProvQuoteSupport> getSupports(int subscription);
 
 	/**
 	 * Return the amount of quotes based on the related node.
+	 *
 	 * @param node
 	 *            The node identifier. Sub nodes are also involved.
 	 * @return The amount of quotes based on the related node.
