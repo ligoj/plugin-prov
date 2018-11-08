@@ -73,19 +73,10 @@ public class ProvQuoteSupport extends AbstractQuoteResource<ProvSupportPrice> {
 	private Integer seats;
 
 	/**
-	 * General guidance.
+	 * Optional consulting services level: WORST=reserved, LOW=generalGuidance, MEDIUM=contextualGuidance,
+	 * GOOD=contextualReview, BEST=reserved
 	 */
-	private boolean generalGuidance;
-
-	/**
-	 * Contextual guidance based on your use-case.
-	 */
-	private boolean contextualGuidance;
-
-	/**
-	 * Consultative review and guidance based on your applications.
-	 */
-	private boolean contextualReview;
+	private Rate level;
 
 	@Override
 	@JsonIgnore

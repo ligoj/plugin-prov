@@ -2799,7 +2799,7 @@ define(function () {
 			Object.keys(related).forEach(function (key) {
 				// For each updated resource of this type, update the UI and the cost in the model
 				Object.keys(related[key]).forEach(function (id) {
-					var type = type.toLowerCase();
+					var type = key.toLowerCase();
 					var resource = conf[type + 'sById'][id];
 					var cost = related[key][id];
 					conf[type + 'Cost'] += cost.min - resource.cost;

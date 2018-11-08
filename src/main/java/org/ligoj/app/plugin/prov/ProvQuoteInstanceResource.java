@@ -325,7 +325,7 @@ public class ProvQuoteInstanceResource
 			final String location, final String usageName, final String license, final String software) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final double ramR = Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100) * ram / 100);
+		final double ramR = Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100) * ram / 100d);
 		final VmOs os = Optional.ofNullable(osName).map(VmOs::toPricingOs).orElse(null);
 
 		// Resolve the location to use
@@ -366,7 +366,7 @@ public class ProvQuoteInstanceResource
 			licenseR = null;
 		}
 		if (licenseR != null) {
-			licenseR.toUpperCase(Locale.ENGLISH);
+			licenseR = licenseR.toUpperCase(Locale.ENGLISH);
 		}
 		return licenseR;
 	}

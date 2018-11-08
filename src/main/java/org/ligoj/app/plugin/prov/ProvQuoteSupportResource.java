@@ -10,10 +10,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -36,6 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -120,10 +119,8 @@ public class ProvQuoteSupportResource
 		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		qs.setPrice(validateLookup("support-plan",
-				lookup(quote, qs.getSeats(), qs.getAccessApi(), qs.getAccessEmail(), qs.getAccessChat(),
-						qs.getAccessPhone(), qs.isGeneralGuidance(), qs.isContextualGuidance(), qs.isContextualReview())
-								.stream().findFirst().orElse(null),
+		qs.setPrice(validateLookup("support-plan", lookup(quote, qs.getSeats(), qs.getAccessApi(), qs.getAccessEmail(),
+				qs.getAccessChat(), qs.getAccessPhone(), qs.getLevel()).stream().findFirst().orElse(null),
 				qs.getName()));
 		return updateCost(qs).round();
 	}
@@ -150,6 +147,8 @@ public class ProvQuoteSupportResource
 		// Check the associations
 		final int subscription = vo.getSubscription();
 		final ProvQuote quote = getQuoteFromSubscription(subscription);
+		entity.setName(vo.getName());
+		entity.setDescription(vo.getDescription());
 		entity.setConfiguration(quote);
 		entity.setPrice(findByTypeName(subscription, vo.getType()));
 		entity.setSeats(vo.getSeats());
@@ -157,17 +156,13 @@ public class ProvQuoteSupportResource
 		entity.setAccessEmail(vo.getAccessEmail());
 		entity.setAccessChat(vo.getAccessChat());
 		entity.setAccessPhone(vo.getAccessPhone());
-		entity.setName(vo.getName());
-		entity.setDescription(vo.getDescription());
-		entity.setGeneralGuidance(vo.isGeneralGuidance());
-		entity.setContextualGuidance(vo.isContextualGuidance());
-		entity.setContextualReview(vo.isContextualReview());
+		entity.setLevel(vo.getLevel());
 
 		// Check the support requirements to validate the linked price
 		final ProvSupportType type = entity.getPrice().getType();
 		if (lookup(quote, vo.getSeats(), vo.getAccessApi(), vo.getAccessEmail(), vo.getAccessChat(),
-				vo.getAccessPhone(), vo.isGeneralGuidance(), vo.isContextualGuidance(), vo.isContextualReview())
-						.stream().map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
+				vo.getAccessPhone(), vo.getLevel()).stream().map(qs -> qs.getPrice().getType())
+						.noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
@@ -193,6 +188,8 @@ public class ProvQuoteSupportResource
 		final ProvQuote quote = entity.getConfiguration();
 		quote.setCost(round(quote.getCost() + entity.getCost() - oldCost));
 		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMaxCost));
+		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - oldCost));
+		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMaxCost));
 	}
 
 	/**
@@ -244,12 +241,9 @@ public class ProvQuoteSupportResource
 	 *            Chat access. <code>null</code> when is not required.
 	 * @param accessPhone
 	 *            Phone access. <code>null</code> when is not required.
-	 * @param generalGuidance
-	 *            General guidance.
-	 * @param contextualGuidance
-	 *            Contextual guidance based on your use-case.
-	 * @param contextualReview
-	 *            Consultative review and guidance based on your applications.
+	 * @param level
+	 *            Optional consulting services level: WORST=reserved, LOW=generalGuidance, MEDIUM=contextualGuidance,
+	 *            GOOD=contextualReview, BEST=reserved.
 	 * @return The valid support types for the given subscription.
 	 */
 	@GET
@@ -259,25 +253,16 @@ public class ProvQuoteSupportResource
 			@QueryParam("seats") final Integer seats, @QueryParam("access-api") final SupportType accessApi,
 			@QueryParam("access-email") final SupportType accessEmail,
 			@QueryParam("access-chat") final SupportType accessChat,
-			@QueryParam("access-phone") final SupportType accessPhone,
-			@DefaultValue("false") @QueryParam("general-guidance") final boolean generalGuidance,
-			@DefaultValue("false") @QueryParam("contextual-guidance") final boolean contextualGuidance,
-			@DefaultValue("false") @QueryParam("contextual-review") final boolean contextualReview) {
+			@QueryParam("access-phone") final SupportType accessPhone, @QueryParam("level") final Rate level) {
 
 		// Check the security on this subscription
 		return lookup(getQuoteFromSubscription(subscription), seats, accessApi, accessEmail, accessChat, accessPhone,
-				generalGuidance, contextualGuidance, contextualReview);
+				level);
 	}
-
-	/**
-	 * Related support type name within the given location.
-	 */
-	@NotNull
-	private String type;
 
 	private List<QuoteSupportLookup> lookup(final ProvQuote quote, final Integer seats, final SupportType accessApi,
 			final SupportType accessEmail, final SupportType accessChat, final SupportType accessPhone,
-			final boolean generalGuidance, final boolean contextualGuidance, final boolean contextualReview) {
+			final Rate level) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = quote.getSubscription().getNode().getRefined().getId();
@@ -286,19 +271,16 @@ public class ProvQuoteSupportResource
 				.filter(sp -> compare(accessChat, sp.getType().getAccessChat()))
 				.filter(sp -> compare(accessEmail, sp.getType().getAccessEmail()))
 				.filter(sp -> compare(accessPhone, sp.getType().getAccessPhone()))
-				.filter(sp -> compare(generalGuidance, sp.getType().isGeneralGuidance()))
-				.filter(sp -> compare(contextualGuidance, sp.getType().isContextualGuidance()))
-				.filter(sp -> compare(contextualReview, sp.getType().isContextualReview()))
-				.map(sp -> newPrice(quote, sp, seats)).sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost()))
-				.collect(Collectors.toList());
+				.filter(sp -> compare(level, sp.getType().getLevel())).map(sp -> newPrice(quote, sp, seats))
+				.sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost())).collect(Collectors.toList());
 	}
 
 	private boolean compare(final SupportType quote, final SupportType provided) {
 		return quote == null || provided == SupportType.ALL || quote == provided;
 	}
 
-	private boolean compare(final boolean quote, final boolean provided) {
-		return provided || !quote;
+	private boolean compare(final Rate quote, final Rate provided) {
+		return quote == null || quote.ordinal() <= provided.ordinal();
 	}
 
 	/**

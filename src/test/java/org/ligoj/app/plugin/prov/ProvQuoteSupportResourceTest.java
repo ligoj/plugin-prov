@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -16,6 +17,7 @@ import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
@@ -102,8 +104,18 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		final UpdatedCost cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 3541.94, 6236.5, false);
 		checkCost(cost.getCost(), 376.54, 621.5, false);
+
+		final QuoteVo quoteVo = resource.getConfiguration(subscription);
+		checkCost(quoteVo.getCostNoSupport(), 3165.4, 5615.0, false);
+		checkCost(quoteVo.getCost(), 3541.94, 6236.5, false);
+		checkCost(quoteVo.getCostSupport(), 376.54, 621.5, false);
 		Assertions.assertEquals(0, cost.getRelated().size());
+
 		final int id = cost.getId();
+		Assertions.assertEquals(1, quoteVo.getSupports().size());
+		Assertions.assertEquals(id, quoteVo.getSupports().get(0).getId().intValue());
+		Assertions.assertEquals("support1", quoteVo.getSupports().get(0).getPrice().getType().getName());
+
 		em.flush();
 		em.clear();
 
@@ -194,8 +206,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		checkCost(qsResource.update(vo).getCost(), 376.54, 621.5, false);
 
 		// The cost changed since a best type matches to the constraints
-		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 376.54, 621.5, false);
-		Assertions.assertEquals("support1", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
+		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 338.54, 502.75, false);
+		Assertions.assertEquals("support2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
 	@Test
@@ -313,10 +325,16 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookup() {
-		final QuoteSupportLookup price = qsResource.lookup(subscription, 3, null, null, null, null, false, false, false)
-				.get(0);
+		final List<QuoteSupportLookup> prices = qsResource.lookup(subscription, 3, null, null, null, null, null);
+
+		// Lowest price first
+		final QuoteSupportLookup priceS2 = prices.get(0);
+		Assertions.assertEquals(338.54, priceS2.getCost(), DELTA);
+		Assertions.assertEquals(3, priceS2.getSeats().intValue());
+		Assertions.assertEquals("support2", priceS2.getPrice().getType().getName());
 
 		// Check the support result
+		final QuoteSupportLookup price = prices.get(1);
 		assertCSP(price);
 		Assertions.assertEquals(376.54, price.getCost(), DELTA);
 		Assertions.assertEquals(3, price.getSeats().intValue());
@@ -329,7 +347,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupNoSeat() throws IOException {
 		final QuoteSupportLookup lookup = qsResource
-				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, false, false, false).get(0);
+				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
@@ -358,7 +376,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		spRepository.findBy("type.name", "support1").getType().setSeats(null);
 
 		final QuoteSupportLookup lookup = qsResource
-				.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, false, false, false).get(0);
+				.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
 		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
@@ -370,25 +388,30 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Filtered lookup. Only some support type are valid.
+	 */
+	@Test
+	public void lookupFiltered() {
+
+		// Both support1 and support2 are valid, but support2 is cheaper
+		Assertions.assertEquals("support2",
+				qsResource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(0).getPrice()
+						.getType().getName());
+
+		// Only support1 provides chat access
+		Assertions.assertEquals("support1",
+				qsResource.lookup(subscription, 0, null, null, SupportType.TECHNICAL, null, null).get(0).getPrice()
+						.getType().getName());
+	}
+
+	/**
 	 * Too much requirements for an instance
 	 */
 	@Test
 	public void lookupNoMatch() {
-		Assertions.assertEquals("support2",
-				qsResource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, false, false, false).get(1)
-						.getPrice().getType().getName());
-		Assertions.assertEquals("support1",
-				qsResource.lookup(subscription, 0, null, null, SupportType.TECHNICAL, null, false, false, false).get(0)
-						.getPrice().getType().getName());
-		Assertions.assertEquals("support2",
-				qsResource.lookup(subscription, 0, null, null, null, null, false, false, false).get(1).getPrice()
-						.getType().getName());
-
-		// Out of limits of seats
-		Assertions.assertEquals(0, qsResource
-				.lookup(subscription, 1, SupportType.ALL, null, SupportType.TECHNICAL, null, true, true, true).size());
-		Assertions.assertEquals(0, qsResource
-				.lookup(subscription, null, null, null, SupportType.TECHNICAL, null, false, false, false).size());
+		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, null, null, null, null, Rate.BEST).size());
+		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, null, null, null, null, Rate.GOOD).size());
+		Assertions.assertEquals(0,
+				qsResource.lookup(subscription, null, null, null, SupportType.TECHNICAL, null, null).size());
 	}
-
 }

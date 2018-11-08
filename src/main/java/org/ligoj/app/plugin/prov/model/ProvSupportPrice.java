@@ -13,7 +13,7 @@ import lombok.Setter;
 
 /**
  * Support price for a support type.<br>
- * The meaning to the cost attribute is the monthly cost per developer seat. May be zero.
+ * The meaning to the cost attribute is the fixed monthly cost for all provided seats. May be zero.
  */
 @Getter
 @Setter
