@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.core.DescribedBean;
 
@@ -52,19 +53,10 @@ public class QuoteSupportEditionVo extends DescribedBean<Integer> {
 	private SupportType accessPhone;
 
 	/**
-	 * General guidance.
+	 * Optional consulting services level: WORST=reserved, LOW=generalGuidance, MEDIUM=contextualGuidance,
+	 * GOOD=contextualReview, BEST=reserved
 	 */
-	private boolean generalGuidance;
-
-	/**
-	 * Contextual guidance based on your use-case.
-	 */
-	private boolean contextualGuidance;
-
-	/**
-	 * Consultative review and guidance based on your applications.
-	 */
-	private boolean contextualReview;
+	private Rate level;
 
 	/**
 	 * Related storage type name within the given location.

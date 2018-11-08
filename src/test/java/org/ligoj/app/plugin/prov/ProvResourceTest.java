@@ -106,6 +106,7 @@ public class ProvResourceTest extends AbstractAppTest {
 				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		clearAllCache();
 		updateCost();
 	}
 
