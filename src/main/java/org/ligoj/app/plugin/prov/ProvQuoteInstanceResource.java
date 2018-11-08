@@ -265,8 +265,8 @@ public class ProvQuoteInstanceResource
 		final UpdatedCost cost = new UpdatedCost(id);
 		return resource.refreshSupportCost(cost, deleteAndUpdateCost(qiRepository, id, i -> {
 			// Delete the relate storages
-			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(), e -> cost.getDeleted()
-					.computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
+			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(),
+					e -> cost.getDeleted().computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
 
 			// Decrement the unbound counter
 			final ProvQuote q = i.getConfiguration();
@@ -530,11 +530,8 @@ public class ProvQuoteInstanceResource
 	 * @return The updated cost of this instance.
 	 */
 	public FloatingCost computeFloat(final double base, final ProvQuoteInstance qi) {
-		final FloatingCost cost = new FloatingCost();
-		cost.setMin(base * qi.getMinQuantity());
-		cost.setMax(Optional.ofNullable(qi.getMaxQuantity()).orElse(qi.getMinQuantity()) * base);
-		cost.setUnbound(qi.isUnboundCost());
-		return cost;
+		return new FloatingCost(base * qi.getMinQuantity(),
+				Optional.ofNullable(qi.getMaxQuantity()).orElse(qi.getMinQuantity()) * base, qi.isUnboundCost());
 	}
 
 	/**

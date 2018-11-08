@@ -246,7 +246,7 @@ public class ProvQuoteInstanceUploadResource {
 				vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
-		final int qi = qResource.create(vo).getId();
+		qResource.create(vo).getId();
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
@@ -254,7 +254,7 @@ public class ProvQuoteInstanceUploadResource {
 			// Size is provided, propagate the upload properties
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 			svo.setName(vo.getName() + (index == 0 ? "" : index));
-			svo.setQuoteInstance(qi);
+			svo.setQuoteInstance(vo.getName());
 			svo.setSize(size);
 			svo.setLatency(getItem(upload.getLatency(), index));
 			svo.setInstanceCompatible(true);
@@ -263,9 +263,10 @@ public class ProvQuoteInstanceUploadResource {
 
 			// Find the nicest storage
 			svo.setType(storageResource
-					.lookup(subscription, size, svo.getLatency(), qi, svo.getOptimized(), svo.getLocation()).stream()
-					.findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice()
-					.getType().getName());
+					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getOptimized(),
+							svo.getLocation())
+					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
+					.getPrice().getType().getName());
 
 			// Default the storage name to the instance name
 			svo.setSubscription(subscription);

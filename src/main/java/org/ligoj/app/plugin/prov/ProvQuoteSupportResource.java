@@ -280,7 +280,7 @@ public class ProvQuoteSupportResource
 	}
 
 	private boolean compare(final Rate quote, final Rate provided) {
-		return quote == null || quote.ordinal() <= provided.ordinal();
+		return quote == null || (provided != null && quote.ordinal() <= provided.ordinal());
 	}
 
 	/**

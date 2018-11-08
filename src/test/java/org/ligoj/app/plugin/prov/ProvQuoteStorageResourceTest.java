@@ -56,7 +56,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("storage3-root-bis");
 		vo.setType("storage3");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(1);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			qsResource.create(vo);
@@ -97,13 +97,14 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 4919.798, 8229.558, false);
 		checkCost(cost.getCost(), 215.04, 1075.2, false);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 1464.0, false);
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE)
+				.get(qiRepository.findByNameExpected(vo.getQuoteInstance()).getId()), 292.8, 1464.0, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -120,20 +121,21 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void createStorageUnboundInstance() {
-		final ProvQuoteInstance quoteInstance = setUnboundInstance("server1");
+		setUnboundInstance("server1");
 
 		// Attach the new storage to this unbound instance
 		final QuoteStorageEditionVo vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(quoteInstance.getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 4919.798, 4919.798, true);
 		checkCost(cost.getCost(), 215.04, 215.04, true);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE)
+				.get(qiRepository.findByNameExpected(vo.getQuoteInstance()).getId()), 292.8, 292.8, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -205,7 +207,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setOptimized(null);
 		vo.setInstanceCompatible(true);
 		vo.setLatency(Rate.GOOD);
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server2").getId());
+		vo.setQuoteInstance("server2");
 		vo.setSize(512);
 		final UpdatedCost cost = qsResource.create(vo);
 		checkCost(cost.getCost(), 107.52, 107.52, false);
@@ -296,12 +298,13 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertFalse(qs.isUnboundCost());
 
 		// Attach back this storage to "server1
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		cost = qsResource.update(vo);
 		checkCost(cost.getTotal(), 4704.758, 4704.758, true);
 		checkCost(cost.getCost(), 8.4, 8.4, true);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(qiRepository.findByNameExpected("server1").getId()),
+				292.8, 292.8, true);
 
 		checkCost(subscription, 4704.758, 4704.758, true);
 		Assertions.assertTrue(qsRepository.findOneExpected(vo.getId()).isUnboundCost());
@@ -314,7 +317,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(512);
 		vo.setLocation("region-1");
 		qsResource.update(vo);
@@ -331,7 +334,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(512);
 		vo.setLocation("region-Z");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> {
@@ -346,7 +349,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("server1").getId());
+		vo.setQuoteInstance("server1");
 		vo.setSize(512);
 		vo.setLocation("region-3");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> {
@@ -428,9 +431,9 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(-1);
+		vo.setQuoteInstance("??");
 		vo.setSize(1);
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+		Assertions.assertThrows(EntityNotFoundException.class, () -> {
 			qsResource.update(vo);
 		});
 	}
@@ -445,7 +448,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByNameExpected("serverX").getId());
+		vo.setQuoteInstance("serverX");
 		vo.setSize(1);
 		Assertions.assertThrows(EntityNotFoundException.class, () -> {
 			qsResource.update(vo);
@@ -591,8 +594,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupStorageLocationNoMatchInstance() {
-		final int qi = qiRepository.findByName("server1").getId();
-		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, null, qi, null, "region-2").size());
+		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, null, "server1", null, "region-2").size());
 	}
 
 	/**
@@ -600,8 +602,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupStorageExtactLocationInstance() {
-		final int qi = qiRepository.findByName("server1").getId();
-		Assertions.assertEquals(3, qsResource.lookup(subscription, 1, null, qi, null, "region-1").size());
+		Assertions.assertEquals(3, qsResource.lookup(subscription, 1, null, "server1", null, "region-1").size());
 	}
 
 	/**
@@ -618,8 +619,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupStorageAnotherLocationNoRegion() {
-		final int qi = qiRepository.findByName("server1").getId();
-		Assertions.assertEquals(3, qsResource.lookup(subscription, 1, null, qi, null, null).size());
+		Assertions.assertEquals(3, qsResource.lookup(subscription, 1, null, "server1", null, null).size());
 	}
 
 	/**

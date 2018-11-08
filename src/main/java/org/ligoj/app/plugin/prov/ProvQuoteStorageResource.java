@@ -131,7 +131,7 @@ public class ProvQuoteStorageResource
 		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
+		final String qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getName).orElse(null);
 		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
 		qs.setPrice(
 				validateLookup("storage", lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location)
@@ -171,7 +171,7 @@ public class ProvQuoteStorageResource
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
-		entity.setQuoteInstance(checkInstance(node, vo.getQuoteInstance()));
+		entity.setQuoteInstance(checkInstance(subscription, vo.getQuoteInstance()));
 
 		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
@@ -183,8 +183,8 @@ public class ProvQuoteStorageResource
 
 		// Save and update the costs
 		final UpdatedCost cost = refreshCost(entity);
-		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(q -> cost.getRelated().put(ResourceType.INSTANCE,
-				Collections.singletonMap(q.getId(), qiResource.updateCost(q))));
+		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(qi -> cost.getRelated().put(ResourceType.INSTANCE,
+				Collections.singletonMap(qi.getId(), qi.toFloatingCost())));
 		return resource.refreshSupportCost(cost, quote);
 	}
 
@@ -195,12 +195,8 @@ public class ProvQuoteStorageResource
 	/**
 	 * Check the related quote instance exists and is related to the given node.
 	 */
-	private ProvQuoteInstance checkInstance(final String node, final Integer qi) {
-		return Optional.ofNullable(qi).map(i -> resource.findConfigured(qiRepository, i)).map(i -> {
-			// Also check the instance is related to the node
-			resource.checkVisibility(i.getPrice().getType(), node);
-			return i;
-		}).orElse(null);
+	private ProvQuoteInstance checkInstance(final int subscription, final String qi) {
+		return qi == null ? null : resource.findConfiguredByName(qiRepository, qi, subscription);
 	}
 
 	/**
@@ -261,7 +257,7 @@ public class ProvQuoteStorageResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLookup> lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
-			@QueryParam("instance") final Integer instance,
+			@QueryParam("instance") final String instance,
 			@QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
@@ -270,11 +266,11 @@ public class ProvQuoteStorageResource
 	}
 
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
-			final Integer instance, final ProvStorageOptimized optimized, final String location) {
+			final String instance, final ProvStorageOptimized optimized, final String location) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = configuration.getSubscription().getNode().getRefined().getId();
-		final ProvQuoteInstance qi = checkInstance(node, instance);
+		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), instance);
 
 		// The the right location from instance first, then the request one
 		String iLocation = Optional.ofNullable(qi).map(qiResource::getLocation).map(ProvLocation::getName)
@@ -285,7 +281,9 @@ public class ProvQuoteStorageResource
 			return Collections.emptyList();
 		}
 
-		return spRepository.findLowestPrice(node, size, latency, instance, optimized, iLocation, PageRequest.of(0, 10))
+		return spRepository
+				.findLowestPrice(node, size, latency, qi == null ? null : qi.getId(), optimized, iLocation,
+						PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size)))
 				.collect(Collectors.toList());
 	}
@@ -304,7 +302,7 @@ public class ProvQuoteStorageResource
 	@Override
 	protected FloatingCost getCost(final ProvQuoteStorage quoteStorage) {
 		final double base = getCost(quoteStorage.getPrice(), quoteStorage.getSize());
-		return Optional.ofNullable(quoteStorage.getQuoteInstance()).map(i -> qiResource.computeFloat(base, i))
+		return Optional.ofNullable(quoteStorage.getQuoteInstance()).map(qi -> qiResource.computeFloat(base, qi))
 				.orElseGet(() -> new FloatingCost(base));
 	}
 

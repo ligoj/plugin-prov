@@ -137,8 +137,8 @@ define(function () {
 		renderDetailsKey: function (subscription) {
 			var quote = subscription.data.quote;
 			var resources = [];
-			if (quote.nbInstances) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + 'VM</span>');
+			if (quote.nb) {
+				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nb(quote.nbInstances > quote.nb ? '+' : '') + 'VM</span>');
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
 				resources.push('<span class="sub-item">' + current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
 			}
@@ -514,7 +514,7 @@ define(function () {
 		},
 
 		/**
-		 * Storage type key to markup/label mapping.
+		 * Rate name (identifier) to class mapping. Classes are ditributed across 5 values.
 		 */
 		rates: {
 			'worst': 'far fa-star text-danger fa-fw',
@@ -522,6 +522,16 @@ define(function () {
 			'medium': 'fas fa-star-half fa-fw',
 			'good': 'fas fa-star text-primary fa-fw',
 			'best': 'fas fa-star text-success fa-fw',
+			'invalid': 'fas fa-ban fa-fw'
+		},
+
+		/**
+		 * Rate name (identifier) to class mapping. Classes are ditributed across 3 values.
+	    */
+		rates3: {
+			'low': 'far fa-star-half fa-fw',
+			'medium': 'far fa-star text-success fa-fw',
+			'good': 'fas fa-star text-success fa-fw',
 			'invalid': 'fas fa-ban fa-fw'
 		},
 
@@ -579,16 +589,43 @@ define(function () {
 		},
 
 		/**
+		 * Return the HTML markup from the support level.
+		 */
+		formatSupportLevel: function (level, mode, clazz) {
+			var id = level ? (level.id || level).toLowerCase() : '';
+			if (id) {
+				var text = current.$messages['service:prov:support-level-' + id];
+				clazz = current.rates3[id] + (typeof clazz === 'string' ? clazz : '');
+				if (mode === 'sort' || mode === 'filter') {
+					return text;
+				}
+
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+			}
+			return '';
+		},
+
+		/**
+		 * Return the HTML markup from the support seats.
+		 */
+		formatSupportSeats: function (seats, mode) {
+			if (mode === 'sort' || mode === 'filter') {
+				return seats || 0;
+			}
+			return seats ? seats : '∞';
+		},
+
+		/**
 		 * Return the HTML markup from the storage latency.
 		 */
 		formatStorageLatency: function (latency, mode, clazz) {
 			var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
 			var text = id && current.$messages['service:prov:storage-latency-' + id];
-			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
 			if (mode === 'sort' || mode === 'filter') {
 				return text;
 			}
 
+			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
 		},
 
@@ -607,27 +644,17 @@ define(function () {
 		/**
 		 * Return the HTML markup from the support access type.
 		 */
-		formatSupportAccess: function (type, withText, clazz) {
+		formatSupportAccess: function (type, mode) {
 			if (type) {
 				var id = (type.id || type).toLowerCase();
 				var text = current.$messages['service:prov:support-access-' + id];
-				clazz = current.supportAccessType[id] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+				if (mode === 'sort' || mode === 'filter') {
+					return text;
+				}
+				var clazz = current.supportAccessType[id];
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
 			}
 		},
-
-	/**
-		 * Return the HTML markup from the support level type.
-		 */
-		formatSupportLevel: function (type, withText, clazz) {
-			if (type) {
-				var id = (type.id || type).toLowerCase();
-				var text = current.$messages['service:prov:support-access-' + id];
-				clazz = current.supportAccessType[id] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
-			}
-		},
-		
 
 		/**
 		 * Associate the storages to the instances
@@ -654,12 +681,7 @@ define(function () {
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
 				conf.storageCost += qs.cost;
-				if (qs.quoteInstance) {
-					// Attached storage
-					qs.quoteInstance = conf.instancesById[qs.quoteInstance];
-					qs.quoteInstance.storages = qs.quoteInstance.storages || [];
-					qs.quoteInstance.storages.push(qs);
-				}
+				current.attachStorage(qs, qs.quoteInstance, true);
 
 				// Optimize id access
 				conf.storagesById[qs.id] = qs;
@@ -670,10 +692,10 @@ define(function () {
 			conf.supportCost = 0;
 			var supports = conf.supports;
 			for (i = 0; i < supports.length; i++) {
-				var qi = supports[i];
+				var qs2 = supports[i];
 				// Optimize id access
-				conf.supportsById[qi.id] = qi;
-				conf.supportCost += qi.cost;
+				conf.supportsById[qs2.id] = qs2;
+				conf.supportCost += qs2.cost;
 			}
 			current.initializeTerraformStatus();
 			current.updateUiCost();
@@ -1064,14 +1086,14 @@ define(function () {
 					return m;
 				},
 				data: [{
-					id: 1,
-					text: 'general'
+					id: 'LOW',
+					text: 'LOW'
 				}, {
-					id: 2,
-					text: 'contextual'
+					id: 'MEDIUM',
+					text: 'MEDIUM'
 				}, {
-					id: 3,
-					text: 'review'
+					id: 'GOOD',
+					text: 'GOOD'
 				}]
 			});
 
@@ -1924,13 +1946,19 @@ define(function () {
 
 		storageCommitToModel: function (data, model) {
 			model.size = parseInt(data.size, 10);
+			model.latency = data.latency;
+			model.optimized = data.optimized;
+			// Update the attachment
+			current.attachStorage(model, data.quoteInstance);
+		},
 
-			// Redraw the newly attached instance
-			if (data.quoteInstance) {
-				model.quoteInstance = current.model.configuration.instancesById[data.quoteInstance];
-				model.quoteInstance.storages = model.quoteInstance.storages ? model.quoteInstance.storages : [];
-				model.quoteInstance.storages.push(model);
-			}
+		supportCommitToModel: function (data, model) {
+			model.seats = parseInt(data.seats, 10);
+			model.level = data.level;
+			model.accessApi = data.accessApi;
+			model.accessPhone = data.accessPhone;
+			model.accessChat = data.accessChat;
+			model.accessEmail = data.accessEmail;
 		},
 
 		instanceCommitToModel: function (data, model) {
@@ -1946,11 +1974,20 @@ define(function () {
 
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
-			data.quoteInstance = current.cleanInt(_('storage-instance').val());
+			data.quoteInstance = (_('storage-price').select2('data') || {}).name;
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
-			data.instanceCompatible = data.quoteInstance ? true : null;
 			data.type = _('storage-price').select2('data').price.type.name;
+		},
+
+		supportUiToData: function (data) {
+			data.seats = current.cleanInt(_('support-seats').val());
+			data.accessApi = (_('support-access-api').select2('data') || {}).id || null;
+			data.accessEmail = (_('support-access-email').select2('data') || {}).id || null;
+			data.accessPhone = (_('support-access-phone').select2('data') || {}).id || null;
+			data.accessChat = (_('support-access-chat').select2('data') || {}).id || null;
+			data.level = (_('support-level').select2('data') || {}).id || null;
+			data.type = _('support-price').select2('data').price.type.name;
 		},
 
 		instanceUiToData: function (data) {
@@ -2036,12 +2073,12 @@ define(function () {
 		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
 		supportToUi: function (quote) {
-			_('support-seats').val(quote.seats || null);
-			_('support-level').select2('data', quote.level || null);
+			_('support-seats').val(quote.id ? quote.seats || null : 1);
+			_('support-level').select2('data', current.select2IdentityData(quote.level || null));
 
 			// Access types
 			_('support-access-api').select2('data', quote.accessApi || null);
-			_('support-access-mail').select2('data', quote.accessMail || null);
+			_('support-access-email').select2('data', quote.accessEmail || null);
 			_('support-access-phone').select2('data', quote.accessPhone || null);
 			_('support-access-chat').select2('data', quote.accessChat || null);
 			current.supportSetUiPrice(quote);
@@ -2053,8 +2090,8 @@ define(function () {
 		 */
 		storageToUi: function (quote) {
 			_('storage-size').val((quote && quote.size) || '10');
-			_('storage-latency').select2('data', current.select2IdentityData((quote.price && quote.price.type.latency) || null));
-			_('storage-optimized').select2('data', current.select2IdentityData((quote.price && quote.price.type.optimized) || null));
+			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
+			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
 			_('storage-instance').select2('data', quote.quoteInstance || null);
 			current.storageSetUiPrice(quote);
 		},
@@ -2175,12 +2212,10 @@ define(function () {
 			// Update the global counts
 			current.formatCost(conf.cost, $('.cost'));
 
-			var $instance = $('.nav-pills [href="#tab-instance"] > .badge');
-			$instance.find('.odo-wrapper').text(usage.instance.nbInstances || 0);
-			$instance.find('.odo-wrapper-unbound').text(usage.instance.unbound ? '+' : '');
-			$('.nav-pills [href="#tab-storage"] > .badge').first().text(conf.storages.length || '');
-
-			// Update the summary
+			// Instance summary
+			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
+			$instance.find('.odo-wrapper').text(usage.instance.nb || 0);
+			$instance.find('.odo-wrapper-unbound').text((usage.instance.nbInstances > usage.instance.nb || usage.instance.unbound) ? '+' : '');
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 			if (usage.instance.cpu.available) {
 				$summary.removeClass('hidden');
@@ -2190,10 +2225,27 @@ define(function () {
 			} else {
 				$summary.addClass('hidden');
 			}
+
+			// Storage summary
+			$('.nav-pills [href="#tab-storage"] .prov-resource-counter').text(usage.storage.nb || '');
 			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
 			if (usage.storage.available) {
 				$summary.removeClass('hidden');
 				$summary.text(current.formatStorage(usage.storage.available));
+			} else {
+				$summary.addClass('hidden');
+			}
+
+			// Support summary
+			$('.nav-pills [href="#tab-support"] .prov-resource-counter').text(usage.support.nb || '');
+			$summary = $('.nav-pills [href="#tab-support"] .summary');
+			if (usage.support.first) {
+				$summary.removeClass('hidden').find('.support-first').text(usage.support.first).attr("title", usage.support.first);
+				if (usage.support.more) {
+					$summary.find('.support-more').removeClass('hidden').text(usage.support.more);
+				} else {
+					$summary.find('.support-more').addClass('hidden');
+				}
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -2255,20 +2307,20 @@ define(function () {
 		 * Update the gauge value depending on the computed usage.
 		 */
 		updateGauge: function (d3, usage) {
-			var weightCost = 0;
-			if (usage.instance.cpu.available) {
-				weightCost += usage.instance.cost * 0.8 * usage.instance.cpu.reserved / usage.instance.cpu.available;
-			}
-			if (usage.instance.ram.available) {
-				weightCost += usage.instance.cost * 0.2 * usage.instance.ram.reserved / usage.instance.ram.available;
-			}
-			if (usage.storage.available) {
-				weightCost += usage.storage.cost * usage.storage.reserved / usage.storage.available;
-			}
-			if (d3.select('#prov-gauge').on('valueChanged') && usage.cost) {
+			if (d3.select('#prov-gauge').on('valueChanged') && usage.costNoSupport) {
+				var weightCost = 0;
+				if (usage.instance.cpu.available) {
+					weightCost += usage.instance.cost * 0.8 * usage.instance.cpu.reserved / usage.instance.cpu.available;
+				}
+				if (usage.instance.ram.available) {
+					weightCost += usage.instance.cost * 0.2 * usage.instance.ram.reserved / usage.instance.ram.available;
+				}
+				if (usage.storage.available) {
+					weightCost += usage.storage.cost * usage.storage.reserved / usage.storage.available;
+				}
 				_('prov-gauge').removeClass('hidden');
 				// Weight average of average...
-				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightCost * 100 / usage.cost));
+				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightCost * 100 / usage.costNoSupport));
 			} else {
 				$('#prov-gauge').addClass('hidden');
 			}
@@ -2343,7 +2395,9 @@ define(function () {
 
 			return {
 				cost: instanceCost + storageCost + supportCost,
+				costNoSupport: instanceCost + storageCost,
 				instance: {
+					nb: instances.length,
 					ram: {
 						available: ramAvailable,
 						reserved: ramReserved
@@ -2359,13 +2413,17 @@ define(function () {
 					cost: instanceCost
 				},
 				storage: {
+					nb: storages.length,
 					available: storageAvailable,
 					reserved: storageReserved,
 					filtered: storages,
 					cost: storageCost
 				},
 				support: {
+					nb: supports.length,
 					filtered: supports,
+					first: supports.length ? supports[0].price.type.name : null,
+					more: supports.length > 1,
 					cost: supportCost
 				}
 			};
@@ -2385,6 +2443,35 @@ define(function () {
 					}
 				}
 				delete storage.quoteInstance;
+			}
+		},
+		/**
+		 * Update the model to attach a storage to its instance
+		 * @param storage The storage model to attach.
+		 * @param instance The instance model or identifier to attach.
+		 * @param force When <code>true</code>, the resources are attached even if they were already.
+		 */
+		attachStorage: function (storage, instance, force) {
+			if (typeof instance === 'number') {
+				instance = current.model.configuration.instancesById[instance];
+			}
+			if (force !== true && storage.quoteInstance === instance) {
+				// Already attached or nothing to attach to the target instance
+				return;
+			}
+			if (force !== true && storage.quoteInstance) {
+				// Ddetach the old instance
+				current.detachStorage(storage);
+			}
+
+			// Update the model
+			if (instance) {
+				if ($.isArray(instance.storages)) {
+					instance.storages.push(storage);
+				} else {
+					instance.storages = [storage];
+				}
+				storage.quoteInstance = instance;
 			}
 		},
 
@@ -2456,7 +2543,7 @@ define(function () {
 			}
 			var supports = usage.support.filtered;
 			var d3supports = {
-				name: '<i class="fas fa-help fa-2x"></i> ' + current.$messages['service:prov:support-block'],
+				name: '<i class="fas fa-ambulance fa-2x"></i> ' + current.$messages['service:prov:support-block'],
 				value: 0,
 				children: []
 			};
@@ -2628,38 +2715,36 @@ define(function () {
 					data: 'name',
 					className: 'truncate'
 				}, {
+					data: 'level',
+					width: '128px',
+					render: current.formatSupportLevel
+				}, {
 					data: 'seats',
 					className: 'hidden-xs',
-					width: '64px',
 					type: 'num',
-					// render: current.formatSeats
+					render: current.formatSupportSeats
 				}, {
-					data: 'api',
+					data: 'accessApi',
 					className: 'hidden-xs hidden-sm hidden-md',
-					width: '24px',
+					render: current.formatSupportAccess
 				}, {
-					data: 'phone',
+					data: 'accessPhone',
 					className: 'hidden-xs hidden-sm hidden-md',
-					width: '24px',
+					render: current.formatSupportAccess
 				}, {
-					data: 'mail',
+					data: 'accessEmail',
 					className: 'hidden-xs hidden-sm hidden-md',
-					width: '24px',
+					render: current.formatSupportAccess
 				}, {
-					data: 'chat',
+					data: 'accessChat',
 					className: 'hidden-xs hidden-sm hidden-md',
-					width: '24px',
-				}, {
-					data: 'level',
-					width: '48px',
-					render: current.formatInstanceTerm
+					render: current.formatSupportAccess
 				}, {
 					data: 'price.type.name',
-					className: 'truncate',
-					// render: current.formatOs
+					className: 'truncate'
 				}, {
 					data: 'cost',
-					className: 'truncate hidden-xs',
+					className: 'truncate',
 					render: current.formatCost
 				}, {
 					data: null,

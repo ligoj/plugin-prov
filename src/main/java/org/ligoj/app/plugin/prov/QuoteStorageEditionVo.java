@@ -37,8 +37,7 @@ public class QuoteStorageEditionVo extends DescribedBean<Integer> {
 	/**
 	 * Optional linked quoted instance.
 	 */
-	@Positive
-	private Integer quoteInstance;
+	private String quoteInstance;
 
 	/**
 	 * Optional location constraint.

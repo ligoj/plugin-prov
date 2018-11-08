@@ -1,4 +1,5 @@
-node.id;name;slaStartTime;slaEndTime;slaWeekEnd;commitment;accessApi;accessEmail;accessChat;accessPhone;seats;slaGeneralGuidance;slaSystemImpaired;slaProductionSystemImpaired;slaProductionSystemDown;slaBusinessCriticalSystemDown;generalGuidance;contextualGuidance;contextualReview
-service:prov:test;support1;1;2;TRUE;3;ALL;ALL;ALL;ALL;4;5;6;7;8;9;TRUE;TRUE
-service:prov:test;support2;3;4;FALSE;3;;TECHNICAL;;;10;5;6;7;8;9;FALSE;FALSE
-service:prov:x;supportX;1;2;TRUE;3;ALL;ALL;ALL;ALL;4;5;6;7;8;9;TRUE;TRUE
+node.id;name;slaStartTime;slaEndTime;slaWeekEnd;commitment;accessApi;accessEmail;accessChat;accessPhone;seats;slaGeneralGuidance;slaSystemImpaired;slaProductionSystemImpaired;slaProductionSystemDown;slaBusinessCriticalSystemDown;level
+service:prov:test;support1;1;2;TRUE;3;ALL;ALL;ALL;ALL;4;5;6;7;8;9;LOW
+service:prov:test;support2;3;4;FALSE;3;;TECHNICAL;;;10;5;6;7;8;9;GOOD
+service:prov:test;support3;10000;2;FALSE;3;;;;;4;5;6;7;8;9;
+service:prov:x;supportX;1;2;TRUE;3;ALL;ALL;ALL;ALL;4;5;6;7;8;9;BEST

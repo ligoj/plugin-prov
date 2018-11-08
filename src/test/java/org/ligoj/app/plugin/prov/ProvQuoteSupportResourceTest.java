@@ -288,7 +288,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void findSupportType() {
 		final TableItem<ProvSupportType> tableItem = qsResource.findType(subscription, newUriInfo());
-		Assertions.assertEquals(2, tableItem.getRecordsTotal());
+		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("support1", tableItem.getData().get(0).getName());
 	}
 
