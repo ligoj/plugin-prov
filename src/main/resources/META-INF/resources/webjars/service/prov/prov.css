@@ -269,7 +269,7 @@ img.flag-icon.prov-location-flag {
 }
 
 #prov-terraform-status .progress-bar>span {
-	width: 0px;
+	width: 0;
 	float: right;
 	direction: rtl;
 	white-space: nowrap;
@@ -284,8 +284,8 @@ img.flag-icon.prov-location-flag {
 	padding-right: 2px;
 }
 .terraform-dashboard {
-	width: 0px;
-	height: 0px;
+	width: 0;
+	height: 0;
 	position: absolute;
 	top: 21px;
 	left: 15px;
@@ -348,7 +348,6 @@ img.flag-icon.prov-location-flag {
     border-bottom-left-radius: 3px;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
-    border: 1px solid #dddddd;
     background: #ffffff;
     color: #333333;
     font-size: 1em;
