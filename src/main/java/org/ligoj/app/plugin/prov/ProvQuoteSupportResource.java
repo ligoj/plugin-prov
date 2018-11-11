@@ -267,19 +267,37 @@ public class ProvQuoteSupportResource
 		// Get the attached node and check the security on this subscription
 		final String node = quote.getSubscription().getNode().getRefined().getId();
 		return spRepository.findAll(node).stream().filter(sp -> sp.getType().getSeats() == null || seats != null)
-				.filter(sp -> compare(accessApi, sp.getType().getAccessApi()))
-				.filter(sp -> compare(accessChat, sp.getType().getAccessChat()))
-				.filter(sp -> compare(accessEmail, sp.getType().getAccessEmail()))
-				.filter(sp -> compare(accessPhone, sp.getType().getAccessPhone()))
-				.filter(sp -> compare(level, sp.getType().getLevel())).map(sp -> newPrice(quote, sp, seats))
+				.filter(sp -> filter(accessApi, sp.getType().getAccessApi()))
+				.filter(sp -> filter(accessChat, sp.getType().getAccessChat()))
+				.filter(sp -> filter(accessEmail, sp.getType().getAccessEmail()))
+				.filter(sp -> filter(accessPhone, sp.getType().getAccessPhone()))
+				.filter(sp -> filter(level, sp.getType().getLevel())).map(sp -> newPrice(quote, sp, seats))
 				.sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost())).collect(Collectors.toList());
 	}
 
-	private boolean compare(final SupportType quote, final SupportType provided) {
+	/**
+	 * Accept when required support is provided.
+	 *
+	 * @param quote
+	 *            The requirement.
+	 * @param provided
+	 *            The provided rate.
+	 * @return <code>true</code> when required support is provided.
+	 */
+	protected boolean filter(final SupportType quote, final SupportType provided) {
 		return quote == null || provided == SupportType.ALL || quote == provided;
 	}
 
-	private boolean compare(final Rate quote, final Rate provided) {
+	/**
+	 * Accept when required rate is provided.
+	 *
+	 * @param quote
+	 *            The requirement.
+	 * @param provided
+	 *            The provided rate.
+	 * @return <code>true</code> when required rate is provided.
+	 */
+	protected boolean filter(final Rate quote, final Rate provided) {
 		return quote == null || (provided != null && quote.ordinal() <= provided.ordinal());
 	}
 

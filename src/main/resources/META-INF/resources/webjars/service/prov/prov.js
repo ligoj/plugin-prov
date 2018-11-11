@@ -2481,36 +2481,13 @@ define(function () {
 				value: usage.cost,
 				children: []
 			};
-			var storages = usage.storage.filtered;
-			var d3storages = {
-				name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
-				value: 0,
-				children: []
-			};
-			data.children.push(d3storages);
-			var allOptimizations = {};
-			for (var i = 0; i < storages.length; i++) {
-				var qs = storages[i];
-				var optimizations = allOptimizations[qs.price.type.latency];
-				if (typeof optimizations === 'undefined') {
-					// First optimization
-					optimizations = {
-						name: qs.price.type.latency,
-						type: 'latency',
-						value: 0,
-						children: []
-					};
-					allOptimizations[qs.price.type.latency] = optimizations;
-					d3storages.children.push(optimizations);
-				}
-				optimizations.value += qs.cost;
-				d3storages.value += qs.cost;
-				optimizations.children.push({
-					name: qs.id,
-					type: 'storage',
-					size: qs.cost
-				});
-			}
+			current.storageToD3(data, usage);
+			current.instanceToD3(data, usage);
+			current.supportToD3(data, usage);
+			return data;
+		},
+
+		instanceToD3: function (data, usage) {
 			var allOss = {};
 			var instances = usage.instance.filtered;
 			var d3instances = {
@@ -2541,6 +2518,42 @@ define(function () {
 					size: qi.cost
 				});
 			}
+		},
+
+		storageToD3: function (data, usage) {
+			var storages = usage.storage.filtered;
+			var d3storages = {
+				name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
+				value: 0,
+				children: []
+			};
+			data.children.push(d3storages);
+			var allOptimizations = {};
+			for (var i = 0; i < storages.length; i++) {
+				var qs = storages[i];
+				var optimizations = allOptimizations[qs.price.type.latency];
+				if (typeof optimizations === 'undefined') {
+					// First optimization
+					optimizations = {
+						name: qs.price.type.latency,
+						type: 'latency',
+						value: 0,
+						children: []
+					};
+					allOptimizations[qs.price.type.latency] = optimizations;
+					d3storages.children.push(optimizations);
+				}
+				optimizations.value += qs.cost;
+				d3storages.value += qs.cost;
+				optimizations.children.push({
+					name: qs.id,
+					type: 'storage',
+					size: qs.cost
+				});
+			}
+		},
+
+		supportToD3: function (data, usage) {
 			var supports = usage.support.filtered;
 			var d3supports = {
 				name: '<i class="fas fa-ambulance fa-2x"></i> ' + current.$messages['service:prov:support-block'],
@@ -2557,7 +2570,6 @@ define(function () {
 					size: support.cost
 				});
 			}
-			return data;
 		},
 
 		/**

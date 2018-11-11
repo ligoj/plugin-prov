@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -20,7 +22,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_SUPPORT_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = { "location", "type" }),
 		@UniqueConstraint(columnNames = "code") })
-public class ProvSupportPrice extends AbstractPrice<ProvSupportType> {
+public class ProvSupportPrice extends AbstractPrice<ProvSupportType> implements Serializable {
 
 	/**
 	 * Minimal support pricing.

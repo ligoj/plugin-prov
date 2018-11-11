@@ -126,8 +126,28 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("support1D", support.getDescription());
 		Assertions.assertEquals("support1", support.getPrice().getType().getName());
 		Assertions.assertEquals(3, support.getSeats().intValue());
+		Assertions.assertEquals(10, support.getSlaStartTime().intValue());
+		Assertions.assertEquals(11, support.getSlaEndTime().intValue());
+		Assertions.assertTrue(support.isSlaWeekEnd());
 		Assertions.assertEquals(376.54, support.getCost(), DELTA);
+
+		Assertions.assertTrue(support.getPrice().getType().isSlaWeekEnd());
+
+		Assertions.assertEquals(1, support.getPrice().getType().getSlaStartTime().intValue());
+		Assertions.assertEquals(2, support.getPrice().getType().getSlaEndTime().intValue());
+		Assertions.assertEquals(3, support.getPrice().getType().getCommitment());
+		Assertions.assertEquals(4, support.getPrice().getType().getSeats().intValue());
+
+		Assertions.assertEquals(5, support.getPrice().getType().getSlaGeneralGuidance().intValue());
+		Assertions.assertEquals(6, support.getPrice().getType().getSlaSystemImpaired().intValue());
+		Assertions.assertEquals(7, support.getPrice().getType().getSlaProductionSystemImpaired().intValue());
+		Assertions.assertEquals(8, support.getPrice().getType().getSlaProductionSystemDown().intValue());
+		Assertions.assertEquals(9, support.getPrice().getType().getSlaBusinessCriticalSystemDown().intValue());
+
 		Assertions.assertFalse(support.isUnboundCost());
+
+		// Coverage only
+		Assertions.assertEquals("service:prov:test", support.getPrice().getType().getNode().getId());
 	}
 
 	@Test
@@ -282,6 +302,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		result.setConfiguration(resource.getQuoteFromSubscription(subscription));
 		result.setCost(0);
 		result.setMaxCost(0);
+		result.setSlaWeekEnd(true);
+		result.setSlaStartTime(10l);
+		result.setSlaEndTime(11l);
 		return result;
 	}
 
@@ -414,5 +437,25 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 				SupportType.TECHNICAL, null, Rate.GOOD).size());
 		Assertions.assertEquals(0,
 				qsResource.lookup(subscription, null, null, null, SupportType.TECHNICAL, null, null).size());
+	}
+
+	@Test
+	public void filterRate() {
+		Assertions.assertTrue(qsResource.filter((Rate) null, null));
+		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.GOOD));
+		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.BEST));
+		Assertions.assertTrue(qsResource.filter(Rate.GOOD, null));
+		Assertions.assertFalse(qsResource.filter(null, Rate.LOW));
+		Assertions.assertFalse(qsResource.filter(Rate.GOOD, Rate.LOW));
+	}
+
+	@Test
+	public void filterAccess() {
+		Assertions.assertTrue(qsResource.filter((SupportType) null, null));
+		Assertions.assertTrue(qsResource.filter(SupportType.BILLING, SupportType.ALL));
+		Assertions.assertTrue(qsResource.filter(SupportType.ALL, SupportType.ALL));
+		Assertions.assertTrue(qsResource.filter(SupportType.BILLING, SupportType.BILLING));
+		Assertions.assertTrue(qsResource.filter(null, SupportType.ALL));
+		Assertions.assertFalse(qsResource.filter(SupportType.BILLING, null));
 	}
 }
