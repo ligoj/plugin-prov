@@ -310,7 +310,7 @@ public class ProvQuoteInstanceResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
-			@DefaultValue(value = "1") @QueryParam("ram") final int ram, @QueryParam("constant") final Boolean constant,
+			@DefaultValue(value = "1") @QueryParam("ram") final long ram, @QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
 			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
 			@QueryParam("usage") final String usage, @QueryParam("license") final String license,
@@ -320,7 +320,7 @@ public class ProvQuoteInstanceResource
 				license, software);
 	}
 
-	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final int ram,
+	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
 			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
 			final String location, final String usageName, final String license, final String software) {
 		final String node = configuration.getSubscription().getNode().getId();
