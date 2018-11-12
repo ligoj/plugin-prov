@@ -1335,6 +1335,7 @@ define(function () {
 					duration: parseInt(_('usage-duration').val() || '1', 10)
 				}, _('usage-old-name').val());
 			}).on('show.bs.modal', function (event) {
+				current.enableCreate(_('popup-prov-usage'));
 				if ($(event.relatedTarget).is('.btn-success')) {
 					// Create mode
 					_('usage-old-name').val('');
@@ -1807,7 +1808,6 @@ define(function () {
 				},
 				complete: function () {
 					$('.loader-wrapper').addClass('hidden');
-					current.enableCreate($popup);
 				},
 				error: function () {
 					// Restore the old property value
@@ -1815,6 +1815,7 @@ define(function () {
 						notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:' + property + '-failed'])(data[property].name));
 						_('quote-' + property).select2('data', current.model.configuration[property]);
 					}
+					current.enableCreate($popup);
 				}
 			});
 		},
@@ -1847,7 +1848,7 @@ define(function () {
 					// Handle updated cost
 					current.reloadAsNeed(newCost);
 				},
-				complete: function () {
+				error: function () {
 					current.enableCreate($popup);
 				}
 			});
@@ -1890,7 +1891,7 @@ define(function () {
 						current.reloadAsNeed(newCost.total, forceUpdateUi);
 					}
 				},
-				complete: function () {
+				error: function () {
 					current.enableCreate($popup);
 				}
 			});
@@ -2168,7 +2169,7 @@ define(function () {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.location);
 					$popup.modal('hide');
 				},
-				complete: function () {
+				error: function () {
 					current.enableCreate($popup);
 				}
 			});
