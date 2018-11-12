@@ -15,6 +15,8 @@ define(function () {
 		 */
 		usageTemplates: {},
 
+		contextDonut: null,
+
 		/**
 		 * Show the members of the given group
 		 */
@@ -1466,6 +1468,7 @@ define(function () {
 						|| current.usageTemplates[Math.ceil(percent - 1)]
 						|| null);
 				}
+				current.updateD3UsageRate(percent);
 			}
 		},
 
@@ -2860,6 +2863,20 @@ define(function () {
 						return links;
 					}
 				}]
+			});
+		},
+
+		/**
+		 * Donut of usage
+		 * @param {integer} rate The rate percent tage 1-100%
+		 */
+		updateD3UsageRate: function (rate) {
+			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
+				if (current.contextDonut) {
+					donut.update(current.contextDonut, rate);
+				} else {
+					current.contextDonut = donut.create("#usage-chart", rate, 250, 250);
+				}
 			});
 		},
 
