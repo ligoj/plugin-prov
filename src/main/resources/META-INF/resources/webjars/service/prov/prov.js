@@ -2599,7 +2599,7 @@ define(function () {
 						formatResult: current.formatStoragePriceHtml,
 						formatSelection: current.formatStorageHtml,
 						ajax: {
-							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
+							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + encodeURIComponent(qi.name),
 							dataType: 'json',
 							data: function (term) {
 								return {
