@@ -487,7 +487,7 @@ define(function () {
 			}
 			if (mode === 'display') {
 				// Need to build a Select2 tags markup
-				return '<input type="text" class="storages-tags" data-instance="' + instance.id + '">';
+				return '<input type="text" class="storages-tags" data-instance="' + instance.id + '" autocomplete="off" name="storages-tags">';
 			}
 			return sum;
 		},
