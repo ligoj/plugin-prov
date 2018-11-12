@@ -246,7 +246,7 @@ public class ProvQuoteInstanceUploadResource {
 				vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
-		qResource.create(vo).getId();
+		final int id = qResource.create(vo).getId();
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
@@ -254,7 +254,7 @@ public class ProvQuoteInstanceUploadResource {
 			// Size is provided, propagate the upload properties
 			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
 			svo.setName(vo.getName() + (index == 0 ? "" : index));
-			svo.setQuoteInstance(vo.getName());
+			svo.setQuoteInstance(id);
 			svo.setSize(size);
 			svo.setLatency(getItem(upload.getLatency(), index));
 			svo.setInstanceCompatible(true);

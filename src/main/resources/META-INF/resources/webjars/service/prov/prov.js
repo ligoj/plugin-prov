@@ -1977,7 +1977,7 @@ define(function () {
 
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
-			data.quoteInstance = (_('storage-price').select2('data') || {}).name;
+			data.quoteInstance = (_('storage-price').select2('data') || {}).id;
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
 			data.type = _('storage-price').select2('data').price.type.name;
@@ -2599,7 +2599,7 @@ define(function () {
 						formatResult: current.formatStoragePriceHtml,
 						formatSelection: current.formatStorageHtml,
 						ajax: {
-							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + encodeURIComponent(qi.name),
+							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
 								return {

@@ -131,7 +131,7 @@ public class ProvQuoteStorageResource
 		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		final String qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getName).orElse(null);
+		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
 		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
 		qs.setPrice(
 				validateLookup("storage", lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location)
@@ -195,8 +195,8 @@ public class ProvQuoteStorageResource
 	/**
 	 * Check the related quote instance exists and is related to the given node.
 	 */
-	private ProvQuoteInstance checkInstance(final int subscription, final String qi) {
-		return qi == null ? null : resource.findConfiguredByName(qiRepository, qi, subscription);
+	private ProvQuoteInstance checkInstance(final int subscription, final Integer qi) {
+		return qi == null ? null : resource.findConfigured(qiRepository, qi, subscription);
 	}
 
 	/**
@@ -257,7 +257,7 @@ public class ProvQuoteStorageResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLookup> lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
-			@QueryParam("instance") final String instance,
+			@QueryParam("instance") final Integer instance,
 			@QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
@@ -266,7 +266,7 @@ public class ProvQuoteStorageResource
 	}
 
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
-			final String instance, final ProvStorageOptimized optimized, final String location) {
+			final Integer instance, final ProvStorageOptimized optimized, final String location) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = configuration.getSubscription().getNode().getRefined().getId();
