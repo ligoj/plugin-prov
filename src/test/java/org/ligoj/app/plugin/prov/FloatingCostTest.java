@@ -17,17 +17,17 @@ public class FloatingCostTest {
 		Assertions.assertEquals(1.1, cost.getMin());
 		Assertions.assertEquals(2.2, cost.getMax());
 		Assertions.assertTrue(cost.isUnbound());
-		Assertions.assertEquals(1.0, cost.round().getMin());
-		Assertions.assertEquals(2.0, cost.round().getMax());
+		Assertions.assertEquals(1.1, cost.round().getMin());
+		Assertions.assertEquals(2.2, cost.round().getMax());
 		Assertions.assertTrue(cost.round().isUnbound());
 
-		cost.setMin(3.5);
-		cost.setMax(4.6);
-		Assertions.assertEquals(3.5, cost.getMin());
-		Assertions.assertEquals(4.6, cost.getMax());
+		cost.setMin(3.5000001);
+		cost.setMax(4.5999999);
+		Assertions.assertEquals(3.5000001, cost.getMin());
+		Assertions.assertEquals(4.5999999, cost.getMax());
 		Assertions.assertTrue(cost.isUnbound());
-		Assertions.assertEquals(4.0, cost.round().getMin());
-		Assertions.assertEquals(5.0, cost.round().getMax());
+		Assertions.assertEquals(3.5, cost.round().getMin());
+		Assertions.assertEquals(4.6, cost.round().getMax());
 		Assertions.assertTrue(cost.round().isUnbound());
 	}
 }

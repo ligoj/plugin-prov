@@ -126,9 +126,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("support1D", support.getDescription());
 		Assertions.assertEquals("support1", support.getPrice().getType().getName());
 		Assertions.assertEquals(3, support.getSeats().intValue());
-		Assertions.assertEquals(10, support.getSlaStartTime().intValue());
-		Assertions.assertEquals(11, support.getSlaEndTime().intValue());
-		Assertions.assertTrue(support.isSlaWeekEnd());
+		Assertions.assertNull(support.getSlaStartTime());
+		Assertions.assertNull(support.getSlaEndTime());
+		Assertions.assertFalse(support.isSlaWeekEnd());
 		Assertions.assertEquals(376.54, support.getCost(), DELTA);
 
 		Assertions.assertTrue(support.getPrice().getType().isSlaWeekEnd());
@@ -444,8 +444,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(qsResource.filter((Rate) null, null));
 		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.GOOD));
 		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.BEST));
-		Assertions.assertTrue(qsResource.filter(Rate.GOOD, null));
-		Assertions.assertFalse(qsResource.filter(null, Rate.LOW));
+		Assertions.assertTrue(qsResource.filter(null, Rate.LOW));
+		Assertions.assertFalse(qsResource.filter(Rate.GOOD, null));
 		Assertions.assertFalse(qsResource.filter(Rate.GOOD, Rate.LOW));
 	}
 
