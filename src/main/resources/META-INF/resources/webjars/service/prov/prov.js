@@ -321,7 +321,7 @@ define(function () {
 			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
 				$cost.find('.cost-min').addClass('hidden');
-				return formatter(obj.cost || obj.min || 0, true, $cost, noRichText, unbound);
+				return formatter(min, true, $cost, noRichText, unbound);
 			}
 
 			// Max cost, is different, display a range
@@ -772,25 +772,7 @@ define(function () {
 
 			// Build the query
 			$form.find('.resource-query').each(function () {
-				var $item = $(this);
-				var value = '';
-				if ($item.is('.input-group-btn')) {
-					value = $item.find('li.active').data('value');
-				} else if ($item.prev().is('.select2-container')) {
-					var data = ($item.select2('data') || {});
-					value = data.name || (data.data ? data.data.name : (data.id || $item.val()));
-				} else if ($item.is('[type="number"]')) {
-					value = parseInt(current.cleanData($item.val()) || "0", 10);
-				} else if (!$item.is('.select2-container')) {
-					value = current.cleanData($item.val());
-				}
-				var queryParam = value && current.toQueryName(type, $item);
-				value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
-				value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
-				if (queryParam && value) {
-					// Add as query
-					queries.push(queryParam + '=' + value);
-				}
+				current.addQuery(type, $(this), queries);
 			});
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
@@ -809,6 +791,32 @@ define(function () {
 					current.enableCreate($popup);
 				}
 			});
+		},
+
+		addQuery(type, $item, queries) {
+			var value = current.getResourceValue($item);
+			var queryParam = value && current.toQueryName(type, $item);
+			value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
+			value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
+			if (queryParam && value) {
+				// Add as query
+				queries.push(queryParam + '=' + value);
+			}
+		},
+
+		getResourceValue: function ($item) {
+			var value = '';
+			if ($item.is('.input-group-btn')) {
+				value = $item.find('li.active').data('value');
+			} else if ($item.prev().is('.select2-container')) {
+				var data = ($item.select2('data') || {});
+				value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
+			} else if ($item.is('[type="number"]')) {
+				value = parseInt(current.cleanData($item.val()) || "0", 10);
+			} else if (!$item.is('.select2-container')) {
+				value = current.cleanData($item.val());
+			}
+			return value;
 		},
 
 		/**
@@ -2042,9 +2050,21 @@ define(function () {
 		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
 		instanceToUi: function (quote) {
-			_('instance-cpu').val(quote.cpu || 1);
 			current.adaptRamUnit(quote.ram || 2048);
+			_('instance-cpu').val(quote.cpu || 1);
 			_('instance-constant').find('li.active').removeClass('active');
+			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
+			_('instance-ephemeral').prop('checked', quote.ephemeral);
+			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
+			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
+			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
+			_('instance-software').select2('data', current.select2IdentityData((quote.id && (quote.software || quote.price.software)) || null));
+			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
+			var license = (quote.id && (quote.license || quote.price.license)) || null;
+			_('instance-license').select2('data', license ? {
+				id: license,
+				text: current.formatLicense(license)
+			} : null);
 			if (quote.constant === true) {
 				_('instance-constant').find('li[data-value="constant"]').addClass('active');
 			} else if (quote.constant === false) {
@@ -2052,21 +2072,6 @@ define(function () {
 			} else {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
-			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
-			_('instance-ephemeral').prop('checked', quote.ephemeral);
-			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
-			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
-			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
-			var license = (quote.id && (quote.license || quote.price.license)) || null;
-			if (license) {
-				license = {
-					id: license,
-					text: current.formatLicense(license)
-				}
-			}
-			_('instance-license').select2('data', license);
-			_('instance-software').select2('data', current.select2IdentityData((quote.id && (quote.software || quote.price.software)) || null));
-			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
 		},
