@@ -2219,7 +2219,18 @@ define(function () {
 			var usage = current.computeUsage();
 
 			// Update the global counts
-			current.formatCost(conf.cost, $('.cost'));
+			var filtered = usage.cost !== conf.cost.min;
+			if (filtered) {
+				// Filtered cost
+				current.formatCost({
+					min: usage.cost,
+					max: usage.cost,
+					unbound: usage.unbound > 0
+				}, $('.cost'));
+			} else {
+				// Full cost
+				current.formatCost(conf.cost, $('.cost'));
+			}
 
 			// Instance summary
 			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
@@ -2368,6 +2379,7 @@ define(function () {
 			var ramAdjustedRate = conf.ramAdjustedRate / 100;
 			var nbInstances = 0;
 			var nbInstancesUnbound = false;
+			var enabledInstances = {};
 			for (i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var cost = qi.cost.min || qi.cost || 0;
@@ -2380,6 +2392,7 @@ define(function () {
 				ramReserved += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
 				instanceCost += cost;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
+				enabledInstances[qi.id] = true;
 			}
 
 			// Storage statistics
@@ -2389,7 +2402,11 @@ define(function () {
 			var storages = current.getFilteredData('storage');
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
-				nb = (qs.quoteInstance && qs.quoteInstance.minQuantity) || 1;
+				if (qs.quoteInstance && enabledInstances[qs.quoteInstance.id]) {
+					nb = qs.quoteInstance.minQuantity || 1;
+				} else {
+					nb = 1;
+				}
 				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
 				storageReserved += qs.size * nb;
 				storageCost += qs.cost;
@@ -2405,6 +2422,7 @@ define(function () {
 			return {
 				cost: instanceCost + storageCost + supportCost,
 				costNoSupport: instanceCost + storageCost,
+				unbound: nbInstancesUnbound,
 				instance: {
 					nb: instances.length,
 					ram: {
