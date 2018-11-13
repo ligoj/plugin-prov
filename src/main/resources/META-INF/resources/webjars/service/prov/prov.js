@@ -1031,7 +1031,7 @@ define(function () {
 					$.proxy(current.checkResource, $(this))();
 				}
 			});
-			$(['instance', 'storage', 'support']).each(function (_i, type) {
+			$(['instance', 'storage', 'support', 'database']).each(function (_i, type) {
 				current.initializeDataTableEvents(type);
 			});
 			$('.quote-name').text(current.model.configuration.name);
@@ -2209,6 +2209,34 @@ define(function () {
 			return qx;
 		},
 
+
+
+		/**
+		 * Update the D3 instance types bar chart.
+		 * @param {object} usage 
+		 */
+		updateInstancesBarChart: function (usage) {
+			require(['d3', '../main/service/prov/lib/barchart'], function (d3, d3Bar) {
+				var maxValue = 40;
+				var numDataItems = Math.floor((Math.random() * 30) + 1);
+				var data = [];
+				for (var i = 0; i < numDataItems; i++) {
+					data.push(Math.floor((Math.random() * maxValue) + 1));
+				}
+
+				if (typeof current.d3Bar === 'undefined') {
+					current.d3Bar = d3Bar;
+					d3Bar.create("#prov-barchart", 200, 200, 1);
+				}
+				if (usage.instance.filtered) {
+					$("#prov-barchart").removeClass('hidden');
+					d3Bar.update(data);
+				} else {
+					$("#prov-barchart").addClass('hidden');
+				}
+			});
+		},
+
 		/**
 		 * Update the total cost of the quote.
 		 */
@@ -2231,6 +2259,8 @@ define(function () {
 				// Full cost
 				current.formatCost(conf.cost, $('.cost'));
 			}
+
+			current.updateInstancesBarChart(usage);
 
 			// Instance summary
 			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
@@ -2901,6 +2931,64 @@ define(function () {
 				} else {
 					current.contextDonut = donut.create("#usage-chart", rate, 250, 250);
 				}
+			});
+		},
+
+		/**
+		 * Initialize the database datatables from the whole quote
+		 */
+		databaseNewTable: function () {
+			return _('prov-databases').dataTable({
+				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				data: current.model.configuration.databases || [],
+				destroy: true,
+				searching: true,
+				createdRow: function (nRow, data) {
+					$(nRow).attr('data-id', data.id);
+				},
+				columns: [{
+					data: 'name',
+					className: 'truncate'
+				}, {
+					data: 'price.vendor',
+					className: 'truncate',
+					render: current.formatDatabaseVendor
+				}, {
+					data: 'quoteInstance.minQuantity',
+					className: 'hidden-xs',
+					render: function (value, mode, data) {
+						if (value) {
+							return current.formatQuantity(value, mode, data);
+						}
+						// No related instance
+						return 1;
+					}
+				}, {
+					data: 'size',
+					width: '36px',
+					className: 'truncate',
+					type: 'num',
+					render: current.formatStorage
+				}, {
+					data: 'price.type',
+					className: 'truncate hidden-xs hidden-sm hidden-md',
+					render: current.formatInstanceType
+				}, {
+					data: 'cost',
+					className: 'truncate hidden-xs',
+					type: 'num',
+					render: current.formatCost
+				}, {
+					data: null,
+					width: '32px',
+					orderable: false,
+					render: function () {
+						var links =
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-database"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return links;
+					}
+				}]
 			});
 		},
 

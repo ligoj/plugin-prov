@@ -56,4 +56,10 @@ public class ProvUsage extends AbstractNamedEntity<Integer> implements Configura
 	@Positive
 	private int duration = 1;
 
+	/**
+	 * Start of the evaluation. Negative number is accepted and means a past start. <code>null</code> or zero means an
+	 * immediate start.
+	 */
+	private Integer start = 0;
+
 }

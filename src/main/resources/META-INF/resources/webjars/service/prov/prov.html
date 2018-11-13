@@ -7,6 +7,7 @@
 					<div class="svg-wrapper">
 						<div class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></div>
 						<div id="prov-sunburst"></div>
+						<div id="prov-barchart"></div>
 					</div>
 				</div>
 				<div class="pull-right prov-global-summary">
@@ -108,6 +109,41 @@
 						<tbody>
 							<tr>
 								<td class="dataTables_empty" colspan="9">{{loading}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div role="tabpanel" class="tab-pane" id="tab-database" data-prov-type="database">
+					<div class="row table-tools">
+						<div class="col-sm-10">
+							<div class="btn-group">
+								<button type="button" data-toggle="modal" data-target="#popup-prov-database" class="btn btn-success btn-raised">{{new}}</button>
+							</div>
+						</div>
+						<div class="col-sm-2">
+							<div class="form-group has-feedback">
+								<div class="col-xs-12 has-feedback">
+									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:database}},..." aria-controls="prov-storages" />
+									<span class="fas fa-search form-control-feedback"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<table id="prov-databases" class="table table-striped table-bordered justified">
+						<thead>
+							<tr>
+								<th>{{name}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i></th>
+								<th data-toggle="tooltip" title="{{service:prov:database-vendor-title}}">{{service:prov:database-vendor}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-size-title}}">{{service:prov:database-size}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:database-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+								<th><a class="delete-all"><i class="fas fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="dataTables_empty" colspan="7">{{loading}}</td>
 							</tr>
 						</tbody>
 					</table>

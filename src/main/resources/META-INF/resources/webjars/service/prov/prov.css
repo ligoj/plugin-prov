@@ -71,6 +71,12 @@
 	top: -18px;
 	position: relative;
 }
+#prov-barchart {
+	width: 200px;
+	height: 0;
+	top: -18px;
+	position: relative;
+}
 
 .sunburst-part:hover {
 	filter: url(#sunburst-filter);
