@@ -296,7 +296,7 @@ public class ProvQuoteInstanceResource
 	 * @param location
 	 *            Optional location name. When <code>null</code>, the global quote's location is used.
 	 * @param usage
-	 *            Optional usage name. May be <code>null</code>.
+	 *            Optional usage name. May be <code>null</code> to use the default one.
 	 * @param license
 	 *            Optional license model. When <code>null</code>, the global quote's license is used.
 	 * @param software
@@ -310,7 +310,8 @@ public class ProvQuoteInstanceResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
-			@DefaultValue(value = "1") @QueryParam("ram") final long ram, @QueryParam("constant") final Boolean constant,
+			@DefaultValue(value = "1") @QueryParam("ram") final long ram,
+			@QueryParam("constant") final Boolean constant,
 			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
 			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
 			@QueryParam("usage") final String usage, @QueryParam("license") final String license,
@@ -320,6 +321,9 @@ public class ProvQuoteInstanceResource
 				license, software);
 	}
 
+	/**
+	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
+	 */
 	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
 			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
 			final String location, final String usageName, final String license, final String software) {

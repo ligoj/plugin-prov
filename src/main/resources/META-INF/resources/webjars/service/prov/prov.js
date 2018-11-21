@@ -1332,7 +1332,8 @@ define(function () {
 				current.saveOrUpdateUsage({
 					name: _('usage-name').val(),
 					rate: parseInt(_('usage-rate').val() || '100', 10),
-					duration: parseInt(_('usage-duration').val() || '1', 10)
+					duration: parseInt(_('usage-duration').val() || '1', 10),
+					start: parseInt(_('usage-start').val() || '0', 10)
 				}, _('usage-old-name').val());
 			}).on('show.bs.modal', function (event) {
 				current.enableCreate(_('popup-prov-usage'));
@@ -1342,6 +1343,7 @@ define(function () {
 					_('usage-name').val('');
 					_('usage-rate').val(100);
 					_('usage-duration').val(1);
+					_('usage-start').val(0);
 				} else {
 					// Update mode
 					var usage = event.relatedTarget;
@@ -1349,11 +1351,13 @@ define(function () {
 					_('usage-name').val(usage.name);
 					_('usage-rate').val(usage.rate);
 					_('usage-duration').val(usage.duration);
+					_('usage-start').val(usage.start || 0);
 				}
 				validationManager.reset($(this));
 				validationManager.mapping.name = 'usage-name';
 				validationManager.mapping.rate = 'usage-rate';
 				validationManager.mapping.duration = 'usage-duration';
+				validationManager.mapping.start = 'usage-start';
 				_('usage-rate').trigger('change');
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
@@ -2396,7 +2400,17 @@ define(function () {
 		computeUsage: function () {
 			var conf = current.model.configuration;
 			var nb = 0;
-			var i;
+			var i, t;
+
+			// Timeline
+			var timeline = [];
+			var defaultUsage = conf.usage || { rate: 100, start: 0 };
+			var duration = 36;
+			var date = moment().startOf('month');
+			for (i = 0; i < 36; i++) {
+				timeline.push({ cost: 0, month: i, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0 });
+				date.add(1, 'months');
+			}
 
 			// Instance statistics
 			var publicAccess = 0;
@@ -2423,6 +2437,12 @@ define(function () {
 				instanceCost += cost;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 				enabledInstances[qi.id] = true;
+				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
+					timeline[t].instance += cost;
+				}
+			}
+			for (t = 0; t < duration; t++) {
+				timeline[t].cost += instanceCost;
 			}
 
 			// Storage statistics
@@ -2441,6 +2461,10 @@ define(function () {
 				storageReserved += qs.size * nb;
 				storageCost += qs.cost;
 			}
+			for (t = 0; t < duration; t++) {
+				timeline[t].storage = storageCost;
+				timeline[t].cost += storageCost;
+			}
 
 			// Support statistics
 			var supportCost = 0;
@@ -2448,11 +2472,16 @@ define(function () {
 			for (i = 0; i < supports.length; i++) {
 				supportCost += supports[i].cost;
 			}
+			for (t = 0; t < duration; t++) {
+				timeline[t].support = supportCost;
+				timeline[t].cost += supportCost;
+			}
 
 			return {
 				cost: instanceCost + storageCost + supportCost,
 				costNoSupport: instanceCost + storageCost,
 				unbound: nbInstancesUnbound,
+				timeline: timeline,
 				instance: {
 					nb: instances.length,
 					ram: {

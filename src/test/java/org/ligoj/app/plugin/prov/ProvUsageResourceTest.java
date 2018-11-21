@@ -44,7 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class ProvQuoteUsageResourceTest extends AbstractAppTest {
+public class ProvUsageResourceTest extends AbstractAppTest {
 
 	private static final double DELTA = 0.01d;
 
@@ -96,6 +96,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		final UsageEditionVo usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
+		usage.setStart(6);
 		final int id = uResource.create(subscription, usage);
 		checkCost(subscription, 4704.758, 7154.358, false);
 		resource.refresh(subscription);
@@ -106,6 +107,7 @@ public class ProvQuoteUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(id, entity.getId().intValue());
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals(75, entity.getRate().intValue());
+		Assertions.assertEquals(6, entity.getStart().intValue());
 		Assertions.assertEquals(12, entity.getConfiguration().getUsages().size());
 		entity.getConfiguration().setUsages(Collections.emptyList());
 	}

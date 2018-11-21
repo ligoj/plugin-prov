@@ -54,7 +54,7 @@ public class ProvUsageResource {
 	private ProvResource resource;
 
 	@Autowired
-	private ProvQuoteInstanceResource instanceResource;
+	private ProvQuoteInstanceResource qiResource;
 
 	/**
 	 * Return the usages available for a subscription.
@@ -131,6 +131,7 @@ public class ProvUsageResource {
 		entity.setRate(vo.getRate());
 		entity.setDuration(vo.getDuration());
 		entity.setName(vo.getName());
+		entity.setStart(vo.getStart());
 
 		// Prepare the updated cost of updated instances
 		final Map<ResourceType, Map<Integer, FloatingCost>> costs = new EnumMap<>(ResourceType.class);
@@ -142,11 +143,11 @@ public class ProvUsageResource {
 				// Update cost of all instances without explicit usage
 				quote.getInstances().stream().filter(i -> i.getUsage() == null)
 						.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
-								instanceResource.addCost(i, instanceResource::refresh)));
+								qiResource.addCost(i, qiResource::refresh)));
 			}
 			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage()))
 					.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
-							instanceResource.addCost(i, instanceResource::refresh)));
+							qiResource.addCost(i, qiResource::refresh)));
 
 			// Save and update the costs
 		}
@@ -184,11 +185,11 @@ public class ProvUsageResource {
 			quote.setUsage(null);
 			quote.getInstances().stream().filter(i -> i.getUsage() == null)
 					.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
-							instanceResource.addCost(i, instanceResource::refresh)));
+							qiResource.addCost(i, qiResource::refresh)));
 		}
 		quote.getInstances().stream().filter(i -> entity.equals(i.getUsage())).peek(i -> i.setUsage(null))
 				.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
-						instanceResource.addCost(i, instanceResource::refresh)));
+						qiResource.addCost(i, qiResource::refresh)));
 
 		// All references are deleted, delete the usage entity
 		repository.delete(entity);
