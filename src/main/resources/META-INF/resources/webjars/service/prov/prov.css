@@ -27,16 +27,8 @@
 	margin-bottom: -6px;
 }
 
-#prov-dashboard {
-	position: relative;
-	width: 0;
-	height: 0;
-	top: 8px;
-}
-
 #prov-dashboard .svg-wrapper {
-	position: absolute;
-	z-index: 1030;
+    z-index: 1030;
 }
 
 #popup-prov-instance-import code {
@@ -45,19 +37,19 @@
 
 .nav-dashboard .prov-cost-wrapper {
 	font-size: 48px;
-	text-align: right;
 	margin-top: 0;
 }
 #prov-gauge {
-	width: 180px;
-	height: 180px;
+	width: 50px;
+	height: 70px;
 }
 
 .gauge-wrapper {
-	top: -9px;
-	height: 0;
-	position: relative;
-	left: 200px;
+	height: 1px;
+    top: -10px;
+    position: relative;
+    float: left;
+	margin-right: 13px;
 }
 
 #prov-sunburst path {
@@ -66,18 +58,32 @@
 }
 
 #prov-sunburst {
-	width: 200px;
 	height: 0;
-	top: -18px;
-	position: relative;
+    top: -18px;
 }
 #prov-barchart {
-	width: 200px;
 	height: 0;
-	top: -18px;
-	position: relative;
+	top: -8px;
 }
-
+#prov-barchart label {
+	float: right;
+	height: 0;
+	position: relative;
+	top: 10px;
+	right: 3px;
+}
+#prov-barchart .bar .selected {
+	border: #e25757;
+}
+#prov-barchart .limit {
+	stroke-opacity: .8;
+	stroke: #223344;
+	stroke-width: 2;
+	stroke-dasharray: 2 2;
+}
+.provider {
+	white-space: nowrap;
+}
 .sunburst-part:hover {
 	filter: url(#sunburst-filter);
 }
@@ -91,7 +97,7 @@
 }
 
 .prov-project {
-	position: relative;
+	display: flex;
 	margin-top: 0;
 }
 .cost-unit {
@@ -259,10 +265,6 @@ img.flag-icon.prov-location-flag {
 	background-color: #e25757;
 }
 
-.prov-global-summary {
-	margin-right: 16px;
-}
-
 #prov-terraform-status .completed {
 	text-align: right;
 	position: relative;
@@ -323,6 +325,11 @@ img.flag-icon.prov-location-flag {
 #prov-defaults {
 	margin-left: 8px;
 	margin-right: 8px;
+}
+.quote-name {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
 #quote-ram-adjust-handle {
 	width: 3em;

@@ -2318,6 +2318,7 @@ define(function () {
 						textVertPosition: 0.6,
 						waveAnimateTime: 600,
 						waveHeight: 0.9,
+						textSize: 1.5,
 						backgroundColor: '#e0e0e0'
 					});
 					$(function () {

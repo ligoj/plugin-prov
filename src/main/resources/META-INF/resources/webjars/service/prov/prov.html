@@ -3,14 +3,7 @@
 	<form class="form-horizontal" autocomplete="off">
 		<fieldset>
 			<div class="row nav-dashboard">
-				<div id="prov-dashboard" class="text-center hidden-xs hidden-sm hidden-md col-lg-6 col-lg-offset-3">
-					<div class="svg-wrapper">
-						<div class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></div>
-						<div id="prov-sunburst"></div>
-						<div id="prov-barchart"></div>
-					</div>
-				</div>
-				<div class="pull-right prov-global-summary">
+				<div class="prov-global-summary col-lg-4 col-md-5 col-xs-6">
 					<h1 class="prov-project">
 						<span class="quote-name hidden-xs hidden-sm"></span>
 						<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="modal" data-target="#popup-prov-update"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="{{update}}"></i></span>
@@ -20,7 +13,16 @@
 					<h2 class="text-info prov-cost-wrapper">
 						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
 						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
+						<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
 					</h2>
+				</div>
+				<div id="prov-dashboard" class="hidden-xs col-lg-8 col-md-7 col-xs-6">
+					<div class="svg-wrapper row">
+						<div id="prov-sunburst" class="col-lg-4 col-md-12"></div>
+						<div id="prov-barchart" class="col-lg-8 hidden-xs hidden-sm hidden-md hidden">
+							<svg class="prov-barchart-svg pull-right"></svg>
+						</div>
+					</div>
 				</div>
 			</div>
 		<div class="loader-wrapper hidden">
