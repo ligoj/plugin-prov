@@ -262,6 +262,9 @@ define(['d3', 'jquery'], function (d3) {
                         .attr('class', '')
                         .attr('fill', (d) => params.color(d.cluster));
                     svg.selectAll('.limit').remove()
+                    if (params.hover) {
+                        params.hover();
+                    }
                 })
                 .on('mouseenter', function (d) {
                     var bars = bar.selectAll('rect')
@@ -276,9 +279,14 @@ define(['d3', 'jquery'], function (d3) {
                         .attr('y1', total)
                         .attr('x2', width - params.canvas.margin.right)
                         .attr('y2', total);
+                    if (params.hover) {
+                        params.hover(d, bars);
+                    }
                 })
                 .on('mouseover', function (d) {
-                    tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
+                    if (params.tooltip) {
+                        tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
+                    }
                 })
                 .on('mousemove', function () {
                     return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
@@ -353,7 +361,7 @@ define(['d3', 'jquery'], function (d3) {
             return {
                 x: d3.scaleBand()
                     .rangeRound([params.canvas.margin.left, width - params.canvas.margin.right])
-                    .padding(0.15),
+                    .padding(0),
                 y: d3.scaleLinear()
                     .range([height, 0])
             };
@@ -413,12 +421,13 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data, tooltip) {
+        function create(selector, selectorPercentCB, width, height, data, tooltip, hover) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
             params.tooltip = tooltip;
+            params.hover = hover;
             initialize();
             refresh();
         }

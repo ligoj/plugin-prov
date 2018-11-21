@@ -2237,7 +2237,6 @@ define(function () {
 					});
 				}
 
-				debugger;
 				if (usage.cost) {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
@@ -2248,10 +2247,14 @@ define(function () {
 							current.types.forEach(type => {
 								var cost = bars.filter(bar => bar.cluster === type);
 								if (cost.length && cost[0].height0) {
-									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">':'>') + current.$messages['service:prov:' + type] + ': ' + current.formatCost(cost[0].height0) + '</span>';
+									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">' : '>') + current.$messages['service:prov:' + type] + ': ' + current.formatCost(cost[0].height0) + '</span>';
 								}
 							});
 							return '<span class="tooltip-text">' + tooltip + '</span>';
+						}, (d, bars) => {
+							// Hover of barchart -> update sunburst and global cost
+							current.filterDate = d && d['x-index'];
+							current.updateUiCost();
 						});
 					} else {
 						d3Bar.update(data);
@@ -2285,7 +2288,10 @@ define(function () {
 				current.formatCost(conf.cost, $('.cost'));
 			}
 
-			current.updateInstancesBarChart(usage);
+			if (typeof current.filterDate !== 'number') {
+				// Do not update itself
+				current.updateInstancesBarChart(usage);
+			}
 
 			// Instance summary
 			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
@@ -2411,6 +2417,10 @@ define(function () {
 				}
 			} else {
 				result = current.model.configuration[type + 's'] || {};
+			}
+			if (typeof current.filterDate === 'number' && type === 'instance') {
+				var usage = (current.model.configuration.usage || {});
+				return result.filter(qi => ((qi.usage || usage).start || 0) <= current.filterDate);
 			}
 			return result;
 		},
