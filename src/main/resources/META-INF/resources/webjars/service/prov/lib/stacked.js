@@ -108,7 +108,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('class', 'legend');
 
             legend.append('rect')
-                .attr('x', margin.left - 53)
+                .attr('x', margin.left - 63)
                 .attr('y', (_, i) => 20 * (clusterNames.length - i))
                 .attr('height', 18)
                 .attr('width', 18)
@@ -119,7 +119,7 @@ define(['d3', 'jquery'], function (d3) {
                 });
 
             legend.append('text')
-                .attr('x', margin.left - 60)
+                .attr('x', margin.left - 70)
                 .attr('y', (_, i) => 20 * (clusterNames.length - i))
                 .text((d) => d)
                 .attr('dy', '.95em')
@@ -147,6 +147,16 @@ define(['d3', 'jquery'], function (d3) {
             params.input.data = data;
             updateData();
             refresh();
+        }
+
+        function tooltip() {
+            if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+                return d3.select('body')
+                    .append('div')
+                    .attr('class', 'tooltip d3-tooltip tooltip-inner');
+            } else {
+                return d3.select('body .d3-tooltip.tooltip-inner');
+            }
         }
 
         function refresh() {
@@ -234,9 +244,9 @@ define(['d3', 'jquery'], function (d3) {
                 .style('font-size', (d) => choice(chosen.cluster, d, '16px', '16px', '0px'))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,
-                        margin.left - 60,
-                        margin.left - 60,
-                        margin.left - 60 - this.getComputedTextLength() / 2);
+                        margin.left - 70,
+                        margin.left - 70,
+                        margin.left - 70 - this.getComputedTextLength() / 2);
                 });
 
             // Update bars
@@ -266,6 +276,15 @@ define(['d3', 'jquery'], function (d3) {
                         .attr('y1', total)
                         .attr('x2', width - params.canvas.margin.right)
                         .attr('y2', total);
+                })
+                .on('mouseover', function (d) {
+                    tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
+                })
+                .on('mousemove', function () {
+                    return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
+                })
+                .on('mouseout', function () {
+                    return tooltip().style('visibility', 'hidden');
                 })
                 .transition()
                 .duration(transDuration)
@@ -394,11 +413,12 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data) {
+        function create(selector, selectorPercentCB, width, height, data, tooltip) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
+            params.tooltip = tooltip;
             initialize();
             refresh();
         }

@@ -18,6 +18,11 @@ define(function () {
 		contextDonut: null,
 
 		/**
+		 * Enable resource type.
+		 */
+		types: ['instance', 'storage', 'support', 'database'],
+
+		/**
 		 * Show the members of the given group
 		 */
 		configure: function (subscription) {
@@ -1031,7 +1036,7 @@ define(function () {
 					$.proxy(current.checkResource, $(this))();
 				}
 			});
-			$(['instance', 'storage', 'support', 'database']).each(function (_i, type) {
+			$(current.types).each(function (_i, type) {
 				current.initializeDataTableEvents(type);
 			});
 			$('.quote-name').text(current.model.configuration.name);
@@ -2232,11 +2237,22 @@ define(function () {
 					});
 				}
 
+				debugger;
 				if (usage.cost) {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt(d3.select('#prov-barchart').style('width')), 150, data);
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt(d3.select('#prov-barchart').style('width')), 150, data, (d, bars) => {
+							// Tooltip of barchart
+							var tooltip = 'Total: ' + current.formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
+							current.types.forEach(type => {
+								var cost = bars.filter(bar => bar.cluster === type);
+								if (cost.length && cost[0].height0) {
+									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">':'>') + current.$messages['service:prov:' + type] + ': ' + current.formatCost(cost[0].height0) + '</span>';
+								}
+							});
+							return '<span class="tooltip-text">' + tooltip + '</span>';
+						});
 					} else {
 						d3Bar.update(data);
 					}
