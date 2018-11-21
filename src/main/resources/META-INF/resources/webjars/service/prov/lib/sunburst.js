@@ -63,7 +63,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				var startColor = d3.hcl(d.color)
 					.darker(),
 					endColor = d3.hcl(d.color)
-					.brighter();
+						.brighter();
 
 				// Create the scale
 				colors = d3.scaleLinear()
@@ -196,13 +196,14 @@ define(['d3', 'jquery'], function (d3, $) {
 		feMerge.append("feMergeNode")
 			.attr("in", "SourceGraphic");
 
-		var tooltip;
-		if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
-			tooltip = d3.select('body')
-				.append('div')
-				.attr('class', 'tooltip d3-tooltip tooltip-inner');
-		} else {
-			tooltip = d3.select('body .d3-tooltip.tooltip-inner');
+		function tooltip() {
+			if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+				return d3.select('body')
+					.append('div')
+					.attr('class', 'tooltip d3-tooltip tooltip-inner');
+			} else {
+				return d3.select('body .d3-tooltip.tooltip-inner');
+			}
 		}
 
 		var root = d3.hierarchy(data);
@@ -223,14 +224,14 @@ define(['d3', 'jquery'], function (d3, $) {
 			.on('click', click)
 			.on('mouseover', function (d) {
 				mouseover(d);
-				tooltip.html(tooltipFunction(d.data)).style('visibility', 'visible');
+				tooltip().html(tooltipFunction(d.data)).style('visibility', 'visible');
 			})
 			.on('mousemove', function () {
-				return tooltip.style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
+				return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
 			})
 			.on('mouseout', function (d) {
 				mouseout();
-				return tooltip.style('visibility', 'hidden');
+				return tooltip().style('visibility', 'hidden');
 			});
 	};
 	return sunburst;
