@@ -2220,21 +2220,26 @@ define(function () {
 		 * @param {object} usage 
 		 */
 		updateInstancesBarChart: function (usage) {
-			require(['d3', '../main/service/prov/lib/barchart'], function (d3, d3Bar) {
-				var maxValue = 40;
-				var numDataItems = Math.floor((Math.random() * 30) + 1);
+			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
+				var numDataItems = usage.timeline.length;
 				var data = [];
 				for (var i = 0; i < numDataItems; i++) {
-					data.push(Math.floor((Math.random() * maxValue) + 1));
+					data.push({
+						date: usage.timeline[i].date,
+						instance: usage.timeline[i].instance,
+						storage: usage.timeline[i].storage,
+						support: usage.timeline[i].support
+					});
 				}
 
-				if (typeof current.d3Bar === 'undefined') {
-					current.d3Bar = d3Bar;
-					d3Bar.create("#prov-barchart", 200, 200, 1);
-				}
-				if (usage.instance.filtered) {
+				if (usage.cost) {
 					$("#prov-barchart").removeClass('hidden');
-					d3Bar.update(data);
+					if (typeof current.d3Bar === 'undefined') {
+						current.d3Bar = d3Bar;
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt(d3.select('#prov-barchart').style('width')), 150, data);
+					} else {
+						d3Bar.update(data);
+					}
 				} else {
 					$("#prov-barchart").addClass('hidden');
 				}
