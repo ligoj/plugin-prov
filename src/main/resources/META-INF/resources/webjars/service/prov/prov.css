@@ -91,6 +91,9 @@
 .slice {
 	filter: url(#arc-filter);
 }
+.liquidFillGaugeText {
+	pointer-events: none;
+}
 #subscribe-configuration-prov .instance {
 	border-bottom: 1px dotted #ccc;
 	text-decoration: none;
