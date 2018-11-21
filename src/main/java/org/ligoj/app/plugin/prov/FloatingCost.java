@@ -5,6 +5,10 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.Serializable;
 
+import org.ligoj.app.plugin.prov.model.RoundSerializer;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,12 +29,14 @@ public class FloatingCost implements Serializable {
 	/**
 	 * Minimal monthly cost.
 	 */
+	@JsonSerialize(using = RoundSerializer.class)
 	private double min;
 
 	/**
 	 * The maximal determined monthly cost. When the maximal cost cannot be determined, the minimal cost is used and the
 	 * {@link #unbound} is set to <code>true</code>.
 	 */
+	@JsonSerialize(using = RoundSerializer.class)
 	private double max;
 
 	/**

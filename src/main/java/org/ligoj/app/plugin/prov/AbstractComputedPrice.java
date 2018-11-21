@@ -4,7 +4,10 @@
 package org.ligoj.app.plugin.prov;
 
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
+import org.ligoj.app.plugin.prov.model.RoundSerializer;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +24,7 @@ public abstract class AbstractComputedPrice<T extends AbstractPrice<? extends Ab
 	/**
 	 * The computed monthly cost of the related resource.
 	 */
+	@JsonSerialize(using = RoundSerializer.class)
 	private double cost;
 
 	/**
