@@ -59,7 +59,8 @@
 
 #prov-sunburst {
 	height: 0;
-    top: -18px;
+	top: -18px;
+	z-index: 1;
 }
 #prov-barchart {
 	height: 0;
