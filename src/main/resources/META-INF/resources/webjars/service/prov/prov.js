@@ -1990,7 +1990,7 @@ define(function () {
 
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
-			data.quoteInstance = (_('storage-price').select2('data') || {}).id;
+			data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
 			data.type = _('storage-price').select2('data').price.type.name;
