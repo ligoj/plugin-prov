@@ -2243,7 +2243,8 @@ define(function () {
 						current.d3Bar = d3Bar;
 						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt(d3.select('#prov-barchart').style('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
-							var tooltip = 'Total: ' + current.formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
+							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+							tooltip += '<br/>' + 'Total: ' + current.formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
 							current.types.forEach(type => {
 								var cost = bars.filter(bar => bar.cluster === type);
 								if (cost.length && cost[0].height0) {
