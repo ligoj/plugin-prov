@@ -2425,7 +2425,7 @@ define(function () {
 			if (type === 'instance' && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
 				var usage = (current.model.configuration.usage || {});
 				var date = typeof current.filterDate === 'number' ? current.filterDate : current.fixedDate;
-				return result.filter(qi => ((qi.usage || usage).start || 0) <= current.filterDate);
+				return result.filter(qi => ((qi.usage || usage).start || 0) <= date);
 			}
 			return result;
 		},
