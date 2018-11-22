@@ -302,7 +302,7 @@ define(['d3', 'jquery'], function (d3) {
                     if (d.clicked) {
                         // Restore the clicked state of the full bar
                         bars.attr('class', 'clicked')
-                            .attr('fill', d3.rgb(params.color(d.cluster)).darker());
+                            .attr('fill', d => d3.rgb(params.color(d.cluster)).darker());
                     } else {
                         // Unselect the full bar
                         bars.attr('class', '')
