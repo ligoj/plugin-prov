@@ -212,6 +212,8 @@ define(['d3', 'jquery'], function (d3) {
 
             if (percentView) {
                 axisY.tickFormat(d3.format(".0%"));
+            } else if (params.axisY) {
+                axisY.tickFormat(params.axisY);
             }
 
             svg.selectAll('.axisY')
@@ -417,6 +419,9 @@ define(['d3', 'jquery'], function (d3) {
             var yAxis = d3.axisLeft(y)
                 .tickSize(3)
                 .ticks(5);
+            if (params.axisY) {
+                yAxis.tickFormat(params.axisY);
+            }
             var xAxis = d3.axisBottom(x)
                 .tickSizeOuter(5)
                 .tickSizeInner(3)
@@ -467,7 +472,7 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click) {
+        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click, axisY) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.percentCB = selectorPercentCB;
@@ -476,6 +481,7 @@ define(['d3', 'jquery'], function (d3) {
             params.hover = hover;
             params.click = click;
             params.clicked = null;
+            params.axisY = axisY;
             initialize();
             refresh();
         }

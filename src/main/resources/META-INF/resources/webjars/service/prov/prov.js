@@ -296,7 +296,7 @@ define(function () {
 		 * @param {number} cost The cost value. May contains "min" and "max" attributes.
 		 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 		 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
-		 * @param {boolean} noRichText When true, the cost will not use HTML code.
+		 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
 		 * @return The formated cost.
 		 */
 		formatCost: function (cost, mode, obj, noRichText) {
@@ -2260,7 +2260,7 @@ define(function () {
 							// Hover of barchart -> update sunburst and global cost
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
-						});
+						}, d => current.formatCost(d, null, null, true));
 					} else {
 						d3Bar.update(data);
 					}
