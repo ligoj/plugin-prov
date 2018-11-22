@@ -141,6 +141,7 @@ define({
         'service:prov:cost': 'Cost',
         'service:prov:cost-title': 'Monthly billed',
         'service:prov:resources': 'Resources',
+        'service:prov:total': 'Total',
         'service:prov:total-ram': 'Total memory',
         'service:prov:total-cpu': 'Total CPU',
         'service:prov:total-storage': 'Total storage',
