@@ -79,7 +79,7 @@ define(['d3', 'jquery'], function (d3) {
                 y = scales.y;
 
             x.domain(formattedData.binNames);
-            y.domain([0, d3.max(blockData, (d) => d.y)]);
+            y.domain([0, d3.max(blockData, d => d.y)]);
 
             initializeAxis(svg, x, y, height, width);
 
@@ -90,11 +90,11 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('class', 'bar');
 
             bar.append('rect')
-                .attr('x', (d) => x(d.x))
+                .attr('x', d => x(d.x))
                 .attr('y', () => y(0))
                 .attr('width', x.bandwidth())
                 .attr('height', 0)
-                .attr('fill', (d) => color(d.cluster));
+                .attr('fill', d => color(d.cluster));
 
             // variable to store chosen cluster when bar is clicked
             var chosen = params.chosen = {
@@ -121,13 +121,13 @@ define(['d3', 'jquery'], function (d3) {
             legend.append('text')
                 .attr('x', margin.left - 70)
                 .attr('y', (_, i) => 20 * (clusterNames.length - i))
-                .text((d) => d)
+                .text(d => d)
                 .attr('dy', '.95em')
                 .style('text-anchor', 'end');
 
             // initialize checkbox options
             if (params.percentCB) {
-                d3.select(params.percentCB).on("change", () => refresh());
+                d3.select(params.percentCB).on('change', () => refresh());
             }
             params.percentView = false;
         }
@@ -201,7 +201,7 @@ define(['d3', 'jquery'], function (d3) {
             if (percentView) {
                 y.domain([0, 1]); // Base 100
             } else if (chosen.cluster == null) {
-                y.domain([0, d3.max(blockData, (d) => d.y)]);
+                y.domain([0, d3.max(blockData, d => d.y)]);
             } else {
                 y.domain([0, d3.max(heights[chosen.cluster])]);
             }
@@ -223,7 +223,7 @@ define(['d3', 'jquery'], function (d3) {
             legend.selectAll('rect')
                 .transition()
                 .duration(transDuration)
-                .attr('height', (d) => choice(chosen.cluster, d, 18, 18, 0))
+                .attr('height', d => choice(chosen.cluster, d, 18, 18, 0))
                 .attr('y', function (d) {
                     var i = clusterNames.indexOf(d);
                     if (i > clusterNames.indexOf(chosen.cluster)) {
@@ -241,7 +241,7 @@ define(['d3', 'jquery'], function (d3) {
                     }
                     return choice(chosen.cluster, d, 20 * (clusterNames.length - i), marginTop, marginTop);
                 })
-                .style('font-size', (d) => choice(chosen.cluster, d, '16px', '16px', '0px'))
+                .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,
                         margin.left - 70,
@@ -256,15 +256,47 @@ define(['d3', 'jquery'], function (d3) {
                     d3.event.preventDefault();
                     refresh();
                 })
+                .on('click', function (d) {
+                    if (params.click) {
+                        if (params.clicked) {
+                            // Uselect the previous selection
+                            bar.selectAll('rect')
+                                .filter(d => d.clicked)
+                                .each(d => d.clicked = false)
+                                .attr('class', '')
+                                .attr('fill', d => params.color(d.cluster));
+                        }
+                        var bars = bar.selectAll('rect').filter(f => f.x === d.x);
+                        if (d.clicked) {
+                            params.clicked = false;
+                            bars.attr('class', 'selected')
+                                .attr('fill', d => d3.rgb(params.color(d.cluster)).brighter());
+                        } else {
+                            // Change the current selection
+                            params.clicked = true;
+                            bars.each(d => d.clicked = true)
+                                .attr('class', 'clicked')
+                                .attr('fill', d => d3.rgb(params.color(d.cluster)).darker());
+                        }
+                        params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
+                    }
+                })
                 .on('mouseleave', function (d) {
                     if (d3.event.relatedTarget && d3.event.target && d3.event.relatedTarget.__data__ && d3.event.target.__data__ && d3.event.target.__data__.x == d3.event.relatedTarget.__data__.x) {
                         // Ignore unselection, same bar
                         return;
                     }
-                    bar.selectAll('rect')
-                        .filter((f) => f.x === d.x)
-                        .attr('class', '')
-                        .attr('fill', (d) => params.color(d.cluster));
+
+                    var bars = bar.selectAll('rect').filter(f => f.x === d.x);
+                    if (d.clicked) {
+                        // Restore the clicked state of the full bar
+                        bars.attr('class', 'clicked')
+                            .attr('fill', d3.rgb(params.color(d.cluster)).darker());
+                    } else {
+                        // Unselect the full bar
+                        bars.attr('class', '')
+                            .attr('fill', d => params.color(d.cluster));
+                    }
                     svg.selectAll('.limit').remove()
                     if (params.hover) {
                         params.hover();
@@ -272,10 +304,14 @@ define(['d3', 'jquery'], function (d3) {
                 })
                 .on('mouseenter', function (d) {
                     var bars = bar.selectAll('rect')
-                        .filter((f) => f.x === d.x)
-                        .attr('class', 'selected')
-                        .attr('fill', (d) => d3.rgb(params.color(d.cluster)).brighter());
-                    var total = y(d3.sum(blockData, (f) => (f.x === d.x && (chosen.cluster === null || chosen.cluster === f.cluster)) ? f.height : 0));
+                        .filter(f => f.x === d.x)
+                        .attr('fill', d => d3.rgb(params.color(d.cluster)).brighter());
+                    if (d.clicked) {
+                        bars.attr('class', 'clicked selected');
+                    } else {
+                        bars.attr('class', 'selected');
+                    }
+                    var total = y(d3.sum(blockData, f => (f.x === d.x && (chosen.cluster === null || chosen.cluster === f.cluster)) ? f.height : 0));
                     svg.append('line')
                         .attr('class', 'limit')
                         .attr('stroke-dasharray', '4,4')
@@ -295,9 +331,7 @@ define(['d3', 'jquery'], function (d3) {
                 .on('mousemove', function () {
                     return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
                 })
-                .on('mouseout', function () {
-                    return tooltip().style('visibility', 'hidden');
-                })
+                .on('mouseout', () => tooltip().style('visibility', 'hidden'))
                 .transition()
                 .duration(transDuration)
                 .attr('y', function (d) {
@@ -307,12 +341,10 @@ define(['d3', 'jquery'], function (d3) {
                         y(d.height),
                         myHeight(chosen, d, clusterNames, binNames, y, heights));
                 })
-                .attr('height', function (d) {
-                    return choice(chosen.cluster, d.cluster,
-                        height - y(d.height),
-                        height - y(d.height),
-                        0);
-                });
+                .attr('height', d => choice(chosen.cluster, d.cluster,
+                    height - y(d.height),
+                    height - y(d.height),
+                    0));
             return params;
         }
 
@@ -331,7 +363,7 @@ define(['d3', 'jquery'], function (d3) {
             var heights = {};
             clusterNames.forEach(function (cluster) {
                 var clusterVec = [];
-                blockData.filter(function (d) { return d.cluster == cluster; }).forEach(function (d) {
+                blockData.filter(d => d.cluster == cluster).forEach(function (d) {
                     clusterVec.push(d.height);
                 });
                 heights[cluster] = clusterVec;
@@ -341,11 +373,9 @@ define(['d3', 'jquery'], function (d3) {
 
         // getting the max value of each bin, to convert back and forth to percentage
         function setUpMax(clusterNames, blockData) {
-            var lastClusterElements = blockData.filter(function (d) { return d.cluster == clusterNames[clusterNames.length - 1] })
+            var lastClusterElements = blockData.filter(d => d.cluster == clusterNames[clusterNames.length - 1])
             var maxDict = {};
-            lastClusterElements.forEach(function (d) {
-                maxDict[d.x] = d.y;
-            });
+            lastClusterElements.forEach(d => maxDict[d.x] = d.y);
             return maxDict;
         }
 
@@ -425,13 +455,15 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data, tooltip, hover) {
+        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
             params.tooltip = tooltip;
             params.hover = hover;
+            params.click = click;
+            params.clicked = null;
             initialize();
             refresh();
         }

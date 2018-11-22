@@ -2255,6 +2255,10 @@ define(function () {
 							// Hover of barchart -> update sunburst and global cost
 							current.filterDate = d && d['x-index'];
 							current.updateUiCost();
+						}, (d, bars, clicked) => {
+							// Hover of barchart -> update sunburst and global cost
+							current.fixedDate = clicked && d && d['x-index'];
+							current.updateUiCost();
 						});
 					} else {
 						d3Bar.update(data);
@@ -2288,7 +2292,7 @@ define(function () {
 				current.formatCost(conf.cost, $('.cost'));
 			}
 
-			if (typeof current.filterDate !== 'number') {
+			if (typeof current.filterDate !== 'number' && typeof current.fixedDate !== 'number') {
 				// Do not update itself
 				current.updateInstancesBarChart(usage);
 			}
@@ -2418,8 +2422,9 @@ define(function () {
 			} else {
 				result = current.model.configuration[type + 's'] || {};
 			}
-			if (typeof current.filterDate === 'number' && type === 'instance') {
+			if (type === 'instance' && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
 				var usage = (current.model.configuration.usage || {});
+				var date = typeof current.filterDate === 'number' ? current.filterDate : current.fixedDate;
 				return result.filter(qi => ((qi.usage || usage).start || 0) <= current.filterDate);
 			}
 			return result;
