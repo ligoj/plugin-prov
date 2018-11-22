@@ -257,6 +257,10 @@ define(['d3', 'jquery'], function (d3) {
                     refresh();
                 })
                 .on('mouseleave', function (d) {
+                    if (d3.event.relatedTarget && d3.event.target && d3.event.relatedTarget.__data__ && d3.event.target.__data__ && d3.event.target.__data__.x == d3.event.relatedTarget.__data__.x) {
+                        // Ignore unselection, same bar
+                        return;
+                    }
                     bar.selectAll('rect')
                         .filter((f) => f.x === d.x)
                         .attr('class', '')
