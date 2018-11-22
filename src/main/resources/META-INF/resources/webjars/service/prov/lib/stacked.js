@@ -258,6 +258,7 @@ define(['d3', 'jquery'], function (d3) {
                 })
                 .on('click', function (d) {
                     if (params.click) {
+                        var isClicked = d.clicked;
                         if (params.clicked) {
                             // Uselect the previous selection
                             bar.selectAll('rect')
@@ -267,7 +268,7 @@ define(['d3', 'jquery'], function (d3) {
                                 .attr('fill', d => params.color(d.cluster));
                         }
                         var bars = bar.selectAll('rect').filter(f => f.x === d.x);
-                        if (d.clicked) {
+                        if (isClicked) {
                             params.clicked = false;
                             bars.attr('class', 'selected')
                                 .attr('fill', d => d3.rgb(params.color(d.cluster)).brighter());
