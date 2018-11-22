@@ -282,9 +282,20 @@ define(['d3', 'jquery'], function (d3) {
                     }
                 })
                 .on('mouseleave', function (d) {
-                    if (d3.event.relatedTarget && d3.event.target && d3.event.relatedTarget.__data__ && d3.event.target.__data__ && d3.event.target.__data__.x == d3.event.relatedTarget.__data__.x) {
-                        // Ignore unselection, same bar
-                        return;
+                    var sameCost = false;
+                    if (d3.event.relatedTarget && d3.event.target && d3.event.relatedTarget.__data__ && d3.event.target.__data__) {
+                        var data1 = d3.event.target.__data__;
+                        var data2 = d3.event.relatedTarget.__data__;
+                        if (data1.x === data2.x) {
+                            return;
+                        }
+                        var bars1 = bar.selectAll('rect').filter(f => f.x === data1.x);
+                        var bars2 = bar.selectAll('rect').filter(f => f.x === data2.x);
+                        sameCost = clusterNames.filter(cluster => {
+                            var cost1 = bars1.filter(d => d.cluster === cluster);
+                            var cost2 = bars2.filter(d => d.cluster === cluster);
+                            return cost1.size() && cost2.size() && cost1.data()[0].height0 === cost2.data()[0].height0;
+                        }).length === clusterNames.length;
                     }
 
                     var bars = bar.selectAll('rect').filter(f => f.x === d.x);
@@ -298,7 +309,7 @@ define(['d3', 'jquery'], function (d3) {
                             .attr('fill', d => params.color(d.cluster));
                     }
                     svg.selectAll('.limit').remove()
-                    if (params.hover) {
+                    if (params.hover && !sameCost) {
                         params.hover();
                     }
                 })
