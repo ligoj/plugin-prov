@@ -159,7 +159,7 @@ public class ProvQuoteInstanceResource
 		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
 
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
-		checkConstraints(entity);
+		checkMinMax(entity);
 		checkOs(entity);
 
 		// Update the unbound increment of the global quote
@@ -192,7 +192,7 @@ public class ProvQuoteInstanceResource
 		}
 	}
 
-	private void checkConstraints(ProvQuoteInstance entity) {
+	private void checkMinMax(ProvQuoteInstance entity) {
 		if (entity.getMaxQuantity() != null && entity.getMaxQuantity() < entity.getMinQuantity()) {
 			// Maximal quantity must be greater than minimal quantity
 			throw new ValidationJsonException("maxQuantity", "Min", entity.getMinQuantity());
