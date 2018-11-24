@@ -43,7 +43,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	@Test
 	public void upload() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant" }, false, "Full Time 12 month",
+				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant", "description" }, false, "Full Time 12 month",
 				1, "UTF-8");
 		checkUpload();
 	}
@@ -63,6 +63,9 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(15, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14584.046, 17033.646, false);
+
+		Assertions.assertEquals("JIRA",configuration.getInstances().get(7).getName());
+		Assertions.assertEquals("Description JIRA",configuration.getInstances().get(7).getDescription());
 		return configuration;
 	}
 

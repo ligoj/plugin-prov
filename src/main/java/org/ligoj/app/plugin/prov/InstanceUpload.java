@@ -23,6 +23,7 @@ import lombok.Setter;
 @Setter
 public class InstanceUpload {
 	private String name;
+	private String description;
 
 	/**
 	 * Optional requested CPU.

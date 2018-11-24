@@ -66,7 +66,8 @@ public class ProvQuoteInstanceUploadResource {
 	private static final List<String> ACCEPTED_HEADERS = List.of("name", "cpu:(vcpu|core|processor)s?", "ram:memory",
 			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
 			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
-			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software");
+			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software",
+			"description:note");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -221,13 +222,14 @@ public class ProvQuoteInstanceUploadResource {
 			final Integer ramMultiplier) {
 		// Validate the upload object
 		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		vo.setName(upload.getName());
+		vo.setDescription(upload.getDescription());
 		vo.setCpu(qResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setEphemeral(upload.isEphemeral());
 		vo.setInternet(upload.getInternet());
 		vo.setMaxVariableCost(upload.getMaxVariableCost());
 		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(upload.getMinQuantity());
-		vo.setName(upload.getName());
 		vo.setLocation(upload.getLocation());
 		vo.setOs(upload.getOs());
 		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
