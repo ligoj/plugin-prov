@@ -261,7 +261,6 @@ public class ProvQuoteInstanceUploadResource {
 			svo.setLatency(getItem(upload.getLatency(), index));
 			svo.setInstanceCompatible(true);
 			svo.setOptimized(getItem(upload.getOptimized(), index));
-			svo.setLocation(upload.getLocation());
 
 			// Find the nicest storage
 			svo.setType(storageResource
