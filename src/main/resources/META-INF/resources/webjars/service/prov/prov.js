@@ -920,12 +920,54 @@ define(function () {
 		 * Initialize data tables and popup event : delete and details
 		 */
 		initializeDataTableEvents: function (type) {
-			// Delete the selected instance from the quote
+			var oSettings = current[type + 'NewTable']();
+			$.extend(oSettings, {
+				data: current.model.configuration[type + 's'] || [],
+				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				destroy: true,
+				stateSave: true,
+				searching: true,
+				createdRow: (nRow, data) => $(nRow).attr('data-id', data.id),
+				buttons: [{
+					extend: 'colvis',
+					postfixButtons: ['colvisRestore'],
+					columns: ':not(.noVis)',
+					columnText: (dt, idx) => dt.settings()[0].aoColumns[idx].sTitle
+				}],
+				columnDefs: [{
+					targets: -1,
+					visible: false
+				}],
+				language: {
+					buttons: {
+						colvis: '<i class="fas fa-cog"></i>',
+						colvisRestore: current.$messages['restore-visibility']
+					}
+				},
+			});
+			oSettings.columns.splice(0, 0, {
+				data: 'name',
+				className: 'truncate'
+			});
+			oSettings.columns.push(
+				{
+					data: 'cost',
+					className: 'truncate hidden-xs',
+					render: current.formatCost
+				}, {
+					data: null,
+					width: '32px',
+					orderable: false,
+					render: function () {
+						var links =
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-' + type + '"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+					}
+				});
 			var $table = _('prov-' + type + 's');
-			var dataTable = current[type + 'NewTable']();
-			current[type + 'Table'] = dataTable;
-			// Delete a single row/item
+			var dataTable = $table.dataTable(oSettings);
 			$table.on('click', '.delete', function () {
+				// Delete a single row/item
 				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
 				$.ajax({
 					type: 'DELETE',
@@ -934,9 +976,8 @@ define(function () {
 						current.defaultCallback(type, updatedCost);
 					}
 				});
-			});
-			// Delete all items
-			$table.on('click', '.delete-all', function () {
+			}).on('click', '.delete-all', function () {
+				// Delete all items
 				$.ajax({
 					type: 'DELETE',
 					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
@@ -2700,14 +2741,7 @@ define(function () {
 		 * Initialize the instance datatables from the whole quote
 		 */
 		instanceNewTable: function () {
-			return _('prov-instances').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.instances,
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
+			return {
 				rowCallback: function (nRow, qi) {
 					$(nRow).find('.storages-tags').select2('destroy').select2({
 						multiple: true,
@@ -2779,9 +2813,6 @@ define(function () {
 					});
 				},
 				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
 					data: 'minQuantity',
 					className: 'hidden-xs',
 					type: 'num',
@@ -2815,42 +2846,16 @@ define(function () {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
 					render: current.formatQiStorages
-				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var link =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-instance"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' +
-							current.$messages.update + '"></i></a>';
-						link += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete +
-							'"></i></a>';
-						return link;
-					}
 				}]
-			});
+			};
 		},
 
 		/**
 		 * Initialize the instance datatables from the whole quote
 		 */
 		supportNewTable: function () {
-			return _('prov-supports').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.supports,
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
+			return {
 				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
 					data: 'level',
 					width: '128px',
 					render: current.formatSupportLevel
@@ -2878,24 +2883,8 @@ define(function () {
 				}, {
 					data: 'price.type.name',
 					className: 'truncate'
-				}, {
-					data: 'cost',
-					className: 'truncate',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var link =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-support"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' +
-							current.$messages.update + '"></i></a>';
-						link += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete +
-							'"></i></a>';
-						return link;
-					}
 				}]
-			});
+			};
 		},
 
 		/**
@@ -2927,18 +2916,8 @@ define(function () {
 		 * Initialize the storage datatables from the whole quote
 		 */
 		storageNewTable: function () {
-			return _('prov-storages').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.storages,
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
+			return {
 				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
 					data: 'quoteInstance.minQuantity',
 					className: 'hidden-xs',
 					render: function (value, mode, data) {
@@ -2969,22 +2948,8 @@ define(function () {
 				}, {
 					data: 'quoteInstance.name',
 					className: 'truncate hidden-xs hidden-sm'
-				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-storage"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
-						return links;
-					}
 				}]
-			});
+			};
 		},
 
 		/**
@@ -3005,18 +2970,8 @@ define(function () {
 		 * Initialize the database datatables from the whole quote
 		 */
 		databaseNewTable: function () {
-			return _('prov-databases').dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data: current.model.configuration.databases || [],
-				destroy: true,
-				searching: true,
-				createdRow: function (nRow, data) {
-					$(nRow).attr('data-id', data.id);
-				},
+			return {
 				columns: [{
-					data: 'name',
-					className: 'truncate'
-				}, {
 					data: 'price.vendor',
 					className: 'truncate',
 					render: current.formatDatabaseVendor
@@ -3040,23 +2995,8 @@ define(function () {
 					data: 'price.type',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatInstanceType
-				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					type: 'num',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '32px',
-					orderable: false,
-					render: function () {
-						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-database"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						links += '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
-						return links;
-					}
 				}]
-			});
+			};
 		},
 
 		/**
@@ -3151,7 +3091,7 @@ define(function () {
 		 * @param {string} type The resource type.
 		 * @param {integer} id The resource identifier.
 		 */
-		delete: function (type, id) {
+		delete: function (type, id, draw) {
 			var conf = current.model.configuration;
 			var resourcesById = conf[type + 'sById'][id];
 			var resources = conf[type + 's'];
@@ -3165,11 +3105,16 @@ define(function () {
 						// Also redraw the instance
 						var qi = resource.quoteInstance.id;
 						current.detachStorage(resource);
-						current.redrawResource('instance', qi);
+						if (draw) {
+							current.redrawResource('instance', qi);
+						}
 					}
-					_('prov-' + type + 's').DataTable().rows(function (_i, data) {
+					var row = _('prov-' + type + 's').DataTable().rows(function (_i, data) {
 						return data.id === id;
-					}).remove().draw(false);
+					}).remove();
+					if (draw) {
+						row.draw(false);
+					}
 					return resource;
 				}
 			}

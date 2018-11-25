@@ -125,22 +125,22 @@
 	pointer-events: bounding-box;
 }
 @media (min-width: 768px) {
-	#prov-storages thead>tr>th:nth-child(4), #prov-storages thead>tr>th:nth-child(5) {
+	#prov-storages thead>tr>th.latency, #prov-storages thead>tr>th.optimized {
 		width: 80px;
 	}
-	#prov-instances thead>tr>th:nth-child(9),#prov-storages thead>tr>th:nth-child(8) {
+	#prov-instances thead>tr>th.col-cost,#prov-storages thead>tr>th.col-cost {
 		width: 64px;
 	}
-	#prov-instances thead>tr>th:nth-child(2), #prov-storages thead>tr>th:nth-child(2) {
+	#prov-instances thead>tr>th.quantity, #prov-storages thead>tr>th.quantity {
 		width: 24px;
 	}
 }
 
 @media (min-width: 1200px) {
-	#prov-instances thead>tr>th:nth-child(6) {
+	#prov-instances thead>tr>th.term {
 		width: 120px;
 	}
-	#prov-instances thead>tr>th:nth-child(7), #prov-storages thead>tr>th:nth-child(6) {
+	#prov-instances thead>tr>th.type, #prov-storages thead>tr>th.type {
 		width: 50px;
 	}
 }
@@ -395,4 +395,17 @@ img.flag-icon.prov-location-flag {
 }
 .select2-usage-summary {
 	margin-right: -10px;
+}
+.configuration-wrapper-service-prov .table-tools .form-group .has-feedback {
+	padding-right: 48px;
+}
+.configuration-wrapper-service-prov .table-tools .form-group .form-control-feedback {
+	margin-right: 25px;
+}
+.configuration-wrapper-service-prov .dt-buttons {
+	height: 0;
+	float: right;
+	top: -60px;
+	right: -21px;
+	margin: 0;
 }
