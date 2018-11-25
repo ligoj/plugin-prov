@@ -1,5 +1,5 @@
-name;cpu;ram;disk;latency;os;constant;maxVariableCost
-JIRA;4;6000;270;GOOD;LINUX;true;10.1
+name;cpu;ram;disk;latency;os;constant;maxVariableCost;description
+JIRA;4;6000;270;GOOD;LINUX;true;10.1;Description JIRA
 CONFLUENCE;4;8000;255;GOOD;LINUX
 VIGIREPORT;8;12000;32;GOOD;LINUX;true
 SQUASH;6;8000;32;GOOD;LINUX
