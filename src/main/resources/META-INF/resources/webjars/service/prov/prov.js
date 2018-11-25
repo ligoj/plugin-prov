@@ -585,6 +585,9 @@ define(function () {
 		},
 
 		formatUsageTemplate: function (usage, mode) {
+			if (typeof usage !== 'object') {
+				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
+			}
 			if (mode === 'display') {
 				var tooltip = current.$messages.name + ': ' + usage.name;
 				tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
