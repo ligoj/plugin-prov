@@ -1133,9 +1133,7 @@ define(function () {
 				formatResult: current.formatSupportAccess,
 				allowClear: true,
 				placeholder: 'None',
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'technical',
 					text: 'technical'
@@ -1152,9 +1150,7 @@ define(function () {
 				formatResult: current.formatSupportLevel,
 				allowClear: true,
 				placeholder: 'None',
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'LOW',
 					text: 'LOW'
@@ -1170,9 +1166,7 @@ define(function () {
 			_('instance-os').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'LINUX',
 					text: 'LINUX'
@@ -1207,9 +1201,7 @@ define(function () {
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
 				formatResult: current.formatInternet,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'PUBLIC',
 					text: 'PUBLIC'
@@ -1227,9 +1219,7 @@ define(function () {
 				allowClear: true,
 				formatSelection: current.formatStorageOptimized,
 				formatResult: current.formatStorageOptimized,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'THROUGHPUT',
 					text: 'THROUGHPUT'
@@ -1247,9 +1237,7 @@ define(function () {
 				allowClear: true,
 				formatSelection: current.formatStorageLatency,
 				formatResult: current.formatStorageLatency,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: [{
 					id: 'BEST',
 					text: 'BEST'
@@ -1278,9 +1266,7 @@ define(function () {
 				_('instance-cpu').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
-			_('storage-price').on('change', function (event) {
-				current.updateInstanceCompatible(event.added);
-			});
+			_('storage-price').on('change', e => current.updateInstanceCompatible(e.added));
 			current.initializeTerraform();
 			current.initializeLocation();
 			current.initializeUsage();
@@ -1303,9 +1289,7 @@ define(function () {
 					create: function () {
 						handle.text($(this).slider('value') + '%');
 					},
-					slide: function (event, ui) {
-						handle.text(ui.value + '%');
-					},
+					slide: (_, ui) => handle.text(ui.value + '%'),
 					change: function (event, slider) {
 						current.updateQuote({
 							ramAdjustedRate: slider.value
@@ -1321,28 +1305,28 @@ define(function () {
 		initializeTerraform: function () {
 			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
 			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
-			_('popup-prov-terraform').on('shown.bs.modal', function () {
-				_('terraform-cidr').trigger('focus');
-			}).on('show.bs.modal', function () {
-				if (_('terraform-key-name').val() === "") {
-					_('terraform-key-name').val(current.$parent.model.pkey);
-				}
+			_('popup-prov-terraform')
+				.on('shown.bs.modal', () => _('terraform-cidr').trigger('focus'))
+				.on('show.bs.modal', function () {
+					if (_('terraform-key-name').val() === "") {
+						_('terraform-key-name').val(current.$parent.model.pkey);
+					}
 
-				// Target platform
-				current.updateTerraformTarget()
-			}).on('submit', current.terraform);
-			_('popup-prov-terraform-destroy').on('shown.bs.modal', function () {
-				_('terraform-confirm-destroy').trigger('focus');
-			}).on('show.bs.modal', function () {
-				current.updateTerraformTarget();
-				_('terraform-destroy-confirm').val('').trigger('change');
-				$('.terraform-destroy-alert').html(Handlebars.compile(current.$messages['service:prov:terraform:destroy-alert'])(current.$parent.model.pkey));
-			}).on('submit', function () {
-				// Delete only when exact match
-				if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
-					current.terraformDestroy();
-				}
-			});
+					// Target platform
+					current.updateTerraformTarget()
+				}).on('submit', current.terraform);
+			_('popup-prov-terraform-destroy')
+				.on('shown.bs.modal', () => _('terraform-confirm-destroy').trigger('focus'))
+				.on('show.bs.modal', function () {
+					current.updateTerraformTarget();
+					_('terraform-destroy-confirm').val('').trigger('change');
+					$('.terraform-destroy-alert').html(Handlebars.compile(current.$messages['service:prov:terraform:destroy-alert'])(current.$parent.model.pkey));
+				}).on('submit', function () {
+					// Delete only when exact match
+					if (_('terraform-destroy-confirm').val() === current.$parent.model.pkey) {
+						current.terraformDestroy();
+					}
+				});
 
 			// Live state ot Terraform destroy buttons
 			_('terraform-destroy-confirm').on('change keyup', function () {
@@ -1422,9 +1406,7 @@ define(function () {
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
-			_('prov-usage-delete').click(function () {
-				current.deleteUsage(_('usage-old-name').val());
-			});
+			_('prov-usage-delete').click(() => current.deleteUsage(_('usage-old-name').val()));
 
 			// Usage rate template
 			var usageTemplates = [
@@ -1447,9 +1429,7 @@ define(function () {
 				allowClear: true,
 				formatSelection: current.formatUsageTemplate,
 				formatResult: current.formatUsageTemplate,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: usageTemplates
 			});
 			_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
@@ -1485,15 +1465,12 @@ define(function () {
 		 * Configure license.
 		 */
 		initializeLicense: function () {
-			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function () {
-				return 'instance-license/' + _('instance-os').val();
-			}));
-			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, function () {
-				return 'instance-license/WINDOWS';
-			})).select2('data', current.model.configuration.license ? {
-				id: current.model.configuration.license,
-				text: current.formatLicense(current.model.configuration.license)
-			} : null)
+			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, () => 'instance-license/' + _('instance-os').val()));
+			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, () => 'instance-license/WINDOWS'))
+				.select2('data', current.model.configuration.license ? {
+					id: current.model.configuration.license,
+					text: current.formatLicense(current.model.configuration.license)
+				} : null)
 				.on('change', function (event) {
 					current.updateQuote({
 						license: event.added || null
@@ -1561,7 +1538,8 @@ define(function () {
 				b = b.text.toLowerCase();
 				if (a > b) {
 					return 1;
-				} else if (a < b) {
+				}
+				if (a < b) {
 					return -1;
 				}
 				return 0;
@@ -1594,18 +1572,12 @@ define(function () {
 			return {
 				formatSelection: renderer,
 				formatResult: rendererResult || renderer,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				allowClear: placeholder !== false,
 				placeholder: placeholder ? placeholder : null,
-				formatSearching: function () {
-					return current.$messages.loading;
-				},
+				formatSearching: () => current.$messages.loading,
 				ajax: {
-					url: function () {
-						return REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path);
-					},
+					url: () => REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path),
 					dataType: 'json',
 					data: function (term, page) {
 						return {
@@ -1625,7 +1597,7 @@ define(function () {
 					},
 					results: function (data, page) {
 						var result = [];
-						$((typeof data.data === 'undefined') ? data : data.data).each(function (index, item) {
+						$((typeof data.data === 'undefined') ? data : data.data).each(function (_, item) {
 							if (typeof item === 'string') {
 								item = {
 									id: item,
@@ -1763,9 +1735,7 @@ define(function () {
 					$popup.modal('hide');
 					current.updateTerraformStatus({}, true);
 				},
-				error: function () {
-					current.enableTerraform();
-				}
+				error: () => current.enableTerraform()
 			});
 		},
 
@@ -1775,8 +1745,8 @@ define(function () {
 		terraform: function () {
 			current.terraformAction(_('popup-prov-terraform'), {
 				'key_name': _('terraform-key-name').val(),
-				'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
-				'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(','), function (s) { return s.trim(); }).join('","') + '"',
+				'private_subnets': '"' + $.map(_('terraform-private-subnets').val().split(','), s => s.trim()).join('","') + '"',
+				'public_subnets': '"' + $.map(_('terraform-public-subnets').val().split(','), s => s.trim()).join('","') + '"',
 				'public_key': _('terraform-public-key').val(),
 				'cidr': _('terraform-cidr').val()
 			}, 'POST');
@@ -1845,9 +1815,8 @@ define(function () {
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(jsonData),
-				beforeSend: function () {
-					$('.loader-wrapper').removeClass('hidden');
-				},
+				beforeSend: () => $('.loader-wrapper').removeClass('hidden'),
+				complete: () => $('.loader-wrapper').addClass('hidden'),
 				success: function (newCost) {
 					// Update the UI
 					$('.quote-name').text(jsonData.name);
@@ -1869,9 +1838,6 @@ define(function () {
 					} else if (forceUpdateUi) {
 						current.updateUiCost();
 					}
-				},
-				complete: function () {
-					$('.loader-wrapper').addClass('hidden');
 				},
 				error: function () {
 					// Restore the old property value
@@ -1912,9 +1878,7 @@ define(function () {
 					// Handle updated cost
 					current.reloadAsNeed(newCost);
 				},
-				error: function () {
-					current.enableCreate($popup);
-				}
+				error: () => current.enableCreate($popup)
 			});
 
 		},
@@ -1955,9 +1919,7 @@ define(function () {
 						current.reloadAsNeed(newCost.total, forceUpdateUi);
 					}
 				},
-				error: function () {
-					current.enableCreate($popup);
-				}
+				error: () => current.enableCreate($popup)
 			});
 		},
 
@@ -2022,9 +1984,7 @@ define(function () {
 			var id = resourceOrId && (resourceOrId.id || resourceOrId);
 			if (id) {
 				// The instance is valid
-				_('prov-' + type + 's').DataTable().rows(function (index, data) {
-					return data.id === id;
-				}).invalidate().draw();
+				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw();
 			}
 		},
 
@@ -2241,9 +2201,7 @@ define(function () {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.location);
 					$popup.modal('hide');
 				},
-				error: function () {
-					current.enableCreate($popup);
-				}
+				error: () => current.enableCreate($popup)
 			});
 		},
 
@@ -2768,10 +2726,7 @@ define(function () {
 					$(nRow).find('.storages-tags').select2('destroy').select2({
 						multiple: true,
 						minimumInputLength: 1,
-						createSearchChoice: function () {
-							// Disable additional values
-							return null;
-						},
+						createSearchChoice: () => null,
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
 						formatResult: current.formatStoragePriceHtml,
 						formatSelection: current.formatStorageHtml,
@@ -2929,9 +2884,7 @@ define(function () {
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
-				resources.forEach(function (resource) {
-					resourcesByName[resource.name] = resource;
-				});
+				resources.forEach(resource => resourcesByName[resource.name] = resource);
 			}
 			if (resourcesByName[prefix]) {
 				increment = increment || 1;
@@ -2951,13 +2904,7 @@ define(function () {
 				columns: [{
 					data: 'quoteInstance.minQuantity',
 					className: 'hidden-xs',
-					render: function (value, mode, data) {
-						if (value) {
-							return current.formatQuantity(value, mode, data);
-						}
-						// No related instance
-						return 1;
-					}
+					render: (value, mode, data) => value ? current.formatQuantity(value, mode, data) : 1
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3009,13 +2956,7 @@ define(function () {
 				}, {
 					data: 'quoteInstance.minQuantity',
 					className: 'hidden-xs',
-					render: function (value, mode, data) {
-						if (value) {
-							return current.formatQuantity(value, mode, data);
-						}
-						// No related instance
-						return 1;
-					}
+					render: (value, mode, data) => value ? current.formatQuantity(value, mode, data) : 1
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3140,9 +3081,7 @@ define(function () {
 							current.redrawResource('instance', qi);
 						}
 					}
-					var row = _('prov-' + type + 's').DataTable().rows(function (_i, data) {
-						return data.id === id;
-					}).remove();
+					var row = _('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).remove();
 					if (draw) {
 						row.draw(false);
 					}
