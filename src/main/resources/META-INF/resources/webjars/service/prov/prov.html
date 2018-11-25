@@ -64,8 +64,10 @@
 								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-clock"></i> {{service:prov:term}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="fas fa-handshake"></i> {{service:prov:term}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
 								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
 								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
@@ -73,7 +75,7 @@
 						</thead>
 						<tbody>
 							<tr>
-								<td class="dataTables_empty" colspan="10">{{loading}}</td>
+								<td class="dataTables_empty" colspan="12">{{loading}}</td>
 							</tr>
 						</tbody>
 					</table>

@@ -201,7 +201,7 @@ define(function () {
 				details += type.ramRate ? '<i class=\'' + current.rates[type.networkRate] + '\'></i>' : '';
 				// TODO Add memory type
 			}
-			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
 		formatStorageType: function (name, mode, qs) {
@@ -234,7 +234,7 @@ define(function () {
 			if (type.availability) {
 				details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
 			}
-			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
 		/**
@@ -258,7 +258,7 @@ define(function () {
 				details += '<br/>Initial cost: $' + qi.price.initialCost;
 			}
 
-			return '<u class="instance" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
 
@@ -584,8 +584,22 @@ define(function () {
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
-		formatUsageTemplate: function (usage) {
-			return usage.text
+		formatUsageTemplate: function (usage, mode) {
+			if (mode === 'display') {
+				var tooltip = current.$messages.name + ': ' + usage.name;
+				tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
+				tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
+				tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
+				return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
+			}
+			return usage.text || usage.name;
+		},
+
+		formatLocation: function (location, mode) {
+			if (mode === 'display') {
+				return current.locationToHtml(location, false, true);
+			}
+			return location.name;
 		},
 
 		/**
@@ -935,7 +949,7 @@ define(function () {
 					columnText: (dt, idx) => dt.settings()[0].aoColumns[idx].sTitle
 				}],
 				columnDefs: [{
-					targets: -1,
+					targets: 'noVisDefault',
 					visible: false
 				}],
 				language: {
@@ -1961,7 +1975,7 @@ define(function () {
 		/**
 		 * Location html renderer.
 		 */
-		locationToHtml: function (location, map) {
+		locationToHtml: function (location, map, short) {
 			var id = location.name;
 			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
 			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
@@ -1969,7 +1983,15 @@ define(function () {
 			var html = map === true ? current.locationMap(location) : '';
 			if (location.countryA2) {
 				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-				html += '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt="" data-toggle="tooltip" title="' + m49 + '">';
+				var tooltip = m49 || id;
+				var img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+				if (short === true) {
+					// Only flag
+					tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
+					tooltip += '<br>Id: ' + id;
+					return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
+				}
+				html += img + ' title="' + location.name + '">';
 			}
 			html += m49 || id;
 			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
@@ -2835,13 +2857,22 @@ define(function () {
 					type: 'num',
 					render: current.formatRam
 				}, {
-					data: 'price.term.name',
+					data: 'price.term',
 					className: 'hidden-xs hidden-sm price-term',
 					render: current.formatInstanceTerm
 				}, {
-					data: 'price.type.name',
+					data: 'price.type',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatInstanceType
+				}, {
+					data: 'usage',
+					className: 'hidden-xs hidden-sm usage',
+					render: current.formatUsageTemplate
+				}, {
+					data: 'location',
+					className: 'hidden-xs hidden-sm location',
+					width: '24px',
+					render: current.formatLocation
 				}, {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
@@ -2851,7 +2882,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the instance datatables from the whole quote
+		 * Initialize the support datatables from the whole quote
 		 */
 		supportNewTable: function () {
 			return {

@@ -94,7 +94,7 @@
 .liquidFillGaugeText {
 	pointer-events: none;
 }
-#subscribe-configuration-prov .instance {
+.details-help {
 	border-bottom: 1px dotted #ccc;
 	text-decoration: none;
 	cursor: help;
