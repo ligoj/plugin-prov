@@ -131,6 +131,10 @@ public class ProvQuoteInstanceExportResource {
 								toString(qs.getLocation()), toString(qs.getCost()), qs.getSize(),
 								toString(qs.getPrice().getType()), toString(qs.getQuoteInstance()),
 								toString(qs.getLatency()), toString(qs.getOptimized())));
+
+				// Write quote support
+				vo.getSupports().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;;%s;%s;;;", toString(qs),
+						toString(qs.getCost()), toString(qs.getSeats()), toString(qs.getPrice().getType())));
 				writer.flush();
 			}
 		}, file).build();
