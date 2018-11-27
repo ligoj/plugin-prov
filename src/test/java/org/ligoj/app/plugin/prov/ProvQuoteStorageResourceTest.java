@@ -434,7 +434,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage1");
 		vo.setQuoteInstance(0);
 		vo.setSize(1);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
 			qsResource.update(vo);
 		});
 	}

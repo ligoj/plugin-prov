@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -333,8 +334,8 @@ public class ProvQuoteSupportResource
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,
 			final int[] limits) {
 		// Compute the group of required seats
-		final int nb = Math.max(1,
-				price.getType().getSeats() == null ? 1 : (int) Math.ceil((double) seats / price.getType().getSeats()));
+		final int nb = Math.max(1, Optional.ofNullable(price.getType().getSeats())
+				.map(s -> (int) Math.ceil((double) seats / s)).orElse(1));
 		// Compute the cost of the seats and the rates
 		return nb * (computeRates(cost, price.getMin(), rates, limits) + price.getCost());
 	}

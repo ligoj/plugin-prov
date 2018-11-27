@@ -230,19 +230,28 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("support2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
-	@Test
-	public void deleteAllSupports() {
-		em.persist(newSupport("support1", 3));
-		em.persist(newSupport("support2", 4));
+	private void newSupports() {
+		final ProvQuoteSupport support1 = newSupport("support1", 3);
+		support1.setAccessPhone(SupportType.ALL);
+		em.persist(support1);
+		final ProvQuoteSupport support2 = newSupport("support2", 4);
+		support1.setSlaWeekEnd(false);
+		support2.setLevel(Rate.GOOD);
+		em.persist(support2);
 		Assertions.assertEquals(2, qsRepository.count());
 		em.flush();
 		em.clear();
-		// @see #delete() for details of this computation
-		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
 
+		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
+	}
+
+	@Test
+	public void deleteAllSupports() {
+		newSupports();
 		checkCost(qsResource.deleteAll(subscription), 3165.4, 5615.0, false);
 
 		// Check the exact new cost
+		// @see #delete() for details of this computation
 		checkCost(subscription, 3165.4, 5615.0, false);
 
 		// Check the associations
@@ -251,12 +260,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void delete() {
-		em.persist(newSupport("support1", 3));
-		em.persist(newSupport("support2", 4));
+		newSupports();
 		final Integer id = qsRepository.findByNameExpected("support1").getId();
-		Assertions.assertEquals(2, qsRepository.count());
-		em.flush();
-		em.clear();
+		final QuoteVo configuration = resource.getConfiguration(subscription);
 
 		// support1: 20,15,10 - 100,1000
 		// = CEIL(3/4)*(5+0.2*100+0.15*900+0,1*2165.4)
@@ -271,7 +277,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		//
 		// = 3165.4 + 715.08
 		// = 3880.48
-		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
+		checkCost(configuration.getCostNoSupport(), 3165.4, 5615.0, false);
+		checkCost(configuration.getCostSupport(), 715.08, 1124.25, false);
+		checkCost(configuration.getCost(), 3880.48, 6739.25, false);
 		em.flush();
 		em.clear();
 

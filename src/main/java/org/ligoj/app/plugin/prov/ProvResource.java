@@ -311,7 +311,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	public FloatingCost refreshSupportCost(final ProvQuote entity) {
 		final FloatingCost support = qs2Repository.findAll(entity.getSubscription().getId()).stream()
-				.map(qspResource::getCost).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
+				.map(qspResource::refresh).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
 		entity.setCost(round(entity.getCostSupport() + entity.getCostNoSupport()));

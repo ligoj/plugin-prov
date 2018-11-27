@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +27,9 @@ import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
+import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
+import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -339,18 +343,37 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
+		// After delete, it remains only the storages
 		checkCost(qiResource.deleteAll(subscription), 2.73, 2.73, false);
 
 		// Check the exact new cost
 		checkCost(subscription, 2.73, 2.73, false);
 		Assertions.assertNull(qiRepository.findOne(id));
-		Assertions.assertEquals(1, qiRepository.count());
+		Assertions.assertEquals(0, qiRepository.findAll(subscription).size());
 
 		// Also check the associated storage is deleted
 		Assertions.assertFalse(qsRepository.existsById(storage1));
 		Assertions.assertFalse(qsRepository.existsById(storage2));
 		Assertions.assertFalse(qsRepository.existsById(storage3));
 		Assertions.assertTrue(qsRepository.existsById(storageOther));
+	}
+
+	@Test
+	public void deleteAllInstancesWithSupport() throws IOException {
+		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
+				StandardCharsets.UTF_8.name());
+		qsRepository.deleteAllBy("name", "shared-data");
+		resource.refresh(subscription);
+		checkCost(subscription, 3500.937, 6114.884, false);
+		em.flush();
+		em.clear();
+
+		// There is only support
+		checkCost(qiResource.deleteAll(subscription), 15, 15, false);
+		checkCost(resource.getConfiguration(subscription).getCostNoSupport(), 0, 0, false);
+		checkCost(resource.getConfiguration(subscription).getCostSupport(), 15, 15, false);
+		checkCost(subscription, 15, 15, false);
+		Assertions.assertEquals(0, qiRepository.findAll(subscription).size());
 	}
 
 	@Test
