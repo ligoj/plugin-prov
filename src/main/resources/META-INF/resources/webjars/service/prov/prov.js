@@ -1003,6 +1003,8 @@ define(function () {
 					}
 				});
 			});
+			current[type + 'Table'] = dataTable;
+
 			// Resource edition pop-up
 			var $popup = _('popup-prov-' + type);
 			$popup.on('shown.bs.modal', function () {
