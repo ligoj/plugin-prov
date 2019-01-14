@@ -600,9 +600,9 @@ define(function () {
 
 		formatLocation: function (location, mode) {
 			if (mode === 'display') {
-				return current.locationToHtml(location, false, true);
+				return location ? current.locationToHtml(location, false, true) : '';
 			}
-			return location.name;
+			return location ? location.name : '';
 		},
 
 		/**
