@@ -57,7 +57,7 @@ public class ImportCatalogStatus extends AbstractLongTaskNode {
 	 * The current phase : instance, storage,...
 	 */
 	private String phase;
-	
+
 	/**
 	 * The current step : includes regions and other tasks. Minimum 0, maximum equals to workload.
 	 */

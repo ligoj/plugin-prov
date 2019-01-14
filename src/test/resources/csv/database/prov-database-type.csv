@@ -1,0 +1,5 @@
+node.id;name;cpu;ram;constant;description;location.name
+service:prov:test;database1;0.5;2000;true;databaseD1
+service:prov:test;database2;1;2000;false;databaseD2
+service:prov:test;database3;2;2000;true;databaseD3
+service:prov:x;databaseX;8;8000;false;databaseDX

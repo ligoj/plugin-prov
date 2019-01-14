@@ -134,7 +134,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		// Header
 		Assertions.assertEquals(
 				"name;cpu;ram;os;usage;term;location;min;max;maxvariablecost;constant;ephemeral;type;internet;license;cost"
-						+ ";disk;instance;latency;optimized",
+						+ ";disk;instance;database;latency;optimized",
 				lines.get(0));
 
 		// Instance data
@@ -142,7 +142,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 				lines.get(1));
 
 		// Storage data
-		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155,6;;51;storage2;server1;MEDIUM;THROUGHPUT", lines.get(10));
+		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155,6;;51;storage2;server1;;MEDIUM;THROUGHPUT", lines.get(10));
 	}
 
 	private List<String> export() throws IOException {

@@ -139,7 +139,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 *            The {@link Costed} resource to evaluate.
 	 * @return The related location. Never <code>null</code>.
 	 */
-	protected ProvLocation getLocation(final C qr) {
+	public static ProvLocation getLocation(final AbstractQuoteResource<?> qr) {
 		return qr.getLocation() == null ? qr.getConfiguration().getLocation() : qr.getLocation();
 	}
 }

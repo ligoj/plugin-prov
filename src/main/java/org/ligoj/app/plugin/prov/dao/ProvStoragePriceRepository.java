@@ -41,6 +41,9 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param instance
 	 *            The optional requested quote instance identifier to be associated. The related instance must be in the
 	 *            same provider.
+	 * @param database
+	 *            The optional requested quote database identifier to be associated. The related database must be in the
+	 *            same provider.
 	 * @param optimized
 	 *            The optional requested optimized. May be <code>null</code>.
 	 * @param location
@@ -54,14 +57,21 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			+ " (sp.cost + (CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost,  "
 			+ " st.latency AS latency FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) "
-			+ " AND (st.maximal IS NULL OR st.maximal >= :size)"
+			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
+			+ " AND (:optimized IS NULL OR st.optimized = :optimized)                                  "
+			+ " AND (st.maximal IS NULL OR st.maximal >= :size)                                        "
+			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
 			+ " AND (:instance IS NULL OR (st.instanceCompatible = true"
 			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi LEFT JOIN qi.location qiloc LEFT JOIN qi.configuration conf"
 			+ "     WHERE qi.id = :instance AND (loc IS NULL OR (qiloc IS NULL AND conf.location = loc) OR qiloc=loc))))"
-			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
-			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
-			+ " AND (:optimized IS NULL OR st.optimized = :optimized) ORDER BY cost ASC, latency DESC")
-	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance,
+			+ " AND (:database IS NULL OR (st.databaseCompatible = true"
+			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb"
+			+ "              LEFT JOIN qb.location qbloc LEFT JOIN qb.price price LEFT JOIN qb.configuration conf"
+			+ "     WHERE qb.id = :database"
+			+ "      AND (loc IS NULL OR (qbloc IS NULL AND conf.location = loc) OR qbloc=loc) "
+			+ "      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))"
+			+ " ORDER BY cost ASC, latency DESC")
+	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance, Integer database,
 			ProvStorageOptimized optimized, String location, Pageable pageable);
 
 	/**

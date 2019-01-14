@@ -21,16 +21,16 @@ import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.prov.catalog.CatalogVo;
-import org.ligoj.app.plugin.prov.catalog.ImportCatalogResource;
-import org.ligoj.app.plugin.prov.catalog.ImportCatalogService;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
+import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
@@ -65,6 +65,8 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
 				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
+		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
 	}
 
 	@Test
@@ -148,10 +150,10 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(status.isFinished());
 		Assertions.assertFalse(status.isFailed());
 		Assertions.assertNotEquals(0, status.getLastSuccess().getTime());
-		Assertions.assertEquals(103, status.getNbInstancePrices().intValue());
-		Assertions.assertEquals(13, status.getNbInstanceTypes().intValue());
+		Assertions.assertEquals(112, status.getNbInstancePrices().intValue()); // 103 + 9
+		Assertions.assertEquals(16, status.getNbInstanceTypes().intValue()); // 13 + 3
 		Assertions.assertEquals(3, status.getNbLocations().intValue());
-		Assertions.assertEquals(4, status.getNbStorageTypes().intValue());
+		Assertions.assertEquals(6, status.getNbStorageTypes().intValue()); // 4 + 2
 		Mockito.verify(service).updateCatalog("service:prov:test");
 	}
 
@@ -205,7 +207,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	private ImportCatalogStatus newStatus() {
-		ImportCatalogStatus status = new ImportCatalogStatus();
+		final ImportCatalogStatus status = new ImportCatalogStatus();
 		status.setLastSuccess(new Date(0));
 		status.setAuthor(DEFAULT_USER);
 		status.setNbInstancePrices(-1);

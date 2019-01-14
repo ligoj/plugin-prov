@@ -259,12 +259,11 @@ public class ProvQuoteInstanceUploadResource {
 			svo.setQuoteInstance(id);
 			svo.setSize(size);
 			svo.setLatency(getItem(upload.getLatency(), index));
-			svo.setInstanceCompatible(true);
 			svo.setOptimized(getItem(upload.getOptimized(), index));
 
 			// Find the nicest storage
 			svo.setType(storageResource
-					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getOptimized(),
+					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getQuoteDatabase(), svo.getOptimized(),
 							svo.getLocation())
 					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
 					.getPrice().getType().getName());

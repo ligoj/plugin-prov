@@ -5,7 +5,6 @@
 package org.ligoj.app.plugin.prov;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
@@ -23,18 +22,18 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
+import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -46,27 +45,29 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * The instance part of the provisioning.
+ * The database instance part of the provisioning.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @Slf4j
-public class ProvQuoteInstanceResource extends
-		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo> {
+public class ProvQuoteDatabaseResource extends
+		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo> {
+
+	private static final String ENGINE_ORACLE = "ORACLE";
 
 	@Getter
 	@Autowired
-	private ProvInstancePriceRepository ipRepository;
+	private ProvDatabasePriceRepository ipRepository;
 
 	@Getter
 	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
+	private ProvQuoteDatabaseRepository qiRepository;
 
 	@Getter
 	@Autowired
-	private ProvInstanceTypeRepository itRepository;
+	private ProvDatabaseTypeRepository itRepository;
 
 	/**
 	 * Create the instance inside a quote.
@@ -78,8 +79,8 @@ public class ProvQuoteInstanceResource extends
 	@POST
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public UpdatedCost create(final QuoteInstanceEditionVo vo) {
-		return saveOrUpdate(new ProvQuoteInstance(), vo);
+	public UpdatedCost create(final QuoteDatabaseEditionVo vo) {
+		return saveOrUpdate(new ProvQuoteDatabase(), vo);
 	}
 
 	/**
@@ -92,18 +93,14 @@ public class ProvQuoteInstanceResource extends
 	@PUT
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public UpdatedCost update(final QuoteInstanceEditionVo vo) {
+	public UpdatedCost update(final QuoteDatabaseEditionVo vo) {
 		return saveOrUpdate(resource.findConfigured(qiRepository, vo.getId()), vo);
 	}
 
 	@Override
-	protected void saveOrUpdateSpec(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
-		entity.setOs(ObjectUtils.defaultIfNull(vo.getOs(), entity.getPrice().getOs()));
-		entity.setEphemeral(vo.isEphemeral());
-		entity.setMaxVariableCost(vo.getMaxVariableCost());
-		entity.setInternet(vo.getInternet());
-		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
-		checkOs(entity);
+	protected void saveOrUpdateSpec(final ProvQuoteDatabase entity, final QuoteDatabaseEditionVo vo) {
+		entity.setEngine(vo.getEngine());
+		entity.setEdition(vo.getEdition());
 	}
 
 	/**
@@ -134,12 +131,11 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteInstance qi) {
+	public FloatingCost refresh(final ProvQuoteDatabase qi) {
 		// Find the lowest price
-		qi.setPrice(validateLookup("instance",
-				lookup(qi.getConfiguration(), qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null,
-						qi.isEphemeral(), getLocation(qi).getName(), getUsageName(qi), qi.getLicense(),
-						qi.getSoftware()),
+		qi.setPrice(validateLookup("database",
+				lookup(qi.getConfiguration(), qi.getCpu(), qi.getRam(), qi.getConstant(), null,
+						getLocation(qi).getName(), getUsageName(qi), qi.getLicense(), qi.getEngine(), qi.getEdition()),
 				qi.getName()));
 		return updateCost(qi);
 	}
@@ -193,25 +189,24 @@ public class ProvQuoteInstanceResource extends
 	@GET
 	@Path("{subscription:\\d+}/instance-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
+	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
 			@DefaultValue(value = "1") @QueryParam("ram") final long ram,
-			@QueryParam("constant") final Boolean constant,
-			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
-			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
-			@QueryParam("usage") final String usage, @QueryParam("license") final String license,
-			@QueryParam("software") final String software) {
+			@QueryParam("constant") final Boolean constant, @QueryParam("type") final String type,
+			@QueryParam("location") final String location, @QueryParam("usage") final String usage,
+			@QueryParam("license") final String license, @QueryParam("engine") final String engine,
+			@QueryParam("edition") final String edition) {
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, ephemeral, location, usage,
-				license, software);
+		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, type, location, usage, license,
+				engine, edition);
 	}
 
 	/**
-	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
+	 * Return a {@link QuoteDatabaseLookup} corresponding to the best price.
 	 */
-	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
-			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
-			final String location, final String usageName, final String license, final String software) {
+	private QuoteDatabaseLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
+			final Boolean constant, final String type, final String location, final String usageName,
+			final String license, final String engine, final String edition) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final double ramR = getRam(configuration, ram);
@@ -228,19 +223,27 @@ public class ProvQuoteInstanceResource extends
 		final Integer typeId = getType(type, subscription);
 
 		// Resolve the right license model
-		final VmOs os = Optional.ofNullable(osName).map(VmOs::toPricingOs).orElse(null);
-		final String licenseR = getLicense(configuration, license, os, this::canByol);
-		final String softwareR = StringUtils.trimToNull(software);
+		final String licenseR = getLicense(configuration, license, engine, this::canByol);
+		final String editionR = getEdition(edition);
+		final String engineR = getEngine(engine);
 
 		// Return only the first matching instance
 		return ipRepository
-				.findLowestPrice(node, cpu, ramR, constant, os, typeId, ephemeral, locationR, rate, duration, licenseR,
-						softwareR, PageRequest.of(0, 1))
-				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
+				.findLowestPrice(node, cpu, ramR, constant, typeId, locationR, rate, duration, licenseR, engineR,
+						editionR, PageRequest.of(0, 1))
+				.stream().findFirst().map(rs -> newPrice((ProvDatabasePrice) rs[0], (double) rs[2])).orElse(null);
 	}
 
-	private boolean canByol(final VmOs os) {
-		return os == VmOs.WINDOWS;
+	private String getEngine(final String engine) {
+		return StringUtils.trimToNull(StringUtils.upperCase(engine));
+	}
+
+	private String getEdition(final String edition) {
+		return StringUtils.trimToNull(StringUtils.upperCase(edition));
+	}
+
+	private boolean canByol(final String engine) {
+		return ENGINE_ORACLE.equalsIgnoreCase(engine);
 	}
 
 	/**
@@ -266,24 +269,39 @@ public class ProvQuoteInstanceResource extends
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param os
-	 *            The filtered OS.
+	 * @param engine
+	 *            The filtered engine.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-license/{os}")
+	@Path("{subscription:\\d+}/instance-license/{engine}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
-			@PathParam("os") final VmOs os) {
+			@PathParam("engine") final String engine) {
 		final List<String> result = ipRepository
-				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), getEngine(engine));
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
 		return result;
 	}
 
 	/**
-	 * Return the available instance software for a subscription.
+	 * Return the available database engine for a subscription.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param uriInfo
+	 *            filter data.
+	 * @return The available licenses for the given subscription.
+	 */
+	@GET
+	@Path("{subscription:\\d+}/instance-engine")
+	public List<String> findEngine(@PathParam("subscription") final int subscription) {
+		return ipRepository.findAllEngines(subscriptionResource.checkVisible(subscription).getNode().getId());
+	}
+
+	/**
+	 * Return the available database edition software for a subscription.
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
@@ -294,10 +312,11 @@ public class ProvQuoteInstanceResource extends
 	 * @return The available softwares for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-software/{os}")
+	@Path("{subscription:\\d+}/database-edition/{engine}")
 	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
-			@PathParam("os") final VmOs os) {
-		return ipRepository.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+			@PathParam("engine") final String engine) {
+		return ipRepository.findAllEditions(subscriptionResource.checkVisible(subscription).getNode().getId(),
+				getEdition(engine));
 	}
 
 	/**
@@ -310,9 +329,9 @@ public class ProvQuoteInstanceResource extends
 	 * @return The valid instance types for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-type")
+	@Path("{subscription:\\d+}/database-type")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvInstanceType> findAllTypes(@PathParam("subscription") final int subscription,
+	public TableItem<ProvDatabaseType> findAllTypes(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
@@ -324,44 +343,16 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
-	private QuoteInstanceLookup newPrice(final ProvInstancePrice ip, final double cost) {
-		final QuoteInstanceLookup result = new QuoteInstanceLookup();
+	private QuoteDatabaseLookup newPrice(final ProvDatabasePrice ip, final double cost) {
+		final QuoteDatabaseLookup result = new QuoteDatabaseLookup();
 		result.setCost(round(cost));
 		result.setPrice(ip);
 		return result;
 	}
 
-	/**
-	 * Compute the monthly cost of a custom requested resource.
-	 *
-	 * @param cpu
-	 *            The requested CPU.
-	 * @param ram
-	 *            The requested RAM.
-	 * @param ip
-	 *            The instance price configuration.
-	 * @return The cost of this custom instance.
-	 */
 	@Override
-	protected double getCustomCost(final Double cpu, final Integer ram, final ProvInstancePrice ip) {
-		// Compute the count of the requested resources
-		return getCustomCost(cpu, ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024);
-	}
-
-	/**
-	 * Compute the monthly cost of a custom requested resource.
-	 *
-	 * @param requested
-	 *            The request resource amount.
-	 * @param cost
-	 *            The cost of one resource.
-	 * @param weight
-	 *            The weight of one resource.
-	 * @return The cost of this custom instance.
-	 */
-	private double getCustomCost(final Number requested, final Double cost, final double weight) {
-		// Compute the count of the requested resources
-		return Math.ceil(requested.doubleValue() / weight) * cost;
+	protected double getCustomCost(final Double cpu, final Integer ram, final ProvDatabasePrice ip) {
+		return 0;
 	}
 
 }

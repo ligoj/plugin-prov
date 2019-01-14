@@ -63,8 +63,8 @@ public class ProvQuoteInstanceExportResource {
 		return AbstractToolPluginResource.download(output -> {
 			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				final Map<Integer, List<ProvQuoteStorage>> qsByQi = new HashMap<>();
-				vo.getStorages().stream().filter(qs -> qs.getQuoteInstance() != null)
-						.forEach(qs -> qsByQi.computeIfAbsent(qs.getQuoteInstance().getId(), ArrayList::new).add(qs));
+				vo.getStorages().stream().filter(qs -> qs.getQuoteResource() != null)
+						.forEach(qs -> qsByQi.computeIfAbsent(qs.getQuoteResource().getId(), ArrayList::new).add(qs));
 				final int max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
 
 				// Minimal headers
@@ -112,9 +112,9 @@ public class ProvQuoteInstanceExportResource {
 		final QuoteVo vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				writer.format("%s" + StringUtils.repeat(";%s", 19), "name", "cpu", "ram", "os", "usage", "term",
+				writer.format("%s" + StringUtils.repeat(";%s", 20), "name", "cpu", "ram", "os", "usage", "term",
 						"location", "min", "max", "maxvariablecost", "constant", "ephemeral", "type", "internet",
-						"license", "cost", "disk", "instance", "latency", "optimized");
+						"license", "cost", "disk", "instance", "database", "latency", "optimized");
 
 				// Write quote instances
 				vo.getInstances().forEach(qi -> {
@@ -126,11 +126,10 @@ public class ProvQuoteInstanceExportResource {
 							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()));
 				});
 				// Write quote storages
-				vo.getStorages()
-						.forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s", toString(qs),
-								toString(qs.getLocation()), toString(qs.getCost()), qs.getSize(),
-								toString(qs.getPrice().getType()), toString(qs.getQuoteInstance()),
-								toString(qs.getLatency()), toString(qs.getOptimized())));
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s;%s", toString(qs),
+						toString(qs.getLocation()), toString(qs.getCost()), qs.getSize(),
+						toString(qs.getPrice().getType()), toString(qs.getQuoteInstance()),
+						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
 				// Write quote support
 				vo.getSupports().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;;%s;%s;;;", toString(qs),

@@ -13,6 +13,8 @@ import java.util.Objects;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -56,7 +58,13 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvInstanceTypeRepository itRepository;
 
 	@Autowired
+	protected ProvDatabaseTypeRepository dtRepository;
+
+	@Autowired
 	protected ProvInstancePriceRepository ipRepository;
+
+	@Autowired
+	protected ProvDatabasePriceRepository dpRepository;
 
 	@Autowired
 	protected ProvStoragePriceRepository spRepository;

@@ -11,13 +11,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * An instance with characteristics
+ * A database instance with characteristics
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvInstanceType extends AbstractInstanceType {
+@Table(name = "LIGOJ_PROV_DATABASE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+public class ProvDatabaseType extends AbstractInstanceType {
 
 	/**
 	 * SID

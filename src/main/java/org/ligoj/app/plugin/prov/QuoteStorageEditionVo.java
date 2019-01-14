@@ -40,6 +40,11 @@ public class QuoteStorageEditionVo extends DescribedBean<Integer> {
 	private Integer quoteInstance;
 
 	/**
+	 * Optional linked quoted instance.
+	 */
+	private Integer quoteDatabase;
+
+	/**
 	 * Optional location constraint.
 	 */
 	private String location;
@@ -53,11 +58,6 @@ public class QuoteStorageEditionVo extends DescribedBean<Integer> {
 	 * Optional required optimized best usage of this storage
 	 */
 	private ProvStorageOptimized optimized;
-
-	/**
-	 * Optional instance compatibility flag.
-	 */
-	private Boolean instanceCompatible;
 
 	/**
 	 * Related storage type name within the given location.

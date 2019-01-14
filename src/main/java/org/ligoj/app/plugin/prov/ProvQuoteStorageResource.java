@@ -25,7 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.lang3.ObjectUtils;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
@@ -33,6 +33,7 @@ import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
@@ -47,6 +48,7 @@ import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -60,10 +62,10 @@ public class ProvQuoteStorageResource
 		extends AbstractCostedResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage> {
 
 	@Autowired
-	private ProvQuoteInstanceResource qiResource;
+	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
+	private ProvQuoteDatabaseRepository qbRepository;
 
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
@@ -131,11 +133,13 @@ public class ProvQuoteStorageResource
 		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(ProvQuoteInstance::getId).orElse(null);
+		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(Persistable::getId).orElse(null);
+		final Integer qb = Optional.ofNullable(qs.getQuoteDatabase()).map(Persistable::getId).orElse(null);
 		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
-		qs.setPrice(
-				validateLookup("storage", lookup(quote, qs.getSize(), qs.getLatency(), qi, qs.getOptimized(), location)
-						.stream().findFirst().orElse(null), qs.getName()));
+		qs.setPrice(validateLookup("storage",
+				lookup(quote, qs.getSize(), qs.getLatency(), qi, qb, qs.getOptimized(), location).stream().findFirst()
+						.orElse(null),
+				qs.getName()));
 		return updateCost(qs);
 	}
 
@@ -158,6 +162,7 @@ public class ProvQuoteStorageResource
 	 * @return The formal entity.
 	 */
 	private UpdatedCost saveOrUpdate(final ProvQuoteStorage entity, final QuoteStorageEditionVo vo) {
+		checkInstance(vo);
 		DescribedBean.copy(vo, entity);
 
 		// Check the associations
@@ -167,25 +172,35 @@ public class ProvQuoteStorageResource
 		entity.setConfiguration(quote);
 		entity.setLocation(resource.findLocation(node, vo.getLocation()));
 		entity.setPrice(findByTypeName(subscription, vo.getType(), vo.getLocation(), quote));
-		entity.setInstanceCompatible(vo.getInstanceCompatible());
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getQuoteInstance()));
+		entity.setQuoteDatabase(checkDatabase(subscription, vo.getQuoteDatabase()));
 
 		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
-		if (lookup(quote, entity.getSize(), entity.getLatency(), vo.getQuoteInstance(), entity.getOptimized(),
-				vo.getLocation()).stream().map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
+		if (lookup(quote, entity.getSize(), entity.getLatency(), entity.getQuoteInstance(), entity.getQuoteDatabase(),
+				entity.getOptimized(), vo.getLocation()).stream().map(qs -> qs.getPrice().getType())
+						.noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
 
 		// Save and update the costs
 		final UpdatedCost cost = refreshCost(entity);
-		Optional.ofNullable(entity.getQuoteInstance()).ifPresent(qi -> cost.getRelated().put(ResourceType.INSTANCE,
+		Optional.ofNullable(entity.getQuoteResource()).ifPresent(qi -> cost.getRelated().put(qi.getResourceType(),
 				Collections.singletonMap(qi.getId(), qi.toFloatingCost())));
 		return resource.refreshSupportCost(cost, quote);
+	}
+
+	/**
+	 * Check there is no ambiguous database/instance usage.
+	 */
+	private void checkInstance(final QuoteStorageEditionVo vo) {
+		if (vo.getQuoteInstance() != null && vo.getQuoteDatabase() != null) {
+			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getQuoteInstance());
+		}
 	}
 
 	protected UpdatedCost refreshCost(final ProvQuoteStorage entity) {
@@ -197,6 +212,13 @@ public class ProvQuoteStorageResource
 	 */
 	private ProvQuoteInstance checkInstance(final int subscription, final Integer qi) {
 		return qi == null ? null : resource.findConfigured(qiRepository, qi, subscription);
+	}
+
+	/**
+	 * Check the related quote database exists and is related to the given node.
+	 */
+	private ProvQuoteDatabase checkDatabase(final int subscription, final Integer qb) {
+		return qb == null ? null : resource.findConfigured(qbRepository, qb, subscription);
 	}
 
 	/**
@@ -246,6 +268,8 @@ public class ProvQuoteStorageResource
 	 *            The optional requested minimal {@link Rate} class.
 	 * @param instance
 	 *            The optional requested quote instance to be associated.
+	 * @param database
+	 *            The optional requested quote database to be associated.
 	 * @param optimized
 	 *            The optional requested {@link ProvStorageOptimized}.
 	 * @param location
@@ -257,33 +281,40 @@ public class ProvQuoteStorageResource
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLookup> lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
-			@QueryParam("instance") final Integer instance,
+			@QueryParam("instance") final Integer instance, @QueryParam("database") final Integer database,
 			@QueryParam("optimized") final ProvStorageOptimized optimized,
 			@QueryParam("location") final String location) {
 
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, optimized, location);
+		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, database, optimized, location);
 	}
 
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
-			final Integer instance, final ProvStorageOptimized optimized, final String location) {
+			final Integer instance, final Integer database, final ProvStorageOptimized optimized,
+			final String location) {
+		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), instance);
+		final ProvQuoteDatabase qb = checkDatabase(configuration.getSubscription().getId(), database);
+		return lookup(configuration, size, latency, qi, qb, optimized, location);
+	}
+
+	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
+			final ProvQuoteInstance qi, final ProvQuoteDatabase qb, final ProvStorageOptimized optimized,
+			final String location) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = configuration.getSubscription().getNode().getRefined().getId();
-		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), instance);
 
 		// The the right location from instance first, then the request one
-		String iLocation = Optional.ofNullable(qi).map(qiResource::getLocation).map(ProvLocation::getName)
-				.orElse(location);
-		iLocation = ObjectUtils.defaultIfNull(iLocation, configuration.getLocation().getName());
-		if (location != null && !location.equals(iLocation)) {
-			// Not compatible locations
-			return Collections.emptyList();
+		final String iloc;
+		if (location == null) {
+			iloc = Optional.ofNullable(qi).map(ProvQuoteStorageResource::getLocation).map(ProvLocation::getName)
+					.orElse(configuration.getLocation().getName());
+		} else {
+			iloc = location;
 		}
-
 		return spRepository
-				.findLowestPrice(node, size, latency, qi == null ? null : qi.getId(), optimized, iLocation,
-						PageRequest.of(0, 10))
+				.findLowestPrice(node, size, latency, qi == null ? null : qi.getId(), qb == null ? null : qb.getId(),
+						optimized, iloc, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size)))
 				.collect(Collectors.toList());
 	}
@@ -300,9 +331,10 @@ public class ProvQuoteStorageResource
 	}
 
 	@Override
-	protected FloatingCost getCost(final ProvQuoteStorage quoteStorage) {
-		final double base = getCost(quoteStorage.getPrice(), quoteStorage.getSize());
-		return Optional.ofNullable(quoteStorage.getQuoteInstance()).map(qi -> qiResource.computeFloat(base, qi))
+	protected FloatingCost getCost(final ProvQuoteStorage qs) {
+		final double base = getCost(qs.getPrice(), qs.getSize());
+		return Optional.ofNullable(qs.getQuoteResource())
+				.map(qr -> AbstractProvQuoteInstanceResource.computeFloat(base, qr))
 				.orElseGet(() -> new FloatingCost(base));
 	}
 

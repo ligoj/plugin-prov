@@ -1,6 +1,8 @@
-node.id;name;latency;optimized;description;minimal;maximal;instanceCompatible;iops;throughput;availability;durability9
+node.id;name;latency;optimized;description;minimal;maximal;instanceCompatible;iops;throughput;availability;durability9;databaseCompatible;engine
 service:prov:test;storage1;GOOD;IOPS;storageD1;;;true;200;60;99.99;11
 service:prov:test;storage2;MEDIUM;THROUGHPUT;storageD2;512;512;true
 service:prov:test;storage3;LOW;DURABILITY;storageD3;;;false
 service:prov:test;storage4;BEST;;storageD4;;;true
+service:prov:test;storage5-database;BEST;;storageD5;;;;;;;;true
+service:prov:test;storage7-database;BEST;;storageD7;;;;;;;;true;ORACLE
 service:prov:x;storageX;BEST;;storageD1;;;true

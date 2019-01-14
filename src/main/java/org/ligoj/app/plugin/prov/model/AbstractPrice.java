@@ -19,6 +19,9 @@ import lombok.ToString;
 
 /**
  * Resource price context.
+ *
+ * @param <T>
+ *            Resource type.
  */
 @Getter
 @Setter

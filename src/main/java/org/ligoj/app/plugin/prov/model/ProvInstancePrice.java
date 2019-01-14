@@ -3,12 +3,9 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -26,21 +23,16 @@ import lombok.ToString;
 @Getter
 @Setter
 @Entity
-@ToString(of = { "os", "term", "tenancy", "license" }, callSuper = true)
+@ToString(of = { "os", "tenancy" }, callSuper = true)
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "location", "type", "os", "term", "tenancy", "license" }),
 		@UniqueConstraint(columnNames = "code") })
-public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implements Serializable {
+public class ProvInstancePrice extends AbstractTermPrice<ProvInstanceType> {
 
 	/**
 	 * Bring your own license.
 	 */
 	public static final String LICENSE_BYOL = "BYOL";
-
-	/**
-	 * The optional initial cost required to use this instance. May be <code>null</code>.
-	 */
-	private Double initialCost;
 
 	/**
 	 * The optional monthly cost of one requested CPU. May be <code>null</code>.
@@ -51,15 +43,6 @@ public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implement
 	 * The optional monthly cost of one requested GB memory. May be <code>null</code>.
 	 */
 	private Double costRam;
-
-	/**
-	 * The cost for the period.<br>
-	 */
-	private double costPeriod;
-
-	@NotNull
-	@ManyToOne
-	private ProvInstancePriceTerm term;
 
 	/**
 	 * The optional tenancy of the related instance. By default, the tenancy is {@link ProvTenancy#SHARED}
@@ -73,12 +56,6 @@ public class ProvInstancePrice extends AbstractPrice<ProvInstanceType> implement
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	private VmOs os;
-
-	/**
-	 * Optional built-in license model. Special license term is {@value #LICENSE_BYOL}. When <code>null</code>, license
-	 * is included in the price or not applicable.
-	 */
-	private String license;
 
 	/**
 	 * Optional built-in software.

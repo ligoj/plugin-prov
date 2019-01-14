@@ -25,7 +25,7 @@ import lombok.Setter;
 /**
  * Storage specification of a provider. <br>
  * Sizes use the GiB unit.
- * 
+ *
  * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">https://en.wikipedia.org/wiki/Gibibyte</a>
  */
 @Getter
@@ -63,12 +63,12 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private Integer maximal;
 
 	/**
-	 * IOPS. When <code>null</code> or <code>0</code>, is undefined.
+	 * Maximum IOPS. When <code>null</code> or <code>0</code>, is undefined.
 	 */
 	private int iops;
 
 	/**
-	 * Throughput in MB/s. When <code>null</code> or <code>0</code>, is undefined.
+	 * Maximum throughput in MB/s. When <code>null</code> or <code>0</code>, is undefined.
 	 */
 	private int throughput;
 
@@ -76,6 +76,19 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * When <code>true</code>, this storage can attached to an instance.
 	 */
 	private boolean instanceCompatible = false;
+
+	/**
+	 * When <code>true</code>, this storage can attached to a database.
+	 */
+	private boolean databaseCompatible = false;
+
+	/**
+	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
+	 * <code>null</code>, this storage can only be attached to a database type not requiring a specific storage engine.
+	 *
+	 * @see ProvDatabasePrice#getStorageEngine()
+	 */
+	private String engine;
 
 	/**
 	 * The enabled provider.

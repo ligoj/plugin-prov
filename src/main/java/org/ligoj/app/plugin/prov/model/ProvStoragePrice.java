@@ -17,11 +17,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = @UniqueConstraint(columnNames = { "type", "location" }))
+@Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = { "type", "location" }),
+		@UniqueConstraint(columnNames = { "code" }) })
 public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 
 	/**
 	 * The monthly cost of 1GiB (Gibibyte Bytes).
+	 *
 	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
 	 */
 	private double costGb = 0;

@@ -21,5 +21,10 @@ public enum ResourceType {
 	/**
 	 * Support resource.
 	 */
-	SUPPORT
+	SUPPORT,
+
+	/**
+	 * Database resource
+	 */
+	DATABASE
 }

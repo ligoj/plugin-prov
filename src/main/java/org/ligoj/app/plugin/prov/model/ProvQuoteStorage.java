@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import java.util.Optional;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -21,7 +23,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A storage configuration inside a quote and optionally linked to an instance. Name is unique inside a quote.
+ * A storage configuration inside a quote and optionally linked to an instance or database. Name is unique inside a
+ * quote.
  */
 @Getter
 @Setter
@@ -47,11 +50,6 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 	private ProvStorageOptimized optimized;
 
 	/**
-	 * Optional instance compatibility flag.
-	 */
-	private Boolean instanceCompatible;
-
-	/**
 	 * Required size of the storage in "GiB". 1GiB = 1024MiB
 	 */
 	@NotNull
@@ -64,11 +62,12 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 	@JsonSerialize(using = ToIdSerializer.class)
 	private ProvQuoteInstance quoteInstance;
 
-	@Override
-	@JsonIgnore
-	public boolean isUnboundCost() {
-		return getQuoteInstance() != null && getQuoteInstance().isUnboundCost();
-	}
+	/**
+	 * Optional linked quoted database.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonSerialize(using = ToIdSerializer.class)
+	private ProvQuoteDatabase quoteDatabase;
 
 	/**
 	 * Resolved price configuration.
@@ -76,4 +75,19 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 	@NotNull
 	@ManyToOne
 	private ProvStoragePrice price;
+
+	@Override
+	@JsonIgnore
+	public boolean isUnboundCost() {
+		return Optional.ofNullable(getQuoteResource()).map(AbstractQuoteResourceInstance::isUnboundCost).orElse(false);
+	}
+
+	/**
+	 * Return the optional associated resource: instance or database.
+	 *
+	 * @return the optional associated resource: instance or database.
+	 */
+	public AbstractQuoteResourceInstance<?> getQuoteResource() {
+		return quoteInstance == null ? quoteDatabase : quoteInstance;
+	}
 }

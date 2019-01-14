@@ -585,7 +585,6 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Add a storage only available in "region-1"
 		final ProvQuoteStorage qs = new ProvQuoteStorage();
 		qs.setPrice(spRepository.findBy("type.name", "storage4"));
-		qs.setInstanceCompatible(true);
 		qs.setLatency(Rate.BEST);
 		qs.setQuoteInstance(qiRepository.findByName("server1"));
 		qs.setName("qi-storage4");

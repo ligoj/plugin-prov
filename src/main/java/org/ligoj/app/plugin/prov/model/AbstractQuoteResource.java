@@ -68,8 +68,17 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 	/**
 	 * Return resolved price configuration.
 	 *
-	 * @Return Resolved price configuration.
+	 * @return Resolved price configuration.
 	 */
 	public abstract P getPrice();
+
+	/**
+	 * Set the resolved price configuration.
+	 *
+	 * @param price
+	 *            The resolved price.
+	 * @return Set the resolved price configuration.
+	 */
+	public abstract void setPrice(P price);
 
 }

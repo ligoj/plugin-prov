@@ -24,6 +24,8 @@ import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
@@ -77,10 +79,16 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	private ProvInstancePriceRepository ipRepository;
 
 	@Autowired
+	private ProvDatabasePriceRepository dpRepository;
+
+	@Autowired
 	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
+
+	@Autowired
+	private ProvDatabaseTypeRepository dtRepository;
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
@@ -90,7 +98,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	/**
 	 * Update the catalog prices of related provider. Asynchronous operation.
-	 * 
+	 *
 	 * @param node
 	 *            The node (provider) to update.
 	 * @return The catalog status.
@@ -138,7 +146,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	/**
 	 * Update the catalog of given node. Synchronous operation.
-	 * 
+	 *
 	 * @param catalogService
 	 *            The catalog service related to the provider.
 	 * @param node
@@ -169,7 +177,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	/**
 	 * Update the statistics of a catalog update task.
-	 * 
+	 *
 	 * @param task
 	 *            The task status to update.
 	 */
@@ -179,34 +187,35 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	/**
 	 * Update the statistics of a catalog update task.
-	 * 
+	 *
 	 * @param task
 	 *            The task status to update.
 	 * @param node
 	 *            The node identifier.
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
-		task.setNbInstancePrices((int) ipRepository.countBy("type.node.id", node));
-		task.setNbInstanceTypes((int) itRepository.countBy(BY_NODE, node));
+		task.setNbInstancePrices(
+				(int) ipRepository.countBy("type.node.id", node) + (int) dpRepository.countBy("type.node.id", node));
+		task.setNbInstanceTypes((int) itRepository.countBy(BY_NODE, node) + (int) dtRepository.countBy(BY_NODE, node));
 		task.setNbLocations((int) locationRepository.countBy(BY_NODE, node));
 		task.setNbStorageTypes((int) stRepository.countBy(BY_NODE, node));
 	}
 
 	/**
 	 * Return the nodes and their catalog status.
-	 * 
+	 *
 	 * @return The nodes and their catalog status.
 	 */
 	@GET
 	@Path("catalog")
 	public List<CatalogVo> findAll() {
 		// Get all catalogs
-		final Map<String, ImportCatalogStatus> statuses = taskRepository.findAllVisible(securityHelper.getLogin()).stream()
-				.collect(Collectors.toMap(s -> s.getLocked().getId(), Function.identity()));
+		final Map<String, ImportCatalogStatus> statuses = taskRepository.findAllVisible(securityHelper.getLogin())
+				.stream().collect(Collectors.toMap(s -> s.getLocked().getId(), Function.identity()));
 
 		// Complete with nodes without populated catalog
-		final Page<Node> providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "", ProvResource.SERVICE_KEY, null, 1,
-				PageRequest.of(0, 100));
+		final Page<Node> providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "",
+				ProvResource.SERVICE_KEY, null, 1, PageRequest.of(0, 100));
 
 		return providers.getContent().stream().sorted().map(NodeResource::toVo)
 				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
@@ -214,7 +223,8 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 					final ImportCatalogStatus status = new ImportCatalogStatus();
 					updateStats(status, n.getId());
 					return status;
-				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null, (int) repository.countByNode(n.getId())))
+				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null,
+						(int) repository.countByNode(n.getId())))
 				.collect(Collectors.toList());
 	}
 
