@@ -320,9 +320,17 @@ img.flag-icon.prov-location-flag {
 #service-prov-menu li {
 	margin-left: 7px;
 }
-.retracted #service-prov-menu span {
+.retracted #service-prov-menu span, .retracted #service-prov-menu .form-group div {
 	display: none;
 }
+
+.retracted #prov-defaults legend {
+	font-size: 16px;
+}
+.retracted #prov-defaults {
+	margin-left: 5px;
+}
+
 #service-prov-menu {
 	margin-left: -15px;
 }
