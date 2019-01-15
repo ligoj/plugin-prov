@@ -70,28 +70,28 @@ public class ProvQuoteDatabaseResource extends
 	private ProvDatabaseTypeRepository itRepository;
 
 	/**
-	 * Create the instance inside a quote.
+	 * Create the database inside a quote.
 	 *
 	 * @param vo
 	 *            The quote instance.
 	 * @return The created instance cost details with identifier.
 	 */
 	@POST
-	@Path("instance")
+	@Path("database")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost create(final QuoteDatabaseEditionVo vo) {
 		return saveOrUpdate(new ProvQuoteDatabase(), vo);
 	}
 
 	/**
-	 * Update the instance inside a quote.
+	 * Update the database inside a quote.
 	 *
 	 * @param vo
 	 *            The quote instance to update.
 	 * @return The new cost configuration.
 	 */
 	@PUT
-	@Path("instance")
+	@Path("database")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost update(final QuoteDatabaseEditionVo vo) {
 		return saveOrUpdate(resource.findConfigured(qiRepository, vo.getId()), vo);
@@ -109,14 +109,14 @@ public class ProvQuoteDatabaseResource extends
 	protected void checkOs(final ProvQuoteInstance entity) {
 		if (entity.getOs().toPricingOs() != entity.getPrice().getOs()) {
 			// Incompatible, hack attempt?
-			log.warn("Attempt to create an instance with an incompatible OS {} with catalog OS {}", entity.getOs(),
+			log.warn("Attempt to create a database with an incompatible OS {} with catalog OS {}", entity.getOs(),
 					entity.getPrice().getOs());
 			throw new ValidationJsonException("os", "incompatible-os", entity.getPrice().getOs());
 		}
 	}
 
 	/**
-	 * Delete all instances from a quote. The total cost is updated.
+	 * Delete all databases from a quote. The total cost is updated.
 	 *
 	 * @param subscription
 	 *            The related subscription.
@@ -124,7 +124,7 @@ public class ProvQuoteDatabaseResource extends
 	 */
 	@Override
 	@DELETE
-	@Path("{subscription:\\d+}/instance")
+	@Path("{subscription:\\d+}/database")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
 		return super.deleteAll(subscription);
@@ -149,7 +149,7 @@ public class ProvQuoteDatabaseResource extends
 	 */
 	@Override
 	@DELETE
-	@Path("instance/{id:\\d+}")
+	@Path("database/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost delete(@PathParam("id") final int id) {
 		return super.delete(id);
@@ -167,27 +167,23 @@ public class ProvQuoteDatabaseResource extends
 	 * @param constant
 	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
 	 *            constant CPU is requested.
-	 * @param os
-	 *            The requested OS, default is "LINUX".
+	 * @param engine
+	 *            The requested database engine.
 	 * @param type
 	 *            Optional instance type name. May be <code>null</code>.
-	 * @param ephemeral
-	 *            Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
-	 *            accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 * @param location
 	 *            Optional location name. When <code>null</code>, the global quote's location is used.
 	 * @param usage
 	 *            Optional usage name. May be <code>null</code> to use the default one.
 	 * @param license
 	 *            Optional license model. When <code>null</code>, the global quote's license is used.
-	 * @param software
-	 *            Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint
-	 *            is added. WHen <code>null</code>, installed software is also accepted.
+	 * @param edition
+	 *            Optional engine edition
 	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
 	 *         custom instance type.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-lookup")
+	@Path("{subscription:\\d+}/database-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
 			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
@@ -257,7 +253,7 @@ public class ProvQuoteDatabaseResource extends
 	 */
 	@Override
 	@GET
-	@Path("{subscription:\\d+}/instance-price-term")
+	@Path("{subscription:\\d+}/database-price-term")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstancePriceTerm> findPriceTerms(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
@@ -276,7 +272,7 @@ public class ProvQuoteDatabaseResource extends
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-license/{engine}")
+	@Path("{subscription:\\d+}/database-license/{engine}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
 		final List<String> result = ipRepository
@@ -295,7 +291,7 @@ public class ProvQuoteDatabaseResource extends
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
-	@Path("{subscription:\\d+}/instance-engine")
+	@Path("{subscription:\\d+}/database-engine")
 	public List<String> findEngine(@PathParam("subscription") final int subscription) {
 		return ipRepository.findAllEngines(subscriptionResource.checkVisible(subscription).getNode().getId());
 	}
