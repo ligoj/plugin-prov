@@ -105,6 +105,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private List<ProvQuoteInstance> instances;
 
 	/**
+	 * Quoted databases.
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvQuoteDatabase> databases;
+
+	/**
 	 * Usages associated to this quote..
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)

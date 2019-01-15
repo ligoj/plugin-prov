@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
+import java.util.List;
+
 import javax.cache.annotation.CacheKey;
 import javax.cache.annotation.CacheResult;
 
@@ -18,7 +20,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvLocationRepository extends RestRepository<ProvLocation, Integer> {
 
 	/**
-	 * Return all {@link ProvLocation} related to given subscription identifier.
+	 * Return all {@link ProvLocation} related to given node identifier.
 	 *
 	 * @param node
 	 *            The node identifier to match.
@@ -36,6 +38,17 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 			+ "   OR UPPER(pl.subRegion) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))"
 			+ " AND EXISTS (SELECT 1 FROM ProvInstancePrice ip WHERE ip.location = pl)")
 	Page<ProvLocation> findAll(String node, String criteria, Pageable pageRequest);
+
+	/**
+	 * Return all {@link ProvLocation} related to given node identifier.
+	 *
+	 * @param node
+	 *            The node identifier to match.
+	 * @return All locations linked to this node.
+	 */
+	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
+			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%'))")
+	List<ProvLocation> findAll(String node);
 
 	/**
 	 * Return the {@link ProvLocation} by it's name, ignoring the case.

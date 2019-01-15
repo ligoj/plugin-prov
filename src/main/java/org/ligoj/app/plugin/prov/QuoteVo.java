@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
@@ -50,12 +51,17 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private TerraformStatus terraformStatus;
 
 	/**
-	 * Quoted instance.
+	 * Quoted instances.
 	 */
 	private List<ProvQuoteInstance> instances;
 
 	/**
-	 * Related storages instance.
+	 * Quoted databases.
+	 */
+	private List<ProvQuoteDatabase> databases;
+
+	/**
+	 * Related storages.
 	 */
 	private List<ProvQuoteStorage> storages;
 
@@ -63,6 +69,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Related supports instance.
 	 */
 	private List<ProvQuoteSupport> supports;
+
+	/**
+	 * All available locations.
+	 */
+	private List<ProvLocation> locations;
 
 	/**
 	 * Default location of this quote.

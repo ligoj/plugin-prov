@@ -32,6 +32,7 @@ import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -113,6 +114,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
+
+	@Autowired
+	private ProvQuoteDatabaseRepository qbRepository;
 
 	@Autowired
 	private ProvQuoteSupportRepository qs2Repository;
@@ -206,12 +210,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.copyAuditData(quote, toUser());
 		vo.setLocation(quote.getLocation());
 		vo.setInstances(quote.getInstances());
+		vo.setDatabases(qbRepository.findAll(subscription.getId()));
 		vo.setStorages(qsRepository.findAll(subscription.getId()));
 		vo.setUsage(quote.getUsage());
 		vo.setLicense(quote.getLicense());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
+		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
 
 		// Also copy the costs
 		final boolean unbound = quote.isUnboundCost();

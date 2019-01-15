@@ -598,11 +598,28 @@ define(function () {
 			return usage.text || usage.name;
 		},
 
-		formatLocation: function (location, mode) {
-			if (mode === 'display') {
-				return location ? current.locationToHtml(location, false, true) : '';
+		formatLocation: function (location, mode, data) {
+			var conf = current.model.configuration;
+			if (location) {
+				if (location.id) {
+					obj = location;
+				} else {
+					obj = conf.locationsById[location];
+				}
+			} else if (data.price && data.price.location) {
+				obj = conf.locationsById[data.price.location];
+			} else if (data.quoteInstance && data.quoteInstance.price.location) {
+				obj = conf.locationsById[data.quoteInstance.price.location];
+			} else if (data.quoteInstance && data.quoteDatabase.price.location) {
+				obj = conf.locationsById[data.quoteDatabase.price.location];
+			} else {
+				obj = current.model.configuration.location;
 			}
-			return location ? location.name : '';
+
+			if (mode === 'display') {
+				return current.locationToHtml(obj, false, true);
+			}
+			return obj ? obj.name : '';
 		},
 
 		/**
@@ -698,6 +715,17 @@ define(function () {
 				conf.instanceCost += qi.cost;
 			}
 
+			// Databases
+			conf.databasesById = {};
+			conf.databaseCost = 0;
+			var databases = conf.databases;
+			for (i = 0; i < databases.length; i++) {
+				var qi = databases[i];
+				// Optimize id access
+				conf.databasesById[qi.id] = qi;
+				conf.databaseCost += qi.cost;
+			}
+
 			// Storage
 			conf.storagesById = {};
 			conf.storageCost = 0;
@@ -705,10 +733,20 @@ define(function () {
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
 				conf.storageCost += qs.cost;
-				current.attachStorage(qs, qs.quoteInstance, true);
+				current.attachStorage(qs, 'instance', qs.quoteInstance, true);
+				current.attachStorage(qs, 'database', qs.quoteDatabase, true);
 
 				// Optimize id access
 				conf.storagesById[qs.id] = qs;
+			}
+
+			// Locations
+			conf.locationsById = {};
+			var locations = conf.locations;
+			for (i = 0; i < locations.length; i++) {
+				var loc = locations[i];
+				// Optimize id access
+				conf.locationsById[loc.name] = loc;
 			}
 
 			// Support
@@ -1998,7 +2036,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			current.attachStorage(model, data.quoteInstance);
+			current.attachStorage(model, 'instance', data.quoteInstance);
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2584,32 +2622,35 @@ define(function () {
 		 * @param storage The storage model to detach.
 		 */
 		detachStorage: function (storage) {
-			if (storage.quoteInstance) {
-				var qis = storage.quoteInstance.storages;
+			if (storage.quoteInstance || storage.quoteDatabase) {
+				var qis = storage[storage.quoteInstance || storage.quoteDatabase].storages;
 				for (var s = qis.length; s-- > 0;) {
-					if (storage.quoteInstance.storages[s] === storage) {
+					if (qis[s] === storage) {
 						qis.splice(s, 1);
 						break;
 					}
 				}
 				delete storage.quoteInstance;
+				delete storage.quoteDatabase;
 			}
 		},
 		/**
 		 * Update the model to attach a storage to its instance
 		 * @param storage The storage model to attach.
+		 * @param type The resource type to attach.
 		 * @param instance The instance model or identifier to attach.
 		 * @param force When <code>true</code>, the resources are attached even if they were already.
 		 */
-		attachStorage: function (storage, instance, force) {
+		attachStorage: function (storage, type, instance, force) {
 			if (typeof instance === 'number') {
-				instance = current.model.configuration.instancesById[instance];
+				instance = current.model.configuration[type+'sById'][instance];
 			}
-			if (force !== true && storage.quoteInstance === instance) {
+			var typeC = type.charAt(0).toUpperCase() + type.slice(1);
+			if (force !== true && storage['quote'+typeC] === instance) {
 				// Already attached or nothing to attach to the target instance
 				return;
 			}
-			if (force !== true && storage.quoteInstance) {
+			if (force !== true && storage['quote'+typeC]) {
 				// Ddetach the old instance
 				current.detachStorage(storage);
 			}
@@ -2621,7 +2662,7 @@ define(function () {
 				} else {
 					instance.storages = [storage];
 				}
-				storage.quoteInstance = instance;
+				storage['quote'+typeC] = instance;
 			}
 		},
 
