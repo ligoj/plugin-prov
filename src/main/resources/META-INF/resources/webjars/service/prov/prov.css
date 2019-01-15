@@ -406,6 +406,9 @@ img.flag-icon.prov-location-flag {
 	height: 0;
 	float: right;
 	top: -60px;
-	right: -21px;
+	right: -14px;
 	margin: 0;
+}
+.configuration-wrapper-service-prov .dt-buttons .buttons-collection {
+	padding: 8px 14px;
 }
