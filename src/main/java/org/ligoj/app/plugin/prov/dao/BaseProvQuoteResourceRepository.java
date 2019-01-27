@@ -10,13 +10,13 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.query.Param;
 
 /**
  * {@link AbstractQuoteResource} repository.
  */
 @NoRepositoryBean
-public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource<?>> extends RestRepository<C, Integer> {
+public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource<?>>
+		extends RestRepository<C, Integer> {
 
 	/**
 	 * Return identifiers of all resources linked to the given subscription.
@@ -25,7 +25,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	 *            The related subscription identifier.
 	 */
 	@Query("SELECT id FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
-	List<Integer> findAllIdentifiers(@Param("subscription") int subscription);
+	List<Integer> findAllIdentifiers(int subscription);
 
 	/**
 	 * Delete all instance linked to the given subscription.
@@ -36,8 +36,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	@Modifying
 	@Query("DELETE FROM #{#entityName} WHERE configuration.id IN"
 			+ " (SELECT id FROM ProvQuote WHERE subscription.id = :subscription)")
-	void deleteAllBySubscription(@Param("subscription") int subscription);
-
+	void deleteAllBySubscription(int subscription);
 
 	/**
 	 * Return the quote details from the related subscription.

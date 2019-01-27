@@ -60,7 +60,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	List<String> findAllEngines(@CacheKey String node);
 
 	/**
-	 * Return the lowest databse instance price configuration from the minimal requirements.
+	 * Return the lowest database instance price configuration from the minimal requirements.
 	 *
 	 * @param node
 	 *            The node linked to the subscription. Is a node identifier within a provider.
@@ -101,9 +101,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (:type IS NULL OR i.id = :type)  AND (i.cpu = 0 OR (i.cpu>= :cpu AND i.ram>=:ram))"
 			+ "  AND (:edition IS NULL OR ip.edition=:edition) AND (:constant IS NULL OR i.constant = :constant)"
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND :engine = ip.engine   "
-			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestPrice(String node, double cpu, double ram, Boolean constant, Integer type, int location,
+			+ "  AND :engine = ip.engine   " + "  AND ip.location.id = :location ORDER BY totalCost ASC")
+	List<Object[]> findLowestPrice(String node, double cpu, int ram, Boolean constant, Integer type, int location,
 			double rate, double duration, String license, String engine, String edition, Pageable pageable);
 
 }

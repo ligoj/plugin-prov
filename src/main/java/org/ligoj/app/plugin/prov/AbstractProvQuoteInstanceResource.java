@@ -21,6 +21,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
@@ -44,7 +45,7 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The database instance part of the provisioning.
+ * The resource part of the provisioning.
  */
 public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo>
 		extends AbstractCostedResource<T, P, C> {
@@ -76,8 +77,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
 	/**
-	 * Save or update the given entity from the {@link QuoteInstanceEditionVo}. The computed cost are recursively
-	 * updated from the instance to the quote total cost.
+	 * Return the resource type managed by this service.
+	 *
+	 * @return The resource type managed by this service.
+	 */
+	protected abstract ResourceType getType();
+
+	/**
+	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
+	 * updated from the resource to the quote total cost.
 	 */
 	protected UpdatedCost saveOrUpdate(final C entity, final E vo) {
 		// Compute the unbound cost delta
@@ -134,7 +142,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Delete all instances from a quote. The total cost is updated.
+	 * Delete all resource types from a quote. The total cost is updated.
 	 *
 	 * @param subscription
 	 *            The related subscription.
@@ -143,28 +151,28 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
 		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
 		final UpdatedCost cost = new UpdatedCost(0);
-		cost.getDeleted().put(ResourceType.INSTANCE, getQiRepository().findAllIdentifiers(subscription));
-		cost.getDeleted().put(ResourceType.STORAGE, qsRepository.findAllAttachedIdentifiers(subscription));
+		cost.getDeleted().put(getType(), getQiRepository().findAllIdentifiers(subscription));
+		cost.getDeleted().put(ResourceType.STORAGE, ((BasePovInstanceBehavior)getQiRepository()).findAllStorageIdentifiers(subscription));
 
-		// Delete all instances with cascaded delete for storages
-		qsRepository.deleteAllAttached(subscription);
+		// Delete all resources with cascaded delete for storages
+		((BasePovInstanceBehavior)getQiRepository()).deleteAllStorages(subscription);
 		getQiRepository().deleteAllBySubscription(subscription);
 
 		// Update the cost. Note the effort could be reduced to a simple
-		// subtract of instances cost and related storage costs
+		// subtract of resources cost and related storage costs
 		resource.updateCost(subscription);
 		return resource.refreshSupportCost(cost, quote);
 	}
 
 	/**
-	 * Return the effective usage applied to the given instance. May be <code>null</code>.
+	 * Return the effective usage applied to the given resource. May be <code>null</code>.
 	 */
 	private ProvUsage getUsage(final C qi) {
 		return qi.getUsage() == null ? qi.getConfiguration().getUsage() : qi.getUsage();
 	}
 
 	/**
-	 * Return the usage name applied to the given instance. May be <code>null</code>.
+	 * Return the usage name applied to the given resource. May be <code>null</code>.
 	 */
 	protected String getUsageName(final C qi) {
 		final ProvUsage usage = getUsage(qi);
@@ -172,10 +180,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Delete an instance from a quote. The total cost is updated.
+	 * Delete an resource from a quote. The total cost is updated.
 	 *
 	 * @param id
-	 *            The {@link ProvQuoteInstance}'s identifier to delete.
+	 *            The {@link AbstractQuoteResourceInstance}'s identifier to delete.
 	 * @return The updated computed cost.
 	 */
 	protected UpdatedCost delete(@PathParam("id") final int id) {
@@ -211,10 +219,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the instance price type available for a subscription.
+	 * Return the resource price type available for a subscription.
 	 *
 	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 *            The subscription identifier, will be used to filter the resources from the associated provider.
 	 * @param uriInfo
 	 *            filter data.
 	 * @return The available price types for the given subscription.
@@ -256,19 +264,19 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param ram
 	 *            The requested RAM.
 	 * @param ip
-	 *            The instance price configuration.
-	 * @return The cost of this custom instance.
+	 *            The resource price configuration.
+	 * @return The cost of this custom resource.
 	 */
 	protected abstract double getCustomCost(final Double cpu, final Integer ram, final P ip);
 
 	/**
-	 * Compute the cost using minimal and maximal quantity of related instance. no rounding there.
+	 * Compute the cost using minimal and maximal quantity of related resource. no rounding there.
 	 *
 	 * @param base
-	 *            The cost of one instance.
+	 *            The cost of one resource.
 	 * @param qi
-	 *            The quote instance to compute.
-	 * @return The updated cost of this instance.
+	 *            The quote resource to compute.
+	 * @return The updated cost of this resource.
 	 */
 	public static FloatingCost computeFloat(final double base, final AbstractQuoteResourceInstance<?> qi) {
 		return new FloatingCost(base * qi.getMinQuantity(),
@@ -279,7 +287,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
 	 *
 	 * @param entity
-	 *            The quote instance to update.
+	 *            The quote resource to update.
 	 * @return The new computed cost.
 	 */
 	private UpdatedCost newUpdateCost(final C entity) {

@@ -2928,7 +2928,6 @@ define(function () {
 		},
 		
 		formatDatabaseEngine(value, mode, data) {
-			// TODO Add engine
 			return value;
 		},
 

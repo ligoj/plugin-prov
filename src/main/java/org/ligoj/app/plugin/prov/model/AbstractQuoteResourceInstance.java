@@ -5,10 +5,8 @@ package org.ligoj.app.plugin.prov.model;
 
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -60,10 +58,6 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 */
 	private Boolean constant;
 
-	@JsonIgnore
-	@OneToMany(mappedBy = "quoteInstance", cascade = CascadeType.REMOVE)
-	private List<ProvQuoteStorage> storages;
-
 	/**
 	 * The minimal quantity of this instance.
 	 */
@@ -102,4 +96,11 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 * @return The resource type.
 	 */
 	public abstract ResourceType getResourceType();
+
+	/**
+	 * Return attached storages.
+	 *
+	 * @return Attached storages.
+	 */
+	public abstract List<ProvQuoteStorage> getStorages();
 }

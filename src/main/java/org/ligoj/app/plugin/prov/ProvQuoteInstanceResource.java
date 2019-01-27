@@ -34,6 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -67,6 +68,11 @@ public class ProvQuoteInstanceResource extends
 	@Getter
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
+
+	@Override
+	protected ResourceType getType() {
+		return ResourceType.INSTANCE;
+	}
 
 	/**
 	 * Create the instance inside a quote.

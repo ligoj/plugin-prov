@@ -5,6 +5,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
@@ -34,6 +35,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -69,6 +71,11 @@ public class ProvQuoteDatabaseResource extends
 	@Autowired
 	private ProvDatabaseTypeRepository itRepository;
 
+	@Override
+	protected ResourceType getType() {
+		return ResourceType.DATABASE;
+	}
+
 	/**
 	 * Create the database inside a quote.
 	 *
@@ -101,17 +108,19 @@ public class ProvQuoteDatabaseResource extends
 	protected void saveOrUpdateSpec(final ProvQuoteDatabase entity, final QuoteDatabaseEditionVo vo) {
 		entity.setEngine(vo.getEngine());
 		entity.setEdition(vo.getEdition());
+		checkAttribute("engine", entity.getPrice().getEngine(), entity.getEngine());
+		checkAttribute("edition", entity.getPrice().getEdition(), entity.getEdition());
 	}
 
 	/**
-	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
+	 * Check the requested edition is compliant with the one of associated {@link ProvDatabasePrice}
 	 */
-	protected void checkOs(final ProvQuoteInstance entity) {
-		if (entity.getOs().toPricingOs() != entity.getPrice().getOs()) {
+	protected <V> void checkAttribute(final String name, final V pQuote, final V vPrice) {
+		if (!Objects.equals(pQuote, vPrice)) {
 			// Incompatible, hack attempt?
-			log.warn("Attempt to create a database with an incompatible OS {} with catalog OS {}", entity.getOs(),
-					entity.getPrice().getOs());
-			throw new ValidationJsonException("os", "incompatible-os", entity.getPrice().getOs());
+			log.warn("Attempt to create a database with an incompatible {} {} with catalog {} {}", name, pQuote, name,
+					vPrice);
+			throw new ValidationJsonException(name, "incompatible-" + name, String.valueOf(vPrice));
 		}
 	}
 
@@ -167,8 +176,6 @@ public class ProvQuoteDatabaseResource extends
 	 * @param constant
 	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
 	 *            constant CPU is requested.
-	 * @param engine
-	 *            The requested database engine.
 	 * @param type
 	 *            Optional instance type name. May be <code>null</code>.
 	 * @param location
@@ -177,6 +184,8 @@ public class ProvQuoteDatabaseResource extends
 	 *            Optional usage name. May be <code>null</code> to use the default one.
 	 * @param license
 	 *            Optional license model. When <code>null</code>, the global quote's license is used.
+	 * @param engine
+	 *            The requested database engine.
 	 * @param edition
 	 *            Optional engine edition
 	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
@@ -205,7 +214,7 @@ public class ProvQuoteDatabaseResource extends
 			final String license, final String engine, final String edition) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final double ramR = getRam(configuration, ram);
+		final int ramR = (int) getRam(configuration, ram);
 
 		// Resolve the location to use
 		final int locationR = getLocation(configuration, location, node);
@@ -220,8 +229,8 @@ public class ProvQuoteDatabaseResource extends
 
 		// Resolve the right license model
 		final String licenseR = getLicense(configuration, license, engine, this::canByol);
-		final String editionR = getEdition(edition);
-		final String engineR = getEngine(engine);
+		final String editionR = normalize(edition);
+		final String engineR = normalize(engine);
 
 		// Return only the first matching instance
 		return ipRepository
@@ -230,12 +239,8 @@ public class ProvQuoteDatabaseResource extends
 				.stream().findFirst().map(rs -> newPrice((ProvDatabasePrice) rs[0], (double) rs[2])).orElse(null);
 	}
 
-	private String getEngine(final String engine) {
-		return StringUtils.trimToNull(StringUtils.upperCase(engine));
-	}
-
-	private String getEdition(final String edition) {
-		return StringUtils.trimToNull(StringUtils.upperCase(edition));
+	private String normalize(final String value) {
+		return StringUtils.trimToNull(StringUtils.upperCase(value));
 	}
 
 	private boolean canByol(final String engine) {
@@ -276,13 +281,13 @@ public class ProvQuoteDatabaseResource extends
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
 		final List<String> result = ipRepository
-				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), getEngine(engine));
+				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), normalize(engine));
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
 		return result;
 	}
 
 	/**
-	 * Return the available database engine for a subscription.
+	 * Return the available database engines for a subscription.
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
@@ -292,7 +297,7 @@ public class ProvQuoteDatabaseResource extends
 	 */
 	@GET
 	@Path("{subscription:\\d+}/database-engine")
-	public List<String> findEngine(@PathParam("subscription") final int subscription) {
+	public List<String> findEngines(@PathParam("subscription") final int subscription) {
 		return ipRepository.findAllEngines(subscriptionResource.checkVisible(subscription).getNode().getId());
 	}
 
@@ -309,10 +314,10 @@ public class ProvQuoteDatabaseResource extends
 	 */
 	@GET
 	@Path("{subscription:\\d+}/database-edition/{engine}")
-	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
+	public List<String> findEditions(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
 		return ipRepository.findAllEditions(subscriptionResource.checkVisible(subscription).getNode().getId(),
-				getEdition(engine));
+				normalize(engine));
 	}
 
 	/**
