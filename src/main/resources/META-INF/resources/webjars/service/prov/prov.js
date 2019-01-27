@@ -585,7 +585,9 @@ define(function () {
 		},
 
 		formatUsageTemplate: function (usage, mode) {
-			if (typeof usage !== 'object') {
+			if (usage) {
+				// TODO
+			} else {
 				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
 			}
 			if (mode === 'display') {
@@ -828,7 +830,8 @@ define(function () {
 			var $form = $(this).closest('[data-prov-type]');
 			var queries = [];
 			var type = $form.data('prov-type');
-			var $popup = _('popup-prov-' + type);
+			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var $popup = _('popup-prov-' + popupType);
 
 			// Build the query
 			$form.find('.resource-query').each(function () {
@@ -976,6 +979,7 @@ define(function () {
 		 */
 		initializeDataTableEvents: function (type) {
 			var oSettings = current[type + 'NewTable']();
+			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			$.extend(oSettings, {
 				data: current.model.configuration[type + 's'] || [],
 				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
@@ -1015,7 +1019,7 @@ define(function () {
 					orderable: false,
 					render: function () {
 						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-' + type + '"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+							'<a class="update" data-toggle="modal" data-target="#popup-prov-' + popupType + '"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
 						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				});
@@ -1044,7 +1048,7 @@ define(function () {
 			current[type + 'Table'] = dataTable;
 
 			// Resource edition pop-up
-			var $popup = _('popup-prov-' + type);
+			var $popup = _('popup-prov-' + popupType);
 			$popup.on('shown.bs.modal', function () {
 				_(type + '-name').trigger('focus');
 			}).on('submit', function (e) {
@@ -1300,7 +1304,7 @@ define(function () {
 			});
 
 			// Memory unit, CPU constant/variable selection
-			_('popup-prov-instance').on('click', '.input-group-btn li', function () {
+			_('popup-prov-generic').on('click', '.input-group-btn li', function () {
 				var $select = $(this).closest('.input-group-btn');
 				$select.find('li.active').removeClass('active');
 				var $active = $(this).addClass('active').find('a');
@@ -2112,13 +2116,14 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			validationManager.reset(_('popup-prov-' + type));
+			var $popup = _('popup-prov-' + ((type == 'instance' || type == 'database') ? 'generic' : type));
+			validationManager.reset($popup);
 			_(type + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
 			_(type + '-description').val(model.description || '');
 			_(type + '-location').select2('data', model.location || null);
 			_(type + '-usage').select2('data', model.usage || null);
 			current[type + 'ToUi'](model);
-			$.proxy(current.checkResource, _('popup-prov-' + type))();
+			$.proxy(current.checkResource, $popup)();
 		},
 
 		/**
@@ -2211,7 +2216,8 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			var $popup = _('popup-prov-' + type);
+			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var $popup = _('popup-prov-' + popupType);
 
 			// Build the playload for API service
 			var suggest = {
@@ -2767,75 +2773,7 @@ define(function () {
 		 * Initialize the instance datatables from the whole quote
 		 */
 		instanceNewTable: function () {
-			return {
-				rowCallback: function (nRow, qi) {
-					$(nRow).find('.storages-tags').select2('destroy').select2({
-						multiple: true,
-						minimumInputLength: 1,
-						createSearchChoice: () => null,
-						formatInputTooShort: current.$messages['service:prov:storage-select'],
-						formatResult: current.formatStoragePriceHtml,
-						formatSelection: current.formatStorageHtml,
-						ajax: {
-							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?instance=' + qi.id,
-							dataType: 'json',
-							data: function (term) {
-								return {
-									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
-								};
-							},
-							results: function (data) {
-								// Completed the requested identifier
-								data.forEach(function (quote) {
-									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-									quote.text = quote.price.type.name;
-								});
-								return {
-									more: false,
-									results: data
-								};
-							}
-						}
-					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
-						if (event.added) {
-							// New storage
-							var suggest = event.added;
-							var data = {
-								name: current.findNewName(current.model.configuration.storages, qi.name),
-								type: suggest.price.type.name,
-								size: suggest.size,
-								quoteInstance: qi.id,
-								subscription: current.model.subscription
-							};
-							$.ajax({
-								type: 'POST',
-								url: REST_PATH + 'service/prov/storage',
-								dataType: 'json',
-								contentType: 'application/json',
-								data: JSON.stringify(data),
-								success: function (updatedCost) {
-									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, qi.location);
-
-									// Keep the focus on this UI after the redraw of the row
-									$(function () {
-										_('prov-instances').find('tr[data-id="' + qi.id + '"]').find('.storages-tags .select2-input').trigger('focus');
-									});
-								}
-							});
-						} else if (event.removed) {
-							// Storage to delete
-							var qs = event.removed.qs || event.removed;
-							$.ajax({
-								type: 'DELETE',
-								url: REST_PATH + 'service/prov/storage/' + qs.id,
-								success: function (updatedCost) {
-									current.defaultCallback('storage', updatedCost);
-								}
-							});
-						}
-					});
-				},
-				columns: [{
+			return current.genericInstanceNewTable('instance', [{
 					data: 'minQuantity',
 					className: 'hidden-xs',
 					type: 'num',
@@ -2878,8 +2816,7 @@ define(function () {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
 					render: current.formatQiStorages
-				}]
-			};
+				}]);
 		},
 
 		/**
@@ -2989,31 +2926,134 @@ define(function () {
 				}
 			});
 		},
+		
+		formatDatabaseEngine(value, mode, data) {
+			// TODO Add engine
+			return value;
+		},
 
 		/**
 		 * Initialize the database datatables from the whole quote
 		 */
 		databaseNewTable: function () {
-			return {
-				columns: [{
-					data: 'price.vendor',
-					className: 'truncate',
-					render: current.formatDatabaseVendor
-				}, {
-					data: 'quoteInstance.minQuantity',
+			return current.genericInstanceNewTable('database', [{
+					data: 'minQuantity',
 					className: 'hidden-xs',
-					render: (value, mode, data) => value ? current.formatQuantity(value, mode, data) : 1
-				}, {
-					data: 'size',
-					width: '36px',
-					className: 'truncate',
 					type: 'num',
-					render: current.formatStorage
+					render: current.formatQuantity
+				}, {
+					data: 'price.engine',
+					className: 'truncate',
+					render: current.formatDatabaseEngine
+				}, {
+					data: 'cpu',
+					className: 'truncate',
+					width: '48px',
+					type: 'num',
+					render: current.formatCpu
+				}, {
+					data: 'ram',
+					className: 'truncate',
+					width: '64px',
+					type: 'num',
+					render: current.formatRam
+				}, {
+					data: 'price.term',
+					className: 'hidden-xs hidden-sm price-term',
+					render: current.formatInstanceTerm
 				}, {
 					data: 'price.type',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatInstanceType
-				}]
+				}, {
+					data: 'usage',
+					className: 'hidden-xs hidden-sm usage',
+					render: current.formatUsageTemplate
+				}, {
+					data: 'location',
+					className: 'hidden-xs hidden-sm location',
+					width: '24px',
+					render: current.formatLocation
+				}, {
+					data: null,
+					className: 'truncate hidden-xs hidden-sm',
+					render: current.formatQiStorages
+				}]);
+		},
+
+		/**
+		 * Initialize the database datatables from the whole quote
+		 */
+		genericInstanceNewTable: function (type, columns) {
+			return {
+				rowCallback: function (nRow, qi) {
+					$(nRow).find('.storages-tags').select2('destroy').select2({
+						multiple: true,
+						minimumInputLength: 1,
+						createSearchChoice: () => null,
+						formatInputTooShort: current.$messages['service:prov:storage-select'],
+						formatResult: current.formatStoragePriceHtml,
+						formatSelection: current.formatStorageHtml,
+						ajax: {
+							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
+							dataType: 'json',
+							data: function (term) {
+								return {
+									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
+								};
+							},
+							results: function (data) {
+								// Completed the requested identifier
+								data.forEach(function (quote) {
+									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+									quote.text = quote.price.type.name;
+								});
+								return {
+									more: false,
+									results: data
+								};
+							}
+						}
+					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
+						if (event.added) {
+							// New storage
+							var suggest = event.added;
+							var data = {
+								name: current.findNewName(current.model.configuration.storages, qi.name),
+								type: suggest.price.type.name,
+								size: suggest.size,
+								quoteInstance: qi.id,
+								subscription: current.model.subscription
+							};
+							$.ajax({
+								type: 'POST',
+								url: REST_PATH + 'service/prov/storage',
+								dataType: 'json',
+								contentType: 'application/json',
+								data: JSON.stringify(data),
+								success: function (updatedCost) {
+									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, qi.location);
+
+									// Keep the focus on this UI after the redraw of the row
+									$(function () {
+										_('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storages-tags .select2-input').trigger('focus');
+									});
+								}
+							});
+						} else if (event.removed) {
+							// Storage to delete
+							var qs = event.removed.qs || event.removed;
+							$.ajax({
+								type: 'DELETE',
+								url: REST_PATH + 'service/prov/storage/' + qs.id,
+								success: function (updatedCost) {
+									current.defaultCallback('storage', updatedCost);
+								}
+							});
+						}
+					});
+				},
+				columns: columns
 			};
 		},
 
@@ -3082,8 +3122,8 @@ define(function () {
 				}
 			} else if (updatedCost.id) {
 				// Delete this object
-				deleted++;
-				deletedSample = current.delete(type, updatedCost.id).name;
+				nbDeleted++;
+				deletedSample = current.delete(type, updatedCost.id, true).name;
 			}
 
 			// Notify callback

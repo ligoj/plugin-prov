@@ -33,7 +33,7 @@
 					<div class="row table-tools">
 						<div class="col-sm-10">
 							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-instance" class="btn btn-success btn-raised">{{new}}</button>
+								<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
 								<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
 								<div class="btn-group">
 									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
@@ -121,7 +121,7 @@
 					<div class="row table-tools">
 						<div class="col-sm-10">
 							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-database" class="btn btn-success btn-raised">{{new}}</button>
+								<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
 							</div>
 						</div>
 						<div class="col-sm-2">
@@ -137,10 +137,15 @@
 						<thead>
 							<tr>
 								<th class="noVis">{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:database-quantity}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:database-vendor-title}}">{{service:prov:database-vendor}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-size-title}}">{{service:prov:database-size}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-type-title}}" class="hidden-xs hidden-sm hidden-md">{{service:prov:database-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
+								<th data-toggle="tooltip" title="{{service:prov:database-engine-title}}">{{service:prov:database-engine}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
+								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
 								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 							</tr>
@@ -216,7 +221,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-instance" class="modal fade" tabindex="-1" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
+	<form id="popup-prov-generic" class="modal fade" tabindex="-1" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
