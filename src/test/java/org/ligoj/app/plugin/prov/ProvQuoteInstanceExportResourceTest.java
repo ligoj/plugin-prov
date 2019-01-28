@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.ws.rs.core.StreamingOutput;
@@ -14,7 +15,27 @@ import javax.ws.rs.core.StreamingOutput;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.ligoj.app.model.Node;
+import org.ligoj.app.model.Project;
+import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
+import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
+import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvInstanceType;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
+import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
+import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
+import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
+import org.ligoj.app.plugin.prov.model.ProvSupportType;
+import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -29,9 +50,31 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	private ProvQuoteInstanceResource qiResource;
 	@Autowired
 	private ProvQuoteStorageResource qsResource;
+	@Autowired
+	private ProvQuoteDatabaseResource qbResource;
+	@Autowired
+	private ProvQuoteSupportResource qs2Resource;
 
 	@Autowired
 	private ProvQuoteInstanceUploadResource qiuResource;
+
+	@Override
+	@BeforeEach
+	public void prepareData() throws IOException {
+		// Only with Spring context
+		persistSystemEntities();
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class,
+						ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
+						ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvSupportType.class,
+						ProvSupportPrice.class, ProvQuoteSupport.class },
+				StandardCharsets.UTF_8.name());
+		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		clearAllCache();
+		updateCost();
+	}
 
 	@Test
 	public void exportInline() throws IOException {
@@ -66,6 +109,8 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		// Empty
 		qsResource.deleteAll(subscription);
 		qiResource.deleteAll(subscription);
+		qbResource.deleteAll(subscription);
+		qs2Resource.deleteAll(subscription);
 		em.flush();
 		em.clear();
 		QuoteVo configuration = resource.getConfiguration(subscription);
@@ -100,8 +145,9 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		// Empty
 		em.flush();
 		em.clear();
-		qiResource.deleteAll(subscription);
 		qsResource.deleteAll(subscription);
+		qiResource.deleteAll(subscription);
+		qbResource.deleteAll(subscription);
 		em.flush();
 		em.clear();
 		configuration = resource.getConfiguration(subscription);
@@ -129,20 +175,28 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		final BufferedReader inputStreamReader = new BufferedReader(
 				new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), "cp1252"));
 		final List<String> lines = IOUtils.readLines(inputStreamReader);
-		Assertions.assertEquals(12, lines.size()); // 8 VM + 4 Disks
+		Assertions.assertEquals(21, lines.size()); // 8 VM + 7 DB + 4 Disks + 1 Support + 1 Header
 
 		// Header
 		Assertions.assertEquals(
 				"name;cpu;ram;os;usage;term;location;min;max;maxvariablecost;constant;ephemeral;type;internet;license;cost"
-						+ ";disk;instance;database;latency;optimized",
+						+ ";disk;instance;database;latency;optimized;engine;edition",
 				lines.get(0));
 
 		// Instance data
 		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8",
 				lines.get(1));
 
+		// Database data
+		Assertions.assertEquals("database2;0,25;1000;;;1y;;1;1;;;;database1;;;89,5;MYSQL;", lines.get(9));
+		Assertions.assertEquals("database4;0,5;2000;;;on-demand1;;1;1;;;;database2;;;135,42;ORACLE;STANDARD ONE",
+				lines.get(11));
+
 		// Storage data
-		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155,6;;51;storage2;server1;;MEDIUM;THROUGHPUT", lines.get(10));
+		Assertions.assertEquals("server1-temp;;;;;;;;;;;;155,6;;51;storage2;server1;;MEDIUM;THROUGHPUT", lines.get(17));
+
+		// Support data
+		Assertions.assertEquals("support-name1;;;;;;;;;;;;577,26;;1;support2;;;", lines.get(20));
 	}
 
 	private List<String> export() throws IOException {
@@ -152,5 +206,17 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		final BufferedReader inputStreamReader = new BufferedReader(
 				new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), "cp1252"));
 		return IOUtils.readLines(inputStreamReader);
+	}
+
+	@Override
+	protected void updateCost() {
+		// Check the cost fully updated and exact actual cost
+		final FloatingCost cost = resource.updateCost(subscription);
+		Assertions.assertEquals(7682.458, cost.getMin(), DELTA);
+		Assertions.assertEquals(10408.153, cost.getMax(), DELTA);
+		Assertions.assertFalse(cost.isUnbound());
+		checkCost(subscription, 7682.458, 10408.153, false);
+		em.flush();
+		em.clear();
 	}
 }

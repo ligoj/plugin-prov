@@ -42,7 +42,7 @@ define(function () {
 				_('name-prov').val(current.model.configuration.name);
 				var now = moment();
 				$('.prov-export-instances-inline').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-inline-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
-				$('.prov-export-instances-split').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-split-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
+				$('.prov-export-instances-split').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-split-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
 			});
 		},
 
