@@ -40,6 +40,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -105,6 +106,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvQuoteInstanceResource qiResource;
+
+	@Autowired
+	private ProvQuoteDatabaseResource qbResource;
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
@@ -290,14 +294,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch instances) to refresh
-		return updateCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost);
+		return updateCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost,
+				qbResource::updateCost);
 	}
 
 	/**
 	 * Refresh the cost without updating the resources constraints.
 	 */
 	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
-			Function<ProvQuoteStorage, FloatingCost> storageFunction) {
+			Function<ProvQuoteStorage, FloatingCost> storageFunction,
+			Function<ProvQuoteDatabase, FloatingCost> databaseFunction) {
 		final int subscription = entity.getSubscription().getId();
 
 		// Reset the costs to 0, will be updated further in this process
@@ -310,6 +316,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Add the storage cost
 		qsRepository.findAll(subscription).stream().map(storageFunction).forEach(fc -> addCost(entity, fc));
+
+		// Add the database cost
+		qbRepository.findAll(subscription).stream().map(databaseFunction).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
 		return refreshSupportCost(entity).round();
@@ -348,7 +357,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Override
 	public FloatingCost refresh(final ProvQuote entity) {
-		return updateCost(entity, qiResource::refresh, qsResource::refresh);
+		return updateCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
 	}
 
 	@Override

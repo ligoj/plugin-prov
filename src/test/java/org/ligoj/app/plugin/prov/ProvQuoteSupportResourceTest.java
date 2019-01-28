@@ -101,6 +101,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("support1D");
 		vo.setType("support1");
 		vo.setSeats(3);
+		vo.setAccessChat(null);
+		vo.setAccessEmail(null);
+		vo.setLevel(Rate.LOW);
 		final UpdatedCost cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 3541.94, 6236.5, false);
 		checkCost(cost.getCost(), 376.54, 621.5, false);
@@ -346,9 +349,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void findSupportTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.findType(subscription, newUriInfo());
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
 	}
 
 	/**

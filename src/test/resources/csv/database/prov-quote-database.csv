@@ -1,9 +1,9 @@
-configuration.name;price.code;name;description;cpu;ram;engine;edition;cost;maxCost;constant;minQuantity;maxQuantity
+configuration.name;price.code;name;description;cpu;ram;engine;edition;cost;maxCost;constant;minQuantity;maxQuantity;license
 quote1;MYSQL1;database1;databaseD1;0.5;2000;MYSQL;;100;200;true;1;2
 quote1;MYSQL2;database2;databaseD2;0.25;1000;MYSQL;;0;0
 quote1;ORACLE1;database3;databaseD3;0.5;2000;ORACLE;;0;0
-quote1;ORACLE4;database4;databaseD4;1;2000;ORACLE;STANDARD ONE;0;0;false
-quote1;ORACLE3;database5;databaseD5;1;4000;ORACLE;;0;0
-quote1;ORACLE4;database6;databaseD6;4;8000;ORACLE;;0;0
-quote1;ORACLE6;database7;databaseD7;3;24576;ORACLE;ENTERPRISE;0;0
+quote1;ORACLE4;database4;databaseD4;0.5;2000;ORACLE;STANDARD ONE;0;0
+quote1;ORACLE3;database5;databaseD5;0.5;1700;ORACLE;;0;0
+quote1;ORACLE4;database6;databaseD6;0.5;1800;ORACLE;;0;0
+quote1;ORACLE6;database7;databaseD7;0.5;1900;ORACLE;ENTERPRISE;0;0;;1;1;BYOL
 quote3;ORACLE1;databaseX;databaseDX;1;2000;ORACLE;;0;0

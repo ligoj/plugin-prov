@@ -375,4 +375,29 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("real name", configuration.getInstances().get(7).getName());
 		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
 	}
+
+
+	@Test
+	public void uploadSoftware() throws IOException {
+		qiuResource.upload(subscription,
+				new ByteArrayInputStream("ANY;0.5;500;WINDOWS;SQL Web".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", 1,
+				"UTF-8");
+		QuoteVo configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("C121", configuration.getInstances().get(7).getPrice().getCode());
+		Assertions.assertEquals("SQL Web", configuration.getInstances().get(7).getPrice().getSoftware());
+	}
+
+	@Test
+	public void uploadLicense() throws IOException {
+		qiuResource.upload(subscription,
+				new ByteArrayInputStream("ANY;0.5;500;WINDOWS;BYOL".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "license" }, false, "Full Time 12 month", 1,
+				"UTF-8");
+		QuoteVo configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("C120", configuration.getInstances().get(7).getPrice().getCode());
+		Assertions.assertEquals("BYOL", configuration.getInstances().get(7).getPrice().getLicense());
+	}
 }

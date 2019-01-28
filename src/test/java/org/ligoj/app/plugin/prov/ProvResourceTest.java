@@ -168,6 +168,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(vo.getLastModifiedBy());
 		Assertions.assertNotNull(vo.getLastModifiedDate());
 		Assertions.assertEquals("region-1", vo.getLocation().getName());
+		Assertions.assertEquals(3, vo.getLocations().size());
+		Assertions.assertEquals("region-1", vo.getLocations().get(0).getName());
+		Assertions.assertEquals("region-2", vo.getLocations().get(1).getName());
+		Assertions.assertEquals("region-4", vo.getLocations().get(2).getName());
 
 		// Check compute
 		final List<ProvQuoteInstance> instances = vo.getInstances();
@@ -261,6 +265,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("on-demand2", instances.get(4).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand1", instances.get(5).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand1", instances.get(6).getPrice().getTerm().getName());
+
+		// Check databases
+		final List<ProvQuoteInstance> databases = vo.getInstances();
+		Assertions.assertEquals(7, databases.size());
 
 		// Optimize the configuration
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
@@ -380,7 +388,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("service:prov:test", repository.findByName("name1").getLocation().getNode().getId());
 	}
 
-	private  ProvQuote newProvQuote() {
+	private ProvQuote newProvQuote() {
 		final Subscription subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -423,6 +431,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		return configuration;
 	}
+
 	/**
 	 * Update the RAM adjust rate.
 	 */
@@ -455,6 +464,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.clear();
 		final ProvQuoteInstance instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
+		Assertions.assertEquals(150, resource.getConfiguration(subscription.getId()).getRamAdjustedRate());
 	}
 
 	/**
@@ -555,8 +565,12 @@ public class ProvResourceTest extends AbstractAppTest {
 		// Only there for coverage of associations required by JPA
 		new ProvQuote().setStorages(null);
 		new ProvQuote().getStorages();
+		new ProvQuote().getDatabases();
+		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
+		new ProvQuote().setDatabases(null);
 		new ProvQuoteInstance().setStorages(null);
+		new UpdatedCost(0).setDeleted(null);
 		Rate.valueOf(Rate.GOOD.name());
 		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());

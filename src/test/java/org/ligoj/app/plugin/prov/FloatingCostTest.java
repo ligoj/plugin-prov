@@ -30,4 +30,21 @@ public class FloatingCostTest {
 		Assertions.assertEquals(4.6, cost.round().getMax());
 		Assertions.assertTrue(cost.round().isUnbound());
 	}
+	@Test
+	public void add() {
+		final FloatingCost cost1 = new FloatingCost(1.1, 2.2, false);
+		final FloatingCost cost2 = new FloatingCost(4.4, 5.5, false);
+		final FloatingCost cost3 = new FloatingCost(6.6, 7.7, false);
+		cost3.setUnbound(true);
+
+		cost1.add(cost2);
+		Assertions.assertEquals(5.5, cost1.getMin());
+		Assertions.assertEquals(7.7, cost1.getMax());
+		Assertions.assertFalse(cost1.isUnbound());
+
+		cost1.add(cost3);
+		Assertions.assertEquals(12.1, cost1.getMin());
+		Assertions.assertEquals(15.4, cost1.getMax());
+		Assertions.assertTrue(cost1.isUnbound());
+	}
 }

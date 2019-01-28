@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
@@ -152,10 +153,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
 		final UpdatedCost cost = new UpdatedCost(0);
 		cost.getDeleted().put(getType(), getQiRepository().findAllIdentifiers(subscription));
-		cost.getDeleted().put(ResourceType.STORAGE, ((BasePovInstanceBehavior)getQiRepository()).findAllStorageIdentifiers(subscription));
+		cost.getDeleted().put(ResourceType.STORAGE,
+				((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription));
 
 		// Delete all resources with cascaded delete for storages
-		((BasePovInstanceBehavior)getQiRepository()).deleteAllStorages(subscription);
+		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(subscription);
 		getQiRepository().deleteAllBySubscription(subscription);
 
 		// Update the cost. Note the effort could be reduced to a simple
@@ -267,7 +269,27 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
-	protected abstract double getCustomCost(final Double cpu, final Integer ram, final P ip);
+	protected double getCustomCost(final Double cpu, final Integer ram, final P ip) {
+		// Compute the count of the requested resources
+		return getCustomCost(cpu, ((ProvInstancePrice) ip).getCostCpu(), 1)
+				+ getCustomCost(ram, ((ProvInstancePrice) ip).getCostRam(), 1024);
+	}
+
+	/**
+	 * Compute the monthly cost of a custom requested resource.
+	 *
+	 * @param requested
+	 *            The request resource amount.
+	 * @param cost
+	 *            The cost of one resource.
+	 * @param weight
+	 *            The weight of one resource.
+	 * @return The cost of this custom instance.
+	 */
+	private double getCustomCost(final Number requested, final Double cost, final double weight) {
+		// Compute the count of the requested resources
+		return Math.ceil(requested.doubleValue() / weight) * cost;
+	}
 
 	/**
 	 * Compute the cost using minimal and maximal quantity of related resource. no rounding there.

@@ -64,15 +64,16 @@ public class FloatingCost implements Serializable {
 	}
 
 	/**
-	 * Add a another floating cost.
+	 * Add a another floating cost. This operation updates the current object.
 	 *
 	 * @param other
 	 *            Another cost.
 	 * @return This object.
 	 */
 	public FloatingCost add(final FloatingCost other) {
-		min += other.getMin();
-		max += other.getMax();
+		min += other.min;
+		max += other.max;
+		unbound |= other.unbound;
 		return this;
 	}
 

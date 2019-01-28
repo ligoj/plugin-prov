@@ -86,6 +86,18 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		updateCost();
 	}
 
+	@Test
+	public void getConfiguration() {
+		final List<ProvQuoteDatabase> databases = resource.getConfiguration(subscription).getDatabases();
+		Assertions.assertEquals(7, databases.size());
+	}
+
+	@Test
+	public void refresh() {
+		final FloatingCost refresh = resource.refresh(subscription);
+		checkCost(refresh, 5613.6, 8209.5, false);
+	}
+
 	/**
 	 * Basic case, almost no requirements.
 	 */
@@ -108,9 +120,16 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final ProvDatabasePrice pi = lookup.getPrice();
 		Assertions.assertEquals("database2", pi.getType().getName());
 		Assertions.assertEquals("MYSQL3", pi.getCode());
-		Assertions.assertNull(pi.getLicense());
 		Assertions.assertEquals("MYSQL", pi.getEngine());
+		Assertions.assertNull(pi.getStorageEngine());
 		Assertions.assertNull(pi.getEdition());
+		Assertions.assertNull(pi.getLicense());
+
+		// Coverage only
+		Assertions.assertTrue(pi.toString().contains("engine=MYSQL, edition=null"));
+		Assertions.assertTrue(lookup.toString().contains("engine=MYSQL, edition=null"));
+		new ProvQuoteDatabase().setStorages(null);
+		Assertions.assertNotNull(qbResource.getItRepository());
 	}
 
 	/**
@@ -128,6 +147,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("ORACLE", pi.getEngine());
 		Assertions.assertEquals("ENTERPRISE", pi.getEdition());
 		Assertions.assertEquals("BYOL", pi.getLicense());
+		Assertions.assertEquals("ORACLE", pi.getStorageEngine());
 	}
 
 	/**
@@ -145,9 +165,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource
-				.lookup(subscription, 1, 2000, null, null, "region-xxx", "Full Time 12 month", null, "MYSQL", null)
-				.getPrice().getType().getName());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription, 1, 2000, null,
+				null, "region-xxx", "Full Time 12 month", null, "MYSQL", null));
 	}
 
 	private void checkInstance(final QuoteDatabaseLookup lookup) {
@@ -242,7 +261,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 				StandardCharsets.UTF_8.name());
 		qsRepository.deleteAllBy("name", "shared-data");
 		resource.refresh(subscription);
-		checkCost(subscription, 3533.937, 6177.884, false);
+		checkCost(subscription, 6113.414, 8839.109, false);
 		em.flush();
 		em.clear();
 
@@ -267,10 +286,10 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		checkCost(qbResource.delete(id), 4604.758, 6954.358, false);
+		checkCost(qbResource.delete(id), 6958.898, 9408.498, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 4604.758, 6954.358, false);
+		checkCost(subscription, 6958.898, 9408.498, false);
 		Assertions.assertEquals(0,
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 		Assertions.assertNull(qbRepository.findOne(id));
@@ -306,7 +325,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost, same as initial
-		checkCost(updatedCost.getTotal(), 4751.058, 7246.958, false);
+		checkCost(updatedCost.getTotal(), 7105.198, 9701.098, false);
 		checkCost(updatedCost.getCost(), 116.3, 232.6, false);
 
 		// Check the related storage prices: only one attached database storage
@@ -354,9 +373,9 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 4751.058, 9880.358, false);
+		checkCost(updatedCost.getTotal(), 7105.198, 12334.498, false);
 		checkCost(updatedCost.getCost(), 116.3, 2326.0, false);
-		checkCost(subscription, 4751.058, 9880.358, false);
+		checkCost(subscription, 7105.198, 12334.498, false);
 
 		// Check the related storage prices: only one attached storage
 		Assertions.assertEquals(1, updatedCost.getRelated().get(ResourceType.STORAGE).size());
@@ -372,7 +391,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final UpdatedCost updatedCost2 = qbResource.update(vo);
-		checkCost(updatedCost2.getTotal(), 4692.908, 8717.358, false);
+		checkCost(updatedCost2.getTotal(), 7047.048, 11171.498, false);
 		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
 
 		// Change the region of this instance, storage is also
@@ -395,7 +414,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 
 		// Check the cost
-		checkCost(resource.refresh(subscription), 3337.4, 5959.0, false);
+		checkCost(resource.refresh(subscription), 5755.6, 8493.5, false);
 
 		// Everything identity but the region
 		final QuoteDatabaseEditionVo vo = new QuoteDatabaseEditionVo();
@@ -411,7 +430,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setLocation("region-1");
 
 		// No change
-		checkCost(qbResource.update(vo).getTotal(), 3642.0, 8298.0, false);
+		checkCost(qbResource.update(vo).getTotal(), 6043.9, 10799.9, false);
 
 		vo.setLocation("region-2"); // "region-1" to "region-2"
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qbResource.update(vo)),
@@ -435,11 +454,11 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final UpdatedCost updatedCost = qbResource.create(vo);
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 6198.758, 9410.358, false);
+		checkCost(updatedCost.getTotal(), 8569.198, 11897.098, false);
 		checkCost(updatedCost.getCost(), 1464.0, 2196.0, false);
 		Assertions.assertEquals(1, updatedCost.getRelated().size());
 		Assertions.assertTrue(updatedCost.getRelated().get(ResourceType.STORAGE).isEmpty());
-		checkCost(subscription, 6198.758, 9410.358, false);
+		checkCost(subscription, 8569.198, 11897.098, false);
 		final ProvQuoteDatabase instance = qbRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals("serverZ", instance.getName());
 		Assertions.assertEquals("serverZD", instance.getDescription());
@@ -597,10 +616,10 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	protected void updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final FloatingCost cost = resource.updateCost(subscription);
-		Assertions.assertEquals(4734.758, cost.getMin(), DELTA);
-		Assertions.assertEquals(7214.358, cost.getMax(), DELTA);
+		Assertions.assertEquals(7105.198, cost.getMin(), DELTA);
+		Assertions.assertEquals(9701.098, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4734.758, 7214.358, false);
+		checkCost(subscription, 7105.198, 9701.098, false);
 		em.flush();
 		em.clear();
 	}

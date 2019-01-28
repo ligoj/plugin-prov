@@ -337,37 +337,4 @@ public class ProvQuoteInstanceResource extends
 		return result;
 	}
 
-	/**
-	 * Compute the monthly cost of a custom requested resource.
-	 *
-	 * @param cpu
-	 *            The requested CPU.
-	 * @param ram
-	 *            The requested RAM.
-	 * @param ip
-	 *            The instance price configuration.
-	 * @return The cost of this custom instance.
-	 */
-	@Override
-	protected double getCustomCost(final Double cpu, final Integer ram, final ProvInstancePrice ip) {
-		// Compute the count of the requested resources
-		return getCustomCost(cpu, ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024);
-	}
-
-	/**
-	 * Compute the monthly cost of a custom requested resource.
-	 *
-	 * @param requested
-	 *            The request resource amount.
-	 * @param cost
-	 *            The cost of one resource.
-	 * @param weight
-	 *            The weight of one resource.
-	 * @return The cost of this custom instance.
-	 */
-	private double getCustomCost(final Number requested, final Double cost, final double weight) {
-		// Compute the count of the requested resources
-		return Math.ceil(requested.doubleValue() / weight) * cost;
-	}
-
 }
