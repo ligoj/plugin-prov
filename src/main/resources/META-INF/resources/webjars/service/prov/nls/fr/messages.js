@@ -88,7 +88,7 @@ define({
 	'service:prov:storage-optimized-throughput': 'Débit',
 	'service:prov:storage-optimized-throughput-title': 'Volume des échanges de données, généralement basé sur du stockage de type HDD',
 	'service:prov:storage-optimized-durability': 'Durability',
-	'service:prov:storage-optimized-durability-title': 'Data durability over performance',
+    'service:prov:storage-optimized-durability-title': 'Durabilité des données plus que la performance',
 	'service:prov:storage-optimized-iops': 'IOPS',
 	'service:prov:storage-optimized-iops-title': 'I/O par second, généralement basé sur du stockage de type SSD',
 	'service:prov:storage-instance-title': 'Instance associée à ce stockage. Sera supprimée lorsque cette instance le sera, même leur cycle de vie sont indépendants à l\'exécution',
