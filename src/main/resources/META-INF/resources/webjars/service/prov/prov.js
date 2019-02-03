@@ -1099,7 +1099,7 @@ define(function () {
 				var $tr = $source.closest('tr');
 				var dynaType = $source.closest('[data-prov-type]').attr('data-prov-type');
 				var $table = _('prov-' + dynaType + 's');
-				var quote = ($tr.length && $table.DataTable().fnGetData($tr[0])) || {};
+				var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
 				$(this).attr('data-prov-type', dynaType)
 					.find('input[type="submit"]')
 					.removeClass('btn-primary btn-success')
@@ -2262,8 +2262,8 @@ define(function () {
 		 */
 		databaseToUi: function (quote) {
 			current.genericToUi(quote);
-			_('database-engine').val(quote.engine || "MYSQL");
-			_('database-edition').val(quote.edition || null);
+			_('database-engine').select2('data', current.select2IdentityData(quote.engine || 'MYSQL'));
+			_('database-edition').select2('data', current.select2IdentityData(quote.edition || null));
 			current.instanceSetUiPrice(quote);
 		},
 
