@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.1.1</version>
+		<version>3.1.2</version>
 		<relativePath />
 	</parent>
 
@@ -21,7 +21,6 @@
 	</scm>
 	<properties>
 		<awaitility.version>3.1.0</awaitility.version>
-		<bootstrap.version>2.4.4</bootstrap.version>
 	</properties>
 
 	<dependencies>
