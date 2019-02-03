@@ -568,6 +568,11 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	public void findEditionNone() {
+		Assertions.assertEquals(0, qbResource.findEditions(subscription, "mysql").size());
+	}
+
+	@Test
 	public void findLicensesNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.findLicenses(subscription, "ORACLE"));

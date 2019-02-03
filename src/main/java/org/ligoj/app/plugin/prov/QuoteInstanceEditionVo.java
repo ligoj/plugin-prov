@@ -3,10 +3,8 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
 import lombok.Getter;
@@ -36,12 +34,6 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo {
 	 */
 	@Positive
 	private Double maxVariableCost;
-
-	/**
-	 * The Internet access : Internet facing, etc.
-	 */
-	@NotNull
-	private InternetAccess internet = InternetAccess.PRIVATE;
 
 	/**
 	 * The instance could be terminated by the provider. Default <code>false</code>.

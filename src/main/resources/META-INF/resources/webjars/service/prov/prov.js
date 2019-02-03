@@ -266,12 +266,11 @@ define(function () {
 		 * Format instance quantity
 		 */
 		formatQuantity: function (quantity, mode, instance) {
-			instance = typeof instance === 'undefined' ? quantity : (instance.quoteInstance || instance);
+			var min = typeof instance === 'undefined' ? quantity : (instance.minQuantity || 0);
 			if (mode === 'sort' || mode === 'filter' || typeof instance === 'undefined') {
-				return quantity;
+				return min;
 			}
 
-			var min = instance.minQuantity || 0;
 			var max = instance.maxQuantity;
 			if (typeof max !== 'number') {
 				return min + '+';
@@ -512,6 +511,19 @@ define(function () {
 		},
 
 		/**
+		 * Engine key to markup/label mapping.
+		 */
+		databaseEngines: {
+			'MYSQL': ['MySQL', 'icon-mysql'],
+			'ORACLE': ['Oracle', 'icon-oracle'],
+			'MARIADB': ['MariaDB', 'icon-mariadb'],
+			'AURORA MYSQL': ['Aurora MySQL', 'icon-aws'],
+			'AURORA POSTGRESQL': ['Aurora PostgreSQL', 'icon-aws'],
+			'POSTGRESQL': ['PostgreSQL', 'icon-postgres'],
+			'SQL SERVER': ['SQL Server', 'icon-mssql'],
+		},
+
+		/**
 		 * Internet Access key to markup/label mapping.
 		 */
 		internet: {
@@ -612,7 +624,7 @@ define(function () {
 				obj = conf.locationsById[data.price.location];
 			} else if (data.quoteInstance && data.quoteInstance.price.location) {
 				obj = conf.locationsById[data.quoteInstance.price.location];
-			} else if (data.quoteInstance && data.quoteDatabase.price.location) {
+			} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
 				obj = conf.locationsById[data.quoteDatabase.price.location];
 			} else {
 				obj = current.model.configuration.location;
@@ -829,13 +841,19 @@ define(function () {
 		checkResource: function () {
 			var $form = $(this).closest('[data-prov-type]');
 			var queries = [];
-			var type = $form.data('prov-type');
+			var type = $form.attr('data-prov-type');
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			var $popup = _('popup-prov-' + popupType);
 
 			// Build the query
-			$form.find('.resource-query').each(function () {
+			$form.find('.resource-query').filter(function () {
+				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive') === type;
+			}).each(function () {
 				current.addQuery(type, $(this), queries);
+				if (type === 'database') {
+					// Also include the instance inputs
+					current.addQuery('instance', $(this), queries);
+				}
 			});
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
@@ -926,9 +944,9 @@ define(function () {
 		},
 
 		/**
-		 * Set the current instance price.
+		 * Set the current instance/database price.
 		 */
-		instanceSetUiPrice: function (quote) {
+		genericSetUiPrice: function (quote) {
 			if (quote && quote.price) {
 				var suggests = [quote];
 				_('instance-price').select2('destroy').select2({
@@ -944,6 +962,20 @@ define(function () {
 			} else {
 				_('instance-price').select2('data', null);
 			}
+		},
+
+		/**
+		 * Set the current instance price.
+		 */
+		instanceSetUiPrice: function (quote) {
+			current.genericSetUiPrice(quote);
+		},
+
+		/**
+		 * Set the current instance price.
+		 */
+		databaseSetUiPrice: function (quote) {
+			current.genericSetUiPrice(quote);
 		},
 
 		/**
@@ -1046,26 +1078,41 @@ define(function () {
 				});
 			});
 			current[type + 'Table'] = dataTable;
+		},
 
+		/**
+		 * Initialize data tables and popup event : delete and details
+		 */
+		initializePopupEvents: function (type) {
 			// Resource edition pop-up
+			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			var $popup = _('popup-prov-' + popupType);
 			$popup.on('shown.bs.modal', function () {
-				_(type + '-name').trigger('focus');
+				var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
+				_(inputType + '-name').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
-				current.save(type);
+				var dynaType = $(this).closest('[data-prov-type]').attr('data-prov-type');
+				current.save(dynaType);
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var quote = ($tr.length && dataTable.fnGetData($tr[0])) || {};
-				$(this).find('input[type="submit"]').removeClass('btn-primary btn-success').addClass(quote.id ? 'btn-primary' : 'btn-success');
+				var dynaType = $source.closest('[data-prov-type]').attr('data-prov-type');
+				var $table = _('prov-' + dynaType + 's');
+				var quote = ($tr.length && $table.DataTable().fnGetData($tr[0])) || {};
+				$(this).attr('data-prov-type', dynaType)
+					.find('input[type="submit"]')
+					.removeClass('btn-primary btn-success')
+					.addClass(quote.id ? 'btn-primary' : 'btn-success');
+				$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
+				$popup.find('[data-exclusive]').not('[data-exclusive="' + dynaType + '"]').find(':required').addClass('old-required').removeAttr('required');
 				if (quote.id) {
 					current.enableCreate($popup);
 				} else {
 					current.disableCreate($popup);
 				}
 				current.model.quote = quote;
-				current.toUi(type, quote);
+				current.toUi(dynaType, quote);
 			});
 		},
 
@@ -1125,7 +1172,7 @@ define(function () {
 			// Global datatables filter
 			$('.subscribe-configuration-prov-search').on('keyup', function (event) {
 				if (event.which !== 16 && event.which !== 91) {
-					var table = current[$(this).closest('[data-prov-type]').data('prov-type') + 'Table'];
+					var table = current[$(this).closest('[data-prov-type]').attr('data-prov-type') + 'Table'];
 					if (table) {
 						table.fnFilter($(this).val());
 						current.updateUiCost();
@@ -1140,6 +1187,9 @@ define(function () {
 			});
 			$(current.types).each(function (_i, type) {
 				current.initializeDataTableEvents(type);
+				if (type !== 'database') {
+					current.initializePopupEvents(type);
+				}
 			});
 			$('.quote-name').text(current.model.configuration.name);
 
@@ -1241,9 +1291,14 @@ define(function () {
 				}]
 			});
 
-			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.termToText, function () {
+			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, function () {
 				return 'instance-software/' + _('instance-os').val();
 			}));
+			_('database-engine').select2(current.genericSelect2(null, current.formatDatabaseEngine, 'database-engine'));
+			_('database-edition').select2(current.genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, function () {
+				return 'database-edition/' + _('database-engine').val();
+			}));
+
 
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
@@ -1512,7 +1567,11 @@ define(function () {
 		 * Configure license.
 		 */
 		initializeLicense: function () {
-			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, () => 'instance-license/' + _('instance-os').val()));
+			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function () {
+				return _('instance-license').closest('[data-prov-type]').attr('data-prov-type') === 'instance'
+					? 'instance-license/' + _('instance-os').val()
+					: ('database-license/' + _('database-engine').val())
+			}));
 			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, () => 'instance-license/WINDOWS'))
 				.select2('data', current.model.configuration.license ? {
 					id: current.model.configuration.license,
@@ -1607,7 +1666,7 @@ define(function () {
 		 * Price term Select2 configuration.
 		 */
 		instanceTermSelect2: function () {
-			return current.genericSelect2(current.$messages['service:prov:default'], current.termToText, 'instance-price-term');
+			return current.genericSelect2(current.$messages['service:prov:default'], current.defaultToText, 'instance-price-term');
 		},
 
 		/**
@@ -2018,7 +2077,7 @@ define(function () {
 		/**
 		 * Price term text renderer.
 		 */
-		termToText: function (term) {
+		defaultToText: function (term) {
 			return term.text || term.name || term;
 		},
 
@@ -2041,6 +2100,7 @@ define(function () {
 			model.optimized = data.optimized;
 			// Update the attachment
 			current.attachStorage(model, 'instance', data.quoteInstance);
+			current.attachStorage(model, 'database', data.quoteDatabase);
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2052,20 +2112,39 @@ define(function () {
 			model.accessEmail = data.accessEmail;
 		},
 
-		instanceCommitToModel: function (data, model) {
+		genericCommitToModel: function (data, model) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
-			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
 			model.internet = data.internet;
 			model.minQuantity = parseInt(data.minQuantity, 10);
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
+		},
+
+		instanceCommitToModel: function (data, model) {
+			current.genericCommitToModel(data, model);
+			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
+			model.ephemeral = data.ephemeral;
 			model.os = data.os;
+		},
+
+		databaseCommitToModel: function (data, model) {
+			current.genericCommitToModel(data, model);
+			model.engine = data.engine;
+			model.edition = data.edition;
 		},
 
 		storageUiToData: function (data) {
 			data.size = current.cleanInt(_('storage-size').val());
-			data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
+			delete data.quoteInstance;
+			delete data.quoteDatabase;
+			if (_('storage-instance').select2('data')) {
+				if (_('storage-instance').select2('data').type === 'database') {
+					data.quoteDatabase = (_('storage-instance').select2('data') || {}).id;
+				} else {
+					data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
+				}
+			}
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
 			data.type = _('storage-price').select2('data').price.type.name;
@@ -2081,19 +2160,29 @@ define(function () {
 			data.type = _('support-price').select2('data').price.type.name;
 		},
 
-		instanceUiToData: function (data) {
+		genericUiToData: function (data) {
 			data.cpu = current.cleanFloat(_('instance-cpu').val());
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
-			data.maxVariableCost = current.cleanFloat(_('instance-max-variable-cost').val());
-			data.ephemeral = _('instance-ephemeral').is(':checked');
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
-			data.os = _('instance-os').val().toLowerCase();
 			data.license = _('instance-license').val().toLowerCase() || null;
-			data.software = _('instance-software').val().toLowerCase() || null;
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.price = _('instance-price').select2('data').price.id;
+		},
+
+		instanceUiToData: function (data) {
+			current.genericUiToData(data)
+			data.maxVariableCost = current.cleanFloat(_('instance-max-variable-cost').val());
+			data.ephemeral = _('instance-ephemeral').is(':checked');
+			data.os = _('instance-os').val().toLowerCase();
+			data.software = _('instance-software').val().toLowerCase() || null;
+		},
+
+		databaseUiToData: function (data) {
+			current.genericUiToData(data)
+			data.engine = _('database-engine').val().toUpperCase();
+			data.edition = _('database-edition').val().toUpperCase() || null;
 		},
 
 		cleanFloat: function (data) {
@@ -2116,12 +2205,15 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			var $popup = _('popup-prov-' + ((type == 'instance' || type == 'database') ? 'generic' : type));
+			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
+			var $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
-			_(type + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
-			_(type + '-description').val(model.description || '');
-			_(type + '-location').select2('data', model.location || null);
-			_(type + '-usage').select2('data', model.usage || null);
+			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
+			_(inputType + '-description').val(model.description || '');
+			_(inputType + '-location').select2('data', model.location || null);
+			_(inputType + '-usage').select2('data', model.usage || null);
+			$popup.attr('data-prov-type', type);
 			current[type + 'ToUi'](model);
 			$.proxy(current.checkResource, $popup)();
 		},
@@ -2130,16 +2222,12 @@ define(function () {
 		 * Fill the instance popup with given entity or default values.
 		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
-		instanceToUi: function (quote) {
+		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
 			_('instance-cpu').val(quote.cpu || 1);
 			_('instance-constant').find('li.active').removeClass('active');
-			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
-			_('instance-ephemeral').prop('checked', quote.ephemeral);
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
-			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
-			_('instance-software').select2('data', current.select2IdentityData((quote.id && (quote.software || quote.price.software)) || null));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			var license = (quote.id && (quote.license || quote.price.license)) || null;
 			_('instance-license').select2('data', license ? {
@@ -2153,7 +2241,29 @@ define(function () {
 			} else {
 				_('instance-constant').find('li:first-child').addClass('active');
 			}
+		},
+
+		/**
+		 * Fill the instance popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		instanceToUi: function (quote) {
+			current.genericToUi(quote);
+			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
+			_('instance-ephemeral').prop('checked', quote.ephemeral);
+			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
 			current.updateAutoScale();
+			current.instanceSetUiPrice(quote);
+		},
+
+		/**
+		 * Fill the database popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		databaseToUi: function (quote) {
+			current.genericToUi(quote);
+			_('database-engine').val(quote.engine || "MYSQL");
+			_('database-edition').val(quote.edition || null);
 			current.instanceSetUiPrice(quote);
 		},
 
@@ -2181,7 +2291,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || null);
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteInstance || null);
 			current.storageSetUiPrice(quote);
 		},
 
@@ -2217,18 +2327,19 @@ define(function () {
 		 */
 		save: function (type) {
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
 			var $popup = _('popup-prov-' + popupType);
 
 			// Build the playload for API service
 			var suggest = {
-				price: _(type + '-price').select2('data'),
-				usage: _(type + '-usage').select2('data'),
-				location: _(type + '-location').select2('data')
+				price: _(inputType + '-price').select2('data'),
+				usage: _(inputType + '-usage').select2('data'),
+				location: _(inputType + '-location').select2('data')
 			};
 			var data = {
 				id: current.model.quote.id,
-				name: _(type + '-name').val(),
-				description: _(type + '-description').val(),
+				name: _(inputType + '-name').val(),
+				description: _(inputType + '-description').val(),
 				location: (suggest.location || {}).name,
 				usage: (suggest.usage || {}).name,
 				subscription: current.model.subscription
@@ -2516,7 +2627,7 @@ define(function () {
 			var duration = 36;
 			var date = moment().startOf('month');
 			for (i = 0; i < 36; i++) {
-				timeline.push({ cost: 0, month: i, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0 });
+				timeline.push({ cost: 0, month: i, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0, database: 0 });
 				date.add(1, 'months');
 			}
 
@@ -2553,6 +2664,38 @@ define(function () {
 				timeline[t].cost += instanceCost;
 			}
 
+			// Database statistics
+			var publicAccessD = 0;
+			var databases = current.getFilteredData('database');
+			var ramAvailableD = 0;
+			var ramReservedD = 0;
+			var cpuAvailableD = 0;
+			var cpuReservedD = 0;
+			var instanceCostD = 0;
+			var nbInstancesD = 0;
+			var nbInstancesUnboundD = false;
+			var enabledInstancesD = {};
+			for (i = 0; i < databases.length; i++) {
+				var qi = databases[i];
+				var cost = qi.cost.min || qi.cost || 0;
+				nb = qi.minQuantity || 1;
+				nbInstancesD += nb;
+				nbInstancesUnboundD |= (qi.maxQuantity !== nb);
+				cpuAvailableD += qi.price.type.cpu * nb;
+				cpuReservedD += qi.cpu * nb;
+				ramAvailableD += qi.price.type.ram * nb;
+				ramReservedD += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
+				instanceCostD += cost;
+				publicAccessD += (qi.internet === 'public') ? 1 : 0;
+				enabledInstancesD[qi.id] = true;
+				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
+					timeline[t].database += cost;
+				}
+			}
+			for (t = 0; t < duration; t++) {
+				timeline[t].cost += instanceCostD;
+			}
+
 			// Storage statistics
 			var storageAvailable = 0;
 			var storageReserved = 0;
@@ -2562,6 +2705,8 @@ define(function () {
 				var qs = storages[i];
 				if (qs.quoteInstance && enabledInstances[qs.quoteInstance.id]) {
 					nb = qs.quoteInstance.minQuantity || 1;
+				} else if (qs.quoteDatabase && enabledInstancesD[qs.quoteDatabase.id]) {
+					nb = qs.quoteDatabase.minQuantity || 1;
 				} else {
 					nb = 1;
 				}
@@ -2606,6 +2751,22 @@ define(function () {
 					filtered: instances,
 					cost: instanceCost
 				},
+				database: {
+					nb: databases.length,
+					ram: {
+						available: ramAvailableD,
+						reserved: ramReservedD
+					},
+					cpu: {
+						available: cpuAvailableD,
+						reserved: cpuReservedD
+					},
+					publicAccess: publicAccessD,
+					nbInstances: nbInstancesD,
+					unbound: nbInstancesUnboundD,
+					filtered: databases,
+					cost: instanceCostD
+				},
 				storage: {
 					nb: storages.length,
 					available: storageAvailable,
@@ -2626,49 +2787,49 @@ define(function () {
 		/**
 		 * Update the model to detach a storage from its instance
 		 * @param storage The storage model to detach.
+		 * @param property The storage property of attachment.
 		 */
-		detachStorage: function (storage) {
-			if (storage.quoteInstance || storage.quoteDatabase) {
-				var qis = storage[storage.quoteInstance || storage.quoteDatabase].storages;
+		detachStorage: function (storage, property) {
+			if (storage[property]) {
+				var qis = storage[storage[property]];
 				for (var s = qis.length; s-- > 0;) {
 					if (qis[s] === storage) {
 						qis.splice(s, 1);
 						break;
 					}
 				}
-				delete storage.quoteInstance;
-				delete storage.quoteDatabase;
+				delete storage[property];
 			}
 		},
 		/**
-		 * Update the model to attach a storage to its instance
+		 * Update the model to attach a storage to its resource
 		 * @param storage The storage model to attach.
 		 * @param type The resource type to attach.
-		 * @param instance The instance model or identifier to attach.
-		 * @param force When <code>true</code>, the resources are attached even if they were already.
+		 * @param resource The resource model or identifier to attach.
+		 * @param force When <code>true</code>, the previous resource will not be dettached.
 		 */
-		attachStorage: function (storage, type, instance, force) {
-			if (typeof instance === 'number') {
-				instance = current.model.configuration[type+'sById'][instance];
+		attachStorage: function (storage, type, resource, force) {
+			if (typeof resource === 'number') {
+				resource = current.model.configuration[type + 'sById'][resource];
 			}
-			var typeC = type.charAt(0).toUpperCase() + type.slice(1);
-			if (force !== true && storage['quote'+typeC] === instance) {
-				// Already attached or nothing to attach to the target instance
+			var property = 'quote' + type.charAt(0).toUpperCase() + type.slice(1);
+			if (force !== true && storage[property] === resource) {
+				// Already attached or nothing to attach to the target resource
 				return;
 			}
-			if (force !== true && storage['quote'+typeC]) {
-				// Ddetach the old instance
-				current.detachStorage(storage);
+			if (force !== true && storage[property]) {
+				// Ddetach the old resource
+				current.detachStorage(storage, property);
 			}
 
 			// Update the model
-			if (instance) {
-				if ($.isArray(instance.storages)) {
-					instance.storages.push(storage);
+			if (resource) {
+				if ($.isArray(resource.storages)) {
+					resource.storages.push(storage);
 				} else {
-					instance.storages = [storage];
+					resource.storages = [storage];
 				}
-				storage['quote'+typeC] = instance;
+				storage[property] = resource;
 			}
 		},
 
@@ -2774,49 +2935,49 @@ define(function () {
 		 */
 		instanceNewTable: function () {
 			return current.genericInstanceNewTable('instance', [{
-					data: 'minQuantity',
-					className: 'hidden-xs',
-					type: 'num',
-					render: current.formatQuantity
-				}, {
-					data: 'os',
-					className: 'truncate',
-					width: '24px',
-					render: current.formatOs
-				}, {
-					data: 'cpu',
-					className: 'truncate',
-					width: '48px',
-					type: 'num',
-					render: current.formatCpu
-				}, {
-					data: 'ram',
-					className: 'truncate',
-					width: '64px',
-					type: 'num',
-					render: current.formatRam
-				}, {
-					data: 'price.term',
-					className: 'hidden-xs hidden-sm price-term',
-					render: current.formatInstanceTerm
-				}, {
-					data: 'price.type',
-					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatInstanceType
-				}, {
-					data: 'usage',
-					className: 'hidden-xs hidden-sm usage',
-					render: current.formatUsageTemplate
-				}, {
-					data: 'location',
-					className: 'hidden-xs hidden-sm location',
-					width: '24px',
-					render: current.formatLocation
-				}, {
-					data: null,
-					className: 'truncate hidden-xs hidden-sm',
-					render: current.formatQiStorages
-				}]);
+				data: 'minQuantity',
+				className: 'hidden-xs',
+				type: 'num',
+				render: current.formatQuantity
+			}, {
+				data: 'os',
+				className: 'truncate',
+				width: '24px',
+				render: current.formatOs
+			}, {
+				data: 'cpu',
+				className: 'truncate',
+				width: '48px',
+				type: 'num',
+				render: current.formatCpu
+			}, {
+				data: 'ram',
+				className: 'truncate',
+				width: '64px',
+				type: 'num',
+				render: current.formatRam
+			}, {
+				data: 'price.term',
+				className: 'hidden-xs hidden-sm price-term',
+				render: current.formatInstanceTerm
+			}, {
+				data: 'price.type',
+				className: 'truncate hidden-xs hidden-sm hidden-md',
+				render: current.formatInstanceType
+			}, {
+				data: 'usage',
+				className: 'hidden-xs hidden-sm usage',
+				render: current.formatUsageTemplate
+			}, {
+				data: 'location',
+				className: 'hidden-xs hidden-sm location',
+				width: '24px',
+				render: current.formatLocation
+			}, {
+				data: null,
+				className: 'truncate hidden-xs hidden-sm',
+				render: current.formatQiStorages
+			}]);
 		},
 
 		/**
@@ -2885,9 +3046,10 @@ define(function () {
 		storageNewTable: function () {
 			return {
 				columns: [{
-					data: 'quoteInstance.minQuantity',
+					data: null,
+					type: 'num',
 					className: 'hidden-xs',
-					render: (value, mode, data) => value ? current.formatQuantity(value, mode, data) : 1
+					render: (_i, mode, data) => current.formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase))
 				}, {
 					data: 'size',
 					width: '36px',
@@ -2907,8 +3069,9 @@ define(function () {
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatStorageType
 				}, {
-					data: 'quoteInstance.name',
-					className: 'truncate hidden-xs hidden-sm'
+					data: null,
+					className: 'truncate hidden-xs hidden-sm',
+					render: (_i, mode, data) => (data.quoteInstance || data.quoteDatabase || {}).name
 				}]
 			};
 		},
@@ -2926,9 +3089,14 @@ define(function () {
 				}
 			});
 		},
-		
-		formatDatabaseEngine(value, mode, data) {
-			return value;
+
+		formatDatabaseEngine(engine, mode, clazz) {
+			var cfg = current.databaseEngines[(engine.id || engine || 'MYSQL').toUpperCase()] || current.databaseEngines.MYSQL;
+			if (mode === 'sort' || mode === 'filter') {
+				return cfg[0];
+			}
+			var clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
 		/**
@@ -2936,48 +3104,51 @@ define(function () {
 		 */
 		databaseNewTable: function () {
 			return current.genericInstanceNewTable('database', [{
-					data: 'minQuantity',
-					className: 'hidden-xs',
-					type: 'num',
-					render: current.formatQuantity
-				}, {
-					data: 'price.engine',
-					className: 'truncate',
-					render: current.formatDatabaseEngine
-				}, {
-					data: 'cpu',
-					className: 'truncate',
-					width: '48px',
-					type: 'num',
-					render: current.formatCpu
-				}, {
-					data: 'ram',
-					className: 'truncate',
-					width: '64px',
-					type: 'num',
-					render: current.formatRam
-				}, {
-					data: 'price.term',
-					className: 'hidden-xs hidden-sm price-term',
-					render: current.formatInstanceTerm
-				}, {
-					data: 'price.type',
-					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatInstanceType
-				}, {
-					data: 'usage',
-					className: 'hidden-xs hidden-sm usage',
-					render: current.formatUsageTemplate
-				}, {
-					data: 'location',
-					className: 'hidden-xs hidden-sm location',
-					width: '24px',
-					render: current.formatLocation
-				}, {
-					data: null,
-					className: 'truncate hidden-xs hidden-sm',
-					render: current.formatQiStorages
-				}]);
+				data: 'minQuantity',
+				className: 'hidden-xs',
+				type: 'num',
+				render: current.formatQuantity
+			}, {
+				data: 'price.engine',
+				className: 'truncate',
+				render: current.formatDatabaseEngine
+			}, {
+				data: 'price.edition',
+				className: 'truncate'
+			}, {
+				data: 'cpu',
+				className: 'truncate',
+				width: '48px',
+				type: 'num',
+				render: current.formatCpu
+			}, {
+				data: 'ram',
+				className: 'truncate',
+				width: '64px',
+				type: 'num',
+				render: current.formatRam
+			}, {
+				data: 'price.term',
+				className: 'hidden-xs hidden-sm price-term',
+				render: current.formatInstanceTerm
+			}, {
+				data: 'price.type',
+				className: 'truncate hidden-xs hidden-sm hidden-md',
+				render: current.formatInstanceType
+			}, {
+				data: 'usage',
+				className: 'hidden-xs hidden-sm usage',
+				render: current.formatUsageTemplate
+			}, {
+				data: 'location',
+				className: 'hidden-xs hidden-sm location',
+				width: '24px',
+				render: current.formatLocation
+			}, {
+				data: null,
+				className: 'truncate hidden-xs hidden-sm',
+				render: current.formatQiStorages
+			}]);
 		},
 
 		/**
@@ -3021,9 +3192,11 @@ define(function () {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.name,
 								size: suggest.size,
-								quoteInstance: qi.id,
+								quoteInstance: type === 'instance' && qi.id,
+								quoteDatabase: type === 'database' && qi.id,
 								subscription: current.model.subscription
 							};
+							current.$main.trimObject(data);
 							$.ajax({
 								type: 'POST',
 								url: REST_PATH + 'service/prov/storage',
@@ -3078,7 +3251,7 @@ define(function () {
 			Object.keys(deleted).forEach(function (type) {
 				// For each deleted resource of this type, update the UI and the cost in the model
 				for (var i = deleted[type].length; i-- > 0;) {
-					var resource = current.delete(type.toLowerCase(), deleted[type][i]);
+					var resource = current.delete(type.toLowerCase(), deleted[type][i], true);
 					if (nbDeleted++ === 0) {
 						deletedSample = resource.name;
 					}
@@ -3152,20 +3325,26 @@ define(function () {
 			var conf = current.model.configuration;
 			var resourcesById = conf[type + 'sById'][id];
 			var resources = conf[type + 's'];
+			debugger;
 			for (var i = resources.length; i-- > 0;) {
 				var resource = resources[i];
 				if (resource.id === id) {
 					resources.splice(i, 1);
 					conf[type + 'Cost'] -= resource.cost;
 					delete resourcesById[resource.id];
-					if (type === 'storage' && resource.quoteInstance && resource.quoteInstance.id) {
-						// Also redraw the instance
-						var qi = resource.quoteInstance.id;
-						current.detachStorage(resource);
-						if (draw) {
-							current.redrawResource('instance', qi);
+					if (type === 'storage') {
+						var qr = resource.quoteInstance || resource.quoteDatabase;
+						if (qr) {
+							// Also redraw the instance
+							var attachedType = resource.quoteInstance ? 'instance' : 'storage';
+							current.detachStorage(resource, 'quote' + type.charAt(0).toUpperCase() + attachedType.slice(1));
+							if (draw) {
+								debugger;
+								current.redrawResource(attachedType, qr.id);
+							}
 						}
 					}
+
 					var row = _('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).remove();
 					if (draw) {
 						row.draw(false);

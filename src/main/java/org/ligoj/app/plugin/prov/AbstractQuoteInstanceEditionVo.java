@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -56,6 +57,12 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * The optional requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
 	 */
 	private Boolean constant;
+
+	/**
+	 * The Internet access : Internet facing, etc.
+	 */
+	@NotNull
+	private InternetAccess internet = InternetAccess.PRIVATE;
 
 	/**
 	 * The minimal quantity of this instance.

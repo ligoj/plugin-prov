@@ -139,6 +139,7 @@
 								<th class="noVis">{{name}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
 								<th data-toggle="tooltip" title="{{service:prov:database-engine-title}}">{{service:prov:database-engine}}</th>
+								<th data-toggle="tooltip" title="{{service:prov:database-edition-title}}">{{service:prov:database-edition}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
 								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
@@ -152,7 +153,7 @@
 						</thead>
 						<tbody>
 							<tr>
-								<td class="dataTables_empty" colspan="7">{{loading}}</td>
+								<td class="dataTables_empty" colspan="13">{{loading}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -221,7 +222,7 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-generic" class="modal fade" tabindex="-1" aria-labelledby="qi-modal-title" data-prov-type="instance" autocomplete="off">
+	<form id="popup-prov-generic" class="modal fade" tabindex="-1" aria-labelledby="qi-modal-title" data-prov-type="" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -245,11 +246,22 @@
 								<input type="text" id="instance-description" class="form-control" maxlength="250" />
 							</div>
 						</div>
-						<div class="form-group required">
+						<div class="form-group required" data-exclusive="instance">
 							<label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-os" class="resource-query form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required" data-exclusive="database">
+							<label class="control-label col-sm-3" for="database-engine" data-toggle="tooltip" title="{{service:prov:database-engine-title}}">{{service:prov:database-engine}}</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+									<input type="text" id="database-engine" class="resource-query form-control" required />
+									<div class="input-group-addon"> / </div>
+									<input type="text" id="database-edition" class="resource-query form-control" placeholder="{{service:prov:database-edition}}"/>
+								</div>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:database-edition-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -259,7 +271,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:license-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group" data-exclusive="instance">
 							<label class="control-label col-sm-3" for="instance-software" data-toggle="tooltip" title="{{service:prov:software-title}}">{{service:prov:software}}</label>
 							<div class="col-sm-8">
 								<input type="text" id="instance-software" class="resource-query form-control" />
@@ -326,7 +338,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group" data-exclusive="instance">
 							<label class="control-label col-sm-3" for="instance-ephemeral" data-toggle="tooltip" title="{{service:prov:instance-ephemeral-title}}">{{service:prov:instance-ephemeral}}</label>
 							<div class="col-sm-8">
 								<div class="input-group">
@@ -346,7 +358,7 @@
 									<input type="number" min="0" id="instance-min-quantity" class="form-control input-mini" />
 									<div class="input-group-addon">{{service:prov:instance-quantity-to}}</div>
 									<input type="number" min="1" id="instance-max-quantity" class="form-control input-mini" />
-									<label class="checkbox-inline" for="instance-auto-scale" data-toggle="tooltip" title="{{service:prov:instance-auto-scale-title}}">
+									<label class="checkbox-inline" data-exclusive="instance" for="instance-auto-scale" data-toggle="tooltip" title="{{service:prov:instance-auto-scale-title}}">
 										<input type="checkbox" id="instance-auto-scale" disabled>
 										<span>Auto-scale</span>
 									</label>

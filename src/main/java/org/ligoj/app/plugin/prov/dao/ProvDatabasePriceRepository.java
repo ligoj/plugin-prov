@@ -44,7 +44,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	@CacheResult(cacheName = "prov-database-edition")
 	@Query("SELECT DISTINCT(ip.edition) FROM #{#entityName} ip INNER JOIN ip.type AS i "
 			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "   AND ip.engine=:engine ORDER BY ip.edition")
+			+ "   AND ip.engine=:engine AND ip.edition IS NOT NULL ORDER BY ip.edition")
 	List<String> findAllEditions(@CacheKey String node, @CacheKey String engine);
 
 	/**
