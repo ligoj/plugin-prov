@@ -2414,6 +2414,7 @@ define(function () {
 						date: usage.timeline[i].date,
 						instance: usage.timeline[i].instance,
 						storage: usage.timeline[i].storage,
+						database: usage.timeline[i].database,
 						support: usage.timeline[i].support
 					});
 				}
@@ -2559,6 +2560,13 @@ define(function () {
 						} else if (data.type === 'support') {
 							var support = current.model.configuration.supportsById[data.name];
 							tooltip = 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
+						} else if (data.type === 'database') {
+							var database = current.model.configuration.databasesById[data.name];
+							tooltip = 'Name: ' + database.name
+								+ '</br>Type: ' + database.price.type.name
+								+ '</br>Engine: ' + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
+								+ '</br>Term: ' + database.price.term.name
+								+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
 						} else {
 							tooltip = data.name;
 						}
@@ -2582,6 +2590,12 @@ define(function () {
 				}
 				if (usage.instance.ram.available) {
 					weightCost += usage.instance.cost * 0.2 * usage.instance.ram.reserved / usage.instance.ram.available;
+				}
+				if (usage.database.cpu.available) {
+					weightCost += usage.database.cost * 0.8 * usage.database.cpu.reserved / usage.database.cpu.available;
+				}
+				if (usage.database.ram.available) {
+					weightCost += usage.database.cost * 0.2 * usage.database.ram.reserved / usage.database.ram.available;
 				}
 				if (usage.storage.available) {
 					weightCost += usage.storage.cost * usage.storage.reserved / usage.storage.available;
@@ -2841,6 +2855,7 @@ define(function () {
 			};
 			current.storageToD3(data, usage);
 			current.instanceToD3(data, usage);
+			current.databaseToD3(data, usage);
 			current.supportToD3(data, usage);
 			return data;
 		},
@@ -2873,6 +2888,39 @@ define(function () {
 				oss.children.push({
 					name: qi.id,
 					type: 'instance',
+					size: qi.cost
+				});
+			}
+		},
+
+		databaseToD3: function (data, usage) {
+			var allEngines = {};
+			var databases = usage.database.filtered;
+			var d3databases = {
+				name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:databases-block'],
+				value: 0,
+				children: []
+			};
+			data.children.push(d3databases);
+			for (var i = 0; i < databases.length; i++) {
+				var qi = databases[i];
+				var engines = allEngines[qi.engine];
+				if (typeof engines === 'undefined') {
+					// First Engine
+					engines = {
+						name: qi.engine,
+						type: 'engine',
+						value: 0,
+						children: []
+					};
+					allEngines[qi.engine] = engines;
+					d3databases.children.push(engines);
+				}
+				engines.value += qi.cost;
+				d3databases.value += qi.cost;
+				engines.children.push({
+					name: qi.id,
+					type: 'database',
 					size: qi.cost
 				});
 			}
