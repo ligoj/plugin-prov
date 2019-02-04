@@ -241,14 +241,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public QuoteLigthVo getSusbcriptionStatus(final int subscription) {
 		final QuoteLigthVo vo = new QuoteLigthVo();
 		final Object[] compute = repository.getComputeSummary(subscription).get(0);
+		final Object[] database = repository.getDatabaseSummary(subscription).get(0);
 		final Object[] storage = repository.getStorageSummary(subscription).get(0);
 		final ProvQuote entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.toFloatingCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
-		vo.setTotalCpu((Double) compute[2]);
-		vo.setTotalRam(((Long) compute[3]).intValue());
-		vo.setNbPublicAccess(((Long) compute[4]).intValue());
+		vo.setTotalCpu((Double) compute[2] + ((Double) database[2]).intValue());
+		vo.setTotalRam(((Long) compute[3]).intValue() + ((Long) database[3]).intValue());
+		vo.setNbPublicAccess(((Long) compute[4]).intValue() + ((Long) database[4]).intValue());
+		vo.setNbDatabases(((Long) database[1]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		vo.setLocation(entity.getLocation());

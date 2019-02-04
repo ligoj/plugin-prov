@@ -628,4 +628,22 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 	}
+
+
+	@Test
+	public void getSubscriptionStatus() {
+		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
+		Assertions.assertEquals("quote1", status.getName());
+		Assertions.assertEquals("quoteD1", status.getDescription());
+		Assertions.assertNotNull(status.getId());
+		checkCost(status.getCost(), 7105.198, 9701.098, false);
+		Assertions.assertEquals(7, status.getNbInstances());
+		Assertions.assertEquals(7, status.getNbDatabases());
+		Assertions.assertEquals(13.75, status.getTotalCpu(), 0.0001); // 10.75 + 3 (DB)
+		Assertions.assertEquals(57976, status.getTotalRam());
+		Assertions.assertEquals(13, status.getNbPublicAccess());
+		Assertions.assertEquals(8, status.getNbStorages()); // 3*2 (server1) + 1 + 1 DB
+		Assertions.assertEquals(195, status.getTotalStorage()); // 175 + 20 (DB)
+		Assertions.assertEquals("region-1", status.getLocation().getName());
+	}
 }

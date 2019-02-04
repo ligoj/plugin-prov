@@ -338,26 +338,22 @@ define(function () {
 		initOdometer: function () {
 			var $cost = $('.cost');
 			var weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
-			$cost.append('<span class="cost-min hidden"><span class="cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
-			$cost.append('<span class="cost-max"><span class="cost-value"></span>' + weightUnit + '</span>');
+			$cost.append('<span class="cost-min hidden"><span class="odo-wrapper cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
+			$cost.append('<span class="cost-max"><span class="odo-wrapper cost-value"></span>' + weightUnit + '</span>');
 			require(['../main/service/prov/lib/odometer'], function (Odometer) {
 				// Odometer component
-				current.registerOdometer(Odometer, $cost.find('.cost-min .cost-value'));
-				current.registerOdometer(Odometer, $cost.find('.cost-max .cost-value'));
-				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-instance"] > .badge .odo-wrapper'));
-				current.registerOdometer(Odometer, $('.nav-pills [href="#tab-storage"] > .badge'));
-				var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
-				current.registerOdometer(Odometer, $summary.filter('.cpu').find('span'));
-				current.registerOdometer(Odometer, $summary.filter('.internet').find('span'));
+				current.registerOdometer(Odometer, $('#service-prov-menu').find('.odo-wrapper'));
 				current.updateUiCost();
 			});
 		},
 		registerOdometer: function (Odometer, $container) {
-			new Odometer({
-				el: $container[0],
-				theme: 'minimal',
-				duration: 0
-			}).render();
+			$container.each(function () {
+				new Odometer({
+					el: $(this)[0],
+					theme: 'minimal',
+					duration: 0
+				}).render();
+			});
 		},
 
 		formatCostOdometer: function (cost, isMax, $cost, noRichTest, unbound) {
@@ -2504,7 +2500,13 @@ define(function () {
 				$summary.removeClass('hidden');
 				$summary.filter('.cpu').find('span').text(usage.database.cpu.available);
 				$summary.filter('.ram').find('span').text(current.formatRam(usage.database.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
-				$summary.filter('.internet').find('span').text(usage.database.publicAccess);
+				if (usage.database.publicAccess) {
+					$summary.filter('.internet').removeClass('hidden').find('span').text(usage.database.publicAccess);
+				} else {
+					$summary.filter('.internet').addClass('hidden');
+				}
+				var $engines = $summary.filter('[data-engine]').addClass('hidden');
+				Object.keys(usage.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(usage.database.engines[engine]));
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -2703,6 +2705,7 @@ define(function () {
 			var cpuReservedD = 0;
 			var instanceCostD = 0;
 			var minInstancesD = 0;
+			var engines = {};
 			var maxInstancesUnboundD = false;
 			var enabledInstancesD = {};
 			for (i = 0; i < databases.length; i++) {
@@ -2716,6 +2719,8 @@ define(function () {
 				ramAvailableD += qi.price.type.ram * nb;
 				ramReservedD += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
 				instanceCostD += cost;
+				var engine = qi.engine.replace(/AURORA .*/,'AURORA');
+				engines[engine] = (engines[engine] || 0) + 1;
 				publicAccessD += (qi.internet === 'public') ? 1 : 0;
 				enabledInstancesD[qi.id] = true;
 				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
@@ -2793,6 +2798,7 @@ define(function () {
 						available: cpuAvailableD,
 						reserved: cpuReservedD
 					},
+					engines: engines,
 					publicAccess: publicAccessD,
 					filtered: databases,
 					cost: instanceCostD

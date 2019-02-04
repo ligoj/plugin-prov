@@ -27,6 +27,18 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	List<Object[]> getComputeSummary(int subscription);
 
 	/**
+	 * Return the database quote summary from the related subscription.
+	 *
+	 * @param subscription
+	 *            The subscription identifier linking the quote.
+	 * @return The quote with aggregated details : Quote, amount of databases, total RAM and total CPU.
+	 */
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
+			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.databases AS qi"
+			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
+	List<Object[]> getDatabaseSummary(int subscription);
+
+	/**
 	 * Return the storage quote summary from the related subscription.
 	 *
 	 * @param subscription

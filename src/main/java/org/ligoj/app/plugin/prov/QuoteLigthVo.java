@@ -22,9 +22,14 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The amount of instances.
+	 * The amount (minimum quantity) of instances.
 	 */
 	private int nbInstances;
+
+	/**
+	 * The amount (minimum quantity) of databases.
+	 */
+	private int nbDatabases;
 
 	/**
 	 * The size of the global storage in Giga Bytes.
@@ -55,7 +60,7 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	 * The computed monthly cost.
 	 */
 	private FloatingCost cost;
-	
+
 	/**
 	 * The main location of this quote.
 	 */
