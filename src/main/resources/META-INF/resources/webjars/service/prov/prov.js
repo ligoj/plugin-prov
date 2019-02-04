@@ -148,7 +148,7 @@ define(function () {
 				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + ' VM</span>');
 			}
 			if (quote.nbDatabases) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('icon-database-alt2', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
 			}
 			if (quote.nbInstances || quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
