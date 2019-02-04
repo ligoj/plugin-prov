@@ -481,9 +481,7 @@ define(function () {
 			var storages = instance.storages;
 			var sum = 0;
 			if (storages) {
-				storages.forEach(function (storage) {
-					sum += storage.size;
-				});
+				storages.forEach(storage => sum += storage.size);
 			}
 			if (mode === 'display') {
 				// Need to build a Select2 tags markup
@@ -3166,7 +3164,7 @@ define(function () {
 				return cfg[0];
 			}
 			var clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
 		},
 
 		/**
@@ -3244,7 +3242,7 @@ define(function () {
 							},
 							results: function (data) {
 								// Completed the requested identifier
-								data.forEach(function (quote) {
+								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
 									quote.text = quote.price.type.name;
 								});
@@ -3318,7 +3316,7 @@ define(function () {
 			conf.cost = updatedCost.total;
 
 			// Look the deleted resources
-			Object.keys(deleted).forEach(function (type) {
+			Object.keys(deleted).forEach(type => {
 				// For each deleted resource of this type, update the UI and the cost in the model
 				for (var i = deleted[type].length; i-- > 0;) {
 					var resource = current.delete(type.toLowerCase(), deleted[type][i], true);
@@ -3329,9 +3327,9 @@ define(function () {
 			});
 
 			// Look the updated resources
-			Object.keys(related).forEach(function (key) {
+			Object.keys(related).forEach(key => {
 				// For each updated resource of this type, update the UI and the cost in the model
-				Object.keys(related[key]).forEach(function (id) {
+				Object.keys(related[key]).forEach(id => {
 					var type = key.toLowerCase();
 					var resource = conf[type + 'sById'][id];
 					var cost = related[key][id];
