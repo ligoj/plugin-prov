@@ -144,8 +144,13 @@ define(function () {
 		renderDetailsKey: function (subscription) {
 			var quote = subscription.data.quote;
 			var resources = [];
-			if (quote.nb) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nb(quote.nbInstances > quote.nb ? '+' : '') + 'VM</span>');
+			if (quote.nbInstances) {
+				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + ' VM</span>');
+			}
+			if (quote.nbDatabases) {
+				resources.push('<span class="sub-item">' + current.$super('icon')('icon-database-alt2', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
+			}
+			if (quote.nbInstances || quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
 				resources.push('<span class="sub-item">' + current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
 			}
@@ -2484,7 +2489,11 @@ define(function () {
 				$summary.removeClass('hidden');
 				$summary.filter('.cpu').find('span').text(usage.instance.cpu.available);
 				$summary.filter('.ram').find('span').text(current.formatRam(usage.instance.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
-				$summary.filter('.internet').find('span').text(usage.instance.publicAccess);
+				if (usage.instance.publicAccess) {
+					$summary.filter('.internet').removeClass('hidden').find('span').text(usage.instance.publicAccess);
+				} else {
+					$summary.filter('.internet').addClass('hidden')
+				}
 			} else {
 				$summary.addClass('hidden');
 			}
