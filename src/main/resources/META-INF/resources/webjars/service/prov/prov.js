@@ -2228,7 +2228,6 @@ define(function () {
 			_('instance-constant').find('li.active').removeClass('active');
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
-			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			var license = (quote.id && (quote.license || quote.price.license)) || null;
 			_('instance-license').select2('data', license ? {
 				id: license,
@@ -2252,6 +2251,7 @@ define(function () {
 			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
 			_('instance-ephemeral').prop('checked', quote.ephemeral);
 			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
+			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
 		},
@@ -2264,6 +2264,7 @@ define(function () {
 			current.genericToUi(quote);
 			_('database-engine').select2('data', current.select2IdentityData(quote.engine || 'MYSQL'));
 			_('database-edition').select2('data', current.select2IdentityData(quote.edition || null));
+			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PRIVATE'));
 			current.instanceSetUiPrice(quote);
 		},
 
