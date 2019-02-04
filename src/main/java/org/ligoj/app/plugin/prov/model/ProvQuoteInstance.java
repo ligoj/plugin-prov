@@ -43,12 +43,6 @@ public class ProvQuoteInstance extends AbstractQuoteResourceInstance<ProvInstanc
 	private VmOs os;
 
 	/**
-	 * The Internet access : Internet facing, etc.
-	 */
-	@NotNull
-	private InternetAccess internet = InternetAccess.PUBLIC;
-
-	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
 	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
 	 * variable instance price type such as AWS Spot.

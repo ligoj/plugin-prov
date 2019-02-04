@@ -59,6 +59,12 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	private Boolean constant;
 
 	/**
+	 * The Internet access : Internet facing, etc.
+	 */
+	@NotNull
+	private InternetAccess internet = InternetAccess.PUBLIC;
+
+	/**
 	 * The minimal quantity of this instance.
 	 */
 	@NotNull
