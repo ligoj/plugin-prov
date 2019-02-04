@@ -2484,7 +2484,7 @@ define(function () {
 			// Instance summary
 			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
 			$instance.find('.odo-wrapper').text(usage.instance.nb || 0);
-			$instance.find('.odo-wrapper-unbound').text((usage.instance.nbInstances > usage.instance.nb || usage.instance.unbound) ? '+' : '');
+			$instance.find('.odo-wrapper-unbound').text((usage.instance.min > usage.instance.nb || usage.instance.unbound) ? '+' : '');
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 			if (usage.instance.cpu.available) {
 				$summary.removeClass('hidden');
@@ -2495,8 +2495,23 @@ define(function () {
 				$summary.addClass('hidden');
 			}
 
+			// Database summary
+			var $database = $('.nav-pills [href="#tab-database"] .prov-resource-counter');
+			$database.find('.odo-wrapper').text(usage.database.nb || 0);
+			$database.find('.odo-wrapper-unbound').text((usage.database.min > usage.database.nb || usage.database.unbound) ? '+' : '');
+			$summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
+			if (usage.database.cpu.available) {
+				$summary.removeClass('hidden');
+				$summary.filter('.cpu').find('span').text(usage.database.cpu.available);
+				$summary.filter('.ram').find('span').text(current.formatRam(usage.database.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
+				$summary.filter('.internet').find('span').text(usage.database.publicAccess);
+			} else {
+				$summary.addClass('hidden');
+			}
+
 			// Storage summary
-			$('.nav-pills [href="#tab-storage"] .prov-resource-counter').text(usage.storage.nb || '');
+			var $storage = $('.nav-pills [href="#tab-storage"] .prov-resource-counter');
+			$storage.find('.odo-wrapper').text(usage.storage.nb || 0);
 			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
 			if (usage.storage.available) {
 				$summary.removeClass('hidden');
@@ -2655,15 +2670,15 @@ define(function () {
 			var cpuReserved = 0;
 			var instanceCost = 0;
 			var ramAdjustedRate = conf.ramAdjustedRate / 100;
-			var nbInstances = 0;
-			var nbInstancesUnbound = false;
+			var minInstances = 0;
+			var maxInstancesUnbound = false;
 			var enabledInstances = {};
 			for (i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
-				nbInstances += nb;
-				nbInstancesUnbound |= (qi.maxQuantity !== nb);
+				minInstances += nb;
+				maxInstancesUnbound |= (qi.maxQuantity !== nb);
 				cpuAvailable += qi.price.type.cpu * nb;
 				cpuReserved += qi.cpu * nb;
 				ramAvailable += qi.price.type.ram * nb;
@@ -2687,15 +2702,15 @@ define(function () {
 			var cpuAvailableD = 0;
 			var cpuReservedD = 0;
 			var instanceCostD = 0;
-			var nbInstancesD = 0;
-			var nbInstancesUnboundD = false;
+			var minInstancesD = 0;
+			var maxInstancesUnboundD = false;
 			var enabledInstancesD = {};
 			for (i = 0; i < databases.length; i++) {
 				var qi = databases[i];
 				var cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
-				nbInstancesD += nb;
-				nbInstancesUnboundD |= (qi.maxQuantity !== nb);
+				minInstancesD += nb;
+				maxInstancesUnboundD |= (qi.maxQuantity !== nb);
 				cpuAvailableD += qi.price.type.cpu * nb;
 				cpuReservedD += qi.cpu * nb;
 				ramAvailableD += qi.price.type.ram * nb;
@@ -2748,10 +2763,12 @@ define(function () {
 			return {
 				cost: instanceCost + storageCost + supportCost,
 				costNoSupport: instanceCost + storageCost,
-				unbound: nbInstancesUnbound,
+				unbound: maxInstancesUnbound || maxInstancesUnboundD,
 				timeline: timeline,
 				instance: {
 					nb: instances.length,
+					min: minInstances,
+					unbound: maxInstancesUnbound,
 					ram: {
 						available: ramAvailable,
 						reserved: ramReserved
@@ -2761,13 +2778,13 @@ define(function () {
 						reserved: cpuReserved
 					},
 					publicAccess: publicAccess,
-					nbInstances: nbInstances,
-					unbound: nbInstancesUnbound,
 					filtered: instances,
 					cost: instanceCost
 				},
 				database: {
 					nb: databases.length,
+					min: minInstancesD,
+					unbound: maxInstancesUnboundD,
 					ram: {
 						available: ramAvailableD,
 						reserved: ramReservedD
@@ -2777,8 +2794,6 @@ define(function () {
 						reserved: cpuReservedD
 					},
 					publicAccess: publicAccessD,
-					nbInstances: nbInstancesD,
-					unbound: nbInstancesUnboundD,
 					filtered: databases,
 					cost: instanceCostD
 				},
