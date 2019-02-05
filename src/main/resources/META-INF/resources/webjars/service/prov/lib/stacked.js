@@ -311,7 +311,7 @@ define(['d3', 'jquery'], function (d3) {
                         bars.attr('class', '')
                             .attr('fill', d => params.color(d.cluster));
                     }
-                    svg.selectAll('.limit').remove()
+                    svg.selectAll('.limit').remove();
                     if (params.hover && !sameCost) {
                         params.hover();
                     }
@@ -377,9 +377,7 @@ define(['d3', 'jquery'], function (d3) {
             var heights = {};
             clusterNames.forEach(function (cluster) {
                 var clusterVec = [];
-                blockData.filter(d => d.cluster == cluster).forEach(function (d) {
-                    clusterVec.push(d.height);
-                });
+                blockData.filter(d => d.cluster == cluster).forEach(d=> clusterVec.push(d.height));
                 heights[cluster] = clusterVec;
             });
             return heights;
@@ -387,7 +385,7 @@ define(['d3', 'jquery'], function (d3) {
 
         // getting the max value of each bin, to convert back and forth to percentage
         function setUpMax(clusterNames, blockData) {
-            var lastClusterElements = blockData.filter(d => d.cluster == clusterNames[clusterNames.length - 1])
+            var lastClusterElements = blockData.filter(d => d.cluster == clusterNames[clusterNames.length - 1]);
             var maxDict = {};
             lastClusterElements.forEach(d => maxDict[d.x] = d.y);
             return maxDict;

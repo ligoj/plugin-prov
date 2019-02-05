@@ -1414,7 +1414,7 @@ define(function () {
 					}
 
 					// Target platform
-					current.updateTerraformTarget()
+					current.updateTerraformTarget();
 				}).on('submit', current.terraform);
 			_('popup-prov-terraform-destroy')
 				.on('shown.bs.modal', () => _('terraform-confirm-destroy').trigger('focus'))

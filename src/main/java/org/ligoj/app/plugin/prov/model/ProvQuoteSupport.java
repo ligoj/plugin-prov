@@ -78,16 +78,16 @@ public class ProvQuoteSupport extends AbstractQuoteResource<ProvSupportPrice> {
 	 */
 	private Rate level;
 
-	@Override
-	@JsonIgnore
-	public boolean isUnboundCost() {
-		return getConfiguration().isUnboundCost();
-	}
-
 	/**
 	 * Resolved price configuration.
 	 */
 	@NotNull
 	@ManyToOne
 	private ProvSupportPrice price;
+
+	@Override
+	@JsonIgnore
+	public boolean isUnboundCost() {
+		return getConfiguration().isUnboundCost();
+	}
 }

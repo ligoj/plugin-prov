@@ -69,7 +69,7 @@ define(['cascade'], function ($cascade) {
 		 * Request a Terraform binary install.
 		 */
 		install: function (version) {
-			var $form = $('.terraform-details')
+			var $form = $('.terraform-details');
 			$cascade.appendSpin($form, 'fa-4x');
 			validationManager.reset($form);
 			$.ajax({
