@@ -2726,7 +2726,7 @@ define(function () {
 				ramAvailableD += qi.price.type.ram * nb;
 				ramReservedD += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
 				instanceCostD += cost;
-				var engine = qi.engine.replace(/AURORA .*/,'AURORA');
+				var engine = qi.engine.replace(/AURORA .*/, 'AURORA');
 				engines[engine] = (engines[engine] || 0) + 1;
 				publicAccessD += (qi.internet === 'public') ? 1 : 0;
 				enabledInstancesD[qi.id] = true;
@@ -2773,7 +2773,7 @@ define(function () {
 			}
 
 			return {
-				cost: instanceCost + storageCost + supportCost,
+				cost: instanceCost + instanceCostD + storageCost + supportCost,
 				costNoSupport: instanceCost + storageCost,
 				unbound: maxInstancesUnbound || maxInstancesUnboundD,
 				timeline: timeline,
@@ -3295,9 +3295,7 @@ define(function () {
 							$.ajax({
 								type: 'DELETE',
 								url: REST_PATH + 'service/prov/storage/' + qs.id,
-								success: function (updatedCost) {
-									current.defaultCallback('storage', updatedCost);
-								}
+								success: updatedCost => current.defaultCallback('storage', updatedCost)
 							});
 						}
 					});
@@ -3402,7 +3400,6 @@ define(function () {
 			var conf = current.model.configuration;
 			var resourcesById = conf[type + 'sById'][id];
 			var resources = conf[type + 's'];
-			debugger;
 			for (var i = resources.length; i-- > 0;) {
 				var resource = resources[i];
 				if (resource.id === id) {
@@ -3416,7 +3413,6 @@ define(function () {
 							var attachedType = resource.quoteInstance ? 'instance' : 'storage';
 							current.detachStorage(resource, 'quote' + type.charAt(0).toUpperCase() + attachedType.slice(1));
 							if (draw) {
-								debugger;
 								current.redrawResource(attachedType, qr.id);
 							}
 						}
