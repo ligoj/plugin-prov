@@ -3398,19 +3398,18 @@ define(function () {
 		 */
 		delete: function (type, id, draw) {
 			var conf = current.model.configuration;
-			var resourcesById = conf[type + 'sById'][id];
 			var resources = conf[type + 's'];
 			for (var i = resources.length; i-- > 0;) {
 				var resource = resources[i];
 				if (resource.id === id) {
 					resources.splice(i, 1);
+					delete conf[type + 'sById'][resource.id];
 					conf[type + 'Cost'] -= resource.cost;
-					delete resourcesById[resource.id];
 					if (type === 'storage') {
 						var qr = resource.quoteInstance || resource.quoteDatabase;
 						if (qr) {
 							// Also redraw the instance
-							var attachedType = resource.quoteInstance ? 'instance' : 'storage';
+							var attachedType = resource.quoteInstance ? 'instance' : 'database';
 							current.detachStorage(resource, 'quote' + attachedType.charAt(0).toUpperCase() + attachedType.slice(1));
 							if (draw) {
 								current.redrawResource(attachedType, qr.id);
