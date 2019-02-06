@@ -2834,10 +2834,10 @@ define(function () {
 		 */
 		detachStorage: function (storage, property) {
 			if (storage[property]) {
-				var qis = storage[storage[property]];
-				for (var s = qis.length; s-- > 0;) {
-					if (qis[s] === storage) {
-						qis.splice(s, 1);
+				var qis = storage[property].storages || [];
+				for (var i = qis.length; i-- > 0;) {
+					if (qis[i] === storage) {
+						qis.splice(i, 1);
 						break;
 					}
 				}
@@ -3326,9 +3326,9 @@ define(function () {
 			Object.keys(deleted).forEach(type => {
 				// For each deleted resource of this type, update the UI and the cost in the model
 				for (var i = deleted[type].length; i-- > 0;) {
-					var resource = current.delete(type.toLowerCase(), deleted[type][i], true);
+					var deletedR = current.delete(type.toLowerCase(), deleted[type][i], true);
 					if (nbDeleted++ === 0) {
-						deletedSample = resource.name;
+						deletedSample = deletedR.name;
 					}
 				}
 			});
@@ -3337,16 +3337,16 @@ define(function () {
 			Object.keys(related).forEach(key => {
 				// For each updated resource of this type, update the UI and the cost in the model
 				Object.keys(related[key]).forEach(id => {
-					var type = key.toLowerCase();
-					var resource = conf[type + 'sById'][id];
+					var relatedType = key.toLowerCase();
+					var resource = conf[relatedType + 'sById'][id];
 					var cost = related[key][id];
-					conf[type + 'Cost'] += cost.min - resource.cost;
+					conf[relatedType + 'Cost'] += cost.min - resource.cost;
 					resource.cost = cost.min;
 					resource.maxCost = cost.max;
 					if (nbUpdated++ === 0) {
 						updatedSample = resource.name;
 					}
-					current.redrawResource(type, id);
+					current.redrawResource(relatedType, id);
 				});
 			});
 
@@ -3411,7 +3411,7 @@ define(function () {
 						if (qr) {
 							// Also redraw the instance
 							var attachedType = resource.quoteInstance ? 'instance' : 'storage';
-							current.detachStorage(resource, 'quote' + type.charAt(0).toUpperCase() + attachedType.slice(1));
+							current.detachStorage(resource, 'quote' + attachedType.charAt(0).toUpperCase() + attachedType.slice(1));
 							if (draw) {
 								current.redrawResource(attachedType, qr.id);
 							}
