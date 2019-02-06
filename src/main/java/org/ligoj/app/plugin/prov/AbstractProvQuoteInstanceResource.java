@@ -186,12 +186,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *
 	 * @param id
 	 *            The {@link AbstractQuoteResourceInstance}'s identifier to delete.
-	 * @return The updated computed cost.
+	 * @return The updated computed cost. The main deleted resource is not listed itself in the updated cost.
 	 */
 	protected UpdatedCost delete(@PathParam("id") final int id) {
 		final UpdatedCost cost = new UpdatedCost(id);
 		return resource.refreshSupportCost(cost, deleteAndUpdateCost(getQiRepository(), id, i -> {
-			// Delete the relate storages
+			// Delete the related storages
 			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(),
 					e -> cost.getDeleted().computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
 

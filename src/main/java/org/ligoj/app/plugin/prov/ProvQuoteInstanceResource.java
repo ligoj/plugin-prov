@@ -124,13 +124,6 @@ public class ProvQuoteInstanceResource extends
 		}
 	}
 
-	/**
-	 * Delete all instances from a quote. The total cost is updated.
-	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @return The updated computed cost.
-	 */
 	@Override
 	@DELETE
 	@Path("{subscription:\\d+}/instance")
@@ -150,13 +143,6 @@ public class ProvQuoteInstanceResource extends
 		return updateCost(qi);
 	}
 
-	/**
-	 * Delete an instance from a quote. The total cost is updated.
-	 *
-	 * @param id
-	 *            The {@link ProvQuoteInstance}'s identifier to delete.
-	 * @return The updated computed cost.
-	 */
 	@Override
 	@DELETE
 	@Path("instance/{id:\\d+}")
@@ -249,15 +235,6 @@ public class ProvQuoteInstanceResource extends
 		return os == VmOs.WINDOWS;
 	}
 
-	/**
-	 * Return the instance price type available for a subscription.
-	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
-	 * @return The available price types for the given subscription.
-	 */
 	@Override
 	@GET
 	@Path("{subscription:\\d+}/instance-price-term")
