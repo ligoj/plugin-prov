@@ -814,7 +814,7 @@ define(function () {
 		 * Return the constant CPU query parameter value to use to filter some other inputs.
 		 */
 		toQueryValueConstant: function (value) {
-			return value ? value === 'constant' : null;
+			return value === 'constant' ? true : (value === 'variable' ? false : null);
 		},
 
 		/**
@@ -876,11 +876,14 @@ define(function () {
 		addQuery(type, $item, queries) {
 			var value = current.getResourceValue($item);
 			var queryParam = value && current.toQueryName(type, $item);
-			value = value && $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
-			value = queryParam && current['toQueryValue' + queryParam.capitalize()] ? current['toQueryValue' + queryParam.capitalize()](value, $item) : value;
-			if (queryParam && value) {
-				// Add as query
-				queries.push(queryParam + '=' + value);
+			if (queryParam) {
+				value = $item.is('[type="checkbox"]') && $item.is(':checked') || value;
+				var toValue = current['toQueryValue' + queryParam.capitalize()];
+				value = toValue && toValue(value, $item) || value;
+				if (value) {
+					// Add as query
+					queries.push(queryParam + '=' + encodeURIComponent(value));
+				}
 			}
 		},
 
