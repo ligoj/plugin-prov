@@ -2434,7 +2434,7 @@ define(function () {
 								}
 							});
 							return '<span class="tooltip-text">' + tooltip + '</span>';
-						}, (d, bars) => {
+						}, d => {
 							// Hover of barchart -> update sunburst and global cost
 							current.filterDate = d && d['x-index'];
 							current.updateUiCost();
@@ -2443,6 +2443,7 @@ define(function () {
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
 						}, d => current.formatCost(d, null, null, true));
+						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar.resize(parseInt(d3.select('#prov-barchart').style('width'))));
 					} else {
 						d3Bar.update(data);
 					}

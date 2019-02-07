@@ -377,7 +377,7 @@ define(['d3', 'jquery'], function (d3) {
             var heights = {};
             clusterNames.forEach(function (cluster) {
                 var clusterVec = [];
-                blockData.filter(d => d.cluster == cluster).forEach(d=> clusterVec.push(d.height));
+                blockData.filter(d => d.cluster == cluster).forEach(d => clusterVec.push(d.height));
                 heights[cluster] = clusterVec;
             });
             return heights;
@@ -449,21 +449,18 @@ define(['d3', 'jquery'], function (d3) {
 
         function setUpSvgCanvas(input, selector) {
             // Set up the svg canvas
-            var margin = { top: 10, left: 80, bottom: 20, right: 10 },
-                width = input.width - margin.left - margin.right,
-                height = input.height - margin.top - margin.bottom;
-
+            var margin = { top: 10, left: 80, bottom: 20, right: 10 };
             var svg = d3.select(selector)
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
+                .attr('width', input.width)
+                .attr('height', input.height)
                 .append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             return {
                 svg: svg,
                 margin: margin,
-                width: width,
-                height: height
+                width: input.width - margin.left - margin.right,
+                height: input.height - margin.top - margin.bottom
             };
         }
 
@@ -473,6 +470,7 @@ define(['d3', 'jquery'], function (d3) {
         function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click, axisY) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
+            params.selector = selector;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
             params.tooltip = tooltip;
@@ -484,11 +482,17 @@ define(['d3', 'jquery'], function (d3) {
             refresh();
         }
 
+        function resize(width) {
+            params.canvas.svg.html(null);
+            create(params.selector, params.percentCB, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY);
+        }
+
         // Exports
         return {
             create: create,
             refresh: refresh,
-            update: update
+            update: update,
+            resize: resize
         };
     }).call(this);
 });
