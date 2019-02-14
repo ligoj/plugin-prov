@@ -1340,6 +1340,11 @@ define(function () {
 			_('instance-internet').select2({
 				formatSelection: current.formatInternet,
 				formatResult: current.formatInternet,
+				formatResultCssClass: function (data) {
+					if (data.id === 'PRIVATE_NAT' && _('instance-internet').closest('[data-prov-type]').attr('data-prov-type') === 'database') {
+						return 'hidden';
+					}
+				},
 				escapeMarkup: m => m,
 				data: [{
 					id: 'PUBLIC',
