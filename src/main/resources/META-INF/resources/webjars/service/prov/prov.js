@@ -2671,7 +2671,7 @@ define(function () {
 			var duration = 36;
 			var date = moment().startOf('month');
 			for (i = 0; i < 36; i++) {
-				timeline.push({ cost: 0, month: i, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0, database: 0 });
+				timeline.push({ cost: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0, database: 0 });
 				date.add(1, 'months');
 			}
 
