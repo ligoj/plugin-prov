@@ -9,8 +9,8 @@ define(['d3', 'jquery'], function (d3) {
 
         // formatting Data to a more d3-friendly format
         // extracting binNames and clusterNames
-        function formatData(data) {
-            var clusterNames = d3.keys(data[0]).filter(function (key) { return key !== 'date'; });
+        function formatData(data, sort) {
+            var clusterNames = d3.keys(data[0]).filter(function (key) { return key !== 'date'; }).sort(sort);
             var binNames = [];
             var blockData = [];
             for (var i = 0; i < data.length; i++) {
@@ -41,7 +41,7 @@ define(['d3', 'jquery'], function (d3) {
 
         function updateData() {
             var input = params.input,
-                formattedData = formatData(input.data),
+                formattedData = formatData(input.data, params.sort),
                 blockData = formattedData.blockData,
                 clusterNames = formattedData.clusterNames;
             params.clusterNames = formattedData.clusterNames;
@@ -466,7 +466,7 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click, axisY) {
+        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click, axisY, sort) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.selector = selector;
@@ -477,6 +477,7 @@ define(['d3', 'jquery'], function (d3) {
             params.click = click;
             params.clicked = null;
             params.axisY = axisY;
+            params.sort = sort;
             initialize();
             refresh();
         }

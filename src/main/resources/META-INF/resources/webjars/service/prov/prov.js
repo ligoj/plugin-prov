@@ -20,7 +20,7 @@ define(function () {
 		/**
 		 * Enable resource type.
 		 */
-		types: ['instance', 'storage', 'support', 'database'],
+		types: ['instance', 'storage', 'database', 'support'],
 
 		/**
 		 * Show the members of the given group
@@ -2453,13 +2453,14 @@ define(function () {
 				var numDataItems = usage.timeline.length;
 				var data = [];
 				for (var i = 0; i < numDataItems; i++) {
-					data.push({
-						date: usage.timeline[i].date,
-						instance: usage.timeline[i].instance,
-						storage: usage.timeline[i].storage,
-						database: usage.timeline[i].database,
-						support: usage.timeline[i].support
+					var value = usage.timeline[i];
+					var stack = {
+						date: value.date
+					};
+					$(current.types).each(function (_i, type) {
+						stack[type] = value[type]
 					});
+					data.push(stack);
 				}
 
 				if (usage.cost) {
@@ -2485,7 +2486,7 @@ define(function () {
 							// Hover of barchart -> update sunburst and global cost
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
-						}, d => current.formatCost(d, null, null, true));
+						}, d => current.formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar.resize(parseInt(d3.select('#prov-barchart').style('width'))));
 					} else {
 						d3Bar.update(data);
@@ -2610,7 +2611,9 @@ define(function () {
 			// Update the sunburst total resource capacity
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (usage.cost) {
-					sunburst.init('#prov-sunburst', current.toD3(usage), function (data) {
+					sunburst.init('#prov-sunburst', current.toD3(usage), function (a, b) {
+						return current.types.indexOf(a.data.type) - current.types.indexOf(b.data.type);
+					}, function (data) {
 						var tooltip;
 						if (data.type === 'latency') {
 							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
@@ -2921,27 +2924,27 @@ define(function () {
 		},
 
 		toD3: function (usage) {
-			var data = {
+			var root = {
 				name: current.$messages['service:prov:total'],
 				value: usage.cost,
 				children: []
 			};
-			current.storageToD3(data, usage);
-			current.instanceToD3(data, usage);
-			current.databaseToD3(data, usage);
-			current.supportToD3(data, usage);
-			return data;
+			$(current.types).each(function (_i, type) {
+				var data = {
+					value: 0,
+					type: 'root-' + type,
+					children: []
+				};
+				current[type + 'ToD3'](data, usage);
+				root.children.push(data);
+			});
+			return root;
 		},
 
 		instanceToD3: function (data, usage) {
 			var allOss = {};
 			var instances = usage.instance.filtered;
-			var d3instances = {
-				name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'],
-				value: 0,
-				children: []
-			};
-			data.children.push(d3instances);
+			data.name = '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'];
 			for (var i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var oss = allOss[qi.os];
@@ -2954,10 +2957,10 @@ define(function () {
 						children: []
 					};
 					allOss[qi.os] = oss;
-					d3instances.children.push(oss);
+					data.children.push(oss);
 				}
 				oss.value += qi.cost;
-				d3instances.value += qi.cost;
+				data.value += qi.cost;
 				oss.children.push({
 					name: qi.id,
 					type: 'instance',
@@ -2969,12 +2972,7 @@ define(function () {
 		databaseToD3: function (data, usage) {
 			var allEngines = {};
 			var databases = usage.database.filtered;
-			var d3databases = {
-				name: '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:databases-block'],
-				value: 0,
-				children: []
-			};
-			data.children.push(d3databases);
+			data.name = '<i class="fas fa-database fa-2x"></i> ' + current.$messages['service:prov:databases-block'];
 			for (var i = 0; i < databases.length; i++) {
 				var qi = databases[i];
 				var engines = allEngines[qi.engine];
@@ -2987,10 +2985,10 @@ define(function () {
 						children: []
 					};
 					allEngines[qi.engine] = engines;
-					d3databases.children.push(engines);
+					data.children.push(engines);
 				}
 				engines.value += qi.cost;
-				d3databases.value += qi.cost;
+				data.value += qi.cost;
 				engines.children.push({
 					name: qi.id,
 					type: 'database',
@@ -3001,12 +2999,7 @@ define(function () {
 
 		storageToD3: function (data, usage) {
 			var storages = usage.storage.filtered;
-			var d3storages = {
-				name: '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'],
-				value: 0,
-				children: []
-			};
-			data.children.push(d3storages);
+			data.name = '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
 			for (var i = 0; i < storages.length; i++) {
 				var qs = storages[i];
@@ -3020,10 +3013,10 @@ define(function () {
 						children: []
 					};
 					allOptimizations[qs.price.type.latency] = optimizations;
-					d3storages.children.push(optimizations);
+					data.children.push(optimizations);
 				}
 				optimizations.value += qs.cost;
-				d3storages.value += qs.cost;
+				data.value += qs.cost;
 				optimizations.children.push({
 					name: qs.id,
 					type: 'storage',
@@ -3034,16 +3027,11 @@ define(function () {
 
 		supportToD3: function (data, usage) {
 			var supports = usage.support.filtered;
-			var d3supports = {
-				name: '<i class="fas fa-ambulance fa-2x"></i> ' + current.$messages['service:prov:support-block'],
-				value: 0,
-				children: []
-			};
-			data.children.push(d3supports);
+			data.name = '<i class="fas fa-ambulance fa-2x"></i> ' + current.$messages['service:prov:support-block'];
 			for (var i = 0; i < supports.length; i++) {
 				var support = supports[i];
-				d3supports.value += support.cost;
-				d3supports.children.push({
+				data.value += support.cost;
+				data.children.push({
 					name: support.id,
 					type: 'support',
 					size: support.cost

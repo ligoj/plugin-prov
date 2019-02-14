@@ -13,7 +13,7 @@ define(['d3', 'jquery'], function (d3, $) {
 		};
 	};
 
-	sunburst.init = function ($element, data, tooltipFunction) {
+	sunburst.init = function ($element, data, sort, tooltipFunction) {
 		var width = 200;
 		var height = 200;
 		var radius = (Math.min(width, height) / 2) - 10;
@@ -209,7 +209,7 @@ define(['d3', 'jquery'], function (d3, $) {
 		var root = d3.hierarchy(data);
 		root.sum(function (d) {
 			return d.size;
-		});
+		}).sort(sort);
 
 		svg.selectAll('path')
 			.data(partition(root).descendants())
