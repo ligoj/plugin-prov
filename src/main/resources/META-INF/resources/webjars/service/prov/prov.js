@@ -877,10 +877,10 @@ define(function () {
 			var value = current.getResourceValue($item);
 			var queryParam = value && current.toQueryName(type, $item);
 			if (queryParam) {
-				value = $item.is('[type="checkbox"]') && $item.is(':checked') || value;
+				value = $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				var toValue = current['toQueryValue' + queryParam.capitalize()];
-				value = toValue && toValue(value, $item) || value;
-				if (value) {
+				value = toValue ? toValue(value, $item) : value;
+				if (value || value === false) {
 					// Add as query
 					queries.push(queryParam + '=' + encodeURIComponent(value));
 				}
@@ -2294,7 +2294,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteInstance || null);
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || null);
 			current.storageSetUiPrice(quote);
 		},
 
