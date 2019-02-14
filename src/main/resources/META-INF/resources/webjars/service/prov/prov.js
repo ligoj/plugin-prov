@@ -27,8 +27,7 @@ define(function () {
 		 */
 		configure: function (subscription) {
 			current.model = subscription;
-			delete current.d3Arc;
-			delete current.d3Gauge;
+			current.cleanup();
 			$('.loader-wrapper').addClass('hidden');
 			require(['text!../main/service/prov/menu.html'], function (menu) {
 				_('service-prov-menu').empty().remove();
@@ -46,9 +45,22 @@ define(function () {
 			});
 		},
 
+		/**
+		 * Cleanup the UI component cache.
+		 */
+		cleanup: function() {
+			delete current.contextDonut;
+			delete current.d3Arc;
+			delete current.d3Gauge;
+			$(current.types).each(function (_i, type) {
+				delete current[type + 'Table'];
+			});
+		},
+
 		unload: function () {
 			// Clean the shared menu
 			_('service-prov-menu').empty().remove();
+			current.cleanup();
 		},
 
 		/**
