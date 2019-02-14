@@ -2604,7 +2604,7 @@ define(function () {
 
 			// Update the sunburst total resource capacity
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
-				if (conf.cost.min) {
+				if (usage.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(usage), function (data) {
 						var tooltip;
 						if (data.type === 'latency') {
@@ -2612,25 +2612,25 @@ define(function () {
 						} else if (data.type === 'os') {
 							tooltip = current.formatOs(data.name, true, ' fa-2x');
 						} else if (data.type === 'instance') {
-							var instance = current.model.configuration.instancesById[data.name];
+							var instance = conf.instancesById[data.name];
 							tooltip = 'Name: ' + instance.name
 								+ '</br>Type: ' + instance.price.type.name
 								+ '</br>OS: ' + current.formatOs(instance.price.os, true)
 								+ '</br>Term: ' + instance.price.term.name
-								+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
+								+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
 						} else if (data.type === 'storage') {
-							var storage = current.model.configuration.storagesById[data.name];
+							var storage = conf.storagesById[data.name];
 							tooltip = 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
 						} else if (data.type === 'support') {
-							var support = current.model.configuration.supportsById[data.name];
+							var support = conf.supportsById[data.name];
 							tooltip = 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
 						} else if (data.type === 'database') {
-							var database = current.model.configuration.databasesById[data.name];
+							var database = conf.databasesById[data.name];
 							tooltip = 'Name: ' + database.name
 								+ '</br>Type: ' + database.price.type.name
 								+ '</br>Engine: ' + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
 								+ '</br>Term: ' + database.price.term.name
-								+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (current.model.configuration.usage ? current.model.configuration.usage.name : '100%')));
+								+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
 						} else {
 							tooltip = data.name;
 						}
