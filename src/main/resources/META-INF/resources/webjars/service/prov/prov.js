@@ -48,7 +48,7 @@ define(function () {
 		/**
 		 * Cleanup the UI component cache.
 		 */
-		cleanup: function() {
+		cleanup: function () {
 			delete current.contextDonut;
 			delete current.d3Arc;
 			delete current.d3Gauge;
@@ -1026,11 +1026,35 @@ define(function () {
 		initializeDataTableEvents: function (type) {
 			var oSettings = current[type + 'NewTable']();
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				data: current.model.configuration[type + 's'] || [],
 				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				destroy: true,
 				stateSave: true,
+				stateDuration: 0,
+				stateLoadCallback: function (settings, callback) {
+					try {
+						return JSON.parse(localStorage.getItem('service:prov/' + type));
+					} catch (e) {
+						// Ignore the state error log
+						callback(null);
+					}
+				},
+				stateLoadParams: function (settings, data) {
+					if (data && data.search && data.search.search) {
+						// Restore the filter input
+						$table.closest('[data-prov-type]').find('.subscribe-configuration-prov-search').val(data.search.search);
+					}
+				},
+				stateSaveCallback: function (settings, data) {
+					try {
+						localStorage.setItem('service:prov/' + type, JSON.stringify(data));
+					} catch (e) {
+						// Ignore the state error log
+					}
+				},
+
 				searching: true,
 				createdRow: (nRow, data) => $(nRow).attr('data-id', data.id),
 				buttons: [{
@@ -1069,7 +1093,6 @@ define(function () {
 						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				});
-			var $table = _('prov-' + type + 's');
 			var dataTable = $table.dataTable(oSettings);
 			$table.on('click', '.delete', function () {
 				// Delete a single row/item
@@ -2674,7 +2697,7 @@ define(function () {
 		computeUsage: function () {
 			var conf = current.model.configuration;
 			var nb = 0;
-			var i, t,qi, cost;
+			var i, t, qi, cost;
 
 			// Timeline
 			var timeline = [];
