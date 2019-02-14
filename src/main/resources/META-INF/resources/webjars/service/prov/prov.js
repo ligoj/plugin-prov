@@ -471,11 +471,10 @@ define(function () {
 		/**
 		 * Format the storage price to html markup.
 		 * @param {object} qs Quote storage with price, type and size.
-		 * @param {boolean} showName When true, the type name is displayed. Default is true.
 		 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
 		 */
-		formatStoragePriceHtml: function (qs, showName) {
-			return current.formatStorageHtml(qs, showName === false ? showName : true) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
+		formatStoragePriceHtml: function (qs) {
+			return current.formatStorageHtml(qs, false) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
 		},
 
 		/**
