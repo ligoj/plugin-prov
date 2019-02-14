@@ -613,6 +613,7 @@ define(function () {
 
 		formatLocation: function (location, mode, data) {
 			var conf = current.model.configuration;
+			var obj;
 			if (location) {
 				if (location.id) {
 					obj = location;
@@ -715,14 +716,14 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			var i;
+			var i, qi;
 
 			// Instances
 			conf.instancesById = {};
 			conf.instanceCost = 0;
 			var instances = conf.instances;
 			for (i = 0; i < instances.length; i++) {
-				var qi = instances[i];
+				qi = instances[i];
 				// Optimize id access
 				conf.instancesById[qi.id] = qi;
 				conf.instanceCost += qi.cost;
@@ -733,7 +734,7 @@ define(function () {
 			conf.databaseCost = 0;
 			var databases = conf.databases;
 			for (i = 0; i < databases.length; i++) {
-				var qi = databases[i];
+				qi = databases[i];
 				// Optimize id access
 				conf.databasesById[qi.id] = qi;
 				conf.databaseCost += qi.cost;
@@ -2662,7 +2663,7 @@ define(function () {
 		computeUsage: function () {
 			var conf = current.model.configuration;
 			var nb = 0;
-			var i, t;
+			var i, t,qi, cost;
 
 			// Timeline
 			var timeline = [];
@@ -2687,8 +2688,8 @@ define(function () {
 			var maxInstancesUnbound = false;
 			var enabledInstances = {};
 			for (i = 0; i < instances.length; i++) {
-				var qi = instances[i];
-				var cost = qi.cost.min || qi.cost || 0;
+				qi = instances[i];
+				cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
 				minInstances += nb;
 				maxInstancesUnbound |= (qi.maxQuantity !== nb);
@@ -2720,8 +2721,8 @@ define(function () {
 			var maxInstancesUnboundD = false;
 			var enabledInstancesD = {};
 			for (i = 0; i < databases.length; i++) {
-				var qi = databases[i];
-				var cost = qi.cost.min || qi.cost || 0;
+				qi = databases[i];
+				cost = qi.cost.min || qi.cost || 0;
 				nb = qi.minQuantity || 1;
 				minInstancesD += nb;
 				maxInstancesUnboundD |= (qi.maxQuantity !== nb);
@@ -3176,7 +3177,7 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			var clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
 		},
 

@@ -117,24 +117,22 @@ public class ProvQuoteInstanceExportResource {
 						"license", "cost", "disk", "instance", "database", "latency", "optimized", "engine", "edition");
 
 				// Write quote instances
-				vo.getInstances().forEach(qi -> {
-					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), toString(qi.getCpu()),
-							toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
-							toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-							toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
-							toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
-							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()));
-				});
+				vo.getInstances()
+						.forEach(qi -> writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi),
+								toString(qi.getCpu()), toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
+								toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+								toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
+								toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
+								qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost())));
 
 				// Write quote databases
-				vo.getDatabases().forEach(qi -> {
-					writer.format("\n%s" + StringUtils.repeat(";%s", 17), toString(qi), toString(qi.getCpu()),
-							toString(qi.getRam()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
-							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
-							toString(qi.getConstant()), "", toString(qi.getPrice().getType()), "",
-							toString(qi.getLicense()), toString(qi.getCost()), qi.getEngine(),
-							toString(qi.getEdition()));
-				});
+				vo.getDatabases()
+						.forEach(qi -> writer.format("\n%s" + StringUtils.repeat(";%s", 17), toString(qi),
+								toString(qi.getCpu()), toString(qi.getRam()), "", toString(qi.getUsage()),
+								toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+								toString(qi.getMaxQuantity()), "", toString(qi.getConstant()), "",
+								toString(qi.getPrice().getType()), "", toString(qi.getLicense()),
+								toString(qi.getCost()), qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
 				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s;%s", toString(qs),

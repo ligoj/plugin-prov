@@ -174,8 +174,7 @@ define(['d3', 'jquery'], function (d3) {
                 clusterNames = params.clusterNames,
                 binNames = params.binNames,
                 legend = params.legend,
-                maxPerBin = params.maxPerBin,
-                percentView = params.percentView;
+                maxPerBin = params.maxPerBin;
 
             var transDuration = 700;
 
