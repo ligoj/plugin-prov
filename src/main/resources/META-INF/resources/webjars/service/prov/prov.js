@@ -52,9 +52,7 @@ define(function () {
 			delete current.contextDonut;
 			delete current.d3Arc;
 			delete current.d3Gauge;
-			$(current.types).each(function (_i, type) {
-				delete current[type + 'Table'];
-			});
+			current.types.forEach(type => delete current[type + 'Table']);
 		},
 
 		unload: function () {
@@ -1222,7 +1220,7 @@ define(function () {
 					$.proxy(current.checkResource, $(this))();
 				}
 			});
-			$(current.types).each(function (_i, type) {
+			current.types.forEach(type => {
 				current.initializeDataTableEvents(type);
 				if (type !== 'database') {
 					current.initializePopupEvents(type);
@@ -2457,9 +2455,7 @@ define(function () {
 					var stack = {
 						date: value.date
 					};
-					$(current.types).each(function (_i, type) {
-						stack[type] = value[type]
-					});
+					current.types.forEach(type => stack[type] = value[type]);
 					data.push(stack);
 				}
 
@@ -2929,7 +2925,7 @@ define(function () {
 				value: usage.cost,
 				children: []
 			};
-			$(current.types).each(function (_i, type) {
+			current.types.forEach(type => {
 				var data = {
 					value: 0,
 					type: 'root-' + type,

@@ -87,13 +87,13 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 * @param callback
 	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
 	 * @return The parent quote configuration.
-	 * @param <CC>
+	 * @param <Q>
 	 *            The quote resource type.
 	 */
-	protected <CC extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
-			final RestRepository<CC, Integer> repository, final Integer id, final Consumer<CC> callback) {
+	protected <Q extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
+			final RestRepository<Q, Integer> repository, final Integer id, final Consumer<Q> callback) {
 		// Check the entity exists and is visible
-		final CC entity = resource.findConfigured(repository, id);
+		final Q entity = resource.findConfigured(repository, id);
 
 		// Remove the cost of this entity
 		addCost(entity, e -> {
@@ -109,7 +109,6 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 		repository.deleteById(id);
 
 		return entity.getConfiguration();
-
 	}
 
 	/**
