@@ -328,9 +328,4 @@ public class ProvQuoteDatabaseResource extends
 		return result;
 	}
 
-	@Override
-	protected double getCustomCost(final Double cpu, final Integer ram, final ProvDatabasePrice ip) {
-		return 0;
-	}
-
 }
