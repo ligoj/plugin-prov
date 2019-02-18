@@ -51,6 +51,7 @@ define(function () {
 		cleanup: function () {
 			delete current.contextDonut;
 			delete current.d3Arc;
+			delete current.d3Bar
 			delete current.d3Gauge;
 			current.types.forEach(type => delete current[type + 'Table']);
 		},
