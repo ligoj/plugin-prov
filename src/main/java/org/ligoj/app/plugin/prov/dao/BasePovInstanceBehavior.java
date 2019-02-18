@@ -23,6 +23,7 @@ public interface BasePovInstanceBehavior {
 	 *
 	 * @param subscription
 	 *            The related subscription identifier.
+	 * @return Identifiers of all storages linked to a resource linked to the given subscription.
 	 */
 	List<Integer> findAllStorageIdentifiers(int subscription);
 

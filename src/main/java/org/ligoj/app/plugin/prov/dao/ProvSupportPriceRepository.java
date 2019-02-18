@@ -15,14 +15,11 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPrice, Integer> {
 
 	/**
-	 * Return the cheapest storage configuration from the minimal requirements.
+	 * Return the cheapest support configuration from the minimal requirements.
 	 *
 	 * @param node
 	 *            The node linked to the subscription. Is a node identifier within a provider.
-	 * @param pageable
-	 *            The page control to return few item.
-	 * @return The cheapest storage or <code>null</code>. The first item corresponds to the storage price, the second is
-	 *         the computed price.
+	 * @return The cheapest support or <code>null</code>.
 	 */
 	@Query("SELECT sp FROM #{#entityName} AS sp INNER JOIN sp.type st "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) ")

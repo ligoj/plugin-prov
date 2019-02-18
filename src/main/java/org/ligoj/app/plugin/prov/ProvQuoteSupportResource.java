@@ -238,6 +238,8 @@ public class ProvQuoteSupportResource
 	 *            Who can open cases. When <code>null</code>, unlimited requirement.
 	 * @param accessApi
 	 *            API access. <code>null</code> when is not required.
+	 * @param accessMail
+	 *            Mail access. <code>null</code> when is not required.
 	 * @param accessChat
 	 *            Chat access. <code>null</code> when is not required.
 	 * @param accessPhone

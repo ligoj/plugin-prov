@@ -114,6 +114,13 @@ public class ProvQuoteDatabaseResource extends
 
 	/**
 	 * Check the requested edition is compliant with the one of associated {@link ProvDatabasePrice}
+	 *
+	 * @param name
+	 *            The attribute to check.
+	 * @param pQuote
+	 *            The quote required attribute value.
+	 * @param vPrice
+	 *            The price attribute value.
 	 */
 	protected <V> void checkAttribute(final String name, final V pQuote, final V vPrice) {
 		if (!Objects.equals(pQuote, vPrice)) {
@@ -249,8 +256,6 @@ public class ProvQuoteDatabaseResource extends
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param engine
 	 *            The filtered engine.
-	 * @param uriInfo
-	 *            filter data.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -268,8 +273,6 @@ public class ProvQuoteDatabaseResource extends
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -283,10 +286,8 @@ public class ProvQuoteDatabaseResource extends
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param os
-	 *            The filtered OS.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param engine
+	 *            The filtered engine.
 	 * @return The available softwares for the given subscription.
 	 */
 	@GET

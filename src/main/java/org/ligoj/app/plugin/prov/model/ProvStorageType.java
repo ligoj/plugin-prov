@@ -86,7 +86,7 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
 	 * <code>null</code>, this storage can only be attached to a database type not requiring a specific storage engine.
 	 *
-	 * @see ProvDatabasePrice#getStorageEngine()
+	 * @see {@link ProvDatabasePrice#getStorageEngine()}
 	 */
 	private String engine;
 

@@ -42,7 +42,7 @@ public class ProvDatabasePrice extends AbstractTermPrice<ProvDatabaseType> {
 	 * Required storage engine. When not <code>null</code>, this type requires a storage only compatible to this engine.
 	 * When <code>null</code>, this type requires a storage having no engine constraint.
 	 *
-	 * @see ProvStorageType#getEngine()
+	 * @see {@link ProvStorageType#getEngine()}
 	 */
 	private String storageEngine;
 }

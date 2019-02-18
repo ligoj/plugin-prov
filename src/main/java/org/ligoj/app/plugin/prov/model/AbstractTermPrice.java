@@ -46,7 +46,7 @@ public abstract class AbstractTermPrice<T extends AbstractNamedEntity<?>> extend
 	private ProvInstancePriceTerm term;
 
 	/**
-	 * Optional built-in license model. Special license term is {@value #LICENSE_BYOL}. When <code>null</code>, license
+	 * Optional built-in license model. Special license term is <code>BYOL</code>. When <code>null</code>, license
 	 * is included in the price or not applicable.
 	 */
 	private String license;

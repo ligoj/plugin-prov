@@ -47,6 +47,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The resource part of the provisioning.
+ *
+ * @param <T>
+ *            The instance resource type.
+ * @param <C>
+ *            Quoted resource type.
+ * @param <P>
+ *            Quoted resource price type.
  */
 public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo>
 		extends AbstractCostedResource<T, P, C> {

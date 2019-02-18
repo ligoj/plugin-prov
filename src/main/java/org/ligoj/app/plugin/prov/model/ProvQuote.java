@@ -48,7 +48,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	/**
 	 * Maximal determined monthly cost, computed during the creation and kept synchronized with the updates. Includes
 	 * support cost. When there are unbound maximal quantities (<code>unboundCostCounter &gt; 0</code>), the
-	 * {@link #getUnboundCostCounter()} is incremented. Otherwise, this value is equals to {@link #getCost()}
+	 * {@link #unboundCostCounter} is incremented. Otherwise, this value is equals to {@link #cost}
 	 */
 	@NotNull
 	@PositiveOrZero

@@ -23,6 +23,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	 *
 	 * @param subscription
 	 *            The related subscription identifier.
+	 * @return Return identifiers of all resources linked to the given subscription.
 	 */
 	@Query("SELECT id FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
 	List<Integer> findAllIdentifiers(int subscription);

@@ -251,8 +251,6 @@ public class ProvQuoteInstanceResource extends
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param os
 	 *            The filtered OS.
-	 * @param uriInfo
-	 *            filter data.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -272,8 +270,6 @@ public class ProvQuoteInstanceResource extends
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param os
 	 *            The filtered OS.
-	 * @param uriInfo
-	 *            filter data.
 	 * @return The available softwares for the given subscription.
 	 */
 	@GET
