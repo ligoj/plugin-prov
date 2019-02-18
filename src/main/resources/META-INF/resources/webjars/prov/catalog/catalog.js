@@ -305,6 +305,7 @@ define(['sparkline'], function () {
 								width: '12px',
 								height: '12px',
 								fillColor: 'white',
+								disableTooltips: true,
 								borderWidth: '2',
 								borderColor: '#000000'
 							});
