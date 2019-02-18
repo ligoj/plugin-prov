@@ -128,19 +128,22 @@
 	#prov-storages thead>tr>th.latency, #prov-storages thead>tr>th.optimized {
 		width: 80px;
 	}
-	#prov-instances thead>tr>th.col-cost,#prov-storages thead>tr>th.col-cost {
+	#prov-instances thead>tr>th.col-cost,#prov-databases thead>tr>th.col-cost,#prov-storages thead>tr>th.col-cost {
 		width: 64px;
 	}
-	#prov-instances thead>tr>th.quantity, #prov-storages thead>tr>th.quantity {
+	#prov-instances thead>tr>th.quantity, #prov-databases thead>tr>th.quantity, #prov-storages thead>tr>th.quantity {
 		width: 24px;
 	}
 }
 
 @media (min-width: 1200px) {
-	#prov-instances thead>tr>th.term {
+	#prov-instances thead>tr>th.term, #prov-databases thead>tr>th.term {
 		width: 120px;
 	}
-	#prov-instances thead>tr>th.type, #prov-storages thead>tr>th.type {
+	#prov-instances thead>tr>th.type, #prov-databases thead>tr>th.type, #prov-storages thead>tr>th.type {
+		width: 50px;
+	}
+	#prov-instances thead>tr>th.type, #prov-databases thead>tr>th.type, #prov-storages thead>tr>th.type {
 		width: 50px;
 	}
 }
