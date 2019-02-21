@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov.model;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -79,5 +80,15 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 	 *            The resolved price.
 	 */
 	public abstract void setPrice(P price);
+
+	/**
+	 * Return the effective location applied to the current resource.
+	 *
+	 * @return The related location. Never <code>null</code>.
+	 */
+	@Transient
+	public ProvLocation getResolvedLocation() {
+		return location == null ? getConfiguration().getLocation() : location;
+	}
 
 }

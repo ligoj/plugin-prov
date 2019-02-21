@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.Positive;
 
+import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
 import lombok.Getter;
@@ -15,7 +16,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo {
+public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo implements QuoteInstance {
 
 	/**
 	 * SID
@@ -44,4 +45,14 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo {
 	 * Optional built-in software.
 	 */
 	private String software;
+
+	@Override
+	public String getLocationName() {
+		return getLocation();
+	}
+
+	@Override
+	public String getUsageName() {
+		return getUsage();
+	}
 }

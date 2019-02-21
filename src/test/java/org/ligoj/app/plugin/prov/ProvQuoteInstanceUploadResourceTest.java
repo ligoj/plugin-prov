@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,17 +33,17 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
 
-	private Map<Integer, FloatingCost> toStoragesFloatingCost(final String instanceName) {
+	private Map<String, FloatingCost> toStoragesFloatingCost(final String instanceName) {
 		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream().collect(Collectors.toMap(
-				ProvQuoteStorage::getId,
+				ProvQuoteStorage::getName,
 				qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(), qs.getQuoteInstance().getMaxQuantity() == null)));
 	}
 
 	@Test
 	public void upload() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant", "description" }, false, "Full Time 12 month",
-				1, "UTF-8");
+				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant", "description" }, false,
+				"Full Time 12 month", 1, "UTF-8");
 		checkUpload();
 	}
 
@@ -64,8 +63,8 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14584.046, 17033.646, false);
 
-		Assertions.assertEquals("JIRA",configuration.getInstances().get(7).getName());
-		Assertions.assertEquals("Description JIRA",configuration.getInstances().get(7).getDescription());
+		Assertions.assertEquals("JIRA", configuration.getInstances().get(7).getName());
+		Assertions.assertEquals("Description JIRA", configuration.getInstances().get(7).getDescription());
 		return configuration;
 	}
 
@@ -125,7 +124,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1000, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 117164.358, false);
-		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
+		final Map<String, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 210, false);
 	}
@@ -150,7 +149,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 7264.368, false);
-		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
+		final Map<String, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, false);
 	}
@@ -158,7 +157,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	@Test
 	public void uploadMultipleDisks() throws IOException {
 		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;1,0,10;true;true".getBytes("UTF-8")),
+				new ByteArrayInputStream("MYINSTANCE;0.5;500;LINUX;1,0,10;true;true".getBytes("UTF-8")),
 				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "ephemeral" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
@@ -168,13 +167,12 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(6, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4816.868, 7266.468, false);
-		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
+		final Map<String, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("MYINSTANCE");
 		Assertions.assertEquals(2, storagesFloatingCost.size()); // 1GB and 10GB disks
-		final Iterator<FloatingCost> storages = storagesFloatingCost.values().iterator();
-		checkCost(storages.next(), 0.21, 0.21, false);
-		Assertions.assertEquals("ANY", qsRepository.findAllBy("cost", .21d).get(0).getName());
-		checkCost(storages.next(), 2.1, 2.1, false);
-		Assertions.assertEquals("ANY2", qsRepository.findAllBy("cost", 2.1d).get(0).getName());
+		checkCost(storagesFloatingCost.get("MYINSTANCE"), 0.21, 0.21, false);
+		Assertions.assertEquals("MYINSTANCE", qsRepository.findAllBy("cost", .21d).get(0).getName());
+		checkCost(storagesFloatingCost.get("MYINSTANCE2"), 2.1, 2.1, false);
+		Assertions.assertEquals("MYINSTANCE2", qsRepository.findAllBy("cost", 2.1d).get(0).getName());
 	}
 
 	@Test
@@ -190,7 +188,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertNull(qi.getMaxQuantity());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 7264.368, true);
-		final Map<Integer, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
+		final Map<String, FloatingCost> storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, true);
 	}
@@ -376,13 +374,10 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
 	}
 
-
 	@Test
 	public void uploadSoftware() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;WINDOWS;SQL Web".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", 1,
-				"UTF-8");
+		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;WINDOWS;SQL Web".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", 1, "UTF-8");
 		QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("C121", configuration.getInstances().get(7).getPrice().getCode());
@@ -391,10 +386,8 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadLicense() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;WINDOWS;BYOL".getBytes("UTF-8")),
-				new String[] { "name", "cpu", "ram", "os", "license" }, false, "Full Time 12 month", 1,
-				"UTF-8");
+		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;WINDOWS;BYOL".getBytes("UTF-8")),
+				new String[] { "name", "cpu", "ram", "os", "license" }, false, "Full Time 12 month", 1, "UTF-8");
 		QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("C120", configuration.getInstances().get(7).getPrice().getCode());

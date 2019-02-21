@@ -143,9 +143,6 @@
 	#prov-instances thead>tr>th.type, #prov-databases thead>tr>th.type, #prov-storages thead>tr>th.type {
 		width: 50px;
 	}
-	#prov-instances thead>tr>th.type, #prov-databases thead>tr>th.type, #prov-storages thead>tr>th.type {
-		width: 50px;
-	}
 }
 label[for="instance-max-variable-cost"] {
 	margin-top: 10px;

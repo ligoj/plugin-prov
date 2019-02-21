@@ -57,6 +57,7 @@ import org.springframework.stereotype.Service;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteInstanceUploadResource {
+	private static final String CSV_FILE = "csv-file";
 	private static final List<String> MINIMAL_HEADERS = List.of("name", "cpu", "ram", "os");
 	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
 
@@ -117,8 +118,8 @@ public class ProvQuoteInstanceUploadResource {
 						final String previous = localMapped.put(array[0], h);
 						if (previous != null) {
 							// Ambiguous header
-							throw new ValidationJsonException("csv-file", "ambiguous-header", "header", array[0],
-									"name1", previous, "name2", h);
+							throw new ValidationJsonException(CSV_FILE, "ambiguous-header", "header", array[0], "name1",
+									previous, "name2", h);
 						}
 					}));
 			// Complete the global set
@@ -127,7 +128,7 @@ public class ProvQuoteInstanceUploadResource {
 
 		// Check the mandatory headers
 		CollectionUtils.removeAll(MINIMAL_HEADERS, mapped.keySet()).stream().findFirst().ifPresent(h -> {
-			throw new ValidationJsonException("csv-file", "missing-header", "header", h);
+			throw new ValidationJsonException(CSV_FILE, "missing-header", "header", h);
 		});
 
 		// Return validated header and dropped ones : empty string = ""
@@ -166,7 +167,7 @@ public class ProvQuoteInstanceUploadResource {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription,
-			@Multipart(value = "csv-file") final InputStream uploadedFile,
+			@Multipart(value = CSV_FILE) final InputStream uploadedFile,
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
 			@Multipart(value = "usage", required = false) final String usage,
@@ -207,7 +208,7 @@ public class ProvQuoteInstanceUploadResource {
 				final Map<String, List<Map<String, Serializable>>> errors = e.getErrors();
 				new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
 						.forEach(errors::remove);
-				errors.put("csv-file", List.of(
+				errors.put(CSV_FILE, List.of(
 						Map.of("parameters", (Serializable) Map.of("name", i.getName()), "rule", "csv-invalid-entry")));
 				throw e;
 			}
@@ -240,12 +241,10 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
+		vo.setType(upload.getType());
 
 		// Find the lowest price
-		vo.setPrice(qResource.validateLookup("instance",
-				qResource.lookup(subscription, vo.getCpu(), vo.getRam(), vo.getConstant(), vo.getOs(), upload.getType(),
-						vo.isEphemeral(), vo.getLocation(), vo.getUsage(), vo.getLicense(), vo.getSoftware()),
-				vo.getName()).getId());
+		vo.setPrice(qResource.validateLookup("instance", qResource.lookup(subscription, vo), vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
 		final int id = qResource.create(vo).getId();
@@ -263,8 +262,8 @@ public class ProvQuoteInstanceUploadResource {
 
 			// Find the nicest storage
 			svo.setType(storageResource
-					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getQuoteDatabase(), svo.getOptimized(),
-							svo.getLocation())
+					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getQuoteDatabase(),
+							svo.getOptimized(), svo.getLocation())
 					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
 					.getPrice().getType().getName());
 

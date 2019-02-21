@@ -101,9 +101,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage3");
 		vo.setQuoteInstance(server1());
 		vo.setSize(1);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qsResource.create(vo);
-		}), "type", "type-incompatible-requirements");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
+				"type", "type-incompatible-requirements");
 	}
 
 	/**
@@ -245,9 +244,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage7-database");
 		vo.setQuoteDatabase(qbRepository.findByName("database1").getId());
 		vo.setSize(512);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qsResource.create(vo);
-		}), "type", "type-incompatible-requirements");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
+				"type", "type-incompatible-requirements");
 	}
 
 	/**
@@ -261,9 +259,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage5-database");
 		vo.setQuoteDatabase(qbRepository.findByName("database3").getId());
 		vo.setSize(512);
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qsResource.create(vo);
-		}), "type", "type-incompatible-requirements");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
+				"type", "type-incompatible-requirements");
 	}
 
 	@Test
@@ -398,9 +395,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-root-ter");
 		vo.setType("storage1");
 		vo.setSize(1);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.create(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.create(vo));
 	}
 
 	@Test
@@ -478,9 +473,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setQuoteInstance(server1());
 		vo.setSize(512);
 		vo.setLocation("region-Z");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}
 
 	@Test
@@ -493,9 +486,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setQuoteInstance(server1());
 		vo.setSize(512);
 		vo.setLocation("region-3");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}
 
 	@Test
@@ -531,9 +522,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storage2");
 		vo.setSize(1024); // Limit for this storage is 512
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			qsResource.update(vo);
-		}), "type", "type-incompatible-requirements");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.update(vo)),
+				"type", "type-incompatible-requirements");
 	}
 
 	@Test
@@ -544,9 +534,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storage-unknown");
 		vo.setSize(1);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}
 
 	/**
@@ -560,9 +548,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-root-bis");
 		vo.setType("storageX");
 		vo.setSize(1);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}
 
 	@Test
@@ -574,9 +560,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage1");
 		vo.setQuoteInstance(0);
 		vo.setSize(1);
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.update(vo));
 	}
 
 	/**
@@ -591,9 +575,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage1");
 		vo.setQuoteInstance(qiRepository.findByName("serverX").getId());
 		vo.setSize(1);
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.update(vo);
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}
 
 	@Test
@@ -654,9 +636,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findStorageTypeNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-			qsResource.findType(-1, newUriInfo());
-		});
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, newUriInfo()));
 	}
 
 	@Test
@@ -668,9 +648,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void findStorageTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> {
-			qsResource.findType(subscription, newUriInfo());
-		});
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
 	}
 
 	/**

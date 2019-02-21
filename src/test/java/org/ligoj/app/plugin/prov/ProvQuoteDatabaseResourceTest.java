@@ -41,10 +41,14 @@ import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
+import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Test class of {@link ProvQuoteDatabaseResource}
@@ -103,8 +107,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookup() {
-		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, 1, 2000, null, null, null,
-				"Full Time 12 month", null, "MYSQL", null);
+		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription,
+				QuoteDatabaseQuery.builder().usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
 	}
 
@@ -113,8 +117,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLicenseIncluded() {
-		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, 1, 2000, null, null, null,
-				"Full Time 12 month", "INCLUDED", "MYSQL", null);
+		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription,
+				QuoteDatabaseQuery.builder().usage("Full Time 12 month").license("INCLUDED").engine("MYSQL").build());
 
 		// Check the instance result
 		final ProvDatabasePrice pi = lookup.getPrice();
@@ -133,12 +137,23 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Builder coverage
+	 */
+	@Test
+	public void queryJson() throws JsonParseException, JsonMappingException, IOException {
+		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
+				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\""
+				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);
+		QuoteDatabaseQuery.builder().toString();
+	}
+
+	/**
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
 	public void lookupLicenseByol() {
-		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, 0.5, 2000, null, null, null,
-				"Full Time 12 month", "BYOL", "ORACLE", "ENTERPRISE");
+		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.5)
+				.ram(2000).usage("Full Time 12 month").license("BYOL").engine("ORACLE").edition("ENTERPRISE").build());
 
 		// Check the instance result
 		final ProvDatabasePrice pi = lookup.getPrice();
@@ -155,8 +170,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLocation() {
-		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, 1, 2000, null, null, "region-1",
-				"Full Time 12 month", null, "MYSQL", null);
+		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription,
+				QuoteDatabaseQuery.builder().location("region-1").usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
 	}
 
@@ -165,8 +180,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription, 1, 2000, null,
-				null, "region-xxx", "Full Time 12 month", null, "MYSQL", null));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription,
+				QuoteDatabaseQuery.builder().location("region-xxx").engine("MYSQL").build()));
 	}
 
 	private void checkInstance(final QuoteDatabaseLookup lookup) {
@@ -190,8 +205,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupHighContraints() {
-		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, 0.25, 1900, true, null, null,
-				"Full Time 12 month", null, "MYSQL", null);
+		final QuoteDatabaseLookup lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.25)
+				.ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").build());
 		final ProvDatabasePrice pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
@@ -211,7 +226,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupNoMatch() {
 		Assertions.assertNull(
-				qbResource.lookup(subscription, 999, 0, false, null, null, "Full Time 12 month", null, "MYSQL", null));
+				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(999).engine("MYSQL").build()));
 	}
 
 	/**
@@ -219,8 +234,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupNoMatchEngine() {
-		Assertions.assertNull(
-				qbResource.lookup(subscription, 999, 0, false, null, null, "Full Time 12 month", null, "any", null));
+		Assertions.assertNull(qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("any").build()));
 	}
 
 	/**
@@ -229,7 +243,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupNoMatchEdition() {
 		Assertions.assertNull(
-				qbResource.lookup(subscription, 999, 0, false, null, null, "Full Time 12 month", null, "MYSQL", "any"));
+				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("MYSQL").edition("any").build()));
 	}
 
 	@Test
@@ -382,7 +396,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 		final ProvQuoteDatabase instance = qbRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("database1-bis", instance.getName());
-		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
 		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
@@ -462,7 +476,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final ProvQuoteDatabase instance = qbRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals("serverZ", instance.getName());
 		Assertions.assertEquals("serverZD", instance.getDescription());
-		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals("ORACLE", instance.getEngine());
 		Assertions.assertEquals("STANDARD ONE", instance.getEdition());
@@ -628,7 +642,6 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 	}
-
 
 	@Test
 	public void getSubscriptionStatus() {

@@ -44,14 +44,14 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 */
 	@NotNull
 	@Positive
-	private Double cpu;
+	private double cpu;
 
 	/**
 	 * The requested memory in MB.
 	 */
 	@NotNull
 	@Positive
-	private Integer ram;
+	private int ram;
 
 	/**
 	 * The optional requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
@@ -92,4 +92,9 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * accepted.
 	 */
 	private String license;
+
+	/**
+	 * Optional required type. Will be erased on refresh.
+	 */
+	private String type;
 }

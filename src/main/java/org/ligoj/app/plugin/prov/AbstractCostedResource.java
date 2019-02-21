@@ -14,7 +14,6 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -130,15 +129,4 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 * @return The cost of this instance.
 	 */
 	protected abstract FloatingCost getCost(final C qr);
-
-	/**
-	 * Return the effective location applied to the given resource.
-	 *
-	 * @param qr
-	 *            The {@link Costed} resource to evaluate.
-	 * @return The related location. Never <code>null</code>.
-	 */
-	public static ProvLocation getLocation(final AbstractQuoteResource<?> qr) {
-		return qr.getLocation() == null ? qr.getConfiguration().getLocation() : qr.getLocation();
-	}
 }

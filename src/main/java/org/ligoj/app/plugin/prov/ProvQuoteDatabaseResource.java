@@ -9,16 +9,15 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -35,6 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -142,10 +142,7 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	public FloatingCost refresh(final ProvQuoteDatabase qi) {
 		// Find the lowest price
-		qi.setPrice(validateLookup("database",
-				lookup(qi.getConfiguration(), qi.getCpu(), qi.getRam(), qi.getConstant(), null,
-						getLocation(qi).getName(), getUsageName(qi), qi.getLicense(), qi.getEngine(), qi.getEdition()),
-				qi.getName()));
+		qi.setPrice(validateLookup("database", lookup(qi.getConfiguration(), qi), qi.getName()));
 		return updateCost(qi);
 	}
 
@@ -162,25 +159,8 @@ public class ProvQuoteDatabaseResource extends
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param cpu
-	 *            The amount of required CPU. Default is 1.
-	 * @param ram
-	 *            The amount of required RAM, in MB. Default is 1.
-	 * @param constant
-	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
-	 *            constant CPU is requested.
-	 * @param type
-	 *            Optional instance type name. May be <code>null</code>.
-	 * @param location
-	 *            Optional location name. When <code>null</code>, the global quote's location is used.
-	 * @param usage
-	 *            Optional usage name. May be <code>null</code> to use the default one.
-	 * @param license
-	 *            Optional license model. When <code>null</code>, the global quote's license is used.
-	 * @param engine
-	 *            The requested database engine.
-	 * @param edition
-	 *            Optional engine edition
+	 * @param query
+	 *            The query parameters.
 	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
 	 *         custom instance type.
 	 */
@@ -188,47 +168,38 @@ public class ProvQuoteDatabaseResource extends
 	@Path("{subscription:\\d+}/database-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
-			@DefaultValue(value = "1") @QueryParam("ram") final long ram,
-			@QueryParam("constant") final Boolean constant, @QueryParam("type") final String type,
-			@QueryParam("location") final String location, @QueryParam("usage") final String usage,
-			@QueryParam("license") final String license, @QueryParam("engine") final String engine,
-			@QueryParam("edition") final String edition) {
-		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, type, location, usage, license,
-				engine, edition);
+			@BeanParam final QuoteDatabaseQuery query) {
+		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 
 	/**
 	 * Return a {@link QuoteDatabaseLookup} corresponding to the best price.
 	 */
-	private QuoteDatabaseLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
-			final Boolean constant, final String type, final String location, final String usageName,
-			final String license, final String engine, final String edition) {
+	private QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final int ramR = (int) getRam(configuration, ram);
+		final int ramR = (int) getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, location, node);
+		final int locationR = getLocation(configuration, query.getLocationName(), node);
 
 		// Compute the rate to use
-		final ProvUsage usage = getUsage(configuration, usageName);
+		final ProvUsage usage = getUsage(configuration, query.getUsageName());
 		final double rate = usage.getRate() / 100d;
 		final int duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(type, subscription);
+		final Integer typeId = getType(query.getType(), subscription);
 
 		// Resolve the right license model
-		final String licenseR = getLicense(configuration, license, engine, this::canByol);
-		final String editionR = normalize(edition);
-		final String engineR = normalize(engine);
+		final String licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final String editionR = normalize(query.getEdition());
+		final String engineR = normalize(query.getEngine());
 
 		// Return only the first matching instance
 		return ipRepository
-				.findLowestPrice(node, cpu, ramR, constant, typeId, locationR, rate, duration, licenseR, engineR,
-						editionR, PageRequest.of(0, 1))
+				.findLowestPrice(node, query.getCpu(), ramR, query.getConstant(), typeId, locationR, rate, duration,
+						licenseR, engineR, editionR, PageRequest.of(0, 1))
 				.stream().findFirst().map(rs -> newPrice((ProvDatabasePrice) rs[0], (double) rs[2])).orElse(null);
 	}
 

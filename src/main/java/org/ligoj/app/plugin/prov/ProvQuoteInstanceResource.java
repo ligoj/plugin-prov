@@ -9,16 +9,15 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -34,6 +33,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -135,11 +135,7 @@ public class ProvQuoteInstanceResource extends
 	@Override
 	public FloatingCost refresh(final ProvQuoteInstance qi) {
 		// Find the lowest price
-		qi.setPrice(validateLookup("instance",
-				lookup(qi.getConfiguration(), qi.getCpu(), qi.getRam(), qi.getConstant(), qi.getOs(), null,
-						qi.isEphemeral(), getLocation(qi).getName(), getUsageName(qi), qi.getLicense(),
-						qi.getSoftware()),
-				qi.getName()));
+		qi.setPrice(validateLookup("instance", lookup(qi.getConfiguration(), qi), qi.getName()));
 		return updateCost(qi);
 	}
 
@@ -152,33 +148,12 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	/**
-	 * Create the instance inside a quote.
+	 * Create the database inside a quote.
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param cpu
-	 *            The amount of required CPU. Default is 1.
-	 * @param ram
-	 *            The amount of required RAM, in MB. Default is 1.
-	 * @param constant
-	 *            Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
-	 *            constant CPU is requested.
-	 * @param os
-	 *            The requested OS, default is "LINUX".
-	 * @param type
-	 *            Optional instance type name. May be <code>null</code>.
-	 * @param ephemeral
-	 *            Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
-	 *            accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
-	 * @param location
-	 *            Optional location name. When <code>null</code>, the global quote's location is used.
-	 * @param usage
-	 *            Optional usage name. May be <code>null</code> to use the default one.
-	 * @param license
-	 *            Optional license model. When <code>null</code>, the global quote's license is used.
-	 * @param software
-	 *            Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint
-	 *            is added. WHen <code>null</code>, installed software is also accepted.
+	 * @param query
+	 *            The query parameters.
 	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
 	 *         custom instance type.
 	 */
@@ -186,48 +161,50 @@ public class ProvQuoteInstanceResource extends
 	@Path("{subscription:\\d+}/instance-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("cpu") final double cpu,
-			@DefaultValue(value = "1") @QueryParam("ram") final long ram,
-			@QueryParam("constant") final Boolean constant,
-			@DefaultValue(value = "LINUX") @QueryParam("os") final VmOs os, @QueryParam("type") final String type,
-			@QueryParam("ephemeral") final boolean ephemeral, @QueryParam("location") final String location,
-			@QueryParam("usage") final String usage, @QueryParam("license") final String license,
-			@QueryParam("software") final String software) {
-		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), cpu, ram, constant, os, type, ephemeral, location, usage,
-				license, software);
+			@BeanParam final QuoteInstanceQuery query) {
+		return lookup(subscription, (QuoteInstance) query);
+	}
+
+	/**
+	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param query
+	 *            The query parameters.
+	 */
+	protected QuoteInstanceLookup lookup(final int subscription, final QuoteInstance query) {
+		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 
 	/**
 	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
 	 */
-	private QuoteInstanceLookup lookup(final ProvQuote configuration, final double cpu, final long ram,
-			final Boolean constant, final VmOs osName, final String type, final boolean ephemeral,
-			final String location, final String usageName, final String license, final String software) {
+	private QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final double ramR = getRam(configuration, ram);
+		final double ramR = getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, location, node);
+		final int locationR = getLocation(configuration, query.getLocationName(), node);
 
 		// Compute the rate to use
-		final ProvUsage usage = getUsage(configuration, usageName);
+		final ProvUsage usage = getUsage(configuration, query.getUsageName());
 		final double rate = usage.getRate() / 100d;
 		final int duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(type, subscription);
+		final Integer typeId = getType(query.getType(), subscription);
 
 		// Resolve the right license model
-		final VmOs os = Optional.ofNullable(osName).map(VmOs::toPricingOs).orElse(null);
-		final String licenseR = getLicense(configuration, license, os, this::canByol);
-		final String softwareR = StringUtils.trimToNull(software);
+		final VmOs os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
+		final String licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
+		final String softwareR = StringUtils.trimToNull(query.getSoftware());
 
 		// Return only the first matching instance
 		return ipRepository
-				.findLowestPrice(node, cpu, ramR, constant, os, typeId, ephemeral, locationR, rate, duration, licenseR,
-						softwareR, PageRequest.of(0, 1))
+				.findLowestPrice(node, query.getCpu(), ramR, query.getConstant(), os, typeId, query.isEphemeral(),
+						locationR, rate, duration, licenseR, softwareR, PageRequest.of(0, 1))
 				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
 	}
 

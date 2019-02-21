@@ -4,11 +4,14 @@
 package org.ligoj.app.plugin.prov.model;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
+
+import org.ligoj.bootstrap.core.INamableBean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -27,7 +30,8 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> extends AbstractQuoteResource<P> {
+public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> extends AbstractQuoteResource<P>
+		implements QuoteVm {
 
 	/**
 	 * SID
@@ -42,16 +46,14 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	/**
 	 * The requested CPU.
 	 */
-	@NotNull
 	@PositiveOrZero
-	private Double cpu;
+	private double cpu;
 
 	/**
 	 * The requested RAM in "MiB". 1MiB = 1024 MiB.
 	 */
-	@NotNull
 	@PositiveOrZero
-	private Integer ram;
+	private int ram;
 
 	/**
 	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
@@ -109,4 +111,34 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 * @return Attached storages.
 	 */
 	public abstract List<ProvQuoteStorage> getStorages();
+
+	/**
+	 * Return the effective usage applied to the given resource. May be <code>null</code>.
+	 *
+	 * @return The effective usage applied to the given resource. May be <code>null</code>.
+	 */
+	public ProvUsage getResolvedUsage() {
+		return usage == null ? getConfiguration().getUsage() : usage;
+	}
+
+	/**
+	 * Return the usage name applied to the given resource. May be <code>null</code>.
+	 *
+	 * @return The usage name applied to the given resource. May be <code>null</code>.
+	 */
+	@Override
+	public String getUsageName() {
+		return Optional.ofNullable(getResolvedUsage()).map(INamableBean::getName).orElse(null);
+	}
+
+	/**
+	 * Return the resolved location name applied to the given resource.
+	 *
+	 * @return The resolved location name applied to the given resource.
+	 */
+	@Override
+	public String getLocationName() {
+		return getResolvedLocation().getName();
+	}
+
 }

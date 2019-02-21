@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import static org.ligoj.app.plugin.prov.QuoteInstanceQuery.builder;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -41,10 +43,15 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 /**
  * Test class of {@link ProvQuoteInstanceResource}
  */
 public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
+
+	private static final String FULL = "Full Time 12 month";
 
 	@Autowired
 	private ProvUsageRepository usageRepository;
@@ -71,12 +78,23 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	private ProvInstancePriceRepository ipRepository;
 
 	/**
+	 * Builder coverage
+	 */
+	@Test
+	public void queryJson() throws JsonParseException, JsonMappingException, IOException {
+		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,\"maxVariableCost\":1.2,"
+				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
+				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
+		QuoteInstanceQuery.builder().toString();
+	}
+
+	/**
 	 * Basic case, almost no requirements.
 	 */
 	@Test
 	public void lookupInstance() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null,
-				"Full Time 12 month", null, null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
 	}
 
@@ -85,8 +103,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLicenseIncluded() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
-				null, "Full Time 12 month", "INCLUDED", null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("INCLUDED").build());
 
 		// Check the instance result
 		final ProvInstancePrice pi = lookup.getPrice();
@@ -100,8 +118,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLicenseByol() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
-				null, "Full Time 12 month", "BYOL", null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("BYOL").build());
 
 		// Check the instance result
 		final ProvInstancePrice pi = lookup.getPrice();
@@ -116,8 +134,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceSoftware() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.WINDOWS, null, true,
-				null, "Full Time 12 month", null, "SQL Web");
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).software("SQL Web").build());
 
 		// Check the instance result
 		final ProvInstancePrice pi = lookup.getPrice();
@@ -132,8 +150,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLocation() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-1", "Full Time 12 month", null, null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).location("region-1").usage(FULL).build());
 		checkInstance(lookup);
 	}
 
@@ -142,8 +160,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLocationNotFoundButWorldwideService() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-2", "Full Time 12 month", null, null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
+				builder().ram(2000).usage(FULL).ephemeral(true).maxVariableCost(100d).location("region-2").build());
 		checkInstance(lookup);
 	}
 
@@ -152,8 +170,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceLocationNotFound() {
-		Assertions.assertEquals("instance2", qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-1", "Full Time 12 month", null, null).getPrice().getType().getName());
+		Assertions.assertEquals("instance2",
+				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-1").build()).getPrice()
+						.getType().getName());
 
 		final ProvLocation location = locationRepository.findByName("region-1");
 
@@ -164,8 +183,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		em.clear();
 
 		// Instance 2 is not available in this region
-		Assertions.assertEquals("instance4", qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true,
-				"region-2", "Full Time 12 month", null, null).getPrice().getType().getName());
+		Assertions.assertEquals("instance4",
+				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
+						.getType().getName());
 	}
 
 	/**
@@ -173,8 +193,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, 1, 2000, null,
-				VmOs.LINUX, null, true, "region-xxx", "Full Time 12 month", null, null).getPrice().getType().getName());
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.lookup(subscription, builder().location("region-xxx").build()));
 	}
 
 	private void checkInstance(final QuoteInstanceLookup lookup) {
@@ -198,11 +218,10 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceHighContraints() throws IOException {
-		final QuoteInstanceLookup lookup = new ObjectMapperTrim()
-				.readValue(
-						new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription, 3, 9, true,
-								VmOs.WINDOWS, null, false, null, "Full Time 12 month", null, null)),
-						QuoteInstanceLookup.class);
+		final QuoteInstanceLookup lookup = new ObjectMapperTrim().readValue(
+				new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription,
+						builder().cpu(3).ram(9).constant(true).os(VmOs.WINDOWS).usage(FULL).build())),
+				QuoteInstanceLookup.class);
 		final ProvInstancePrice pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance9", pi.getType().getName());
@@ -225,14 +244,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceNoMatch() {
-		Assertions.assertNull(qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, null, true, null,
-				"Full Time 12 month", null, null));
+		Assertions
+				.assertNull(qiResource.lookup(subscription, builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
 	}
 
 	@Test
 	public void lookupTypeNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.lookup(subscription, 999, 0, false, VmOs.SUSE, "any", true, null, null, null, null));
+				() -> qiResource.lookup(subscription, builder().type("any").build()));
 	}
 
 	/**
@@ -240,8 +259,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceOnlyCustom() {
-		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, 999, 0, null, VmOs.LINUX, null, true, null,
-				"Full Time 12 month", null, null);
+		final QuoteInstanceLookup lookup = qiResource.lookup(subscription, builder().cpu(999).build());
 
 		// Check the custom instance
 		final ProvInstancePrice pi = lookup.getPrice();
@@ -263,8 +281,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceCustomIsCheaper() {
-		assertPrice(qiResource.lookup(subscription, 1, 16000, null, VmOs.LINUX, null, true, null, "Dev", null, null),
-				"C74", "dynamic", 146.842, "on-demand1");
+		assertPrice(qiResource.lookup(subscription, builder().ram(16000).usage("Dev").build()), "C74", "dynamic",
+				146.842, "on-demand1");
 	}
 
 	/**
@@ -272,37 +290,37 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupInstanceVariableDuration() {
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev", null, null),
-				"C9", "instance2", 58.56, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 11 month",
-				null, null), "C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 12 month",
-				null, null), "C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 13 month",
-				null, null), "C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 23 month",
-				null, null), "C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 24 month",
-				null, null), "C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Full Time 25 month",
-				null, null), "C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
-				null), "C9", "instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 12 month", null,
-				null), "C9", "instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 13 month", null,
-				null), "C9", "instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev").build()), "C9", "instance2",
+				58.56, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 11 month").build()),
+				"C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage(FULL).build()), "C11", "instance2",
+				102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 13 month").build()),
+				"C9", "instance2", 117.12, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 23 month").build()),
+				"C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 24 month").build()),
+				"C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 25 month").build()),
+				"C9", "instance2", 117.12, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
+				"instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 12 month").build()), "C9",
+				"instance2", 29.28, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 13 month").build()), "C9",
+				"instance2", 29.28, "on-demand2");
 
 		ProvUsage usage = usageRepository.findByName("Dev 11 month");
 		usage.setRate(90);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
-				null), "C9", "instance2", 105.408, "on-demand2");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
+				"instance2", 105.408, "on-demand2");
 
 		usage.setRate(98);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, 1, 2000, null, VmOs.LINUX, null, true, null, "Dev 11 month", null,
-				null), "C11", "instance2", 102.48, "1y");
+		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C11",
+				"instance2", 102.48, "1y");
 
 	}
 
@@ -564,7 +582,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		final ProvQuoteInstance instance = qiRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("server1-bis", instance.getName());
-		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals(208.62, instance.getCost(), DELTA);
 		Assertions.assertEquals(4172.4, instance.getMaxCost(), DELTA);
@@ -715,7 +733,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("serverZ", instance.getName());
 		Assertions.assertTrue(instance.isEphemeral());
 		Assertions.assertEquals("serverZD", instance.getDescription());
-		Assertions.assertEquals(1024, instance.getRam().intValue());
+		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);

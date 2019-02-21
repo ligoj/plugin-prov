@@ -106,7 +106,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final String providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
 		entity.setConfiguration(quote);
-		final ProvLocation oldLocation = getLocation(entity);
+		final ProvLocation oldLocation = entity.getResolvedLocation();
 		entity.setPrice(getIpRepository().findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
@@ -127,7 +127,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Save and update the costs
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
-		final boolean dirtyPrice = !oldLocation.equals(getLocation(entity));
+		final boolean dirtyPrice = !oldLocation.equals(entity.getResolvedLocation());
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
 			if (dirtyPrice) {
 				// Location has changed, the available storage price need a refresh
@@ -171,21 +171,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		// subtract of resources cost and related storage costs
 		resource.updateCost(subscription);
 		return resource.refreshSupportCost(cost, quote);
-	}
-
-	/**
-	 * Return the effective usage applied to the given resource. May be <code>null</code>.
-	 */
-	private ProvUsage getUsage(final C qi) {
-		return qi.getUsage() == null ? qi.getConfiguration().getUsage() : qi.getUsage();
-	}
-
-	/**
-	 * Return the usage name applied to the given resource. May be <code>null</code>.
-	 */
-	protected String getUsageName(final C qi) {
-		final ProvUsage usage = getUsage(qi);
-		return usage == null ? null : usage.getName();
 	}
 
 	/**
@@ -262,7 +247,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	private int getRate(final C qi) {
-		return Optional.ofNullable(getUsage(qi)).map(ProvUsage::getRate).orElse(100);
+		return Optional.ofNullable(qi.getResolvedUsage()).map(ProvUsage::getRate).orElse(100);
 	}
 
 	/**

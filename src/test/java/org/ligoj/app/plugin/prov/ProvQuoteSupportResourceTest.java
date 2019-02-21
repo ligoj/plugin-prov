@@ -335,9 +335,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findSupportTypeNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-			qsResource.findType(-1, newUriInfo());
-		});
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, newUriInfo()));
 	}
 
 	@Test
