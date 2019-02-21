@@ -15,7 +15,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class QuoteSupportLookup extends AbstractComputedPrice<ProvSupportPrice> {
+public class QuoteSupportLookup extends AbstractLookup<ProvSupportPrice> {
 
 	private Integer seats;
 }

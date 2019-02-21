@@ -19,7 +19,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public abstract class AbstractComputedPrice<T extends AbstractPrice<? extends AbstractPersistable<?>>> {
+public abstract class AbstractLookup<T extends AbstractPrice<? extends AbstractPersistable<?>>> {
 
 	/**
 	 * The computed monthly cost of the related resource.

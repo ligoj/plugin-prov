@@ -15,7 +15,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class QuoteDatabaseLookup extends AbstractComputedPrice<ProvDatabasePrice> {
+public class QuoteDatabaseLookup extends AbstractLookup<ProvDatabasePrice> {
 
 	// Nothing more than super class
 }

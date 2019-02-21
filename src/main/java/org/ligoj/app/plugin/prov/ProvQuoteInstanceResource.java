@@ -55,7 +55,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteInstanceResource extends
-		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo> {
+		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo
+		, QuoteInstanceLookup, QuoteInstance, QuoteInstanceQuery> {
 
 	@Getter
 	@Autowired
@@ -133,13 +134,6 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteInstance qi) {
-		// Find the lowest price
-		qi.setPrice(validateLookup("instance", lookup(qi.getConfiguration(), qi), qi.getName()));
-		return updateCost(qi);
-	}
-
-	@Override
 	@DELETE
 	@Path("instance/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -147,40 +141,17 @@ public class ProvQuoteInstanceResource extends
 		return super.delete(id);
 	}
 
-	/**
-	 * Create the database inside a quote.
-	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param query
-	 *            The query parameters.
-	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
-	 *         custom instance type.
-	 */
 	@GET
 	@Path("{subscription:\\d+}/instance-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Override
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteInstanceQuery query) {
-		return lookup(subscription, (QuoteInstance) query);
+		return super.lookup(subscription, query);
 	}
 
-	/**
-	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
-	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param query
-	 *            The query parameters.
-	 */
-	protected QuoteInstanceLookup lookup(final int subscription, final QuoteInstance query) {
-		return lookup(getQuoteFromSubscription(subscription), query);
-	}
-
-	/**
-	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
-	 */
-	private QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
+	@Override
+	protected QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final double ramR = getRam(configuration, query.getRam());

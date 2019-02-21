@@ -161,7 +161,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void lookupInstanceLocationNotFoundButWorldwideService() {
 		final QuoteInstanceLookup lookup = qiResource.lookup(subscription,
-				builder().ram(2000).usage(FULL).ephemeral(true).maxVariableCost(100d).location("region-2").build());
+				builder().ram(2000).usage(FULL).ephemeral(true).location("region-2").build());
 		checkInstance(lookup);
 	}
 

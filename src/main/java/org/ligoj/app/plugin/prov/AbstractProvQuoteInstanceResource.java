@@ -38,6 +38,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.QuoteVm;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -55,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <P>
  *            Quoted resource price type.
  */
-public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo>
+public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm, I extends AbstractQuoteInstanceQuery>
 		extends AbstractCostedResource<T, P, C> {
 
 	/**
@@ -326,5 +327,52 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			licenseR = licenseR.toUpperCase(Locale.ENGLISH);
 		}
 		return licenseR;
+	}
+
+	/**
+	 * Create the instance inside a quote.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param query
+	 *            The query parameters.
+	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
+	 */
+	@SuppressWarnings("unchecked")
+	public L lookup(int subscription, I query) {
+		return lookup(subscription, (Q) query);
+	}
+
+	/**
+	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param query
+	 *            The query parameters.
+	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
+	 */
+	protected L lookup(final int subscription, final Q query) {
+		return lookup(getQuoteFromSubscription(subscription), query);
+	}
+
+	/**
+	 * Return a lookup research corresponding to the best price.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param configuration
+	 *            The subscription configuration.
+	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
+	 */
+	protected abstract L lookup(final ProvQuote configuration, final Q query);
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FloatingCost refresh(final C qi) {
+		// Find the lowest price
+		qi.setPrice(
+				validateLookup(getType().name().toLowerCase(), lookup(qi.getConfiguration(), (Q) qi), qi.getName()));
+		return updateCost(qi);
 	}
 }

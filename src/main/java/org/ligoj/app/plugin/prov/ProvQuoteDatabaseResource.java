@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteDatabaseResource extends
-		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo> {
+		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase, QuoteDatabaseQuery> {
 
 	private static final String ENGINE_ORACLE = "ORACLE";
 
@@ -140,13 +140,6 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteDatabase qi) {
-		// Find the lowest price
-		qi.setPrice(validateLookup("database", lookup(qi.getConfiguration(), qi), qi.getName()));
-		return updateCost(qi);
-	}
-
-	@Override
 	@DELETE
 	@Path("database/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -154,28 +147,17 @@ public class ProvQuoteDatabaseResource extends
 		return super.delete(id);
 	}
 
-	/**
-	 * Create the instance inside a quote.
-	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param query
-	 *            The query parameters.
-	 * @return The lowest price instance configurations matching to the required parameters. May be a template or a
-	 *         custom instance type.
-	 */
 	@GET
 	@Path("{subscription:\\d+}/database-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Override
 	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteDatabaseQuery query) {
-		return lookup(getQuoteFromSubscription(subscription), query);
+		return super.lookup(subscription, query);
 	}
 
-	/**
-	 * Return a {@link QuoteDatabaseLookup} corresponding to the best price.
-	 */
-	private QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
+	@Override
+	protected QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
 		final String node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final int ramR = (int) getRam(configuration, query.getRam());
