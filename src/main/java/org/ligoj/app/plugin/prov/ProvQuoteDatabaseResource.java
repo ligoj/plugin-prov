@@ -163,7 +163,7 @@ public class ProvQuoteDatabaseResource extends
 		final int ramR = (int) getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, query.getLocationName(), node);
+		final int locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
 		final ProvUsage usage = getUsage(configuration, query.getUsageName());
@@ -171,7 +171,7 @@ public class ProvQuoteDatabaseResource extends
 		final int duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(query.getType(), subscription);
+		final Integer typeId = getType(subscription, query.getType());
 
 		// Resolve the right license model
 		final String licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);

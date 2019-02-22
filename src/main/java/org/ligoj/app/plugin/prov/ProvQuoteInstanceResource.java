@@ -157,7 +157,7 @@ public class ProvQuoteInstanceResource extends
 		final double ramR = getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, query.getLocationName(), node);
+		final int locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
 		final ProvUsage usage = getUsage(configuration, query.getUsageName());
@@ -165,7 +165,7 @@ public class ProvQuoteInstanceResource extends
 		final int duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(query.getType(), subscription);
+		final Integer typeId = getType(subscription, query.getType());
 
 		// Resolve the right license model
 		final VmOs os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);

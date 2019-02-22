@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
@@ -79,15 +78,36 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	@Autowired
 	protected ProvUsageRepository usageRepository;
 
+	/**
+	 * Return the repository managing the instance pricing entities.
+	 *
+	 * @return The repository managing the instance pricing entities.
+	 */
 	protected abstract BaseProvTermPriceRepository<T, P> getIpRepository();
 
+	/**
+	 * Return the repository managing the quote entities.
+	 *
+	 * @return The repository managing the quote entities.
+	 */
 	protected abstract BaseProvQuoteResourceRepository<C> getQiRepository();
 
+	/**
+	 * Return the repository managing the instance type entities.
+	 *
+	 * @return The repository managing the instance type entities.
+	 */
 	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
 	/**
 	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
 	 * updated from the resource to the quote total cost.
+	 *
+	 * @param entity
+	 *            The entity to update.
+	 * @param vo
+	 *            The change to apply to the entity.
+	 * @return The updated cost including the related ones.
 	 */
 	protected UpdatedCost saveOrUpdate(final C entity, final E vo) {
 		// Compute the unbound cost delta
@@ -134,6 +154,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		return resource.refreshSupportCost(cost, quote);
 	}
 
+	/**
+	 * Save or update the resource type specific properties.
+	 *
+	 * @param entity
+	 *            The entity to update.
+	 * @param vo
+	 *            The change to apply to the entity.
+	 * @return The updated cost including the related ones.
+	 */
 	protected abstract void saveOrUpdateSpec(final C entity, final E vo);
 
 	private void checkMinMax(C entity) {
@@ -150,7 +179,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The related subscription.
 	 * @return The updated computed cost.
 	 */
-	protected UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
+	protected UpdatedCost deleteAll(final int subscription) {
 		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
 		final UpdatedCost cost = new UpdatedCost(0);
 		cost.getDeleted().put(getType(), getQiRepository().findAllIdentifiers(subscription));
@@ -174,7 +203,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The {@link AbstractQuoteResourceInstance}'s identifier to delete.
 	 * @return The updated computed cost. The main deleted resource is not listed itself in the updated cost.
 	 */
-	protected UpdatedCost delete(@PathParam("id") final int id) {
+	protected UpdatedCost delete(final int id) {
 		final UpdatedCost cost = new UpdatedCost(id);
 		return resource.refreshSupportCost(cost, deleteAndUpdateCost(getQiRepository(), id, i -> {
 			// Delete the related storages
@@ -187,11 +216,22 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		}));
 	}
 
+	/**
+	 * Return the resolved usage entity from it's name.
+	 *
+	 * @param configuration
+	 *            Configuration containing the default values.
+	 * @param name
+	 *            The usage name.
+	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's usage or else
+	 *         {@link #USAGE_DEFAULT} is used as default value.
+	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
 		return Optional.ofNullable(name)
 				.map(n -> resource.findConfiguredByName(usageRepository, n, configuration.getSubscription().getId()))
 				.orElseGet(() -> ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT));
 	}
+
 	/**
 	 * Return the resource type managed by this service.
 	 *
@@ -199,17 +239,47 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected abstract ResourceType getType();
 
-	protected Integer getType(final String type, final int subscription) {
+	/**
+	 * Return the instance type identifier.
+	 *
+	 * @param subscription
+	 *            The subscription identifier, will be used to filter the resources from the associated provider.
+	 * @param type
+	 *            The type name.May be <code>null</code>.
+	 * @return The instance type identifier. Will be <code>null</code> only when the given name was <code>null</code>
+	 *         too.
+	 */
+	protected Integer getType(final int subscription, final String type) {
 		return type == null ? null : assertFound(getItRepository().findByName(subscription, type), type).getId();
 	}
 
+	/**
+	 * Return the adjusted required RAM from the original one and the RAM configuration.
+	 *
+	 * @param configuration
+	 *            Configuration containing the default values.
+	 * @param ram
+	 *            The required RAM.
+	 * @return The adjusted required RAM from the original one and the RAM configuration.
+	 */
 	protected double getRam(final ProvQuote configuration, final long ram) {
 		return Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100) * ram / 100d);
 	}
 
-	protected int getLocation(final ProvQuote configuration, final String location, final String node) {
+	/**
+	 *
+	 * Return the location identifier from it's name.
+	 *
+	 * @param configuration
+	 *            Configuration containing the default values.
+	 * @param location
+	 *            The location name. When <code>null</code>, the default one is used.
+	 * @return The resolved location identifier from it's name. Never <code>null</code>.
+	 */
+	protected int getLocation(final ProvQuote configuration, final String location) {
 		return location == null ? configuration.getLocation().getId()
-				: assertFound(locationRepository.toId(node, location), location).intValue();
+				: assertFound(locationRepository.toId(configuration.getSubscription().getNode().getId(), location),
+						location).intValue();
 	}
 
 	/**
@@ -221,8 +291,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            filter data.
 	 * @return The available price types for the given subscription.
 	 */
-	protected TableItem<ProvInstancePriceTerm> findPriceTerms(@PathParam("subscription") final int subscription,
-			@Context final UriInfo uriInfo) {
+	protected TableItem<ProvInstancePriceTerm> findPriceTerms(final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
 				iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
@@ -310,19 +379,28 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Compute the right license value.
+	 *
+	 * @param configuration
+	 *            Configuration containing the default values.
+	 * @param license
+	 *            The quote license value. May be <code>null</code>.
+	 * @param key
+	 *            The criteria used to evaluate the license <code>null</code> value.
+	 * @param canByol
+	 *            The predicate evaluating the key when the given license is <code>null</code>
+	 * @return The human readable license value.
 	 */
 	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,
 			Predicate<K> canByol) {
 		String licenseR = license;
-		if (license == null) {
+		if (license == null && canByol.test(key)) {
 			// Dual license modes are managed only for WINDOWS OS for now
-			licenseR = canByol.test(key) ? configuration.getLicense() : null;
+			licenseR = configuration.getLicense();
 		}
 		if (ProvQuoteInstance.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
 			// Database handle included license as 'null'
 			licenseR = null;
-		}
-		if (licenseR != null) {
+		} else if (licenseR != null) {
 			licenseR = licenseR.toUpperCase(Locale.ENGLISH);
 		}
 		return licenseR;
@@ -358,10 +436,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return a lookup research corresponding to the best price.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
 	 * @param configuration
 	 *            The subscription configuration.
+	 * @param query
+	 *            The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	protected abstract L lookup(final ProvQuote configuration, final Q query);
