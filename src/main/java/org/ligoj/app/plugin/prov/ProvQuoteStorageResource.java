@@ -193,15 +193,6 @@ public class ProvQuoteStorageResource
 		return resource.refreshSupportCost(cost, quote);
 	}
 
-	/**
-	 * Check there is no ambiguous database/instance usage.
-	 */
-	private void checkInstance(final QuoteStorageEditionVo vo) {
-		if (vo.getQuoteInstance() != null && vo.getQuoteDatabase() != null) {
-			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getQuoteInstance());
-		}
-	}
-
 	protected UpdatedCost refreshCost(final ProvQuoteStorage entity) {
 		return newUpdateCost(qsRepository, entity, this::updateCost);
 	}
@@ -211,6 +202,15 @@ public class ProvQuoteStorageResource
 	 */
 	private ProvQuoteInstance checkInstance(final int subscription, final Integer qi) {
 		return qi == null ? null : resource.findConfigured(qiRepository, qi, subscription);
+	}
+
+	/**
+	 * Check there is no ambiguous database/instance usage.
+	 */
+	private void checkInstance(final QuoteStorageEditionVo vo) {
+		if (vo.getQuoteInstance() != null && vo.getQuoteDatabase() != null) {
+			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getQuoteInstance());
+		}
 	}
 
 	/**

@@ -128,22 +128,6 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		return task;
 	}
 
-	@Override
-	@DELETE
-	@Path("catalog/{node:service:prov:.+}")
-	@OnNullReturn404
-	public ImportCatalogStatus cancel(@PathParam("node") final String node) {
-		return LongTaskRunnerNode.super.cancel(nodeResource.checkWritableNode(node).getTool().getId());
-	}
-
-	@Override
-	@GET
-	@Path("catalog/{node:service:prov:[^/]+}")
-	public ImportCatalogStatus getTask(@PathParam("node") final String node) {
-		// Simple proxy with a different REST path
-		return LongTaskRunnerNode.super.getTask(nodeResource.checkWritableNode(node).getTool().getId());
-	}
-
 	/**
 	 * Update the catalog of given node. Synchronous operation.
 	 *
@@ -173,6 +157,22 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 				}
 			});
 		}
+	}
+
+	@Override
+	@DELETE
+	@Path("catalog/{node:service:prov:.+}")
+	@OnNullReturn404
+	public ImportCatalogStatus cancel(@PathParam("node") final String node) {
+		return LongTaskRunnerNode.super.cancel(nodeResource.checkWritableNode(node).getTool().getId());
+	}
+
+	@Override
+	@GET
+	@Path("catalog/{node:service:prov:[^/]+}")
+	public ImportCatalogStatus getTask(@PathParam("node") final String node) {
+		// Simple proxy with a different REST path
+		return LongTaskRunnerNode.super.getTask(nodeResource.checkWritableNode(node).getTool().getId());
 	}
 
 	/**

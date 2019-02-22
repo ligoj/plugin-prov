@@ -58,20 +58,6 @@ public class TerraformBaseCommand implements TerraformAction {
 		}
 	}
 
-	private void handleCode(final Subscription subscription, final OutputStream out, final int code)
-			throws IOException {
-		if (code == 0) {
-			// Nothing wrong, no change, only useless to go further
-			log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> no need to continue").getBytes());
-		} else if (code != 2) {
-			// Something goes wrong
-			log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> aborted").getBytes());
-			throw new BusinessException("aborted");
-		}
-	}
-
 	/**
 	 * Execute the given Terraform command arguments
 	 */
@@ -107,6 +93,20 @@ public class TerraformBaseCommand implements TerraformAction {
 		final int code = process.waitFor();
 		out.flush();
 		return code;
+	}
+
+	private void handleCode(final Subscription subscription, final OutputStream out, final int code)
+			throws IOException {
+		if (code == 0) {
+			// Nothing wrong, no change, only useless to go further
+			log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
+			out.write(("Terraform exit code " + code + " -> no need to continue").getBytes());
+		} else if (code != 2) {
+			// Something goes wrong
+			log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
+			out.write(("Terraform exit code " + code + " -> aborted").getBytes());
+			throw new BusinessException("aborted");
+		}
 	}
 
 	/**

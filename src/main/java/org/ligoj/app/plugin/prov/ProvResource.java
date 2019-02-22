@@ -151,14 +151,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return iamProvider[0].getConfiguration().getUserRepository()::toUser;
 	}
 
-	@GET
-	@Path("{subscription:\\d+}")
-	@Override
-	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
-		// Check the visibility
-		return getConfiguration(subscriptionResource.checkVisible(subscription));
-	}
-
 	/**
 	 * Return the locations available for a subscription.
 	 *
@@ -197,6 +189,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		}
 		// Find the scoped location
 		return assertFound(locationRepository.findByName(node, name), name);
+	}
+
+	@GET
+	@Path("{subscription:\\d+}")
+	@Override
+	public QuoteVo getConfiguration(@PathParam("subscription") final int subscription) {
+		// Check the visibility
+		return getConfiguration(subscriptionResource.checkVisible(subscription));
 	}
 
 	/**

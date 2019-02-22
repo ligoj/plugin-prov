@@ -86,13 +86,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
 	/**
-	 * Return the resource type managed by this service.
-	 *
-	 * @return The resource type managed by this service.
-	 */
-	protected abstract ResourceType getType();
-
-	/**
 	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
 	 * updated from the resource to the quote total cost.
 	 */
@@ -199,6 +192,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 				.map(n -> resource.findConfiguredByName(usageRepository, n, configuration.getSubscription().getId()))
 				.orElseGet(() -> ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT));
 	}
+	/**
+	 * Return the resource type managed by this service.
+	 *
+	 * @return The resource type managed by this service.
+	 */
+	protected abstract ResourceType getType();
 
 	protected Integer getType(final String type, final int subscription) {
 		return type == null ? null : assertFound(getItRepository().findByName(subscription, type), type).getId();

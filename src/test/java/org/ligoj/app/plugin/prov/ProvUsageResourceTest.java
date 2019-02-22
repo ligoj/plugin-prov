@@ -192,6 +192,11 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
+	private FloatingCost updateCost() {
+		// Check the cost fully updated and exact actual cost
+		return checkCost(resource.updateCost(subscription));
+	}
+
 	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
 		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
 		checkCost(status.getCost(), min, max, unbound);
@@ -203,11 +208,6 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(max, cost.getMax(), DELTA);
 		Assertions.assertEquals(unbound, cost.isUnbound());
 		return cost;
-	}
-
-	private FloatingCost updateCost() {
-		// Check the cost fully updated and exact actual cost
-		return checkCost(resource.updateCost(subscription));
 	}
 
 	private FloatingCost checkCost(final FloatingCost cost) {

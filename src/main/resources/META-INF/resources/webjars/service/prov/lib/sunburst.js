@@ -229,7 +229,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			.on('mousemove', function () {
 				return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
 			})
-			.on('mouseout', function (d) {
+			.on('mouseout', function () {
 				mouseout();
 				return tooltip().style('visibility', 'hidden');
 			});

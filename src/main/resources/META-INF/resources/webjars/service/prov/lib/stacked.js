@@ -81,7 +81,7 @@ define(['d3', 'jquery'], function (d3) {
             x.domain(formattedData.binNames);
             y.domain([0, d3.max(blockData, d => d.y)]);
 
-            initializeAxis(svg, x, y, height, width);
+            initializeAxis(svg, x, y, height);
 
             // initialize bars
             var bar = params.bar = svg.selectAll('.bar')
@@ -412,7 +412,7 @@ define(['d3', 'jquery'], function (d3) {
             };
         }
 
-        function initializeAxis(svg, x, y, height, width) {
+        function initializeAxis(svg, x, y, height) {
             var yAxis = d3.axisLeft(y)
                 .tickSize(3)
                 .ticks(5);

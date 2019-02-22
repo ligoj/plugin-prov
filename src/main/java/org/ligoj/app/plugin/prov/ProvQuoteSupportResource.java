@@ -328,11 +328,6 @@ public class ProvQuoteSupportResource
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.isUnboundCost()).round();
 	}
 
-	private int[] toIntArray(String rawString) {
-		return Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(rawString, ""), ","))
-				.mapToInt(Integer::parseInt).toArray();
-	}
-
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,
 			final int[] limits) {
 		// Compute the group of required seats
@@ -340,6 +335,11 @@ public class ProvQuoteSupportResource
 				.map(s -> (int) Math.ceil((double) seats / s)).orElse(1));
 		// Compute the cost of the seats and the rates
 		return nb * (computeRates(cost, price.getMin(), rates, limits) + price.getCost());
+	}
+
+	private int[] toIntArray(String rawString) {
+		return Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(rawString, ""), ","))
+				.mapToInt(Integer::parseInt).toArray();
 	}
 
 	/**

@@ -314,8 +314,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		result.setCost(0);
 		result.setMaxCost(0);
 		result.setSlaWeekEnd(true);
-		result.setSlaStartTime(10l);
-		result.setSlaEndTime(11l);
+		result.setSlaStartTime(10L);
+		result.setSlaEndTime(11L);
 		return result;
 	}
 
