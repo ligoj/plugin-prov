@@ -36,6 +36,7 @@ define({
 	'service:prov:support-type': 'Type',
 	'service:prov:support-type-title': 'Type de support',
 	'service:prov:support-type-help': 'Type de support',
+	'service:prov:support-commitment': 'Engagement',
 	'service:prov:os': 'OS',
 	'service:prov:os-title': 'Système d\'exploitation',
 	'service:prov:os-help': 'Système d\'exploitation préinstallé pour cette instance. Le prix de l\'instance inclue la licence correspondante, et est souvent en relation avec la quantité de CPU',

@@ -220,9 +220,9 @@ define(function () {
 			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 		},
 
-		formatStorageType: function (name, mode, qs) {
-			var type = qs ? qs.price.type : {};
-			name = type ? type.name : name;
+		formatStorageType: function (type, mode) {
+			var type = type || {};
+			var name = type.name;
 			if (mode !== 'display' || (typeof type.id === 'undefined')) {
 				// Use only the name
 				return name;
@@ -719,6 +719,49 @@ define(function () {
 				var clazz = current.supportAccessType[id];
 				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
 			}
+		},
+
+		formatSupportType: function (type, mode) {
+			var type = type || {};
+			var name = type.name;
+			if (mode !== 'display' || (typeof type.id === 'undefined')) {
+				return name;
+			}
+			// Support type details are available
+			const description = type.description;
+			var descriptionIsLink = false;
+			var details = '';
+			if (description && !description.startsWith('http://') && !description.startsWith('https://')) {
+				details = type.description.replace(/"/g, '') + '</br>';
+				descriptionIsLink = true;
+			}
+
+			var slaText;
+			if (type.slaEndTime) {
+				if (type.slaStartTime === 0 && type.slaEndTime === 86400000) {
+					slaText = '24' + (type.slaWeekEnd && '/7' || 'h Business days');
+				} else {
+					slaText = momentManager.time(type.slaStartTime || 0) + '-' + momentManager.time(type.slaEndTime) + (type.slaWeekEnd ? '' : ' Business days');
+				}
+			} else {
+				slaText = 'No SLA'
+			}
+			details += '<i class=\'fas fa-fw fa-clock\'></i> SLA: ' + slaText;
+			if (type.commitment) {
+				details += '<br><i class=\'calendar-alt\'></i> ' + current.$messages['service:prov:support-commitment'] + ': ' + moment.duration(type.commitment, 'months').humanize();
+			}
+
+			var markup = '';
+			if (descriptionIsLink) {
+				// Description as a link
+				markup = '<a href="' + description + '" target="_blank">';
+			}
+			markup += '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			if (descriptionIsLink) {
+				// Description as a link
+				markup += '</a>';
+			}
+			return markup;
 		},
 
 		/**
@@ -3117,8 +3160,9 @@ define(function () {
 					className: 'hidden-xs hidden-sm hidden-md',
 					render: current.formatSupportAccess
 				}, {
-					data: 'price.type.name',
-					className: 'truncate'
+					data: 'price.type',
+					className: 'truncate',
+					render: current.formatSupportType
 				}]
 			};
 		},

@@ -44,6 +44,7 @@ define({
         'service:prov:support-type': 'Type',
         'service:prov:support-type-title': 'Support type',
         'service:prov:support-type-help': 'Support type',
+        'service:prov:support-commitment': 'Commitment',
         'service:prov:databases-block': 'Databases',
         'service:prov:os': 'OS',
         'service:prov:os-title': 'Operating System',
