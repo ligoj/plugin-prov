@@ -82,7 +82,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void queryJson() throws JsonParseException, JsonMappingException, IOException {
-		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,\"maxVariableCost\":1.2,"
+		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
 				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
 		QuoteInstanceQuery.builder().toString();

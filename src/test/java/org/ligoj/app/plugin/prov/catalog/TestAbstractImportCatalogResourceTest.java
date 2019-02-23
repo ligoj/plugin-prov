@@ -4,12 +4,22 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.ligoj.app.plugin.prov.catalog.AbstractImportCatalogResource;
+import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,6 +40,8 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		// Coverage only, required for inheriting provisioning plug-in
 		resource.getImportCatalogResource();
 		resource.setImportCatalogResource(null);
+		importCatalogResource = Mockito.mock(ImportCatalogResource.class);
+		objectMapper = new ObjectMapper();
 	}
 
 	@Test
@@ -38,8 +50,154 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
+	public void round3Decimals() {
+		Assertions.assertEquals(1.235, super.round3Decimals(1.2348), 0.001);
+	}
+
+	@Test
+	public void toMap() throws IOException {
+		Assertions.assertEquals("WORST", super.toMap("rate-test-resource.json", MAP_STR).get("b1"));
+	}
+
+	@Test
+	public void toPercentNull() {
+		Assertions.assertNull(super.toPercent("some"));
+	}
+
+	@Test
+	public void toPercent() {
+		Assertions.assertEquals(1.23d, super.toPercent("1.23%"), 0.001);
+	}
+
+	@Test
+	public void isEnabledRegion() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		context.setValidRegion(Pattern.compile(".*"));
+		final ProvLocation location = new ProvLocation();
+		location.setName("name");
+		Assertions.assertTrue(isEnabledRegion(context, location));
+	}
+
+	@Test
+	public void installRegion() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		final Node node = new Node();
+		node.setName("newNode");
+		node.setId("service:prov:some");
+		context.setNode(node);
+		context.setRegions(new HashMap<String, ProvLocation>());
+
+		final ProvLocation oldRegion = new ProvLocation();
+		oldRegion.setContinentM49(250);
+		context.getMapRegionToName().put("newRegion", oldRegion);
+		locationRepository = Mockito.mock(ProvLocationRepository.class);
+		final ProvLocation installRegion = installRegion(context, "newRegion");
+		Assertions.assertEquals("newRegion", installRegion.getName());
+		Assertions.assertEquals(250, installRegion.getContinentM49().intValue());
+		installRegion.setLatitude(1D);
+		final ProvLocation installRegion2 = installRegion(context, "newRegion");
+		Assertions.assertSame(installRegion2, installRegion);
+	}
+
+	@Test
+	public void getRegionByHumanNameEmpty() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		context.setRegions(new HashMap<String, ProvLocation>());
+		Assertions.assertNull(getRegionByHumanName(context, "any"));
+	}
+
+	@Test
+	public void getRegionByHumanNameNotEnabled() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		final ProvLocation oldRegion = new ProvLocation();
+		oldRegion.setName("newRegion");
+		context.setValidRegion(Pattern.compile(".*"));
+		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
+		Assertions.assertNull(getRegionByHumanName(context, "newRegion"));
+	}
+
+	@Test
+	public void getRegionByHumanNotFound() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		context.setValidRegion(Pattern.compile(".*"));
+		final ProvLocation oldRegion = new ProvLocation();
+		oldRegion.setName("newRegion");
+		oldRegion.setDescription("newRegion");
+		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
+		Assertions.assertNull(getRegionByHumanName(context, "-not-found-"));
+	}
+
+	@Test
+	public void getRegionByHumanName() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		context.setValidRegion(Pattern.compile(".*"));
+		final ProvLocation oldRegion = new ProvLocation();
+		oldRegion.setName("newRegion");
+		oldRegion.setDescription("newRegion");
+		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
+		Assertions.assertEquals("newRegion", getRegionByHumanName(context, "newRegion").getName());
+	}
+
+	@Test
+	public void getWorkload() {
+		Assertions.assertEquals(0, getWorkload(null));
+	}
+
+	@Test
+	public void nextStepIgnore() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		final Node node = new Node();
+		node.setName("newNode");
+		node.setId("service:prov:some");
+		context.setNode(node);
+		nextStep(context, "location", 1);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void nextStep() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		final Node node = new Node();
+		node.setName("newNode");
+		node.setId("service:prov:some");
+		context.setNode(node);
+		final ImportCatalogStatus status = new ImportCatalogStatus();
+
+		Mockito.doAnswer(invocation -> {
+			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
+			return null;
+		}).when(importCatalogResource).nextStep(Mockito.any(), Mockito.any());
+		nextStep(context, "location", 1);
+		Assertions.assertEquals("location", status.getLocation());
+	}
+
+	@Test
 	public void getRateNoDefault() throws IOException {
 		check("test-resource-no-default", Rate.MEDIUM);
+	}
+
+	@Test
+	public void saveAsNeededSame() {
+		final ProvInstancePrice entity = new ProvInstancePrice();
+		Assertions.assertSame(entity, saveAsNeeded(entity, 1, 1, null, null));
+	}
+
+	@Test
+	public void saveAsNeeded() {
+		final ProvStoragePrice entity = new ProvStoragePrice();
+		entity.setCostGb(2d);
+		final  Consumer<ProvStoragePrice> consumer = p -> {
+			// Nothing
+		};
+		Assertions.assertSame(entity, saveAsNeeded(entity, 1, consumer));
 	}
 
 	private void check(final String file, final Rate def) throws IOException {
