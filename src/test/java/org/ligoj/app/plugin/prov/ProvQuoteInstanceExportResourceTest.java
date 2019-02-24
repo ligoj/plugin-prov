@@ -36,6 +36,12 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceExportResource;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceUploadResource;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 

@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -40,9 +40,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import org.ligoj.app.plugin.prov.InstanceUpload;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageEditionVo;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -261,11 +265,9 @@ public class ProvQuoteInstanceUploadResource {
 			svo.setOptimized(getItem(upload.getOptimized(), index));
 
 			// Find the nicest storage
-			svo.setType(storageResource
-					.lookup(subscription, size, svo.getLatency(), svo.getQuoteInstance(), svo.getQuoteDatabase(),
-							svo.getOptimized(), svo.getLocation())
-					.stream().findFirst().orElseThrow(() -> new ValidationJsonException("storage", "NotNull"))
-					.getPrice().getType().getName());
+			svo.setType(storageResource.lookup(subscription, svo).stream().findFirst()
+					.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
+					.getName());
 
 			// Default the storage name to the instance name
 			svo.setSubscription(subscription);

@@ -1,10 +1,11 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.database;
 
 import javax.ws.rs.QueryParam;
 
+import org.ligoj.app.plugin.prov.AbstractQuoteInstanceQuery;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 
 import lombok.Getter;

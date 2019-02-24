@@ -1,9 +1,11 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.database;
 
 import javax.validation.constraints.NotNull;
+
+import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
 
 import lombok.Getter;
 import lombok.Setter;

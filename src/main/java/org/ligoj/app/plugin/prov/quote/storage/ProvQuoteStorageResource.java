@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.storage;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,20 +11,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.ligoj.app.plugin.prov.AbstractCostedResource;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -35,19 +39,17 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.QuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.bootstrap.core.DescribedBean;
-import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -132,12 +134,8 @@ public class ProvQuoteStorageResource
 		final ProvQuote quote = qs.getConfiguration();
 
 		// Find the lowest price
-		final Integer qi = Optional.ofNullable(qs.getQuoteInstance()).map(Persistable::getId).orElse(null);
-		final Integer qb = Optional.ofNullable(qs.getQuoteDatabase()).map(Persistable::getId).orElse(null);
-		final String location = Optional.ofNullable(qs.getLocation()).map(INamableBean::getName).orElse(null);
 		qs.setPrice(validateLookup("storage",
-				lookup(quote, qs.getSize(), qs.getLatency(), qi, qb, qs.getOptimized(), location).stream().findFirst()
-						.orElse(null),
+				lookup(quote, qs, qs.getQuoteInstance(), qs.getQuoteDatabase()).stream().findFirst().orElse(null),
 				qs.getName()));
 		return updateCost(qs);
 	}
@@ -179,9 +177,8 @@ public class ProvQuoteStorageResource
 
 		// Check the storage requirements to validate the linked price
 		final ProvStorageType type = entity.getPrice().getType();
-		if (lookup(quote, entity.getSize(), entity.getLatency(), entity.getQuoteInstance(), entity.getQuoteDatabase(),
-				entity.getOptimized(), vo.getLocation()).stream().map(qs -> qs.getPrice().getType())
-						.noneMatch(type::equals)) {
+		if (lookup(quote, entity, entity.getQuoteInstance(), entity.getQuoteDatabase()).stream()
+				.map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
@@ -193,7 +190,14 @@ public class ProvQuoteStorageResource
 		return resource.refreshSupportCost(cost, quote);
 	}
 
-	protected UpdatedCost refreshCost(final ProvQuoteStorage entity) {
+	/**
+	 * Refresh the cost of given storage and return the delta.
+	 *
+	 * @param entity
+	 *            The entity to refresh.
+	 * @return The updated cost.
+	 */
+	public UpdatedCost refreshCost(final ProvQuoteStorage entity) {
 		return newUpdateCost(qsRepository, entity, this::updateCost);
 	}
 
@@ -261,61 +265,44 @@ public class ProvQuoteStorageResource
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
-	 * @param size
-	 *            The requested size in GB.
-	 * @param latency
-	 *            The optional requested minimal {@link Rate} class.
-	 * @param instance
-	 *            The optional requested quote instance to be associated.
-	 * @param database
-	 *            The optional requested quote database to be associated.
-	 * @param optimized
-	 *            The optional requested {@link ProvStorageOptimized}.
-	 * @param location
-	 *            Optional location name. May be <code>null</code>.
+	 * @param query
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/storage-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public List<QuoteStorageLookup> lookup(@PathParam("subscription") final int subscription,
-			@DefaultValue(value = "1") @QueryParam("size") final int size, @QueryParam("latency") final Rate latency,
-			@QueryParam("instance") final Integer instance, @QueryParam("database") final Integer database,
-			@QueryParam("optimized") final ProvStorageOptimized optimized,
-			@QueryParam("location") final String location) {
+			@BeanParam final QuoteStorageQuery query) {
 
 		// Check the security on this subscription
-		return lookup(getQuoteFromSubscription(subscription), size, latency, instance, database, optimized, location);
+		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 
-	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
-			final Integer instance, final Integer database, final ProvStorageOptimized optimized,
-			final String location) {
-		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), instance);
-		final ProvQuoteDatabase qb = checkDatabase(configuration.getSubscription().getId(), database);
-		return lookup(configuration, size, latency, qi, qb, optimized, location);
+	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorageQuery query) {
+		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), query.getInstance());
+		final ProvQuoteDatabase qb = checkDatabase(configuration.getSubscription().getId(), query.getDatabase());
+		return lookup(configuration, query, qi, qb);
 	}
 
-	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final int size, final Rate latency,
-			final ProvQuoteInstance qi, final ProvQuoteDatabase qb, final ProvStorageOptimized optimized,
-			final String location) {
+	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorage query,
+			final ProvQuoteInstance qi, final ProvQuoteDatabase qb) {
 
 		// Get the attached node and check the security on this subscription
 		final String node = configuration.getSubscription().getNode().getRefined().getId();
 
 		// The the right location from instance first, then the request one
 		final String iloc;
-		if (location == null) {
+		if (query.getLocationName() == null) {
 			iloc = Optional.ofNullable(qi).map(ProvQuoteInstance::getLocationName)
 					.orElse(configuration.getLocation().getName());
 		} else {
-			iloc = location;
+			iloc = query.getLocationName();
 		}
 		return spRepository
-				.findLowestPrice(node, size, latency, qi == null ? null : qi.getId(), qb == null ? null : qb.getId(),
-						optimized, iloc, PageRequest.of(0, 10))
-				.stream().map(spx -> (ProvStoragePrice) spx[0]).map(sp -> newPrice(sp, size, getCost(sp, size)))
-				.collect(Collectors.toList());
+				.findLowestPrice(node, query.getSize(), query.getLatency(), query.getInstance(), query.getDatabase(),
+						query.getOptimized(), iloc, PageRequest.of(0, 10))
+				.stream().map(spx -> (ProvStoragePrice) spx[0])
+				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).collect(Collectors.toList());
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -23,6 +23,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;

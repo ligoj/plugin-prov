@@ -1,14 +1,21 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.storage;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.SafeHtml;
+import org.hibernate.validator.constraints.SafeHtml.Attribute;
+import org.hibernate.validator.constraints.SafeHtml.Tag;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.IDescribableBean;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +25,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteStorageEditionVo extends DescribedBean<Integer> {
+public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescribableBean<Integer> {
 
 	/**
 	 * SID
@@ -26,12 +33,24 @@ public class QuoteStorageEditionVo extends DescribedBean<Integer> {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Identifier of this bean.
+	 */
+	private Integer id;
+
+	@NotBlank
+	@NotNull
+	private String name;
+
+	@Length(max = 250)
+	@SafeHtml(additionalTagsWithAttributes = @Tag(name = "a", attributesWithProtocols = @Attribute(name = "href", protocols = "#")))
+	private String description;
+
+	/**
 	 * Size of the storage in "GiB" "Gibi Bytes"
 	 *
 	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
 	 */
 	@Positive
-	@NotNull
 	private int size;
 
 	/**
@@ -71,5 +90,22 @@ public class QuoteStorageEditionVo extends DescribedBean<Integer> {
 	@NotNull
 	@Positive
 	private Integer subscription;
+
+	@Override
+	public Integer getInstance() {
+		return getQuoteInstance();
+	}
+
+	@Override
+	@JsonIgnore
+	public Integer getDatabase() {
+		return getQuoteDatabase();
+	}
+
+	@Override
+	@JsonIgnore
+	public String getLocationName() {
+		return getLocation();
+	}
 
 }

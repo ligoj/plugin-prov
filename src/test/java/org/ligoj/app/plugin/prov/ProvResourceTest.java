@@ -44,6 +44,8 @@ import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
+import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
@@ -228,7 +230,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(quoteStorage.getId());
 		Assertions.assertEquals("server1-root", quoteStorage.getName());
 		Assertions.assertEquals("server1-rootD", quoteStorage.getDescription());
-		Assertions.assertEquals(20, quoteStorage.getSize().intValue());
+		Assertions.assertEquals(20, quoteStorage.getSize());
 		Assertions.assertEquals(8.4, quoteStorage.getCost(), DELTA);
 		Assertions.assertEquals(42, quoteStorage.getMaxCost(), DELTA); // = 8.4 * 5
 		Assertions.assertNotNull(quoteStorage.getQuoteInstance());

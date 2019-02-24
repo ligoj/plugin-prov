@@ -39,6 +39,8 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -429,7 +431,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
-	protected L lookup(final int subscription, final Q query) {
+	public L lookup(final int subscription, final Q query) {
 		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 

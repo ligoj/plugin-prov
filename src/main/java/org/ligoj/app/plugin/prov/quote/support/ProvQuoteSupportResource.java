@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.support;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +26,10 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.ligoj.app.plugin.prov.AbstractCostedResource;
+import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
@@ -38,6 +42,7 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -287,7 +292,7 @@ public class ProvQuoteSupportResource
 	 *            The provided rate.
 	 * @return <code>true</code> when required support is provided.
 	 */
-	protected boolean filter(final SupportType quote, final SupportType provided) {
+	public boolean filter(final SupportType quote, final SupportType provided) {
 		return quote == null || provided == SupportType.ALL || quote == provided;
 	}
 
@@ -300,7 +305,7 @@ public class ProvQuoteSupportResource
 	 *            The provided rate.
 	 * @return <code>true</code> when required rate is provided.
 	 */
-	protected boolean filter(final Rate quote, final Rate provided) {
+	public boolean filter(final Rate quote, final Rate provided) {
 		return quote == null || (provided != null && quote.ordinal() <= provided.ordinal());
 	}
 
@@ -367,7 +372,7 @@ public class ProvQuoteSupportResource
 	 *            lesser or equals than the <code>rates</code> array.
 	 * @return The added computed support cost of each segment.
 	 */
-	protected double computeRates(final double cost, final int min, final int[] rates, final int[] limits) {
+	public double computeRates(final double cost, final int min, final int[] rates, final int[] limits) {
 		double support = 0;
 		for (int i = rates.length; i-- > 0;) {
 			support += Math.max(0, Math.min(cost, i > limits.length - 1 ? Integer.MAX_VALUE : limits[i])

@@ -14,7 +14,9 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
+import org.springframework.data.domain.Persistable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -31,7 +33,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
+public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> implements QuoteStorage {
 
 	/**
 	 * SID
@@ -53,7 +55,7 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 	 * Required size of the storage in "GiB". 1GiB = 1024MiB
 	 */
 	@NotNull
-	private Integer size;
+	private int size;
 
 	/**
 	 * Optional linked quoted instance.
@@ -89,5 +91,23 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> {
 	 */
 	public AbstractQuoteResourceInstance<?> getQuoteResource() {
 		return quoteInstance == null ? quoteDatabase : quoteInstance;
+	}
+
+	@Override
+	@JsonIgnore
+	public Integer getInstance() {
+		return Optional.ofNullable(getQuoteInstance()).map(Persistable::getId).orElse(null);
+	}
+
+	@Override
+	@JsonIgnore
+	public Integer getDatabase() {
+		return Optional.ofNullable(getQuoteDatabase()).map(Persistable::getId).orElse(null);
+	}
+
+	@Override
+	@JsonIgnore
+	public String getLocationName() {
+		return Optional.ofNullable(getLocation()).map(INamableBean::getName).orElse(null);
 	}
 }

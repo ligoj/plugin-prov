@@ -1,8 +1,9 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.storage;
 
+import org.ligoj.app.plugin.prov.AbstractLookup;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 
 import lombok.Getter;

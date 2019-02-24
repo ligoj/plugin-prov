@@ -69,7 +69,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 * @param <T>
 	 *            The price type.
 	 */
-	protected P validateLookup(final String resourceType, final AbstractLookup<P> lookup, final String context) {
+	public P validateLookup(final String resourceType, final AbstractLookup<P> lookup, final String context) {
 		if (lookup == null) {
 			throw new ValidationJsonException(resourceType, "no-match-" + resourceType, "resource", context);
 		}

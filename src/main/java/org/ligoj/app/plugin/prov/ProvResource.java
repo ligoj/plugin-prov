@@ -44,6 +44,10 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
@@ -82,7 +86,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Ordered/mapped columns.
 	 */
-	protected static final Map<String, String> ORM_COLUMNS = new HashMap<>();
+	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
 	@Autowired
 	@Getter

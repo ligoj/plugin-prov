@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import static org.ligoj.app.plugin.prov.QuoteInstanceQuery.builder;
+import static org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceQuery.builder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +36,10 @@ import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceQuery;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.json.TableItem;
