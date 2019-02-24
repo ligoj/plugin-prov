@@ -19,6 +19,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,8 +72,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void isEnabledRegion() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final ProvLocation location = new ProvLocation();
 		location.setName("name");
@@ -81,8 +81,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void installRegion() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		final Node node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
@@ -103,16 +102,14 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void getRegionByHumanNameEmpty() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		context.setRegions(new HashMap<String, ProvLocation>());
 		Assertions.assertNull(getRegionByHumanName(context, "any"));
 	}
 
 	@Test
 	public void getRegionByHumanNameNotEnabled() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		final ProvLocation oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
 		context.setValidRegion(Pattern.compile(".*"));
@@ -122,8 +119,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void getRegionByHumanNotFound() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final ProvLocation oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
@@ -134,8 +130,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void getRegionByHumanName() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final ProvLocation oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
@@ -151,8 +146,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void nextStepIgnore() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		final Node node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
@@ -163,8 +157,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@SuppressWarnings("unchecked")
 	@Test
 	public void nextStep() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
-		};
+		final AbstractUpdateContext context = newContext();
 		final Node node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
@@ -187,17 +180,23 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@Test
 	public void saveAsNeededSame() {
 		final ProvInstancePrice entity = new ProvInstancePrice();
-		Assertions.assertSame(entity, saveAsNeeded(entity, 1, 1, null, null));
+		entity.setCode("old");
+		final Consumer<ProvInstancePrice> consumer = p -> {
+			p.setCode("-nerver-called-");
+		};
+		saveAsNeeded(entity, 1, 1, null, consumer);
+		Assertions.assertEquals("old", entity.getCode());
 	}
 
 	@Test
 	public void saveAsNeeded() {
 		final ProvStoragePrice entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
-		final  Consumer<ProvStoragePrice> consumer = p -> {
-			// Nothing
+		final Consumer<ProvStoragePrice> consumer = p -> {
+			p.setCode("code");
 		};
-		Assertions.assertSame(entity, saveAsNeeded(entity, 1, consumer));
+		saveAsNeeded(entity, 1, consumer);
+		Assertions.assertEquals("code", entity.getCode());
 	}
 
 	private void check(final String file, final Rate def) throws IOException {
@@ -216,5 +215,59 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		Assertions.assertEquals(def, resource.getRate(file, "x"));
 		Assertions.assertEquals(def, resource.getRate(file, "x1"));
 		Assertions.assertEquals(def, resource.getRate(file, "x1.micro"));
+	}
+
+	@Test
+	public void toVmOs() {
+		Assertions.assertEquals(VmOs.WINDOWS, toVmOs("windows"));
+	}
+
+	@Test
+	public void isEnabledOs() {
+		final AbstractUpdateContext context = newContext();
+		context.setValidOs(Pattern.compile("(LINUX|RH.*)"));
+		Assertions.assertFalse(isEnabledOs(context, VmOs.WINDOWS));
+		Assertions.assertTrue(isEnabledOs(context, VmOs.LINUX));
+		Assertions.assertTrue(isEnabledOs(context, VmOs.RHEL));
+	}
+
+	@Test
+	public void isEnabledType() {
+		final AbstractUpdateContext context = newContext();
+		context.setValidInstanceType(Pattern.compile("ab.*"));
+		Assertions.assertFalse(isEnabledType(context, "axr"));
+		Assertions.assertTrue(isEnabledType(context, "abr"));
+	}
+
+	/**
+	 * Only there for coverage and API contracts.
+	 */
+	@Test
+	public void bean() {
+		final AbstractUpdateContext context = newContext();
+		context.setStorageTypes(null);
+		context.setStorageTypesMerged(null);
+		context.setPriceTerms(null);
+		context.setPrevious(null);
+		context.setPreviousDatabase(null);
+		context.setPreviousStorage(null);
+		context.setInstanceTypes(null);
+		context.setDatabaseTypes(null);
+		context.getDatabaseTypes();
+		context.getInstanceTypes();
+		context.getInstanceTypesMerged();
+		context.getPrevious();
+		context.getPreviousDatabase();
+		context.getPreviousStorage();
+		context.getPrevious();
+		context.getStorageTypes();
+		context.getStorageTypesMerged();
+		context.getPriceTerms();
+	}
+
+	private AbstractUpdateContext newContext() {
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		};
+		return context;
 	}
 }

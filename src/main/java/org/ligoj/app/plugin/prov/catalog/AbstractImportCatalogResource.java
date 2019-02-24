@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -32,6 +33,7 @@ import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.dao.csv.CsvForJpa;
 import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -177,6 +179,54 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Indicate the given instance type is enabled.
+	 *
+	 * @param context
+	 *            The update context.
+	 * @param type
+	 *            The instance type to test.
+	 * @return <code>true</code> when the configuration enable the given instance type.
+	 */
+	protected boolean isEnabledType(final AbstractUpdateContext context, final String type) {
+		return context.getValidInstanceType().matcher(type).matches();
+	}
+
+	/**
+	 * Return the OS from it's name.
+	 * @param osName The OS name Case is not sensitive.
+	 * @return The OS from it's name. Never <code>null</code>.
+	 */
+	protected VmOs toVmOs(String osName) {
+		return VmOs.valueOf(osName.toUpperCase(Locale.ENGLISH));
+	}
+
+	/**
+	 * Indicate the given OS is enabled.
+	 *
+	 * @param context
+	 *            The update context.
+	 * @param os
+	 *            The OS to test.
+	 * @return <code>true</code> when the configuration enable the given OS.
+	 */
+	protected boolean isEnabledOs(final AbstractUpdateContext context, final VmOs os) {
+		return isEnabledOs(context, os.name());
+	}
+
+	/**
+	 * Indicate the given OS is enabled.
+	 *
+	 * @param context
+	 *            The update context.
+	 * @param os
+	 *            The OS to test.
+	 * @return <code>true</code> when the configuration enable the given OS.
+	 */
+	protected boolean isEnabledOs(final AbstractUpdateContext context, final String os) {
+		return context.getValidOs().matcher(os.toUpperCase(Locale.ENGLISH)).matches();
+	}
+
+	/**
 	 * Indicate the given region is enabled.
 	 *
 	 * @param context
@@ -274,18 +324,41 @@ public abstract class AbstractImportCatalogResource {
 		return 0;
 	}
 
-	protected <A extends Serializable, N extends AbstractNamedEntity<A>, T extends AbstractPrice<N>> T saveAsNeeded(
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 *
+	 * @param entity
+	 *            The target entity to update.
+	 * @param oldCost
+	 *            The old cost.
+	 * @param newCost
+	 *            The new cost.
+	 * @param updateCost
+	 *            The consumer used to handle the price replacement operation if needed.
+	 * @param persister
+	 *            The consumer used to persist the replacement. Usually a repository operation.
+	 */
+	protected <A extends Serializable, N extends AbstractNamedEntity<A>, T extends AbstractPrice<N>> void saveAsNeeded(
 			final T entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
-			final Consumer<T> c) {
+			final Consumer<T> persister) {
 		if (oldCost != newCost) {
 			updateCost.accept(newCost);
-			c.accept(entity);
+			persister.accept(entity);
 		}
-		return entity;
 	}
 
-	protected ProvStoragePrice saveAsNeeded(final ProvStoragePrice entity, final double newCostGb,
-			final Consumer<ProvStoragePrice> c) {
-		return saveAsNeeded(entity, entity.getCostGb(), newCostGb, entity::setCostGb, c);
+	/**
+	 * Save a storage price when the attached cost is different from the old one.
+	 *
+	 * @param entity
+	 *            The price entity.
+	 * @param newCostGb
+	 *            The new GiB cost.
+	 * @param persister
+	 *            The consumer used to persist the replacement. Usually a repository operation.
+	 */
+	protected void saveAsNeeded(final ProvStoragePrice entity, final double newCostGb,
+			final Consumer<ProvStoragePrice> persister) {
+		saveAsNeeded(entity, entity.getCostGb(), newCostGb, entity::setCostGb, persister);
 	}
 }
