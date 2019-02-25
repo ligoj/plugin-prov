@@ -61,8 +61,8 @@ define(['d3', 'jquery'], function (d3) {
             // unpacking canvas
             var svg = canvas.svg,
                 margin = canvas.margin,
-                width = params.width = canvas.width,
                 height = params.height = canvas.height;
+            params.width = canvas.width;
 
             // processing Data and extracting binNames and clusterNames
             var formattedData = updateData(),

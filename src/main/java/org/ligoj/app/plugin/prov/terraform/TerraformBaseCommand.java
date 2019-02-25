@@ -44,81 +44,6 @@ public class TerraformBaseCommand implements TerraformAction {
 	@Autowired
 	protected TerraformRunnerResource runner;
 
-	@Override
-	public void execute(final Context context, OutputStream out, final String... arguments)
-			throws IOException, InterruptedException {
-		handleCode(context.getSubscription(), out, execute(context.getSubscription(), out, arguments));
-
-		// Complete the workload as needed
-		final String command = arguments[0];
-		if ("show".equals(command)) {
-			computeWorkload(context.getSubscription());
-		} else if ("state".equals(command) && "list".equals(arguments[1])) {
-			computeWorkloadState(context.getSubscription());
-		}
-	}
-
-	/**
-	 * Execute the given Terraform command arguments
-	 */
-	private int execute(final Subscription subscription, final OutputStream out, final String... command)
-			throws InterruptedException, IOException {
-		return execute(utils.toFile(subscription), out, command);
-	}
-
-	/**
-	 * Execute the given Terraform command arguments
-	 *
-	 * @param directory
-	 *            The working directory of Terraform user.
-	 * @param out
-	 *            The target log outputs.
-	 * @param arguments
-	 *            The Terraform arguments passed to the executable.
-	 * @return the exit value of the process represented by this {@code Process} object. By convention, the value
-	 *         {@code 0} indicates normal termination.
-	 * @throws InterruptedException
-	 *             When the execution is interrupted.
-	 * @throws IOException
-	 *             When logs cannot be written.
-	 */
-	public int execute(final File directory, final OutputStream out, final String... arguments)
-			throws InterruptedException, IOException {
-		FileUtils.forceMkdir(directory);
-		final ProcessBuilder builder = utils.newBuilder(arguments).redirectErrorStream(true).directory(directory);
-		final Process process = builder.start();
-		process.getInputStream().transferTo(out);
-
-		// Wait and get the code
-		final int code = process.waitFor();
-		out.flush();
-		return code;
-	}
-
-	private void handleCode(final Subscription subscription, final OutputStream out, final int code)
-			throws IOException {
-		if (code == 0) {
-			// Nothing wrong, no change, only useless to go further
-			log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> no need to continue").getBytes());
-		} else if (code != 2) {
-			// Something goes wrong
-			log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
-			out.write(("Terraform exit code " + code + " -> aborted").getBytes());
-			throw new BusinessException("aborted");
-		}
-	}
-
-	/**
-	 * Compute the workload from the state list's log and update the status related to the given subscription.
-	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 */
-	protected void computeWorkloadState(final Subscription subscription) {
-		runner.nextStep(subscription.getNode().getId(), t -> computeWorkloadState(subscription, t));
-	}
-
 	/**
 	 * Compute the workload from the plan's log and update the status related to the given subscription.
 	 *
@@ -127,22 +52,6 @@ public class TerraformBaseCommand implements TerraformAction {
 	 */
 	protected void computeWorkload(final Subscription subscription) {
 		runner.nextStep(subscription.getNode().getId(), t -> computeWorkload(subscription, t));
-	}
-
-	/**
-	 * Compute the workload from the state list's log.
-	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 * @param status
-	 *            The target status to update.
-	 */
-	protected void computeWorkloadState(final Subscription subscription, final TerraformStatus status) {
-		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
-			status.setToDestroy((int) stream.map(STATE_CHANGE::matcher).filter(Matcher::find).count());
-		} catch (final IOException e) {
-			log.warn("Unable to get the full workload from the 'state' command", e);
-		}
 	}
 
 	/**
@@ -183,6 +92,97 @@ public class TerraformBaseCommand implements TerraformAction {
 		status.setToDestroy(deleted.get());
 		status.setToReplace(replaced.get());
 		status.setToUpdate(updated.get());
+	}
+
+	/**
+	 * Compute the workload from the state list's log and update the status related to the given subscription.
+	 *
+	 * @param subscription
+	 *            The subscription related to this operation.
+	 */
+	protected void computeWorkloadState(final Subscription subscription) {
+		runner.nextStep(subscription.getNode().getId(), t -> computeWorkloadState(subscription, t));
+	}
+
+	/**
+	 * Compute the workload from the state list's log.
+	 *
+	 * @param subscription
+	 *            The subscription related to this operation.
+	 * @param status
+	 *            The target status to update.
+	 */
+	protected void computeWorkloadState(final Subscription subscription, final TerraformStatus status) {
+		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
+			status.setToDestroy((int) stream.map(STATE_CHANGE::matcher).filter(Matcher::find).count());
+		} catch (final IOException e) {
+			log.warn("Unable to get the full workload from the 'state' command", e);
+		}
+	}
+
+	@Override
+	public void execute(final Context context, OutputStream out, final String... arguments)
+			throws IOException, InterruptedException {
+		handleCode(context.getSubscription(), out, execute(context.getSubscription(), out, arguments));
+
+		// Complete the workload as needed
+		final String command = arguments[0];
+		if ("show".equals(command)) {
+			computeWorkload(context.getSubscription());
+		} else if ("state".equals(command) && "list".equals(arguments[1])) {
+			computeWorkloadState(context.getSubscription());
+		}
+	}
+
+	/**
+	 * Execute the given Terraform command arguments
+	 *
+	 * @param directory
+	 *            The working directory of Terraform user.
+	 * @param out
+	 *            The target log outputs.
+	 * @param arguments
+	 *            The Terraform arguments passed to the executable.
+	 * @return the exit value of the process represented by this {@code Process} object. By convention, the value
+	 *         {@code 0} indicates normal termination.
+	 * @throws InterruptedException
+	 *             When the execution is interrupted.
+	 * @throws IOException
+	 *             When logs cannot be written.
+	 */
+	public int execute(final File directory, final OutputStream out, final String... arguments)
+			throws InterruptedException, IOException {
+		FileUtils.forceMkdir(directory);
+		final ProcessBuilder builder = utils.newBuilder(arguments).redirectErrorStream(true).directory(directory);
+		final Process process = builder.start();
+		process.getInputStream().transferTo(out);
+
+		// Wait and get the code
+		final int code = process.waitFor();
+		out.flush();
+		return code;
+	}
+
+	/**
+	 * Execute the given Terraform command arguments
+	 */
+	private int execute(final Subscription subscription, final OutputStream out, final String... command)
+			throws InterruptedException, IOException {
+		return execute(utils.toFile(subscription), out, command);
+	}
+
+	private void handleCode(final Subscription subscription, final OutputStream out, final int code)
+			throws IOException {
+		if (code == 0) {
+			// Nothing wrong, no change, only useless to go further
+			log.info("Terraform paused for {} ({}) : {}", subscription.getId(), subscription, code);
+			out.write(("Terraform exit code " + code + " -> no need to continue").getBytes());
+		} else if (code != 2) {
+			// Something goes wrong
+			log.error("Terraform failed for {} ({}) : {}", subscription.getId(), subscription, code);
+			out.write(("Terraform exit code " + code + " -> aborted").getBytes());
+			throw new BusinessException("aborted");
+		}
 	}
 
 }

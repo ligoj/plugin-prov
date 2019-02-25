@@ -221,7 +221,7 @@ define(function () {
 		},
 
 		formatStorageType: function (type, mode) {
-			var type = type || {};
+			type = type || {};
 			var name = type.name;
 			if (mode !== 'display' || (typeof type.id === 'undefined')) {
 				// Use only the name
@@ -722,7 +722,7 @@ define(function () {
 		},
 
 		formatSupportType: function (type, mode) {
-			var type = type || {};
+			type = type || {};
 			var name = type.name;
 			if (mode !== 'display' || (typeof type.id === 'undefined')) {
 				return name;
