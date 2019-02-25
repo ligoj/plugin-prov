@@ -129,6 +129,13 @@ public abstract class AbstractUpdateContext {
 	private Pattern validInstanceType;
 
 	/**
+	 * Valid database type pattern.
+	 */
+	@Getter
+	@Setter
+	private Pattern validDatabaseType;
+
+	/**
 	 * Valid instance region pattern.
 	 */
 	@Getter

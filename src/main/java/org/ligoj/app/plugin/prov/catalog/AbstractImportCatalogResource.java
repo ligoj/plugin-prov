@@ -192,6 +192,19 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Indicate the given database type is enabled.
+	 *
+	 * @param context
+	 *            The update context.
+	 * @param type
+	 *            The database type to test.
+	 * @return <code>true</code> when the configuration enable the given database type.
+	 */
+	protected boolean isEnabledDatabase(final AbstractUpdateContext context, final String type) {
+		return context.getValidDatabaseType().matcher(type).matches();
+	}
+
+	/**
 	 * Return the OS from it's name.
 	 * @param osName The OS name Case is not sensitive.
 	 * @return The OS from it's name. Never <code>null</code>.

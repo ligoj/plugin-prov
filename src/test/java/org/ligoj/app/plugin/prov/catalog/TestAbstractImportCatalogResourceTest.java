@@ -239,6 +239,14 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		Assertions.assertTrue(isEnabledType(context, "abr"));
 	}
 
+	@Test
+	public void isEnabledDatabase() {
+		final AbstractUpdateContext context = newContext();
+		context.setValidDatabaseType(Pattern.compile("ab.*"));
+		Assertions.assertFalse(isEnabledDatabase(context, "axr"));
+		Assertions.assertTrue(isEnabledDatabase(context, "abr"));
+	}
+
 	/**
 	 * Only there for coverage and API contracts.
 	 */
