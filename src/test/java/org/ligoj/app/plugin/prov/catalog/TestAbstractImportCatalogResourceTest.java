@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
@@ -20,6 +21,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +50,20 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@Test
 	public void getRate() throws IOException {
 		check("test-resource", Rate.BEST);
+	}
+
+	@Test
+	public void initContext() {
+		nodeRepository = Mockito.mock(NodeRepository.class);
+		configuration = Mockito.mock(ConfigurationResource.class);
+		Mockito.when(nodeRepository.findOneExpected("service:prov:sample")).thenReturn(new Node());
+		Mockito.when(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH)).thenReturn(1);
+		final AbstractUpdateContext context = new AbstractUpdateContext() {
+			// Nothing
+		};
+		initContext(context, "service:prov:sample");
+		Assertions.assertNotNull(context.getNode());
+		Assertions.assertEquals(1, context.getHoursMonth());
 	}
 
 	@Test

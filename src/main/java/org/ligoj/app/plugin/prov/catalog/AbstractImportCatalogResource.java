@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
@@ -59,9 +60,23 @@ public abstract class AbstractImportCatalogResource {
 		// Nothing to extend
 	};
 
+	protected static final TypeReference<Map<String, Double>> MAP_DOUBLE = new TypeReference<>() {
+		// Nothing to extend
+	};
+
 	protected static final String BY_NODE = "node";
 
-	protected static final double HOUR_TO_MONTH = 24 * 30.5;
+	/**
+	 * Default hours per month.
+	 *
+	 * @see <a href="https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
+	 */
+	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
+
+	/**
+	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link #DEFAULT_HOURS_MONTH}.
+	 */
+	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
 	@Autowired
 	protected ObjectMapper objectMapper;
@@ -114,6 +129,21 @@ public abstract class AbstractImportCatalogResource {
 	 * Mapping from instance type name to the rating performance.
 	 */
 	private final Map<String, Map<String, Rate>> mapRate = new HashMap<>();
+
+	/**
+	 * Initialize the given context.
+	 *
+	 * @param context
+	 *            The context to initialize.
+	 * @param node
+	 *            The provider node identifier.
+	 * @return The context parameter.
+	 */
+	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node) {
+		context.setNode(nodeRepository.findOneExpected(node));
+		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH));
+		return context;
+	}
 
 	/**
 	 * Return the most precise rate from a name.
@@ -206,7 +236,9 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Return the OS from it's name.
-	 * @param osName The OS name Case is not sensitive.
+	 *
+	 * @param osName
+	 *            The OS name Case is not sensitive.
 	 * @return The OS from it's name. Never <code>null</code>.
 	 */
 	protected VmOs toVmOs(String osName) {

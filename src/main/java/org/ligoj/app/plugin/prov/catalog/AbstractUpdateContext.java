@@ -112,7 +112,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvStorageType> storageTypesMerged;
+	private Map<String, ProvStorageType> storageTypesMerged = new HashMap<>();
 
 	/**
 	 * Valid OS pattern.
@@ -141,5 +141,12 @@ public abstract class AbstractUpdateContext {
 	@Getter
 	@Setter
 	private Pattern validRegion;
+
+	/**
+	 * Hours per month.
+	 */
+	@Getter
+	@Setter
+	private double hoursMonth = AbstractImportCatalogResource.DEFAULT_HOURS_MONTH;
 
 }
