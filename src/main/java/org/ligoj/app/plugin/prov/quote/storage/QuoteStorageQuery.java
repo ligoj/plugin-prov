@@ -71,6 +71,6 @@ public class QuoteStorageQuery implements QuoteStorage {
 	@Override
 	@JsonIgnore
 	public String getLocationName() {
-		return location;
+		return getLocation();
 	}
 }

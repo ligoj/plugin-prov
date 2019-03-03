@@ -46,6 +46,9 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 /**
  * Test class of {@link ProvResource}
  */
@@ -653,6 +656,17 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	public void findStorageTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
+	}
+
+	/**
+	 * Builder coverage
+	 */
+	@Test
+	public void queryJson() throws JsonParseException, JsonMappingException, IOException {
+		new ObjectMapperTrim().readValue("{\"size\":1,\"latency\":\"GOOD\","
+				+ "\"instance\":2,\"database\":2,\"optimized\":\"IOPS\","
+				+ "\"location\":\"L\"}", QuoteStorageQuery.class);
+		QuoteStorageQuery.builder().toString();
 	}
 
 	/**
