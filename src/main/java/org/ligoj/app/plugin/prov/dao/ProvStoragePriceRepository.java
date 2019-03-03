@@ -43,7 +43,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 *            same provider.
 	 * @param database
 	 *            The optional requested quote database identifier to be associated. The related database must be in the
-	 *            same provider.
+	 *            same provider. When <code>null</code>, only database storage compatible is excluded.
 	 * @param optimized
 	 *            The optional requested optimized. May be <code>null</code>.
 	 * @param location
@@ -56,19 +56,26 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	@Query("SELECT sp, "
 			+ " (sp.cost + (CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost,  "
 			+ " st.latency AS latency FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st "
-			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) "
+			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))                        "
 			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized)                                  "
 			+ " AND (st.maximal IS NULL OR st.maximal >= :size)                                        "
 			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
-			+ " AND (:instance IS NULL OR (st.instanceCompatible = true"
-			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi LEFT JOIN qi.location qiloc LEFT JOIN qi.configuration conf"
-			+ "     WHERE qi.id = :instance AND (loc IS NULL OR (qiloc IS NULL AND conf.location = loc) OR qiloc=loc))))"
-			+ " AND (:database IS NULL OR (st.databaseCompatible = true"
-			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb"
-			+ "              LEFT JOIN qb.location qbloc LEFT JOIN qb.price price LEFT JOIN qb.configuration conf"
-			+ "     WHERE qb.id = :database"
-			+ "      AND (loc IS NULL OR (qbloc IS NULL AND conf.location = loc) OR qbloc=loc) "
+			+ " AND ((:instance IS NULL AND st.instanceType IS NULL)        "
+			+ "   OR (:instance IS NOT NULL AND st.instanceType IS NOT NULL "
+			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi LEFT JOIN qi.location qiloc            "
+			+ "        LEFT JOIN qi.configuration conf LEFT JOIN qi.price pqi LEFT JOIN pqi.type type  "
+			+ "     WHERE qi.id = :instance                                                            "
+			+ "      AND (loc IS NULL OR (qiloc IS NULL AND conf.location = loc) OR qiloc=loc)         "
+			+ "      AND (type.name LIKE st.instanceType))))                                           "
+			+ " AND ((:database IS NULL AND st.databaseType IS NULL)        "
+			+ "   OR (:database IS NOT NULL AND st.databaseType IS NOT NULL "
+			+ "    AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb LEFT JOIN qb.location qbloc    "
+			+ "        LEFT JOIN qb.price price LEFT JOIN qb.configuration conf                 "
+			+ "        LEFT JOIN qb.price pqb LEFT JOIN pqb.type type                           "
+			+ "     WHERE qb.id = :database                                                     "
+			+ "      AND (loc IS NULL OR (qbloc IS NULL AND conf.location = loc) OR qbloc=loc)  "
+			+ "      AND (type.name LIKE st.databaseType)                                       "
 			+ "      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))"
 			+ " ORDER BY cost ASC, latency DESC")
 	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance, Integer database,

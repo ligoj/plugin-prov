@@ -986,7 +986,7 @@ define(function () {
 		 * Depending on the current storage type, enable/disable the instance selection
 		 */
 		updateInstanceCompatible: function (suggest) {
-			if (suggest && suggest.price && suggest.price.type.instanceCompatible === false) {
+			if (suggest && suggest.price && (typeof suggest.price.type.instanceType !== 'string')) {
 				// Disable
 				_('storage-instance').select2('data', null).select2('disable');
 				_('storage-instance').prev('.select2-container').find('.select2-chosen').text(current.$messages['service:prov:cannot-attach-instance']);

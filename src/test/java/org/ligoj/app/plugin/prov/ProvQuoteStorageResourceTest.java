@@ -626,9 +626,9 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final TableItem<ProvStorageType> tableItem = qsResource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(6, tableItem.getRecordsTotal());
 		Assertions.assertEquals("storage1", tableItem.getData().get(0).getName());
-		Assertions.assertFalse(tableItem.getData().get(0).isDatabaseCompatible());
+		Assertions.assertNull(tableItem.getData().get(0).getDatabaseType());
 		Assertions.assertEquals("storage7-database", tableItem.getData().get(5).getName());
-		Assertions.assertTrue(tableItem.getData().get(5).isDatabaseCompatible());
+		Assertions.assertEquals("%", tableItem.getData().get(5).getDatabaseType());
 	}
 
 	@Test
@@ -682,7 +682,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
 		Assertions.assertTrue(asJson.endsWith("\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"good\""
 				+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
-				+ ",\"instanceCompatible\":true,\"databaseCompatible\":false,\"engine\":null"
+				+ ",\"instanceType\":\"%\",\"databaseType\":null,\"engine\":null"
 				+ ",\"availability\":99.99,\"durability9\":11}"
 				+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 

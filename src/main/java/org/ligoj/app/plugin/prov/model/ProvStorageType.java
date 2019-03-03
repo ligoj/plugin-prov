@@ -73,14 +73,14 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private int throughput;
 
 	/**
-	 * When <code>true</code>, this storage can attached to an instance.
+	 * When not <code>null</code>, this storage can attached to an instance whose type is matching the expression.
 	 */
-	private boolean instanceCompatible = false;
+	private String instanceType = null;
 
 	/**
-	 * When <code>true</code>, this storage can attached to a database.
+	 * When not <code>null</code>, this storage can attached to an database whose type is matching the expression.
 	 */
-	private boolean databaseCompatible = false;
+	private String databaseType = null;
 
 	/**
 	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
@@ -115,5 +115,11 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 */
 	@Positive
 	private Integer durability9;
+
+	/**
+	 * Size increment. May be <code>null</code> and corresponds to the minimal value: <code>1</code>.
+	 */
+	@Positive
+	private Integer increment;
 
 }
