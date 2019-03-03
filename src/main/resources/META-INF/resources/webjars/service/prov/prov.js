@@ -961,15 +961,8 @@ define(function () {
 		 * @param {object|Array} Quote or prices
 		 */
 		storageSetUiPrice: function (quote) {
-			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
-				var suggests = quote;
-				if (!$.isArray(quote)) {
-					// Single price
-					suggests = [quote];
-				}
-				for (var i = 0; i < suggests.length; i++) {
-					suggests[i].id = suggests[i].id || suggests[i].price.id;
-				}
+			var suggests = toSuggests(quote);
+			if (suggests) {
 				var suggest = suggests[0];
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
@@ -1038,15 +1031,8 @@ define(function () {
 		 * Set the current support price.
 		 */
 		supportSetUiPrice: function (quote) {
-			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
-				var suggests = quote;
-				if (!$.isArray(quote)) {
-					// Single price
-					suggests = [quote];
-				}
-				for (var i = 0; i < suggests.length; i++) {
-					suggests[i].id = suggests[i].id || suggests[i].price.id;
-				}
+			var suggests = toSuggests(quote);
+			if (suggests) {
 				var suggest = suggests[0];
 				_('support-price').select2('destroy').select2({
 					data: suggests,
@@ -1060,6 +1046,26 @@ define(function () {
 			} else {
 				_('support-price').select2('data', null);
 			}
+		},
+
+		/**
+		 * Return the suggests array from the quote parameter.
+		 * @param {Quote|Quote[]} quote The quote data with their price.
+		 * @returns The  suggests array. May be null when the quote parameter is not accepted.
+		 */
+		toSuggests: function (quote) {
+			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
+				var suggests = quote;
+				if (!$.isArray(quote)) {
+					// Single price
+					suggests = [quote];
+				}
+				for (var i = 0; i < suggests.length; i++) {
+					suggests[i].id = suggests[i].id || suggests[i].price.id;
+				}
+				return suggests;
+			}
+			return null;
 		},
 
 		/**
@@ -3093,39 +3099,6 @@ define(function () {
 				className: 'truncate',
 				width: '24px',
 				render: current.formatOs
-			}, {
-				data: 'cpu',
-				className: 'truncate',
-				width: '48px',
-				type: 'num',
-				render: current.formatCpu
-			}, {
-				data: 'ram',
-				className: 'truncate',
-				width: '64px',
-				type: 'num',
-				render: current.formatRam
-			}, {
-				data: 'price.term',
-				className: 'hidden-xs hidden-sm price-term',
-				render: current.formatInstanceTerm
-			}, {
-				data: 'price.type',
-				className: 'truncate hidden-xs hidden-sm hidden-md',
-				render: current.formatInstanceType
-			}, {
-				data: 'usage',
-				className: 'hidden-xs hidden-sm usage',
-				render: current.formatUsageTemplate
-			}, {
-				data: 'location',
-				className: 'hidden-xs hidden-sm location',
-				width: '24px',
-				render: current.formatLocation
-			}, {
-				data: null,
-				className: 'truncate hidden-xs hidden-sm',
-				render: current.formatQiStorages
 			}]);
 		},
 
@@ -3265,39 +3238,6 @@ define(function () {
 			}, {
 				data: 'price.edition',
 				className: 'truncate'
-			}, {
-				data: 'cpu',
-				className: 'truncate',
-				width: '48px',
-				type: 'num',
-				render: current.formatCpu
-			}, {
-				data: 'ram',
-				className: 'truncate',
-				width: '64px',
-				type: 'num',
-				render: current.formatRam
-			}, {
-				data: 'price.term',
-				className: 'hidden-xs hidden-sm price-term',
-				render: current.formatInstanceTerm
-			}, {
-				data: 'price.type',
-				className: 'truncate hidden-xs hidden-sm hidden-md',
-				render: current.formatInstanceType
-			}, {
-				data: 'usage',
-				className: 'hidden-xs hidden-sm usage',
-				render: current.formatUsageTemplate
-			}, {
-				data: 'location',
-				className: 'hidden-xs hidden-sm location',
-				width: '24px',
-				render: current.formatLocation
-			}, {
-				data: null,
-				className: 'truncate hidden-xs hidden-sm',
-				render: current.formatQiStorages
 			}]);
 		},
 
@@ -3373,7 +3313,40 @@ define(function () {
 						}
 					});
 				},
-				columns: columns
+				columns: columns.concat([{
+					data: 'cpu',
+					className: 'truncate',
+					width: '48px',
+					type: 'num',
+					render: current.formatCpu
+				}, {
+					data: 'ram',
+					className: 'truncate',
+					width: '64px',
+					type: 'num',
+					render: current.formatRam
+				}, {
+					data: 'price.term',
+					className: 'hidden-xs hidden-sm price-term',
+					render: current.formatInstanceTerm
+				}, {
+					data: 'price.type',
+					className: 'truncate hidden-xs hidden-sm hidden-md',
+					render: current.formatInstanceType
+				}, {
+					data: 'usage',
+					className: 'hidden-xs hidden-sm usage',
+					render: current.formatUsageTemplate
+				}, {
+					data: 'location',
+					className: 'hidden-xs hidden-sm location',
+					width: '24px',
+					render: current.formatLocation
+				}, {
+					data: null,
+					className: 'truncate hidden-xs hidden-sm',
+					render: current.formatQiStorages
+				}])
 			};
 		},
 
