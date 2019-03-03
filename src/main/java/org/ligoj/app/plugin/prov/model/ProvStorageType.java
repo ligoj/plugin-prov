@@ -116,10 +116,4 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	@Positive
 	private Integer durability9;
 
-	/**
-	 * Size increment. May be <code>null</code> and corresponds to the minimal value: <code>1</code>.
-	 */
-	@Positive
-	private Integer increment;
-
 }

@@ -34,6 +34,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
@@ -293,7 +294,7 @@ public class ProvQuoteStorageResource
 		// The the right location from instance first, then the request one
 		final String iloc;
 		if (query.getLocationName() == null) {
-			iloc = Optional.ofNullable(qi).map(ProvQuoteInstance::getLocationName)
+			iloc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteResourceInstance::getLocationName)
 					.orElse(configuration.getLocation().getName());
 		} else {
 			iloc = query.getLocationName();

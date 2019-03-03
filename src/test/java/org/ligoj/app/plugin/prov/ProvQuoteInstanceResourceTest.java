@@ -365,7 +365,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		// After delete, it remains only the storages
+		// After delete, it remains only the unattached storages
 		checkCost(qiResource.deleteAll(subscription), 2.73, 2.73, false);
 
 		// Check the exact new cost
