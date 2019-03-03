@@ -168,8 +168,8 @@ public interface QuoteRelated<C extends Costed> {
 	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
 			final Function<T, FloatingCost> costProvider) {
 		final FloatingCost cost = costProvider.apply(qr);
-		qr.setCost(cost.getMin()); // TODO round
-		qr.setMaxCost(cost.getMax()); // TODO round
+		qr.setCost(round(cost.getMin()));
+		qr.setMaxCost(round(cost.getMax()));
 		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
 	}
 
