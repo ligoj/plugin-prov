@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.bootstrap.core.DescribedBean;
 
@@ -60,6 +61,11 @@ public class QuoteLigthVo extends DescribedBean<Integer> {
 	 * The computed monthly cost.
 	 */
 	private FloatingCost cost;
+
+	/**
+	 * The optional currency
+	 */
+	private ProvCurrency currency;
 
 	/**
 	 * The main location of this quote.

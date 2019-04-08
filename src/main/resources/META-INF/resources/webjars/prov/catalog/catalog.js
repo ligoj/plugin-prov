@@ -50,18 +50,23 @@ define(['sparkline'], function () {
 					}
 				}, {
 					data: 'nbQuotes',
+					type: 'num',
 					width: '16px'
 				}, {
 					data: 'status.nbLocations',
+					type: 'num',
 					width: '16px'
 				}, {
 					data: 'status.nbStorageTypes',
+					type: 'num',
 					width: '16px'
 				}, {
 					data: 'status.nbInstanceTypes',
+					type: 'num',
 					width: '16px'
 				}, {
 					data: 'status.nbInstancePrices',
+					type: 'num',
 					width: '32px'
 				}, {
 					data: 'status.end',

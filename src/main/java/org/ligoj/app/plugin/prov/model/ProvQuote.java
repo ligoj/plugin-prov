@@ -160,6 +160,12 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	@Max(150)
 	private Integer ramAdjustedRate = 100;
 
+	/**
+	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
+	 */
+	@ManyToOne
+	private ProvCurrency currency;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

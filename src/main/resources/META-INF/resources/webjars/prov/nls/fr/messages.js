@@ -3,4 +3,5 @@
  */
 define({
 	'catalog': 'Catalogue',
+	'currency': 'Devise'
 });

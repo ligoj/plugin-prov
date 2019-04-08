@@ -19,6 +19,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
+import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
@@ -77,10 +78,9 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class,
-						ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
-						ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class },
+		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
+				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
+				ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
@@ -664,8 +664,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void queryJson() throws JsonParseException, JsonMappingException, IOException {
 		new ObjectMapperTrim().readValue("{\"size\":1,\"latency\":\"GOOD\","
-				+ "\"instance\":2,\"database\":2,\"optimized\":\"IOPS\","
-				+ "\"location\":\"L\"}", QuoteStorageQuery.class);
+				+ "\"instance\":2,\"database\":2,\"optimized\":\"IOPS\"," + "\"location\":\"L\"}",
+				QuoteStorageQuery.class);
 		QuoteStorageQuery.builder().toString();
 	}
 
@@ -750,9 +750,19 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * All quote instances are based on the default quote's location : "region1". And this is the requested location.
 	 */
 	@Test
-	public void lookupStorageExtactLocationInstance() {
+	public void lookupStorageExactLocationInstance() {
 		Assertions.assertEquals(3, qsResource
 				.lookup(subscription, QuoteStorageQuery.builder().instance(server1()).location("region-1").build())
+				.size());
+	}
+
+	/**
+	 * All quote databases are based on the default quote's location : "region1". And this is the requested location.
+	 */
+	@Test
+	public void lookupStorageExactLocationDatabase() {
+		Assertions.assertEquals(1, qsResource
+				.lookup(subscription, QuoteStorageQuery.builder().database(database1()).location("region-1").build())
 				.size());
 	}
 

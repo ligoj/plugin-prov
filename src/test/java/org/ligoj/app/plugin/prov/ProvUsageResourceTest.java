@@ -21,6 +21,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
+import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -69,10 +70,10 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvQuote.class,
-						ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
-						ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class,
-						ProvQuoteStorage.class },
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+						ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
+						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
+						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		updateCost();

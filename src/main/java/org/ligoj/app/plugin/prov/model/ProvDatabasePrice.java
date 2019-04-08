@@ -28,6 +28,11 @@ import lombok.ToString;
 public class ProvDatabasePrice extends AbstractTermPrice<ProvDatabaseType> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Database engine. Like: "Oracle", "MySQL",...
 	 */
 	@NotNull

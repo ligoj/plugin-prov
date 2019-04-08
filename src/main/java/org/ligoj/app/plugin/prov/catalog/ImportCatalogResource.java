@@ -50,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-@Path(ProvResource.SERVICE_URL)
+@Path(ProvResource.SERVICE_URL + "/catalog")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogStatus, ImportCatalogStatusRepository> {
@@ -104,7 +104,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @return The catalog status.
 	 */
 	@POST
-	@Path("catalog/{node:service:prov:.+}")
+	@Path("{node:service:prov:.+}")
 	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node) {
 		final Node entity = nodeResource.checkWritableNode(node).getTool();
 		final ImportCatalogService catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
@@ -161,7 +161,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	@Override
 	@DELETE
-	@Path("catalog/{node:service:prov:.+}")
+	@Path("{node:service:prov:.+}")
 	@OnNullReturn404
 	public ImportCatalogStatus cancel(@PathParam("node") final String node) {
 		return LongTaskRunnerNode.super.cancel(nodeResource.checkWritableNode(node).getTool().getId());
@@ -169,7 +169,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	@Override
 	@GET
-	@Path("catalog/{node:service:prov:[^/]+}")
+	@Path("{node:service:prov:[^/]+}")
 	public ImportCatalogStatus getTask(@PathParam("node") final String node) {
 		// Simple proxy with a different REST path
 		return LongTaskRunnerNode.super.getTask(nodeResource.checkWritableNode(node).getTool().getId());
@@ -207,7 +207,6 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @return The nodes and their catalog status.
 	 */
 	@GET
-	@Path("catalog")
 	public List<CatalogVo> findAll() {
 		// Get all catalogs
 		final Map<String, ImportCatalogStatus> statuses = taskRepository.findAllVisible(securityHelper.getLogin())

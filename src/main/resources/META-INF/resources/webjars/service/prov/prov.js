@@ -372,16 +372,24 @@ define(function () {
 			});
 		},
 
+		getCurrencyUnit: function() {
+			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.unit || '$';
+		},
+
+		getCurrencyRate: function() {
+			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
+		},
+
 		formatCostOdometer: function (cost, isMax, $cost, noRichTest, unbound) {
 			if (isMax) {
-				formatManager.formatCost(cost, 3, '$', 'cost-unit', function (value, weight, unit) {
+				formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
 					var $wrapper = $cost.find('.cost-max');
 					$wrapper.find('.cost-value').html(value);
 					$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 					$wrapper.find('.cost-unit').html(unit);
 				});
 			} else {
-				formatManager.formatCost(cost, 3, '$', 'cost-unit', function (value, weight, unit) {
+				formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
 					var $wrapper = $cost.find('.cost-min').removeClass('hidden');
 					$wrapper.find('.cost-value').html(value);
 					$wrapper.find('.cost-weight').html(weight);
@@ -391,7 +399,7 @@ define(function () {
 		},
 
 		formatCostText: function (cost, isMax, _i, noRichText, unbound) {
-			return formatManager.formatCost(cost, 3, '$', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+			return formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 		},
 
 		/**

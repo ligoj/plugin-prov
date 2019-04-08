@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.model.Parameter;
+import org.ligoj.app.model.ParameterValue;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
@@ -30,6 +32,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -103,9 +106,11 @@ public class ProvResourceTest extends AbstractAppTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
-				ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, Parameter.class, ParameterValue.class,
+						ProvLocation.class, ProvCurrency.class, ProvQuote.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
+						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
@@ -138,6 +143,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
 		Assertions.assertEquals(175, status.getTotalStorage());
 		Assertions.assertEquals("region-1", status.getLocation().getName());
+		Assertions.assertEquals("USD", status.getCurrency().getName());
 	}
 
 	@Test
@@ -160,6 +166,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		QuoteVo vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
+		Assertions.assertEquals("USD", vo.getCurrency().getName());
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
@@ -320,6 +327,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		final QuoteVo vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote2", vo.getName());
 		Assertions.assertEquals("quoteD2", vo.getDescription());
+		Assertions.assertNull(vo.getCurrency());
 		Assertions.assertNotNull(vo.getId());
 		Assertions.assertNull(vo.getLicense());
 		checkCost0(vo.getCost());
@@ -679,7 +687,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void create() throws Exception {
+	public void create() {
 		final Subscription subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -691,6 +699,33 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(configuration);
 		Assertions.assertNotNull(configuration.getName());
 		Assertions.assertNotNull(configuration.getDescription());
+		Assertions.assertNull(configuration.getCurrency());
+	}
+
+	@Test
+	public void createCurrency() {
+		final Subscription subscription = new Subscription();
+		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscription);
+
+		final ParameterValue parameterValue = new ParameterValue();
+		parameterValue.setParameter(em.createQuery("FROM Parameter WHERE id=:id", Parameter.class)
+				.setParameter("id", "service:prov:currency").getSingleResult());
+		parameterValue.setData("USD");
+		parameterValue.setNode(em.createQuery("FROM Node WHERE id=:id", Node.class)
+				.setParameter("id", "service:prov:test:account").getSingleResult());
+		parameterValue.setSubscription(subscription);
+		em.persist(parameterValue);
+
+		em.flush();
+		em.clear();
+		resource.create(subscription.getId());
+		final QuoteVo configuration = resource.getConfiguration(subscription.getId());
+		Assertions.assertNotNull(configuration);
+		Assertions.assertNotNull(configuration.getName());
+		Assertions.assertNotNull(configuration.getDescription());
+		Assertions.assertEquals("USD", configuration.getCurrency().getName());
 	}
 
 	@Test

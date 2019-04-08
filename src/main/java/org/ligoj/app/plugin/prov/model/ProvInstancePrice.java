@@ -30,6 +30,11 @@ import lombok.ToString;
 public class ProvInstancePrice extends AbstractTermPrice<ProvInstanceType> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Bring your own license.
 	 */
 	public static final String LICENSE_BYOL = "BYOL";

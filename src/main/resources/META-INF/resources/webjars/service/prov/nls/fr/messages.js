@@ -4,6 +4,7 @@
 define({
 	'service:prov': 'Provisionnement',
 	'service:prov:manage': 'Gérer',
+	'service:prov:currency': 'Devise',
 	'service:prov:default': 'Défaut',
 	'service:prov:no-requirement': 'Pas d\'exigence',
 	'service:prov:instances-block': 'Instances',

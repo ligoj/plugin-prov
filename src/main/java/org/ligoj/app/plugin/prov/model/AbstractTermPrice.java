@@ -32,6 +32,11 @@ public abstract class AbstractTermPrice<T extends AbstractNamedEntity<?>> extend
 		implements Serializable {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The optional initial cost required to use this instance. May be <code>null</code>.
 	 */
 	private Double initialCost;

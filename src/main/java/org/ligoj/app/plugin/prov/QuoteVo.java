@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.util.List;
 
 import org.ligoj.app.iam.SimpleUserOrg;
+import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -97,4 +98,9 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.
 	 */
 	private int ramAdjustedRate = 100;
+
+	/**
+	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
+	 */
+	private ProvCurrency currency;
 }

@@ -5,6 +5,7 @@ define({
 	'root': {
 		'catalog': 'Catalog',
 		'terraform': 'Terraform',
+		'currency': 'Currency'
 	},
 	'fr': true
 });

@@ -31,6 +31,7 @@ import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
@@ -84,6 +85,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public static final String SERVICE_KEY = SERVICE_URL.replace('/', ':').substring(1);
 
 	/**
+	 * Parameter used for attached currency.
+	 */
+	public static final String PARAMETER_CURRENCY_NAME = SERVICE_KEY + ":currency";
+
+	/**
 	 * Ordered/mapped columns.
 	 */
 	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
@@ -98,6 +104,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Autowired
 	@Getter
 	private ProvQuoteRepository repository;
+
+	@Autowired
+	private ProvCurrencyRepository currencyRepository;
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
@@ -158,10 +167,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return the locations available for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the locations from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
 	 * @return The available locations for the given subscription.
 	 */
 	@GET
@@ -180,10 +188,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 *
-	 * @param node
-	 *            The provider node.
-	 * @param name
-	 *            The location name. Case is insensitive.
+	 * @param node The provider node.
+	 * @param name The location name. Case is insensitive.
 	 * @return The visible location for the related subscription or <code>null</code>.
 	 */
 	public ProvLocation findLocation(final String node, final String name) {
@@ -207,8 +213,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
 	 * previously checked.
 	 *
-	 * @param subscription
-	 *            A visible subscription for the current principal.
+	 * @param subscription A visible subscription for the current principal.
 	 * @return The configuration with computed data.
 	 */
 	public QuoteVo getConfiguration(final Subscription subscription) {
@@ -232,14 +237,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setCostNoSupport(new FloatingCost(quote.getCostNoSupport(), quote.getMaxCostNoSupport(), unbound));
 		vo.setCostSupport(new FloatingCost(quote.getCostSupport(), quote.getMaxCostSupport(), unbound));
 		vo.setCost(quote.toFloatingCost());
+		vo.setCurrency(quote.getCurrency());
 		return vo;
 	}
 
 	/**
 	 * Return the quote status linked to given subscription.
 	 *
-	 * @param subscription
-	 *            The parent subscription identifier.
+	 * @param subscription The parent subscription identifier.
 	 * @return The quote status (summary only) linked to given subscription.
 	 */
 	public QuoteLigthVo getSusbcriptionStatus(final int subscription) {
@@ -258,16 +263,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setNbStorages(((Long) storage[1]).intValue());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 		vo.setLocation(entity.getLocation());
+		vo.setCurrency(entity.getCurrency());
 		return vo;
 	}
 
 	/**
 	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
 	 *
-	 * @param subscription
-	 *            The subscription to update
-	 * @param quote
-	 *            The new quote.
+	 * @param subscription The subscription to update
+	 * @param quote        The new quote.
 	 * @return The new updated cost.
 	 */
 	@PUT
@@ -291,8 +295,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
 	 * updated.
 	 *
-	 * @param subscription
-	 *            The subscription to compute
+	 * @param subscription The subscription to compute
 	 * @return The updated computed cost.
 	 */
 	@PUT
@@ -350,8 +353,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Execute the lookup for each resource and compute the total cost.
 	 *
-	 * @param subscription
-	 *            The subscription to compute
+	 * @param subscription The subscription to compute
 	 * @return The updated computed cost.
 	 */
 	@PUT
@@ -361,8 +363,18 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return refresh(getQuoteFromSubscription(subscription));
 	}
 
+	/**
+	 * Update the currency from the parameter.
+	 */
+	private void updateCurrency(final ProvQuote entity) {
+		entity.setCurrency(Optional.ofNullable(
+				subscriptionResource.getParameters(entity.getSubscription().getId()).get(PARAMETER_CURRENCY_NAME))
+				.map(currencyRepository::findByName).orElse(null));
+	}
+
 	@Override
 	public FloatingCost refresh(final ProvQuote entity) {
+		updateCurrency(entity);
 		return updateCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
 	}
 
@@ -380,24 +392,21 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			// No available location, need a catalog to continue
 			throw new BusinessException(SERVICE_KEY + "-no-catalog", provider.getId(), provider.getName());
 		}
+
 		quote.setLocation(locations.get(0));
 		quote.setDescription(quote.getSubscription().getProject().getPkey() + "-> " + provider.getName());
+		updateCurrency(quote);
 		repository.saveAndFlush(quote);
 	}
 
 	/**
 	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 *
-	 * @param repository
-	 *            The repository managing the entity to find.
-	 * @param id
-	 *            The requested configured identifier.
-	 * @param subscription
-	 *            The required subscription owner.
-	 * @param <K>
-	 *            The {@link Configurable} identifier type.
-	 * @param <T>
-	 *            The {@link Configurable} type.
+	 * @param repository   The repository managing the entity to find.
+	 * @param id           The requested configured identifier.
+	 * @param subscription The required subscription owner.
+	 * @param <K>          The {@link Configurable} identifier type.
+	 * @param <T>          The {@link Configurable} type.
 	 * @return The entity where the related subscription if visible.
 	 */
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(

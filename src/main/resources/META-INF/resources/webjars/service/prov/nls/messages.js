@@ -12,6 +12,7 @@ define({
         'service:prov': 'Provisioning',
         'service:prov:date': 'Date',
         'service:prov:manage': 'Manage',
+        'service:prov:currency': 'Currency',
         'service:prov:default': 'Default',
         'service:prov:no-requirement': 'No requirement',
         'service:prov:instances-block': 'Instances',

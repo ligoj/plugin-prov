@@ -1,0 +1,2 @@
+id;owner.id;data;mandatory;type;secured
+service:prov:currency;service:prov;;false;TEXT
