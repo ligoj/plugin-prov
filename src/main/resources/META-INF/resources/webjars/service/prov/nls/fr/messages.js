@@ -2,6 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define({
+	'global-configuration': 'Configuration globale',
 	'service:prov': 'Provisionnement',
 	'service:prov:manage': 'Gérer',
 	'service:prov:currency': 'Devise',

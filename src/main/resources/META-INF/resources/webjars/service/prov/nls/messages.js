@@ -3,6 +3,7 @@
  */
 define({
     'root': {
+        'global-configuration': 'Global configuration',
         'instance-import-message': 'Import instances from a CSV file, <code> ;</code> as separator',
         'instance-import-sample': 'Sample',
         'quote-location': 'Default location for this quote. Depending on availabilities and instance types, the prices may vary.',
