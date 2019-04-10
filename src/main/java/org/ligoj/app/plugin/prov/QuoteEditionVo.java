@@ -47,8 +47,8 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	 * allows the lookup to elect an instance having less RAM than the requested one. Value greater than
 	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.
 	 */
-	@Min(50)
-	@Max(150)
+	@Min(1)
+	@Max(200)
 	@NotNull
 	private Integer ramAdjustedRate = 100;
 

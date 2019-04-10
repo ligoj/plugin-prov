@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.1.5</version>
+		<version>3.1.6</version>
 		<relativePath />
 	</parent>
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-prov</artifactId>
-	<version>1.7.2-SNAPSHOT</version>
+	<version>1.8.0</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Provisioning</name>
 
