@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.1.6</version>
+		<version>3.1.8</version>
 		<relativePath />
 	</parent>
 
@@ -13,6 +13,7 @@
 	<version>1.8.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Provisioning</name>
+	<url>https://github.com/ligoj/plugin-prov</url>
 
 	<scm>
 		<connection>scm:git:https://github.com/ligoj/plugin-prov</connection>
