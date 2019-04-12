@@ -418,7 +418,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	@SuppressWarnings("unchecked")
-	public L lookup(int subscription, I query) {
+	protected L lookup(int subscription, I query) {
 		return lookup(subscription, (Q) query);
 	}
 
