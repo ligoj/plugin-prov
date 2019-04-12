@@ -969,7 +969,7 @@ define(function () {
 		 * @param {object|Array} Quote or prices
 		 */
 		storageSetUiPrice: function (quote) {
-			var suggests = toSuggests(quote);
+			var suggests = current.toSuggests(quote);
 			if (suggests) {
 				var suggest = suggests[0];
 				_('storage-price').select2('destroy').select2({
@@ -1039,7 +1039,7 @@ define(function () {
 		 * Set the current support price.
 		 */
 		supportSetUiPrice: function (quote) {
-			var suggests = toSuggests(quote);
+			var suggests = current.toSuggests(quote);
 			if (suggests) {
 				var suggest = suggests[0];
 				_('support-price').select2('destroy').select2({
