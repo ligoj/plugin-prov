@@ -53,6 +53,7 @@ public class ProvCurrencyResource {
 
 	static {
 		ORM_COLUMNS.put("name", "name");
+		ORM_COLUMNS.put("description", "description");
 		ORM_COLUMNS.put("unit", "unit");
 	}
 

@@ -18,6 +18,7 @@ define(function () {
 				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
 				current.currentId = uc.id;
 				_('name').val(uc.name || '');
+				_('description').val(uc.description || '');
 				_('unit').val(uc.unit || '');
 				_('rate').val(uc.rate || '1.0');
 				$('.modal-title').text(current.$messages[uc.id ? 'update' : 'create']);
@@ -49,6 +50,8 @@ define(function () {
 				},
 				columns: [{
 					data: 'name'
+				}, {
+					data: 'description'
 				}, {
 					data: 'unit',
 				}, {
@@ -85,6 +88,7 @@ define(function () {
 			return JSON.stringify({
 				id: current.currentId,
 				name: _('name').val(),
+				description: _('description').val(),
 				unit: _('unit').val(),
 				rate: parseFloat(_('rate').val(), 10)
 			});
