@@ -16,7 +16,7 @@ define(function () {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
 				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
-				currentId = uc.id;
+				current.currentId = uc.id;
 				_('name').val(uc.name || '');
 				_('unit').val(uc.unit || '');
 				_('rate').val(uc.rate || '1.0');
