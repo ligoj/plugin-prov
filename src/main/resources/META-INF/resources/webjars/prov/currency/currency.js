@@ -66,7 +66,7 @@ define(function () {
 					width: '16px'
 				}, {
 					data: null,
-					width: '16px',
+					width: '32px',
 					orderable: false,
 					render: function (_i, _j, data) {
 						var result = '';
@@ -74,7 +74,7 @@ define(function () {
 						result += '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
 						if (data.nbQuotes === 0) {
 							// Delete button
-							return '<a class="delete"><i class="far fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
+							result += '<a class="delete"><i class="far fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
 						}
 						return result;
 					}
