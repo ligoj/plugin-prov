@@ -51,10 +51,13 @@ define(function () {
 				columns: [{
 					data: 'name'
 				}, {
+					class: 'hidden-sm',
 					data: 'description'
 				}, {
+					width: '32px',
 					data: 'unit',
 				}, {
+					width: '32px',
 					data: 'rate',
 					type: 'num'
 				}, {
