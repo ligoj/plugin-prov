@@ -21,6 +21,11 @@ define(function () {
 				_('description').val(uc.description || '');
 				_('unit').val(uc.unit || '');
 				_('rate').val(uc.rate || '1.0');
+				if (uc.nbQuotes) {
+					_('editing-used-currency').removeClass('hidden');
+				} else {
+					_('editing-used-currency').addClass('hidden');
+				}
 				$('.modal-title').text(current.$messages[uc.id ? 'update' : 'create']);
 				if (uc.id) {
 					_('create').addClass('hidden');
