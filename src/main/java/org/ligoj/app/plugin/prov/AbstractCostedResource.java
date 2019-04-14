@@ -5,11 +5,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.function.Consumer;
 
-import javax.transaction.Transactional;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
@@ -21,7 +16,6 @@ import org.ligoj.bootstrap.core.json.PaginationJson;
 import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import lombok.Getter;
 
@@ -35,10 +29,6 @@ import lombok.Getter;
  * @param <T>
  *            Quoted resource price type type.
  */
-@Service
-@Path(ProvResource.SERVICE_URL)
-@Produces(MediaType.APPLICATION_JSON)
-@Transactional
 public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
 		implements QuoteRelated<C> {
 
