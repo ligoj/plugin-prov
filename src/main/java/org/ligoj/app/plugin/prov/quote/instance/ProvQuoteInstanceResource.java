@@ -147,10 +147,9 @@ public class ProvQuoteInstanceResource extends
 	@GET
 	@Path("{subscription:\\d+}/instance-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Override
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteInstanceQuery query) {
-		return super.lookup(subscription, query);
+		return lookupInternal(subscription, query);
 	}
 
 	@Override

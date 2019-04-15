@@ -409,20 +409,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Create the instance inside a quote.
-	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param query
-	 *            The query parameters.
-	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
-	 */
-	@SuppressWarnings("unchecked")
-	protected L lookup(int subscription, I query) {
-		return lookup(subscription, (Q) query);
-	}
-
-	/**
 	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
 	 *
 	 * @param subscription
@@ -431,7 +417,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
-	public L lookup(final int subscription, final Q query) {
+	public L lookupInternal(final int subscription, final Q query) {
 		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 

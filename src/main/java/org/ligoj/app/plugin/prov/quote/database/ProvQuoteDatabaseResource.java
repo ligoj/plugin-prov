@@ -154,10 +154,9 @@ public class ProvQuoteDatabaseResource extends
 	@GET
 	@Path("{subscription:\\d+}/database-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Override
 	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteDatabaseQuery query) {
-		return super.lookup(subscription, query);
+		return lookupInternal(subscription, query);
 	}
 
 	@Override

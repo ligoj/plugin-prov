@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javax.transaction.Transactional;
-import javax.ws.rs.PathParam;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +76,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		final ImportCatalogResource resource = new ImportCatalogResource() {
 
 			@Override
-			public ImportCatalogStatus getTask(@PathParam("node") final String node) {
+			public ImportCatalogStatus getTask(final String node) {
 				return getTaskRepository().findBy("locked.id", node);
 			}
 

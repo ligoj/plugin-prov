@@ -248,7 +248,7 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setType(upload.getType());
 
 		// Find the lowest price
-		vo.setPrice(qResource.validateLookup("instance", qResource.lookup(subscription, vo), vo.getName()).getId());
+		vo.setPrice(qResource.validateLookup("instance", qResource.lookupInternal(subscription, vo), vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
 		final int id = qResource.create(vo).getId();
