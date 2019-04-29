@@ -22,7 +22,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -50,10 +49,8 @@ public class ProvQuoteInstanceExportResource {
 	/**
 	 * Return the instance quotes with attached storages in CSV format. Sole storages are not included.
 	 *
-	 * @param subscription
-	 *            The subscription identifier.
-	 * @param file
-	 *            The user file name to use in download response.
+	 * @param subscription The subscription identifier.
+	 * @param file         The user file name to use in download response.
 	 * @return the stream ready to be read during the serialization.
 	 */
 	@GET
@@ -70,24 +67,24 @@ public class ProvQuoteInstanceExportResource {
 				final int max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
 
 				// Minimal headers
-				writer.format("%s" + StringUtils.repeat(";%s", 20), "name", "cpu", "ram", "os", "usage", "term",
-						"location", "min", "max", "maxvariablecost", "constant", "ephemeral", "type", "internet",
-						"license", "cost", "disk", "diskType", "diskLatency", "diskOptimized", "diskCost");
+				writer.format("%s" + ";%s".repeat(20), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
+						"max", "maxvariablecost", "constant", "ephemeral", "type", "internet", "license", "cost",
+						"disk", "diskType", "diskLatency", "diskOptimized", "diskCost");
 
 				// Additional headers for storages above the first one
 				IntStream.range(1, max).forEach(i -> writer.print(";disk" + i + ";disk" + i + "Type" + ";disk" + i
 						+ "Latency" + ";disk" + i + "Optimized" + ";disk" + i + "Cost"));
 				vo.getInstances().forEach(qi -> {
 					// Write quote instance
-					writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi), toString(qi.getCpu()),
-							toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
-							toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-							toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
-							toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
-							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()));
+					writer.format("\n%s" + ";%s".repeat(15), toString(qi), toString(qi.getCpu()), toString(qi.getRam()),
+							qi.getOs(), toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
+							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
+							toString(qi.getMaxVariableCost()), toString(qi.getConstant()), qi.isEphemeral(),
+							toString(qi.getPrice().getType()), qi.getInternet(), toString(qi.getLicense()),
+							toString(qi.getCost()));
 					// Write related storage
 					qsByQi.getOrDefault(qi.getId(), Collections.emptyList())
-							.forEach(qs -> writer.format(StringUtils.repeat(";%s", 5), qs.getSize(),
+							.forEach(qs -> writer.format(";%s".repeat(5), qs.getSize(),
 									toString(qs.getPrice().getType()), toString(qs.getLatency()),
 									toString(qs.getOptimized()), toString(qs.getCost())));
 				});
@@ -100,10 +97,8 @@ public class ProvQuoteInstanceExportResource {
 	 * Return the instances, databases, support and storage quotes in CSV format. Some columns may be <code>null</code>
 	 * depending on the related resource.
 	 *
-	 * @param subscription
-	 *            The subscription identifier.
-	 * @param file
-	 *            The user file name to use in download response.
+	 * @param subscription The subscription identifier.
+	 * @param file         The user file name to use in download response.
 	 * @return the stream ready to be read during the serialization.
 	 */
 	@GET
@@ -114,14 +109,14 @@ public class ProvQuoteInstanceExportResource {
 		final QuoteVo vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				writer.format("%s" + StringUtils.repeat(";%s", 22), "name", "cpu", "ram", "os", "usage", "term",
-						"location", "min", "max", "maxvariablecost", "constant", "ephemeral", "type", "internet",
-						"license", "cost", "disk", "instance", "database", "latency", "optimized", "engine", "edition");
+				writer.format("%s" + ";%s".repeat(22), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
+						"max", "maxvariablecost", "constant", "ephemeral", "type", "internet", "license", "cost",
+						"disk", "instance", "database", "latency", "optimized", "engine", "edition");
 
 				// Write quote instances
 				vo.getInstances()
-						.forEach(qi -> writer.format("\n%s" + StringUtils.repeat(";%s", 15), toString(qi),
-								toString(qi.getCpu()), toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
+						.forEach(qi -> writer.format("\n%s" + ";%s".repeat(15), toString(qi), toString(qi.getCpu()),
+								toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
 								toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
 								toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
 								toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
@@ -129,12 +124,12 @@ public class ProvQuoteInstanceExportResource {
 
 				// Write quote databases
 				vo.getDatabases()
-						.forEach(qi -> writer.format("\n%s" + StringUtils.repeat(";%s", 17), toString(qi),
-								toString(qi.getCpu()), toString(qi.getRam()), "", toString(qi.getUsage()),
-								toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-								toString(qi.getMaxQuantity()), "", toString(qi.getConstant()), "",
-								toString(qi.getPrice().getType()), "", toString(qi.getLicense()),
-								toString(qi.getCost()), qi.getEngine(), toString(qi.getEdition())));
+						.forEach(qi -> writer.format("\n%s" + ";%s".repeat(17), toString(qi), toString(qi.getCpu()),
+								toString(qi.getRam()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
+								toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
+								toString(qi.getConstant()), "", toString(qi.getPrice().getType()), "",
+								toString(qi.getLicense()), toString(qi.getCost()), qi.getEngine(),
+								toString(qi.getEdition())));
 
 				// Write quote storages
 				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s;%s", toString(qs),
