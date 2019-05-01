@@ -48,7 +48,12 @@ public enum VmOs {
 	/**
 	 * Ubuntu
 	 */
-	UBUNTU(LINUX);
+	UBUNTU(LINUX),
+
+	/**
+	 * FREE BSD
+	 */
+	FREEBSD(LINUX);
 
 	/**
 	 * The related pricing OS.

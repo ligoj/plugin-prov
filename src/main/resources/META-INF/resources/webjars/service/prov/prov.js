@@ -524,7 +524,8 @@ define(function () {
 			'centos': ['CentOS', 'icon-centos fa-fw'],
 			'debian': ['Debian', 'icon-debian fa-fw'],
 			'fedora': ['Fedora', 'icon-fedora fa-fw'],
-			'ubuntu': ['Ubuntu', 'icon-ubuntu fa-fw']
+			'ubuntu': ['Ubuntu', 'icon-ubuntu fa-fw'],
+			'freebsd': ['FreeBSD', 'icon-freebsd fa-fw']
 		},
 
 		/**
