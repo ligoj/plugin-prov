@@ -3,13 +3,13 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -101,8 +101,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadFixedInstanceType() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10;true".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;instance10;true", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "type", "ephemeral" }, false, "Full Time 12 month", 1,
 				"UTF-8");
 		QuoteVo configuration = getConfiguration();
@@ -125,8 +124,8 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadBoundQuantities() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;1;true;1;1000;true".getBytes("UTF-8")), new String[] {
+		qiuResource.upload(
+				subscription, new StringInputStream("ANY;0.5;500;LINUX;1;true;1;1000;true", "UTF-8"), new String[] {
 						"name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
@@ -153,9 +152,9 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadMaxQuantities() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;1;true;1;1;true".getBytes("UTF-8")), new String[] { "name",
-						"cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
+		qiuResource.upload(
+				subscription, new StringInputStream("ANY;0.5;500;LINUX;1;true;1;1;true", "UTF-8"), new String[] {
+						"name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -171,8 +170,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadMultipleDisks() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("MYINSTANCE;0.5;500;LINUX;1,0,10;true;true".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("MYINSTANCE;0.5;500;LINUX;1,0,10;true;true", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "ephemeral" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
@@ -192,9 +190,9 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadUnBoundQuantities() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;1;true;1;0;true".getBytes("UTF-8")), new String[] { "name",
-						"cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
+		qiuResource.upload(
+				subscription, new StringInputStream("ANY;0.5;500;LINUX;1;true;1;0;true", "UTF-8"), new String[] {
+						"name", "cpu", "ram", "os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -210,8 +208,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadInternetAccess() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;instance10;PUBLIC;true".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;instance10;PUBLIC;true", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "type", "internet", "ephemeral" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
@@ -221,7 +218,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadDefaultUsage() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os" }, false, null, 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -231,8 +228,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadUsagePerEntry() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time 12 month".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;Full Time 12 month", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 13 month", 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -243,7 +239,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadOnlyCustomFound() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;999;6;LINUX".getBytes("UTF-8")), null, false,
+		qiuResource.upload(subscription, new StringInputStream("ANY;999;6;LINUX", "UTF-8"), null, false,
 				"Full Time 12 month", 1024, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -255,7 +251,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadCustomLowest() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;1;64;LINUX".getBytes("UTF-8")), null, false,
+		qiuResource.upload(subscription, new StringInputStream("ANY;1;64;LINUX", "UTF-8"), null, false,
 				"Full Time 12 month", 1024, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -270,11 +266,10 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	 */
 	@Test
 	public void uploadInvalidUsageForSubscription() {
-		Assertions.assertEquals("Full Time2",
-				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription,
-						new ByteArrayInputStream("ANY;0.5;500;LINUX;Full Time2".getBytes("UTF-8")),
+		Assertions.assertEquals("Full Time2", Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;Full Time2", "UTF-8"),
 						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
-						.getMessage());
+				.getMessage());
 	}
 
 	/**
@@ -282,13 +277,11 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	 */
 	@Test
 	public void uploadInvalidLocationForSubscription() {
-		Assertions.assertEquals("region-3",
-				Assertions.assertThrows(EntityNotFoundException.class,
-						() -> qiuResource.upload(subscription,
-								new ByteArrayInputStream("ANY;0.5;500;LINUX;region-3".getBytes("UTF-8")),
-								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
-								"UTF-8"))
-						.getMessage());
+		Assertions.assertEquals("region-3", Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;region-3", "UTF-8"),
+						new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+						"UTF-8"))
+				.getMessage());
 	}
 
 	/**
@@ -296,13 +289,11 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	 */
 	@Test
 	public void uploadInvalidLocation() {
-		Assertions.assertEquals("region-ZZ",
-				Assertions.assertThrows(EntityNotFoundException.class,
-						() -> qiuResource.upload(subscription,
-								new ByteArrayInputStream("ANY;0.5;500;LINUX;region-ZZ".getBytes("UTF-8")),
-								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
-								"UTF-8"))
-						.getMessage());
+		Assertions.assertEquals("region-ZZ", Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;region-ZZ", "UTF-8"),
+						new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+						"UTF-8"))
+				.getMessage());
 	}
 
 	/**
@@ -310,29 +301,26 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	 */
 	@Test
 	public void uploadInvalidUsage() {
-		Assertions.assertEquals("any",
-				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription,
-						new ByteArrayInputStream("ANY;0.5;500;LINUX;any".getBytes("UTF-8")),
+		Assertions.assertEquals("any", Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;any", "UTF-8"),
 						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
-						.getMessage());
+				.getMessage());
 	}
 
 	@Test
 	public void uploadInstanceNotFound() {
-		MatcherUtil
-				.assertThrows(
-						Assertions.assertThrows(ValidationJsonException.class,
-								() -> qiuResource.upload(subscription,
-										new ByteArrayInputStream("ANY;999;6;WINDOWS".getBytes("UTF-8")), null, false,
-										"Full Time 12 month", 1024, "UTF-8")),
-						"csv-file.instance", "no-match-instance");
+		MatcherUtil.assertThrows(
+				Assertions.assertThrows(ValidationJsonException.class,
+						() -> qiuResource.upload(subscription, new StringInputStream("ANY;999;6;WINDOWS", "UTF-8"),
+								null, false, "Full Time 12 month", 1024, "UTF-8")),
+				"csv-file.instance", "no-match-instance");
 	}
 
 	@Test
 	public void uploadStorageNotFound() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
 				() -> qiuResource.upload(subscription,
-						new ByteArrayInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT".getBytes("UTF-8")),
+						new StringInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT", "UTF-8"),
 						new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, false,
 						"Full Time 12 month", 1, "UTF-8")),
 				"csv-file.storage", "NotNull");
@@ -342,7 +330,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	public void uploadMissingRequiredHeader() {
 		MatcherUtil.assertThrows(
 				Assertions.assertThrows(ValidationJsonException.class,
-						() -> qiuResource.upload(subscription, new ByteArrayInputStream("ANY".getBytes("UTF-8")),
+						() -> qiuResource.upload(subscription, new StringInputStream("ANY", "UTF-8"),
 								new String[] { "any" }, false, "Full Time 12 month", 1, "UTF-8")),
 				"csv-file", "missing-header");
 	}
@@ -351,29 +339,28 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	public void uploadAmbiguousHeader() {
 		MatcherUtil.assertThrows(
 				Assertions.assertThrows(ValidationJsonException.class,
-						() -> qiuResource.upload(subscription, new ByteArrayInputStream("ANY;ANY".getBytes("UTF-8")),
+						() -> qiuResource.upload(subscription, new StringInputStream("ANY;ANY", "UTF-8"),
 								new String[] { "vcpu", "core" }, false, "Full Time 12 month", 1, "UTF-8")),
 				"csv-file", "ambiguous-header");
 	}
 
 	@Test
 	public void uploadIgnoredInvalidHeader() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("ANY;ignored value1;0.5;500;any-value2;LINUX".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;ignored value1;0.5;500;any-value2;LINUX", "UTF-8"),
 				new String[] { "name", "ignore", "cpu", "ram", "ignore", "os" }, false, null, 1, "UTF-8");
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
 
 	@Test
 	public void uploadAlternativeHeader() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX", "UTF-8"),
 				new String[] { "name", "vCPU", "memory", "system" }, false, null, 1, "UTF-8");
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
 
 	@Test
 	public void uploadWildcardHeader() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;LINUX".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX", "UTF-8"),
 				new String[] { "instance_name", "cpu #", "instance ram (GB)", " os " }, false, null, 1, "UTF-8");
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
@@ -391,7 +378,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadSoftware() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;WINDOWS;SQL Web".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;WINDOWS;SQL Web", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", 1, "UTF-8");
 		QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -401,7 +388,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadLicense() throws IOException {
-		qiuResource.upload(subscription, new ByteArrayInputStream("ANY;0.5;500;WINDOWS;BYOL".getBytes("UTF-8")),
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;WINDOWS;BYOL", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "license" }, false, "Full Time 12 month", 1, "UTF-8");
 		QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
