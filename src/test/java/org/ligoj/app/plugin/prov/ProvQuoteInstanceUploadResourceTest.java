@@ -43,7 +43,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	@Test
 	public void upload() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "name", "cpu", "ram", "disk", "latency", "os", "constant", "description" }, false,
+				new String[] { "\"name\"", "cpu", "ram", "disk", "latency", "os", "constant", "description" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		checkUpload();
 	}
@@ -83,6 +83,20 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(14, configuration.getStorages().size());
 		Assertions.assertNotNull(configuration.getStorages().get(13).getQuoteInstance());
 		checkCost(configuration.getCost(), 14547.606, 16997.206, false);
+	}
+
+	@Test
+	public void uploadCoverageProgress() throws IOException {
+		final StringBuilder content = new StringBuilder();
+		final String headers = "name;cpu;ram;disk;os";
+		content.append(headers + "\n");
+		for (int i = 0; i < 20; i++) {
+			content.append("name").append(i).append(";1;1;1;LINUX\n");
+		}
+		qiuResource.upload(subscription, new StringInputStream(content.toString(), "UTF-8"), null, true,
+				"Full Time 12 month", 1, "UTF-8");
+		final QuoteVo configuration = getConfiguration();
+		Assertions.assertEquals(27, configuration.getInstances().size());
 	}
 
 	@Test
@@ -366,9 +380,9 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadPriorizedHeader() throws IOException {
-		qiuResource.upload(subscription,
-				new ByteArrayInputStream("real name;alt. name;2,4;0.5;500;info;LINUX".getBytes("UTF-8")), new String[] {
-						"name", "instance_name", "frequency cpu", "cpus", "instance ram (GB)", "   os(1)", "os" },
+		qiuResource.upload(subscription, new StringInputStream("real name;alt. name;2,4;0.5;500;info;LINUX", "UTF-8"),
+				new String[] { "\" name  \"", "instance_name", "frequency cpu", "cpus", "instance ram (GB)", "   os(1)",
+						"\"os\"" },
 				false, null, 1, "UTF-8");
 		final QuoteVo configuration = getConfiguration();
 		Assertions.assertEquals("real name", configuration.getInstances().get(7).getName());

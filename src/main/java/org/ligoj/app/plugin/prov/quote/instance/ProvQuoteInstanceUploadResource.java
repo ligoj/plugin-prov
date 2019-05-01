@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.SequenceInputStream;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -17,10 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -53,6 +55,8 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The instance part of the provisioning from upload CSV file.
  */
@@ -60,6 +64,7 @@ import org.springframework.stereotype.Service;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Slf4j
 public class ProvQuoteInstanceUploadResource {
 	private static final String CSV_FILE = "csv-file";
 	private static final List<String> MINIMAL_HEADERS = List.of("name", "cpu", "ram", "os");
@@ -100,12 +105,15 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceResource qResource;
 
+	private String cleanHeader(final String header) {
+		return StringUtils.unwrap(header, '\"').trim();
+	}
+
 	/**
 	 * Check column's name, tying to match to valid headers. All rejected columns are dropped and replaced by an empty
 	 * string <code>""</code>.
 	 *
-	 * @param headers
-	 *            The given headers.
+	 * @param headers The given headers.
 	 * @return The mapped and valid columns. Some may be empty and would be dropped.
 	 */
 	private String[] checkHeaders(final String... headers) {
@@ -118,7 +126,7 @@ public class ProvQuoteInstanceUploadResource {
 			// Headers (K) mapped to input ones (V) for this match level
 			final Map<String, String> localMapped = new HashMap<>();
 			Arrays.stream(headers).forEach(h -> ACCEPTED_HEADERS.stream().map(a -> a.split(":"))
-					.filter(a -> match(c, a, h)).filter(a -> !mapped.containsKey(a[0])).forEach(array -> {
+					.filter(a -> match(c, a, cleanHeader(h))).filter(a -> !mapped.containsKey(a[0])).forEach(array -> {
 						final String previous = localMapped.put(array[0], h);
 						if (previous != null) {
 							// Ambiguous header
@@ -148,24 +156,17 @@ public class ProvQuoteInstanceUploadResource {
 	/**
 	 * Upload a file of quote in add mode.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the locations from the associated provider.
-	 * @param uploadedFile
-	 *            Instance entries files to import. Currently support only CSV format.
-	 * @param headers
-	 *            the CSV header names. When <code>null</code> or empty, the default headers are used.
-	 * @param headersIncluded
-	 *            When <code>true</code>, the first line is the headers and the given <code>headers</code> parameter is
-	 *            ignored. Otherwise the <code>headers</code> parameter is used.
-	 * @param usage
-	 *            The optional usage name. When not <code>null</code>, each quote instance will be associated to this
-	 *            usage.
-	 * @param ramMultiplier
-	 *            The multiplier for imported RAM values. Default is 1.
-	 * @param encoding
-	 *            CSV encoding. Default is UTF-8.
-	 * @throws IOException
-	 *             When the CSV stream cannot be written.
+	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
+	 *                        provider.
+	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
+	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
+	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
+	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
+	 *                        associated to this usage.
+	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
+	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -177,16 +178,16 @@ public class ProvQuoteInstanceUploadResource {
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
+		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
-		final String safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
+		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
 		// Check headers validity
 		final String[] headersArray;
 		final InputStream fileNoHeader;
 		if (headersIncluded) {
 			// Header at first line
-			final BufferedReader br = new BufferedReader(
-					new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
+			final var br = new BufferedReader(new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
 			headersArray = StringUtils.defaultString(br.readLine(), "").replace(',', ';').split(";");
 			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
 
@@ -196,20 +197,31 @@ public class ProvQuoteInstanceUploadResource {
 			fileNoHeader = uploadedFile;
 		}
 
-		final String[] headersArray2 = checkHeaders(headersArray);
-		final String headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(',', ';')
+		final var headersArray2 = checkHeaders(headersArray);
+		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(',', ';')
 				+ "\n";
-		final Reader reader = new InputStreamReader(
+		final var reader = new InputStreamReader(
 				new SequenceInputStream(new ByteArrayInputStream(headersString.getBytes(safeEncoding)), fileNoHeader),
 				safeEncoding);
 
 		// Build entries
-		csvForBean.toBean(InstanceUpload.class, reader).stream().filter(Objects::nonNull).forEach(i -> {
+		log.info("Upload provisioning : reading, using header {}", headersString);
+		final var list = csvForBean.toBean(InstanceUpload.class, reader);
+		log.info("Upload provisioning : importing {} entries", list.size());
+		final var cursor = new AtomicInteger(0);
+		final Set<String> previousNames = new HashSet<>();
+		list.stream().filter(Objects::nonNull).forEach(i -> {
 			try {
+				noConflictName(previousNames, i);
 				persist(i, subscription, usage, ramMultiplier);
+				final int percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
+				if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
+					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
+				}
 			} catch (final ValidationJsonException e) {
 				// Wrap error
-				final Map<String, List<Map<String, Serializable>>> errors = e.getErrors();
+				log.info("Upload provisioning : failed", e);
+				final var errors = e.getErrors();
 				new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
 						.forEach(errors::remove);
 				errors.put(CSV_FILE, List.of(
@@ -217,6 +229,16 @@ public class ProvQuoteInstanceUploadResource {
 				throw e;
 			}
 		});
+		log.info("Upload provisioning : flushing");
+	}
+
+	private void noConflictName(Set<String> previousNames, InstanceUpload i) {
+		var name = i.getName();
+		int counter = 0;
+		while (!previousNames.add(name)) {
+			name = i.getName() + " " + ++counter;
+		}
+		i.setName(name);
 	}
 
 	/**
@@ -226,7 +248,7 @@ public class ProvQuoteInstanceUploadResource {
 	private void persist(final InstanceUpload upload, final int subscription, String usage,
 			final Integer ramMultiplier) {
 		// Validate the upload object
-		final QuoteInstanceEditionVo vo = new QuoteInstanceEditionVo();
+		final var vo = new QuoteInstanceEditionVo();
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
 		vo.setCpu(qResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
@@ -248,16 +270,17 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setType(upload.getType());
 
 		// Find the lowest price
-		vo.setPrice(qResource.validateLookup("instance", qResource.lookupInternal(subscription, vo), vo.getName()).getId());
+		vo.setPrice(
+				qResource.validateLookup("instance", qResource.lookupInternal(subscription, vo), vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
-		final int id = qResource.create(vo).getId();
+		final var id = qResource.create(vo).getId();
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
-			final int size = upload.getDisk().get(index).intValue();
+			final var size = upload.getDisk().get(index).intValue();
 			// Size is provided, propagate the upload properties
-			final QuoteStorageEditionVo svo = new QuoteStorageEditionVo();
+			final var svo = new QuoteStorageEditionVo();
 			svo.setName(vo.getName() + (index == 0 ? "" : index));
 			svo.setQuoteInstance(id);
 			svo.setSize(size);
