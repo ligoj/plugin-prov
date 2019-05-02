@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.ligoj.app.model.Node;
@@ -57,7 +58,7 @@ public abstract class AbstractUpdateContext {
 	 * The already merge instance types.
 	 */
 	@Getter
-	private Set<String> instanceTypesMerged = new HashSet<>();
+	private Set<String> instanceTypesMerged =  ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The previously installed price terms.
