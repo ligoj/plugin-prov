@@ -15,7 +15,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteLigthVo extends DescribedBean<Integer> {
+public class QuoteLightVo extends DescribedBean<Integer> {
 
 	/**
 	 * SID
