@@ -25,11 +25,11 @@ public class ProvCache implements CacheManagerAware {
 	@Override
 	public void onCreate(final HazelcastCacheManager cacheManager, final Function<String, CacheConfig<?, ?>> provider) {
 		cacheManager.createCache("terraform-version", provider.apply("terraform-version"));
-		final CacheConfig<?, ?> tokens = provider.apply("terraform-version-latest");
+		final var tokens = provider.apply("terraform-version-latest");
 		tokens.setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(Duration.ONE_DAY));
 		cacheManager.createCache("terraform-version-latest", tokens);
 
-		final CacheConfig<?, ?> tokens2 = provider.apply("prov-location");
+		final var tokens2 = provider.apply("prov-location");
 		tokens2.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
 				.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
 		cacheManager.createCache("prov-location", tokens2);

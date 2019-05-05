@@ -80,8 +80,8 @@ public class ProvQuoteSupportResource
 	@Path("{subscription:\\d+}/support")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
-		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
-		final UpdatedCost cost = new UpdatedCost(0);
+		final var quote = resource.getQuoteFromSubscription(subscription);
+		final var cost = new UpdatedCost(0);
 		cost.getDeleted().put(ResourceType.SUPPORT, qsRepository.findAllIdentifiers(subscription));
 
 		// Delete all storages related to any instance, then the instances
@@ -122,7 +122,7 @@ public class ProvQuoteSupportResource
 
 	@Override
 	public FloatingCost refresh(final ProvQuoteSupport qs) {
-		final ProvQuote quote = qs.getConfiguration();
+		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
 		qs.setPrice(validateLookup("support-plan", lookup(quote, qs.getSeats(), qs.getAccessApi(), qs.getAccessEmail(),
@@ -152,7 +152,7 @@ public class ProvQuoteSupportResource
 
 		// Check the associations
 		final int subscription = vo.getSubscription();
-		final ProvQuote quote = getQuoteFromSubscription(subscription);
+		final var quote = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
 		entity.setConfiguration(quote);
@@ -165,7 +165,7 @@ public class ProvQuoteSupportResource
 		entity.setLevel(vo.getLevel());
 
 		// Check the support requirements to validate the linked price
-		final ProvSupportType type = entity.getPrice().getType();
+		final var type = entity.getPrice().getType();
 		if (lookup(quote, vo.getSeats(), vo.getAccessApi(), vo.getAccessEmail(), vo.getAccessChat(),
 				vo.getAccessPhone(), vo.getLevel()).stream().map(qs -> qs.getPrice().getType())
 						.noneMatch(type::equals)) {
@@ -191,7 +191,7 @@ public class ProvQuoteSupportResource
 	@Override
 	public <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
 		// Report the delta to the quote
-		final ProvQuote quote = entity.getConfiguration();
+		final var quote = entity.getConfiguration();
 		quote.setCost(round(quote.getCost() + entity.getCost() - oldCost));
 		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMaxCost));
 		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - oldCost));
@@ -243,7 +243,7 @@ public class ProvQuoteSupportResource
 	 *            Who can open cases. When <code>null</code>, unlimited requirement.
 	 * @param accessApi
 	 *            API access. <code>null</code> when is not required.
-	 * @param accessMail
+	 * @param accessEmail
 	 *            Mail access. <code>null</code> when is not required.
 	 * @param accessChat
 	 *            Chat access. <code>null</code> when is not required.
@@ -273,7 +273,7 @@ public class ProvQuoteSupportResource
 			final Rate level) {
 
 		// Get the attached node and check the security on this subscription
-		final String node = quote.getSubscription().getNode().getRefined().getId();
+		final var node = quote.getSubscription().getNode().getRefined().getId();
 		return spRepository.findAll(node).stream().filter(sp -> sp.getType().getSeats() == null || seats != null)
 				.filter(sp -> filter(accessApi, sp.getType().getAccessApi()))
 				.filter(sp -> filter(accessChat, sp.getType().getAccessChat()))
@@ -313,9 +313,9 @@ public class ProvQuoteSupportResource
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteSupportLookup newPrice(final ProvQuote quote, final ProvSupportPrice price, final Integer seats) {
-		final QuoteSupportLookup result = new QuoteSupportLookup();
-		final int[] rates = toIntArray(price.getRate());
-		final int[] limits = toIntArray(price.getLimit());
+		final var result = new QuoteSupportLookup();
+		final var rates = toIntArray(price.getRate());
+		final var limits = toIntArray(price.getLimit());
 		result.setCost(round(getCost(seats, quote.getCostNoSupport(), price, rates, limits)));
 		result.setPrice(price);
 		result.setSeats(seats);
@@ -324,11 +324,11 @@ public class ProvQuoteSupportResource
 
 	@Override
 	public FloatingCost getCost(final ProvQuoteSupport entity) {
-		final ProvQuote quote = entity.getConfiguration();
-		final ProvSupportPrice price = entity.getPrice();
-		final int[] rates = toIntArray(price.getRate());
-		final int[] limits = toIntArray(price.getLimit());
-		final Integer seats = entity.getSeats();
+		final var quote = entity.getConfiguration();
+		final var price = entity.getPrice();
+		final var rates = toIntArray(price.getRate());
+		final var limits = toIntArray(price.getLimit());
+		final var seats = entity.getSeats();
 		return new FloatingCost(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.isUnboundCost()).round();
 	}
@@ -336,7 +336,7 @@ public class ProvQuoteSupportResource
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,
 			final int[] limits) {
 		// Compute the group of required seats
-		final int nb = Math.max(1, Optional.ofNullable(price.getType().getSeats())
+		final var nb = Math.max(1, Optional.ofNullable(price.getType().getSeats())
 				.map(s -> (int) Math.ceil((double) seats / s)).orElse(1));
 		// Compute the cost of the seats and the rates
 		return nb * (computeRates(cost, price.getMin(), rates, limits) + price.getCost());
@@ -365,7 +365,7 @@ public class ProvQuoteSupportResource
 	 * @param rates
 	 *            The base 100 percentage to apply to a segment of cost. The segment is
 	 *            <code>limit[index-1, index]</code> where index is the current index of the rate within the array. When
-	 *            <code>index=0</code>, <code>limit[-1]=0</code>. When <code>index&gt;limit.lenght-1</code>,
+	 *            <code>index=0</code>, <code>limit[-1]=0</code>. When <code>index&gt;limit.length-1</code>,
 	 *            <code>limit=Integer.MAX_VALUE</code>.
 	 * @param limits
 	 *            The segment upper limit where the corresponding rate can be applied. The length of this array is
@@ -374,7 +374,7 @@ public class ProvQuoteSupportResource
 	 */
 	public double computeRates(final double cost, final int min, final int[] rates, final int[] limits) {
 		double support = 0;
-		for (int i = rates.length; i-- > 0;) {
+		for (var i = rates.length; i-- > 0;) {
 			support += Math.max(0, Math.min(cost, i > limits.length - 1 ? Integer.MAX_VALUE : limits[i])
 					- (i == 0 ? 0 : limits[i - 1])) / 100 * rates[i];
 		}

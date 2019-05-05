@@ -22,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
@@ -92,7 +91,7 @@ public class ProvUsageResource {
 	@Path("{subscription:\\d+}/usage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public int create(@PathParam("subscription") final int subscription, final UsageEditionVo vo) {
-		final ProvUsage entity = new ProvUsage();
+		final var entity = new ProvUsage();
 		entity.setConfiguration(resource.getQuoteFromSubscription(subscription));
 		return saveOrUpdate(entity, vo).getId();
 	}
@@ -136,7 +135,7 @@ public class ProvUsageResource {
 
 		// Prepare the updated cost of updated instances
 		final Map<ResourceType, Map<Integer, FloatingCost>> costs = new EnumMap<>(ResourceType.class);
-		final ProvQuote quote = entity.getConfiguration();
+		final var quote = entity.getConfiguration();
 		if (entity.getId() != null) {
 
 			// Update the cost of all related instances
@@ -154,7 +153,7 @@ public class ProvUsageResource {
 		}
 
 		repository.saveAndFlush(entity);
-		final UpdatedCost cost = new UpdatedCost(entity.getId());
+		final var cost = new UpdatedCost(entity.getId());
 		cost.setRelated(costs);
 
 		// Update accordingly the support costs
@@ -175,11 +174,11 @@ public class ProvUsageResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("{subscription:\\d+}/usage/{name}")
 	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("name") final String name) {
-		final ProvUsage entity = resource.findConfiguredByName(repository, name, subscription);
-		final ProvQuote quote = entity.getConfiguration();
-		final UpdatedCost cost = new UpdatedCost(entity.getId());
+		final var entity = resource.findConfiguredByName(repository, name, subscription);
+		final var quote = entity.getConfiguration();
+		final var cost = new UpdatedCost(entity.getId());
 		// Prepare the updated cost of updated instances
-		final Map<ResourceType, Map<Integer, FloatingCost>> costs = cost.getRelated();
+		final var costs = cost.getRelated();
 		// Update the cost of all related instances
 		if (entity.equals(quote.getUsage())) {
 			// Update cost of all instances without explicit usage

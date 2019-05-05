@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.ligoj.app.model.Subscription;
@@ -63,16 +62,16 @@ public class TerraformBaseCommand implements TerraformAction {
 	 *            The target status to update.
 	 */
 	protected void computeWorkload(final Subscription subscription, final TerraformStatus status) {
-		final AtomicInteger added = new AtomicInteger();
-		final AtomicInteger deleted = new AtomicInteger();
-		final AtomicInteger updated = new AtomicInteger();
-		final AtomicInteger replaced = new AtomicInteger();
+		final var added = new AtomicInteger();
+		final var deleted = new AtomicInteger();
+		final var updated = new AtomicInteger();
+		final var replaced = new AtomicInteger();
 
 		// Iterate over each line
-		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "show.log").toPath())) {
+		try (var stream = Files.lines(utils.toFile(subscription, "show.log").toPath())) {
 			stream.map(SHOW_CHANGE::matcher).filter(Matcher::find).forEach(matcher -> {
 				// Detect the type of this change
-				final String type = matcher.group(1);
+				final var type = matcher.group(1);
 				if ("+".equals(type)) {
 					added.incrementAndGet();
 				} else if ("-".equals(type)) {
@@ -113,7 +112,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	 *            The target status to update.
 	 */
 	protected void computeWorkloadState(final Subscription subscription, final TerraformStatus status) {
-		try (Stream<String> stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
+		try (var stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
 			status.setToDestroy((int) stream.map(STATE_CHANGE::matcher).filter(Matcher::find).count());
 		} catch (final IOException e) {
 			log.warn("Unable to get the full workload from the 'state' command", e);
@@ -126,7 +125,7 @@ public class TerraformBaseCommand implements TerraformAction {
 		handleCode(context.getSubscription(), out, execute(context.getSubscription(), out, arguments));
 
 		// Complete the workload as needed
-		final String command = arguments[0];
+		final var command = arguments[0];
 		if ("show".equals(command)) {
 			computeWorkload(context.getSubscription());
 		} else if ("state".equals(command) && "list".equals(arguments[1])) {
@@ -153,12 +152,12 @@ public class TerraformBaseCommand implements TerraformAction {
 	public int execute(final File directory, final OutputStream out, final String... arguments)
 			throws InterruptedException, IOException {
 		FileUtils.forceMkdir(directory);
-		final ProcessBuilder builder = utils.newBuilder(arguments).redirectErrorStream(true).directory(directory);
-		final Process process = builder.start();
+		final var builder = utils.newBuilder(arguments).redirectErrorStream(true).directory(directory);
+		final var process = builder.start();
 		process.getInputStream().transferTo(out);
 
 		// Wait and get the code
-		final int code = process.waitFor();
+		final var code = process.waitFor();
 		out.flush();
 		return code;
 	}

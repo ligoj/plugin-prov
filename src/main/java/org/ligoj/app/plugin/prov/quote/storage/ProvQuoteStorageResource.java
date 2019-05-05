@@ -89,8 +89,8 @@ public class ProvQuoteStorageResource
 	@Path("{subscription:\\d+}/storage")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
-		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
-		final UpdatedCost cost = new UpdatedCost(0);
+		final var quote = resource.getQuoteFromSubscription(subscription);
+		final var cost = new UpdatedCost(0);
 		cost.getDeleted().put(ResourceType.STORAGE, qsRepository.findAllIdentifiers(subscription));
 
 		// Delete all storages related to any instance, then the instances
@@ -132,7 +132,7 @@ public class ProvQuoteStorageResource
 
 	@Override
 	public FloatingCost refresh(final ProvQuoteStorage qs) {
-		final ProvQuote quote = qs.getConfiguration();
+		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
 		qs.setPrice(validateLookup("storage",
@@ -165,8 +165,8 @@ public class ProvQuoteStorageResource
 
 		// Check the associations
 		final int subscription = vo.getSubscription();
-		final ProvQuote quote = getQuoteFromSubscription(subscription);
-		final String node = quote.getSubscription().getNode().getRefined().getId();
+		final var quote = getQuoteFromSubscription(subscription);
+		final var node = quote.getSubscription().getNode().getRefined().getId();
 		entity.setConfiguration(quote);
 		entity.setLocation(resource.findLocation(node, vo.getLocation()));
 		entity.setPrice(findByTypeName(subscription, vo.getType(), vo.getLocation(), quote));
@@ -177,7 +177,7 @@ public class ProvQuoteStorageResource
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getQuoteDatabase()));
 
 		// Check the storage requirements to validate the linked price
-		final ProvStorageType type = entity.getPrice().getType();
+		final var type = entity.getPrice().getType();
 		if (lookup(quote, entity, entity.getQuoteInstance(), entity.getQuoteDatabase()).stream()
 				.map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
@@ -185,7 +185,7 @@ public class ProvQuoteStorageResource
 		}
 
 		// Save and update the costs
-		final UpdatedCost cost = refreshCost(entity);
+		final var cost = refreshCost(entity);
 		Optional.ofNullable(entity.getQuoteResource()).ifPresent(qi -> cost.getRelated().put(qi.getResourceType(),
 				Collections.singletonMap(qi.getId(), qi.toFloatingCost())));
 		return resource.refreshSupportCost(cost, quote);
@@ -266,7 +266,7 @@ public class ProvQuoteStorageResource
 	 *
 	 * @param subscription
 	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
-	 * @param query
+	 * @param query The storage requirements.
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
@@ -280,8 +280,8 @@ public class ProvQuoteStorageResource
 	}
 
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorageQuery query) {
-		final ProvQuoteInstance qi = checkInstance(configuration.getSubscription().getId(), query.getInstance());
-		final ProvQuoteDatabase qb = checkDatabase(configuration.getSubscription().getId(), query.getDatabase());
+		final var qi = checkInstance(configuration.getSubscription().getId(), query.getInstance());
+		final var qb = checkDatabase(configuration.getSubscription().getId(), query.getDatabase());
 		return lookup(configuration, query, qi, qb);
 	}
 
@@ -289,7 +289,7 @@ public class ProvQuoteStorageResource
 			final ProvQuoteInstance qi, final ProvQuoteDatabase qb) {
 
 		// Get the attached node and check the security on this subscription
-		final String node = configuration.getSubscription().getNode().getRefined().getId();
+		final var node = configuration.getSubscription().getNode().getRefined().getId();
 
 		// The the right location from instance first, then the request one
 		final String iloc;
@@ -310,7 +310,7 @@ public class ProvQuoteStorageResource
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteStorageLookup newPrice(final ProvStoragePrice sp, final int size, final double cost) {
-		final QuoteStorageLookup result = new QuoteStorageLookup();
+		final var result = new QuoteStorageLookup();
 		result.setCost(cost);
 		result.setPrice(sp);
 		result.setSize(size);
@@ -319,7 +319,7 @@ public class ProvQuoteStorageResource
 
 	@Override
 	protected FloatingCost getCost(final ProvQuoteStorage qs) {
-		final double base = getCost(qs.getPrice(), qs.getSize());
+		final var base = getCost(qs.getPrice(), qs.getSize());
 		return Optional.ofNullable(qs.getQuoteResource())
 				.map(qr -> AbstractProvQuoteInstanceResource.computeFloat(base, qr))
 				.orElseGet(() -> new FloatingCost(base));

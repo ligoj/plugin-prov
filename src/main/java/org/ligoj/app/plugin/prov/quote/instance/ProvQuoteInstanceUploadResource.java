@@ -122,12 +122,12 @@ public class ProvQuoteInstanceUploadResource {
 
 		// For each pattern, from the most precise match to the least one
 		// Check the compliance of the given header against the accepted values
-		MATCH_HEADERS.stream().forEach(c -> {
+		MATCH_HEADERS.forEach(c -> {
 			// Headers (K) mapped to input ones (V) for this match level
 			final Map<String, String> localMapped = new HashMap<>();
 			Arrays.stream(headers).forEach(h -> ACCEPTED_HEADERS.stream().map(a -> a.split(":"))
 					.filter(a -> match(c, a, cleanHeader(h))).filter(a -> !mapped.containsKey(a[0])).forEach(array -> {
-						final String previous = localMapped.put(array[0], h);
+						final var previous = localMapped.put(array[0], h);
 						if (previous != null) {
 							// Ambiguous header
 							throw new ValidationJsonException(CSV_FILE, "ambiguous-header", "header", array[0], "name1",
@@ -214,7 +214,7 @@ public class ProvQuoteInstanceUploadResource {
 			try {
 				noConflictName(previousNames, i);
 				persist(i, subscription, usage, ramMultiplier);
-				final int percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
+				final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
 				if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
 					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
 				}
@@ -234,7 +234,7 @@ public class ProvQuoteInstanceUploadResource {
 
 	private void noConflictName(Set<String> previousNames, InstanceUpload i) {
 		var name = i.getName();
-		int counter = 0;
+		var counter = 0;
 		while (!previousNames.add(name)) {
 			name = i.getName() + " " + ++counter;
 		}

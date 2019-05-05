@@ -13,7 +13,7 @@ public class FloatingCostTest {
 
 	@Test
 	public void build() {
-		final FloatingCost cost = new FloatingCost(1.1, 2.2, true);
+		final var cost = new FloatingCost(1.1, 2.2, true);
 		Assertions.assertEquals(1.1, cost.getMin());
 		Assertions.assertEquals(2.2, cost.getMax());
 		Assertions.assertTrue(cost.isUnbound());
@@ -32,9 +32,9 @@ public class FloatingCostTest {
 	}
 	@Test
 	public void add() {
-		final FloatingCost cost1 = new FloatingCost(1.1, 2.2, false);
-		final FloatingCost cost2 = new FloatingCost(4.4, 5.5, false);
-		final FloatingCost cost3 = new FloatingCost(6.6, 7.7, false);
+		final var cost1 = new FloatingCost(1.1, 2.2, false);
+		final var cost2 = new FloatingCost(4.4, 5.5, false);
+		final var cost3 = new FloatingCost(6.6, 7.7, false);
 		cost3.setUnbound(true);
 
 		cost1.add(cost2);

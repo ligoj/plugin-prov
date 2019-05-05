@@ -156,10 +156,10 @@ public abstract class AbstractImportCatalogResource {
 	 *         the [class] association, of the explicit "default association or {@link Rate#MEDIUM} value.
 	 */
 	protected Rate getRate(final String type, final String name) {
-		final Map<String, Rate> map = mapRate.get(type);
-		final String[] fragments = StringUtils.split(StringUtils.defaultString(name, "__"), ".-");
-		final String size = fragments[0];
-		final String model = StringUtils.rightPad(size, 2, '_').substring(0, 2);
+		final var map = mapRate.get(type);
+		final var fragments = StringUtils.split(StringUtils.defaultString(name, "__"), ".-");
+		final var size = fragments[0];
+		final var model = StringUtils.rightPad(size, 2, '_').substring(0, 2);
 		return Arrays.stream(new String[] { name, size, model, model.substring(0, 1), "default" }).map(map::get)
 				.filter(Objects::nonNull).findFirst().orElse(Rate.MEDIUM);
 	}
@@ -301,8 +301,8 @@ public abstract class AbstractImportCatalogResource {
 	 * Install a new region.
 	 */
 	protected ProvLocation installRegion(final AbstractUpdateContext context, final String region) {
-		final ProvLocation entity = context.getRegions().computeIfAbsent(region, r -> {
-			final ProvLocation newRegion = new ProvLocation();
+		final var entity = context.getRegions().computeIfAbsent(region, r -> {
+			final var newRegion = new ProvLocation();
 			newRegion.setNode(context.getNode());
 			newRegion.setName(r);
 			return newRegion;
@@ -310,7 +310,7 @@ public abstract class AbstractImportCatalogResource {
 
 		// Update the location details as needed
 		if (context.getRegionsMerged().add(region)) {
-			final ProvLocation regionStats = context.getMapRegionToName().getOrDefault(region, new ProvLocation());
+			final var regionStats = context.getMapRegionToName().getOrDefault(region, new ProvLocation());
 			entity.setContinentM49(regionStats.getContinentM49());
 			entity.setCountryA2(regionStats.getCountryA2());
 			entity.setCountryM49(regionStats.getCountryM49());

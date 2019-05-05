@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -24,7 +23,6 @@ import org.ligoj.app.plugin.prov.quote.support.QuoteSupportEditionVo;
 import org.ligoj.app.plugin.prov.quote.support.QuoteSupportLookup;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
-import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -98,7 +96,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void create() {
-		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
 		vo.setDescription("support1D");
@@ -107,11 +105,11 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		vo.setAccessChat(null);
 		vo.setAccessEmail(null);
 		vo.setLevel(Rate.LOW);
-		final UpdatedCost cost = qsResource.create(vo);
+		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 3541.94, 6236.5, false);
 		checkCost(cost.getCost(), 376.54, 621.5, false);
 
-		final QuoteVo quoteVo = resource.getConfiguration(subscription);
+		final var quoteVo = resource.getConfiguration(subscription);
 		checkCost(quoteVo.getCostNoSupport(), 3165.4, 5615.0, false);
 		checkCost(quoteVo.getCost(), 3541.94, 6236.5, false);
 		checkCost(quoteVo.getCostSupport(), 376.54, 621.5, false);
@@ -127,7 +125,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 		// Check the exact new cost
 		checkCost(subscription, 3541.94, 6236.5, false);
-		final ProvQuoteSupport support = qsRepository.findOneExpected(id);
+		final var support = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("support-name1", support.getName());
 		Assertions.assertEquals("support1D", support.getDescription());
 		Assertions.assertEquals("support1", support.getPrice().getType().getName());
@@ -158,7 +156,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void createInvalidType() {
-		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
 		vo.setType("not-exist");
@@ -167,13 +165,13 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void createMultipleSupport() {
-		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
 		vo.setDescription("support1D");
 		vo.setType("support1");
 		vo.setSeats(10); // Too much seats for only ONE support1 -> nb = 3 (2x4 + 2 unused)
-		final UpdatedCost cost = qsResource.create(vo);
+		final var cost = qsResource.create(vo);
 		// support1 : cost=5;min=10;rates=20,15,10;limits=100,1000;seats=4
 		// base cost: 3165.4 5615.0
 		// support : CEIL(10/4)*(5+0.2*100+0.15*900+0,1*2165.4)
@@ -189,7 +187,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void createInvalidRequirement() {
-		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
 		vo.setDescription("support1D");
@@ -202,14 +200,14 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void refresh() {
 		// Create with constraints
-		final QuoteSupportEditionVo vo = new QuoteSupportEditionVo();
+		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("server-new");
 		vo.setType("support1");
 		vo.setSeats(3);
 		vo.setAccessApi(SupportType.ALL);
 		vo.setAccessPhone(SupportType.TECHNICAL);
-		final UpdatedCost cost = qsResource.create(vo);
+		final var cost = qsResource.create(vo);
 		checkCost(cost.getCost(), 376.54, 621.5, false);
 
 		// No change
@@ -237,10 +235,10 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	private void newSupports() {
-		final ProvQuoteSupport support1 = newSupport("support1", 3);
+		final var support1 = newSupport("support1", 3);
 		support1.setAccessPhone(SupportType.ALL);
 		em.persist(support1);
-		final ProvQuoteSupport support2 = newSupport("support2", 4);
+		final var support2 = newSupport("support2", 4);
 		support1.setSlaWeekEnd(false);
 		support2.setLevel(Rate.GOOD);
 		em.persist(support2);
@@ -267,8 +265,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	public void delete() {
 		newSupports();
-		final Integer id = qsRepository.findByNameExpected("support1").getId();
-		final QuoteVo configuration = resource.getConfiguration(subscription);
+		final var id = qsRepository.findByNameExpected("support1").getId();
+		final var configuration = resource.getConfiguration(subscription);
 
 		// support1: 20,15,10 - 100,1000
 		// = CEIL(3/4)*(5+0.2*100+0.15*900+0,1*2165.4)
@@ -309,7 +307,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	private ProvQuoteSupport newSupport(final String name, final int seats) {
-		final ProvQuoteSupport result = new ProvQuoteSupport();
+		final var result = new ProvQuoteSupport();
 		result.setName(name);
 		result.setSeats(seats);
 		result.setPrice(spRepository.findBy("type.name", name));
@@ -324,14 +322,14 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	public void findSupportType() {
-		final TableItem<ProvSupportType> tableItem = qsResource.findType(subscription, newUriInfo());
+		final var tableItem = qsResource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("support1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	public void findSupportTypeCriteria() {
-		final TableItem<ProvSupportType> tableItem = qsResource.findType(subscription, newUriInfo("rt2"));
+		final var tableItem = qsResource.findType(subscription, newUriInfo("rt2"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
 		Assertions.assertEquals("support2", tableItem.getData().get(0).getName());
 	}
@@ -358,16 +356,16 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookup() {
-		final List<QuoteSupportLookup> prices = qsResource.lookup(subscription, 3, null, null, null, null, null);
+		final var prices = qsResource.lookup(subscription, 3, null, null, null, null, null);
 
 		// Lowest price first
-		final QuoteSupportLookup priceS2 = prices.get(0);
+		final var priceS2 = prices.get(0);
 		Assertions.assertEquals(338.54, priceS2.getCost(), DELTA);
 		Assertions.assertEquals(3, priceS2.getSeats().intValue());
 		Assertions.assertEquals("support2", priceS2.getPrice().getType().getName());
 
 		// Check the support result
-		final QuoteSupportLookup price = prices.get(1);
+		final var price = prices.get(1);
 		assertCSP(price);
 		Assertions.assertEquals(376.54, price.getCost(), DELTA);
 		Assertions.assertEquals(3, price.getSeats().intValue());
@@ -379,9 +377,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	public void lookupNoSeat() throws IOException {
-		final QuoteSupportLookup lookup = qsResource
+		final var lookup = qsResource
 				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
-		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
+		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
 		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));
@@ -392,8 +390,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	private QuoteSupportLookup assertCSP(final QuoteSupportLookup price) {
-		final ProvSupportPrice sp = price.getPrice();
-		final ProvSupportType st = sp.getType();
+		final var sp = price.getPrice();
+		final var st = sp.getType();
 		Assertions.assertNotNull(sp.getId());
 		Assertions.assertNotNull(st.getId());
 		Assertions.assertEquals("support1", st.getName());
@@ -408,9 +406,9 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		// Support1 is now unlimited seats
 		spRepository.findBy("type.name", "support1").getType().setSeats(null);
 
-		final QuoteSupportLookup lookup = qsResource
+		final var lookup = qsResource
 				.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
-		final String asJson = new ObjectMapperTrim().writeValueAsString(lookup);
+		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
 		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));

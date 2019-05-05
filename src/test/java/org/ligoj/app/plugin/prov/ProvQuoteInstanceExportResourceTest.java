@@ -83,7 +83,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void exportInline() throws IOException {
-		final List<String> lines = export();
+		final var lines = export();
 		Assertions.assertEquals(8, lines.size());
 
 		// Header
@@ -118,7 +118,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		qs2Resource.deleteAll(subscription);
 		em.flush();
 		em.clear();
-		QuoteVo configuration = resource.getConfiguration(subscription);
+        var configuration = resource.getConfiguration(subscription);
 		checkCost(configuration.getCost(), 0, 0, false);
 
 		// Export (only headers)
@@ -136,7 +136,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		checkCost(configuration.getCost(), 9879.288, 9879.288, false);
 
 		// Export
-		final List<String> lines = export();
+		final var lines = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
 				"JIRA;4;6000;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;false;dynamic;PRIVATE;;990,862"
@@ -167,19 +167,19 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 		// Check backup restore succeed
 		checkCost(configuration.getCost(), 9879.288, 9879.288, false);
-		final List<String> lines2 = export();
+		final var lines2 = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(lines, lines2);
 	}
 
 	@Test
 	public void exportSplit() throws IOException {
-		final StreamingOutput export = (StreamingOutput) qieResource.exportSplit(subscription, "test.csv").getEntity();
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final var export = (StreamingOutput) qieResource.exportSplit(subscription, "test.csv").getEntity();
+		final var out = new ByteArrayOutputStream();
 		export.write(out);
-		final BufferedReader inputStreamReader = new BufferedReader(
+		final var inputStreamReader = new BufferedReader(
 				new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), "cp1252"));
-		final List<String> lines = IOUtils.readLines(inputStreamReader);
+		final var lines = IOUtils.readLines(inputStreamReader);
 		Assertions.assertEquals(21, lines.size()); // 8 VM + 7 DB + 4 Disks + 1 Support + 1 Header
 
 		// Header
@@ -205,10 +205,10 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	}
 
 	private List<String> export() throws IOException {
-		final StreamingOutput export = (StreamingOutput) qieResource.exportInline(subscription, "test.csv").getEntity();
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final var export = (StreamingOutput) qieResource.exportInline(subscription, "test.csv").getEntity();
+		final var out = new ByteArrayOutputStream();
 		export.write(out);
-		final BufferedReader inputStreamReader = new BufferedReader(
+		final var inputStreamReader = new BufferedReader(
 				new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), "cp1252"));
 		return IOUtils.readLines(inputStreamReader);
 	}
@@ -216,7 +216,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	@Override
 	protected void updateCost() {
 		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.updateCost(subscription);
+		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(7682.458, cost.getMin(), DELTA);
 		Assertions.assertEquals(10408.153, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());

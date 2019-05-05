@@ -108,7 +108,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	 */
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public TerraformStatus getTaskInternal(final Subscription subscription) {
-		final TerraformStatus status = getTask(subscription.getNode().getId());
+		final var status = getTask(subscription.getNode().getId());
 		if (status == null || status.getSubscription() != subscription.getId()) {
 			// Subscription is valid but not related to the current task
 			// Another subscription is running on this node
@@ -136,7 +136,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	private void completeProgress(final Subscription subscription, final TerraformStatus status, final String file,
 			BiConsumer<TerraformStatus, Stream<String>> apply) {
 		// Parse each line of the log file
-		try (Stream<String> stream = utils.toFile(subscription, file).exists()
+		try (var stream = utils.toFile(subscription, file).exists()
 				? Files.lines(utils.toFile(subscription, file).toPath())
 				: Arrays.stream(new String[0])) {
 			// Parse the line with RegEx

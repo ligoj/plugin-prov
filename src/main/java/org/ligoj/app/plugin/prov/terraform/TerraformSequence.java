@@ -17,5 +17,5 @@ public enum TerraformSequence {
 	/**
 	 * Will do every thing to destroy the target resources including the progress management.
 	 */
-	DESTROY;
+	DESTROY
 }

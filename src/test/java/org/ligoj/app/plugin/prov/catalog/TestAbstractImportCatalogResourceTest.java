@@ -3,28 +3,22 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.Mockito;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * Test class of {@link AbstractImportCatalogResource}
@@ -88,45 +82,45 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void isEnabledRegion() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
-		final ProvLocation location = new ProvLocation();
+		final var location = new ProvLocation();
 		location.setName("name");
 		Assertions.assertTrue(isEnabledRegion(context, location));
 	}
 
 	@Test
 	public void installRegion() {
-		final AbstractUpdateContext context = newContext();
-		final Node node = new Node();
+		final var context = newContext();
+		final var node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
 		context.setNode(node);
-		context.setRegions(new HashMap<String, ProvLocation>());
+		context.setRegions(new HashMap<>());
 
-		final ProvLocation oldRegion = new ProvLocation();
+		final var oldRegion = new ProvLocation();
 		oldRegion.setContinentM49(250);
 		context.getMapRegionToName().put("newRegion", oldRegion);
 		locationRepository = Mockito.mock(ProvLocationRepository.class);
-		final ProvLocation installRegion = installRegion(context, "newRegion");
+		final var installRegion = installRegion(context, "newRegion");
 		Assertions.assertEquals("newRegion", installRegion.getName());
 		Assertions.assertEquals(250, installRegion.getContinentM49().intValue());
 		installRegion.setLatitude(1D);
-		final ProvLocation installRegion2 = installRegion(context, "newRegion");
+		final var installRegion2 = installRegion(context, "newRegion");
 		Assertions.assertSame(installRegion2, installRegion);
 	}
 
 	@Test
 	public void getRegionByHumanNameEmpty() {
-		final AbstractUpdateContext context = newContext();
-		context.setRegions(new HashMap<String, ProvLocation>());
+		final var context = newContext();
+		context.setRegions(new HashMap<>());
 		Assertions.assertNull(getRegionByHumanName(context, "any"));
 	}
 
 	@Test
 	public void getRegionByHumanNameNotEnabled() {
-		final AbstractUpdateContext context = newContext();
-		final ProvLocation oldRegion = new ProvLocation();
+		final var context = newContext();
+		final var oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
 		context.setValidRegion(Pattern.compile(".*"));
 		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
@@ -135,9 +129,9 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void getRegionByHumanNotFound() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
-		final ProvLocation oldRegion = new ProvLocation();
+		final var oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
 		oldRegion.setDescription("newRegion");
 		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
@@ -146,9 +140,9 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void getRegionByHumanName() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
-		final ProvLocation oldRegion = new ProvLocation();
+		final var oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
 		oldRegion.setDescription("newRegion");
 		context.setRegions(Collections.singletonMap("newRegion", oldRegion));
@@ -162,8 +156,8 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void nextStepIgnore() {
-		final AbstractUpdateContext context = newContext();
-		final Node node = new Node();
+		final var context = newContext();
+		final var node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
 		context.setNode(node);
@@ -173,12 +167,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@SuppressWarnings("unchecked")
 	@Test
 	public void nextStep() {
-		final AbstractUpdateContext context = newContext();
-		final Node node = new Node();
+		final var context = newContext();
+		final var node = new Node();
 		node.setName("newNode");
 		node.setId("service:prov:some");
 		context.setNode(node);
-		final ImportCatalogStatus status = new ImportCatalogStatus();
+		final var status = new ImportCatalogStatus();
 
 		Mockito.doAnswer(invocation -> {
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
@@ -195,22 +189,18 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void saveAsNeededSame() {
-		final ProvInstancePrice entity = new ProvInstancePrice();
+		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
-		final Consumer<ProvInstancePrice> consumer = p -> {
-			p.setCode("-nerver-called-");
-		};
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
 		saveAsNeeded(entity, 1, 1, null, consumer);
 		Assertions.assertEquals("old", entity.getCode());
 	}
 
 	@Test
 	public void saveAsNeeded() {
-		final ProvStoragePrice entity = new ProvStoragePrice();
+		final var entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
-		final Consumer<ProvStoragePrice> consumer = p -> {
-			p.setCode("code");
-		};
+		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("code");
 		saveAsNeeded(entity, 1, consumer);
 		Assertions.assertEquals("code", entity.getCode());
 	}
@@ -240,7 +230,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void isEnabledOs() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidOs(Pattern.compile("(LINUX|RH.*)"));
 		Assertions.assertFalse(isEnabledOs(context, VmOs.WINDOWS));
 		Assertions.assertTrue(isEnabledOs(context, VmOs.LINUX));
@@ -249,7 +239,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void isEnabledType() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidInstanceType(Pattern.compile("ab.*"));
 		Assertions.assertFalse(isEnabledType(context, "axr"));
 		Assertions.assertTrue(isEnabledType(context, "abr"));
@@ -257,7 +247,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@Test
 	public void isEnabledDatabase() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setValidDatabaseType(Pattern.compile("ab.*"));
 		Assertions.assertFalse(isEnabledDatabase(context, "axr"));
 		Assertions.assertTrue(isEnabledDatabase(context, "abr"));
@@ -268,7 +258,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	 */
 	@Test
 	public void bean() {
-		final AbstractUpdateContext context = newContext();
+		final var context = newContext();
 		context.setStorageTypes(null);
 		context.setStorageTypesMerged(null);
 		context.setPriceTerms(null);
@@ -290,8 +280,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	private AbstractUpdateContext newContext() {
-		final AbstractUpdateContext context = new AbstractUpdateContext() {
+		return new AbstractUpdateContext() {
 		};
-		return context;
 	}
 }

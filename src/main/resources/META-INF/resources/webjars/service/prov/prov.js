@@ -312,7 +312,7 @@ define(function () {
 		 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 		 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
 		 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
-		 * @return The formated cost.
+		 * @return The formatted cost.
 		 */
 		formatCost: function (cost, mode, obj, noRichText) {
 			if (mode === 'sort' || mode === 'filter') {
@@ -551,7 +551,7 @@ define(function () {
 		},
 
 		/**
-		 * Rate name (identifier) to class mapping. Classes are ditributed across 5 values.
+		 * Rate name (identifier) to class mapping. Classes are distributed across 5 values.
 		 */
 		rates: {
 			'worst': 'far fa-star text-danger fa-fw',
@@ -1797,7 +1797,7 @@ define(function () {
 							'columns[0][name]': 'name',
 							'order[0][column]': 0,
 							'order[0][dir]': 'asc',
-							'sord': 'asc'
+							'sortd': 'asc'
 						};
 					},
 					results: function (data, page) {
@@ -2120,7 +2120,7 @@ define(function () {
 					$popup.modal('hide');
 
 					// Handle updated cost
-					if (newCost.tota) {
+					if (newCost.total) {
 						current.reloadAsNeed(newCost.total, forceUpdateUi);
 					}
 				},
@@ -2951,7 +2951,7 @@ define(function () {
 		 * @param storage The storage model to attach.
 		 * @param type The resource type to attach.
 		 * @param resource The resource model or identifier to attach.
-		 * @param force When <code>true</code>, the previous resource will not be dettached.
+		 * @param force When <code>true</code>, the previous resource will not be detached.
 		 */
 		attachStorage: function (storage, type, resource, force) {
 			if (typeof resource === 'number') {
@@ -2963,7 +2963,7 @@ define(function () {
 				return;
 			}
 			if (force !== true && storage[property]) {
-				// Ddetach the old resource
+				// Detach the old resource
 				current.detachStorage(storage, property);
 			}
 
@@ -3210,7 +3210,7 @@ define(function () {
 
 		/**
 		 * Donut of usage
-		 * @param {integer} rate The rate percent tage 1-100%
+		 * @param {integer} rate The rate percentage 1-100%
 		 */
 		updateD3UsageRate: function (rate) {
 			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
@@ -3360,7 +3360,7 @@ define(function () {
 		},
 
 		/**
-		 * Default Ajax callback after a deletion, update or create. This function looks the updated resources (identifiers), the deletd resources and the new updated costs.
+		 * Default Ajax callback after a deletion, update or create. This function looks the updated resources (identifiers), the deleted resources and the new updated costs.
 		 * @param {string} type The related resource type.
 		 * @param {object} updatedCost The new costs details.
 		 * @param {object} resource Optional resource to update or create. When null, its a deletion.

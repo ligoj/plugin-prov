@@ -6,7 +6,6 @@ package org.ligoj.app.plugin.prov.currency;
 import java.io.IOException;
 
 import javax.transaction.Transactional;
-import javax.ws.rs.core.UriInfo;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +16,9 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
-import org.ligoj.app.plugin.prov.model.CurrencyVo;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.bootstrap.core.json.TableItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.Rollback;
@@ -53,8 +50,8 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findAll() {
-		final UriInfo uriInfo = newUriInfo();
-		final TableItem<CurrencyVo> result = resource.findAll(uriInfo);
+		final var uriInfo = newUriInfo();
+		final var result = resource.findAll(uriInfo);
 		Assertions.assertEquals(1, result.getData().size());
 		Assertions.assertEquals("$", result.getData().get(0).getUnit());
 		Assertions.assertEquals("USD", result.getData().get(0).getName());
@@ -71,7 +68,7 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 
 	@Test
 	public void update() {
-		final ProvCurrency entity = repository.findByName("USD");
+		final var entity = repository.findByName("USD");
 		entity.setRate(1.1);
 		entity.setUnit("D");
 		entity.setName("U");
@@ -98,7 +95,7 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 	}
 
 	private ProvCurrency newCurrency() {
-		final ProvCurrency entity = new ProvCurrency();
+		final var entity = new ProvCurrency();
 		entity.setName("EURO");
 		entity.setUnit("€");
 		entity.setRate(.8);

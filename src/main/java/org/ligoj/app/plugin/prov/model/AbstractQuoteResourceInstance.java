@@ -23,7 +23,7 @@ import lombok.Setter;
 /**
  * A resource related to an instance and with floating cost.
  *
- * @param <T>
+ * @param <P>
  *            Price configuration type.
  */
 @Getter

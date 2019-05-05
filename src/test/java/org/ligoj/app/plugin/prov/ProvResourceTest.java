@@ -6,7 +6,6 @@ package org.ligoj.app.plugin.prov;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
@@ -49,7 +48,6 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
-import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,7 +128,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getSubscriptionStatus() {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
+		final var status = resource.getSubscriptionStatus(subscription);
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
 		Assertions.assertNotNull(status.getId());
@@ -148,7 +146,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getSubscriptionStatusEmpty() {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(getSubscription("mda", ProvResource.SERVICE_KEY));
+		final var status = resource.getSubscriptionStatus(getSubscription("mda", ProvResource.SERVICE_KEY));
 		Assertions.assertEquals("quote2", status.getName());
 		Assertions.assertEquals("quoteD2", status.getDescription());
 		Assertions.assertNotNull(status.getId());
@@ -163,7 +161,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void getConfiguration() {
-		QuoteVo vo = resource.getConfiguration(subscription);
+        var vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
@@ -185,9 +183,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("region-4", vo.getLocations().get(2).getName());
 
 		// Check compute
-		final List<ProvQuoteInstance> instances = vo.getInstances();
+		final var instances = vo.getInstances();
 		Assertions.assertEquals(7, instances.size());
-		final ProvQuoteInstance quoteInstance = instances.get(0);
+		final var quoteInstance = instances.get(0);
 		Assertions.assertNotNull(quoteInstance.getId());
 		Assertions.assertEquals("server1", quoteInstance.getName());
 		Assertions.assertEquals("serverD1", quoteInstance.getDescription());
@@ -196,7 +194,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
 		Assertions.assertEquals(2, quoteInstance.getMinQuantity());
 		Assertions.assertEquals(10, quoteInstance.getMaxQuantity().intValue());
-		final ProvInstancePrice price = quoteInstance.getPrice();
+		final var price = quoteInstance.getPrice();
 		Assertions.assertEquals(146.4, price.getCost(), DELTA);
 		Assertions.assertEquals(146.4, price.getCostPeriod(), DELTA);
 		Assertions.assertEquals(VmOs.LINUX, price.getOs());
@@ -206,7 +204,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, price.getTerm().getPeriod());
 		Assertions.assertEquals("on-demand1", price.getTerm().getName());
 		Assertions.assertEquals("15 minutes fragment", price.getTerm().getDescription());
-		final ProvInstanceType instance = price.getType();
+		final var instance = price.getType();
 		Assertions.assertNotNull(instance.getId());
 		Assertions.assertEquals("instance1", instance.getName());
 		Assertions.assertEquals("instanceD1", instance.getDescription());
@@ -231,9 +229,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(InternetAccess.PRIVATE_NAT, instances.get(2).getInternet());
 
 		// Check storage
-		final List<ProvQuoteStorage> storages = vo.getStorages();
+		final var storages = vo.getStorages();
 		Assertions.assertEquals(4, storages.size());
-		final ProvQuoteStorage quoteStorage = storages.get(0);
+		final var quoteStorage = storages.get(0);
 		Assertions.assertNotNull(quoteStorage.getId());
 		Assertions.assertEquals("server1-root", quoteStorage.getName());
 		Assertions.assertEquals("server1-rootD", quoteStorage.getDescription());
@@ -241,8 +239,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(8.4, quoteStorage.getCost(), DELTA);
 		Assertions.assertEquals(42, quoteStorage.getMaxCost(), DELTA); // = 8.4 * 5
 		Assertions.assertNotNull(quoteStorage.getQuoteInstance());
-		final ProvStoragePrice storage = quoteStorage.getPrice();
-		final ProvStorageType storageType = storage.getType();
+		final var storage = quoteStorage.getPrice();
+		final var storageType = storage.getType();
 		Assertions.assertNotNull(storage.getId());
 		Assertions.assertEquals(0.21, storage.getCostGb(), DELTA);
 		Assertions.assertEquals(0, storage.getCost(), DELTA);
@@ -278,18 +276,18 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("on-demand1", instances.get(6).getPrice().getTerm().getName());
 
 		// Check databases
-		final List<ProvQuoteInstance> databases = vo.getInstances();
+		final var databases = vo.getInstances();
 		Assertions.assertEquals(7, databases.size());
 
 		// Optimize the configuration
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
-		final QuoteVo vo2 = resource.getConfiguration(subscription);
+		final var vo2 = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo2.getName());
 		Assertions.assertEquals(vo2.getId(), vo.getId());
 
 		// Check the new instances
-		final List<ProvQuoteInstance> instances2 = vo2.getInstances();
+		final var instances2 = vo2.getInstances();
 		Assertions.assertEquals(7, instances2.size());
 
 		// Same instance
@@ -323,8 +321,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	private int checkEmpty() {
-		final int subscription = getSubscription("mda", ProvResource.SERVICE_KEY);
-		final QuoteVo vo = resource.getConfiguration(subscription);
+		final var subscription = getSubscription("mda", ProvResource.SERVICE_KEY);
+		final var vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote2", vo.getName());
 		Assertions.assertEquals("quoteD2", vo.getDescription());
 		Assertions.assertNull(vo.getCurrency());
@@ -344,9 +342,9 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(cost, 0, 0, false);
 	}
 
-	private QuoteLigthVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
-		final ProvQuote quote = repository.findByNameExpected(status.getName());
+	private QuoteLightVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
+		final var status = resource.getSubscriptionStatus(subscription);
+		final var quote = repository.findByNameExpected(status.getName());
 		Assertions.assertSame(unbound, quote.isUnboundCost());
 		Assertions.assertSame(quote, quote.getConfiguration());
 		checkCost(status.getCost(), min, max, unbound);
@@ -364,7 +362,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateLocation() {
-		final ProvLocation location4 = locationRepository.findByName("region-4");
+		final var location4 = locationRepository.findByName("region-4");
 
 		// Make sure there is no more world wild prices
 		em.createQuery("FROM ProvInstancePrice WHERE location IS NULL", ProvInstancePrice.class).getResultList()
@@ -372,17 +370,17 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.flush();
 		em.clear();
 
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
-		final FloatingCost cost = resource.update(subscription, quote);
+		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 5799.465, 9669.918, false);
-		ProvQuote quote2 = repository.findByNameExpected("name1");
+        var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 
 		// Check location
-		final ProvLocation location = quote2.getLocation();
+		final var location = quote2.getLocation();
 		Assertions.assertEquals("region-1", location.getName());
 		Assertions.assertEquals("west", location.getPlacement());
 		Assertions.assertEquals(840, location.getCountryM49().intValue());
@@ -401,19 +399,19 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	private ProvQuote newProvQuote() {
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
 		em.persist(subscription);
 
-		final ProvQuote configuration = new ProvQuote();
+		final var configuration = new ProvQuote();
 		configuration.setSubscription(subscription);
 		configuration.setName("new");
-		final Node provider = subscription.getNode().getRefined();
+		final var provider = subscription.getNode().getRefined();
 		configuration.setLocation(locationRepository.findAllBy("node.id", provider.getId()).get(0));
 		em.persist(configuration);
 
-		final ProvUsage usage = new ProvUsage();
+		final var usage = new ProvUsage();
 		usage.setConfiguration(configuration);
 		usage.setDuration(12);
 		usage.setRate(100);
@@ -423,7 +421,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		configuration.setUsage(usage);
 		em.merge(configuration);
 
-		final ProvQuoteInstance instance = new ProvQuoteInstance();
+		final var instance = new ProvQuoteInstance();
 		instance.setConfiguration(configuration);
 		instance.setCpu(1D);
 		instance.setRam(2000);
@@ -438,7 +436,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check the configuration before the update
 		checkCost(resource.refresh(subscription.getId()), 175.68, 175.68, false);
-		final ProvQuoteInstance instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet.getPrice().getCode());
 
 		return configuration;
@@ -449,10 +447,10 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateRamAdjustRate() {
-		final ProvQuote configuration = newProvQuote();
-		final Subscription subscription = configuration.getSubscription();
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
 
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
@@ -460,21 +458,21 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet2.getPrice().getCode());
 
 		quote.setRamAdjustedRate(50);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setRamAdjustedRate(150);
 		checkCost(resource.update(subscription.getId(), quote), 702.72, 702.72, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
 		Assertions.assertEquals(150, resource.getConfiguration(subscription.getId()).getRamAdjustedRate());
 	}
@@ -484,10 +482,10 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateLicense() {
-		final ProvQuote configuration = newProvQuote();
-		final Subscription subscription = configuration.getSubscription();
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
 
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setLicense("BYOL");
@@ -495,21 +493,21 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(resource.update(subscription.getId(), quote), 102.49, 102.49, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C120", instanceGet2.getPrice().getCode());
 
 		quote.setLicense("INCLUDED");
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setLicense(null);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
 		em.flush();
 		em.clear();
-		final ProvQuoteInstance instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet4.getPrice().getCode());
 	}
 
@@ -518,8 +516,8 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateLocationDifferentQILocation() {
-		final ProvLocation location = locationRepository.findByName("region-1");
-		final ProvLocation location4 = locationRepository.findByName("region-4");
+		final var location = locationRepository.findByName("region-1");
+		final var location4 = locationRepository.findByName("region-4");
 
 		// Change the required location of all quote instance
 		qiRepository.findAll().forEach(ip -> ip.setLocation(location));
@@ -535,13 +533,13 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// New cost based on region-4
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-4");
-		final FloatingCost cost = resource.update(subscription, quote);
+		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 3165.4, 5615.0, false);
-		final ProvQuote quote2 = repository.findByNameExpected("name1");
+		final var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-4", quote2.getLocation().getName());
 	}
@@ -551,7 +549,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateLocationNotExists() {
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-x");
@@ -563,7 +561,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 */
 	@Test
 	public void updateLocationNotExistsForThisSubscription() {
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-3");
@@ -624,7 +622,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	private void updateCost() {
 
 		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.updateCost(subscription);
+		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
 		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
@@ -635,23 +633,23 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void testToString() {
-		final QuoteInstanceLookup computedInstancePrice = new QuoteInstanceLookup();
+		final var computedInstancePrice = new QuoteInstanceLookup();
 		computedInstancePrice.setCost(1.23);
-		final ProvInstancePrice ip = new ProvInstancePrice();
-		final ProvInstancePriceTerm type = new ProvInstancePriceTerm();
+		final var ip = new ProvInstancePrice();
+		final var type = new ProvInstancePriceTerm();
 		type.setName("type1");
 		ip.setTerm(type);
-		final ProvInstanceType instance = new ProvInstanceType();
+		final var instance = new ProvInstanceType();
 		instance.setName("instance1");
 		ip.setType(instance);
 		computedInstancePrice.setPrice(ip);
 		Assertions.assertTrue(computedInstancePrice.toString().contains("cost=1.23"));
 		Assertions.assertTrue(computedInstancePrice.toString().contains("name=instance1"));
 
-		final QuoteStorageLookup computedStoragePrice = new QuoteStorageLookup();
+		final var computedStoragePrice = new QuoteStorageLookup();
 		computedStoragePrice.setCost(1.23);
-		final ProvStoragePrice sp = new ProvStoragePrice();
-		final ProvStorageType sType = new ProvStorageType();
+		final var sp = new ProvStoragePrice();
+		final var sType = new ProvStorageType();
 		sType.setName("type1");
 		sp.setType(sType);
 		computedStoragePrice.setPrice(sp);
@@ -661,7 +659,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findLocations() {
-		final TableItem<ProvLocation> locations = resource.findLocations(subscription, newUriInfo());
+		final var locations = resource.findLocations(subscription, newUriInfo());
 
 		// 3 regions, but only 2 have associated prices
 		Assertions.assertEquals(2, locations.getData().size());
@@ -680,7 +678,7 @@ public class ProvResourceTest extends AbstractAppTest {
 			}
 		};
 		res.provResource = resource;
-		final QuoteLigthVo quote = (QuoteLigthVo) res
+		final var quote = (QuoteLightVo) res
 				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
 		Assertions.assertNotNull(quote);
 		checkCost(quote.getCost(), 4704.758, 7154.358, false);
@@ -688,14 +686,14 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void create() {
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
 		em.persist(subscription);
 		em.flush();
 		em.clear();
 		resource.create(subscription.getId());
-		final QuoteVo configuration = resource.getConfiguration(subscription.getId());
+		final var configuration = resource.getConfiguration(subscription.getId());
 		Assertions.assertNotNull(configuration);
 		Assertions.assertNotNull(configuration.getName());
 		Assertions.assertNotNull(configuration.getDescription());
@@ -704,12 +702,12 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void createCurrency() {
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
 		em.persist(subscription);
 
-		final ParameterValue parameterValue = new ParameterValue();
+		final var parameterValue = new ParameterValue();
 		parameterValue.setParameter(em.createQuery("FROM Parameter WHERE id=:id", Parameter.class)
 				.setParameter("id", "service:prov:currency").getSingleResult());
 		parameterValue.setData("USD");
@@ -721,7 +719,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		em.flush();
 		em.clear();
 		resource.create(subscription.getId());
-		final QuoteVo configuration = resource.getConfiguration(subscription.getId());
+		final var configuration = resource.getConfiguration(subscription.getId());
 		Assertions.assertNotNull(configuration);
 		Assertions.assertNotNull(configuration.getName());
 		Assertions.assertNotNull(configuration.getDescription());
@@ -730,7 +728,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void createNoCatalog() {
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
 		em.persist(subscription);
@@ -752,20 +750,20 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void update() {
-		final QuoteEditionVo quote = new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
-		final FloatingCost cost = resource.update(subscription, quote);
+		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 3165.4, 5615.0, false);
-		ProvQuote quote2 = repository.findByNameExpected("name1");
+        var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
 	}
 
 	@Test
 	public void findConfigured() {
-		final ProvQuoteInstance qi = qiRepository.findByName("server1");
+		final var qi = qiRepository.findByName("server1");
 		Assertions.assertEquals("server1", resource.findConfigured(qiRepository, qi.getId(), subscription).getName());
 	}
 
@@ -777,7 +775,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	public void findConfiguredNotFound() {
-		final ProvQuoteInstance qi = qiRepository.findByName("server1");
+		final var qi = qiRepository.findByName("server1");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> resource.findConfigured(qiRepository, qi.getId(), 0).getName());
 	}

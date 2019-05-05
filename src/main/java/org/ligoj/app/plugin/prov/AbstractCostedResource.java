@@ -56,8 +56,6 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	 * @param context
 	 *            The key identifier of the lookup. Will be used to generate the error when not found.
 	 * @return The price of the not <code>null</code> lookup. Never <code>null</code>.
-	 * @param <T>
-	 *            The price type.
 	 */
 	public P validateLookup(final String resourceType, final AbstractLookup<P> lookup, final String context) {
 		if (lookup == null) {
@@ -82,7 +80,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	protected <Q extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
 			final RestRepository<Q, Integer> repository, final Integer id, final Consumer<Q> callback) {
 		// Check the entity exists and is visible
-		final Q entity = resource.findConfigured(repository, id);
+		final var entity = resource.findConfigured(repository, id);
 
 		// Remove the cost of this entity
 		addCost(entity, e -> {

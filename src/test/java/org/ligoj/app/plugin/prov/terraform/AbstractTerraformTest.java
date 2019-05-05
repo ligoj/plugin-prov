@@ -79,7 +79,7 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 
 	protected TerraformUtils newTerraformUtils(final BiFunction<Subscription, String[], File> toFile,
 			final String... customArgs) {
-		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 
 		// Replace the CLI runner

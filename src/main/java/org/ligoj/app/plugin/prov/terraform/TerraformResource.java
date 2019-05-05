@@ -4,19 +4,15 @@
 package org.ligoj.app.plugin.prov.terraform;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.cache.annotation.CacheRemoveAll;
 import javax.cache.annotation.CacheResult;
@@ -46,7 +42,6 @@ import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -106,29 +101,9 @@ public class TerraformResource {
 	 */
 	public TerraformResource() {
 		// Configure the mapping
-		commandMapping.put("generate", new TerraformAction() {
-
-			@Override
-			public void execute(final Context context, final OutputStream out, final String... arguments)
-					throws IOException {
-				getImpl(context.getSubscription().getNode()).generate(context);
-			}
-		});
-		commandMapping.put("secrets", new TerraformAction() {
-
-			@Override
-			public void execute(final Context context, final OutputStream out, final String... arguments)
-					throws IOException {
-				getImpl(context.getSubscription().getNode()).generateSecrets(context);
-			}
-		});
-		commandMapping.put("clean", new TerraformAction() {
-			@Override
-			public void execute(final Context context, final OutputStream out, final String... arguments)
-					throws IOException {
-				clean(context.getSubscription());
-			}
-		});
+		commandMapping.put("generate", (context, out, arguments) -> getImpl(context.getSubscription().getNode()).generate(context));
+		commandMapping.put("secrets", (context, out, arguments) -> getImpl(context.getSubscription().getNode()).generateSecrets(context));
+		commandMapping.put("clean", (context, out, arguments) -> clean(context.getSubscription()));
 	}
 
 	/**
@@ -144,7 +119,7 @@ public class TerraformResource {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:.*.zip}")
 	public Response download(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
-		final Subscription subscription2 = subscriptionResource.checkVisible(subscription);
+		final var subscription2 = subscriptionResource.checkVisible(subscription);
 		return AbstractToolPluginResource.download(o -> utils.zip(subscription2, o), file).build();
 	}
 
@@ -159,12 +134,12 @@ public class TerraformResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("{subscription:\\d+}/terraform.log")
 	public Response getLog(@PathParam("subscription") final int subscription) {
-		final Subscription entity = subscriptionResource.checkVisible(subscription);
+		final var entity = subscriptionResource.checkVisible(subscription);
 		final StreamingOutput so = o -> {
 			// Copy log of each command
-			for (final String command : Optional.ofNullable(runner.getTask(subscription))
+			for (final var command : Optional.ofNullable(runner.getTask(subscription))
 					.map(s -> s.getSequence().split(",")).orElse(ArrayUtils.EMPTY_STRING_ARRAY)) {
-				final File log = utils.toFile(entity, command + ".log");
+				final var log = utils.toFile(entity, command + ".log");
 				if (log.exists()) {
 					o.write(("---- " + command + " ----\n").getBytes());
 					FileUtils.copyFile(log, o);
@@ -210,14 +185,14 @@ public class TerraformResource {
 	 */
 	private TerraformStatus sequenceNewThread(final int subscription, final Context context,
 			final TerraformSequence sequence) {
-		final Subscription entity = subscriptionResource.checkVisible(subscription);
+		final var entity = subscriptionResource.checkVisible(subscription);
 
 		// Check the provider support the Terraform generation
 		getImpl(entity.getNode());
 		log.info("Terraform {} request for {} ({})", sequence, subscription, entity);
 
 		// Save the security context
-		final SecurityContext securityContext = SecurityContextHolder.getContext();
+		final var securityContext = SecurityContextHolder.getContext();
 
 		// Create the context
 		context.setSubscription(entity);
@@ -227,7 +202,7 @@ public class TerraformResource {
 		context.getContext().entrySet().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
 
 		// The Terraform execution will done into another thread
-		final TerraformStatus task = startTask(context, sequence);
+		final var task = startTask(context, sequence);
 		Executors.newSingleThreadExecutor().submit(() -> {
 			// Restore the context
 			log.info("Terraform {} start for {} ({})", sequence, subscription, entity);
@@ -281,7 +256,7 @@ public class TerraformResource {
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public void sequenceNewTransaction(final Context context) throws IOException, InterruptedException {
-		boolean failed = true;
+        var failed = true;
 		try {
 			context.setQuote(resource.getConfiguration(context.getSubscription().getId()));
 			context.setSubscription(subscriptionRepository.findOneExpected(context.getSubscription().getId()));
@@ -303,8 +278,8 @@ public class TerraformResource {
 	 *             When files or logs cannot cannot be deleted.
 	 */
 	protected void clean(final Subscription subscription) throws IOException {
-		final java.nio.file.Path parent = utils.toFile(subscription).toPath();
-		try (Stream<java.nio.file.Path> files = Files.walk(parent)) {
+		final var parent = utils.toFile(subscription).toPath();
+		try (var files = Files.walk(parent)) {
 			files.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
 					".keep.auto.tfvars")).filter(path -> !path.toFile().isDirectory())
 					.filter(path -> !path.toString().contains(".terraform")).map(java.nio.file.Path::toFile)
@@ -330,16 +305,16 @@ public class TerraformResource {
 	 */
 	private void sequenceInternal(final Context context) throws InterruptedException, IOException {
 		// Execute the sequence
-		final Subscription subscription = context.getSubscription();
+		final var subscription = context.getSubscription();
 
 		// Execute each command
-		for (final String[] arguments : context.getSequence()) {
-			final String command = arguments[0];
+		for (final var arguments : context.getSequence()) {
+			final var command = arguments[0];
 
 			// Move forward the shared sequence index
 			runner.nextStep(subscription.getNode().getId(),
 					t -> t.setCommandIndex(t.getCommandIndex() == null ? 0 : t.getCommandIndex() + 1));
-			try (FileOutputStream out = new FileOutputStream(utils.toFile(subscription, command + ".log"))) {
+			try (var out = new FileOutputStream(utils.toFile(subscription, command + ".log"))) {
 				// Execute this command: real Terraform or bean's function
 				getAction(command).execute(context, out, arguments);
 			}
@@ -371,15 +346,15 @@ public class TerraformResource {
 	@GET
 	public TerraformInformation getVersion() throws IOException, InterruptedException {
 		nodeResource.checkWritableNode(ProvResource.SERVICE_KEY);
-		final TerraformInformation result = new TerraformInformation();
+		final var result = new TerraformInformation();
 		if (utils.isInstalled()) {
 			result.setInstalled(true);
-			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			final int code = executableCommand.execute(utils.getHome().toFile(), bos, "-v");
-			final String output = bos.toString();
+			final var bos = new ByteArrayOutputStream();
+			final var code = executableCommand.execute(utils.getHome().toFile(), bos, "-v");
+			final var output = bos.toString();
 			if (code == 0) {
 				// Terraform v0.11.5
-				final Matcher matcher = TERRFORM_VERSION.matcher(output);
+				final var matcher = TERRFORM_VERSION.matcher(output);
 				if (matcher.find()) {
 					result.setVersion(matcher.group(1));
 				}

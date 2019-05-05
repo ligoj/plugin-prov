@@ -53,7 +53,12 @@ public enum VmOs {
 	/**
 	 * FREE BSD
 	 */
-	FREEBSD(LINUX);
+	FREEBSD(LINUX),
+
+	/**
+	 * PanOS
+	 */
+	PANOS(LINUX);
 
 	/**
 	 * The related pricing OS.
@@ -66,6 +71,7 @@ public enum VmOs {
 
 	/**
 	 * Return the related pricing OS.
+	 * 
 	 * @return the related pricing OS.
 	 */
 	public VmOs toPricingOs() {

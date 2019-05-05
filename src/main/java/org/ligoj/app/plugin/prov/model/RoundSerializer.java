@@ -24,7 +24,7 @@ public class RoundSerializer extends StdSerializer<Double> {
 	@Override
 	public void serialize(final Double bean, final JsonGenerator generator, final SerializerProvider provider)
 			throws IOException {
-		generator.writeNumber(Math.round(bean.doubleValue() * 1000d) / 1000d);
+		generator.writeNumber(Math.round(bean * 1000d) / 1000d);
 	}
 
 }

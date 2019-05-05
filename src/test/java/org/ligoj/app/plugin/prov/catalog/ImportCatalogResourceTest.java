@@ -6,7 +6,6 @@ package org.ligoj.app.plugin.prov.catalog;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
 import java.util.function.Consumer;
 
 import javax.transaction.Transactional;
@@ -85,10 +84,10 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 		// Replace the locator for the custom provider
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
-		final ImportCatalogStatus status = resource.updateCatalog("service:prov:test:account");
+		final var status = resource.updateCatalog("service:prov:test:account");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
@@ -117,9 +116,9 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	public void cancelNoStartedTask() {
-		final ImportCatalogResource resource = new ImportCatalogResource();
+		final var resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		final ImportCatalogStatus status = newStatus();
+		final var status = newStatus();
 		status.setEnd(new Date());
 		Assertions.assertEquals("Already finished", Assertions
 				.assertThrows(BusinessException.class, () -> resource.cancel("service:prov:test")).getMessage());
@@ -127,7 +126,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	public void cancel() {
-		final ImportCatalogResource resource = newResource();
+		final var resource = newResource();
 		resource.cancel("service:prov:test");
 		Assertions.assertTrue(resource.getTask("service:prov:test").isFailed());
 	}
@@ -135,11 +134,11 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	@Test
 	public void updateCatalogSynchronous() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
-		final ImportCatalogResource resource = newResource();
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var resource = newResource();
+		final var service = Mockito.mock(ImportCatalogService.class);
 		resource.updateCatalog(service, "service:prov:test");
 
-		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
+		final var status = repository.findBy("locked.id", "service:prov:test");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNotNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
@@ -162,8 +161,8 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	@Test
 	public void updateCatalogSynchronousFailed() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
-		final ImportCatalogResource resource = newResource();
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var resource = newResource();
+		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test");
 
 		resource.updateCatalog(service, "service:prov:test");
@@ -173,8 +172,8 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	@Test
 	public void updateCatalogSynchronousFailedWithError() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
-		final ImportCatalogResource resource = newResource();
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var resource = newResource();
+		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.doThrow(new AssertionError("my-assert")).when(service).updateCatalog("service:prov:test");
 
 		Assertions.assertThrows(AssertionError.class, () -> resource.updateCatalog(service, "service:prov:test"));
@@ -182,7 +181,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	private void assertFailed(final ImportCatalogService service) throws Exception {
-		final ImportCatalogStatus status = repository.findBy("locked.id", "service:prov:test");
+		final var status = repository.findBy("locked.id", "service:prov:test");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNotNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
@@ -202,14 +201,14 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	private ImportCatalogResource newResource() {
-		final ImportCatalogResource resource = new ImportCatalogResource();
+		final var resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		newStatus();
 		return resource;
 	}
 
 	private ImportCatalogStatus newStatus() {
-		final ImportCatalogStatus status = new ImportCatalogStatus();
+		final var status = new ImportCatalogStatus();
 		status.setLastSuccess(new Date(0));
 		status.setAuthor(DEFAULT_USER);
 		status.setNbInstancePrices(-1);
@@ -234,11 +233,11 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 
 		// Replace the locator for the custom provider
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test");
 
-		final ImportCatalogStatus status = resource.updateCatalog("service:prov:test:account");
+		final var status = resource.updateCatalog("service:prov:test:account");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
@@ -251,28 +250,28 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	@Test
 	public void findAllNotVisible() {
 		initSpringSecurityContext("any");
-		final ImportCatalogResource resource = new ImportCatalogResource();
+		final var resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		Assertions.assertEquals(0, resource.findAll().size());
 	}
 
 	@Test
 	public void findAll() {
-		final ImportCatalogResource resource = newResource();
+		final var resource = newResource();
 
 		// Add importable provider
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final ImportCatalogService service = Mockito.mock(ImportCatalogService.class);
+		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
 		// Add not updatable provider node
-		final Node notImportNode = new Node();
+		final var notImportNode = new Node();
 		notImportNode.setId("service:prov:any");
 		notImportNode.setName("Cannot import");
 		notImportNode.setRefined(nodeRepository.findOneExpected("service:prov"));
 		nodeRepository.saveAndFlush(notImportNode);
 
-		final List<CatalogVo> catalogs = resource.findAll();
+		final var catalogs = resource.findAll();
 		Assertions.assertEquals(3, catalogs.size());
 
 		// This provider does not support catalog update
@@ -296,7 +295,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertNull(catalogs.get(2).getStatus().getStart());
 		Assertions.assertEquals(1, catalogs.get(2).getNbQuotes());
 
-		final ImportCatalogStatus status = catalogs.get(1).getStatus();
+		final var status = catalogs.get(1).getStatus();
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());

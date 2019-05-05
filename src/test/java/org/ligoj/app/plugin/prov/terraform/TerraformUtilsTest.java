@@ -12,11 +12,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.zip.ZipOutputStream;
 
@@ -82,7 +80,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void getOsValue() {
-		final TerraformUtils resource = new TerraformUtils();
+		final var resource = new TerraformUtils();
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "UNKNOWN"));
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "FreeBSD"));
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "FreeBSD 1.0"));
@@ -128,7 +126,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void newBuilderNotInstalled() {
-		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(EMPTY_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
@@ -143,7 +141,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	private void checkNewBuilder(final String os, final String[] args, final String command) {
-		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
@@ -157,7 +155,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 			}
 		};
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(utils);
-		final ProcessBuilder newBuilder = utils.newBuilder("arg1", "arg2");
+		final var newBuilder = utils.newBuilder("arg1", "arg2");
 		Assertions.assertEquals(args[0], newBuilder.command().get(0));
 		Assertions.assertEquals(args[1], newBuilder.command().get(1));
 		Assertions.assertTrue(newBuilder.command().get(2).endsWith(command));
@@ -165,11 +163,11 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void install() throws IOException {
-		final TerraformUtils utils = prepareForInstall("mock-server/prov/terraform/terraform.zip");
+		final var utils = prepareForInstall("mock-server/prov/terraform/terraform.zip");
 		utils.install();
 
 		// Check file exists and runnable
-		final File pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
+		final var pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
 		final File file;
 		if (SystemUtils.IS_OS_WINDOWS) {
 			file = new File(pathDownload, "prov/terraform.exe");
@@ -177,34 +175,34 @@ public class TerraformUtilsTest extends AbstractServerTest {
 			file = new File(pathDownload, "prov/terraform");
 		}
 		Assertions.assertTrue(file.exists());
-		try (FileInputStream input = new FileInputStream(file)) {
+		try (var input = new FileInputStream(file)) {
 			Assertions.assertTrue(IOUtils.toString(input, "UTF-8").startsWith("#EMPTY"));
 		}
 	}
 
 	@Test
 	public void installInvalidZip() throws IOException {
-		final TerraformUtils utils = prepareForInstall("mock-server/prov/terraform/terraform-invalid.zip");
+		final var utils = prepareForInstall("mock-server/prov/terraform/terraform-invalid.zip");
 		Assertions.assertThrows(FileNotFoundException.class, utils::install);
 	}
 
 	private TerraformUtils prepareForInstall(final String file) throws IOException {
 
 		// Prepare the download
-		final File pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
+		final var pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
 		pathDownload.mkdirs();
-		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		try (InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+		try (var inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
 				.getInputStream()) {
 			httpServer.stubFor(get(urlEqualTo("/"))
 					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
 		}
 
 		// ZIP file
-		try (InputStream inputStream = new ClassPathResource(file).getInputStream()) {
+		try (var inputStream = new ClassPathResource(file).getInputStream()) {
 			httpServer.stubFor(get(urlEqualTo("/0.11.5/terraform_0.11.5_linux_amd64.zip"))
 					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
 		}
@@ -232,7 +230,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void getLatestVersion() {
-		final String version = resource.getLatestVersion();
+		final var version = resource.getLatestVersion();
 		Assertions.assertEquals(3, StringUtils.split(version, '.').length);
 	}
 
@@ -240,7 +238,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	public void getLatestVersionMock() throws IOException {
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
-		try (InputStream inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
+		try (var inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
 				.getInputStream()) {
 			httpServer.stubFor(get(urlEqualTo("/"))
 					.willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(IOUtils.toByteArray(inputStream))));
@@ -257,10 +255,10 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void toFile() throws IOException {
-		final LigojPluginsClassLoader classLoader = Mockito.mock(LigojPluginsClassLoader.class);
-		try (ThreadClassLoaderScope scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
-			final Path file = Paths.get("");
-			final Subscription entity = new Subscription();
+		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		try (var scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
+			final var file = Paths.get("");
+			final var entity = new Subscription();
 			entity.setId(15);
 			Mockito.when(classLoader.toPath(entity, "some")).thenReturn(file);
 			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
@@ -270,16 +268,16 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void zipUnzip() throws IOException {
-		final Path from = new File("target/test-classes/terraform-zip-unzip").toPath();
-		final File toZip = new File("target/test-classes/terraform-out.zip");
+		final var from = new File("target/test-classes/terraform-zip-unzip").toPath();
+		final var toZip = new File("target/test-classes/terraform-out.zip");
 		FileUtils.deleteQuietly(toZip);
-		try (FileOutputStream toStream = new FileOutputStream(toZip)) {
+		try (var toStream = new FileOutputStream(toZip)) {
 			resource.zip(from, toStream);
 		}
-		final File to = new File("target/test-classes/terraform-out");
+		final var to = new File("target/test-classes/terraform-out");
 		FileUtils.deleteQuietly(to);
 		FileUtils.forceMkdir(to);
-		try (FileInputStream fromStream = new FileInputStream(toZip)) {
+		try (var fromStream = new FileInputStream(toZip)) {
 			resource.unzip(fromStream, to);
 		}
 		Assertions.assertEquals("bar1",
@@ -292,8 +290,8 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	public void addEntryFailed() throws IOException {
-		final Path from = new File("target/test-classes/terraform-logs", "init.log").toPath();
-		final ZipOutputStream zs = Mockito.mock(ZipOutputStream.class);
+		final var from = new File("target/test-classes/terraform-logs", "init.log").toPath();
+		final var zs = Mockito.mock(ZipOutputStream.class);
 		Mockito.doThrow(new IOException()).when(zs).putNextEntry(ArgumentMatchers.any());
 		resource.addEntry(new File("target/test-classes/terraform-logs").toPath(), from, zs);
 	}

@@ -30,7 +30,7 @@ public class RoundSerializerTest {
 
 	@Test
 	public void serializeNotNull() throws JsonProcessingException {
-		final Bean bean = new Bean();
+		final var bean = new Bean();
 		bean.setNullable(1d);
 		bean.setPrimary(2d);
 		Assertions.assertEquals("{\"nullable\":1.0,\"primary\":2.0}", new ObjectMapper().writeValueAsString(bean));
@@ -39,7 +39,7 @@ public class RoundSerializerTest {
 
 	@Test
 	public void serializeNull() throws JsonProcessingException {
-		final Bean bean = new Bean();
+		final var bean = new Bean();
 		bean.setPrimary(2d);
 		Assertions.assertEquals("{\"nullable\":null,\"primary\":2.0}", new ObjectMapper().writeValueAsString(bean));
 	}

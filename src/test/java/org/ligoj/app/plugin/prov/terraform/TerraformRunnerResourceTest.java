@@ -24,7 +24,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseStateLogLineData() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseDestroyLogLine(status, Arrays.stream(new String[] { "data.foo.bar: Refreshing state..." }));
 		Assertions.assertEquals(0, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -32,7 +32,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseStateLogLineDestroying() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseDestroyLogLine(status, Arrays.stream(new String[] { "foo.bar: Destroying... (ID: 0)" }));
 		Assertions.assertEquals(1, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -40,7 +40,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseStateLogLineStillDestroying() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseDestroyLogLine(status, Arrays.stream(new String[] { "foo.bar: Still destroying... (ID: 0)" }));
 		Assertions.assertEquals(0, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -48,7 +48,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseStateLogLineCompleted() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseDestroyLogLine(status, Arrays.stream(new String[] { "foo.bar: Destruction complete after 0s" }));
 		Assertions.assertEquals(-1, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -56,7 +56,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseStateLogLineRefreshing() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseDestroyLogLine(status, Arrays.stream(new String[] { "foo.bar: Refreshing state... (ID: 0)" }));
 		Assertions.assertEquals(0, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -64,7 +64,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineNotTerraform() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "  foo.bar: Destroying... " }));
 		Assertions.assertEquals(0, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -72,7 +72,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineDestruction() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Creation complete after 0s (ID: 0)" }));
 		Assertions.assertEquals(-1, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -80,7 +80,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineCreating() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Creating... (ID: 0)" }));
 		Assertions.assertEquals(1, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -88,7 +88,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineModifying() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Modifying... (ID: 0)" }));
 		Assertions.assertEquals(1, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -96,7 +96,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineDestroying() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Destroying... (ID: 0)" }));
 		Assertions.assertEquals(1, status.getCompleting());
 		Assertions.assertEquals(0, status.getCompleted());
@@ -104,7 +104,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineStillDestroying() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Still destroying... (ID: 0)" }));
 		Assertions.assertEquals(0, status.getCompleted());
 		Assertions.assertEquals(0, status.getCompleting());
@@ -112,7 +112,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineModificationsCompleted() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Modifications complete after 0s" }));
 		Assertions.assertEquals(-1, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -120,7 +120,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineCreationCompleted() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Creation complete after 0s" }));
 		Assertions.assertEquals(-1, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -128,7 +128,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineCompleted() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Destruction complete after 0s" }));
 		Assertions.assertEquals(-1, status.getCompleting());
 		Assertions.assertEquals(1, status.getCompleted());
@@ -136,7 +136,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineRefreshing() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "foo.bar: Refreshing state... (ID: 0)" }));
 		Assertions.assertEquals(0, status.getCompleted());
 		Assertions.assertEquals(0, status.getCompleting());
@@ -144,7 +144,7 @@ class TerraformRunnerResourceTest {
 
 	@Test
 	public void parseApplyLogLineData() {
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		runner.parseApplyLogLine(status, Arrays.stream(new String[] { "data.foo.bar: Refreshing state..." }));
 		Assertions.assertEquals(0, status.getCompleted());
 		Assertions.assertEquals(0, status.getCompleting());

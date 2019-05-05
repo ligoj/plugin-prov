@@ -24,10 +24,10 @@ public abstract class AbstractProvResource extends AbstractToolPluginResource im
 	@Override
 	public SubscriptionStatusWithData checkSubscriptionStatus(final int subscription, final String node,
 			final Map<String, String> parameters) {
-		final SubscriptionStatusWithData status = new SubscriptionStatusWithData();
+		final var status = new SubscriptionStatusWithData();
 
 		// Complete the tool status with the generic quote data
-		status.put("quote", provResource.getSusbcriptionStatus(subscription));
+		status.put("quote", provResource.getSubscriptionStatus(subscription));
 		return status;
 	}
 }

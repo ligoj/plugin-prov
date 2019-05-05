@@ -18,11 +18,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -123,8 +121,8 @@ public class TerraformUtils {
 		if (!isInstalled()) {
 			throw new BusinessException("terraform-not-found");
 		}
-		final String[] shell = getOsValue(shells);
-		final String bin = getHome().resolve(configuration.get(TERRAFORM_PATH, getOsValue(bins))).toString();
+		final var shell = getOsValue(shells);
+		final var bin = getHome().resolve(configuration.get(TERRAFORM_PATH, getOsValue(bins))).toString();
 		return new ProcessBuilder(ArrayUtils.addAll(shell, bin + " " + StringUtils.join(ArrayUtils.addAll(args), ' ')));
 	}
 
@@ -155,7 +153,7 @@ public class TerraformUtils {
 	 *            The mapped type ot the given <code>os</code>.
 	 */
 	protected <T> T getOsValue(final Map<String, T> map, final String os) {
-		final String[] osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
+		final var osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
 		return IntStream.iterate(osParts.length, i -> i - 1).limit(osParts.length)
 				.mapToObj(i -> map.get(StringUtils.join(osParts, " ", 0, i))).filter(Objects::nonNull).findFirst()
 				.orElseGet(() -> map.get(OS_DEFAULT));
@@ -198,7 +196,7 @@ public class TerraformUtils {
 	 * @return The Terraform command names such as <code>init,plan</code>.
 	 */
 	public String[] getTerraformSequence(final TerraformSequence type) {
-		final String key = "service:prov:terraform:sequence-" + type.name().toLowerCase();
+		final var key = "service:prov:terraform:sequence-" + type.name().toLowerCase();
 		return configuration.get(key, "clean").split(",");
 	}
 
@@ -252,8 +250,8 @@ public class TerraformUtils {
 	 */
 	@CacheResult(cacheName = "terraform-version-latest")
 	public String getLatestVersion() {
-		try (CurlProcessor curl = new CurlProcessor()) {
-			final Matcher matcher = VERSION_PATTERN
+		try (var curl = new CurlProcessor()) {
+			final var matcher = VERSION_PATTERN
 					.matcher(StringUtils.defaultString(curl.get(configuration.get(CONF_REPO, BASE_REPO)), ""));
 			if (matcher.find()) {
 				// Version has been found
@@ -342,7 +340,7 @@ public class TerraformUtils {
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String url) throws IOException {
-		try (InputStream openStream = new URL(url).openStream()) {
+		try (var openStream = new URL(url).openStream()) {
 			unzip(openStream, toDir).forEach(f -> f.setExecutable(true));
 		}
 	}
@@ -376,7 +374,7 @@ public class TerraformUtils {
 	 *             When zip fails : download, unzip, write file,...
 	 */
 	public List<File> zip(final Path fromDir, final OutputStream out) throws IOException {
-		try (ZipOutputStream zs = new ZipOutputStream(out); Stream<Path> stream = Files.walk(fromDir)) {
+		try (var zs = new ZipOutputStream(out); var stream = Files.walk(fromDir)) {
 			return stream.filter(path -> !Files.isDirectory(path))
 					// Excludes ".terraform", secrets, and "*.ptf" files
 					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
@@ -420,14 +418,14 @@ public class TerraformUtils {
 	 */
 	public List<File> unzip(final InputStream source, final File toDir) throws IOException {
 		final List<File> files = new ArrayList<>();
-		try (ZipInputStream zis = new ZipInputStream(source)) {
+		try (var zis = new ZipInputStream(source)) {
 			FileUtils.forceMkdir(toDir);
-			ZipEntry zipEntry = zis.getNextEntry();
+            var zipEntry = zis.getNextEntry();
 			while (zipEntry != null) {
-				final File file = new File(toDir, zipEntry.getName());
+				final var file = new File(toDir, zipEntry.getName());
 				files.add(file);
 				FileUtils.forceMkdirParent(file);
-				final FileOutputStream fos = new FileOutputStream(file);
+				final var fos = new FileOutputStream(file);
 				zis.transferTo(fos);
 				fos.close();
 				zipEntry = zis.getNextEntry();

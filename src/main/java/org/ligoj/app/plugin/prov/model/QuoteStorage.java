@@ -24,7 +24,7 @@ public interface QuoteStorage {
 
 	/**
 	 * Return the optional requested quote instance to be associated. Cannot be not <code>null</code> with
-	 * {@link #database}.
+	 * {@link #getDatabase}.
 	 *
 	 * @return The optional requested quote instance to be associated.
 	 */

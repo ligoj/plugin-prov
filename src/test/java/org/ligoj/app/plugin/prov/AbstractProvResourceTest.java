@@ -63,9 +63,9 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		updateCost();
 	}
 
-	protected QuoteLigthVo checkCost(final int subscription, final double min, final double max,
+	protected QuoteLightVo checkCost(final int subscription, final double min, final double max,
 			final boolean unbound) {
-		final QuoteLigthVo status = resource.getSusbcriptionStatus(subscription);
+		final var status = resource.getSubscriptionStatus(subscription);
 		checkCost(status.getCost(), min, max, unbound);
 		return status;
 	}
@@ -82,7 +82,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected void updateCost() {
 		// Check the cost fully updated and exact actual cost
-		final FloatingCost cost = resource.updateCost(subscription);
+		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
 		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());

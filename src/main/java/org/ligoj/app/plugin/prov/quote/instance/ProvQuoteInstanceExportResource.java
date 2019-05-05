@@ -23,7 +23,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -58,13 +57,13 @@ public class ProvQuoteInstanceExportResource {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response exportInline(@PathParam("subscription") final int subscription,
 			@PathParam("file") final String file) {
-		final QuoteVo vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
+		final var vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
-			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
+			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				final Map<Integer, List<ProvQuoteStorage>> qsByQi = new HashMap<>();
 				vo.getStorages().stream().filter(qs -> qs.getQuoteResource() != null)
 						.forEach(qs -> qsByQi.computeIfAbsent(qs.getQuoteResource().getId(), ArrayList::new).add(qs));
-				final int max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
+				final var max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
 
 				// Minimal headers
 				writer.format("%s" + ";%s".repeat(20), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
@@ -106,9 +105,9 @@ public class ProvQuoteInstanceExportResource {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response exportSplit(@PathParam("subscription") final int subscription,
 			@PathParam("file") final String file) {
-		final QuoteVo vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
+		final var vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
-			try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
+			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				writer.format("%s" + ";%s".repeat(22), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
 						"max", "maxvariablecost", "constant", "ephemeral", "type", "internet", "license", "cost",
 						"disk", "instance", "database", "latency", "optimized", "engine", "edition");

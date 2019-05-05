@@ -19,7 +19,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
@@ -33,7 +32,6 @@ import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
@@ -113,16 +111,16 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected UpdatedCost saveOrUpdate(final C entity, final E vo) {
 		// Compute the unbound cost delta
-		final int deltaUnbound = BooleanUtils.toInteger(vo.getMaxQuantity() == null)
+		final var deltaUnbound = BooleanUtils.toInteger(vo.getMaxQuantity() == null)
 				- BooleanUtils.toInteger(entity.isUnboundCost());
 
 		// Check the associations and copy attributes to the entity
-		final ProvQuote quote = getQuoteFromSubscription(vo.getSubscription());
-		final Subscription subscription = quote.getSubscription();
-		final String providerId = subscription.getNode().getRefined().getId();
+		final var quote = getQuoteFromSubscription(vo.getSubscription());
+		final var subscription = quote.getSubscription();
+		final var providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);
 		entity.setConfiguration(quote);
-		final ProvLocation oldLocation = entity.getResolvedLocation();
+		final var oldLocation = entity.getResolvedLocation();
 		entity.setPrice(getIpRepository().findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
@@ -143,7 +141,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Save and update the costs
 		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
-		final boolean dirtyPrice = !oldLocation.equals(entity.getResolvedLocation());
+		final var dirtyPrice = !oldLocation.equals(entity.getResolvedLocation());
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
 			if (dirtyPrice) {
 				// Location has changed, the available storage price need a refresh
@@ -151,7 +149,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 				storageResource.refreshCost(s);
 			}
 		}).forEach(s -> storagesCosts.put(s.getId(), addCost(s, storageResource::updateCost)));
-		final UpdatedCost cost = newUpdateCost(entity);
+		final var cost = newUpdateCost(entity);
 		cost.getRelated().put(ResourceType.STORAGE, storagesCosts);
 		return resource.refreshSupportCost(cost, quote);
 	}
@@ -163,7 +161,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *            The entity to update.
 	 * @param vo
 	 *            The change to apply to the entity.
-	 * @return The updated cost including the related ones.
 	 */
 	protected abstract void saveOrUpdateSpec(final C entity, final E vo);
 
@@ -182,8 +179,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The updated computed cost.
 	 */
 	protected UpdatedCost deleteAll(final int subscription) {
-		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
-		final UpdatedCost cost = new UpdatedCost(0);
+		final var quote = resource.getQuoteFromSubscription(subscription);
+		final var cost = new UpdatedCost(0);
 		cost.getDeleted().put(getType(), getQiRepository().findAllIdentifiers(subscription));
 		cost.getDeleted().put(ResourceType.STORAGE,
 				((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription));
@@ -206,14 +203,14 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The updated computed cost. The main deleted resource is not listed itself in the updated cost.
 	 */
 	protected UpdatedCost delete(final int id) {
-		final UpdatedCost cost = new UpdatedCost(id);
+		final var cost = new UpdatedCost(id);
 		return resource.refreshSupportCost(cost, deleteAndUpdateCost(getQiRepository(), id, i -> {
 			// Delete the related storages
 			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(),
 					e -> cost.getDeleted().computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
 
 			// Decrement the unbound counter
-			final ProvQuote q = i.getConfiguration();
+			final var q = i.getConfiguration();
 			q.setUnboundCostCounter(q.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
 		}));
 	}
@@ -304,7 +301,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	@Override
 	protected FloatingCost getCost(final C qi) {
 		// Fixed price + custom price
-		final P ip = qi.getPrice();
+		final var ip = qi.getPrice();
 		final double rate;
 		if (ip.getTerm().getPeriod() == 0) {
 			// Related term has a period lesser than the month, rate applies
@@ -394,7 +391,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,
 			Predicate<K> canByol) {
-		String licenseR = license;
+        var licenseR = license;
 		if (license == null && canByol.test(key)) {
 			// Dual license modes are managed only for WINDOWS OS for now
 			licenseR = configuration.getLicense();

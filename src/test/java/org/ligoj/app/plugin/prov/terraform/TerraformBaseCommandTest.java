@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.function.BiFunction;
 
 import javax.transaction.Transactional;
@@ -46,39 +45,39 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	@Test
 	public void executeShow() throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
+		final var resource = newResource(false, "error=0", "AAA");
 		FileUtils.write(new File(MOCK_PATH, "show.log"), "  + module\n", StandardCharsets.UTF_8);
 		execute(resource, "show", "-v");
-		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
+		final var task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(1, task.getToAdd());
 	}
 
 	@Test
 	public void executeStateList() throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
+		final var resource = newResource(false, "error=0", "AAA");
 		FileUtils.write(new File(MOCK_PATH, "state.log"), "module\n\nSome Text\n", StandardCharsets.UTF_8);
 		execute(resource, "state", "list");
-		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
+		final var task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(1, task.getToDestroy());
 	}
 
 	@Test
 	public void executeStateNotListFile() throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
+		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "state", "show");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
 
 	@Test
 	public void executeShowNoFile() throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
+		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "show", "-v");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
 
 	@Test
 	public void executeStateListNoFile() throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=0", "AAA");
+		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "state", "list");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
@@ -102,19 +101,19 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	private String execute(final TerraformBaseCommand resource, String... arguments)
 			throws IOException, InterruptedException {
-		final List<String[]> sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
-		final Context context = new Context();
+		final var sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
+		final var context = new Context();
 		context.setSubscription(getSubscription());
 		context.setSequence(sequence);
 		startTask(resource, getSubscription().getId());
-		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		final var outputStream = new ByteArrayOutputStream();
 		resource.execute(context, outputStream, arguments);
 		return new String(outputStream.toByteArray());
 	}
 
 	private void executeExit(final int code, final String message) throws Exception {
-		final TerraformBaseCommand resource = newResource(false, "error=" + code);
-		final String logString = execute(resource, "error=" + code);
+		final var resource = newResource(false, "error=" + code);
+		final var logString = execute(resource, "error=" + code);
 		Assertions.assertTrue(logString.contains("error=" + code));
 		Assertions.assertTrue(logString.contains(message));
 	}
@@ -129,7 +128,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	private TerraformBaseCommand newResource(final BiFunction<Subscription, String[], File> toFile,
 			final boolean dryRun, final String... customArgs) {
-		final TerraformBaseCommand resource = new TerraformBaseCommand();
+		final var resource = new TerraformBaseCommand();
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
 		// Replace the runner
@@ -144,10 +143,10 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	@Test
 	public void computeWorkload() throws IOException {
 		Files.copy(TEST_LOGS.toPath().resolve("show.log"), new File(MOCK_PATH, "show.log").toPath());
-		final TerraformBaseCommand resource = newResource();
+		final var resource = newResource();
 		startTask(resource, subscription);
 		resource.computeWorkload(getSubscription());
-		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
+		final var task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(0, task.getCompleted());
 		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(3, task.getToAdd());
@@ -159,10 +158,10 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	@Test
 	public void computeWorkloadState() throws IOException {
 		Files.copy(TEST_LOGS.toPath().resolve("state-list.log"), new File(MOCK_PATH, "state.log").toPath());
-		final TerraformBaseCommand resource = newResource();
+		final var resource = newResource();
 		startTask(resource, subscription);
 		resource.computeWorkloadState(getSubscription());
-		final TerraformStatus task = resource.runner.getTask("service:prov:test:account");
+		final var task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(0, task.getCompleted());
 		Assertions.assertEquals(0, task.getCompleting());
 		Assertions.assertEquals(0, task.getToAdd());
@@ -173,10 +172,10 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	@Test
 	public void computeWorkloadError() throws IOException {
-		final TerraformBaseCommand resource = newResource();
+		final var resource = newResource();
 		resource.utils = Mockito.mock(TerraformUtils.class);
 		Mockito.doThrow(new IOException()).when(resource.utils).toFile(Mockito.any(), Mockito.any());
-		final TerraformStatus status = new TerraformStatus();
+		final var status = new TerraformStatus();
 		status.setToAdd(1);
 		resource.computeWorkload(getSubscription(), status);
 		Assertions.assertEquals(0, status.getToAdd());

@@ -36,7 +36,6 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
@@ -161,25 +160,25 @@ public class ProvQuoteDatabaseResource extends
 
 	@Override
 	protected QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
-		final String node = configuration.getSubscription().getNode().getId();
+		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final int ramR = (int) getRam(configuration, query.getRam());
+		final var ramR = (int) getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, query.getLocationName());
+		final var locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
-		final ProvUsage usage = getUsage(configuration, query.getUsageName());
-		final double rate = usage.getRate() / 100d;
-		final int duration = usage.getDuration();
+		final var usage = getUsage(configuration, query.getUsageName());
+		final var rate = usage.getRate() / 100d;
+		final var duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(subscription, query.getType());
+		final var typeId = getType(subscription, query.getType());
 
 		// Resolve the right license model
-		final String licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
-		final String editionR = normalize(query.getEdition());
-		final String engineR = normalize(query.getEngine());
+		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final var editionR = normalize(query.getEdition());
+		final var engineR = normalize(query.getEngine());
 
 		// Return only the first matching instance
 		return ipRepository
@@ -218,7 +217,7 @@ public class ProvQuoteDatabaseResource extends
 	@Path("{subscription:\\d+}/database-license/{engine}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
-		final List<String> result = ipRepository
+		final var result = ipRepository
 				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), normalize(engine));
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
 		return result;
@@ -279,7 +278,7 @@ public class ProvQuoteDatabaseResource extends
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteDatabaseLookup newPrice(final ProvDatabasePrice ip, final double cost) {
-		final QuoteDatabaseLookup result = new QuoteDatabaseLookup();
+		final var result = new QuoteDatabaseLookup();
 		result.setCost(round(cost));
 		result.setPrice(ip);
 		return result;

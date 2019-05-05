@@ -4,7 +4,6 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -21,7 +20,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.dao.NodeRepository;
-import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
@@ -38,7 +36,6 @@ import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -106,9 +103,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	@POST
 	@Path("{node:service:prov:.+}")
 	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node) {
-		final Node entity = nodeResource.checkWritableNode(node).getTool();
-		final ImportCatalogService catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
-		final ImportCatalogStatus task = startTask(entity.getId(), t -> {
+		final var entity = nodeResource.checkWritableNode(node).getTool();
+		final var catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
+		final var task = startTask(entity.getId(), t -> {
 			t.setLocation(null);
 			t.setNbInstancePrices(null);
 			t.setNbInstanceTypes(null);
@@ -117,7 +114,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			t.setDone(0);
 			t.setPhase(null);
 		});
-		final String user = securityHelper.getLogin();
+		final var user = securityHelper.getLogin();
 		// The import execution will done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
@@ -139,7 +136,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	protected void updateCatalog(final ImportCatalogService catalogService, final String node) {
 		// Restore the context
 		log.info("Catalog update for {}", node);
-		boolean failed = true;
+        var failed = true;
 		try {
 			catalogService.updateCatalog(node);
 			log.info("Catalog update succeed for {}", node);
@@ -209,17 +206,17 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	@GET
 	public List<CatalogVo> findAll() {
 		// Get all catalogs
-		final Map<String, ImportCatalogStatus> statuses = taskRepository.findAllVisible(securityHelper.getLogin())
+		final var statuses = taskRepository.findAllVisible(securityHelper.getLogin())
 				.stream().collect(Collectors.toMap(s -> s.getLocked().getId(), Function.identity()));
 
 		// Complete with nodes without populated catalog
-		final Page<Node> providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "",
+		final var providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "",
 				ProvResource.SERVICE_KEY, null, 1, PageRequest.of(0, 100));
 
 		return providers.getContent().stream().sorted().map(NodeResource::toVo)
 				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
 					// Create a mock catalog status
-					final ImportCatalogStatus status = new ImportCatalogStatus();
+					final var status = new ImportCatalogStatus();
 					updateStats(status, n.getId());
 					return status;
 				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null,

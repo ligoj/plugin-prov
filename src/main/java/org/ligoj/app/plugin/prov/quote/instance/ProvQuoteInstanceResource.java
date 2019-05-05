@@ -35,7 +35,6 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
@@ -154,25 +153,25 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	protected QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
-		final String node = configuration.getSubscription().getNode().getId();
+		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final double ramR = getRam(configuration, query.getRam());
+		final var ramR = getRam(configuration, query.getRam());
 
 		// Resolve the location to use
-		final int locationR = getLocation(configuration, query.getLocationName());
+		final var locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
-		final ProvUsage usage = getUsage(configuration, query.getUsageName());
-		final double rate = usage.getRate() / 100d;
-		final int duration = usage.getDuration();
+		final var usage = getUsage(configuration, query.getUsageName());
+		final var rate = usage.getRate() / 100d;
+		final var duration = usage.getDuration();
 
 		// Resolve the required instance type
-		final Integer typeId = getType(subscription, query.getType());
+		final var typeId = getType(subscription, query.getType());
 
 		// Resolve the right license model
-		final VmOs os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
-		final String licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
-		final String softwareR = StringUtils.trimToNull(query.getSoftware());
+		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
+		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
+		final var softwareR = StringUtils.trimToNull(query.getSoftware());
 
 		// Return only the first matching instance
 		return ipRepository
@@ -207,7 +206,7 @@ public class ProvQuoteInstanceResource extends
 	@Path("{subscription:\\d+}/instance-license/{os}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
-		final List<String> result = ipRepository
+		final var result = ipRepository
 				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
 		return result;
@@ -254,7 +253,7 @@ public class ProvQuoteInstanceResource extends
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteInstanceLookup newPrice(final ProvInstancePrice ip, final double cost) {
-		final QuoteInstanceLookup result = new QuoteInstanceLookup();
+		final var result = new QuoteInstanceLookup();
 		result.setCost(round(cost));
 		result.setPrice(ip);
 		return result;

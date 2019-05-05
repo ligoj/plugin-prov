@@ -73,10 +73,10 @@ public interface QuoteRelated<C extends Costed> {
 			final Function<T, FloatingCost> costUpdater) {
 
 		// Update the total cost, applying the delta cost
-		final FloatingCost floatingCost = addCost(entity, costUpdater);
+		final var floatingCost = addCost(entity, costUpdater);
 		repository.saveAndFlush(entity);
 
-		final UpdatedCost cost = new UpdatedCost(entity.getId());
+		final var cost = new UpdatedCost(entity.getId());
 		cost.setCost(floatingCost);
 		cost.setTotal(entity.getConfiguration().toFloatingCost());
 		return cost;
@@ -100,7 +100,7 @@ public interface QuoteRelated<C extends Costed> {
 		final double oldMaxCost = ObjectUtils.defaultIfNull(entity.getMaxCost(), 0d);
 
 		// Process the update of this entity
-		final FloatingCost newCost = costUpdater.apply(entity);
+		final var newCost = costUpdater.apply(entity);
 
 		// Report the delta to the quote
 		addCost(entity, oldCost, oldMaxCost);
@@ -119,11 +119,10 @@ public interface QuoteRelated<C extends Costed> {
 	 *            The old maximum cost.
 	 * @param <T>
 	 *            The entity type holding the cost.
-	 * @return The new computed cost.
 	 */
 	default <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
 		// Report the delta to the quote
-		final ProvQuote quote = entity.getConfiguration();
+		final var quote = entity.getConfiguration();
 		quote.setCostNoSupport(round(quote.getCostNoSupport() + entity.getCost() - oldCost));
 		quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + entity.getMaxCost() - oldMaxCost));
 	}
@@ -167,7 +166,7 @@ public interface QuoteRelated<C extends Costed> {
 	 */
 	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
 			final Function<T, FloatingCost> costProvider) {
-		final FloatingCost cost = costProvider.apply(qr);
+		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));
 		qr.setMaxCost(round(cost.getMax()));
 		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
@@ -194,7 +193,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * performed. Note only the given entity is updated, the related quote's cost is not updated.
 	 *
 	 * @param costed
-	 *            The entity to refresH.
+	 *            The entity to refresh.
 	 * @return The new computed price.
 	 */
 	FloatingCost refresh(final C costed);

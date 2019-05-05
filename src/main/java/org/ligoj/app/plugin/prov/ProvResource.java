@@ -177,7 +177,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		final String node = subscriptionResource.checkVisible(subscription).getNode().getId();
+		final var node = subscriptionResource.checkVisible(subscription).getNode().getId();
 		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(node,
 				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
 				Function.identity());
@@ -217,8 +217,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @return The configuration with computed data.
 	 */
 	public QuoteVo getConfiguration(final Subscription subscription) {
-		final QuoteVo vo = new QuoteVo();
-		final ProvQuote quote = repository.getCompute(subscription.getId());
+		final var vo = new QuoteVo();
+		final var quote = repository.getCompute(subscription.getId());
 		DescribedBean.copy(quote, vo);
 		vo.copyAuditData(quote, toUser());
 		vo.setLocation(quote.getLocation());
@@ -233,7 +233,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
 
 		// Also copy the costs
-		final boolean unbound = quote.isUnboundCost();
+		final var unbound = quote.isUnboundCost();
 		vo.setCostNoSupport(new FloatingCost(quote.getCostNoSupport(), quote.getMaxCostNoSupport(), unbound));
 		vo.setCostSupport(new FloatingCost(quote.getCostSupport(), quote.getMaxCostSupport(), unbound));
 		vo.setCost(quote.toFloatingCost());
@@ -247,12 +247,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @param subscription The parent subscription identifier.
 	 * @return The quote status (summary only) linked to given subscription.
 	 */
-	public QuoteLigthVo getSusbcriptionStatus(final int subscription) {
-		final QuoteLigthVo vo = new QuoteLigthVo();
-		final Object[] compute = repository.getComputeSummary(subscription).get(0);
-		final Object[] database = repository.getDatabaseSummary(subscription).get(0);
-		final Object[] storage = repository.getStorageSummary(subscription).get(0);
-		final ProvQuote entity = (ProvQuote) compute[0];
+	public QuoteLightVo getSubscriptionStatus(final int subscription) {
+		final var vo = new QuoteLightVo();
+		final var compute = repository.getComputeSummary(subscription).get(0);
+		final var database = repository.getDatabaseSummary(subscription).get(0);
+		final var storage = repository.getStorageSummary(subscription).get(0);
+		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.toFloatingCost());
 		vo.setNbInstances(((Long) compute[1]).intValue());
@@ -278,7 +278,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Path("{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost update(@PathParam("subscription") final int subscription, final QuoteEditionVo quote) {
-		final ProvQuote entity = getQuoteFromSubscription(subscription);
+		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(quote.getName());
 		entity.setDescription(quote.getDescription());
 
@@ -313,7 +313,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
 			Function<ProvQuoteStorage, FloatingCost> storageFunction,
 			Function<ProvQuoteDatabase, FloatingCost> databaseFunction) {
-		final int subscription = entity.getSubscription().getId();
+		final var subscription = entity.getSubscription().getId();
 
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
@@ -334,7 +334,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	public FloatingCost refreshSupportCost(final ProvQuote entity) {
-		final FloatingCost support = qs2Repository.findAll(entity.getSubscription().getId()).stream()
+		final var support = qs2Repository.findAll(entity.getSubscription().getId()).stream()
 				.map(qspResource::refresh).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
@@ -345,7 +345,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
 		cost.setTotal(refreshSupportCost(quote));
-		quote.getSupports().stream().forEach(s -> cost.getRelated()
+		quote.getSupports().forEach(s -> cost.getRelated()
 				.computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>()).put(s.getId(), s.toFloatingCost()));
 		return cost;
 	}
@@ -381,13 +381,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Override
 	public void create(final int subscription) {
 		// Add an empty quote
-		final ProvQuote quote = new ProvQuote();
+		final var quote = new ProvQuote();
 		quote.setSubscription(subscriptionRepository.findOne(subscription));
 
 		// Associate a default name and description
 		quote.setName(quote.getSubscription().getProject().getName());
-		final Node provider = quote.getSubscription().getNode().getRefined();
-		final List<ProvLocation> locations = locationRepository.findAllBy("node.id", provider.getId());
+		final var provider = quote.getSubscription().getNode().getRefined();
+		final var locations = locationRepository.findAllBy("node.id", provider.getId());
 		if (locations.isEmpty()) {
 			// No available location, need a catalog to continue
 			throw new BusinessException(SERVICE_KEY + "-no-catalog", provider.getId(), provider.getName());
@@ -412,7 +412,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public <K extends Serializable, T extends Configurable<ProvQuote, K>> T findConfigured(
 			final RestRepository<T, K> repository, final K id, final int subscription) {
 		// Simple proxy call but with public visibility
-		final T entity = findConfigured(repository, id);
+		final var entity = findConfigured(repository, id);
 		if (entity.getConfiguration().getSubscription().getId() != subscription) {
 			// Associated project is not visible, reject the configuration access
 			throw new EntityNotFoundException(id.toString());
