@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -38,9 +40,6 @@ import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceExportResource;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceUploadResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.springframework.beans.factory.annotation.Autowired;

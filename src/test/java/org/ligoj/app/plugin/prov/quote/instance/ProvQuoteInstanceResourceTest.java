@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.instance;
 
 import static org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceQuery.builder;
 
@@ -14,6 +14,8 @@ import javax.persistence.EntityNotFoundException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
+import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
@@ -29,10 +31,6 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
-import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceEditionVo;
-import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
-import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceQuery;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;

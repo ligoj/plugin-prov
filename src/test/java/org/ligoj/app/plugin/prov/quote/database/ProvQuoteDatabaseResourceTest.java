@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.database;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
+import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
@@ -40,10 +43,6 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
-import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseEditionVo;
-import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseLookup;
-import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseQuery;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;

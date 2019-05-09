@@ -1,24 +1,27 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.instance;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
+import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceUploadResource;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.persistence.EntityNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Test class of {@link ProvQuoteInstanceUploadResource}
