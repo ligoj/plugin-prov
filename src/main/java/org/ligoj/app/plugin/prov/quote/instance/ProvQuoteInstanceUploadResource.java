@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.plugin.prov.InstanceUpload;
 import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -103,7 +104,10 @@ public class ProvQuoteInstanceUploadResource {
 	private ProvUsageRepository usageRepository;
 
 	@Autowired
-	private ProvQuoteInstanceResource qResource;
+	private ProvQuoteInstanceResource qiResource;
+
+	@Autowired
+	private ProvQuoteInstanceRepository qiRepository;
 
 	private String cleanHeader(final String header) {
 		return StringUtils.unwrap(header, '\"').trim();
@@ -209,7 +213,8 @@ public class ProvQuoteInstanceUploadResource {
 		final var list = csvForBean.toBean(InstanceUpload.class, reader);
 		log.info("Upload provisioning : importing {} entries", list.size());
 		final var cursor = new AtomicInteger(0);
-		final Set<String> previousNames = new HashSet<>();
+		final Set<String> previousNames = qiRepository.findAll(subscription).stream().map(ProvQuoteInstance::getName)
+				.collect(Collectors.toSet());
 		list.stream().filter(Objects::nonNull).forEach(i -> {
 			try {
 				noConflictName(previousNames, i);
@@ -232,7 +237,10 @@ public class ProvQuoteInstanceUploadResource {
 		log.info("Upload provisioning : flushing");
 	}
 
-	private void noConflictName(Set<String> previousNames, InstanceUpload i) {
+	/**
+	 * Fix the instance's name in order to be unique during this upload.
+	 */
+	private void noConflictName(final Set<String> previousNames, final InstanceUpload i) {
 		var name = i.getName();
 		var counter = 0;
 		while (!previousNames.add(name)) {
@@ -251,7 +259,7 @@ public class ProvQuoteInstanceUploadResource {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
-		vo.setCpu(qResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
 		vo.setEphemeral(upload.isEphemeral());
 		vo.setInternet(upload.getInternet());
 		vo.setMaxVariableCost(upload.getMaxVariableCost());
@@ -270,11 +278,11 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setType(upload.getType());
 
 		// Find the lowest price
-		vo.setPrice(
-				qResource.validateLookup("instance", qResource.lookupInternal(subscription, vo), vo.getName()).getId());
+		vo.setPrice(qiResource.validateLookup("instance", qiResource.lookupInternal(subscription, vo), vo.getName())
+				.getId());
 
 		// Create the quote instance from the validated inputs
-		final var id = qResource.create(vo).getId();
+		final var id = qiResource.create(vo).getId();
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {

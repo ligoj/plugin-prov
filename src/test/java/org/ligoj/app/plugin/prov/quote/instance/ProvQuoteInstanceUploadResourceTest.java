@@ -226,6 +226,21 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	public void uploadNoConflictName() throws IOException {
+		qiuResource.upload(subscription,
+				new StringInputStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os" }, false, null, 1, "UTF-8");
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(10, configuration.getInstances().size());
+		Assertions.assertEquals("ANY", configuration.getInstances().get(7).getName());
+		Assertions.assertEquals(.5D, configuration.getInstances().get(7).getCpu());
+		Assertions.assertEquals("ANY 1", configuration.getInstances().get(8).getName());
+		Assertions.assertEquals(1D, configuration.getInstances().get(8).getCpu());
+		Assertions.assertEquals("ANY 2", configuration.getInstances().get(9).getName());
+		Assertions.assertEquals(2D, configuration.getInstances().get(9).getCpu());
+	}
+
+	@Test
 	public void uploadUsagePerEntry() throws IOException {
 		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;Full Time 12 month", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 13 month", 1, "UTF-8");
