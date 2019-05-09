@@ -60,6 +60,7 @@ define(function () {
 			// Clean the shared menu
 			_('service-prov-menu').empty().remove();
 			current.cleanup();
+			$(window).off('resize.barchart');
 		},
 
 		/**
@@ -2542,7 +2543,7 @@ define(function () {
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
 						}, d => current.formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
-						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar && current.d3Bar.resize(parseInt(d3.select('#prov-barchart').style('width'))));
+						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar && $('#prov-barchart').length && current.d3Bar.resize(parseInt(d3.select('#prov-barchart').style('width'))));
 					} else {
 						d3Bar.update(data);
 					}
