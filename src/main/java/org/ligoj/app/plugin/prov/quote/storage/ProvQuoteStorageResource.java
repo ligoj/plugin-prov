@@ -24,8 +24,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import org.ligoj.app.plugin.prov.AbstractCostedResource;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
@@ -61,7 +61,7 @@ import org.springframework.stereotype.Service;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteStorageResource
-		extends AbstractCostedResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage> {
+		extends AbstractProvQuoteResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage> {
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
@@ -78,35 +78,15 @@ public class ProvQuoteStorageResource
 	@Autowired
 	private ProvStoragePriceRepository spRepository;
 
-	/**
-	 * Delete all storages from a quote. The total cost is updated.
-	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @return The updated computed cost.
-	 */
-	@DELETE
-	@Path("{subscription:\\d+}/storage")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
-		final var quote = resource.getQuoteFromSubscription(subscription);
-		final var cost = new UpdatedCost(0);
-		cost.getDeleted().put(ResourceType.STORAGE, qsRepository.findAllIdentifiers(subscription));
-
-		// Delete all storages related to any instance, then the instances
-		qsRepository.deleteAll(qsRepository.findAllBy("configuration.subscription.id", subscription));
-
-		// Update the cost. Note the effort could be reduced to a simple
-		// subtract of storage costs.
-		resource.updateCost(subscription);
-		return resource.refreshSupportCost(cost, quote);
+	@Override
+	protected ProvQuoteStorageRepository getResourceRepository() {
+		return qsRepository;
 	}
 
 	/**
 	 * Create the storage inside a quote.
 	 *
-	 * @param vo
-	 *            The quote storage details.
+	 * @param vo The quote storage details.
 	 * @return The created instance cost details with identifier.
 	 */
 	@POST
@@ -119,8 +99,7 @@ public class ProvQuoteStorageResource
 	/**
 	 * Update the storage inside a quote.
 	 *
-	 * @param vo
-	 *            The quote storage update.
+	 * @param vo The quote storage update.
 	 * @return The new cost configuration.
 	 */
 	@PUT
@@ -153,10 +132,8 @@ public class ProvQuoteStorageResource
 	/**
 	 * Save or update the storage inside a quote.
 	 *
-	 * @param entity
-	 *            The storage entity to update.
-	 * @param vo
-	 *            The new quote storage data to persist.
+	 * @param entity The storage entity to update.
+	 * @param vo     The new quote storage data to persist.
 	 * @return The formal entity.
 	 */
 	private UpdatedCost saveOrUpdate(final ProvQuoteStorage entity, final QuoteStorageEditionVo vo) {
@@ -194,8 +171,7 @@ public class ProvQuoteStorageResource
 	/**
 	 * Refresh the cost of given storage and return the delta.
 	 *
-	 * @param entity
-	 *            The entity to refresh.
+	 * @param entity The entity to refresh.
 	 * @return The updated cost.
 	 */
 	public UpdatedCost refreshCost(final ProvQuoteStorage entity) {
@@ -226,27 +202,37 @@ public class ProvQuoteStorageResource
 	}
 
 	/**
+	 * Delete all storages from a quote. The total cost is updated.
+	 *
+	 * @param subscription The related subscription.
+	 * @return The updated computed cost.
+	 */
+	@DELETE
+	@Path("{subscription:\\d+}/storage")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
+		return super.deleteAll(subscription);
+	}
+
+	/**
 	 * Delete a storage from a quote. The total cost is updated.
 	 *
-	 * @param id
-	 *            The {@link ProvQuoteStorage}'s identifier to delete.
+	 * @param id The {@link ProvQuoteStorage}'s identifier to delete.
 	 * @return The updated computed cost.
 	 */
 	@DELETE
 	@Path("storage/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost delete(@PathParam("id") final int id) {
-		return resource.refreshSupportCost(new UpdatedCost(id),
-				deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
+		return super.delete(id);
 	}
 
 	/**
 	 * Return the storage types the instance inside a quote.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storages from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the storages from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
@@ -264,9 +250,9 @@ public class ProvQuoteStorageResource
 	/**
 	 * Return the available storage types from the provider linked to the given subscription..
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
-	 * @param query The storage requirements.
+	 * @param subscription The subscription identifier, will be used to filter the storage types from the associated
+	 *                     provider.
+	 * @param query        The storage requirements.
 	 * @return The valid storage types for the given subscription.
 	 */
 	@GET
@@ -328,15 +314,18 @@ public class ProvQuoteStorageResource
 	/**
 	 * Compute the cost of a storage.
 	 *
-	 * @param storagePrice
-	 *            The storage to evaluate.
-	 * @param size
-	 *            The requested size in GB.
+	 * @param storagePrice The storage to evaluate.
+	 * @param size         The requested size in GB.
 	 * @return The cost of this storage.
 	 */
 	private double getCost(final ProvStoragePrice storagePrice, final int size) {
 		return round(Math.max(size, storagePrice.getType().getMinimal()) * storagePrice.getCostGb()
 				+ storagePrice.getCost());
+	}
+
+	@Override
+	protected ResourceType getType() {
+		return ResourceType.STORAGE;
 	}
 
 }

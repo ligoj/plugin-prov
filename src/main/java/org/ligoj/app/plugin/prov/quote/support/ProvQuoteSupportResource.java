@@ -26,10 +26,11 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.plugin.prov.AbstractCostedResource;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
@@ -58,7 +59,7 @@ import org.springframework.stereotype.Service;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteSupportResource
-		extends AbstractCostedResource<ProvSupportType, ProvSupportPrice, ProvQuoteSupport> {
+		extends AbstractProvQuoteResource<ProvSupportType, ProvSupportPrice, ProvQuoteSupport> {
 
 	@Autowired
 	private ProvSupportTypeRepository stRepository;
@@ -72,31 +73,20 @@ public class ProvQuoteSupportResource
 	/**
 	 * Delete all supports from a quote. The total cost is updated.
 	 *
-	 * @param subscription
-	 *            The related subscription.
+	 * @param subscription The related subscription.
 	 * @return The updated computed cost.
 	 */
 	@DELETE
 	@Path("{subscription:\\d+}/support")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
-		final var quote = resource.getQuoteFromSubscription(subscription);
-		final var cost = new UpdatedCost(0);
-		cost.getDeleted().put(ResourceType.SUPPORT, qsRepository.findAllIdentifiers(subscription));
-
-		// Delete all storages related to any instance, then the instances
-		qsRepository.deleteAll(qsRepository.findAllBy("configuration.subscription.id", subscription));
-
-		// Update the cost. Note the effort could be reduced to a simple
-		// subtract of storage costs.
-		return resource.refreshSupportCost(cost, quote);
+		return super.deleteAll(subscription);
 	}
 
 	/**
 	 * Create the support plan inside a quote.
 	 *
-	 * @param vo
-	 *            The quote support details.
+	 * @param vo The quote support details.
 	 * @return The created instance cost details with identifier.
 	 */
 	@POST
@@ -109,8 +99,7 @@ public class ProvQuoteSupportResource
 	/**
 	 * Update the support plan inside a quote.
 	 *
-	 * @param vo
-	 *            The quote storage update.
+	 * @param vo The quote support update.
 	 * @return The new cost configuration.
 	 */
 	@PUT
@@ -132,7 +121,7 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Check and return the storage price matching to the requirements and related name.
+	 * Check and return the support price matching to the requirements and related name.
 	 */
 	private ProvSupportPrice findByTypeName(final int subscription, final String name) {
 		return assertFound(spRepository.findByTypeName(subscription, name), name);
@@ -141,10 +130,8 @@ public class ProvQuoteSupportResource
 	/**
 	 * Save or update the support inside a quote.
 	 *
-	 * @param entity
-	 *            The support entity to update.
-	 * @param vo
-	 *            The new quote support data to persist.
+	 * @param entity The support entity to update.
+	 * @param vo     The new quote support data to persist.
 	 * @return The formal entity.
 	 */
 	private UpdatedCost saveOrUpdate(final ProvQuoteSupport entity, final QuoteSupportEditionVo vo) {
@@ -169,7 +156,7 @@ public class ProvQuoteSupportResource
 		if (lookup(quote, vo.getSeats(), vo.getAccessApi(), vo.getAccessEmail(), vo.getAccessChat(),
 				vo.getAccessPhone(), vo.getLevel()).stream().map(qs -> qs.getPrice().getType())
 						.noneMatch(type::equals)) {
-			// The related storage type does not match these requirements
+			// The related support type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
 		}
 
@@ -180,8 +167,7 @@ public class ProvQuoteSupportResource
 	/**
 	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
 	 *
-	 * @param entity
-	 *            The quote instance to update.
+	 * @param entity The quote instance to update.
 	 * @return The new computed cost.
 	 */
 	protected UpdatedCost newUpdateCost(final ProvQuoteSupport entity) {
@@ -199,28 +185,25 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Delete a storage from a quote. The total cost is updated.
+	 * Delete a support from a quote. The total cost is updated.
 	 *
-	 * @param id
-	 *            The {@link ProvQuoteSupport}'s identifier to delete.
+	 * @param id The {@link ProvQuoteSupport}'s identifier to delete.
 	 * @return The updated computed cost.
 	 */
 	@DELETE
 	@Path("support/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost delete(@PathParam("id") final int id) {
-		return resource.refreshSupportCost(new UpdatedCost(id),
-				deleteAndUpdateCost(qsRepository, id, Function.identity()::apply));
+		return super.delete(id);
 	}
 
 	/**
-	 * Return the storage types the instance inside a quote.
+	 * Return the support types the instance inside a quote.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storages from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
-	 * @return The valid storage types for the given subscription.
+	 * @param subscription The subscription identifier, will be used to filter the supports from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
+	 * @return The valid support types for the given subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/support-type")
@@ -235,23 +218,17 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Return the available storage types from the provider linked to the given subscription..
+	 * Return the available support types from the provider linked to the given subscription..
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the storage types from the associated provider.
-	 * @param seats
-	 *            Who can open cases. When <code>null</code>, unlimited requirement.
-	 * @param accessApi
-	 *            API access. <code>null</code> when is not required.
-	 * @param accessEmail
-	 *            Mail access. <code>null</code> when is not required.
-	 * @param accessChat
-	 *            Chat access. <code>null</code> when is not required.
-	 * @param accessPhone
-	 *            Phone access. <code>null</code> when is not required.
-	 * @param level
-	 *            Optional consulting services level: WORST=reserved, LOW=generalGuidance, MEDIUM=contextualGuidance,
-	 *            GOOD=contextualReview, BEST=reserved.
+	 * @param subscription The subscription identifier, will be used to filter the support types from the associated
+	 *                     provider.
+	 * @param seats        Who can open cases. When <code>null</code>, unlimited requirement.
+	 * @param accessApi    API access. <code>null</code> when is not required.
+	 * @param accessEmail  Mail access. <code>null</code> when is not required.
+	 * @param accessChat   Chat access. <code>null</code> when is not required.
+	 * @param accessPhone  Phone access. <code>null</code> when is not required.
+	 * @param level        Optional consulting services level: WORST=reserved, LOW=generalGuidance,
+	 *                     MEDIUM=contextualGuidance, GOOD=contextualReview, BEST=reserved.
 	 * @return The valid support types for the given subscription.
 	 */
 	@GET
@@ -286,10 +263,8 @@ public class ProvQuoteSupportResource
 	/**
 	 * Accept when required support is provided.
 	 *
-	 * @param quote
-	 *            The requirement.
-	 * @param provided
-	 *            The provided rate.
+	 * @param quote    The requirement.
+	 * @param provided The provided rate.
 	 * @return <code>true</code> when required support is provided.
 	 */
 	public boolean filter(final SupportType quote, final SupportType provided) {
@@ -299,10 +274,8 @@ public class ProvQuoteSupportResource
 	/**
 	 * Accept when required rate is provided.
 	 *
-	 * @param quote
-	 *            The requirement.
-	 * @param provided
-	 *            The provided rate.
+	 * @param quote    The requirement.
+	 * @param provided The provided rate.
 	 * @return <code>true</code> when required rate is provided.
 	 */
 	public boolean filter(final Rate quote, final Rate provided) {
@@ -358,18 +331,14 @@ public class ProvQuoteSupportResource
 	   Math.max(0;Math.min(cost;limit0)-0)*rate0)</code>
 	 * </p>
 	 *
-	 * @param cost
-	 *            The total cost without support cost.
-	 * @param min
-	 *            The minimal cost, whatever the computation result.
-	 * @param rates
-	 *            The base 100 percentage to apply to a segment of cost. The segment is
-	 *            <code>limit[index-1, index]</code> where index is the current index of the rate within the array. When
-	 *            <code>index=0</code>, <code>limit[-1]=0</code>. When <code>index&gt;limit.length-1</code>,
-	 *            <code>limit=Integer.MAX_VALUE</code>.
-	 * @param limits
-	 *            The segment upper limit where the corresponding rate can be applied. The length of this array is
-	 *            lesser or equals than the <code>rates</code> array.
+	 * @param cost   The total cost without support cost.
+	 * @param min    The minimal cost, whatever the computation result.
+	 * @param rates  The base 100 percentage to apply to a segment of cost. The segment is
+	 *               <code>limit[index-1, index]</code> where index is the current index of the rate within the array.
+	 *               When <code>index=0</code>, <code>limit[-1]=0</code>. When <code>index&gt;limit.length-1</code>,
+	 *               <code>limit=Integer.MAX_VALUE</code>.
+	 * @param limits The segment upper limit where the corresponding rate can be applied. The length of this array is
+	 *               lesser or equals than the <code>rates</code> array.
 	 * @return The added computed support cost of each segment.
 	 */
 	public double computeRates(final double cost, final int min, final int[] rates, final int[] limits) {
@@ -379,6 +348,16 @@ public class ProvQuoteSupportResource
 					- (i == 0 ? 0 : limits[i - 1])) / 100 * rates[i];
 		}
 		return Math.max(min, support);
+	}
+
+	@Override
+	protected ResourceType getType() {
+		return ResourceType.SUPPORT;
+	}
+
+	@Override
+	protected BaseProvQuoteResourceRepository<ProvQuoteSupport> getResourceRepository() {
+		return qsRepository;
 	}
 
 }

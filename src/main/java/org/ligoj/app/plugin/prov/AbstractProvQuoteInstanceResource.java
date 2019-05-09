@@ -48,15 +48,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * The resource part of the provisioning.
  *
- * @param <T>
- *            The instance resource type.
- * @param <C>
- *            Quoted resource type.
- * @param <P>
- *            Quoted resource price type.
+ * @param <T> The instance resource type.
+ * @param <C> Quoted resource type.
+ * @param <P> Quoted resource price type.
  */
 public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm, I extends AbstractQuoteInstanceQuery>
-		extends AbstractCostedResource<T, P, C> {
+		extends AbstractProvQuoteResource<T, P, C> {
 
 	/**
 	 * The default usage : 100% for 1 month.
@@ -99,14 +96,17 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
+	@Override
+	protected BaseProvQuoteResourceRepository<C> getResourceRepository() {
+		return getQiRepository();
+	}
+
 	/**
 	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
 	 * updated from the resource to the quote total cost.
 	 *
-	 * @param entity
-	 *            The entity to update.
-	 * @param vo
-	 *            The change to apply to the entity.
+	 * @param entity The entity to update.
+	 * @param vo     The change to apply to the entity.
 	 * @return The updated cost including the related ones.
 	 */
 	protected UpdatedCost saveOrUpdate(final C entity, final E vo) {
@@ -157,10 +157,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Save or update the resource type specific properties.
 	 *
-	 * @param entity
-	 *            The entity to update.
-	 * @param vo
-	 *            The change to apply to the entity.
+	 * @param entity The entity to update.
+	 * @param vo     The change to apply to the entity.
 	 */
 	protected abstract void saveOrUpdateSpec(final C entity, final E vo);
 
@@ -171,43 +169,30 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		}
 	}
 
-	/**
-	 * Delete all resource types from a quote. The total cost is updated.
-	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @return The updated computed cost.
-	 */
+	@Override
 	protected UpdatedCost deleteAll(final int subscription) {
-		final var quote = resource.getQuoteFromSubscription(subscription);
-		final var cost = new UpdatedCost(0);
-		cost.getDeleted().put(getType(), getQiRepository().findAllIdentifiers(subscription));
-		cost.getDeleted().put(ResourceType.STORAGE,
-				((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription));
-
 		// Delete all resources with cascaded delete for storages
+		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription);
 		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(subscription);
-		getQiRepository().deleteAllBySubscription(subscription);
+		tagResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
 
-		// Update the cost. Note the effort could be reduced to a simple
-		// subtract of resources cost and related storage costs
-		resource.updateCost(subscription);
-		return resource.refreshSupportCost(cost, quote);
+		final var cost = super.deleteAll(subscription);
+		cost.getDeleted().put(ResourceType.STORAGE, sIds);
+		return cost;
 	}
 
-	/**
-	 * Delete an resource from a quote. The total cost is updated.
-	 *
-	 * @param id
-	 *            The {@link AbstractQuoteResourceInstance}'s identifier to delete.
-	 * @return The updated computed cost. The main deleted resource is not listed itself in the updated cost.
-	 */
+	@Override
 	protected UpdatedCost delete(final int id) {
 		final var cost = new UpdatedCost(id);
+		tagResource.onDelete(getType(), id);
 		return resource.refreshSupportCost(cost, deleteAndUpdateCost(getQiRepository(), id, i -> {
 			// Delete the related storages
-			i.getStorages().forEach(s -> deleteAndUpdateCost(qsRepository, s.getId(),
-					e -> cost.getDeleted().computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId())));
+
+			i.getStorages().forEach(s -> {
+				tagResource.onDelete(ResourceType.STORAGE, s.getId());
+				deleteAndUpdateCost(qsRepository, s.getId(), e -> cost.getDeleted()
+						.computeIfAbsent(ResourceType.STORAGE, m -> new HashSet<>()).add(e.getId()));
+			});
 
 			// Decrement the unbound counter
 			final var q = i.getConfiguration();
@@ -218,10 +203,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return the resolved usage entity from it's name.
 	 *
-	 * @param configuration
-	 *            Configuration containing the default values.
-	 * @param name
-	 *            The usage name.
+	 * @param configuration Configuration containing the default values.
+	 * @param name          The usage name.
 	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's usage or else
 	 *         {@link #USAGE_DEFAULT} is used as default value.
 	 */
@@ -232,19 +215,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the resource type managed by this service.
-	 *
-	 * @return The resource type managed by this service.
-	 */
-	protected abstract ResourceType getType();
-
-	/**
 	 * Return the instance type identifier.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the resources from the associated provider.
-	 * @param type
-	 *            The type name.May be <code>null</code>.
+	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
+	 *                     provider.
+	 * @param type         The type name.May be <code>null</code>.
 	 * @return The instance type identifier. Will be <code>null</code> only when the given name was <code>null</code>
 	 *         too.
 	 */
@@ -255,10 +230,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return the adjusted required RAM from the original one and the RAM configuration.
 	 *
-	 * @param configuration
-	 *            Configuration containing the default values.
-	 * @param ram
-	 *            The required RAM.
+	 * @param configuration Configuration containing the default values.
+	 * @param ram           The required RAM.
 	 * @return The adjusted required RAM from the original one and the RAM configuration.
 	 */
 	protected double getRam(final ProvQuote configuration, final long ram) {
@@ -269,10 +242,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *
 	 * Return the location identifier from it's name.
 	 *
-	 * @param configuration
-	 *            Configuration containing the default values.
-	 * @param location
-	 *            The location name. When <code>null</code>, the default one is used.
+	 * @param configuration Configuration containing the default values.
+	 * @param location      The location name. When <code>null</code>, the default one is used.
 	 * @return The resolved location identifier from it's name. Never <code>null</code>.
 	 */
 	protected int getLocation(final ProvQuote configuration, final String location) {
@@ -284,10 +255,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return the resource price type available for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the resources from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
 	 * @return The available price types for the given subscription.
 	 */
 	protected TableItem<ProvInstancePriceTerm> findPriceTerms(final int subscription, @Context final UriInfo uriInfo) {
@@ -321,12 +291,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Compute the monthly cost of a custom requested resource.
 	 *
-	 * @param cpu
-	 *            The requested CPU.
-	 * @param ram
-	 *            The requested RAM.
-	 * @param ip
-	 *            The resource price configuration.
+	 * @param cpu The requested CPU.
+	 * @param ram The requested RAM.
+	 * @param ip  The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
 	protected double getCustomCost(final Double cpu, final Integer ram, final P ip) {
@@ -338,12 +305,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Compute the monthly cost of a custom requested resource.
 	 *
-	 * @param requested
-	 *            The request resource amount.
-	 * @param cost
-	 *            The cost of one resource.
-	 * @param weight
-	 *            The weight of one resource.
+	 * @param requested The request resource amount.
+	 * @param cost      The cost of one resource.
+	 * @param weight    The weight of one resource.
 	 * @return The cost of this custom instance.
 	 */
 	private double getCustomCost(final Number requested, final Double cost, final double weight) {
@@ -354,10 +318,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Compute the cost using minimal and maximal quantity of related resource. no rounding there.
 	 *
-	 * @param base
-	 *            The cost of one resource.
-	 * @param qi
-	 *            The quote resource to compute.
+	 * @param base The cost of one resource.
+	 * @param qi   The quote resource to compute.
 	 * @return The updated cost of this resource.
 	 */
 	public static FloatingCost computeFloat(final double base, final AbstractQuoteResourceInstance<?> qi) {
@@ -368,8 +330,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
 	 *
-	 * @param entity
-	 *            The quote resource to update.
+	 * @param entity The quote resource to update.
 	 * @return The new computed cost.
 	 */
 	private UpdatedCost newUpdateCost(final C entity) {
@@ -379,19 +340,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Compute the right license value.
 	 *
-	 * @param configuration
-	 *            Configuration containing the default values.
-	 * @param license
-	 *            The quote license value. May be <code>null</code>.
-	 * @param key
-	 *            The criteria used to evaluate the license <code>null</code> value.
-	 * @param canByol
-	 *            The predicate evaluating the key when the given license is <code>null</code>
+	 * @param configuration Configuration containing the default values.
+	 * @param license       The quote license value. May be <code>null</code>.
+	 * @param key           The criteria used to evaluate the license <code>null</code> value.
+	 * @param canByol       The predicate evaluating the key when the given license is <code>null</code>
 	 * @return The human readable license value.
 	 */
 	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,
 			Predicate<K> canByol) {
-        var licenseR = license;
+		var licenseR = license;
 		if (license == null && canByol.test(key)) {
 			// Dual license modes are managed only for WINDOWS OS for now
 			licenseR = configuration.getLicense();
@@ -408,10 +365,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param query
-	 *            The query parameters.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param query        The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	public L lookupInternal(final int subscription, final Q query) {
@@ -421,10 +377,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return a lookup research corresponding to the best price.
 	 *
-	 * @param configuration
-	 *            The subscription configuration.
-	 * @param query
-	 *            The query parameters.
+	 * @param configuration The subscription configuration.
+	 * @param query         The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	protected abstract L lookup(final ProvQuote configuration, final Q query);

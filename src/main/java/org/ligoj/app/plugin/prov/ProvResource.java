@@ -112,6 +112,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvLocationRepository locationRepository;
 
 	@Autowired
+	private ProvTagResource tagResource;
+
+	@Autowired
 	private IamProvider[] iamProvider;
 
 	@Autowired
@@ -231,6 +234,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
+		vo.setTags(tagResource.findAll(subscription.getId()));
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();
@@ -334,8 +338,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	public FloatingCost refreshSupportCost(final ProvQuote entity) {
-		final var support = qs2Repository.findAll(entity.getSubscription().getId()).stream()
-				.map(qspResource::refresh).reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
+		final var support = qs2Repository.findAll(entity.getSubscription().getId()).stream().map(qspResource::refresh)
+				.reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
 		entity.setCost(round(entity.getCostSupport() + entity.getCostNoSupport()));
@@ -345,8 +349,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
 		cost.setTotal(refreshSupportCost(quote));
-		quote.getSupports().forEach(s -> cost.getRelated()
-				.computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>()).put(s.getId(), s.toFloatingCost()));
+		quote.getSupports().forEach(s -> cost.getRelated().computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>())
+				.put(s.getId(), s.toFloatingCost()));
 		return cost;
 	}
 

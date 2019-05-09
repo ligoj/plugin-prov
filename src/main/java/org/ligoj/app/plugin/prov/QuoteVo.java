@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov;
 
 import java.util.List;
+import java.util.Map;
 
 import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
@@ -13,6 +14,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
 
@@ -75,6 +77,12 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All available locations.
 	 */
 	private List<ProvLocation> locations;
+
+	/**
+	 * Tags attached to resources in this quote. The second {@link Map}'s key corresponds to the resource identifier of
+	 * the parent resource type.
+	 */
+	private Map<ResourceType, Map<Integer, List<TagVo>>> tags;
 
 	/**
 	 * Default location of this quote.

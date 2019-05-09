@@ -57,8 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteInstanceResource extends
-		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo
-		, QuoteInstanceLookup, QuoteInstance, QuoteInstanceQuery> {
+		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo, QuoteInstanceLookup, QuoteInstance, QuoteInstanceQuery> {
 
 	@Getter
 	@Autowired
@@ -80,8 +79,7 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Create the instance inside a quote.
 	 *
-	 * @param vo
-	 *            The quote instance.
+	 * @param vo The quote instance.
 	 * @return The created instance cost details with identifier.
 	 */
 	@POST
@@ -94,8 +92,7 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Update the instance inside a quote.
 	 *
-	 * @param vo
-	 *            The quote instance to update.
+	 * @param vo The quote instance to update.
 	 * @return The new cost configuration.
 	 */
 	@PUT
@@ -196,10 +193,9 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the available instance licenses for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param os
-	 *            The filtered OS.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param os           The filtered OS.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -215,10 +211,9 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the available instance software for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param os
-	 *            The filtered OS.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param os           The filtered OS.
 	 * @return The available softwares for the given subscription.
 	 */
 	@GET
@@ -231,10 +226,9 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the instance types inside available for the related catalog.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
 	 * @return The valid instance types for the given subscription.
 	 */
 	@GET
