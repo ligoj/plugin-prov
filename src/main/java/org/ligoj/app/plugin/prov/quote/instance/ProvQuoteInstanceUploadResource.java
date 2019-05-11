@@ -1,7 +1,6 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-
 package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.io.BufferedReader;
@@ -20,8 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -109,6 +108,48 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
+	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer>> MERGER = Map
+			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
+
+	/**
+	 * Insert mode.
+	 */
+	private Integer modeInsert(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
+		// Reserve this name
+		var instance = new ProvQuoteInstance();
+		previous.put(vo.getName(), instance);
+		instance.setId(qiResource.create(vo).getId());
+		return instance.getId();
+	}
+
+	/**
+	 * Keep mode.
+	 */
+	private Integer modeKeep(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
+		// Fix the instance's name in order to be unique during this upload.
+		var name = vo.getName();
+		var counter = 0;
+		while (previous.containsKey(name)) {
+			name = vo.getName() + " " + ++counter;
+		}
+		vo.setName(name);
+		return modeInsert(vo, previous);
+	}
+
+	/**
+	 * Update mode.
+	 */
+	private Integer modeUpdate(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
+		final var qi = previous.get(vo.getName());
+		if (qi == null) {
+			return modeInsert(vo, previous);
+		}
+		// Update the previous entity
+		vo.setId(qi.getId());
+		qiResource.update(vo);
+		return null;
+	}
+
 	private String cleanHeader(final String header) {
 		return StringUtils.unwrap(header, '\"').trim();
 	}
@@ -172,6 +213,28 @@ public class ProvQuoteInstanceUploadResource {
 	 * @param encoding        CSV encoding. Default is UTF-8.
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
+	public void upload(@PathParam("subscription") final int subscription, final InputStream uploadedFile,
+			final String[] headers, final boolean headersIncluded, final String usage, final Integer ramMultiplier,
+			final String encoding) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding);
+	}
+
+	/**
+	 * Upload a file of quote in add mode.
+	 *
+	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
+	 *                        provider.
+	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
+	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
+	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
+	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
+	 *                        associated to this usage.
+	 * @param mode            The merge option indicates how the entries are inserted.
+	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
+	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @throws IOException When the CSV stream cannot be written.
+	 */
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("{subscription:\\d+}/upload")
@@ -180,6 +243,7 @@ public class ProvQuoteInstanceUploadResource {
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
 			@Multipart(value = "usage", required = false) final String usage,
+			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
 		log.info("Upload provisioning requested...");
@@ -213,12 +277,12 @@ public class ProvQuoteInstanceUploadResource {
 		final var list = csvForBean.toBean(InstanceUpload.class, reader);
 		log.info("Upload provisioning : importing {} entries", list.size());
 		final var cursor = new AtomicInteger(0);
-		final Set<String> previousNames = qiRepository.findAll(subscription).stream().map(ProvQuoteInstance::getName)
-				.collect(Collectors.toSet());
+		final var previous = qiRepository.findAll(subscription).stream()
+				.collect(Collectors.toMap(ProvQuoteInstance::getName, Function.identity()));
+		final var merger = MERGER.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
 		list.stream().filter(Objects::nonNull).forEach(i -> {
 			try {
-				noConflictName(previousNames, i);
-				persist(i, subscription, usage, ramMultiplier);
+				persist(i, subscription, usage, ramMultiplier, merger, previous);
 				final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
 				if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
 					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
@@ -238,23 +302,12 @@ public class ProvQuoteInstanceUploadResource {
 	}
 
 	/**
-	 * Fix the instance's name in order to be unique during this upload.
-	 */
-	private void noConflictName(final Set<String> previousNames, final InstanceUpload i) {
-		var name = i.getName();
-		var counter = 0;
-		while (!previousNames.add(name)) {
-			name = i.getName() + " " + ++counter;
-		}
-		i.setName(name);
-	}
-
-	/**
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private void persist(final InstanceUpload upload, final int subscription, String usage,
-			final Integer ramMultiplier) {
+	private void persist(final InstanceUpload upload, final int subscription, String usage, final Integer ramMultiplier,
+			final BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer> merger,
+			final Map<String, ProvQuoteInstance> previous) {
 		// Validate the upload object
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setName(upload.getName());
@@ -282,7 +335,12 @@ public class ProvQuoteInstanceUploadResource {
 				.getId());
 
 		// Create the quote instance from the validated inputs
-		final var id = qiResource.create(vo).getId();
+		final var id = merger.apply(vo, previous);
+
+		if (id == null) {
+			// Do not continue
+			return;
+		}
 
 		// Storage part
 		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {

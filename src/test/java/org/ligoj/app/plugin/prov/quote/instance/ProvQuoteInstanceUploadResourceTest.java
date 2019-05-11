@@ -22,6 +22,7 @@ import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * Test class of {@link ProvQuoteInstanceUploadResource}
@@ -226,6 +227,19 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	public void uploadUpdate() throws IOException {
+		qiuResource.upload(subscription,
+				new StringInputStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, "UTF-8");
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(9, configuration.getInstances().size());
+		Assertions.assertEquals("ANY 1", configuration.getInstances().get(7).getName());
+		Assertions.assertEquals(1D, configuration.getInstances().get(7).getCpu());
+		Assertions.assertEquals("ANY", configuration.getInstances().get(8).getName());
+		Assertions.assertEquals(2D, configuration.getInstances().get(8).getCpu());
+	}
+
+	@Test
 	public void uploadNoConflictName() throws IOException {
 		qiuResource.upload(subscription,
 				new StringInputStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX", "UTF-8"),
@@ -238,6 +252,14 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1D, configuration.getInstances().get(8).getCpu());
 		Assertions.assertEquals("ANY 2", configuration.getInstances().get(9).getName());
 		Assertions.assertEquals(2D, configuration.getInstances().get(9).getCpu());
+	}
+
+	@Test
+	public void uploadConflictName() throws IOException {
+		Assertions.assertThrows(DataIntegrityViolationException.class,
+				() -> qiuResource.upload(subscription,
+						new StringInputStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX", "UTF-8"),
+						new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.INSERT, 1, "UTF-8"));
 	}
 
 	@Test
