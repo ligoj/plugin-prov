@@ -264,18 +264,20 @@ define(function () {
 				// Use only the name
 				return name;
 			}
-			// Instance details are available
-			var details = '<i class=\'fas fa-clock\'></i> ';
-			if (term && term.period) {
-				details += term.period + ' months period';
-			} else {
-				details = 'on demand, hourly (or less) billing period';
-			}
-			if (qi.price.initialCost) {
-				details += '<br/>Initial cost: $' + qi.price.initialCost;
-			}
+			if (mode !== 'type') {
+				// Instance details are available
+				var details = '<i class=\'fas fa-clock\'></i> ';
+				if (term && term.period) {
+					details += term.period + ' months period';
+				} else {
+					details = 'on demand, hourly (or less) billing period';
+				}
+				if (qi.price.initialCost) {
+					details += '<br/>Initial cost: $' + qi.price.initialCost;
+				}
 
-			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+				return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			}
 		},
 
 
@@ -288,16 +290,18 @@ define(function () {
 				return min;
 			}
 
-			var max = instance.maxQuantity;
-			if (typeof max !== 'number') {
-				return min + '+';
-			}
-			if (max === min) {
-				return min;
-			}
+			if (mode !== 'type') {
+				var max = instance.maxQuantity;
+				if (typeof max !== 'number') {
+					return min + '+';
+				}
+				if (max === min) {
+					return min;
+				}
 
-			// A range
-			return min + '-' + max;
+				// A range
+				return min + '-' + max;
+			}
 		},
 
 		/**
@@ -320,33 +324,35 @@ define(function () {
 				return cost;
 			}
 
-			var formatter = current.formatCostText;
-			var $cost = $();
-			if (mode instanceof jQuery) {
-				// Odomoter format
-				formatter = current.formatCostOdometer;
-				$cost = mode;
-			}
+			if (mode !== 'type') {
+				var formatter = current.formatCostText;
+				var $cost = $();
+				if (mode instanceof jQuery) {
+					// Odomoter format
+					formatter = current.formatCostOdometer;
+					$cost = mode;
+				}
 
-			// Computation part
-			obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
-			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
-				// Standard cost
-				$cost.find('.cost-min').addClass('hidden');
-				return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
-			}
-			// A floating cost
-			var min = obj.cost || obj.min || 0;
-			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
-			var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity != obj.maxQuantity);
-			if ((typeof max !== 'number') || max === min) {
-				// Max cost is equal to min cost, no range
-				$cost.find('.cost-min').addClass('hidden');
-				return formatter(min, true, $cost, noRichText, unbound);
-			}
+				// Computation part
+				obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
+				if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
+					// Standard cost
+					$cost.find('.cost-min').addClass('hidden');
+					return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
+				}
+				// A floating cost
+				var min = obj.cost || obj.min || 0;
+				var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+				var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity != obj.maxQuantity);
+				if ((typeof max !== 'number') || max === min) {
+					// Max cost is equal to min cost, no range
+					$cost.find('.cost-min').addClass('hidden');
+					return formatter(min, true, $cost, noRichText, unbound);
+				}
 
-			// Max cost, is different, display a range
-			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
+				// Max cost, is different, display a range
+				return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
+			}
 		},
 
 		/**
@@ -373,11 +379,11 @@ define(function () {
 			});
 		},
 
-		getCurrencyUnit: function() {
+		getCurrencyUnit: function () {
 			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.unit || '$';
 		},
 
-		getCurrencyRate: function() {
+		getCurrencyRate: function () {
 			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
 		},
 
@@ -410,22 +416,26 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return sizeMB;
 			}
-			if (mode === 'display' && instance) {
-				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-					return formatManager.formatSize(value * 1024 * 1024, 3);
-				});
+			if (mode !== 'type') {
+				if (instance) {
+					return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
+						return formatManager.formatSize(value * 1024 * 1024, 3);
+					});
+				}
+				return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 			}
-			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 		},
 
 		/**
 		 * Format the memory size.
 		 */
 		formatCpu: function (value, mode, instance) {
-			if (mode === 'display' && instance) {
+			if (mode === 'sort' || mode === 'filter') {
+				return value;
+			}
+			if (mode !== 'type' && instance) {
 				return current.formatEfficiency(value, instance.price.type.cpu);
 			}
-			return value;
 		},
 
 		/**
@@ -463,15 +473,17 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return sizeGB;
 			}
-			if (data && data.price.type.minimal > sizeGB) {
-				// Enable efficiency display
-				return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
-					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-				});
-			}
+			if (mode !== 'type') {
+				if (data && data.price.type.minimal > sizeGB) {
+					// Enable efficiency display
+					return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
+						return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
+					});
+				}
 
-			// No efficiency rendering can be done
-			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+				// No efficiency rendering can be done
+				return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+			}
 		},
 
 		/**
@@ -507,9 +519,9 @@ define(function () {
 			if (storages) {
 				storages.forEach(storage => sum += storage.size);
 			}
-			if (mode === 'display') {
+			if (mode !== 'type') {
 				// Need to build a Select2 tags markup
-				return '<input type="text" class="storages-tags" data-instance="' + instance.id + '" autocomplete="off" name="storages-tags">';
+				return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
 			}
 			return sum;
 		},
@@ -599,8 +611,10 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			if (mode !== 'type') {
+				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			}
 		},
 
 		/**
@@ -608,11 +622,13 @@ define(function () {
 		 */
 		formatInternet: function (internet, mode, clazz) {
 			var cfg = (internet && current.internet[(internet.id || internet).toLowerCase()]) || current.internet.public || 'public';
-			if (mode === 'sort') {
+			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			if (mode !== 'type') {
+				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+			}
 		},
 
 		formatUsageTemplate: function (usage, mode) {
@@ -621,7 +637,7 @@ define(function () {
 			} else {
 				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
 			}
-			if (mode === 'display') {
+			if (mode !== 'type') {
 				var tooltip = current.$messages.name + ': ' + usage.name;
 				tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
 				tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
@@ -653,7 +669,9 @@ define(function () {
 			if (mode === 'display') {
 				return current.locationToHtml(obj, false, true);
 			}
-			return obj ? obj.name : '';
+			if (mode === 'sort' || mode === 'filter') {
+				return obj ? obj.name : '';
+			}
 		},
 
 		/**
@@ -675,7 +693,9 @@ define(function () {
 					return text;
 				}
 
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+				if (mode === 'display') {
+					return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+				}
 			}
 			return '';
 		},
@@ -700,8 +720,10 @@ define(function () {
 				return text;
 			}
 
-			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+			if (mode !== 'type') {
+				clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+			}
 		},
 
 		/**
@@ -726,8 +748,10 @@ define(function () {
 				if (mode === 'sort' || mode === 'filter') {
 					return text;
 				}
-				var clazz = current.supportAccessType[id];
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
+				if (mode !== 'type') {
+					var clazz = current.supportAccessType[id];
+					return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
+				}
 			}
 		},
 
@@ -3228,8 +3252,10 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
+			if (mode !== 'type') {
+				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
+			}
 		},
 
 		/**
@@ -3308,7 +3334,7 @@ define(function () {
 
 									// Keep the focus on this UI after the redraw of the row
 									$(function () {
-										_('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storages-tags .select2-input').trigger('focus');
+										_('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storage-tags .select2-input').trigger('focus');
 									});
 								}
 							});
