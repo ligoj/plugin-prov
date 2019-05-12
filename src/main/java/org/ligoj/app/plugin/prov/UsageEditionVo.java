@@ -23,7 +23,6 @@ public class UsageEditionVo {
 	 * Unique name within a quote.
 	 */
 	@NotBlank
-	@NotNull
 	private String name;
 
 	/**

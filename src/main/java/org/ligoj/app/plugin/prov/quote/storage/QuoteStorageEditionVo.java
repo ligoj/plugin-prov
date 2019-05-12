@@ -38,7 +38,6 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private Integer id;
 
 	@NotBlank
-	@NotNull
 	private String name;
 
 	@Length(max = 250)

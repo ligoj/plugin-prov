@@ -39,7 +39,6 @@ public class ProvCurrency extends AbstractDescribedAuditedEntity<Integer> {
 	/**
 	 * The currency unit displayed around the amount.
 	 */
-	@NotNull
 	@NotBlank
 	private String unit;
 
