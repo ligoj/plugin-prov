@@ -8,7 +8,6 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -45,8 +44,7 @@ public class ProvTag extends AbstractNamedEntity<Integer> implements Configurabl
 	/**
 	 * The optional tag value.
 	 */
-	@NotBlank
-	@Size(max = 1024)
+	@Size(max = 1024, min = 1)
 	private String value;
 
 	/**
