@@ -4,9 +4,10 @@
 package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.bootstrap.model.system.AbstractNamedValue;
+import org.ligoj.bootstrap.core.model.AbstractNamedAuditedEntity;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,12 +17,18 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class TagEditionVo extends AbstractNamedValue<Integer> {
+public class TagEditionVo extends AbstractNamedAuditedEntity<Integer> {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Value as string.
+	 */
+	@Size(max = 1024, min = 1)
+	private String value;
 
 	/**
 	 * The attached resource type.
