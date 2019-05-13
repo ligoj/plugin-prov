@@ -3,7 +3,9 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -18,11 +20,21 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TagEditionVo extends AbstractNamedAuditedEntity<Integer> {
+	
+	public static final String NAME_PATTERN = "[\\-_.a-zA-Z0-9]+";
+	public static final String VALUE_PATTERN = "[\\-_./a-zA-Z0-9]+";
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Object name
+	 */
+	@NotBlank
+	@Pattern(regexp = NAME_PATTERN)
+	private String name;
 
 	/**
 	 * Value as string.

@@ -18,6 +18,7 @@ import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,6 +225,27 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
 		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	public void uploadTags() throws IOException {
+		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 sec;8", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1, "UTF-8");
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		final var id = configuration.getInstances().get(7).getId();
+		var tags = configuration.getTags().get(ResourceType.INSTANCE).get(id);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "sec".equals(t.getName()) && t.getValue() == null));
+
+		var sid = configuration.getStorages().stream().filter(s -> id.equals(s.getInstance())).findFirst().get()
+				.getId();
+		tags = configuration.getTags().get(ResourceType.STORAGE).get(sid);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "sec".equals(t.getName()) && t.getValue() == null));
 	}
 
 	@Test

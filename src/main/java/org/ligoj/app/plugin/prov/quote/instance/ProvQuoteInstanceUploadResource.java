@@ -43,10 +43,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.plugin.prov.InstanceUpload;
 import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.ProvTagResource;
+import org.ligoj.app.plugin.prov.TagEditionVo;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageEditionVo;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -68,7 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ProvQuoteInstanceUploadResource {
 	private static final String CSV_FILE = "csv-file";
 	private static final List<String> MINIMAL_HEADERS = List.of("name", "cpu", "ram", "os");
-	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized" };
+	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized",
+			"tags" };
 
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
@@ -77,7 +81,7 @@ public class ProvQuoteInstanceUploadResource {
 			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
 			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software",
-			"description:note");
+			"description:note", "tags:(tag|label|labels)");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -106,6 +110,9 @@ public class ProvQuoteInstanceUploadResource {
 	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
+	private ProvTagResource tagResource;
+
+	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
 	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer>> MERGER = Map
@@ -116,10 +123,11 @@ public class ProvQuoteInstanceUploadResource {
 	 */
 	private Integer modeInsert(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
 		// Reserve this name
-		var instance = new ProvQuoteInstance();
-		previous.put(vo.getName(), instance);
-		instance.setId(qiResource.create(vo).getId());
-		return instance.getId();
+		var qi = new ProvQuoteInstance();
+		previous.put(vo.getName(), qi);
+		qi.setId(qiResource.create(vo).getId());
+		vo.setId(qi.getId());
+		return qi.getId();
 	}
 
 	/**
@@ -343,25 +351,46 @@ public class ProvQuoteInstanceUploadResource {
 		}
 
 		// Storage part
-		IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0).forEach(index -> {
-			final var size = upload.getDisk().get(index).intValue();
-			// Size is provided, propagate the upload properties
-			final var svo = new QuoteStorageEditionVo();
-			svo.setName(vo.getName() + (index == 0 ? "" : index));
-			svo.setQuoteInstance(id);
-			svo.setSize(size);
-			svo.setLatency(getItem(upload.getLatency(), index));
-			svo.setOptimized(getItem(upload.getOptimized(), index));
+		final var disks = IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0)
+				.mapToObj(index -> {
+					final var size = upload.getDisk().get(index).intValue();
+					// Size is provided, propagate the upload properties
+					final var svo = new QuoteStorageEditionVo();
+					svo.setName(vo.getName() + (index == 0 ? "" : index));
+					svo.setQuoteInstance(id);
+					svo.setSize(size);
+					svo.setLatency(getItem(upload.getLatency(), index));
+					svo.setOptimized(getItem(upload.getOptimized(), index));
 
-			// Find the nicest storage
-			svo.setType(storageResource.lookup(subscription, svo).stream().findFirst()
-					.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
-					.getName());
+					// Find the nicest storage
+					svo.setType(storageResource.lookup(subscription, svo).stream().findFirst()
+							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
+							.getName());
 
-			// Default the storage name to the instance name
-			svo.setSubscription(subscription);
-			storageResource.create(svo);
-		});
+					// Default the storage name to the instance name
+					svo.setSubscription(subscription);
+					return storageResource.create(svo).getId();
+				}).collect(Collectors.toList());
+
+		// Tags part
+		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), " ,;"))
+				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
+					// Instance tags
+					final var tag = new TagEditionVo();
+					final var parts = StringUtils.splitPreserveAllTokens(t + ":", ':');
+					tag.setName(parts[0]);
+					tag.setValue(StringUtils.trimToNull(parts[1]));
+					tag.setResource(id);
+					tag.setType(ResourceType.INSTANCE);
+					tagResource.create(subscription, tag);
+
+					// Storage tags
+					tag.setType(ResourceType.STORAGE);
+					disks.forEach(d -> {
+						tag.setResource(d);
+						tagResource.create(subscription, tag);
+					});
+				});
 	}
 
 	private <T> T getItem(final List<T> items, final int index) {

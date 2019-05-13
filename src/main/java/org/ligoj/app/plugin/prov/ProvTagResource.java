@@ -119,16 +119,11 @@ public class ProvTagResource {
 	}
 
 	/**
-	 * Update the usage inside a quote. The computed cost are recursively updated from the related instances to the
-	 * quote total cost.<br>
-	 * The cost of all instances related to this usage will be updated to get the new price.<br>
-	 * An instance related to this usage is either an instance explicitly linked to this usage, either an instance
-	 * linked to a quote having this usage as default.
+	 * Update the tag inside a quote.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param name         The quote usage's name to update.
-	 * @param vo           The new quote usage data.
-	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
+	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
+	 * @param name         The quote tag's name to update.
+	 * @param vo           The new quote tag data.
 	 */
 	@PUT
 	@Path("{subscription:\\d+}/tag")
@@ -140,8 +135,13 @@ public class ProvTagResource {
 	/**
 	 * Save or update the tag entity from the given {@link TagEditionVo}. The related subscription, the related resource
 	 * and the related resource type must match and be visible for the principal user.
+	 * 
+	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
+	 * @param entity       The target entity to update/persist
+	 * @param vo           The new quote tag data.
+	 * @return The tag identifier.
 	 */
-	private int saveOrUpdate(final int subscription, final ProvTag entity, final TagEditionVo vo) {
+	public int saveOrUpdate(final int subscription, final ProvTag entity, final TagEditionVo vo) {
 		// Check the associations and copy attributes to the entity
 		var res = resource.findConfigured(getRepository(vo.getType()), vo.getResource(), subscription);
 		NamedBean.copy(vo, entity);
@@ -155,7 +155,7 @@ public class ProvTagResource {
 	/**
 	 * Delete a tag.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
 	 * @param id           The {@link ProvTag} identifier.
 	 */
 	@DELETE

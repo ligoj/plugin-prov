@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
@@ -22,6 +23,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InstanceUpload {
+
+	private static final String SEPARATOR = ",\\s;";
+	private static final String FULL_TAG = SEPARATOR + TagEditionVo.NAME_PATTERN + "(:" + TagEditionVo.VALUE_PATTERN
+			+ ")?";
+
 	private String name;
 	private String description;
 
@@ -113,4 +119,10 @@ public class InstanceUpload {
 	 * Optional built-in software.
 	 */
 	private String software;
+
+	/**
+	 * Optional tags with space, comma or semi-column separator.
+	 */
+	@Pattern(regexp = "^(" + FULL_TAG + ")*$")
+	private String tags;
 }

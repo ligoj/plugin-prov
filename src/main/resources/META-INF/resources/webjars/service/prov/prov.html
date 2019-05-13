@@ -565,8 +565,10 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage
+									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags
 								</code>
+								<br /><code><strong>name</strong> Unique name within the quote</code>
+								<br /><code><strong>description</strong> Optional description of the resource</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
 								<br /><code><strong>constant</strong> [true,(false)] for CPU behavior</code>
@@ -576,12 +578,13 @@
 								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
 								<br /><code><strong>type</strong> Instance type name, case insensitive, default is auto</code>
 								<br /><code><strong>internet</strong> [NAT,PUBLIC,(PRIVATE)]</code>
-								<br /><code><strong>ephemeral</strong> When true, ephemeral contract is accepted. False by default.</code>
-								<br /><code><strong>minQuantity</strong> Minimal quantity, default is 1.</code>
-								<br /><code><strong>maxQuantity</strong> Maximal quantity, default is 1.</code>
+								<br /><code><strong>ephemeral</strong> When true, ephemeral contract is accepted. False by default</code>
+								<br /><code><strong>minQuantity</strong> Minimal quantity, default is 1</code>
+								<br /><code><strong>maxQuantity</strong> Maximal quantity, default is 1</code>
 								<br /><code><strong>location</strong> Location name override of quote's one</code>
 								<br /><code><strong>usage</strong> Usage name override of quote's one</code>
-								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay.</code>
+								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay</code>
+								<br /><code><strong>tags</strong> Tags key:value, with ',', ' ' as separator. Tag value is optional</code>
 								<br />{{instance-import-sample}}
 								<br /><code>name;cpu;ram;os;disk;latency;optimized;constant;instance;usage</code>
 								<br /><code>mysql;1.5:2048;RHEL;20;GOOD;IOPS;true</code>
