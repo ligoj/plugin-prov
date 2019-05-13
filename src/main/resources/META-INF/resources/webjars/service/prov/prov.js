@@ -15,6 +15,11 @@ define(function () {
 		 */
 		usageTemplates: {},
 
+		/**
+		 * Tag manager
+		 */
+		tagManager: null,
+
 		contextDonut: null,
 
 		/**
@@ -29,9 +34,10 @@ define(function () {
 			current.model = subscription;
 			current.cleanup();
 			$('.loader-wrapper').addClass('hidden');
-			require(['text!../main/service/prov/menu.html'], function (menu) {
+			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag'], function (menu, tagManager) {
 				_('service-prov-menu').empty().remove();
 				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
+				current.tagManager = tagManager;
 				current.initOdometer();
 				current.optimizeModel();
 				current.initializeForm();
@@ -1162,6 +1168,11 @@ define(function () {
 			});
 			oSettings.columns.push(
 				{
+					data: null,
+					orderable: false,
+					className: 'truncate hidden-xs',
+					render: current.tagManager.render
+				}, {
 					data: 'cost',
 					className: 'truncate hidden-xs',
 					render: current.formatCost
@@ -3283,7 +3294,8 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					$(nRow).find('.storages-tags').select2('destroy').select2({
+					current.tagManager.select2(current, nRow, qi, type);
+					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
 						minimumInputLength: 1,
 						createSearchChoice: () => null,
