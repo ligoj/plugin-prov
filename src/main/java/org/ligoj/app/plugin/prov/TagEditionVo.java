@@ -9,7 +9,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.bootstrap.core.model.AbstractNamedAuditedEntity;
+import org.ligoj.bootstrap.core.INamableBean;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +19,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class TagEditionVo extends AbstractNamedAuditedEntity<Integer> {
-	
+public class TagEditionVo implements INamableBean<Integer> {
+
 	public static final String NAME_PATTERN = "[\\-_.a-zA-Z0-9]+";
 	public static final String VALUE_PATTERN = "[\\-_./a-zA-Z0-9]+";
 
@@ -28,6 +28,11 @@ public class TagEditionVo extends AbstractNamedAuditedEntity<Integer> {
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Internal identifier. Might be removed later...
+	 */
+	private Integer id;
 
 	/**
 	 * Object name
