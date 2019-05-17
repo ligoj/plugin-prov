@@ -4,8 +4,8 @@
 define(['jquery'], function ($) {
 	return (function () {
 
-		function toTags(current, resource) {
-			return (current.model && current.model.configuration.tags[resource.resourceType.toUpperCase()] || {})[resource.id] || [];
+		function toTags(current, resource, type) {
+			return (current.model && current.model.configuration.tags[type.toUpperCase()] || {})[resource.id] || [];
 		}
 
 		function formatResult(tag) {
@@ -20,9 +20,9 @@ define(['jquery'], function ($) {
 			return tag.name ? (tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value))) : tag.text;
 		}
 
-		function suggest(current, term, resource) {
+		function suggest(current, term, resource, type) {
 			// Get tags of current resource
-			var tags = toTags(current, resource).map(format);
+			var tags = toTags(current, resource, type).map(format);
 			var keys = {};
 			var keyValues = {};
 			Object.keys((current.model && current.model.configuration.tags) || {}).forEach(type => Object.keys(current.model.configuration.tags[type] || {}).forEach(rId =>
@@ -104,11 +104,11 @@ define(['jquery'], function ($) {
 				data: function () {
 					var term = $('.select2-container-active.resource-tags').find('input.select2-input').val();
 					return {
-						results: term ? suggest(current, term, resource) : [],
+						results: term ? suggest(current, term, resource, type) : [],
 						text: format
 					};
 				}
-			}).select2('data', toTags(current, resource)).off('change').on('change', function (event) {
+			}).select2('data', toTags(current, resource, type)).off('change').on('change', function (event) {
 				if (event.added) {
 					// New tag
 					var tag = event.added;
@@ -200,15 +200,10 @@ define(['jquery'], function ($) {
 					return false;
 				}
 			});
-
 		}
 
 		// Exports
 		return {
-			toTags: toTags,
-			suggest: suggest,
-			formatResult: formatResult,
-			formatSelection: formatSelection,
 			render: render,
 			select2: select2
 		};

@@ -266,26 +266,23 @@ define(function () {
 		formatInstanceTerm: function (name, mode, qi) {
 			var term = qi ? qi.price.term : null;
 			name = term ? term.name : name;
-			if (mode === 'sort' || (term && typeof term.id === 'undefined')) {
+			if (mode === 'sort' || mode === 'filter' || (term && typeof term.id === 'undefined')) {
 				// Use only the name
 				return name;
 			}
-			if (mode !== 'type') {
-				// Instance details are available
-				var details = '<i class=\'fas fa-clock\'></i> ';
-				if (term && term.period) {
-					details += term.period + ' months period';
-				} else {
-					details = 'on demand, hourly (or less) billing period';
-				}
-				if (qi.price.initialCost) {
-					details += '<br/>Initial cost: $' + qi.price.initialCost;
-				}
-
-				return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+			// Instance details are available
+			var details = '<i class=\'fas fa-clock\'></i> ';
+			if (term && term.period) {
+				details += term.period + ' months period';
+			} else {
+				details = 'on demand, hourly (or less) billing period';
 			}
-		},
+			if (qi.price.initialCost) {
+				details += '<br/>Initial cost: $' + qi.price.initialCost;
+			}
 
+			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		},
 
 		/**
 		 * Format instance quantity
@@ -296,18 +293,16 @@ define(function () {
 				return min;
 			}
 
-			if (mode !== 'type') {
-				var max = instance.maxQuantity;
-				if (typeof max !== 'number') {
-					return min + '+';
-				}
-				if (max === min) {
-					return min;
-				}
-
-				// A range
-				return min + '-' + max;
+			var max = instance.maxQuantity;
+			if (typeof max !== 'number') {
+				return min + '+';
 			}
+			if (max === min) {
+				return min;
+			}
+
+			// A range
+			return min + '-' + max;
 		},
 
 		/**
@@ -330,35 +325,33 @@ define(function () {
 				return cost;
 			}
 
-			if (mode !== 'type') {
-				var formatter = current.formatCostText;
-				var $cost = $();
-				if (mode instanceof jQuery) {
-					// Odomoter format
-					formatter = current.formatCostOdometer;
-					$cost = mode;
-				}
-
-				// Computation part
-				obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
-				if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
-					// Standard cost
-					$cost.find('.cost-min').addClass('hidden');
-					return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
-				}
-				// A floating cost
-				var min = obj.cost || obj.min || 0;
-				var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
-				var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity != obj.maxQuantity);
-				if ((typeof max !== 'number') || max === min) {
-					// Max cost is equal to min cost, no range
-					$cost.find('.cost-min').addClass('hidden');
-					return formatter(min, true, $cost, noRichText, unbound);
-				}
-
-				// Max cost, is different, display a range
-				return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
+			var formatter = current.formatCostText;
+			var $cost = $();
+			if (mode instanceof jQuery) {
+				// Odomoter format
+				formatter = current.formatCostOdometer;
+				$cost = mode;
 			}
+
+			// Computation part
+			obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
+			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
+				// Standard cost
+				$cost.find('.cost-min').addClass('hidden');
+				return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
+			}
+			// A floating cost
+			var min = obj.cost || obj.min || 0;
+			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+			var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity != obj.maxQuantity);
+			if ((typeof max !== 'number') || max === min) {
+				// Max cost is equal to min cost, no range
+				$cost.find('.cost-min').addClass('hidden');
+				return formatter(min, true, $cost, noRichText, unbound);
+			}
+
+			// Max cost, is different, display a range
+			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
 		},
 
 		/**
@@ -422,14 +415,12 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return sizeMB;
 			}
-			if (mode !== 'type') {
-				if (instance) {
-					return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-						return formatManager.formatSize(value * 1024 * 1024, 3);
-					});
-				}
-				return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
+			if (instance) {
+				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
+					return formatManager.formatSize(value * 1024 * 1024, 3);
+				});
 			}
+			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 		},
 
 		/**
@@ -439,9 +430,10 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return value;
 			}
-			if (mode !== 'type' && instance) {
+			if (instance) {
 				return current.formatEfficiency(value, instance.price.type.cpu);
 			}
+			return value;
 		},
 
 		/**
@@ -479,17 +471,15 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return sizeGB;
 			}
-			if (mode !== 'type') {
-				if (data && data.price.type.minimal > sizeGB) {
-					// Enable efficiency display
-					return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
-						return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-					});
-				}
-
-				// No efficiency rendering can be done
-				return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+			if (data && data.price.type.minimal > sizeGB) {
+				// Enable efficiency display
+				return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
+					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
+				});
 			}
+
+			// No efficiency rendering can be done
+			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
 		},
 
 		/**
@@ -519,17 +509,21 @@ define(function () {
 		 * Format an attached storages
 		 */
 		formatQiStorages: function (instance, mode) {
-			// Compute the sum
-			var storages = instance.storages;
-			var sum = 0;
-			if (storages) {
-				storages.forEach(storage => sum += storage.size);
+			if (mode === 'filter') {
+				return '';
 			}
-			if (mode !== 'type') {
-				// Need to build a Select2 tags markup
-				return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
+
+			if (mode === 'sort') {
+				// Compute the sum
+				var storages = instance.storages;
+				var sum = 0;
+				if (storages) {
+					storages.forEach(storage => sum += storage.size);
+				}
+				return sum;
 			}
-			return sum;
+			// Need to build a Select2 tags markup
+			return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
 		},
 
 		/**
@@ -617,10 +611,8 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			if (mode !== 'type') {
-				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
-			}
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
 		/**
@@ -631,26 +623,25 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			if (mode !== 'type') {
-				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
-			}
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
 
 		formatUsageTemplate: function (usage, mode) {
+			if (mode === 'sort' || mode === 'filter') {
+				usage = current.model.configuration.usage || {};
+				return usage.text || usage.name;
+			}
 			if (usage) {
 				// TODO
 			} else {
 				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
 			}
-			if (mode !== 'type') {
-				var tooltip = current.$messages.name + ': ' + usage.name;
-				tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
-				tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
-				tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
-				return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
-			}
-			return usage.text || usage.name;
+			var tooltip = current.$messages.name + ': ' + usage.name;
+			tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
+			tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
+			tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
+			return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
 		},
 
 		formatLocation: function (location, mode, data) {
@@ -672,12 +663,10 @@ define(function () {
 				obj = current.model.configuration.location;
 			}
 
-			if (mode === 'display') {
-				return current.locationToHtml(obj, false, true);
-			}
 			if (mode === 'sort' || mode === 'filter') {
 				return obj ? obj.name : '';
 			}
+			return current.locationToHtml(obj, false, true);
 		},
 
 		/**
@@ -726,10 +715,8 @@ define(function () {
 				return text;
 			}
 
-			if (mode !== 'type') {
-				clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
-			}
+			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
 		},
 
 		/**
@@ -754,10 +741,8 @@ define(function () {
 				if (mode === 'sort' || mode === 'filter') {
 					return text;
 				}
-				if (mode !== 'type') {
-					var clazz = current.supportAccessType[id];
-					return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
-				}
+				var clazz = current.supportAccessType[id];
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
 			}
 		},
 
@@ -1120,6 +1105,7 @@ define(function () {
 				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				destroy: true,
 				stateSave: true,
+				deferRender: true,
 				stateDuration: 0,
 				stateLoadCallback: function (settings, callback) {
 					try {
@@ -1171,15 +1157,18 @@ define(function () {
 					data: null,
 					orderable: false,
 					className: 'truncate hidden-xs',
+					type: 'string',
 					render: current.tagManager.render
 				}, {
 					data: 'cost',
 					className: 'truncate hidden-xs',
+					type: 'num',
 					render: current.formatCost
 				}, {
 					data: null,
 					width: '32px',
 					orderable: false,
+					type: 'string',
 					render: function () {
 						var links =
 							'<a class="update" data-toggle="modal" data-target="#popup-prov-' + popupType + '"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
@@ -3143,6 +3132,7 @@ define(function () {
 				data: 'os',
 				className: 'truncate',
 				width: '24px',
+				type: 'string',
 				render: current.formatOs
 			}]);
 		},
@@ -3152,9 +3142,13 @@ define(function () {
 		 */
 		supportNewTable: function () {
 			return {
+				rowCallback: function (nRow, data) {
+					current.rowCallback($(nRow), data, 'support');
+				},
 				columns: [{
 					data: 'level',
 					width: '128px',
+					type: 'string',
 					render: current.formatSupportLevel
 				}, {
 					data: 'seats',
@@ -3164,22 +3158,27 @@ define(function () {
 				}, {
 					data: 'accessApi',
 					className: 'hidden-xs hidden-sm hidden-md',
+					type: 'string',
 					render: current.formatSupportAccess
 				}, {
 					data: 'accessPhone',
 					className: 'hidden-xs hidden-sm hidden-md',
+					type: 'string',
 					render: current.formatSupportAccess
 				}, {
 					data: 'accessEmail',
 					className: 'hidden-xs hidden-sm hidden-md',
+					type: 'string',
 					render: current.formatSupportAccess
 				}, {
 					data: 'accessChat',
 					className: 'hidden-xs hidden-sm hidden-md',
+					type: 'string',
 					render: current.formatSupportAccess
 				}, {
 					data: 'price.type',
 					className: 'truncate',
+					type: 'string',
 					render: current.formatSupportType
 				}]
 			};
@@ -3213,6 +3212,9 @@ define(function () {
 		 */
 		storageNewTable: function () {
 			return {
+				rowCallback: function (nRow, data) {
+					current.rowCallback($(nRow), data, 'storage');
+				},
 				columns: [{
 					data: null,
 					type: 'num',
@@ -3226,18 +3228,22 @@ define(function () {
 					render: current.formatStorage
 				}, {
 					data: 'price.type.latency',
+					type: 'string',
 					className: 'truncate hidden-xs',
 					render: current.formatStorageLatency
 				}, {
 					data: 'price.type.optimized',
+					type: 'string',
 					className: 'truncate hidden-xs',
 					render: current.formatStorageOptimized
 				}, {
 					data: 'price.type',
+					type: 'string',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					render: current.formatStorageType
 				}, {
 					data: null,
+					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
 					render: (_i, mode, data) => (data.quoteInstance || data.quoteDatabase || {}).name
 				}]
@@ -3263,10 +3269,8 @@ define(function () {
 			if (mode === 'sort' || mode === 'filter') {
 				return cfg[0];
 			}
-			if (mode !== 'type') {
-				clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
-			}
+			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
 		},
 
 		/**
@@ -3281,11 +3285,17 @@ define(function () {
 			}, {
 				data: 'price.engine',
 				className: 'truncate',
+				type: 'string',
 				render: current.formatDatabaseEngine
 			}, {
 				data: 'price.edition',
+				type: 'string',
 				className: 'truncate'
 			}]);
+		},
+
+		rowCallback: function ($row, data, type) {
+			current.tagManager.select2(current, $row, data, type);
 		},
 
 		/**
@@ -3294,7 +3304,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					current.tagManager.select2(current, nRow, qi, type);
+					current.rowCallback($(nRow), qi, type);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
 						minimumInputLength: 1,
@@ -3376,23 +3386,28 @@ define(function () {
 				}, {
 					data: 'price.term',
 					className: 'hidden-xs hidden-sm price-term',
+					type: 'string',
 					render: current.formatInstanceTerm
 				}, {
 					data: 'price.type',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
+					type: 'string',
 					render: current.formatInstanceType
 				}, {
 					data: 'usage',
 					className: 'hidden-xs hidden-sm usage',
+					type: 'string',
 					render: current.formatUsageTemplate
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
 					width: '24px',
+					type: 'string',
 					render: current.formatLocation
 				}, {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
+					type: 'num',
 					render: current.formatQiStorages
 				}])
 			};
