@@ -1168,6 +1168,7 @@ define(function () {
 					data: null,
 					width: '32px',
 					orderable: false,
+					searchable: false,
 					type: 'string',
 					render: function () {
 						var links =
