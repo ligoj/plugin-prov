@@ -2064,6 +2064,7 @@ define(function () {
 				&& conf.license === jsonData.license
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
+				$popup.modal('hide');
 				return;
 			}
 
