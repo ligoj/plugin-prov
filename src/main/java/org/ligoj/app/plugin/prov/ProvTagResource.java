@@ -78,7 +78,6 @@ public class ProvTagResource {
 	 * 
 	 * @param type     The deleted resource type.
 	 * @param resource The deleted resource identifiers
-	 * @return The available tags for the given subscription.
 	 */
 	public void onDelete(final ResourceType type, final Integer... resources) {
 		Arrays.stream(resources).forEach(r -> repository.deleteAllBy("type", type, new String[] { "resource" }, r));
@@ -90,7 +89,6 @@ public class ProvTagResource {
 	 * 
 	 * @param type  The deleted resource type.
 	 * @param quote The quote identifier
-	 * @return The available tags for the given subscription.
 	 */
 	public void onDeleteAll(final ResourceType type, final int quote) {
 		repository.deleteAllBy("configuration.id", quote, new String[] { "type" }, type);
@@ -122,7 +120,6 @@ public class ProvTagResource {
 	 * Update the tag inside a quote.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
-	 * @param name         The quote tag's name to update.
 	 * @param vo           The new quote tag data.
 	 */
 	@PUT

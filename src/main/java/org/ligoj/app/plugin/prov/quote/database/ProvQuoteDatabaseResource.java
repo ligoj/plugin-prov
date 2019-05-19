@@ -119,6 +119,7 @@ public class ProvQuoteDatabaseResource extends
 	 * @param name   The attribute to check.
 	 * @param pQuote The quote required attribute value.
 	 * @param vPrice The price attribute value.
+	 * @param <V>    The quote property value type.
 	 */
 	protected <V> void checkAttribute(final String name, final V pQuote, final V vPrice) {
 		if (!Objects.equals(pQuote, vPrice)) {

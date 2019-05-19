@@ -344,6 +344,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param license       The quote license value. May be <code>null</code>.
 	 * @param key           The criteria used to evaluate the license <code>null</code> value.
 	 * @param canByol       The predicate evaluating the key when the given license is <code>null</code>
+	 * @param <K>           The key type.
 	 * @return The human readable license value.
 	 */
 	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,

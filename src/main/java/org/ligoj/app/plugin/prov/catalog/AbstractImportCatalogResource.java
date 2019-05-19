@@ -133,10 +133,9 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Initialize the given context.
 	 *
-	 * @param context
-	 *            The context to initialize.
-	 * @param node
-	 *            The provider node identifier.
+	 * @param context The context to initialize.
+	 * @param node    The provider node identifier.
+	 * @param <U>     The context type.
 	 * @return The context parameter.
 	 */
 	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node) {
@@ -148,10 +147,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Return the most precise rate from a name.
 	 *
-	 * @param type
-	 *            The rating mapping name.
-	 * @param name
-	 *            The name to map.
+	 * @param type The rating mapping name.
+	 * @param name The name to map.
 	 * @return The direct [class, generation, size] rate association, or the [class, generation] rate association, or
 	 *         the [class] association, of the explicit "default association or {@link Rate#MEDIUM} value.
 	 */
@@ -167,11 +164,9 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Read a rate mapping file.
 	 *
-	 * @param type
-	 *            The target mapping table name to fill.
+	 * @param type The target mapping table name to fill.
 	 *
-	 * @throws IOException
-	 *             When the JSON mapping file cannot be read.
+	 * @throws IOException When the JSON mapping file cannot be read.
 	 */
 	protected void initRate(final String type) throws IOException {
 		final Map<String, Rate> mapping = new HashMap<>();
@@ -186,8 +181,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Round up to 3 decimals the given value.
 	 *
-	 * @param value
-	 *            Raw value.
+	 * @param value Raw value.
 	 * @return The rounded value.
 	 */
 	protected double round3Decimals(final double value) {
@@ -211,10 +205,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given instance type is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param type
-	 *            The instance type to test.
+	 * @param context The update context.
+	 * @param type    The instance type to test.
 	 * @return <code>true</code> when the configuration enable the given instance type.
 	 */
 	protected boolean isEnabledType(final AbstractUpdateContext context, final String type) {
@@ -224,10 +216,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given database type is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param type
-	 *            The database type to test.
+	 * @param context The update context.
+	 * @param type    The database type to test.
 	 * @return <code>true</code> when the configuration enable the given database type.
 	 */
 	protected boolean isEnabledDatabase(final AbstractUpdateContext context, final String type) {
@@ -237,8 +227,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Return the OS from it's name.
 	 *
-	 * @param osName
-	 *            The OS name Case is not sensitive.
+	 * @param osName The OS name Case is not sensitive.
 	 * @return The OS from it's name. Never <code>null</code>.
 	 */
 	protected VmOs toVmOs(String osName) {
@@ -248,10 +237,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given OS is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param os
-	 *            The OS to test.
+	 * @param context The update context.
+	 * @param os      The OS to test.
 	 * @return <code>true</code> when the configuration enable the given OS.
 	 */
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final VmOs os) {
@@ -261,10 +248,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given OS is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param os
-	 *            The OS to test.
+	 * @param context The update context.
+	 * @param os      The OS to test.
 	 * @return <code>true</code> when the configuration enable the given OS.
 	 */
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final String os) {
@@ -274,10 +259,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given region is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param region
-	 *            The region API name to test.
+	 * @param context The update context.
+	 * @param region  The region API name to test.
 	 * @return <code>true</code> when the configuration enable the given region.
 	 */
 	protected boolean isEnabledRegion(final AbstractUpdateContext context, final ProvLocation region) {
@@ -287,10 +270,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Indicate the given region is enabled.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param region
-	 *            The region API name to test.
+	 * @param context The update context.
+	 * @param region  The region API name to test.
 	 * @return <code>true</code> when the configuration enable the given region.
 	 */
 	protected boolean isEnabledRegion(final AbstractUpdateContext context, final String region) {
@@ -299,6 +280,10 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Install a new region.
+	 * 
+	 * @param context The update context.
+	 * @param region  The region API name to install.
+	 * @return The region, created or existing one.
 	 */
 	protected ProvLocation installRegion(final AbstractUpdateContext context, final String region) {
 		final var entity = context.getRegions().computeIfAbsent(region, r -> {
@@ -328,10 +313,8 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Return the {@link ProvLocation} matching the human name.
 	 *
-	 * @param context
-	 *            The update context.
-	 * @param humanName
-	 *            The required human name.
+	 * @param context   The update context.
+	 * @param humanName The required human name.
 	 * @return The corresponding {@link ProvLocation} or <code>null</code>.
 	 */
 	protected ProvLocation getRegionByHumanName(final AbstractUpdateContext context, final String humanName) {
@@ -347,7 +330,13 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Update the statistics
+	 * Update the statistics.
+	 * 
+	 * @param node     The node provider.
+	 * @param location The current region API name.
+	 * @param step     The step counter to move forward. May be <code>0</code>.
+	 * @return The region, created or existing one.
+	 * 
 	 */
 	protected void nextStep(final Node node, final String location, final int step) {
 		importCatalogResource.nextStep(node.getId(), t -> {
@@ -361,8 +350,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Return workload corresponding to the given status.
 	 *
-	 * @param status
-	 *            The current status.
+	 * @param status The current status.
 	 * @return Workload corresponding to the given status.
 	 */
 	protected int getWorkload(ImportCatalogStatus status) {
@@ -372,20 +360,18 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one.
 	 *
-	 * @param entity
-	 *            The target entity to update.
-	 * @param oldCost
-	 *            The old cost.
-	 * @param newCost
-	 *            The new cost.
-	 * @param updateCost
-	 *            The consumer used to handle the price replacement operation if needed.
-	 * @param persister
-	 *            The consumer used to persist the replacement. Usually a repository operation.
+	 * @param entity     The target entity to update.
+	 * @param oldCost    The old cost.
+	 * @param newCost    The new cost.
+	 * @param updateCost The consumer used to handle the price replacement operation if needed.
+	 * @param <A>        The identifier type of the price type.
+	 * @param <N>        The price type's type.
+	 * @param <P>        The price type.
+	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected <A extends Serializable, N extends AbstractNamedEntity<A>, T extends AbstractPrice<N>> void saveAsNeeded(
-			final T entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
-			final Consumer<T> persister) {
+	protected <A extends Serializable, N extends AbstractNamedEntity<A>, P extends AbstractPrice<N>> void saveAsNeeded(
+			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
+			final Consumer<P> persister) {
 		if (oldCost != newCost) {
 			updateCost.accept(newCost);
 			persister.accept(entity);
@@ -395,12 +381,9 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a storage price when the attached cost is different from the old one.
 	 *
-	 * @param entity
-	 *            The price entity.
-	 * @param newCostGb
-	 *            The new GiB cost.
-	 * @param persister
-	 *            The consumer used to persist the replacement. Usually a repository operation.
+	 * @param entity    The price entity.
+	 * @param newCostGb The new GiB cost.
+	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
 	 */
 	protected void saveAsNeeded(final ProvStoragePrice entity, final double newCostGb,
 			final Consumer<ProvStoragePrice> persister) {

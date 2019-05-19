@@ -114,6 +114,8 @@ public class ProvQuoteInstanceResource extends
 
 	/**
 	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
+	 * 
+	 * @param entity The instance to check.
 	 */
 	protected void checkOs(final ProvQuoteInstance entity) {
 		if (entity.getOs().toPricingOs() != entity.getPrice().getOs()) {
