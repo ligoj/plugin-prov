@@ -694,9 +694,7 @@ define(function () {
 					return text;
 				}
 
-				if (mode === 'display') {
-					return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
-				}
+				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
 			}
 			return '';
 		},
