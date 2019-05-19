@@ -2034,7 +2034,6 @@ define(function () {
 		updateQuote: function (data, property, forceUpdateUi) {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-update');
-			current.disableCreate($popup);
 
 			// Build the new data
 			var jsonData = $.extend({
@@ -2068,6 +2067,7 @@ define(function () {
 				return;
 			}
 
+			current.disableCreate($popup);
 			$.ajax({
 				type: 'PUT',
 				url: REST_PATH + 'service/prov/' + current.model.subscription,
@@ -2090,6 +2090,7 @@ define(function () {
 
 					// UI feedback
 					$popup.modal('hide');
+					current.enableCreate($popup);
 
 					// Handle updated cost
 					if (property) {
