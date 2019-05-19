@@ -210,6 +210,7 @@ public class ProvQuoteStorageResource
 	@DELETE
 	@Path("{subscription:\\d+}/storage")
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Override
 	public UpdatedCost deleteAll(@PathParam("subscription") final int subscription) {
 		return super.deleteAll(subscription);
 	}
@@ -223,6 +224,7 @@ public class ProvQuoteStorageResource
 	@DELETE
 	@Path("storage/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Override
 	public UpdatedCost delete(@PathParam("id") final int id) {
 		return super.delete(id);
 	}

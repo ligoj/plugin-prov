@@ -57,7 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteInstanceResource extends
-		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo, QuoteInstanceLookup, QuoteInstance, QuoteInstanceQuery> {
+		AbstractProvQuoteInstanceResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo, QuoteInstanceLookup, QuoteInstance> {
 
 	@Getter
 	@Autowired

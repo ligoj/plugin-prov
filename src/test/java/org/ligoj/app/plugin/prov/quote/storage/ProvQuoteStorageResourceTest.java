@@ -95,7 +95,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Attempt to attach a storage incompatible to an instance.
 	 */
 	@Test
-	public void createStorageInstanceKo() {
+	public void createInstanceKo() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("storage3-root-bis");
@@ -110,7 +110,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Attempt to attach a storage to 2 instances.
 	 */
 	@Test
-	public void createStorageMultipleAttachment() {
+	public void createMultipleAttachment() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("storage1-root-bis");
@@ -126,7 +126,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Attempt to attach a storage compatible to an instance but without an instance.
 	 */
 	@Test
-	public void createStorageNoInstance() {
+	public void createNoInstance() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("storage3-root-bis");
@@ -151,7 +151,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createStorageInstance() {
+	public void createInstance() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-bis");
@@ -178,7 +178,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createStorageDatabase() {
+	public void createDatabase() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("mysql1");
@@ -208,7 +208,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Create a storage to a database type having a engine constraint.
 	 */
 	@Test
-	public void createStorageDatabaseEngineConstraint() {
+	public void createDatabaseEngineConstraint() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("oracle1");
@@ -238,7 +238,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Create a storage to a database type having an incompatible engine constraint.
 	 */
 	@Test
-	public void createStorageDatabaseEngineIncompatibleEngine1() {
+	public void createDatabaseEngineIncompatibleEngine1() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("mysqlOverOracle");
@@ -253,7 +253,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Create a storage to a database type having an incompatible engine constraint.
 	 */
 	@Test
-	public void createStorageDatabaseEngineIncompatibleEngine2() {
+	public void createDatabaseEngineIncompatibleEngine2() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("oracleOverMySQL");
@@ -265,7 +265,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createStorageUnboundInstance() {
+	public void createUnboundInstance() {
 		setUnboundInstance("server1");
 
 		// Attach the new storage to this unbound instance
@@ -315,7 +315,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createStorage() {
+	public void create() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-ter");
@@ -335,6 +335,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("server1-root-ter", storage.getName());
 		Assertions.assertEquals("server1-root-terD", storage.getDescription());
+		Assertions.assertEquals(ResourceType.STORAGE, storage.getResourceType());
 		Assertions.assertEquals(256, storage.getSize());
 		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
 		Assertions.assertEquals(53.76, storage.getCost(), DELTA);
@@ -389,7 +390,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createStorageNotVisibleSubscription() {
+	public void createNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
@@ -400,7 +401,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageDetachAttach() {
+	public void updateDetachAttach() {
 		checkCost(subscription, 7105.198, 9701.098, false);
 
 		// Make "server1" with unbound maximal quantities
@@ -448,7 +449,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageNoLimit() {
+	public void updateNoLimit() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -465,7 +466,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageInvalidLocation() {
+	public void updateInvalidLocation() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -478,7 +479,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageNotVisibleLocation() {
+	public void updateNotVisibleLocation() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -491,7 +492,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageLimit() {
+	public void updateLimit() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -516,7 +517,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageLimitKo() {
+	public void updateLimitKo() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -528,7 +529,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageUnknownStorage() {
+	public void updateUnknownStorage() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -542,7 +543,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Selected storage is not within the same provider.
 	 */
 	@Test
-	public void updateStorageInvalidStorage() {
+	public void updateInvalidStorage() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -553,7 +554,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateStorageUnknownInstance() {
+	public void updateUnknownInstance() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -568,7 +569,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Selected instance is not within the same provider.
 	 */
 	@Test
-	public void updateStorageNonVisibleInstance() {
+	public void updateNonVisibleInstance() {
 		final var vo = new QuoteStorageEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
@@ -619,7 +620,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findStorageType() {
+	public void findType() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(6, tableItem.getRecordsTotal());
 		Assertions.assertEquals("storage1", tableItem.getData().get(0).getName());
@@ -629,25 +630,25 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findStorageTypeCriteria() {
+	public void findTypeCriteria() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo("rAge2"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
 		Assertions.assertEquals("storage2", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findStorageTypeNotExistsSubscription() {
+	public void findTypeNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findStorageTypeAnotherSubscription() {
+	public void findTypeAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qsResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findStorageTypeNotVisibleSubscription() {
+	public void findTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
 	}

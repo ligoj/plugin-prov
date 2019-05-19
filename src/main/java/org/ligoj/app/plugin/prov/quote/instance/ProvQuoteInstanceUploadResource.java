@@ -115,7 +115,7 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
-	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer>> MERGER = Map
+	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer>> mergers = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
 
 	/**
@@ -287,7 +287,7 @@ public class ProvQuoteInstanceUploadResource {
 		final var cursor = new AtomicInteger(0);
 		final var previous = qiRepository.findAll(subscription).stream()
 				.collect(Collectors.toMap(ProvQuoteInstance::getName, Function.identity()));
-		final var merger = MERGER.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+		final var merger = mergers.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
 		list.stream().filter(Objects::nonNull).forEach(i -> {
 			try {
 				persist(i, subscription, usage, ramMultiplier, merger, previous);

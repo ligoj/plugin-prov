@@ -18,6 +18,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
@@ -127,6 +128,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("support-name1", support.getName());
 		Assertions.assertEquals("support1D", support.getDescription());
 		Assertions.assertEquals("support1", support.getPrice().getType().getName());
+		Assertions.assertEquals(ResourceType.SUPPORT, support.getResourceType());
 		Assertions.assertEquals(3, support.getSeats().intValue());
 		Assertions.assertNull(support.getSlaStartTime());
 		Assertions.assertNull(support.getSlaEndTime());

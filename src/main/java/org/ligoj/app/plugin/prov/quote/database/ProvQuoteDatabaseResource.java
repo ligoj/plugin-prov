@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteDatabaseResource extends
-		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase, QuoteDatabaseQuery> {
+		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase> {
 
 	private static final String ENGINE_ORACLE = "ORACLE";
 
@@ -82,8 +82,7 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Create the database inside a quote.
 	 *
-	 * @param vo
-	 *            The quote instance.
+	 * @param vo The quote instance.
 	 * @return The created instance cost details with identifier.
 	 */
 	@POST
@@ -96,8 +95,7 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Update the database inside a quote.
 	 *
-	 * @param vo
-	 *            The quote instance to update.
+	 * @param vo The quote instance to update.
 	 * @return The new cost configuration.
 	 */
 	@PUT
@@ -118,12 +116,9 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Check the requested edition is compliant with the one of associated {@link ProvDatabasePrice}
 	 *
-	 * @param name
-	 *            The attribute to check.
-	 * @param pQuote
-	 *            The quote required attribute value.
-	 * @param vPrice
-	 *            The price attribute value.
+	 * @param name   The attribute to check.
+	 * @param pQuote The quote required attribute value.
+	 * @param vPrice The price attribute value.
 	 */
 	protected <V> void checkAttribute(final String name, final V pQuote, final V vPrice) {
 		if (!Objects.equals(pQuote, vPrice)) {
@@ -207,10 +202,9 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available instance licenses for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param engine
-	 *            The filtered engine.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param engine       The filtered engine.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -226,8 +220,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database engines for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -239,10 +233,9 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database edition software for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param engine
-	 *            The filtered engine.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param engine       The filtered engine.
 	 * @return The available softwares for the given subscription.
 	 */
 	@GET
@@ -256,10 +249,9 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the instance types inside available for the related catalog.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the instances from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
 	 * @return The valid instance types for the given subscription.
 	 */
 	@GET

@@ -52,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <C> Quoted resource type.
  * @param <P> Quoted resource price type.
  */
-public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm, I extends AbstractQuoteInstanceQuery>
+public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
 		extends AbstractProvQuoteResource<T, P, C> {
 
 	/**

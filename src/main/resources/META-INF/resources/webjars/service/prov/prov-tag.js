@@ -112,9 +112,10 @@ define(['jquery'], function ($) {
 				}
 			}).select2('data', toTags(resource)).off('change').on('change', function (event) {
 				var uType = resource.resourceType;
+				var tag;
 				if (event.added) {
 					// New tag
-					var tag = event.added;
+					tag = event.added;
 					var parts = tag.text ? tag.text.split(':') : [tag.name, tag.value]
 					var data = {
 						name: parts[0],
@@ -159,7 +160,7 @@ define(['jquery'], function ($) {
 					});
 				} else if (event.removed) {
 					// Tag to delete
-					var tag = event.removed.tag || event.removed;
+					tag = event.removed.tag || event.removed;
 					var $this = $(this);
 					$.ajax({
 						type: 'DELETE',
@@ -167,10 +168,11 @@ define(['jquery'], function ($) {
 						success: function () {
 							notifyManager.notify(Handlebars.compile(current.$messages['deleted'])(format(tag)));
 							var tModel = current.model && current.model.configuration && current.model.configuration.tags;
+							var i;
 							if (tModel) {
 								// Update the model
 								tModel = tModel[tType][resource.id];
-								for (var i = 0; i < tModel.length; i++) {
+								for (i = 0; i < tModel.length; i++) {
 									if (tModel[i].id === tag.id) {
 										tModel.splice(i, 1);
 										break;
@@ -178,9 +180,9 @@ define(['jquery'], function ($) {
 								}
 							}
 
-							// Update the Slect2 model
+							// Update the Select2 model
 							var sModel = ($this.val() || '').split(',');
-							for (var i = 0; i < sModel.length; i++) {
+							for (i = 0; i < sModel.length; i++) {
 								if (sModel[i] === tag.text) {
 									sModel.splice(i, 1);
 									break;
@@ -193,7 +195,6 @@ define(['jquery'], function ($) {
 				}
 			}).on('select2-selecting', function (e) {
 				if (e.val.endsWith(':')) {
-					var $this = $(this);
 					$(function () {
 						var $input = $('.select2-dropdown-open.resource-tags').find('input.select2-input');
 						$input.val(e.val).focus();
