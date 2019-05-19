@@ -607,10 +607,10 @@ define(function () {
 		 * Return the HTML markup from the OS key name.
 		 */
 		formatOs: function (os, mode, clazz) {
-			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
 			if (mode === 'sort' || mode === 'filter') {
-				return cfg[0];
+				return os.id || os || 'linux';
 			}
+			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
 			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
 			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 		},
