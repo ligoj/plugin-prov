@@ -61,8 +61,6 @@ define({
         'service:prov:ram-mega': 'MB',
         'service:prov:ram-giga': 'GB',
         'service:prov:ram-help': 'The requested memory in MB. The best instance matching to this requirement may include more than this amount. So it is important to request a balanced resource (CPU/RAM) to limit this loss',
-        'service:prov:instance-name': 'Server',
-        'service:prov:instance-name-title': 'Logical server name',
         'service:prov:instance-quantity': 'Quantity',
         'service:prov:instance-quantity-to': 'to',
         'service:prov:instance-quantity-help': 'Quantity of this instance. The associated storages and the total cost will reflect this amount',

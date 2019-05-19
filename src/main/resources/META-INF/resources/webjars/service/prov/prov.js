@@ -1234,6 +1234,7 @@ define(function () {
 				var dynaType = $source.closest('[data-prov-type]').attr('data-prov-type');
 				var $table = _('prov-' + dynaType + 's');
 				var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+				_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 				$(this).attr('data-prov-type', dynaType)
 					.find('input[type="submit"]')
 					.removeClass('btn-primary btn-success')
