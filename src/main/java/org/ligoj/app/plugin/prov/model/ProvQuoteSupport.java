@@ -93,4 +93,9 @@ public class ProvQuoteSupport extends AbstractQuoteResource<ProvSupportPrice> {
 	public boolean isUnboundCost() {
 		return getConfiguration().isUnboundCost();
 	}
+
+	@Override
+	public ResourceType getResourceType() {
+		return ResourceType.SUPPORT;
+	}
 }

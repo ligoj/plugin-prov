@@ -79,6 +79,11 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> im
 	private ProvStoragePrice price;
 
 	@Override
+	public ResourceType getResourceType() {
+		return ResourceType.STORAGE;
+	}
+
+	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {
 		return Optional.ofNullable(getQuoteResource()).map(AbstractQuoteResourceInstance::isUnboundCost).orElse(false);

@@ -99,13 +99,6 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	}
 
 	/**
-	 * Return the resource type.
-	 *
-	 * @return The resource type.
-	 */
-	public abstract ResourceType getResourceType();
-
-	/**
 	 * Return attached storages.
 	 *
 	 * @return Attached storages.

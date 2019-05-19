@@ -91,4 +91,11 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 		return location == null ? getConfiguration().getLocation() : location;
 	}
 
+	/**
+	 * Return the resource type.
+	 *
+	 * @return The resource type.
+	 */
+	public abstract ResourceType getResourceType();
+
 }
