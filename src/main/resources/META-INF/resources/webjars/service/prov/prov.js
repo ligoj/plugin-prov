@@ -20,6 +20,11 @@ define(function () {
 		 */
 		tagManager: null,
 
+		/**
+		 * Filter manager.
+		 */
+		filterManager: null,
+
 		contextDonut: null,
 
 		/**
@@ -34,10 +39,11 @@ define(function () {
 			current.model = subscription;
 			current.cleanup();
 			$('.loader-wrapper').addClass('hidden');
-			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag'], function (menu, tagManager) {
+			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
 				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
-				current.tagManager = tagManager;
+				current.tagManager = tagManager.build(current);
+				current.filterManager = filterManager;
 				current.initOdometer();
 				current.optimizeModel();
 				current.initializeForm();
@@ -796,6 +802,13 @@ define(function () {
 			var conf = current.model.configuration;
 			var i, qi;
 
+			// Tags case issue
+			var tags = current.model && current.model.configuration.tags || {};
+			Object.keys(tags).forEach(type => {
+				tags[type.toLowerCase()] = tags[type];
+				delete tags[type];
+			});
+
 			// Instances
 			conf.instancesById = {};
 			conf.instanceCost = 0;
@@ -1101,6 +1114,7 @@ define(function () {
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			var $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
+				provType: type,
 				data: current.model.configuration[type + 's'] || [],
 				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				destroy: true,
@@ -1290,6 +1304,19 @@ define(function () {
 
 		initializeForm: function () {
 			// Global datatables filter
+			if ($.fn.dataTable.ext.search.length === 0) {
+				$.fn.dataTable.ext.search.push(
+					function (settings, dataFilter, dataIndex, data) {
+						var type = settings.oInit.provType;
+						if (typeof type === 'undefined') {
+							return true;
+						}
+						// return filterManager.accept(settings, type, dataFilter, data, settings.oPreviousSearch.sSearch);
+						return true;
+					}
+				);
+			}
+
 			$('.subscribe-configuration-prov-search').on('keyup', function (event) {
 				if (event.which !== 16 && event.which !== 91) {
 					var table = current[$(this).closest('[data-prov-type]').attr('data-prov-type') + 'Table'];
@@ -2516,6 +2543,7 @@ define(function () {
 			qx.description = data.description;
 			qx.location = location;
 			qx.usage = usage;
+			qx.resourceType = type;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3295,8 +3323,8 @@ define(function () {
 			}]);
 		},
 
-		rowCallback: function ($row, data, type) {
-			current.tagManager.select2(current, $row, data, type);
+		rowCallback: function ($row, data) {
+			current.tagManager.select2($row, data);
 		},
 
 		/**
@@ -3305,7 +3333,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					current.rowCallback($(nRow), qi, type);
+					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
 						minimumInputLength: 1,

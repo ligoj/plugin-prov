@@ -3,9 +3,14 @@
  */
 define(['jquery'], function ($) {
 	return (function () {
+		var current;
+		function build(newCurrent) {
+			current = newCurrent;
+			return this;
+		}
 
-		function toTags(current, resource, type) {
-			return (current.model && current.model.configuration.tags[type.toUpperCase()] || {})[resource.id] || [];
+		function toTags(resource) {
+			return (current.model && current.model.configuration.tags[resource.resourceType] || {})[resource.id] || [];
 		}
 
 		function formatResult(tag) {
@@ -20,9 +25,9 @@ define(['jquery'], function ($) {
 			return tag.name ? (tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value))) : tag.text;
 		}
 
-		function suggest(current, term, resource, type) {
+		function suggest(term, resource) {
 			// Get tags of current resource
-			var tags = toTags(current, resource, type).map(format);
+			var tags = toTags(resource).map(format);
 			var keys = {};
 			var keyValues = {};
 			Object.keys((current.model && current.model.configuration.tags) || {}).forEach(type => Object.keys(current.model.configuration.tags[type] || {}).forEach(rId =>
@@ -84,16 +89,13 @@ define(['jquery'], function ($) {
 		}
 		function render(_i, mode, resource) {
 			if (mode === 'sort' || mode === 'filter') {
-				return '';
+				return toTags(resource).map(t=>t.name).join(',');
 			}
 			// Render the tags
-			if (mode !== 'type') {
-				// Need to build a Select2 tags markup
-				return '<input type="text" class="resource-tags" data-resource="' + resource.id + '" autocomplete="off" name="resource-tags">';
-			}
+			return '<input type="text" class="resource-tags" data-resource="' + resource.id + '" autocomplete="off" name="resource-tags">';
 		}
 
-		function select2(current, node, resource, type) {
+		function select2(node, resource) {
 			$(node).find('.resource-tags').select2('destroy').select2({
 				multiple: true,
 				minimumInputLength: 1,
@@ -104,11 +106,12 @@ define(['jquery'], function ($) {
 				data: function () {
 					var term = $('.select2-container-active.resource-tags').find('input.select2-input').val();
 					return {
-						results: term ? suggest(current, term, resource, type) : [],
+						results: term ? suggest(term, resource) : [],
 						text: format
 					};
 				}
-			}).select2('data', toTags(current, resource, type)).off('change').on('change', function (event) {
+			}).select2('data', toTags(resource)).off('change').on('change', function (event) {
+				var uType = resource.resourceType;
 				if (event.added) {
 					// New tag
 					var tag = event.added;
@@ -116,7 +119,7 @@ define(['jquery'], function ($) {
 					var data = {
 						name: parts[0],
 						value: parts[1],
-						type: type,
+						type: resource.resourceType,
 						resource: resource.id
 					};
 
@@ -139,10 +142,10 @@ define(['jquery'], function ($) {
 							if (current.model && current.model.configuration && current.model.configuration.tags) {
 								// Update the model
 								var tags = current.model.configuration.tags;
-								var tTags = tags[type.toUpperCase()];
+								var tTags = tags[uType];
 								if (typeof tTags === 'undefined') {
 									tTags = {};
-									tags[type.toUpperCase()] = tTags;
+									tags[uType] = tTags;
 								}
 								var rTags = tTags[data.resource];
 								if (typeof rTags === 'undefined') {
@@ -166,7 +169,7 @@ define(['jquery'], function ($) {
 							var tModel = current.model && current.model.configuration && current.model.configuration.tags;
 							if (tModel) {
 								// Update the model
-								tModel = tModel[type.toUpperCase()][resource.id];
+								tModel = tModel[tType][resource.id];
 								for (var i = 0; i < tModel.length; i++) {
 									if (tModel[i].id === tag.id) {
 										tModel.splice(i, 1);
@@ -205,7 +208,8 @@ define(['jquery'], function ($) {
 		// Exports
 		return {
 			render: render,
-			select2: select2
+			select2: select2,
+			build: build
 		};
 
 	}).call(this);
