@@ -237,15 +237,15 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final var id = configuration.getInstances().get(7).getId();
 		var tags = configuration.getTags().get(ResourceType.INSTANCE).get(id);
 		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "sec".equals(t.getName()) && t.getValue() == null));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 sec".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "sec".equals(t.getName())));
 
 		var sid = configuration.getStorages().stream().filter(s -> id.equals(s.getInstance())).findFirst().get()
 				.getId();
 		tags = configuration.getTags().get(ResourceType.STORAGE).get(sid);
 		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "sec".equals(t.getName()) && t.getValue() == null));
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 sec".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "sec".equals(t.getName())));
 	}
 
 	@Test

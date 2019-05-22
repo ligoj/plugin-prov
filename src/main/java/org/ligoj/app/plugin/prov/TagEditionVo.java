@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.INamableBean;
 
@@ -20,9 +21,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TagEditionVo implements INamableBean<Integer> {
-
-	public static final String NAME_PATTERN = "[\\-_.a-zA-Z0-9]+";
-	public static final String VALUE_PATTERN = "[\\-_./a-zA-Z0-9]+";
 
 	/**
 	 * SID
@@ -38,13 +36,14 @@ public class TagEditionVo implements INamableBean<Integer> {
 	 * Object name
 	 */
 	@NotBlank
-	@Pattern(regexp = NAME_PATTERN)
+	@Pattern(regexp = ProvTag.PATTERN)
 	private String name;
 
 	/**
 	 * Value as string.
 	 */
 	@Size(max = 1024, min = 1)
+	@Pattern(regexp = ProvTag.PATTERN)
 	private String value;
 
 	/**
