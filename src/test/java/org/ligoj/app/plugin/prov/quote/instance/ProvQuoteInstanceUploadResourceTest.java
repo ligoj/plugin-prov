@@ -252,6 +252,13 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	public void uploadTagsInvalidTagName() throws IOException {
+		Assertions.assertThrows(ValidationJsonException.class,
+				() -> qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;app:!!;8", "UTF-8"),
+						new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1, "UTF-8"));
+	}
+
+	@Test
 	public void uploadUpdate() throws IOException {
 		qiuResource.upload(subscription,
 				new StringInputStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX", "UTF-8"),

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -296,17 +297,22 @@ public class ProvQuoteInstanceUploadResource {
 					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
 				}
 			} catch (final ValidationJsonException e) {
-				// Wrap error
-				log.info("Upload provisioning : failed", e);
-				final var errors = e.getErrors();
-				new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
-						.forEach(errors::remove);
-				errors.put(CSV_FILE, List.of(
-						Map.of("parameters", (Serializable) Map.of("name", i.getName()), "rule", "csv-invalid-entry")));
-				throw e;
+				throw handleValidationError(i, e);
+			} catch (final ConstraintViolationException e) {
+				throw handleValidationError(i, new ValidationJsonException(e));
 			}
 		});
 		log.info("Upload provisioning : flushing");
+	}
+
+	private ValidationJsonException handleValidationError(InstanceUpload i, final ValidationJsonException e) {
+		log.info("Upload provisioning : failed", e);
+		final var errors = e.getErrors();
+		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
+				.forEach(errors::remove);
+		errors.put(CSV_FILE,
+				List.of(Map.of("parameters", (Serializable) Map.of("name", i.getName()), "rule", "csv-invalid-entry")));
+		return e;
 	}
 
 	/**
