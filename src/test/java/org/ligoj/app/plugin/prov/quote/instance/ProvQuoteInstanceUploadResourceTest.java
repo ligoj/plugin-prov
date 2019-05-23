@@ -229,7 +229,8 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	public void uploadTags() throws IOException {
-		qiuResource.upload(subscription, new StringInputStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@;8", "UTF-8"),
+		qiuResource.upload(subscription,
+				new StringInputStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@&;8", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1, "UTF-8");
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -237,15 +238,17 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final var id = configuration.getInstances().get(7).getId();
 		var tags = configuration.getTags().get(ResourceType.INSTANCE).get(id);
 		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@;8".equals(t.getName())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@&;8".equals(t.getName())));
 
 		var sid = configuration.getStorages().stream().filter(s -> id.equals(s.getInstance())).findFirst().get()
 				.getId();
 		tags = configuration.getTags().get(ResourceType.STORAGE).get(sid);
 		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@".equals(t.getValue())));
-		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@".equals(t.getName())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@&".equals(t.getName())));
 	}
 
 	@Test
