@@ -20,7 +20,7 @@ public class RoundSerializerTest {
 
 	@Getter
 	@Setter
-	public static class Bean {
+	static class Bean {
 		@JsonSerialize(using = RoundSerializer.class)
 		private Double nullable;
 
@@ -29,7 +29,7 @@ public class RoundSerializerTest {
 	}
 
 	@Test
-	public void serializeNotNull() throws JsonProcessingException {
+	void serializeNotNull() throws JsonProcessingException {
 		final var bean = new Bean();
 		bean.setNullable(1d);
 		bean.setPrimary(2d);
@@ -38,7 +38,7 @@ public class RoundSerializerTest {
 
 
 	@Test
-	public void serializeNull() throws JsonProcessingException {
+	void serializeNull() throws JsonProcessingException {
 		final var bean = new Bean();
 		bean.setPrimary(2d);
 		Assertions.assertEquals("{\"nullable\":null,\"primary\":2.0}", new ObjectMapper().writeValueAsString(bean));

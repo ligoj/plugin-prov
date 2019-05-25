@@ -42,7 +42,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Override
 	@BeforeEach
-	public void prepareData() throws IOException {
+	protected void prepareData() throws IOException {
 		super.prepareData();
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class },
 				StandardCharsets.UTF_8.name());
@@ -50,7 +50,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void computeRates() {
+	void computeRates() {
 		// No rate
 		Assertions.assertEquals(0, qsResource.computeRates(0, 0, new int[0], new int[0]));
 		Assertions.assertEquals(0, qsResource.computeRates(1000, 0, new int[0], new int[0]));
@@ -94,7 +94,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
@@ -155,7 +155,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createInvalidType() {
+	void createInvalidType() {
 		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
@@ -164,7 +164,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createMultipleSupport() {
+	void createMultipleSupport() {
 		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
@@ -186,7 +186,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createInvalidRequirement() {
+	void createInvalidRequirement() {
 		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
 		vo.setName("support-name1");
@@ -198,7 +198,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void refresh() {
+	void refresh() {
 		// Create with constraints
 		final var vo = new QuoteSupportEditionVo();
 		vo.setSubscription(subscription);
@@ -250,7 +250,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteAllSupports() {
+	void deleteAllSupports() {
 		newSupports();
 		checkCost(qsResource.deleteAll(subscription), 3165.4, 5615.0, false);
 
@@ -263,7 +263,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		newSupports();
 		final var id = qsRepository.findByNameExpected("support1").getId();
 		final var configuration = resource.getConfiguration(subscription);
@@ -321,32 +321,32 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findSupportType() {
+	void findSupportType() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("support1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findSupportTypeCriteria() {
+	void findSupportTypeCriteria() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo("rt2"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
 		Assertions.assertEquals("support2", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findSupportTypeNotExistsSubscription() {
+	void findSupportTypeNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findSupportTypeAnotherSubscription() {
+	void findSupportTypeAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qsResource.findType(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findSupportTypeNotVisibleSubscription() {
+	void findSupportTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
 	}
@@ -355,7 +355,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements.
 	 */
 	@Test
-	public void lookup() {
+	void lookup() {
 		final var prices = qsResource.lookup(subscription, 3, null, null, null, null, null);
 
 		// Lowest price first
@@ -376,7 +376,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Lookup zero seat.
 	 */
 	@Test
-	public void lookupNoSeat() throws IOException {
+	void lookupNoSeat() throws IOException {
 		final var lookup = qsResource
 				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
@@ -402,7 +402,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Lookup unlimited seat.
 	 */
 	@Test
-	public void lookupUnlimitedSeat() throws IOException {
+	void lookupUnlimitedSeat() throws IOException {
 		// Support1 is now unlimited seats
 		spRepository.findBy("type.name", "support1").getType().setSeats(null);
 
@@ -422,7 +422,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Filtered lookup. Only some support type are valid.
 	 */
 	@Test
-	public void lookupFiltered() {
+	void lookupFiltered() {
 
 		// Both support1 and support2 are valid, but support2 is cheaper
 		Assertions.assertEquals("support2",
@@ -439,7 +439,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void lookupNoMatch() {
+	void lookupNoMatch() {
 		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, null, null, null, null, Rate.BEST).size());
 		Assertions.assertEquals(0, qsResource.lookup(subscription, 1, SupportType.TECHNICAL, SupportType.TECHNICAL,
 				SupportType.TECHNICAL, null, Rate.GOOD).size());
@@ -448,7 +448,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void filterRate() {
+	void filterRate() {
 		Assertions.assertTrue(qsResource.filter((Rate) null, null));
 		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.GOOD));
 		Assertions.assertTrue(qsResource.filter(Rate.GOOD, Rate.BEST));
@@ -458,7 +458,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void filterAccess() {
+	void filterAccess() {
 		Assertions.assertTrue(qsResource.filter((SupportType) null, null));
 		Assertions.assertTrue(qsResource.filter(SupportType.BILLING, SupportType.ALL));
 		Assertions.assertTrue(qsResource.filter(SupportType.ALL, SupportType.ALL));

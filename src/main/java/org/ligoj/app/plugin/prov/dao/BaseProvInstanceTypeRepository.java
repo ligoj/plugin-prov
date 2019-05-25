@@ -13,6 +13,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link AbstractInstanceType} base repository.
+ * 
+ * @param <T> The instance type type.
  */
 @NoRepositoryBean
 public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> extends RestRepository<T, Integer> {
@@ -20,12 +22,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	/**
 	 * Return all {@link ProvInstanceType} related to given subscription identifier.
 	 *
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param criteria
-	 *            The option criteria to match for the name.
-	 * @param pageRequest
-	 *            The page request for ordering.
+	 * @param subscription The subscription identifier to match.
+	 * @param criteria     The option criteria to match for the name.
+	 * @param pageRequest  The page request for ordering.
 	 * @return The filtered {@link ProvInstanceType}.
 	 */
 	@Query("SELECT i FROM #{#entityName} i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
@@ -36,10 +35,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	/**
 	 * Return the {@link ProvInstanceType} by it's name, ignoring the case.
 	 *
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param name
-	 *            The name to match.
+	 * @param subscription The subscription identifier to match.
+	 * @param name         The name to match.
 	 *
 	 * @return The entity or <code>null</code>.
 	 */

@@ -72,7 +72,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	public void queryJson() throws IOException {
+	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
 				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
@@ -83,7 +83,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements.
 	 */
 	@Test
-	public void lookupInstance() {
+	void lookupInstance() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
@@ -93,7 +93,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	public void lookupInstanceLicenseIncluded() {
+	void lookupInstanceLicenseIncluded() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("INCLUDED").build());
 
@@ -108,7 +108,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	public void lookupInstanceLicenseByol() {
+	void lookupInstanceLicenseByol() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("BYOL").build());
 
@@ -124,7 +124,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but software.
 	 */
 	@Test
-	public void lookupInstanceSoftware() {
+	void lookupInstanceSoftware() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).software("SQL Web").build());
 
@@ -140,7 +140,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but location.
 	 */
 	@Test
-	public void lookupInstanceLocation() {
+	void lookupInstanceLocation() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).location("region-1").usage(FULL).build());
 		checkInstance(lookup);
@@ -150,7 +150,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but location different from the quote's one.
 	 */
 	@Test
-	public void lookupInstanceLocationNotFoundButWorldwideService() {
+	void lookupInstanceLocationNotFoundButWorldwideService() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).usage(FULL).ephemeral(true).location("region-2").build());
 		checkInstance(lookup);
@@ -160,7 +160,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Search instance type within a region where minimal instance types are not available.
 	 */
 	@Test
-	public void lookupInstanceLocationNotFound() {
+	void lookupInstanceLocationNotFound() {
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-1").build()).getPrice()
 						.getType().getName());
@@ -183,7 +183,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Search instance type within a non existing region
 	 */
 	@Test
-	public void lookupLocationNotFound() {
+	void lookupLocationNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.lookup(subscription, builder().location("region-xxx").build()));
 	}
@@ -208,7 +208,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	public void lookupInstanceHighConstraints() throws IOException {
+	void lookupInstanceHighConstraints() throws IOException {
 		final var lookup = new ObjectMapperTrim().readValue(
 				new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription,
 						builder().cpu(3).ram(9).constant(true).os(VmOs.WINDOWS).usage(FULL).build())),
@@ -234,13 +234,13 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void lookupInstanceNoMatch() {
+	void lookupInstanceNoMatch() {
 		Assertions
 				.assertNull(qiResource.lookup(subscription, builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
 	}
 
 	@Test
-	public void lookupTypeNotFound() {
+	void lookupTypeNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.lookup(subscription, builder().type("any").build()));
 	}
@@ -249,7 +249,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void lookupInstanceOnlyCustom() {
+	void lookupInstanceOnlyCustom() {
 		final var lookup = qiResource.lookup(subscription, builder().cpu(999).build());
 
 		// Check the custom instance
@@ -271,7 +271,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * This configuration suits to a custom instance.
 	 */
 	@Test
-	public void lookupInstanceCustomIsCheaper() {
+	void lookupInstanceCustomIsCheaper() {
 		assertPrice(qiResource.lookup(subscription, builder().ram(16000).usage("Dev").build()), "C74", "dynamic",
 				146.842, "on-demand1");
 	}
@@ -280,7 +280,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Low usage rate, cheaper than 1y
 	 */
 	@Test
-	public void lookupInstanceVariableDuration() {
+	void lookupInstanceVariableDuration() {
 		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev").build()), "C9", "instance2",
 				58.56, "on-demand2");
 		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 11 month").build()),
@@ -327,7 +327,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceNonVisibleInstance() {
+	void updateInstanceNonVisibleInstance() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qiRepository.findByNameExpected("server1").getId());
@@ -339,7 +339,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteAllInstances() {
+	void deleteAllInstances() {
 		final var id = qiRepository.findByNameExpected("server1").getId();
 		final var storage1 = qsRepository.findByNameExpected("server1-root").getId();
 		final var storage2 = qsRepository.findByNameExpected("server1-data").getId();
@@ -368,7 +368,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteAllInstancesWithSupport() throws IOException {
+	void deleteAllInstancesWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8.name());
 		qsRepository.deleteAllBy("name", "shared-data");
@@ -386,7 +386,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteInstance() {
+	void deleteInstance() {
 		final var id = qiRepository.findByNameExpected("server1").getId();
 		final var storage1 = qsRepository.findByNameExpected("server1-root").getId();
 		final var storage2 = qsRepository.findByNameExpected("server1-data").getId();
@@ -418,7 +418,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteUnboundInstance() {
+	void deleteUnboundInstance() {
 		Assertions.assertEquals(0,
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 
@@ -452,7 +452,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceIdentity() {
+	void updateInstanceIdentity() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("server1");
 		Assertions.assertEquals(3, storagePrices.size());
@@ -481,7 +481,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceUnbound() {
+	void updateInstanceUnbound() {
 		var qs = qsRepository.findByNameExpected("server1-root");
 		Assertions.assertFalse(qs.isUnboundCost());
 		Assertions.assertEquals(8.4, qs.getCost(), DELTA);
@@ -528,7 +528,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceIncompatibleOs() {
+	void updateInstanceIncompatibleOs() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qiRepository.findByNameExpected("server1").getId());
@@ -544,7 +544,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstance() {
+	void updateInstance() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("server1");
 		Assertions.assertEquals(3, storagePrices.size());
@@ -590,7 +590,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceLocationNoMatchStorage() {
+	void updateInstanceLocationNoMatchStorage() {
 		// Add a storage only available in "region-1"
 		final var qs = new ProvQuoteStorage();
 		qs.setPrice(spRepository.findBy("type.name", "storage4"));
@@ -637,7 +637,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceLocation() {
+	void updateInstanceLocation() {
 		logQuote();
 
 		// Engage first optimization
@@ -683,7 +683,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateInstanceOsCompatible() {
+	void updateInstanceOsCompatible() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qiRepository.findByNameExpected("server2").getId());
@@ -698,7 +698,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createInstance() {
+	void createInstance() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
@@ -738,7 +738,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createInstanceIncompatibleOs() {
+	void createInstanceIncompatibleOs() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
@@ -757,7 +757,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createUnboundInstance() {
+	void createUnboundInstance() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
@@ -781,7 +781,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createInstanceMinGreaterThanMax() {
+	void createInstanceMinGreaterThanMax() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
@@ -795,14 +795,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstanceTerms() {
+	void findInstanceTerms() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstancePriceTermsCriteria() {
+	void findInstancePriceTermsCriteria() {
 		final var tableItem = qiResource.findPriceTerms(subscription,
 				newUriInfo("deMand"));
 		Assertions.assertEquals(2, tableItem.getRecordsTotal());
@@ -810,26 +810,26 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstancePriceTermsNotExistsSubscription() {
+	void findInstancePriceTermsNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
 				() -> qiResource.findPriceTerms(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findInstancePriceTermsAnotherSubscription() {
+	void findInstancePriceTermsAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qiResource.findPriceTerms(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findInstancePriceTermsNotVisibleSubscription() {
+	void findInstancePriceTermsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.findPriceTerms(subscription, newUriInfo()));
 	}
 
 	@Test
-	public void findLicenses() {
+	void findLicenses() {
 		final var tableItem = qiResource.findLicenses(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(2, tableItem.size());
 		Assertions.assertEquals("INCLUDED", tableItem.get(0));
@@ -837,35 +837,35 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findLicensesNotVisibleSubscription() {
+	void findLicensesNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.findLicenses(subscription, VmOs.WINDOWS));
 	}
 
 	@Test
-	public void findSoftwares() {
+	void findSoftwares() {
 		final var tableItem = qiResource.findSoftwares(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(1, tableItem.size());
 		Assertions.assertEquals("SQL Web", tableItem.get(0));
 	}
 
 	@Test
-	public void findSoftwaresNotVisibleSubscription() {
+	void findSoftwaresNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.findSoftwares(subscription, VmOs.WINDOWS));
 	}
 
 	@Test
-	public void findInstance() {
+	void findInstance() {
 		final var tableItem = qiResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(13, tableItem.getRecordsTotal());
 		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstanceCriteria() {
+	void findInstanceCriteria() {
 		final var tableItem = qiResource.findAllTypes(subscription, newUriInfo("sTance1"));
 		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
@@ -873,19 +873,19 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstanceNotExistsSubscription() {
+	void findInstanceNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
 				() -> qiResource.findAllTypes(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findInstanceAnotherSubscription() {
+	void findInstanceAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qiResource.findAllTypes(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findInstanceNotVisibleSubscription() {
+	void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qiResource.findAllTypes(subscription, newUriInfo()));

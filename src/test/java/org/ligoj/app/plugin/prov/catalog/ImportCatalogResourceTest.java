@@ -57,7 +57,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	private NodeRepository nodeRepository;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
@@ -71,7 +71,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateCatalog() throws Exception {
+	void updateCatalog() throws Exception {
 		final ImportCatalogResource resource = new ImportCatalogResource() {
 
 			@Override
@@ -102,20 +102,20 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void cancelNotExistNode() {
+	void cancelNotExistNode() {
 		Assertions.assertEquals("read-only-node", Assertions
 				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:any")).getMessage());
 	}
 
 	@Test
-	public void cancelNotVisible() {
+	void cancelNotVisible() {
 		initSpringSecurityContext("any");
 		Assertions.assertEquals("read-only-node", Assertions
 				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:test")).getMessage());
 	}
 
 	@Test
-	public void cancelNoStartedTask() {
+	void cancelNoStartedTask() {
 		final var resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		final var status = newStatus();
@@ -125,14 +125,14 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void cancel() {
+	void cancel() {
 		final var resource = newResource();
 		resource.cancel("service:prov:test");
 		Assertions.assertTrue(resource.getTask("service:prov:test").isFailed());
 	}
 
 	@Test
-	public void updateCatalogSynchronous() throws Exception {
+	void updateCatalogSynchronous() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
 		final var service = Mockito.mock(ImportCatalogService.class);
@@ -159,7 +159,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateCatalogSynchronousFailed() throws Exception {
+	void updateCatalogSynchronousFailed() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
 		final var service = Mockito.mock(ImportCatalogService.class);
@@ -170,7 +170,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateCatalogSynchronousFailedWithError() throws Exception {
+	void updateCatalogSynchronousFailedWithError() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
 		final var service = Mockito.mock(ImportCatalogService.class);
@@ -222,7 +222,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateCatalogFailed() throws Exception {
+	void updateCatalogFailed() throws Exception {
 		final ImportCatalogResource resource = new ImportCatalogResource() {
 			@Override
 			public ImportCatalogStatus nextStep(final String node, final Consumer<ImportCatalogStatus> stepper) {
@@ -248,7 +248,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findAllNotVisible() {
+	void findAllNotVisible() {
 		initSpringSecurityContext("any");
 		final var resource = new ImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
@@ -256,7 +256,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findAll() {
+	void findAll() {
 		final var resource = newResource();
 
 		// Add importable provider

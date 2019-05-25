@@ -48,8 +48,12 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected int subscription;
 
+	/**
+	 * Prepare test data.
+	 * @throws IOException When CSV cannot be read.
+	 */
 	@BeforeEach
-	public void prepareData() throws IOException {
+	protected void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",

@@ -18,6 +18,10 @@ public class RoundSerializer extends StdSerializer<Double> {
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * JAX-RS serializer instance.
+	 */
 	public static final RoundSerializer INSTANCE = new RoundSerializer();
 
 	protected RoundSerializer() {

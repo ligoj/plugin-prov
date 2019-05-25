@@ -66,7 +66,8 @@ import org.springframework.stereotype.Service;
 import lombok.Getter;
 
 /**
- * The provisioning service. There is complete quote configuration along the subscription.
+ * The provisioning service. There is complete quote configuration along the
+ * subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -170,8 +171,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return the locations available for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     locations from the associated provider.
 	 * @param uriInfo      filter data.
 	 * @return The available locations for the given subscription.
 	 */
@@ -187,13 +188,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
-	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
+	 * Check and return the expected location within the given subscription. The
+	 * subscription is used to determinate the related node (provider). Return
+	 * <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 *
 	 * @param node The provider node.
 	 * @param name The location name. Case is insensitive.
-	 * @return The visible location for the related subscription or <code>null</code>.
+	 * @return The visible location for the related subscription or
+	 *         <code>null</code>.
 	 */
 	public ProvLocation findLocation(final String node, final String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -213,8 +216,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
-	 * previously checked.
+	 * Return the quote configuration from a validated subscription. The
+	 * subscription's visibility must have been previously checked.
 	 *
 	 * @param subscription A visible subscription for the current principal.
 	 * @return The configuration with computed data.
@@ -272,7 +275,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
+	 * Update the configuration details. The costs and the related resources are
+	 * refreshed with lookups.
 	 *
 	 * @param subscription The subscription to update
 	 * @param quote        The new quote.
@@ -296,8 +300,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
-	 * updated.
+	 * Compute the total cost and save it into the related quote. All separated
+	 * compute and storage costs are also updated.
 	 *
 	 * @param subscription The subscription to compute
 	 * @return The updated computed cost.
@@ -337,7 +341,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return refreshSupportCost(entity).round();
 	}
 
-	public FloatingCost refreshSupportCost(final ProvQuote entity) {
+	private FloatingCost refreshSupportCost(final ProvQuote entity) {
 		final var support = qs2Repository.findAll(entity.getSubscription().getId()).stream().map(qspResource::refresh)
 				.reduce(new FloatingCost(0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
@@ -347,6 +351,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return entity.toFloatingCost();
 	}
 
+	/**
+	 * Refresh the cost of the support for the whole whole quote.
+	 * 
+	 * @param cost  The target cost object to update.
+	 * @param quote The source quote.
+	 * @return The same target cost parameter.
+	 */
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
 		cost.setTotal(refreshSupportCost(quote));
 		quote.getSupports().forEach(s -> cost.getRelated().computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>())
@@ -404,7 +415,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check the visibility of a configured entity and check the ownership by the given subscription.
+	 * Check the visibility of a configured entity and check the ownership by the
+	 * given subscription.
 	 *
 	 * @param repository   The repository managing the entity to find.
 	 * @param id           The requested configured identifier.

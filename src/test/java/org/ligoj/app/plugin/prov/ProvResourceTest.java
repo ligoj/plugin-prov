@@ -101,7 +101,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	private int subscription;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
@@ -116,7 +116,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void testBusiness() {
+	void testBusiness() {
 		// Coverage only
 		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(),
 				InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
@@ -127,7 +127,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getSubscriptionStatus() {
+	void getSubscriptionStatus() {
 		final var status = resource.getSubscriptionStatus(subscription);
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
@@ -145,7 +145,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getSubscriptionStatusEmpty() {
+	void getSubscriptionStatusEmpty() {
 		final var status = resource.getSubscriptionStatus(getSubscription("mda", ProvResource.SERVICE_KEY));
 		Assertions.assertEquals("quote2", status.getName());
 		Assertions.assertEquals("quoteD2", status.getDescription());
@@ -160,7 +160,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getConfiguration() {
+	void getConfiguration() {
         var vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
@@ -315,7 +315,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getConfigurationEmpty() {
+	void getConfigurationEmpty() {
 		checkCost0(resource.updateCost(checkEmpty()));
 		checkCost0(resource.refresh(checkEmpty()));
 	}
@@ -361,7 +361,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
 	 */
 	@Test
-	public void updateLocation() {
+	void updateLocation() {
 		final var location4 = locationRepository.findByName("region-4");
 
 		// Make sure there is no more world wild prices
@@ -446,7 +446,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update the RAM adjust rate.
 	 */
 	@Test
-	public void updateRamAdjustRate() {
+	void updateRamAdjustRate() {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 
@@ -481,7 +481,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update the default license model of the quote, impact all instances using the default license model.
 	 */
 	@Test
-	public void updateLicense() {
+	void updateLicense() {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 
@@ -515,7 +515,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update the location of the quote, impact all instances using the default location. Cost still updated.
 	 */
 	@Test
-	public void updateLocationDifferentQILocation() {
+	void updateLocationDifferentQILocation() {
 		final var location = locationRepository.findByName("region-1");
 		final var location4 = locationRepository.findByName("region-4");
 
@@ -548,7 +548,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update to an unknown location.
 	 */
 	@Test
-	public void updateLocationNotExists() {
+	void updateLocationNotExists() {
 		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
@@ -560,7 +560,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	 * Update the location related to another provider.
 	 */
 	@Test
-	public void updateLocationNotExistsForThisSubscription() {
+	void updateLocationNotExistsForThisSubscription() {
 		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
@@ -569,7 +569,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void getKey() {
+	void getKey() {
 		Assertions.assertEquals("service:prov", resource.getKey());
 
 		// Only there for coverage of associations required by JPA
@@ -588,7 +588,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		// Check the pre-deletion
 		Assertions.assertEquals(3, repository.findAll().size());
 
@@ -604,7 +604,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteNoConfiguration() {
+	void deleteNoConfiguration() {
 		// Check the pre-deletion
 		repository.deleteAll();
 		Assertions.assertEquals(0, repository.findAll().size());
@@ -632,7 +632,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void testToString() {
+	void testToString() {
 		final var computedInstancePrice = new QuoteInstanceLookup();
 		computedInstancePrice.setCost(1.23);
 		final var ip = new ProvInstancePrice();
@@ -658,7 +658,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findLocations() {
+	void findLocations() {
 		final var locations = resource.findLocations(subscription, newUriInfo());
 
 		// 3 regions, but only 2 have associated prices
@@ -669,7 +669,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void checkSubscriptionStatus() {
+	void checkSubscriptionStatus() {
 		final AbstractProvResource res = new AbstractProvResource() {
 
 			@Override
@@ -685,7 +685,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -701,7 +701,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createCurrency() {
+	void createCurrency() {
 		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -727,7 +727,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createNoCatalog() {
+	void createNoCatalog() {
 		final var subscription = new Subscription();
 		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
 		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
@@ -749,7 +749,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void update() {
+	void update() {
 		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
@@ -762,26 +762,26 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findConfigured() {
+	void findConfigured() {
 		final var qi = qiRepository.findByName("server1");
 		Assertions.assertEquals("server1", resource.findConfigured(qiRepository, qi.getId(), subscription).getName());
 	}
 
 	@Test
-	public void findConfiguredByName() {
+	void findConfiguredByName() {
 		Assertions.assertEquals("server1",
 				resource.findConfiguredByName(qiRepository, "server1", subscription).getName());
 	}
 
 	@Test
-	public void findConfiguredNotFound() {
+	void findConfiguredNotFound() {
 		final var qi = qiRepository.findByName("server1");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> resource.findConfigured(qiRepository, qi.getId(), 0).getName());
 	}
 
 	@Test
-	public void findConfiguredByNameNotFoundInvalidName() {
+	void findConfiguredByNameNotFoundInvalidName() {
 		Assertions.assertEquals("serverAAAAA",
 				Assertions
 						.assertThrows(EntityNotFoundException.class,
@@ -790,13 +790,13 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findConfiguredByNameNotFoundInvalidSub() {
+	void findConfiguredByNameNotFoundInvalidSub() {
 		Assertions.assertEquals("server1", Assertions.assertThrows(EntityNotFoundException.class,
 				() -> resource.findConfiguredByName(qiRepository, "server1", 0)).getMessage());
 	}
 
 	@Test
-	public void getInstalledEntities() {
+	void getInstalledEntities() {
 		Assertions.assertTrue(resource.getInstalledEntities().contains(SystemConfiguration.class));
 		Assertions.assertTrue(resource.getInstalledEntities().contains(Node.class));
 	}

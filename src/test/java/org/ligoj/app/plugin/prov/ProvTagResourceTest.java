@@ -74,7 +74,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	private ProvQuoteStorageRepository qsRepository;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
@@ -88,7 +88,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void update() {
+	void update() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -113,7 +113,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateAnotherSubscription() {
+	void updateAnotherSubscription() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -126,7 +126,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -166,7 +166,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createNotExistingSubscription() {
+	void createNotExistingSubscription() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -177,7 +177,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createNotExistingResource() {
+	void createNotExistingResource() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -187,7 +187,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void createAnotherSubscription() {
+	void createAnotherSubscription() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -198,7 +198,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteAnotherSubscription() {
+	void deleteAnotherSubscription() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -209,7 +209,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -228,7 +228,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteFromResource() {
+	void deleteFromResource() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
@@ -249,7 +249,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteAllFromResource() {
+	void deleteAllFromResource() {
 		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");

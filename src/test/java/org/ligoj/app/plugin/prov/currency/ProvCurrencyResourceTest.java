@@ -41,7 +41,7 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 	private ProvCurrencyRepository repository;
 
 	@BeforeEach
-	public void prepare() throws IOException {
+	void prepare() throws IOException {
 		persistEntities("csv", Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 				ProvQuote.class);
 		em.flush();
@@ -49,7 +49,7 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findAll() {
+	void findAll() {
 		final var uriInfo = newUriInfo();
 		final var result = resource.findAll(uriInfo);
 		Assertions.assertEquals(1, result.getData().size());
@@ -60,14 +60,14 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		resource.create(newCurrency());
 		Assertions.assertEquals(.8, repository.findByName("EURO").getRate());
 		Assertions.assertEquals(0, resource.findAll(newUriInfo("EURO")).getData().get(0).getNbQuotes());
 	}
 
 	@Test
-	public void update() {
+	void update() {
 		final var entity = repository.findByName("USD");
 		entity.setRate(1.1);
 		entity.setUnit("D");
@@ -80,14 +80,14 @@ public class ProvCurrencyResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteUsed() {
+	void deleteUsed() {
 		Assertions.assertEquals(1, repository.count());
 		Assertions.assertThrows(DataIntegrityViolationException.class, ()->resource.delete(repository.findByName("USD").getId()));
 		Assertions.assertEquals(1, repository.count());
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		Assertions.assertEquals(1, repository.count());
 		em.createQuery("UPDATE ProvQuote SET currency = NULL").executeUpdate();
 		resource.delete(repository.findByName("USD").getId());

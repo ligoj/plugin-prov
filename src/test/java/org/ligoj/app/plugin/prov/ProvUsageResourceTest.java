@@ -65,7 +65,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	private ProvQuoteRepository repository;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
@@ -79,7 +79,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateNotAttached() {
+	void updateNotAttached() {
 		final var usage = new UsageEditionVo();
 		usage.setName("Full Time");
 		usage.setRate(1);
@@ -92,7 +92,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		final var usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
@@ -113,7 +113,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateSameRate() {
+	void updateSameRate() {
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
@@ -122,7 +122,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateRateAndQuote() {
+	void updateRateAndQuote() {
 		// Usage = 100%
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 
@@ -166,7 +166,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void updateAttachedInstance() {
+	void updateAttachedInstance() {
 		attachUsageToQuote();
 
 		// Usage -> 50% (attach the quote to a 50% usage)
@@ -222,7 +222,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void findAll() {
+	void findAll() {
 		final var usages = uResource.findAll(subscription, newUriInfo());
 		Assertions.assertEquals(10, usages.getData().size());
 		Assertions.assertEquals("Dev", usages.getData().get(0).getName());
@@ -232,7 +232,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteUsedInInstance() {
+	void deleteUsedInInstance() {
 		attachUsageToQuote();
 		Assertions.assertNotNull(usageRepository.findByName(subscription, "Dev"));
 		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
@@ -243,7 +243,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteUnused() {
+	void deleteUnused() {
 		final var quote = repository.findByName("quote1");
 		quote.setUsage(usageRepository.findByName("Full Time"));
 		em.persist(quote);
@@ -260,12 +260,12 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void deleteNotOwned() {
+	void deleteNotOwned() {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> uResource.delete(0, "Dev"));
 	}
 
 	@Test
-	public void deleteUsedInQuote() {
+	void deleteUsedInQuote() {
 		// Usage = 100% by default and 50% fixed for "server1"
 		final var server1 = qiRepository.findByName("server1");
 		server1.setUsage(usageRepository.findByName("Dev"));

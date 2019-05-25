@@ -8,6 +8,13 @@ package org.ligoj.app.plugin.prov.terraform;
  */
 public class Main {
 
+	/**
+	 * Only the Java process bootstrap.
+	 * 
+	 * @param strings The options. The first parameter, when defined and with the
+	 *                form like <code>error=$code</code> will be used to generate an
+	 *                exit code <code>System.exit($code)</code>.
+	 */
 	public static void main(final String... strings) {
 		// Basic log to check the I/O
 		System.out.println("Message standard : " + String.join(",", strings));

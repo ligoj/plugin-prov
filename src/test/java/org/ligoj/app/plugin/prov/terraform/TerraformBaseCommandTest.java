@@ -34,17 +34,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	@Test
-	public void executeExit0() throws Exception {
+	void executeExit0() throws Exception {
 		executeExit(0, "Terraform exit code 0 -> no need to continue");
 	}
 
 	@Test
-	public void executeExit2() throws Exception {
+	void executeExit2() throws Exception {
 		executeExit(2, "");
 	}
 
 	@Test
-	public void executeShow() throws Exception {
+	void executeShow() throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		FileUtils.write(new File(MOCK_PATH, "show.log"), "  + module\n", StandardCharsets.UTF_8);
 		execute(resource, "show", "-v");
@@ -53,7 +53,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void executeStateList() throws Exception {
+	void executeStateList() throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		FileUtils.write(new File(MOCK_PATH, "state.log"), "module\n\nSome Text\n", StandardCharsets.UTF_8);
 		execute(resource, "state", "list");
@@ -62,21 +62,21 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void executeStateNotListFile() throws Exception {
+	void executeStateNotListFile() throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "state", "show");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
 
 	@Test
-	public void executeShowNoFile() throws Exception {
+	void executeShowNoFile() throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "show", "-v");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
 
 	@Test
-	public void executeStateListNoFile() throws Exception {
+	void executeStateListNoFile() throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, "state", "list");
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
@@ -92,7 +92,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void executeExit1() {
+	void executeExit1() {
 		Assertions.assertEquals("aborted",
 				Assertions
 						.assertThrows(BusinessException.class, () -> executeExit(1, "Terraform exit code 1 -> aborted"))
@@ -141,7 +141,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void computeWorkload() throws IOException {
+	void computeWorkload() throws IOException {
 		Files.copy(TEST_LOGS.toPath().resolve("show.log"), new File(MOCK_PATH, "show.log").toPath());
 		final var resource = newResource();
 		startTask(resource, subscription);
@@ -156,7 +156,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void computeWorkloadState() throws IOException {
+	void computeWorkloadState() throws IOException {
 		Files.copy(TEST_LOGS.toPath().resolve("state-list.log"), new File(MOCK_PATH, "state.log").toPath());
 		final var resource = newResource();
 		startTask(resource, subscription);
@@ -171,7 +171,7 @@ public class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void computeWorkloadError() throws IOException {
+	void computeWorkloadError() throws IOException {
 		final var resource = newResource();
 		resource.utils = Mockito.mock(TerraformUtils.class);
 		Mockito.doThrow(new IOException()).when(resource.utils).toFile(Mockito.any(), Mockito.any());

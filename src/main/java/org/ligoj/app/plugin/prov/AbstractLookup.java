@@ -15,6 +15,7 @@ import lombok.ToString;
 
 /**
  * The computed price for the requested resources.
+ * @param <T> The price type.
  */
 @Getter
 @Setter

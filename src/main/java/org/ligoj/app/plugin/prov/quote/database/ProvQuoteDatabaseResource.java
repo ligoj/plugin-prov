@@ -114,7 +114,8 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	/**
-	 * Check the requested edition is compliant with the one of associated {@link ProvDatabasePrice}
+	 * Check the requested edition is compliant with the one of associated
+	 * {@link ProvDatabasePrice}
 	 *
 	 * @param name   The attribute to check.
 	 * @param pQuote The quote required attribute value.
@@ -146,6 +147,13 @@ public class ProvQuoteDatabaseResource extends
 		return super.delete(id);
 	}
 
+	/**
+	 * Return the database prices matching to the criteria.
+	 * 
+	 * @param subscription The subscription identifier.
+	 * @param query        The criteria.
+	 * @return The best database price matching to the criteria.
+	 */
 	@GET
 	@Path("{subscription:\\d+}/database-lookup")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -203,8 +211,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available instance licenses for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     instances from the associated provider.
 	 * @param engine       The filtered engine.
 	 * @return The available licenses for the given subscription.
 	 */
@@ -221,8 +229,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database engines for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     instances from the associated provider.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -234,8 +242,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database edition software for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     instances from the associated provider.
 	 * @param engine       The filtered engine.
 	 * @return The available softwares for the given subscription.
 	 */
@@ -250,8 +258,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the instance types inside available for the related catalog.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     instances from the associated provider.
 	 * @param uriInfo      filter data.
 	 * @return The valid instance types for the given subscription.
 	 */
@@ -268,7 +276,8 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
+	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and
+	 * computed price.
 	 */
 	private QuoteDatabaseLookup newPrice(final ProvDatabasePrice ip, final double cost) {
 		final var result = new QuoteDatabaseLookup();

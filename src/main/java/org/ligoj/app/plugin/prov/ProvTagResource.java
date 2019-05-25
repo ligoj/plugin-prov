@@ -77,7 +77,7 @@ public class ProvTagResource {
 	 * related tags.
 	 * 
 	 * @param type     The deleted resource type.
-	 * @param resource The deleted resource identifiers
+	 * @param resources The deleted resource identifiers
 	 */
 	public void onDelete(final ResourceType type, final Integer... resources) {
 		Arrays.stream(resources).forEach(r -> repository.deleteAllBy("type", type, new String[] { "resource" }, r));
@@ -130,7 +130,7 @@ public class ProvTagResource {
 	}
 
 	/**
-	 * Save or update the tag entity from the given {@link TagEditionVo}. The related subscription, the related resource
+	 * Save or update the tag entity from the given {@link ProvTag}. The related subscription, the related resource
 	 * and the related resource type must match and be visible for the principal user.
 	 * 
 	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.

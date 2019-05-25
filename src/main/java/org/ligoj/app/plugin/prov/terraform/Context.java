@@ -41,10 +41,8 @@ public class Context {
 	/**
 	 * Add a value to the context.
 	 * 
-	 * @param key
-	 *            Key of the context.
-	 * @param value
-	 *            Value of the context.
+	 * @param key   Key of the context.
+	 * @param value Value of the context.
 	 * @return This object.
 	 */
 	public Context add(final String key, final String value) {
@@ -52,6 +50,13 @@ public class Context {
 		return this;
 	}
 
+	/**
+	 * Return the context value. Is a shorthand of
+	 * <code> getContext().get(key)</code>
+	 * 
+	 * @param key The context key.
+	 * @return The context value.
+	 */
 	public String get(final String key) {
 		return context.get(key);
 	}

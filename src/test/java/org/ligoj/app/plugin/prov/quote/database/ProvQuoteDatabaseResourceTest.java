@@ -89,13 +89,13 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void getConfiguration() {
+	void getConfiguration() {
 		final var databases = resource.getConfiguration(subscription).getDatabases();
 		Assertions.assertEquals(7, databases.size());
 	}
 
 	@Test
-	public void refresh() {
+	void refresh() {
 		final var refresh = resource.refresh(subscription);
 		checkCost(refresh, 5613.6, 8209.5, false);
 	}
@@ -104,7 +104,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements.
 	 */
 	@Test
-	public void lookup() {
+	void lookup() {
 		final var lookup = qbResource.lookup(subscription,
 				QuoteDatabaseQuery.builder().usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
@@ -114,7 +114,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	public void lookupLicenseIncluded() {
+	void lookupLicenseIncluded() {
 		final var lookup = qbResource.lookup(subscription,
 				QuoteDatabaseQuery.builder().usage("Full Time 12 month").license("INCLUDED").engine("MYSQL").build());
 
@@ -138,7 +138,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	public void queryJson() throws IOException {
+	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
 				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\""
 				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);
@@ -149,7 +149,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	public void lookupLicenseByol() {
+	void lookupLicenseByol() {
 		final var lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.5)
 				.ram(2000).usage("Full Time 12 month").license("BYOL").engine("ORACLE").edition("ENTERPRISE").build());
 
@@ -167,7 +167,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but location.
 	 */
 	@Test
-	public void lookupLocation() {
+	void lookupLocation() {
 		final var lookup = qbResource.lookup(subscription,
 				QuoteDatabaseQuery.builder().location("region-1").usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
@@ -177,7 +177,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Search instance type within a non existing region
 	 */
 	@Test
-	public void lookupLocationNotFound() {
+	void lookupLocationNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription,
 				QuoteDatabaseQuery.builder().location("region-xxx").engine("MYSQL").build()));
 	}
@@ -202,7 +202,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	public void lookupHighConstraints() {
+	void lookupHighConstraints() {
 		final var lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.25)
 				.ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").build());
 		final var pi = lookup.getPrice();
@@ -222,7 +222,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	public void lookupNoMatch() {
+	void lookupNoMatch() {
 		Assertions.assertNull(
 				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(999).engine("MYSQL").build()));
 	}
@@ -231,7 +231,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * No match edition
 	 */
 	@Test
-	public void lookupNoMatchEngine() {
+	void lookupNoMatchEngine() {
 		Assertions.assertNull(qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("any").build()));
 	}
 
@@ -239,13 +239,13 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * No match edition
 	 */
 	@Test
-	public void lookupNoMatchEdition() {
+	void lookupNoMatchEdition() {
 		Assertions.assertNull(
 				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("MYSQL").edition("any").build()));
 	}
 
 	@Test
-	public void deleteAll() {
+	void deleteAll() {
 		final var id = qbRepository.findByNameExpected("database1").getId();
 		final var storage1 = qsRepository.findByNameExpected("database1-root").getId();
 		final var storageOther = qsRepository.findByNameExpected("shared-data").getId();
@@ -268,7 +268,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void deleteAllWithSupport() throws IOException {
+	void deleteAllWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8.name());
 		qsRepository.deleteAllBy("name", "shared-data");
@@ -286,7 +286,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		final var id = qbRepository.findByNameExpected("database1").getId();
 		final var storage1 = qsRepository.findByNameExpected("database1-root").getId();
 		final var storageOther = qsRepository.findByNameExpected("shared-data").getId();
@@ -318,7 +318,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateIdentity() {
+	void updateIdentity() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("database1");
 		Assertions.assertEquals(1, storagePrices.size());
@@ -348,7 +348,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateIncompatibleEngine() {
+	void updateIncompatibleEngine() {
 		final var vo = new QuoteDatabaseEditionVo();
 		vo.setSubscription(subscription);
 		vo.setId(qbRepository.findByNameExpected("database1").getId());
@@ -364,7 +364,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void update() {
+	void update() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("database1");
 		Assertions.assertEquals(1, storagePrices.size());
@@ -411,7 +411,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void updateLocationNoMatchStorage() {
+	void updateLocationNoMatchStorage() {
 		// Add a storage only available in "region-1"
 		final var qs = new ProvQuoteStorage();
 		qs.setPrice(spRepository.findBy("type.name", "storage4"));
@@ -450,7 +450,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void create() {
+	void create() {
 		final var vo = new QuoteDatabaseEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(bpRepository.findByExpected("code", "ORACLE1").getId());
@@ -487,7 +487,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createIncompatibleEngine() {
+	void createIncompatibleEngine() {
 		final var vo = new QuoteDatabaseEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(bpRepository.findByExpected("code", "MYSQL1").getId());
@@ -504,7 +504,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void createIncompatibleEdition() {
+	void createIncompatibleEdition() {
 		final var vo = new QuoteDatabaseEditionVo();
 		vo.setSubscription(subscription);
 		vo.setPrice(bpRepository.findByExpected("code", "MYSQL1").getId());
@@ -522,14 +522,14 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstanceTerms() {
+	void findInstanceTerms() {
 		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstancePriceTermsCriteria() {
+	void findInstancePriceTermsCriteria() {
 		final var tableItem = qbResource.findPriceTerms(subscription,
 				newUriInfo("deMand"));
 		Assertions.assertEquals(2, tableItem.getRecordsTotal());
@@ -537,26 +537,26 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findInstancePriceTermsNotExistsSubscription() {
+	void findInstancePriceTermsNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
 				() -> qbResource.findPriceTerms(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findInstancePriceTermsAnotherSubscription() {
+	void findInstancePriceTermsAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qbResource.findPriceTerms(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findInstancePriceTermsNotVisibleSubscription() {
+	void findInstancePriceTermsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qbResource.findPriceTerms(subscription, newUriInfo()));
 	}
 
 	@Test
-	public void findLicenses() {
+	void findLicenses() {
 		final var tableItem = qbResource.findLicenses(subscription, "ORACLE");
 		Assertions.assertEquals(2, tableItem.size());
 		Assertions.assertEquals("INCLUDED", tableItem.get(0));
@@ -564,7 +564,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findEngine() {
+	void findEngine() {
 		final var tableItem = qbResource.findEngines(subscription);
 		Assertions.assertEquals(2, tableItem.size());
 		Assertions.assertEquals("MYSQL", tableItem.get(0));
@@ -572,7 +572,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findEdition() {
+	void findEdition() {
 		final var tableItem = qbResource.findEditions(subscription, "ORACLE");
 		Assertions.assertEquals(3, tableItem.size());
 		Assertions.assertEquals("ENTERPRISE", tableItem.get(0));
@@ -580,50 +580,50 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void findEditionNone() {
+	void findEditionNone() {
 		Assertions.assertEquals(0, qbResource.findEditions(subscription, "mysql").size());
 	}
 
 	@Test
-	public void findLicensesNotVisibleSubscription() {
+	void findLicensesNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.findLicenses(subscription, "ORACLE"));
 	}
 
 	@Test
-	public void findEditionsNotVisibleSubscription() {
+	void findEditionsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.findEditions(subscription, "ORACLE"));
 	}
 
 	@Test
-	public void findAllTypes() {
+	void findAllTypes() {
 		final var tableItem = qbResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("database1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstanceCriteria() {
+	void findInstanceCriteria() {
 		final var tableItem = qbResource.findAllTypes(subscription, newUriInfo("base1"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
 		Assertions.assertEquals("database1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
-	public void findInstanceNotExistsSubscription() {
+	void findInstanceNotExistsSubscription() {
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
 				() -> qbResource.findAllTypes(-1, newUriInfo()));
 	}
 
 	@Test
-	public void findInstanceAnotherSubscription() {
+	void findInstanceAnotherSubscription() {
 		Assertions.assertEquals(1,
 				qbResource.findAllTypes(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
 	}
 
 	@Test
-	public void findInstanceNotVisibleSubscription() {
+	void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> qbResource.findAllTypes(subscription, newUriInfo()));
@@ -642,7 +642,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	public void getSubscriptionStatus() {
+	void getSubscriptionStatus() {
 		final var status = resource.getSubscriptionStatus(subscription);
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());

@@ -13,6 +13,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link AbstractQuoteResource} repository.
+ * 
+ * @param <C> Quote resource type.
  */
 @NoRepositoryBean
 public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource<?>>
@@ -21,8 +23,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	/**
 	 * Return identifiers of all resources linked to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription identifier.
+	 * @param subscription The related subscription identifier.
 	 * @return Return identifiers of all resources linked to the given subscription.
 	 */
 	@Query("SELECT id FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
@@ -31,8 +32,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	/**
 	 * Delete all instance linked to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription identifier.
+	 * @param subscription The related subscription identifier.
 	 */
 	@Modifying
 	@Query("DELETE FROM #{#entityName} WHERE configuration.id IN"
@@ -42,8 +42,7 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	/**
 	 * Return the quote details from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
+	 * @param subscription The subscription identifier linking the quote.
 	 * @return The instance quote details with the optional linked instance.
 	 */
 	@Query("FROM #{#entityName} AS qi INNER JOIN FETCH qi.price qsp INNER JOIN FETCH qsp.type"

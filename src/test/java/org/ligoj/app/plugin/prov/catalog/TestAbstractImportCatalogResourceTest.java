@@ -28,7 +28,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	private AbstractImportCatalogResource resource;
 
 	@BeforeEach
-	public void init() {
+	void init() {
 		resource = new AbstractImportCatalogResource() {
 			// Nothing
 		};
@@ -42,12 +42,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getRate() throws IOException {
+	void getRate() throws IOException {
 		check("test-resource", Rate.BEST);
 	}
 
 	@Test
-	public void initContext() {
+	void initContext() {
 		nodeRepository = Mockito.mock(NodeRepository.class);
 		configuration = Mockito.mock(ConfigurationResource.class);
 		Mockito.when(nodeRepository.findOneExpected("service:prov:sample")).thenReturn(new Node());
@@ -61,27 +61,27 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void round3Decimals() {
+	void round3Decimals() {
 		Assertions.assertEquals(1.235, super.round3Decimals(1.2348), 0.001);
 	}
 
 	@Test
-	public void toMap() throws IOException {
+	void toMap() throws IOException {
 		Assertions.assertEquals("WORST", super.toMap("rate-test-resource.json", MAP_STR).get("b1"));
 	}
 
 	@Test
-	public void toPercentNull() {
+	void toPercentNull() {
 		Assertions.assertNull(super.toPercent("some"));
 	}
 
 	@Test
-	public void toPercent() {
+	void toPercent() {
 		Assertions.assertEquals(1.23d, super.toPercent("1.23%"), 0.001);
 	}
 
 	@Test
-	public void isEnabledRegion() {
+	void isEnabledRegion() {
 		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final var location = new ProvLocation();
@@ -90,7 +90,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void installRegion() {
+	void installRegion() {
 		final var context = newContext();
 		final var node = new Node();
 		node.setName("newNode");
@@ -111,14 +111,14 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getRegionByHumanNameEmpty() {
+	void getRegionByHumanNameEmpty() {
 		final var context = newContext();
 		context.setRegions(new HashMap<>());
 		Assertions.assertNull(getRegionByHumanName(context, "any"));
 	}
 
 	@Test
-	public void getRegionByHumanNameNotEnabled() {
+	void getRegionByHumanNameNotEnabled() {
 		final var context = newContext();
 		final var oldRegion = new ProvLocation();
 		oldRegion.setName("newRegion");
@@ -128,7 +128,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getRegionByHumanNotFound() {
+	void getRegionByHumanNotFound() {
 		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final var oldRegion = new ProvLocation();
@@ -139,7 +139,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getRegionByHumanName() {
+	void getRegionByHumanName() {
 		final var context = newContext();
 		context.setValidRegion(Pattern.compile(".*"));
 		final var oldRegion = new ProvLocation();
@@ -150,12 +150,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getWorkload() {
+	void getWorkload() {
 		Assertions.assertEquals(0, getWorkload(null));
 	}
 
 	@Test
-	public void nextStepIgnore() {
+	void nextStepIgnore() {
 		final var context = newContext();
 		final var node = new Node();
 		node.setName("newNode");
@@ -166,7 +166,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void nextStep() {
+	void nextStep() {
 		final var context = newContext();
 		final var node = new Node();
 		node.setName("newNode");
@@ -183,12 +183,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void getRateNoDefault() throws IOException {
+	void getRateNoDefault() throws IOException {
 		check("test-resource-no-default", Rate.MEDIUM);
 	}
 
 	@Test
-	public void saveAsNeededSame() {
+	void saveAsNeededSame() {
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
@@ -197,7 +197,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void saveAsNeeded() {
+	void saveAsNeeded() {
 		final var entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
 		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("code");
@@ -224,12 +224,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void toVmOs() {
+	void toVmOs() {
 		Assertions.assertEquals(VmOs.WINDOWS, toVmOs("windows"));
 	}
 
 	@Test
-	public void isEnabledOs() {
+	void isEnabledOs() {
 		final var context = newContext();
 		context.setValidOs(Pattern.compile("(LINUX|RH.*)"));
 		Assertions.assertFalse(isEnabledOs(context, VmOs.WINDOWS));
@@ -238,7 +238,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void isEnabledType() {
+	void isEnabledType() {
 		final var context = newContext();
 		context.setValidInstanceType(Pattern.compile("ab.*"));
 		Assertions.assertFalse(isEnabledType(context, "axr"));
@@ -246,7 +246,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	public void isEnabledDatabase() {
+	void isEnabledDatabase() {
 		final var context = newContext();
 		context.setValidDatabaseType(Pattern.compile("ab.*"));
 		Assertions.assertFalse(isEnabledDatabase(context, "axr"));
@@ -257,7 +257,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	 * Only there for coverage and API contracts.
 	 */
 	@Test
-	public void bean() {
+	void bean() {
 		final var context = newContext();
 		context.setStorageTypes(null);
 		context.setStorageTypesMerged(null);

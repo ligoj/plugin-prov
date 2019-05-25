@@ -53,13 +53,13 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 
 	@AfterEach
 	@BeforeEach
-	public void cleanupFiles() throws IOException {
+	void cleanupFiles() throws IOException {
 		FileUtils.deleteDirectory(MOCK_PATH);
 		FileUtils.forceMkdir(MOCK_PATH);
 	}
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",

@@ -96,6 +96,9 @@ public class TerraformUtils {
 	 */
 	private final Map<String, String> distributions = new HashMap<>();
 
+	/**
+	 * Initializer.
+	 */
 	public TerraformUtils() {
 		shells.put(OS_WINDOWS, TERRAFORM_SHELL_WIN);
 		shells.put(OS_DEFAULT, TERRAFORM_SHELL_LINUX);

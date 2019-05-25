@@ -15,6 +15,13 @@ import org.springframework.data.jpa.repository.Query;
  */
 public interface ProvCurrencyRepository extends RestRepository<ProvCurrency, Integer> {
 
+	/**
+	 * Return the currencies matching the criteria.
+	 * 
+	 * @param search      The criteria.
+	 * @param pageRequest The page request.
+	 * @return The page.
+	 */
 	@Query(value = "SELECT new org.ligoj.app.plugin.prov.model.CurrencyVo(c, COUNT(q))"
 			+ " FROM ProvCurrency c LEFT JOIN ProvQuote q ON q.currency = c"
 			+ " WHERE UPPER(c.name) LIKE CONCAT('%',CONCAT(UPPER(:search),'%'))"

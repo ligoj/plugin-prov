@@ -16,7 +16,11 @@ public class CurrencyVo extends ProvCurrency {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public CurrencyVo(ProvCurrency parent, long nbQuotes) {
+	/**
+	 * @param parent   The {@link ProvCurrency} entity.
+	 * @param nbQuotes The amount of quotes using this currency.
+	 */
+	public CurrencyVo(final ProvCurrency parent, final long nbQuotes) {
 		this.nbQuotes = nbQuotes;
 		setId(parent.getId());
 		setUnit(parent.getUnit());

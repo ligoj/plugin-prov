@@ -43,13 +43,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class TerraformResourceTest extends AbstractTerraformTest {
+class TerraformResourceTest extends AbstractTerraformTest {
 
 	/**
 	 * Coverage only code for interface and beans only used by implementors.
 	 */
 	@Test
-	public void coverage() {
+	void coverage() {
 		InstanceMode.values()[InstanceMode.AUTO_SCALING.ordinal()].name();
 		final var context = new Context();
 		context.setInstances(context.getInstances());
@@ -60,14 +60,14 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void createNotSupported() {
+	void createNotSupported() {
 		Assertions.assertEquals("terraform-no-supported", Assertions
 				.assertThrows(BusinessException.class, () -> newResource(null).create(subscription, new Context()))
 				.getMessage());
 	}
 
 	@Test
-	public void download() throws IOException {
+	void download() throws IOException {
 		final var terraforming = Mockito.mock(Terraforming.class);
 		final var target = new File("target/test-classes/terraform-zip");
 		FileUtils.deleteDirectory(target);
@@ -107,7 +107,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	 * {@link IOException} during the asynchronous execution
 	 */
 	@Test
-	public void sequenceError() {
+	void sequenceError() {
 		final TerraformResource resource = new TerraformResource() {
 
 			@Override
@@ -134,7 +134,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getLogEmpty() throws IOException {
+	void getLogEmpty() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		try (final var bos = new ByteArrayOutputStream()) {
@@ -144,7 +144,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getLogNoTask() throws IOException {
+	void getLogNoTask() throws IOException {
 		writeOldFiles();
 		final var resource = newResource(newTerraforming());
 		// Check the log file is well handled
@@ -155,7 +155,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getLog() throws IOException {
+	void getLog() throws IOException {
 		writeOldFiles();
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription, "init,plan,show");
@@ -168,7 +168,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void clean() throws IOException, InterruptedException {
+	void clean() throws IOException, InterruptedException {
 		final var tf = new File(MOCK_PATH, "main.tf");
 		final var terraformDir = new File(MOCK_PATH, ".terraform");
 		FileUtils.forceMkdir(terraformDir);
@@ -191,7 +191,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void secrets() throws IOException, InterruptedException {
+	void secrets() throws IOException, InterruptedException {
 		final var context = new Context();
 		context.setSubscription(getSubscription());
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
@@ -199,7 +199,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void generate() throws IOException, InterruptedException {
+	void generate() throws IOException, InterruptedException {
 		final var context = new Context();
 		context.setSubscription(getSubscription());
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
@@ -207,7 +207,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void create() throws IOException {
+	void create() throws IOException {
 		final var log = new File(MOCK_PATH, "apply.log");
 		final var resource = mockResource(newTerraforming(), (s, f) -> null, new TerraformResource() {
 
@@ -249,7 +249,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void destroy() {
+	void destroy() {
 		final var resource = newResource(Mockito.mock(Terraforming.class));
 		final var status = resource.destroy(subscription, new Context());
 		Assertions.assertEquals(subscription, status.getSubscription());
@@ -258,7 +258,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void sequenceNewTransactionIOE() throws IOException, InterruptedException {
+	void sequenceNewTransactionIOE() throws IOException, InterruptedException {
 		final var resource = new TerraformResource();
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), resource);
 		Mockito.doThrow(new IOException()).when(resource.executableCommand).execute(ArgumentMatchers.any(Context.class),
@@ -275,7 +275,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void sequenceNewTransaction() throws IOException, InterruptedException {
+	void sequenceNewTransaction() throws IOException, InterruptedException {
 		final var terraforming = newTerraforming();
 		final var log = new File(MOCK_PATH, "apply.log");
 		final var resource = newResource(terraforming);
@@ -352,7 +352,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getVersion() throws Exception {
+	void getVersion() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0");
 		Mockito.doAnswer(i -> {
 			((OutputStream) i.getArgument(1)).write("Terraform v0.0.1\nAny".getBytes());
@@ -366,7 +366,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getVersionNotLatest() throws Exception {
+	void getVersionNotLatest() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0");
 		resource.executableCommand = Mockito.mock(TerraformBaseCommand.class);
 		Mockito.doAnswer(i -> {
@@ -384,7 +384,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getVersionWrongOutput() throws Exception {
+	void getVersionWrongOutput() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0", "WHAT?");
 		resource.executableCommand = Mockito.mock(TerraformBaseCommand.class);
 		Mockito.doAnswer(i -> {
@@ -399,7 +399,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getVersionNotInstalled() throws Exception {
+	void getVersionNotInstalled() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0");
 
 		// Replace the CLI runner
@@ -422,7 +422,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void install() throws Exception {
+	void install() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0", "Terraform v2.0.1");
 		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
@@ -450,7 +450,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getVersionExit1() throws Exception {
+	void getVersionExit1() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=1");
 		resource.executableCommand = Mockito.mock(TerraformBaseCommand.class);
 		Mockito.doReturn(1).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class),
@@ -505,7 +505,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void testBusiness() {
+	void testBusiness() {
 		// Coverage only
 		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(),
 				InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
@@ -514,7 +514,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskNoRight() throws IOException {
+	void getTaskNoRight() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		super.initSpringSecurityContext("any");
@@ -522,7 +522,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskNoLog() throws IOException {
+	void getTaskNoLog() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		final var task = resource.runner.getTask(getSubscription().getId());
@@ -532,7 +532,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTask() throws IOException {
+	void getTask() throws IOException {
 		final var resource = newResource(newTerraforming());
 		Files.copy(TEST_LOGS.toPath().resolve("apply.log"), new File(MOCK_PATH, "apply.log").toPath());
 		startTask(resource, subscription);
@@ -543,7 +543,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskUnfinishedTasks() throws IOException {
+	void getTaskUnfinishedTasks() throws IOException {
 		final var resource = newResource(newTerraforming());
 		Files.copy(TEST_LOGS.toPath().resolve("apply-not-completed.log"), new File(MOCK_PATH, "apply.log").toPath());
 		startTask(resource, subscription);
@@ -554,7 +554,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskUnfinishedStateTasks() throws IOException {
+	void getTaskUnfinishedStateTasks() throws IOException {
 		final var resource = newResource(newTerraforming());
 		Files.copy(TEST_LOGS.toPath().resolve("destroy-not-completed.log"),
 				new File(MOCK_PATH, "destroy.log").toPath());
@@ -566,7 +566,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskNotYetApply() throws IOException {
+	void getTaskNotYetApply() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		final var task = resource.runner.getTask(getSubscription().getId());
@@ -576,7 +576,7 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskError() throws IOException {
+	void getTaskError() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		resource.runner.utils = Mockito.mock(TerraformUtils.class);
@@ -588,14 +588,14 @@ public class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	@Test
-	public void getTaskLockedDifferentSubscription() throws IOException {
+	void getTaskLockedDifferentSubscription() throws IOException {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, -1);
 		Assertions.assertNull(runner.getTask(getSubscription().getId()));
 	}
 
 	@Test
-	public void getTaskNotStarted() {
+	void getTaskNotStarted() {
 		Assertions.assertNull(runner.getTask(getSubscription().getId()));
 	}
 

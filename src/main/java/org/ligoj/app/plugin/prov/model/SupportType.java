@@ -8,5 +8,18 @@ package org.ligoj.app.plugin.prov.model;
  */
 public enum SupportType {
 
-	TECHNICAL, BILLING, ALL
+	/**
+	 * The support is technical.
+	 */
+	TECHNICAL,
+
+	/**
+	 * The support is financial.
+	 */
+	BILLING,
+
+	/**
+	 * The support is both financial and technical.
+	 */
+	ALL
 }

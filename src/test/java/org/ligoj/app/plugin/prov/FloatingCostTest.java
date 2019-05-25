@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 public class FloatingCostTest {
 
 	@Test
-	public void build() {
+	void build() {
 		final var cost = new FloatingCost(1.1, 2.2, true);
 		Assertions.assertEquals(1.1, cost.getMin());
 		Assertions.assertEquals(2.2, cost.getMax());
@@ -31,7 +31,7 @@ public class FloatingCostTest {
 		Assertions.assertTrue(cost.round().isUnbound());
 	}
 	@Test
-	public void add() {
+	void add() {
 		final var cost1 = new FloatingCost(1.1, 2.2, false);
 		final var cost2 = new FloatingCost(4.4, 5.5, false);
 		final var cost3 = new FloatingCost(6.6, 7.7, false);

@@ -67,19 +67,19 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	private CacheManager cacheManager;
 
 	@BeforeEach
-	public void reset() {
+	void reset() {
 		cacheManager.getCache("configuration").clear();
 		cacheManager.getCache("terraform-version-latest").clear();
 		cacheManager.getCache("terraform-version").clear();
 	}
 
 	@Test
-	public void getCurrentOs() {
+	void getCurrentOs() {
 		Assertions.assertNotNull(resource.getCurrentOs());
 	}
 
 	@Test
-	public void getOsValue() {
+	void getOsValue() {
 		final var resource = new TerraformUtils();
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "UNKNOWN"));
 		Assertions.assertEquals("terraform", resource.getOsValue(resource.bins, "FreeBSD"));
@@ -90,42 +90,42 @@ public class TerraformUtilsTest extends AbstractServerTest {
 
 	// Coverage only
 	@Test
-	public void getClassLoader() {
+	void getClassLoader() {
 		Assertions.assertNull(resource.getClassLoader());
 		Assertions.assertNotNull(resource.getCurrentOs());
 	}
 
 	@Test
-	public void newBuilderOther() {
+	void newBuilderOther() {
 		checkNewBuilderBsd("UNKNOWN");
 	}
 
 	@Test
-	public void newBuilderBsd() {
+	void newBuilderBsd() {
 		checkNewBuilderBsd("FreeBSD");
 	}
 
 	@Test
-	public void newBuilderBsd2() {
+	void newBuilderBsd2() {
 		checkNewBuilderBsd("FreeBSD 1.0");
 	}
 
 	@Test
-	public void newBuilderBsd3() {
+	void newBuilderBsd3() {
 		checkNewBuilderBsd("FreeBSD 1.0 A");
 	}
 
-	public void checkNewBuilderBsd(final String os) {
+	void checkNewBuilderBsd(final String os) {
 		checkNewBuilder(os, new String[] { "sh", "-c" }, "terraform arg1 arg2");
 	}
 
 	@Test
-	public void newBuilderWindows() {
+	void newBuilderWindows() {
 		checkNewBuilder("Windows Server 2012", new String[] { "cmd.exe", "/c" }, "terraform.exe arg1 arg2");
 	}
 
 	@Test
-	public void newBuilderNotInstalled() {
+	void newBuilderNotInstalled() {
 		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		Mockito.when(classLoader.getHomeDirectory()).thenReturn(EMPTY_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
@@ -162,7 +162,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void install() throws IOException {
+	void install() throws IOException {
 		final var utils = prepareForInstall("mock-server/prov/terraform/terraform.zip");
 		utils.install();
 
@@ -181,7 +181,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void installInvalidZip() throws IOException {
+	void installInvalidZip() throws IOException {
 		final var utils = prepareForInstall("mock-server/prov/terraform/terraform-invalid.zip");
 		Assertions.assertThrows(FileNotFoundException.class, utils::install);
 	}
@@ -229,13 +229,13 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getLatestVersion() {
+	void getLatestVersion() {
 		final var version = resource.getLatestVersion();
 		Assertions.assertEquals(3, StringUtils.split(version, '.').length);
 	}
 
 	@Test
-	public void getLatestVersionMock() throws IOException {
+	void getLatestVersionMock() throws IOException {
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
 		try (var inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
@@ -248,13 +248,13 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getLatestVersionNotAvailable() {
+	void getLatestVersionNotAvailable() {
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		Assertions.assertNull(resource.getLatestVersion());
 	}
 
 	@Test
-	public void toFile() throws IOException {
+	void toFile() throws IOException {
 		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
 		try (var scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
 			final var file = Paths.get("");
@@ -267,7 +267,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void zipUnzip() throws IOException {
+	void zipUnzip() throws IOException {
 		final var from = new File("target/test-classes/terraform-zip-unzip").toPath();
 		final var toZip = new File("target/test-classes/terraform-out.zip");
 		FileUtils.deleteQuietly(toZip);
@@ -289,7 +289,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void addEntryFailed() throws IOException {
+	void addEntryFailed() throws IOException {
 		final var from = new File("target/test-classes/terraform-logs", "init.log").toPath();
 		final var zs = Mockito.mock(ZipOutputStream.class);
 		Mockito.doThrow(new IOException()).when(zs).putNextEntry(ArgumentMatchers.any());

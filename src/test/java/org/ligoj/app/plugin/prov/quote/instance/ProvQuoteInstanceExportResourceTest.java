@@ -66,7 +66,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 	@Override
 	@BeforeEach
-	public void prepareData() throws IOException {
+	protected void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
@@ -81,7 +81,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
-	public void exportInline() throws IOException {
+	void exportInline() throws IOException {
 		final var lines = export();
 		Assertions.assertEquals(8, lines.size());
 
@@ -109,7 +109,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	 * Full round trip: empty, export, import, export, import.
 	 */
 	@Test
-	public void exportInlineImport() throws IOException {
+	void exportInlineImport() throws IOException {
 		// Empty
 		qsResource.deleteAll(subscription);
 		qiResource.deleteAll(subscription);
@@ -172,7 +172,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
-	public void exportSplit() throws IOException {
+	void exportSplit() throws IOException {
 		final var export = (StreamingOutput) qieResource.exportSplit(subscription, "test.csv").getEntity();
 		final var out = new ByteArrayOutputStream();
 		export.write(out);
