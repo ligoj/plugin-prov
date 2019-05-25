@@ -7,37 +7,37 @@ define(['jquery'], function ($) {
 		var operators = {
 			'num': {
 				'=': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value === search;
 					};
 				},
 				'>': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value > search;
 					};
 				},
 				'>=': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value >= search;
 					};
 				},
 				'<': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value < search;
 					};
 				},
 				'<=': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value <= search;
 					};
 				},
 				'!=': function (value) {
-					var value = parseInt(value, 10);
+					value = parseInt(value, 10);
 					return function (search) {
 						return value !== search;
 					};
@@ -107,7 +107,7 @@ define(['jquery'], function ($) {
 		function newFilter(settings, property, operator, value) {
 			var filter = current[property + 'NewCustomFilter'];
 			return newCustomFilter(settings, property, value, operator);
-		};
+		}
 
 		function build(settings, type, search) {
 			if (cacheFilter[type] && cacheFilter[type].search === search) {
@@ -152,7 +152,7 @@ define(['jquery'], function ($) {
 				}
 			}
 			return cacheFilter[type].filter;
-		};
+		}
 
 		function accept(settings, type, dataFilter, data, search) {
 			var filter = build(settings, type, search);

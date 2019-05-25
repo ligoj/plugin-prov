@@ -30,6 +30,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
@@ -88,7 +89,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void update() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("server1").getId();
@@ -113,7 +114,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void updateAnotherSubscription() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("server1").getId();
@@ -126,7 +127,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void create() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("server1").getId();
@@ -134,7 +135,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 		vo.setType(ResourceType.INSTANCE);
 		final var id = tagResource.create(subscription, vo);
 
-		final var vo2 = new TagEditionVo();
+		final var vo2 = new ProvTag();
 		vo2.setName("key");
 		vo2.setValue("value2");
 		vo2.setResource(instance);
@@ -166,7 +167,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void createNotExistingSubscription() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("server1").getId();
@@ -177,7 +178,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void createNotExistingResource() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		vo.setResource(0);
@@ -187,7 +188,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void createAnotherSubscription() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("serverX").getId();
@@ -198,7 +199,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void deleteAnotherSubscription() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		vo.setResource(qiRepository.findByName("serverX").getId());
@@ -209,7 +210,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void delete() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		vo.setResource(qiRepository.findByName("server1").getId());
@@ -228,7 +229,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void deleteFromResource() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		final var instance = qiRepository.findByName("server1").getId();
@@ -249,7 +250,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 
 	@Test
 	public void deleteAllFromResource() {
-		final var vo = new TagEditionVo();
+		final var vo = new ProvTag();
 		vo.setName("key");
 		vo.setValue("value");
 		vo.setResource(qiRepository.findByName("server1").getId());

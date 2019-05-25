@@ -112,7 +112,7 @@ public class ProvTagResource {
 	@POST
 	@Path("{subscription:\\d+}/tag")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int create(@PathParam("subscription") final int subscription, final TagEditionVo vo) {
+	public int create(@PathParam("subscription") final int subscription, final ProvTag vo) {
 		return saveOrUpdate(subscription, new ProvTag(), vo);
 	}
 
@@ -125,7 +125,7 @@ public class ProvTagResource {
 	@PUT
 	@Path("{subscription:\\d+}/tag")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void update(@PathParam("subscription") final int subscription, final TagEditionVo vo) {
+	public void update(@PathParam("subscription") final int subscription, final ProvTag vo) {
 		saveOrUpdate(subscription, resource.findConfigured(repository, vo.getId(), subscription), vo);
 	}
 
@@ -138,7 +138,7 @@ public class ProvTagResource {
 	 * @param vo           The new quote tag data.
 	 * @return The tag identifier.
 	 */
-	public int saveOrUpdate(final int subscription, final ProvTag entity, final TagEditionVo vo) {
+	public int saveOrUpdate(final int subscription, final ProvTag entity, final ProvTag vo) {
 		// Check the associations and copy attributes to the entity
 		var res = resource.findConfigured(getRepository(vo.getType()), vo.getResource(), subscription);
 		NamedBean.copy(vo, entity);
