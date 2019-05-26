@@ -8,10 +8,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
@@ -22,8 +24,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.INamableBean;
@@ -61,31 +66,35 @@ public class ProvQuoteInstanceExportResource {
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				final Map<Integer, List<ProvQuoteStorage>> qsByQi = new HashMap<>();
+				final Map<Integer, List<TagVo>> itags = vo.getTags().get(ResourceType.INSTANCE);
+				final Map<Integer, List<TagVo>> stags = vo.getTags().get(ResourceType.STORAGE);
 				vo.getStorages().stream().filter(qs -> qs.getQuoteResource() != null)
 						.forEach(qs -> qsByQi.computeIfAbsent(qs.getQuoteResource().getId(), ArrayList::new).add(qs));
 				final var max = qsByQi.values().stream().mapToInt(List::size).max().orElse(0);
 
 				// Minimal headers
-				writer.format("%s" + ";%s".repeat(20), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
+				writer.format("%s" + ";%s".repeat(22), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
 						"max", "maxvariablecost", "constant", "ephemeral", "type", "internet", "license", "cost",
-						"disk", "diskType", "diskLatency", "diskOptimized", "diskCost");
+						"tags", "disk", "diskType", "diskLatency", "diskOptimized", "diskCost", "diskTags");
 
 				// Additional headers for storages above the first one
-				IntStream.range(1, max).forEach(i -> writer.print(";disk" + i + ";disk" + i + "Type" + ";disk" + i
-						+ "Latency" + ";disk" + i + "Optimized" + ";disk" + i + "Cost"));
+				IntStream.range(1, max)
+						.forEach(i -> writer.format(
+								";disk%d;disk%dType;disk%dLatency;disk%dOptimized;disk%dCost;disk%dTags", i, i, i, i, i,
+								i));
 				vo.getInstances().forEach(qi -> {
 					// Write quote instance
-					writer.format("\n%s" + ";%s".repeat(15), toString(qi), toString(qi.getCpu()), toString(qi.getRam()),
+					writer.format("\n%s" + ";%s".repeat(16), toString(qi), toString(qi.getCpu()), toString(qi.getRam()),
 							qi.getOs(), toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
 							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
 							toString(qi.getMaxVariableCost()), toString(qi.getConstant()), qi.isEphemeral(),
 							toString(qi.getPrice().getType()), qi.getInternet(), toString(qi.getLicense()),
-							toString(qi.getCost()));
+							toString(qi.getCost()), toString(qi, itags));
 					// Write related storage
 					qsByQi.getOrDefault(qi.getId(), Collections.emptyList())
-							.forEach(qs -> writer.format(";%s".repeat(5), qs.getSize(),
+							.forEach(qs -> writer.format(";%s".repeat(6), qs.getSize(),
 									toString(qs.getPrice().getType()), toString(qs.getLatency()),
-									toString(qs.getOptimized()), toString(qs.getCost())));
+									toString(qs.getOptimized()), toString(qs.getCost()), toString(qs, stags)));
 				});
 				writer.flush();
 			}
@@ -108,37 +117,41 @@ public class ProvQuoteInstanceExportResource {
 		final var vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				writer.format("%s" + ";%s".repeat(22), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
+				writer.format("%s" + ";%s".repeat(24), "name", "cpu", "ram", "os", "usage", "term", "location", "min",
 						"max", "maxvariablecost", "constant", "ephemeral", "type", "internet", "license", "cost",
-						"disk", "instance", "database", "latency", "optimized", "engine", "edition");
+						"tags", "disk", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
 
 				// Write quote instances
-				vo.getInstances()
-						.forEach(qi -> writer.format("\n%s" + ";%s".repeat(15), toString(qi), toString(qi.getCpu()),
-								toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
-								toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-								toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
-								toString(qi.getConstant()), qi.isEphemeral(), toString(qi.getPrice().getType()),
-								qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost())));
+				final Map<Integer, List<TagVo>> itags = vo.getTags().get(ResourceType.INSTANCE);
+				vo.getInstances().forEach(qi -> writer.format("\n%s" + ";%s".repeat(16), toString(qi),
+						toString(qi.getCpu()), toString(qi.getRam()), qi.getOs(), toString(qi.getUsage()),
+						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+						toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()), toString(qi.getConstant()),
+						qi.isEphemeral(), toString(qi.getPrice().getType()), qi.getInternet(),
+						toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags)));
 
 				// Write quote databases
-				vo.getDatabases()
-						.forEach(qi -> writer.format("\n%s" + ";%s".repeat(17), toString(qi), toString(qi.getCpu()),
-								toString(qi.getRam()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
-								toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
-								toString(qi.getConstant()), "", toString(qi.getPrice().getType()), "",
-								toString(qi.getLicense()), toString(qi.getCost()), qi.getEngine(),
-								toString(qi.getEdition())));
+				final Map<Integer, List<TagVo>> dtags = vo.getTags().get(ResourceType.DATABASE);
+				vo.getDatabases().forEach(qi -> writer.format("\n%s" + ";%s".repeat(16) + ";;;;;;%s;%s", toString(qi),
+						toString(qi.getCpu()), toString(qi.getRam()), "", toString(qi.getUsage()),
+						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
+						toString(qi.getMaxQuantity()), "", toString(qi.getConstant()), "",
+						toString(qi.getPrice().getType()), "", toString(qi.getLicense()), toString(qi.getCost()),
+						toString(qi, dtags), qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
-				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;%s;%s;%s;%s;%s;%s", toString(qs),
-						toString(qs.getLocation()), toString(qs.getCost()), qs.getSize(),
-						toString(qs.getPrice().getType()), toString(qs.getQuoteInstance()),
+				final Map<Integer, List<TagVo>> stags = vo.getTags().get(ResourceType.STORAGE);
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;;%s;%s;" + ";%s".repeat(5),
+						toString(qs), toString(qs.getLocation()), toString(qs.getPrice().getType()),
+						toString(qs.getCost()), toString(qs, stags), qs.getSize(), toString(qs.getQuoteInstance()),
 						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
 				// Write quote support
-				vo.getSupports().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;;%s;%s;;;", toString(qs),
-						toString(qs.getCost()), toString(qs.getSeats()), toString(qs.getPrice().getType())));
+				final Map<Integer, List<TagVo>> s2tags = vo.getTags().get(ResourceType.SUPPORT);
+				vo.getSupports()
+						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
+								toString(qs.getPrice().getType()), toString(qs.getCost()), toString(qs, s2tags),
+								toString(qs.getSeats())));
 				writer.flush();
 			}
 		}, file).build();
@@ -156,6 +169,17 @@ public class ProvQuoteInstanceExportResource {
 	 */
 	private String toString(final Object optional) {
 		return optional == null ? "" : optional.toString();
+	}
+
+	private String toString(final INamableBean<Integer> qi, final Map<Integer, List<TagVo>> tags) {
+		return tags == null ? "" : toString(tags.get(qi.getId()));
+	}
+
+	/**
+	 * Return the 'toString' of a nullable collection.
+	 */
+	private String toString(final Collection<?> optional) {
+		return CollectionUtils.emptyIfNull(optional).stream().map(Object::toString).collect(Collectors.joining());
 	}
 
 	/**

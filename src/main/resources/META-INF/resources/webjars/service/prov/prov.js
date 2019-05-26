@@ -1121,20 +1121,20 @@ define(function () {
 				stateDuration: 0,
 				stateLoadCallback: function (settings, callback) {
 					try {
-						return JSON.parse(localStorage.getItem('service:prov/' + type));
+						var data = JSON.parse(localStorage.getItem('service:prov/' + type));
+						settings.oPreviousSearch.sSearchAlt = data.searchAlt;
+						return data;
 					} catch (e) {
 						// Ignore the state error log
 						callback(null);
 					}
 				},
 				stateLoadParams: function (settings, data) {
-					if (data && data.search && data.search.search) {
-						// Restore the filter input
-						$table.closest('[data-prov-type]').find('.subscribe-configuration-prov-search').val(data.search.search);
-					}
+					$table.closest('[data-prov-type]').find('.subscribe-configuration-prov-search').val(settings.oPreviousSearch.sSearchAlt || '');
 				},
 				stateSaveCallback: function (settings, data) {
 					try {
+						data.searchAlt = settings.oPreviousSearch.sSearchAlt;
 						localStorage.setItem('service:prov/' + type, JSON.stringify(data));
 					} catch (e) {
 						// Ignore the state error log
@@ -1307,11 +1307,10 @@ define(function () {
 				$.fn.dataTable.ext.search.push(
 					function (settings, dataFilter, dataIndex, data) {
 						var type = settings.oInit.provType;
-						if (typeof type === 'undefined') {
+						if (typeof type === 'undefined' || (settings.oPreviousSearch.sSearchAlt || '') === '') {
 							return true;
 						}
-						// return filterManager.accept(settings, type, dataFilter, data, settings.oPreviousSearch.sSearch);
-						return true;
+						return current.filterManager.accept(settings, type, dataFilter, data, settings.oPreviousSearch.sSearchAlt);
 					}
 				);
 			}
@@ -1320,7 +1319,9 @@ define(function () {
 				if (event.which !== 16 && event.which !== 91) {
 					var table = current[$(this).closest('[data-prov-type]').attr('data-prov-type') + 'Table'];
 					if (table) {
-						table.fnFilter($(this).val());
+						table.fnSettings().oPreviousSearch.sSearch = '§force§';
+						table.fnSettings().oPreviousSearch.sSearchAlt = $(this).val();
+						table.fnFilter('');
 						current.updateUiCost();
 					}
 				}
@@ -2792,7 +2793,7 @@ define(function () {
 
 		getFilteredData: function (type) {
 			var result = [];
-			if (current[type + 'Table'] && current[type + 'Table'].fnSettings().oPreviousSearch.sSearch) {
+			if (current[type + 'Table'] && current[type + 'Table'].fnSettings().oPreviousSearch.sSearchAlt) {
 				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
 				for (var index = 0; index < data.length; index++) {
 					result.push(data[index]);

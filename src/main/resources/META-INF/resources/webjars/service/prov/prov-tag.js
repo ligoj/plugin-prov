@@ -89,7 +89,7 @@ define(['jquery'], function ($) {
 		}
 		function render(_i, mode, resource) {
 			if (mode === 'sort' || mode === 'filter') {
-				return toTags(resource).map(t=>t.name).join(',');
+				return toTags(resource).map(formatResult).join(',');
 			}
 			// Render the tags
 			return '<input type="text" class="resource-tags" data-resource="' + resource.id + '" autocomplete="off" name="resource-tags">';

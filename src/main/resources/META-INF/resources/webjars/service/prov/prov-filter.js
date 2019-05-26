@@ -6,76 +6,77 @@ define(['jquery'], function ($) {
 		var cacheFilter = {};
 		var operators = {
 			'num': {
-				'=': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'=': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value === search;
 					};
 				},
-				'>': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'>': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value > search;
 					};
 				},
-				'>=': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'>=': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value >= search;
 					};
 				},
-				'<': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'<': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value < search;
 					};
 				},
-				'<=': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'<=': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value <= search;
 					};
 				},
-				'!=': function (value) {
-					value = parseInt(value, 10);
-					return function (search) {
+				'!=': function (search) {
+					search = parseInt(search, 10);
+					return function (value) {
 						return value !== search;
 					};
 				}
 			},
 			'string': {
-				'=': function (value) {
-					return function (search) {
-						return value === search;
+				'=': function (search) {
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase() === search;
 					};
 				},
-				'!=': function (value) {
-					return function (search) {
-						return value !== search;
+				'!=': function (search) {
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase() !== search;
 					};
 				},
-				'~': function (value) {
-					return function (search) {
-						return value.indexOf(search) >= 0;
+				'~': function (search) {
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase().indexOf(search) >= 0;
 					};
 				}
 			}
 		};
 
-		function indexNewCustomFilter(index, type, value, operator) {
-			var op = operators[type][operator](value);
+		function indexNewCustomFilter(index, opFunction) {
 			return function (dataFilter, resource) {
-				return op(dataFilter[index])
+				return opFunction(dataFilter[index])
 			}
 		}
-		function propertyNewCustomFilter(property, type, value, operator) {
-			var op = operators[type][operator](value);
+		function propertyNewCustomFilter(property, opFunction) {
 			return function (dataFilter, resource) {
-				return op(resource[property])
+				return opFunction(resource[property])
 			}
 		}
 
-		var propertyMatchers = ['provType','name'];
+		var propertyMatchers = ['filterName', 'data'];
 
 		function newCustomFilter(settings, property, value, operator) {
 			for (var j = 0; j < propertyMatchers.length; j++) {
@@ -83,16 +84,22 @@ define(['jquery'], function ($) {
 				for (var i = 0; i < settings.aoColumns.length; i++) {
 					var column = settings.aoColumns[i];
 					if (column[propertyMatcher] === property) {
-						if (typeof column.provFilter === 'function') {
-							// Custom column filter
-							return column.provFilter(operators[type][operator](value));
+						// Column matching to the property has been found
+						var type = column.type || 'string';
+						var opFunction = operators[type][operator](value);
+						if (typeof column.filter === 'function') {
+							// Return custom column filter function
+							return column.filter(opFunction);
 						}
 						// Generic filter
-						return column[propertyMatcher.property](i, column, value, operator);
+						if (type === 'string') {
+							return indexNewCustomFilter(i, opFunction);
+						}
+						return propertyNewCustomFilter(property, opFunction);
 					}
 				}
 			}
-			return genericNewCustomFilter(property, value, operator);
+			console.log('Not mapped property', property);
 		}
 		function stringNewCustomFilter(property, value, operator) {
 			return genericNewCustomFilter(property, 'string', value, operator)
@@ -114,15 +121,21 @@ define(['jquery'], function ($) {
 				// Use cache
 				return cacheFilter[type].filter;
 			}
-			var filters = search.split(';');
+
+			// Need to build the cache configuration for this filter
+			var filters = search.split(',');
 			var specificKeys = [];
+			var specific = {};
 			var global = [];
 			for (var i = 0; i < filters.length; i++) {
-				var filter = filters[i];
-				var filterParts = filter.split('!');
+				var filter = filters[i].trim();
+				if (filter.length === 0) {
+					continue;
+				}
+				var filterParts = filter.split('|');
 				var operator;
 				var value;
-				if (filter.startsWith('!')) {
+				if (filter.startsWith('|')) {
 					// Specific filter
 					var property = filterParts[1];
 					operator = filterParts[2];
@@ -132,7 +145,7 @@ define(['jquery'], function ($) {
 				} else {
 					// Global filter
 					if (filterParts.length === 1) {
-						operator = '=';
+						operator = '~';
 						value = filterParts[0];
 					} else {
 						operator = filterParts[0];
@@ -156,14 +169,20 @@ define(['jquery'], function ($) {
 
 		function accept(settings, type, dataFilter, data, search) {
 			var filter = build(settings, type, search);
+			if (filter.specificKeys.length === 0 && filter.global.length === 0) {
+				// No filter
+				return true;
+			}
 			for (var i = 0; i < filter.specificKeys.length; i++) {
 				if (filter.specific[specificKeys[i]](dataFilter, data)) {
 					return true;
 				}
 			}
 			for (i = 0; i < filter.global.length; i++) {
-				if (filter.global[i](dataFilter, data)) {
-					return true;
+				for (var j = 0; j < settings.aoColumns.length; j++) {
+					if (filter.global[i](dataFilter[j], data)) {
+						return true;
+					}
 				}
 			}
 			return false;
