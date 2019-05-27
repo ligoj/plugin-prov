@@ -639,14 +639,23 @@ define(function () {
 				return usage.text || usage.name;
 			}
 			if (usage) {
-				// TODO
+				usage = {
+					name: usage.text,
+					rate: usage.id,
+					duration: false,
+					start: false
+				}
 			} else {
 				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
 			}
 			var tooltip = current.$messages.name + ': ' + usage.name;
 			tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
-			tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
-			tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
+			if (usage.duration !== false) {
+				tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
+			}
+			if (usage.start !== false) {
+				tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
+			}
 			return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
 		},
 
