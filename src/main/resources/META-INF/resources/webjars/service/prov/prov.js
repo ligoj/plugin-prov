@@ -368,7 +368,7 @@ define(function () {
 			var weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
 			$cost.append('<span class="cost-min hidden"><span class="odo-wrapper cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
 			$cost.append('<span class="cost-max"><span class="odo-wrapper cost-value"></span>' + weightUnit + '</span>');
-			require(['../main/service/prov/lib/odometer'], function (Odometer) {
+			require(['../main/service/prov/lib/odometer', 'domReady'], function (Odometer) {
 				// Odometer component
 				current.registerOdometer(Odometer, $('#service-prov-menu').find('.odo-wrapper'));
 				current.updateUiCost();
@@ -872,7 +872,6 @@ define(function () {
 				conf.supportCost += qs2.cost;
 			}
 			current.initializeTerraformStatus();
-			current.updateUiCost();
 		},
 
 		/**
