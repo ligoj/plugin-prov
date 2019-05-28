@@ -87,6 +87,7 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 	 * @return The related location. Never <code>null</code>.
 	 */
 	@Transient
+	@JsonIgnore
 	public ProvLocation getResolvedLocation() {
 		return location == null ? getConfiguration().getLocation() : location;
 	}
