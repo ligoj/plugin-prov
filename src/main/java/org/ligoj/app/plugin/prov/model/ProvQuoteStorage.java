@@ -94,6 +94,7 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> im
 	 *
 	 * @return the optional associated resource: instance or database.
 	 */
+	@JsonIgnore
 	public AbstractQuoteResourceInstance<?> getQuoteResource() {
 		return quoteInstance == null ? quoteDatabase : quoteInstance;
 	}
