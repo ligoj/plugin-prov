@@ -2942,7 +2942,7 @@ define(function () {
 
 			return {
 				cost: instanceCost + instanceCostD + storageCost + supportCost,
-				costNoSupport: instanceCost + storageCost,
+				costNoSupport: instanceCost + instanceCostD + storageCost,
 				unbound: maxInstancesUnbound || maxInstancesUnboundD,
 				timeline: timeline,
 				instance: {
