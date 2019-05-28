@@ -2810,10 +2810,10 @@ define(function () {
 			} else {
 				result = current.model.configuration[type + 's'] || {};
 			}
-			if (type === 'instance' && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
+			if ((type === 'instance' || type === 'database' || type === 'storage') && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
 				var usage = (current.model.configuration.usage || {});
 				var date = typeof current.filterDate === 'number' ? current.filterDate : current.fixedDate;
-				return result.filter(qi => ((qi.usage || usage).start || 0) <= date);
+				return result.filter(qi => (((qi.quoteInstance || qi.quoteDatabase || qi).usage || usage).start || 0) <= date);
 			}
 			return result;
 		},
@@ -2864,10 +2864,8 @@ define(function () {
 				enabledInstances[qi.id] = true;
 				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
 					timeline[t].instance += cost;
+					timeline[t].cost += cost;
 				}
-			}
-			for (t = 0; t < duration; t++) {
-				timeline[t].cost += instanceCost;
 			}
 
 			// Database statistics
@@ -2899,10 +2897,8 @@ define(function () {
 				enabledInstancesD[qi.id] = true;
 				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
 					timeline[t].database += cost;
+					timeline[t].cost += instanceCostD;
 				}
-			}
-			for (t = 0; t < duration; t++) {
-				timeline[t].cost += instanceCostD;
 			}
 
 			// Storage statistics
@@ -2922,10 +2918,15 @@ define(function () {
 				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
 				storageReserved += qs.size * nb;
 				storageCost += qs.cost;
-			}
-			for (t = 0; t < duration; t++) {
-				timeline[t].storage = storageCost;
-				timeline[t].cost += storageCost;
+				var quoteResource = qs.quoteDatabase || qs.quoteInstance;
+				if (quoteResource) {
+					for (t = (quoteResource.usage || defaultUsage).start || 0; t < duration; t++) {
+						timeline[t].storage += qs.cost;
+						timeline[t].cost += qs.cost;
+					}
+				} else {
+					timeline[t].cost += qs.cost;
+				}
 			}
 
 			// Support statistics
