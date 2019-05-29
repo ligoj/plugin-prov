@@ -97,6 +97,13 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		em.persist(entity);
 
 		entity = new ProvTag();
+		entity.setName("key3");
+		entity.setResource(qiRepository.findByName("server1").getId());
+		entity.setType(ResourceType.INSTANCE);
+		entity.setConfiguration(qRepository.findBy("subscription.id", subscription));
+		em.persist(entity);
+
+		entity = new ProvTag();
 		entity.setName("key2");
 		entity.setResource(qbRepository.findByName("database1").getId());
 		entity.setType(ResourceType.DATABASE);
@@ -121,7 +128,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 				lines.get(0));
 
 		// Instance with multiple disks
-		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8;key:value"
+		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8;key:value,key3"
 				+ ";20;storage1;GOOD;IOPS;8,4;" + ";10;storage2;MEDIUM;THROUGHPUT;155,6;"
 				+ ";51;storage2;MEDIUM;THROUGHPUT;155,6;", lines.get(1));
 
@@ -215,7 +222,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 				lines.get(0));
 
 		// Instance data
-		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8;key:value",
+		Assertions.assertEquals("server1;0,5;2000;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8;key:value,key3",
 				lines.get(1));
 
 		// Database data

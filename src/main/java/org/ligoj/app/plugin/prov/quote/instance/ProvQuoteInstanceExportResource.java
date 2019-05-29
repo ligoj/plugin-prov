@@ -179,7 +179,7 @@ public class ProvQuoteInstanceExportResource {
 	 * Return the 'toString' of a nullable collection.
 	 */
 	private String toString(final Collection<?> optional) {
-		return CollectionUtils.emptyIfNull(optional).stream().map(Object::toString).collect(Collectors.joining());
+		return CollectionUtils.emptyIfNull(optional).stream().map(Object::toString).collect(Collectors.joining(","));
 	}
 
 	/**
