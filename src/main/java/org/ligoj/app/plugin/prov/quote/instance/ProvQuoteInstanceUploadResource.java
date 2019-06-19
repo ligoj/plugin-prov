@@ -311,7 +311,9 @@ public class ProvQuoteInstanceUploadResource {
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
 				.forEach(errors::remove);
 		errors.put(CSV_FILE,
-				List.of(Map.of("parameters", (Serializable) Map.of("name", i.getName()), "rule", "csv-invalid-entry")));
+				List.of(Map.of("parameters",
+						(Serializable) Map.of("name", ObjectUtils.defaultIfNull(i.getName(), "<unknown>")), "rule",
+						"csv-invalid-entry")));
 		return e;
 	}
 
