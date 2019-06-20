@@ -141,7 +141,7 @@ public class ProvQuoteInstanceExportResource {
 
 				// Write quote storages
 				final Map<Integer, List<TagVo>> stags = vo.getTags().get(ResourceType.STORAGE);
-				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;%s;;;;;;%s;;;%s;%s;" + ";%s".repeat(5),
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;%s;;;;;%s;;;%s;%s" + ";%s".repeat(5),
 						toString(qs), toString(qs.getLocation()), toString(qs.getPrice().getType()),
 						toString(qs.getCost()), toString(qs, stags), qs.getSize(), toString(qs.getQuoteInstance()),
 						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
