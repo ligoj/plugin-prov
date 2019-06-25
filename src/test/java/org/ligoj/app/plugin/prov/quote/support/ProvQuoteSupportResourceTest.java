@@ -104,6 +104,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		vo.setAccessChat(null);
 		vo.setAccessEmail(null);
 		vo.setLevel(Rate.LOW);
+		newTags(vo);
+
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 3541.94, 6236.5, false);
 		checkCost(cost.getCost(), 376.54, 621.5, false);
@@ -149,6 +151,8 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(9, support.getPrice().getType().getSlaBusinessCriticalSystemDown().intValue());
 
 		Assertions.assertFalse(support.isUnboundCost());
+
+		assertTags(support);
 
 		// Coverage only
 		Assertions.assertEquals("service:prov:test", support.getPrice().getType().getNode().getId());
@@ -377,8 +381,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoSeat() throws IOException {
-		final var lookup = qsResource
-				.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
+		final var lookup = qsResource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
@@ -406,8 +409,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		// Support1 is now unlimited seats
 		spRepository.findBy("type.name", "support1").getType().setSeats(null);
 
-		final var lookup = qsResource
-				.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
+		final var lookup = qsResource.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));

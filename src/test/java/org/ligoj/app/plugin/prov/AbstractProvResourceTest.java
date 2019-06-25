@@ -5,6 +5,8 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -15,6 +17,8 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -27,6 +31,7 @@ import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,8 +53,12 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected int subscription;
 
+	@Autowired
+	private ProvTagRepository tagRepository;
+
 	/**
 	 * Prepare test data.
+	 * 
 	 * @throws IOException When CSV cannot be read.
 	 */
 	@BeforeEach
@@ -65,6 +74,26 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
 		updateCost();
+	}
+
+	protected void newTags(final QuoteTagSupport vo) {
+		List<TagVo> tags = new ArrayList<>();
+		final var tag1 = new TagVo();
+		tag1.setName("name1");
+		tag1.setValue("value1");
+		tags.add(tag1);
+		final var tag2 = new TagVo();
+		tag2.setName("name2");
+		tags.add(tag2);
+		vo.setTags(tags);
+	}
+
+	protected void assertTags(final AbstractQuoteResource<?> resource) {
+		Assertions.assertTrue(tagRepository
+				.findAllBy("configuration.id", resource.getConfiguration().getId(), new String[] { "resource", "type" },
+						resource.getId(), resource.getResourceType())
+				.stream().allMatch(t -> "name1".equals(t.getName()) && "value1".equals(t.getValue())
+						|| "name2".equals(t.getName()) && t.getValue() == null));
 	}
 
 	protected QuoteLightVo checkCost(final int subscription, final double min, final double max,

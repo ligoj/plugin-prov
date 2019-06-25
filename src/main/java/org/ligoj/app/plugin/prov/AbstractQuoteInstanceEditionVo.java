@@ -3,11 +3,14 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.List;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -18,7 +21,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integer> {
+public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
 
 	/**
 	 * SID
@@ -97,4 +100,9 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * Optional required type. Will be erased on refresh.
 	 */
 	private String type;
+
+	/**
+	 * The tags to override when not <code>null</code>.
+	 */
+	private List<TagVo> tags;
 }

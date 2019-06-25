@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.NamedBean;
@@ -76,7 +78,7 @@ public class ProvTagResource {
 	 * Must be invoked when a resource is deleted. This is due to the weak relationship between the resource and the
 	 * related tags.
 	 * 
-	 * @param type     The deleted resource type.
+	 * @param type      The deleted resource type.
 	 * @param resources The deleted resource identifiers
 	 */
 	public void onDelete(final ResourceType type, final Integer... resources) {
@@ -130,8 +132,8 @@ public class ProvTagResource {
 	}
 
 	/**
-	 * Save or update the tag entity from the given {@link ProvTag}. The related subscription, the related resource
-	 * and the related resource type must match and be visible for the principal user.
+	 * Save or update the tag entity from the given {@link ProvTag}. The related subscription, the related resource and
+	 * the related resource type must match and be visible for the principal user.
 	 * 
 	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
 	 * @param entity       The target entity to update/persist
@@ -160,6 +162,29 @@ public class ProvTagResource {
 	@Path("{subscription:\\d+}/tag/{id}")
 	public void delete(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
 		repository.delete(resource.findConfigured(repository, id, subscription));
+	}
+
+	/**
+	 * Replace the tags of a resource when the given tags are not <code>null</code>. Empty tags collection will remove
+	 * all tags of this resource. Only work with persisted resources.
+	 * 
+	 * @param tags     The optional collection of tags. When <code>null</code>, nothing is done.
+	 * @param resource The related resource.
+	 */
+	public void replaceTags(Collection<TagVo> tags, final AbstractQuoteResource<?> resource) {
+		if (tags != null) {
+			// Redefine tags for this entity
+			repository.deleteAllBy("type", resource.getResourceType(), new String[] { "resource" }, resource.getId());
+			tags.stream().map(t -> {
+				final ProvTag entity = new ProvTag();
+				entity.setName(t.getName());
+				entity.setValue(t.getValue());
+				entity.setResource(resource.getId());
+				entity.setType(resource.getResourceType());
+				entity.setConfiguration(resource.getConfiguration());
+				return entity;
+			}).forEach(repository::save);
+		}
 	}
 
 }

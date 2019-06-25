@@ -3,10 +3,13 @@
  */
 package org.ligoj.app.plugin.prov.quote.support;
 
+import java.util.List;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -19,7 +22,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteSupportEditionVo extends DescribedBean<Integer> {
+public class QuoteSupportEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
 
 	/**
 	 * SID
@@ -70,5 +73,10 @@ public class QuoteSupportEditionVo extends DescribedBean<Integer> {
 	@NotNull
 	@Positive
 	private Integer subscription;
+
+	/**
+	 * The tags to override when not <code>null</code>.
+	 */
+	private List<TagVo> tags;
 
 }

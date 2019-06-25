@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.quote.storage;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -11,8 +13,10 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.SafeHtml;
 import org.hibernate.validator.constraints.SafeHtml.Attribute;
 import org.hibernate.validator.constraints.SafeHtml.Tag;
+import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,7 +29,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescribableBean<Integer> {
+public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescribableBean<Integer>, QuoteTagSupport {
 
 	/**
 	 * SID
@@ -107,4 +111,8 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 		return getLocation();
 	}
 
+	/**
+	 * The tags to override when not <code>null</code>.
+	 */
+	private List<TagVo> tags;
 }

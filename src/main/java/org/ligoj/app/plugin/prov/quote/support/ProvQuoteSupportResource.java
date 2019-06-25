@@ -162,7 +162,11 @@ public class ProvQuoteSupportResource
 		}
 
 		// Save and update the costs
-		return newUpdateCost(entity);
+		final var update = newUpdateCost(entity);
+
+		// Add tags
+		super.saveOrUpdate(entity, vo);
+		return update;
 	}
 
 	/**

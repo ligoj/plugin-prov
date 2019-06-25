@@ -11,6 +11,7 @@ import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +57,11 @@ public abstract class AbstractProvQuoteResource<T extends AbstractNamedEntity<?>
 		// Update the cost. Note the effort could be reduced to a simple subtract of deleted resource costs.
 		resource.updateCost(subscription);
 		return resource.refreshSupportCost(cost, quote);
+	}
+
+	protected void saveOrUpdate(final C entity, final QuoteTagSupport vo) {
+		// Add tags
+		tagResource.replaceTags(vo.getTags(), entity);
 	}
 
 	/**

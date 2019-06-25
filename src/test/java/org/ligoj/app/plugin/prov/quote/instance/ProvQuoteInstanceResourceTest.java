@@ -84,8 +84,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupInstance() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).ephemeral(true).usage(FULL).build());
+		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
 	}
 
@@ -560,6 +559,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
 		vo.setUsage("Full Time");
+		newTags(vo);
+
 		final var updatedCost = qiResource.update(vo);
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
@@ -578,15 +579,20 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(208.62, instance.getCost(), DELTA);
 		Assertions.assertEquals(4172.4, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
+		assertTags(instance);
 
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
+		vo.setTags(null);
 		final var updatedCost2 = qiResource.update(vo);
 		checkCost(updatedCost2.getTotal(), 4356.468, 9374.558, false);
 		checkCost(updatedCost2.getCost(), 104.31, 2086.2, false);
 
 		// Change the region of this instance, storage is also
 		vo.setLocation("region-2");
+
+		// Check tags have not been updated
+		assertTags(instance);
 	}
 
 	@Test
@@ -712,6 +718,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setEphemeral(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
+		newTags(vo);
 		final var updatedCost = qiResource.create(vo);
 
 		// Check the exact new cost
@@ -735,6 +742,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());
+		assertTags(instance);
 	}
 
 	@Test
@@ -803,8 +811,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstancePriceTermsCriteria() {
-		final var tableItem = qiResource.findPriceTerms(subscription,
-				newUriInfo("deMand"));
+		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo("deMand"));
 		Assertions.assertEquals(2, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}

@@ -165,6 +165,10 @@ public class ProvQuoteStorageResource
 		final var cost = refreshCost(entity);
 		Optional.ofNullable(entity.getQuoteResource()).ifPresent(qi -> cost.getRelated().put(qi.getResourceType(),
 				Collections.singletonMap(qi.getId(), qi.toFloatingCost())));
+
+		// Add tags
+		super.saveOrUpdate(entity, vo);
+
 		return resource.refreshSupportCost(cost, quote);
 	}
 

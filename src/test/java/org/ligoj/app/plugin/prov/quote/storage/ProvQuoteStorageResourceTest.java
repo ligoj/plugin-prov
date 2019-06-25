@@ -322,6 +322,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("server1-root-terD");
 		vo.setType("storage1");
 		vo.setSize(256);
+		newTags(vo);
+
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 7158.958, 9754.858, false);
 		checkCost(cost.getCost(), 53.76, 53.76, false);
@@ -340,6 +342,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
 		Assertions.assertEquals(53.76, storage.getCost(), DELTA);
 		Assertions.assertFalse(storage.isUnboundCost());
+		assertTags(storage);
 	}
 
 	@Test
