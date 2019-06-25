@@ -157,6 +157,7 @@ define(function () {
 		 */
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
+				subscription.data.quote.cost.currency = subscription.data.quote.currency;
 				var price = current.formatCost(subscription.data.quote.cost, null, null, true);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
@@ -320,7 +321,7 @@ define(function () {
 
 		/**
 		 * Format the cost.
-		 * @param {number} cost The cost value. May contains "min" and "max" attributes.
+		 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
 		 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 		 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
 		 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
@@ -344,7 +345,7 @@ define(function () {
 			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 				// Standard cost
 				$cost.find('.cost-min').addClass('hidden');
-				return formatter(cost, true, $cost, noRichText, cost && cost.unbound);
+				return formatter(cost, true, $cost, noRichText, cost && cost.unbound, cost && cost.currency);
 			}
 			// A floating cost
 			var min = obj.cost || obj.min || 0;
@@ -353,11 +354,11 @@ define(function () {
 			if ((typeof max !== 'number') || max === min) {
 				// Max cost is equal to min cost, no range
 				$cost.find('.cost-min').addClass('hidden');
-				return formatter(min, true, $cost, noRichText, unbound);
+				return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
 			}
 
 			// Max cost, is different, display a range
-			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound);
+			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 		},
 
 		/**
@@ -410,8 +411,8 @@ define(function () {
 			}
 		},
 
-		formatCostText: function (cost, isMax, _i, noRichText, unbound) {
-			return formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+		formatCostText: function (cost, isMax, _i, noRichText, unbound, currency) {
+			return formatManager.formatCost(cost * (currency ? currency.rate || 1 : current.getCurrencyRate()), 3, (currency && currency.unit) || current.getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 		},
 
 		/**
