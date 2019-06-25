@@ -133,6 +133,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private List<ProvQuoteSupport> supports;
 
 	/**
+	 * Attached tags.
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvTag> tags;
+
+	/**
 	 * Default location constraint.
 	 */
 	@ManyToOne

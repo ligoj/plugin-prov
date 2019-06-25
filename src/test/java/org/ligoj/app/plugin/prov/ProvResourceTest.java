@@ -576,6 +576,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().setStorages(null);
 		new ProvQuote().getStorages();
 		new ProvQuote().getDatabases();
+		new ProvQuote().getTags();
 		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
 		new ProvQuote().setDatabases(null);
