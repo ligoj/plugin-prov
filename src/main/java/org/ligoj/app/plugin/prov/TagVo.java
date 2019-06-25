@@ -3,9 +3,11 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-import org.ligoj.bootstrap.model.system.AbstractNamedValue;
+import org.ligoj.bootstrap.core.model.AbstractNamedAuditedEntity;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,12 +17,26 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class TagVo extends AbstractNamedValue<Integer> implements Serializable {
+public class TagVo extends AbstractNamedAuditedEntity<Integer> {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Object name
+	 */
+	@NotBlank
+	@NotNull
+	private String name;
+
+	/**
+	 * Value as string.
+	 */
+	@NotBlank
+	@Size(max = 1024)
+	private String value;
 
 	@Override
 	public String toString() {
