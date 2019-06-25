@@ -16,6 +16,13 @@
 .masonry-container .node.service-prov.mode-th td.key {
 	font-size: x-small;
 }
+.badge .fab {
+	font-weight: normal;
+}
+.badge i:not(.fab):not(.fas):not(.far)::before {
+	top: 2px;
+	position: relative;
+}
 
 .masonry-container .node.service-prov .price {
 	max-width: 53px;

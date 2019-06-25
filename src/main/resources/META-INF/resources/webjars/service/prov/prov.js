@@ -2659,6 +2659,8 @@ define(function () {
 				} else {
 					$summary.filter('.internet').addClass('hidden')
 				}
+				var $oss = $summary.filter('[data-os]').addClass('hidden');
+				Object.keys(usage.instance.oss).forEach(os => $oss.filter('[data-os="' + os + '"]').removeClass('hidden').find('span').text(usage.instance.oss[os]));
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -2849,6 +2851,7 @@ define(function () {
 			var minInstances = 0;
 			var maxInstancesUnbound = false;
 			var enabledInstances = {};
+			var oss= {};
 			for (i = 0; i < instances.length; i++) {
 				qi = instances[i];
 				cost = qi.cost.min || qi.cost || 0;
@@ -2862,6 +2865,7 @@ define(function () {
 				instanceCost += cost;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 				enabledInstances[qi.id] = true;
+				oss[qi.os] = (oss[qi.os] || 0) + 1;
 				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
 					timeline[t].instance += cost;
 					timeline[t].cost += cost;
@@ -2949,6 +2953,7 @@ define(function () {
 					nb: instances.length,
 					min: minInstances,
 					unbound: maxInstancesUnbound,
+					oss: oss,
 					ram: {
 						available: ramAvailable,
 						reserved: ramReserved

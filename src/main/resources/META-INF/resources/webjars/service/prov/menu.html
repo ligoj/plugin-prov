@@ -45,7 +45,15 @@
 				 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span class="odo-wrapper"></span></span> 
 				 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span class="odo-wrapper"></span></span>
 				 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span class="odo-wrapper"></span></span>
-			</div>
+				 <span class="hidden badge size" data-os="windows" data-toggle="tooltip" data-placement="bottom" title="Windows"><i class="fab fa-windows"></i><span class="odo-wrapper prov-os-counter windows"></span></span>
+				 <span class="hidden badge size" data-os="rhel" data-toggle="tooltip" data-placement="bottom" title="RedHat"><i class="icon-redhat"></i><span class="odo-wrapper prov-os-counter rhel"></span></span>
+				 <span class="hidden badge size" data-os="linux" data-toggle="tooltip" data-placement="bottom" title="Linux"><i class="fab fa-linux"></i><span class="odo-wrapper prov-os-counter linux"></span></span>
+				 <span class="hidden badge size" data-os="suse" data-toggle="tooltip" data-placement="bottom" title="Suse"><i class="icon-suse"></i><span class="odo-wrapper prov-os-counter suse"></span></span>
+				 <span class="hidden badge size" data-os="debian" data-toggle="tooltip" data-placement="bottom" title="Debian"><i class="icon-debian"></i><span class="odo-wrapper prov-os-counter debian"></span></span>
+				 <span class="hidden badge size" data-os="fedora" data-toggle="tooltip" data-placement="bottom" title="Fedora"><i class="icon-fedora"></i><span class="odo-wrapper prov-os-counter fedora"></span></span>
+				 <span class="hidden badge size" data-os="ubuntu" data-toggle="tooltip" data-placement="bottom" title="Ubuntu"><i class="icon-ubuntu"></i><span class="odo-wrapper prov-os-counter ubuntu"></span></span>
+				 <span class="hidden badge size" data-os="freebsd" data-toggle="tooltip" data-placement="bottom" title="FreeBSD"><i class="icon-freebsd"></i><span class="odo-wrapper prov-os-counter freebsd"></span></span>
+				</div>
 			</a></li>
 		<li role="presentation">
 			<a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i><span> {{{service:prov:storages-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
