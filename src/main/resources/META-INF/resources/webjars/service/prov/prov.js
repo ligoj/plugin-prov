@@ -479,7 +479,7 @@ define(function () {
 			}
 			if (data && data.price.type.minimal > sizeGB) {
 				// Enable efficiency display
-				return current.formatEfficiency(sizeGB, data.price.type.maximal, function (value) {
+				return current.formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
 					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
 				});
 			}
