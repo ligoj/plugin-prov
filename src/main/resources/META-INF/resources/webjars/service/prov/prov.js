@@ -640,7 +640,7 @@ define(function () {
 			}
 			if (usage) {
 				usage = {
-					name: usage.text,
+					name: usage.text || usage.name || usage,
 					rate: usage.id,
 					duration: false,
 					start: false
