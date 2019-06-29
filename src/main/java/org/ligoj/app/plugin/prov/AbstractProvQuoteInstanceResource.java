@@ -12,10 +12,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -129,8 +131,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var oldLocation = entity.getResolvedLocation();
 		entity.setPrice(getIpRepository().findOneExpected(vo.getPrice()));
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
-		entity.setUsage(Optional.ofNullable(vo.getUsage())
-				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription.getId())).orElse(null));
+		entity.setUsage(Optional.ofNullable(vo.getUsage()).map(u -> getUsage(quote, u)).orElse(null));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setConstant(vo.getConstant());
@@ -220,9 +221,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *         {@link #USAGE_DEFAULT} is used as default value.
 	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
-		return Optional.ofNullable(name)
-				.map(n -> resource.findConfiguredByName(usageRepository, n, configuration.getSubscription().getId()))
-				.orElseGet(() -> ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT));
+		if (name == null) {
+			return ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT);
+		}
+		return configuration.getUsages().stream().filter(u -> u.getName().equals(name)).findFirst()
+				.orElseThrow(() -> new EntityNotFoundException(name));
 	}
 
 	/**
@@ -258,9 +261,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The resolved location identifier from it's name. Never <code>null</code>.
 	 */
 	protected int getLocation(final ProvQuote configuration, final String location) {
+		final var provider = String.join(":",
+				ArrayUtils.subarray(StringUtils.split(configuration.getSubscription().getNode().getId(), ':'), 0, 3));
 		return location == null ? configuration.getLocation().getId()
-				: assertFound(locationRepository.toId(configuration.getSubscription().getNode().getId(), location),
-						location).intValue();
+				: assertFound(locationRepository.toId(provider, location), location).intValue();
 	}
 
 	/**

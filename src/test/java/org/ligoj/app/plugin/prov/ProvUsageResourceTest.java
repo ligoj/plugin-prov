@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,6 +48,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class ProvUsageResourceTest extends AbstractAppTest {
 
 	private static final double DELTA = 0.01d;
+
+	@Autowired
+	private ConfigurationResource configuration;
 
 	@Autowired
 	private ProvResource resource;
@@ -75,6 +79,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		updateCost();
 	}
 

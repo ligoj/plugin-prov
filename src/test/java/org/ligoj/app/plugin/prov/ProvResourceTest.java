@@ -50,6 +50,7 @@ import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -68,6 +69,9 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvResource resource;
+
+	@Autowired
+	private ConfigurationResource configuration;
 
 	@Autowired
 	private ProvQuoteRepository repository;
@@ -112,6 +116,7 @@ public class ProvResourceTest extends AbstractAppTest {
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		updateCost();
 	}
 
@@ -464,6 +469,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		usage2.setRate(20);
 		usage2.setName("usage2");
 		em.persist(usage2);
+		em.flush();
+		em.clear();
 		quote.setUsage("usage2");
 		checkCost(resource.update(subscription.getId(), quote), 47.58, 47.58, false);
 		em.flush();
@@ -754,6 +761,23 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(configuration.getName());
 		Assertions.assertNotNull(configuration.getDescription());
 		Assertions.assertEquals("USD", configuration.getCurrency().getName());
+	}
+
+	@Test
+	void useParallel() {
+		final var subscription = new Subscription();
+		configuration.put(ProvResource.USE_PARALLEL, "0");
+		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscription);
+		em.flush();
+		em.clear();
+		resource.create(subscription.getId());
+		final var configuration = resource.getConfiguration(subscription.getId());
+		Assertions.assertNotNull(configuration);
+		Assertions.assertNotNull(configuration.getName());
+		Assertions.assertNotNull(configuration.getDescription());
+		checkCost(resource.refresh(subscription.getId()), 0, 0, false);
 	}
 
 	@Test

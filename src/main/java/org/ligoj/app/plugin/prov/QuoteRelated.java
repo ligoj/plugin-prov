@@ -20,8 +20,7 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 /**
  * An object related to a quote. Handle cost cost and association validation against the quote.
  *
- * @param <C>
- *            The related entity.
+ * @param <C> The related entity.
  */
 public interface QuoteRelated<C extends Costed> {
 
@@ -48,8 +47,7 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Return the quote associated to the given subscription. The visibility is checked.
 	 *
-	 * @param subscription
-	 *            The linked subscription.
+	 * @param subscription The linked subscription.
 	 * @return The quote if the visibility has been checked.
 	 */
 	default ProvQuote getQuoteFromSubscription(final int subscription) {
@@ -59,14 +57,10 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Request a cost update of the given entity and report the delta to the global cost. The changes are persisted.
 	 *
-	 * @param repository
-	 *            The repository of the entity holding the cost.
-	 * @param entity
-	 *            The entity holding the cost.
-	 * @param costUpdater
-	 *            The function used to compute the new cost.
-	 * @param <T>
-	 *            The entity type holding the cost.
+	 * @param repository  The repository of the entity holding the cost.
+	 * @param entity      The entity holding the cost.
+	 * @param costUpdater The function used to compute the new cost.
+	 * @param <T>         The entity type holding the cost.
 	 * @return The new computed cost.
 	 */
 	default <T extends Costed> UpdatedCost newUpdateCost(final RestRepository<T, Integer> repository, final T entity,
@@ -86,12 +80,9 @@ public interface QuoteRelated<C extends Costed> {
 	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
 	 * applied.
 	 *
-	 * @param entity
-	 *            The configured entity, related to a quote.
-	 * @param costUpdater
-	 *            The function used to compute the new cost.
-	 * @param <T>
-	 *            The entity type holding the cost.
+	 * @param entity      The configured entity, related to a quote.
+	 * @param costUpdater The function used to compute the new cost.
+	 * @param <T>         The entity type holding the cost.
 	 * @return The new computed cost.
 	 */
 	default <T extends Costed> FloatingCost addCost(final T entity, final Function<T, FloatingCost> costUpdater) {
@@ -111,14 +102,10 @@ public interface QuoteRelated<C extends Costed> {
 	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
 	 * applied.
 	 *
-	 * @param entity
-	 *            The configured entity, related to a quote.
-	 * @param oldCost
-	 *            The old cost.
-	 * @param oldMaxCost
-	 *            The old maximum cost.
-	 * @param <T>
-	 *            The entity type holding the cost.
+	 * @param entity     The configured entity, related to a quote.
+	 * @param oldCost    The old cost.
+	 * @param oldMaxCost The old maximum cost.
+	 * @param <T>        The entity type holding the cost.
 	 */
 	default <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
 		// Report the delta to the quote
@@ -130,23 +117,22 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Update the quote's cost minimal and maximal values.
 	 *
-	 * @param quote
-	 *            The quote entity.
-	 * @param fc
-	 *            The cost to add. May be a negative value.
+	 * @param quote The quote entity.
+	 * @param fc    The cost to add. May be a negative value.
 	 * @return The formal {@code fc} parameter.
 	 */
 	default FloatingCost addCost(final ProvQuote quote, final FloatingCost fc) {
-		quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
-		quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
+		synchronized (quote) {
+			quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
+			quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
+		}
 		return fc;
 	}
 
 	/**
 	 * Round a cost to eliminate floating point artifact, and without required {@link BigDecimal} usage (not yet)
 	 *
-	 * @param value
-	 *            The value to round.
+	 * @param value The value to round.
 	 * @return The rounded value with 4 decimals.
 	 */
 	default double round(final double value) {
@@ -156,12 +142,9 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Update the actual monthly cost of given resource.
 	 *
-	 * @param qr
-	 *            The {@link AbstractQuoteResource} to update cost.
-	 * @param costProvider
-	 *            The cost provider.
-	 * @param <T>
-	 *            The entity type holding the cost.
+	 * @param qr           The {@link AbstractQuoteResource} to update cost.
+	 * @param costProvider The cost provider.
+	 * @param <T>          The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
 	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
@@ -175,12 +158,9 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Check and return the non <code>null</code> object.
 	 *
-	 * @param object
-	 *            The object to test.
-	 * @param name
-	 *            The object name. Used for the exception when <code>null</code>.
-	 * @param <T>
-	 *            The entity type.
+	 * @param object The object to test.
+	 * @param name   The object name. Used for the exception when <code>null</code>.
+	 * @param <T>    The entity type.
 	 * @return the {@code object} when not <code>null</code>.
 	 */
 	default <T> T assertFound(final T object, final String name) {
@@ -192,8 +172,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * Refresh the resources and the related cost. This is a full optimization where lookups of the best prices is
 	 * performed. Note only the given entity is updated, the related quote's cost is not updated.
 	 *
-	 * @param costed
-	 *            The entity to refresh.
+	 * @param costed The entity to refresh.
 	 * @return The new computed price.
 	 */
 	FloatingCost refresh(final C costed);

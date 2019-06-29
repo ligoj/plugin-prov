@@ -111,6 +111,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		em.persist(entity);
 
 		clearAllCache();
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		updateCost();
 	}
 

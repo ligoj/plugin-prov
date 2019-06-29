@@ -35,6 +35,7 @@ import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
@@ -73,6 +74,9 @@ public class ProvTagResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
 
+	@Autowired
+	private ConfigurationResource configuration;
+
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
@@ -84,6 +88,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		resource.refresh(subscription);
 	}
 

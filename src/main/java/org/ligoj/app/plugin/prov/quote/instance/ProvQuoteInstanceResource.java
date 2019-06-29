@@ -113,8 +113,7 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	/**
-	 * Check the requested OS is compliant with the one of associated
-	 * {@link ProvInstancePrice}
+	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
 	 * 
 	 * @param entity The instance to check.
 	 */
@@ -168,6 +167,7 @@ public class ProvQuoteInstanceResource extends
 		final var locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
+		configuration.getUsages().size();
 		final var usage = getUsage(configuration, query.getUsageName());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
@@ -203,8 +203,8 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the available instance licenses for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param os           The filtered OS.
 	 * @return The available licenses for the given subscription.
 	 */
@@ -221,8 +221,8 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the available instance software for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param os           The filtered OS.
 	 * @return The available softwares for the given subscription.
 	 */
@@ -236,8 +236,8 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Return the instance types inside available for the related catalog.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param uriInfo      filter data.
 	 * @return The valid instance types for the given subscription.
 	 */
@@ -254,8 +254,7 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and
-	 * computed price.
+	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteInstanceLookup newPrice(final ProvInstancePrice ip, final double cost) {
 		final var result = new QuoteInstanceLookup();

@@ -85,6 +85,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		updateCost();
 	}
 

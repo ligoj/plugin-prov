@@ -6,12 +6,14 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
@@ -61,10 +63,12 @@ import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The provisioning service. There is complete quote configuration along the subscription.
@@ -73,6 +77,7 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Slf4j
 public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> implements QuoteRelated<ProvQuote> {
 
 	/**
@@ -95,6 +100,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
+	public static final String USE_PARALLEL = SERVICE_KEY + ":use-parallel";
+
 	@Autowired
 	@Getter
 	protected SubscriptionResource subscriptionResource;
@@ -108,6 +115,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvCurrencyRepository currencyRepository;
+
+	@Autowired
+	private ConfigurationResource configuration;
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
@@ -321,12 +331,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 				qbResource::updateCost);
 	}
 
+	private <T> Stream<T> newStream(Collection<T> collection) {
+		if (configuration.get(USE_PARALLEL, 1) == 1) {
+			return collection.parallelStream();
+		}
+		return collection.stream();
+	}
+
 	/**
 	 * Refresh the cost without updating the resources constraints.
 	 */
 	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
 			Function<ProvQuoteStorage, FloatingCost> storageFunction,
 			Function<ProvQuoteDatabase, FloatingCost> databaseFunction) {
+		log.info("Refresh cost started for subscription {}", entity.getSubscription().getId());
 		final var subscription = entity.getSubscription().getId();
 
 		// Reset the costs to 0, will be updated further in this process
@@ -334,17 +352,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setMaxCostNoSupport(0d);
 
 		// Add the compute cost, and update the unbound cost
-		entity.setUnboundCostCounter((int) qiRepository.findAll(subscription).stream().map(instanceFunction)
+		entity.getUsages().size();
+		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the storage cost
-		qsRepository.findAll(subscription).stream().map(storageFunction).forEach(fc -> addCost(entity, fc));
+		newStream(qsRepository.findAll(subscription)).map(storageFunction).forEach(fc -> addCost(entity, fc));
 
 		// Add the database cost
-		qbRepository.findAll(subscription).stream().map(databaseFunction).forEach(fc -> addCost(entity, fc));
+		newStream(qbRepository.findAll(subscription)).map(databaseFunction).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
-		return refreshSupportCost(entity).round();
+		var cost = refreshSupportCost(entity).round();
+		log.info("Refresh cost finished for subscription {}", entity.getSubscription().getId());
+		return cost;
 	}
 
 	private FloatingCost refreshSupportCost(final ProvQuote entity) {

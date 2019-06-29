@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,6 +57,9 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvTagRepository tagRepository;
 
+	@Autowired
+	protected ConfigurationResource configuration;
+
 	/**
 	 * Prepare test data.
 	 * 
@@ -73,6 +77,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
+		configuration.put(ProvResource.USE_PARALLEL, "0");
 		updateCost();
 	}
 

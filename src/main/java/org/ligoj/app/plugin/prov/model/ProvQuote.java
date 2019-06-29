@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -116,7 +117,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
-	private List<ProvUsage> usages;
+	private List<ProvUsage> usages = new ArrayList<>();
 
 	/**
 	 * Quoted storages.
