@@ -161,7 +161,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	void getConfiguration() {
-        var vo = resource.getConfiguration(subscription);
+		var vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
@@ -374,9 +374,10 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
+		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 5799.465, 9669.918, false);
-        var quote2 = repository.findByNameExpected("name1");
+		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 
 		// Check location
@@ -440,6 +441,33 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("C12", instanceGet.getPrice().getCode());
 
 		return configuration;
+	}
+
+	/**
+	 * Update the RAM adjust rate.
+	 */
+	@Test
+	void updateUsage() {
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
+
+		final var quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setUsage("usage");
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+
+		// Refresh with usage changed
+		final var usage2 = new ProvUsage();
+		usage2.setConfiguration(configuration);
+		usage2.setDuration(1);
+		usage2.setRate(20);
+		usage2.setName("usage2");
+		em.persist(usage2);
+		quote.setUsage("usage2");
+		checkCost(resource.update(subscription.getId(), quote), 47.58, 47.58, false);
+		em.flush();
+		em.clear();
 	}
 
 	/**
@@ -577,6 +605,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().getDatabases();
 		new ProvQuote().getTags();
+		new ProvQuote().setTags(null);
 		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
 		new ProvQuote().setDatabases(null);
@@ -679,8 +708,8 @@ public class ProvResourceTest extends AbstractAppTest {
 			}
 		};
 		res.provResource = resource;
-		final var quote = (QuoteLightVo) res
-				.checkSubscriptionStatus(subscription, null, Collections.emptyMap()).getData().get("quote");
+		final var quote = (QuoteLightVo) res.checkSubscriptionStatus(subscription, null, Collections.emptyMap())
+				.getData().get("quote");
 		Assertions.assertNotNull(quote);
 		checkCost(quote.getCost(), 4704.758, 7154.358, false);
 	}
@@ -755,11 +784,16 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
+		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 3165.4, 5615.0, false);
-        var quote2 = repository.findByNameExpected("name1");
+		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
+
+		// Performe another identical update
+		final var cost2 = resource.update(subscription, quote);
+		checkCost(cost2, 3165.4, 5615.0, false);
 	}
 
 	@Test

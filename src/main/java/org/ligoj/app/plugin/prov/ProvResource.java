@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -66,8 +67,7 @@ import org.springframework.stereotype.Service;
 import lombok.Getter;
 
 /**
- * The provisioning service. There is complete quote configuration along the
- * subscription.
+ * The provisioning service. There is complete quote configuration along the subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -171,8 +171,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return the locations available for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     locations from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
+	 *                     provider.
 	 * @param uriInfo      filter data.
 	 * @return The available locations for the given subscription.
 	 */
@@ -188,15 +188,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check and return the expected location within the given subscription. The
-	 * subscription is used to determinate the related node (provider). Return
-	 * <code>null</code> when the given name is <code>null</code> or empty. In other
+	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
+	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 *
 	 * @param node The provider node.
 	 * @param name The location name. Case is insensitive.
-	 * @return The visible location for the related subscription or
-	 *         <code>null</code>.
+	 * @return The visible location for the related subscription or <code>null</code>.
 	 */
 	public ProvLocation findLocation(final String node, final String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -216,8 +214,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the quote configuration from a validated subscription. The
-	 * subscription's visibility must have been previously checked.
+	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
+	 * previously checked.
 	 *
 	 * @param subscription A visible subscription for the current principal.
 	 * @return The configuration with computed data.
@@ -275,33 +273,41 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Update the configuration details. The costs and the related resources are
-	 * refreshed with lookups.
+	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
 	 *
 	 * @param subscription The subscription to update
-	 * @param quote        The new quote.
+	 * @param vo           The new quote.
 	 * @return The new updated cost.
 	 */
 	@PUT
 	@Path("{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost update(@PathParam("subscription") final int subscription, final QuoteEditionVo quote) {
+	public FloatingCost update(@PathParam("subscription") final int subscription, final QuoteEditionVo vo) {
 		final var entity = getQuoteFromSubscription(subscription);
-		entity.setName(quote.getName());
-		entity.setDescription(quote.getDescription());
+		entity.setName(vo.getName());
+		entity.setDescription(vo.getDescription());
 
-		// TODO Check the location/usage change to avoid useless compute
-		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), quote.getLocation()));
-		entity.setUsage(Optional.ofNullable(quote.getUsage())
+		var oldLicense = entity.getLicense();
+		var oldLocation = entity.getLocation();
+		var oldUsage = entity.getUsage();
+		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
+		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
+		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
-		entity.setLicense(quote.getLicense());
-		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
-		return refresh(entity);
+		entity.setLicense(vo.getLicense());
+		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
+		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
+				|| !oldRamAdjusted.equals(entity.getRamAdjustedRate())
+				|| !Objects.equals(oldLicense, entity.getLicense())) {
+			return refresh(entity);
+		}
+		// No refresh needed
+		return entity.toFloatingCost();
 	}
 
 	/**
-	 * Compute the total cost and save it into the related quote. All separated
-	 * compute and storage costs are also updated.
+	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
+	 * updated.
 	 *
 	 * @param subscription The subscription to compute
 	 * @return The updated computed cost.
@@ -415,8 +421,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check the visibility of a configured entity and check the ownership by the
-	 * given subscription.
+	 * Check the visibility of a configured entity and check the ownership by the given subscription.
 	 *
 	 * @param repository   The repository managing the entity to find.
 	 * @param id           The requested configured identifier.

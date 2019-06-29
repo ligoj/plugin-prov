@@ -9,6 +9,8 @@ import javax.validation.constraints.NotNull;
 
 import org.ligoj.bootstrap.core.DescribedBean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,4 +54,10 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	@NotNull
 	private Integer ramAdjustedRate = 100;
 
+	/**
+	 * When <code>true</code>, the cost is always refreshed, otherwise, only when at least one pricing dependency is
+	 * updated.
+	 */
+	@JsonIgnore
+	private boolean refresh;
 }
