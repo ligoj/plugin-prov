@@ -2729,7 +2729,7 @@ define(function () {
 					current.d3Gauge = d3;
 					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
 						textColor: '#FF4444',
-						textVertPosition: 0.6,
+						textVertPosition: 0.5,
 						waveAnimateTime: 600,
 						waveHeight: 0.9,
 						textSize: 1.5,
