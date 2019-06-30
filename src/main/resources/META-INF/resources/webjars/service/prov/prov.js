@@ -2645,10 +2645,18 @@ define(function () {
 				current.updateInstancesBarChart(usage);
 			}
 
+			// Separated resource counters
+			current.types.forEach(type => {
+				var $usage = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
+				if (usage[type].nb) {
+					$usage.removeClass('hide').find('.odo-wrapper').text(usage[type].nb);
+					$usage.find('.odo-wrapper-unbound').text((usage[type].min && usage[type].min > usage[type].nb || usage[type].unbound) ? '+' : '');
+				} else {
+					$usage.addClass('hide');
+				}
+			});
+
 			// Instance summary
-			var $instance = $('.nav-pills [href="#tab-instance"] .prov-resource-counter');
-			$instance.find('.odo-wrapper').text(usage.instance.nb || 0);
-			$instance.find('.odo-wrapper-unbound').text((usage.instance.min > usage.instance.nb || usage.instance.unbound) ? '+' : '');
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 			if (usage.instance.cpu.available) {
 				$summary.removeClass('hidden');
@@ -2666,9 +2674,6 @@ define(function () {
 			}
 
 			// Database summary
-			var $database = $('.nav-pills [href="#tab-database"] .prov-resource-counter');
-			$database.find('.odo-wrapper').text(usage.database.nb || 0);
-			$database.find('.odo-wrapper-unbound').text((usage.database.min > usage.database.nb || usage.database.unbound) ? '+' : '');
 			$summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (usage.database.cpu.available) {
 				$summary.removeClass('hidden');
@@ -2686,8 +2691,6 @@ define(function () {
 			}
 
 			// Storage summary
-			var $storage = $('.nav-pills [href="#tab-storage"] .prov-resource-counter');
-			$storage.find('.odo-wrapper').text(usage.storage.nb || 0);
 			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
 			if (usage.storage.available) {
 				$summary.removeClass('hidden');
@@ -2697,7 +2700,6 @@ define(function () {
 			}
 
 			// Support summary
-			$('.nav-pills [href="#tab-support"] .prov-resource-counter').text(usage.support.nb || '');
 			$summary = $('.nav-pills [href="#tab-support"] .summary');
 			if (usage.support.first) {
 				$summary.removeClass('hidden').find('.support-first').text(usage.support.first).attr("title", usage.support.first);
@@ -2851,7 +2853,7 @@ define(function () {
 			var minInstances = 0;
 			var maxInstancesUnbound = false;
 			var enabledInstances = {};
-			var oss= {};
+			var oss = {};
 			for (i = 0; i < instances.length; i++) {
 				qi = instances[i];
 				cost = qi.cost.min || qi.cost || 0;
