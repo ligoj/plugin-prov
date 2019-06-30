@@ -83,7 +83,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements.
 	 */
 	@Test
-	void lookupInstance() {
+	void lookup() {
 		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
 	}
@@ -92,7 +92,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	void lookupInstanceLicenseIncluded() {
+	void lookupLicenseIncluded() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("INCLUDED").build());
 
@@ -107,7 +107,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but license.
 	 */
 	@Test
-	void lookupInstanceLicenseByol() {
+	void lookupLicenseByol() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("BYOL").build());
 
@@ -123,7 +123,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but software.
 	 */
 	@Test
-	void lookupInstanceSoftware() {
+	void lookupSoftware() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).software("SQL Web").build());
 
@@ -139,7 +139,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but location.
 	 */
 	@Test
-	void lookupInstanceLocation() {
+	void lookupLocation() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).location("region-1").usage(FULL).build());
 		checkInstance(lookup);
@@ -149,7 +149,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Basic case, almost no requirements but location different from the quote's one.
 	 */
 	@Test
-	void lookupInstanceLocationNotFoundButWorldwideService() {
+	void lookupLocationNotFoundButWorldwideService() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().ram(2000).usage(FULL).ephemeral(true).location("region-2").build());
 		checkInstance(lookup);
@@ -159,7 +159,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Search instance type within a region where minimal instance types are not available.
 	 */
 	@Test
-	void lookupInstanceLocationNotFound() {
+	void lookupNoMatchAtLocation() {
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-1").build()).getPrice()
 						.getType().getName());
@@ -207,7 +207,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	void lookupInstanceHighConstraints() throws IOException {
+	void lookupHighConstraints() throws IOException {
 		final var lookup = new ObjectMapperTrim().readValue(
 				new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription,
 						builder().cpu(3).ram(9).constant(true).os(VmOs.WINDOWS).usage(FULL).build())),
@@ -233,7 +233,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	void lookupInstanceNoMatch() {
+	void lookupNoMatch() {
 		Assertions
 				.assertNull(qiResource.lookup(subscription, builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
 	}
@@ -257,7 +257,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Too much requirements for an instance
 	 */
 	@Test
-	void lookupInstanceOnlyCustom() {
+	void lookupOnlyCustom() {
 		final var lookup = qiResource.lookup(subscription, builder().cpu(999).build());
 
 		// Check the custom instance
@@ -279,7 +279,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * This configuration suits to a custom instance.
 	 */
 	@Test
-	void lookupInstanceCustomIsCheaper() {
+	void lookupCustomIsCheaper() {
 		assertPrice(qiResource.lookup(subscription, builder().ram(16000).usage("Dev").build()), "C74", "dynamic",
 				146.842, "on-demand1");
 	}
@@ -288,7 +288,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Low usage rate, cheaper than 1y
 	 */
 	@Test
-	void lookupInstanceVariableDuration() {
+	void lookupVariableDuration() {
 		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev").build()), "C9", "instance2",
 				58.56, "on-demand2");
 		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 11 month").build()),
