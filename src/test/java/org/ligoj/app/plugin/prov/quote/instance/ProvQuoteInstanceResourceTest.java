@@ -238,6 +238,15 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				.assertNull(qiResource.lookup(subscription, builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
 	}
 
+	/**
+	 * No such usage name.
+	 */
+	@Test
+	void lookupUsageNotFound() {
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qiResource.lookup(subscription, builder().os(VmOs.LINUX).usage("any").build()));
+	}
+
 	@Test
 	void lookupTypeNotFound() {
 		Assertions.assertThrows(EntityNotFoundException.class,
