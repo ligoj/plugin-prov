@@ -100,6 +100,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
+	/**
+	 * Parallel configuration. When value is <code>1</code>, parallel stream will be used as often as possible.
+	 * Otherwise, sequential will be used.
+	 */
 	public static final String USE_PARALLEL = SERVICE_KEY + ":use-parallel";
 
 	@Autowired
@@ -331,7 +335,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 				qbResource::updateCost);
 	}
 
-	private <T> Stream<T> newStream(Collection<T> collection) {
+	/**
+	 * Return a parallel stream if allowed.
+	 * 
+	 * @param <T>        The stream item type.
+	 * @param collection The collection to stream.
+	 * @return The parallel or sequential stream.
+	 * @see #USE_PARALLEL
+	 */
+	public <T> Stream<T> newStream(Collection<T> collection) {
 		if (configuration.get(USE_PARALLEL, 1) == 1) {
 			return collection.parallelStream();
 		}

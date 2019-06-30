@@ -11,7 +11,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
@@ -31,7 +30,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_SUPPORT_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvSupportType extends AbstractDescribedEntity<Integer> implements NodeScoped {
+public class ProvSupportType extends AbstractDescribedEntity<Integer> implements ProvType {
 
 	/**
 	 * SID

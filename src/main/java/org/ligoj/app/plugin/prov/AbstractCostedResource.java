@@ -10,10 +10,10 @@ import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,14 +22,11 @@ import lombok.Getter;
 /**
  * The common features of a costed entity.
  *
- * @param <C>
- *            Quoted resource type.
- * @param <P>
- *            Quoted resource price type.
- * @param <T>
- *            Quoted resource price type type.
+ * @param <C> Quoted resource type.
+ * @param <P> Quoted resource price type.
+ * @param <T> Quoted resource price type type.
  */
-public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
+public abstract class AbstractCostedResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
 		implements QuoteRelated<C> {
 
 	@Autowired
@@ -49,12 +46,9 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	/**
 	 * Check the lookup succeed.
 	 *
-	 * @param resourceType
-	 *            The resource type you are looking for. Will be used to generate the error when not found.
-	 * @param lookup
-	 *            The expected not null lookup.
-	 * @param context
-	 *            The key identifier of the lookup. Will be used to generate the error when not found.
+	 * @param resourceType The resource type you are looking for. Will be used to generate the error when not found.
+	 * @param lookup       The expected not null lookup.
+	 * @param context      The key identifier of the lookup. Will be used to generate the error when not found.
 	 * @return The price of the not <code>null</code> lookup. Never <code>null</code>.
 	 */
 	public P validateLookup(final String resourceType, final AbstractLookup<P> lookup, final String context) {
@@ -67,15 +61,11 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	/**
 	 * Update the total cost of the associated quote, and then delete a configured entity.
 	 *
-	 * @param repository
-	 *            The repository managing the entity to delete.
-	 * @param id
-	 *            The entity's identifier to delete.
-	 * @param callback
-	 *            The {@link Consumer} call after the updated cost and before the actual deletion.
+	 * @param repository The repository managing the entity to delete.
+	 * @param id         The entity's identifier to delete.
+	 * @param callback   The {@link Consumer} call after the updated cost and before the actual deletion.
 	 * @return The parent quote configuration.
-	 * @param <Q>
-	 *            The quote resource type.
+	 * @param <Q> The quote resource type.
 	 */
 	protected <Q extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
 			final RestRepository<Q, Integer> repository, final Integer id, final Consumer<Q> callback) {
@@ -101,8 +91,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	/**
 	 * Update the actual monthly cost of given resource.
 	 *
-	 * @param qr
-	 *            The {@link Costed} to update cost.
+	 * @param qr The {@link Costed} to update cost.
 	 * @return The new cost.
 	 */
 	protected FloatingCost updateCost(final C qr) {
@@ -112,8 +101,7 @@ public abstract class AbstractCostedResource<T extends AbstractNamedEntity<?>, P
 	/**
 	 * Compute the monthly cost of the given resource.
 	 *
-	 * @param qr
-	 *            The {@link Costed} resource to evaluate.
+	 * @param qr The {@link Costed} resource to evaluate.
 	 * @return The cost of this instance.
 	 */
 	protected abstract FloatingCost getCost(final C qr);

@@ -34,9 +34,9 @@ import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.dao.csv.CsvForJpa;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -69,14 +69,12 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Default hours per month.
 	 *
-	 * @see <a href=
-	 *      "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
+	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
 	 */
 	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
 
 	/**
-	 * Configuration key used for hours per month. When value is <code>null</code>,
-	 * use {@link #DEFAULT_HOURS_MONTH}.
+	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link #DEFAULT_HOURS_MONTH}.
 	 */
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
@@ -151,9 +149,8 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param type The rating mapping name.
 	 * @param name The name to map.
-	 * @return The direct [class, generation, size] rate association, or the [class,
-	 *         generation] rate association, or the [class] association, of the
-	 *         explicit "default association or {@link Rate#MEDIUM} value.
+	 * @return The direct [class, generation, size] rate association, or the [class, generation] rate association, or
+	 *         the [class] association, of the explicit "default association or {@link Rate#MEDIUM} value.
 	 */
 	protected Rate getRate(final String type, final String name) {
 		final var map = mapRate.get(type);
@@ -210,8 +207,7 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The update context.
 	 * @param type    The instance type to test.
-	 * @return <code>true</code> when the configuration enable the given instance
-	 *         type.
+	 * @return <code>true</code> when the configuration enable the given instance type.
 	 */
 	protected boolean isEnabledType(final AbstractUpdateContext context, final String type) {
 		return context.getValidInstanceType().matcher(type).matches();
@@ -222,8 +218,7 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The update context.
 	 * @param type    The database type to test.
-	 * @return <code>true</code> when the configuration enable the given database
-	 *         type.
+	 * @return <code>true</code> when the configuration enable the given database type.
 	 */
 	protected boolean isEnabledDatabase(final AbstractUpdateContext context, final String type) {
 		return context.getValidDatabaseType().matcher(type).matches();
@@ -370,15 +365,13 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity     The target entity to update.
 	 * @param oldCost    The old cost.
 	 * @param newCost    The new cost.
-	 * @param updateCost The consumer used to handle the price replacement operation
-	 *                   if needed.
+	 * @param updateCost The consumer used to handle the price replacement operation if needed.
 	 * @param <A>        The identifier type of the price type.
 	 * @param <N>        The price type's type.
 	 * @param <P>        The price type.
-	 * @param persister  The consumer used to persist the replacement. Usually a
-	 *                   repository operation.
+	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected <A extends Serializable, N extends AbstractNamedEntity<A>, P extends AbstractPrice<N>> void saveAsNeeded(
+	protected <A extends Serializable, N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(
 			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
 			final Consumer<P> persister) {
 		if (oldCost != newCost) {
@@ -392,8 +385,7 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param entity    The price entity.
 	 * @param newCostGb The new GiB cost.
-	 * @param persister The consumer used to persist the replacement. Usually a
-	 *                  repository operation.
+	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
 	 */
 	protected void saveAsNeeded(final ProvStoragePrice entity, final double newCostGb,
 			final Consumer<ProvStoragePrice> persister) {

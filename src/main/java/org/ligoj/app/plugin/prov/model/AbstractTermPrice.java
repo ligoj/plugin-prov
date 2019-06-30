@@ -9,27 +9,23 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
  * An priced database instance with billing configuration. <br>
- * The cost attribute is the corresponding effective monthly cost of this instance. Includes the initial cost to
- * allow quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
+ * The cost attribute is the corresponding effective monthly cost of this instance. Includes the initial cost to allow
+ * quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
  * <code>cost - (initialCost / 24 / 365)</code>.
  *
- * @param <T>
- *            Resource type.
+ * @param <T> Resource type.
  */
 @Getter
 @Setter
 @ToString(of = { "term", "license" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPrice<T extends AbstractNamedEntity<?>> extends AbstractPrice<T>
-		implements Serializable {
+public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPrice<T> implements Serializable {
 
 	/**
 	 * SID
@@ -51,8 +47,8 @@ public abstract class AbstractTermPrice<T extends AbstractNamedEntity<?>> extend
 	private ProvInstancePriceTerm term;
 
 	/**
-	 * Optional built-in license model. Special license term is <code>BYOL</code>. When <code>null</code>, license
-	 * is included in the price or not applicable.
+	 * Optional built-in license model. Special license term is <code>BYOL</code>. When <code>null</code>, license is
+	 * included in the price or not applicable.
 	 */
 	private String license;
 

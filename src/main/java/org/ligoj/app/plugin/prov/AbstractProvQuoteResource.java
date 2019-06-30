@@ -11,8 +11,8 @@ import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <T> Quoted resource price type type.
  * @since 1.8.5
  */
-public abstract class AbstractProvQuoteResource<T extends AbstractNamedEntity<?>, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
+public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
 		extends AbstractCostedResource<T, P, C> {
 
 	@Autowired

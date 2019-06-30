@@ -10,7 +10,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
@@ -25,7 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integer> implements NodeScoped {
+public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integer> implements ProvType {
 
 	/**
 	 * SID

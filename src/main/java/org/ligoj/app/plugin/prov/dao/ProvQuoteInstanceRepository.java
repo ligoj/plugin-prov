@@ -18,8 +18,7 @@ public interface ProvQuoteInstanceRepository
 	/**
 	 * Delete all storages linked to an instance linked to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription identifier.
+	 * @param subscription The related subscription identifier.
 	 */
 	@Override
 	@Modifying
@@ -30,8 +29,7 @@ public interface ProvQuoteInstanceRepository
 	/**
 	 * Return identifiers of all storages linked to an instance linked to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription identifier.
+	 * @param subscription The related subscription identifier.
 	 */
 	@Override
 	@Query("SELECT id FROM ProvQuoteStorage WHERE quoteInstance IS NOT NULL"

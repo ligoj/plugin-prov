@@ -7,7 +7,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
 import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
@@ -27,7 +26,7 @@ import lombok.ToString;
 @Setter
 @MappedSuperclass
 @ToString(of = { "cost", "type", "location" })
-public abstract class AbstractPrice<T extends AbstractNamedEntity<?>> extends AbstractPersistable<Integer> {
+public abstract class AbstractPrice<T extends ProvType> extends AbstractPersistable<Integer> {
 
 	/**
 	 * The internal offer code.

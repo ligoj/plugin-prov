@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
@@ -48,5 +49,14 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	@Query("FROM #{#entityName} AS qi INNER JOIN FETCH qi.price qsp INNER JOIN FETCH qsp.type"
 			+ " WHERE qi.configuration.subscription.id = :subscription")
 	List<C> findAll(int subscription);
+
+	/**
+	 * Return used price codes among the quotes relate to a given node.
+	 *
+	 * @param node The related node identifier.
+	 * @return Used price codes among the quotes relate to a given node.
+	 */
+	@Query("SELECT DISTINCT p.code FROM #{#entityName} c INNER JOIN c.price p WHERE p.type.node.id = :node")
+	Collection<String> finUsedPrices(String node);
 
 }
