@@ -1324,7 +1324,18 @@ define(function () {
 				);
 			}
 
-			$('.subscribe-configuration-prov-search').on('keyup', function (event) {
+			function delay(callback, ms) {
+				var timer = 0;
+				return function () {
+					var context = this, args = arguments;
+					clearTimeout(timer);
+					timer = setTimeout(function () {
+						callback.apply(context, args);
+					}, ms || 0);
+				};
+			}
+
+			$('.subscribe-configuration-prov-search').on('keyup', delay(function (event) {
 				if (event.which !== 16 && event.which !== 91) {
 					var table = current[$(this).closest('[data-prov-type]').attr('data-prov-type') + 'Table'];
 					if (table) {
@@ -1334,7 +1345,7 @@ define(function () {
 						current.updateUiCost();
 					}
 				}
-			});
+			},200));
 			$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 			$('input.resource-query[type="number"]').on('keyup', function (event) {
 				if (event.which !== 16 && event.which !== 91) {
