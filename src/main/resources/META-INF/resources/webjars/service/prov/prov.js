@@ -937,9 +937,9 @@ define(function () {
 		 * Uses the current "this" jQuery context to get the UI context.
 		 */
 		checkResource: function () {
-			var $form = $(this).closest('[data-prov-type]');
+			var $form = $(this).prov();
 			var queries = [];
-			var type = $form.attr('data-prov-type');
+			var type = $form.provType();
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			var $popup = _('popup-prov-' + popupType);
 
@@ -1139,7 +1139,7 @@ define(function () {
 					}
 				},
 				stateLoadParams: function (settings, data) {
-					$table.closest('[data-prov-type]').find('.subscribe-configuration-prov-search').val(settings.oPreviousSearch.sSearchAlt || '');
+					$table.prov().find('.subscribe-configuration-prov-search').val(settings.oPreviousSearch.sSearchAlt || '');
 				},
 				stateSaveCallback: function (settings, data) {
 					try {
@@ -1197,28 +1197,7 @@ define(function () {
 						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				});
-			var dataTable = $table.dataTable(oSettings);
-			$table.on('click', '.delete', function () {
-				// Delete a single row/item
-				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
-				$.ajax({
-					type: 'DELETE',
-					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
-					success: function (updatedCost) {
-						current.defaultCallback(type, updatedCost);
-					}
-				});
-			}).on('click', '.delete-all', function () {
-				// Delete all items
-				$.ajax({
-					type: 'DELETE',
-					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
-					success: function (updatedCost) {
-						current.defaultCallback(type, updatedCost);
-					}
-				});
-			});
-			current[type + 'Table'] = dataTable;
+			current[type + 'Table'] = $table.dataTable(oSettings);
 		},
 
 		/**
@@ -1233,12 +1212,11 @@ define(function () {
 				_(inputType + '-name').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
-				var dynaType = $(this).closest('[data-prov-type]').attr('data-prov-type');
-				current.save(dynaType);
+				current.save($(this).provType());
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var dynaType = $source.closest('[data-prov-type]').attr('data-prov-type');
+				var dynaType = $source.provType();
 				var $table = _('prov-' + dynaType + 's');
 				var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
 				_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
@@ -1323,6 +1301,14 @@ define(function () {
 					}
 				);
 			}
+			$.fn.extend({
+				prov: function () {
+					return $(this).closest('[data-prov-type]');
+				},
+				provType: function () {
+					return $(this).prov().attr('data-prov-type');
+				}
+			});
 
 			function delay(callback, ms) {
 				var timer = 0;
@@ -1337,7 +1323,7 @@ define(function () {
 
 			$('.subscribe-configuration-prov-search').on('keyup', delay(function (event) {
 				if (event.which !== 16 && event.which !== 91) {
-					var table = current[$(this).closest('[data-prov-type]').attr('data-prov-type') + 'Table'];
+					var table = current[$(this).provType() + 'Table'];
 					if (table) {
 						table.fnSettings().oPreviousSearch.sSearch = '§force§';
 						table.fnSettings().oPreviousSearch.sSearchAlt = $(this).val();
@@ -1345,7 +1331,7 @@ define(function () {
 						current.updateUiCost();
 					}
 				}
-			},200));
+			}, 200));
 			$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 			$('input.resource-query[type="number"]').on('keyup', function (event) {
 				if (event.which !== 16 && event.which !== 91) {
@@ -1358,6 +1344,26 @@ define(function () {
 					current.initializePopupEvents(type);
 				}
 			});
+			_('subscribe-configuration-prov table').on('click', '.delete', function () {
+				// Delete a single row/item
+				var type = $(this).provType();
+				var dataTable = current[type + 'Table'];
+				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
+				$.ajax({
+					type: 'DELETE',
+					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
+					success: updatedCost => current.defaultCallback(type, updatedCost)
+				});
+			}).on('click', '.delete-all', function () {
+				// Delete all items
+				var type = $(this).provType();
+				$.ajax({
+					type: 'DELETE',
+					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
+					success: updatedCost => current.defaultCallback(type, updatedCost)
+				});
+			});
+
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -1471,7 +1477,7 @@ define(function () {
 				formatSelection: current.formatInternet,
 				formatResult: current.formatInternet,
 				formatResultCssClass: function (data) {
-					if (data.id === 'PRIVATE_NAT' && _('instance-internet').closest('[data-prov-type]').attr('data-prov-type') === 'database') {
+					if (data.id === 'PRIVATE_NAT' && _('instance-internet').provType() === 'database') {
 						return 'hidden';
 					}
 				},
@@ -1740,7 +1746,7 @@ define(function () {
 		 */
 		initializeLicense: function () {
 			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function () {
-				return _('instance-license').closest('[data-prov-type]').attr('data-prov-type') === 'instance'
+				return _('instance-license').provType() === 'instance'
 					? 'instance-license/' + _('instance-os').val()
 					: ('database-license/' + _('database-engine').val())
 			}));
