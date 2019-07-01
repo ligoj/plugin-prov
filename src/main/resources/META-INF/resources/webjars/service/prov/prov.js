@@ -1210,7 +1210,7 @@ define(function () {
 						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				});
-			$table.on('column-visibility.dt', function (e,settings, idCOl, visibility) {
+			$table.on('column-visibility.dt', function (e, settings, idCOl, visibility) {
 				if (visibility) {
 					$(this).DataTable().draw('page');
 				}
@@ -2771,7 +2771,7 @@ define(function () {
 				if (usage.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(usage), function (a, b) {
 						return current.types.indexOf(a.data.type) - current.types.indexOf(b.data.type);
-					}, function (data) {
+					}, function (data, d) {
 						var tooltip;
 						if (data.type === 'latency') {
 							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
@@ -2802,7 +2802,7 @@ define(function () {
 						} else {
 							tooltip = data.name;
 						}
-						return '<span class="tooltip-text">' + tooltip + '<br/>Cost: ' + current.formatCost(data.size || data.value) + '</span>';
+						return '<span class="tooltip-text">' + tooltip + '<br/>Cost: ' + current.formatCost(data.size || data.value) + (d.depth && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
 					});
 					_('prov-sunburst').removeClass('hidden');
 				} else {

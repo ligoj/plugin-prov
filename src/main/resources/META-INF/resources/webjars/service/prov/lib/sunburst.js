@@ -224,7 +224,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			.on('click', click)
 			.on('mouseover', function (d) {
 				mouseover(d);
-				tooltip().html(tooltipFunction(d.data)).style('visibility', 'visible');
+				tooltip().html(tooltipFunction(d.data, d)).style('visibility', 'visible');
 			})
 			.on('mousemove', function () {
 				return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
