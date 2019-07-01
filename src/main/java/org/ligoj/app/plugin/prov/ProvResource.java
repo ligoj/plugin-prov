@@ -331,7 +331,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch instances) to refresh
-		return updateCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost,
+		return processCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost,
 				qbResource::updateCost);
 	}
 
@@ -351,9 +351,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Refresh the cost without updating the resources constraints.
+	 * For each resources, execute the given cost function.
 	 */
-	private FloatingCost updateCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
+	private FloatingCost processCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
 			Function<ProvQuoteStorage, FloatingCost> storageFunction,
 			Function<ProvQuoteDatabase, FloatingCost> databaseFunction) {
 		log.info("Refresh cost started for subscription {}", entity.getSubscription().getId());
@@ -368,11 +368,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
-		// Add the storage cost
-		newStream(qsRepository.findAll(subscription)).map(storageFunction).forEach(fc -> addCost(entity, fc));
-
 		// Add the database cost
 		newStream(qbRepository.findAll(subscription)).map(databaseFunction).forEach(fc -> addCost(entity, fc));
+
+		// Add the storage cost
+		newStream(qsRepository.findAll(subscription)).map(storageFunction).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
 		var cost = refreshSupportCost(entity).round();
@@ -429,7 +429,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Override
 	public FloatingCost refresh(final ProvQuote entity) {
 		updateCurrency(entity);
-		return updateCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
+		return processCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
 	}
 
 	@Override

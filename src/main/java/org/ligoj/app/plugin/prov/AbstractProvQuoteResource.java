@@ -53,6 +53,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		final var repository = getResourceRepository();
 		cost.getDeleted().put(getType(), repository.findAllIdentifiers(subscription));
 		repository.deleteAll(repository.findAllBy("configuration.subscription.id", subscription));
+		repository.flush();
 
 		// Update the cost. Note the effort could be reduced to a simple subtract of deleted resource costs.
 		resource.updateCost(subscription);

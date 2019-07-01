@@ -187,6 +187,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription);
 		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(subscription);
 		tagResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
+		qsRepository.flush();
 
 		final var cost = super.deleteAll(subscription);
 		cost.getDeleted().put(ResourceType.STORAGE, sIds);

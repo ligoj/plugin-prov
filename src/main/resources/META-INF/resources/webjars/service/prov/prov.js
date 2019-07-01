@@ -33,6 +33,11 @@ define(function () {
 		types: ['instance', 'storage', 'database', 'support'],
 
 		/**
+		 * Threshold
+		*/
+		changesReloadThreshold: 200,
+
+		/**
 		 * Show the members of the given group
 		 */
 		configure: function (subscription) {
@@ -79,11 +84,10 @@ define(function () {
 		 * Reload the model
 		 */
 		reload: function () {
-			// Clear the table
-			var $instances = _('prov-instances').DataTable();
-			var $storages = _('prov-storages').DataTable();
-			$instances.clear().draw();
-			$storages.clear().draw();
+			// Clear the tables
+			current.types.forEach(type => {
+				_('prov-' + type + 's').DataTable().clear().draw();
+			});
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'subscription/' + current.model.subscription + '/configuration',
@@ -92,8 +96,9 @@ define(function () {
 					current.model = data;
 					current.optimizeModel();
 					var configuration = data.configuration;
-					$instances.rows.add(configuration.instances).draw();
-					$storages.rows.add(configuration.storages).draw();
+					current.types.forEach(type => {
+						_('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw();
+					});
 					_('quote-location').select2('data', configuration.location);
 					$('.location-wrapper').html(current.locationMap(configuration.location));
 					_('quote-usage').select2('data', configuration.usage);
@@ -102,12 +107,22 @@ define(function () {
 						id: configuration.license,
 						text: current.formatLicense(configuration.license)
 					} : null);
+					current.updateUiCost();
 				}
 			});
 		},
 
 		/**
-		 * Request to refresh the cost and trigger a global update as needed
+		 * Redraw all tables
+		 */
+		redrawAll: function () {
+			current.types.forEach(type => {
+				_('prov-' + type + 's').DataTable().clear().draw();
+			});
+		},
+
+		/**
+		 * Request to refresh the cost and trigger a global update as needed.
 		 */
 		refreshCost: function () {
 			$.ajax({
@@ -124,19 +139,17 @@ define(function () {
 		 * @param {function} forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
 		reloadAsNeed: function (newCost, forceUpdateUi) {
-			var dirty = true;
 			if (newCost.min !== current.model.configuration.cost.min || newCost.max !== current.model.configuration.cost.max) {
 				// The cost has been updated
 				current.model.configuration.cost = newCost;
 				notifyManager.notify(current.$messages['service:prov:refresh-needed']);
-				dirty = false;
 				current.reload();
 			} else {
 				// The cost still the same
 				notifyManager.notify(current.$messages['service:prov:refresh-no-change']);
-			}
-			if (dirty && forceUpdateUi) {
-				current.updateUiCost();
+				if (forceUpdateUi) {
+					current.updateUiCost();
+				}
 			}
 		},
 
@@ -2166,7 +2179,6 @@ define(function () {
 				},
 				error: () => current.enableCreate($popup)
 			});
-
 		},
 
 		/**
@@ -2941,14 +2953,16 @@ define(function () {
 				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
 				storageReserved += qs.size * nb;
 				storageCost += qs.cost;
-				var quoteResource = qs.quoteDatabase || qs.quoteInstance;
-				if (quoteResource) {
-					for (t = (quoteResource.usage || defaultUsage).start || 0; t < duration; t++) {
+				var quoteVm = qs.quoteDatabase || qs.quoteInstance;
+				if (quoteVm) {
+					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
 						timeline[t].storage += qs.cost;
 						timeline[t].cost += qs.cost;
 					}
 				} else {
-					timeline[t].cost += qs.cost;
+					for (t = timeline.length; t-- > 0;) {
+						timeline[t].cost += qs.cost;
+					}
 				}
 			}
 
@@ -3478,6 +3492,17 @@ define(function () {
 			};
 		},
 
+		updateCost: function (conf, type, newCost, resource) {
+			// Update the sums
+			conf[type + 'Cost'] += newCost.min - resource.cost;
+			conf.cost.min -= resource.cost - newCost.min;
+			conf.cost.max -= (resource.maxCost || resource.cost) - (newCost.max || 0);
+
+			// Upate the resource cost
+			resource.cost = newCost.min;
+			resource.maxCost = newCost.max || 0;
+		},
+
 		/**
 		 * Default Ajax callback after a deletion, update or create. This function looks the updated resources (identifiers), the deleted resources and the new updated costs.
 		 * @param {string} type The related resource type.
@@ -3494,13 +3519,20 @@ define(function () {
 			var createdSample = null;
 			var updatedSample = null;
 			var deletedSample = null;
-			conf.cost = updatedCost.total;
+			var nb = 0;
+			Object.keys(deleted).forEach(type => nb += deleted[type].length);
+			Object.keys(related).forEach(type => nb += Object.keys(related[type]).length);
+			if (nb > current.changesReloadThreshold) {
+				// Global reload is more efficient
+				current.reload();
+				return
+			}
 
 			// Look the deleted resources
 			Object.keys(deleted).forEach(type => {
 				// For each deleted resource of this type, update the UI and the cost in the model
 				for (var i = deleted[type].length; i-- > 0;) {
-					var deletedR = current.delete(type.toLowerCase(), deleted[type][i], true);
+					var deletedR = current.delete(type.toLowerCase(), deleted[type][i]);
 					if (nbDeleted++ === 0) {
 						deletedSample = deletedR.name;
 					}
@@ -3513,10 +3545,8 @@ define(function () {
 				Object.keys(related[key]).forEach(id => {
 					var relatedType = key.toLowerCase();
 					var resource = conf[relatedType + 'sById'][id];
-					var cost = related[key][id];
-					conf[relatedType + 'Cost'] += cost.min - resource.cost;
-					resource.cost = cost.min;
-					resource.maxCost = cost.max;
+					current.updateCost(conf, relatedType, related[key][id], resource);
+
 					if (nbUpdated++ === 0) {
 						updatedSample = resource.name;
 					}
@@ -3526,14 +3556,15 @@ define(function () {
 
 			// Update the current object
 			if (resource) {
-				resource.cost = updatedCost.cost.min;
-				resource.maxCost = updatedCost.cost.max;
+				current.updateCost(conf, type, updatedCost.cost, resource);
+
 				if (conf[type + 'sById'][updatedCost.id]) {
 					// Update : Redraw the row
 					nbUpdated++;
 					updatedSample = resource.name;
 					current.redrawResource(type, updatedCost.id);
 				} else {
+					// Create
 					conf[type + 's'].push(resource);
 					conf[type + 'sById'][updatedCost.id] = resource;
 					resource.id = updatedCost.id;
@@ -3544,7 +3575,13 @@ define(function () {
 			} else if (updatedCost.id) {
 				// Delete this object
 				nbDeleted++;
-				deletedSample = current.delete(type, updatedCost.id, true).name;
+				deletedSample = current.delete(type, updatedCost.id).name;
+			}
+
+			if (conf.cost.min !== updatedCost.total.min || conf.cost.max !== updatedCost.total.max || conf.cost.unbound !== updatedCost.total.unbound) {
+				console.log('Need to reajust the compted cost: min=' + (updatedCost.total.min - conf.cost.min)
+					+ ' max=' + (updatedCost.total.max - conf.cost.max) + ' unbound=' + (updatedCost.total.unbound && !conf.cost.unbound || !updatedCost.total.unbound && conf.cost.unbound));
+				conf.cost = updatedCost.total;
 			}
 
 			// Notify callback
@@ -3570,31 +3607,27 @@ define(function () {
 		 * @param {string} type The resource type.
 		 * @param {integer} id The resource identifier.
 		 */
-		delete: function (type, id, draw) {
+		delete: function (type, id) {
 			var conf = current.model.configuration;
 			var resources = conf[type + 's'];
+			var EMPTY_COST = { min: 0, max: 0, unbound: false };
 			for (var i = resources.length; i-- > 0;) {
 				var resource = resources[i];
 				if (resource.id === id) {
 					resources.splice(i, 1);
 					delete conf[type + 'sById'][resource.id];
-					conf[type + 'Cost'] -= resource.cost;
+					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
 						var qr = resource.quoteInstance || resource.quoteDatabase;
 						if (qr) {
 							// Also redraw the instance
 							var attachedType = resource.quoteInstance ? 'instance' : 'database';
 							current.detachStorage(resource, 'quote' + attachedType.charAt(0).toUpperCase() + attachedType.slice(1));
-							if (draw) {
-								current.redrawResource(attachedType, qr.id);
-							}
+							current.redrawResource(attachedType, qr.id);
 						}
 					}
 
-					var row = _('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).remove();
-					if (draw) {
-						row.draw(false);
-					}
+					_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).remove().draw(false);
 					return resource;
 				}
 			}
