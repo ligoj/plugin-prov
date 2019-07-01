@@ -86,7 +86,7 @@ define(function () {
 		reload: function () {
 			// Clear the tables
 			current.types.forEach(type => {
-				_('prov-' + type + 's').DataTable().clear().draw();
+				_('prov-' + type + 's').DataTable().clear().draw(false);
 			});
 			$.ajax({
 				dataType: 'json',
@@ -97,7 +97,7 @@ define(function () {
 					current.optimizeModel();
 					var configuration = data.configuration;
 					current.types.forEach(type => {
-						_('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw();
+						_('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false);
 					});
 					_('quote-location').select2('data', configuration.location);
 					$('.location-wrapper').html(current.locationMap(configuration.location));
@@ -117,7 +117,7 @@ define(function () {
 		 */
 		redrawAll: function () {
 			current.types.forEach(type => {
-				_('prov-' + type + 's').DataTable().clear().draw();
+				_('prov-' + type + 's').DataTable().clear().draw(false);
 			});
 		},
 
@@ -1169,7 +1169,7 @@ define(function () {
 					extend: 'colvis',
 					postfixButtons: ['colvisRestore'],
 					columns: ':not(.noVis)',
-					columnText: (dt, idx) => dt.settings()[0].aoColumns[idx].sTitle
+					columnText: (dt, idx) => dt.settings()[0].aoColumns[idx].sTitle,
 				}],
 				columnDefs: [{
 					targets: 'noVisDefault',
@@ -1210,6 +1210,11 @@ define(function () {
 						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
 					}
 				});
+			$table.on('column-visibility.dt', function (e,settings, idCOl, visibility) {
+				if (visibility) {
+					$(this).DataTable().draw('page');
+				}
+			})
 			current[type + 'Table'] = $table.dataTable(oSettings);
 		},
 
@@ -2282,7 +2287,7 @@ define(function () {
 			var id = resourceOrId && (resourceOrId.id || resourceOrId);
 			if (id) {
 				// The instance is valid
-				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw();
+				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw(false);
 			}
 		},
 
@@ -2772,6 +2777,8 @@ define(function () {
 							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
 						} else if (data.type === 'os') {
 							tooltip = current.formatOs(data.name, true, ' fa-2x');
+						} else if (data.type === 'engine') {
+							tooltip = current.formatDatabaseEngine(data.name, true, ' fa-2x');
 						} else if (data.type === 'instance') {
 							var instance = conf.instancesById[data.name];
 							tooltip = 'Name: ' + instance.name
