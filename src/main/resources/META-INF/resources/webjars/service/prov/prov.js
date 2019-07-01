@@ -1344,7 +1344,7 @@ define(function () {
 					current.initializePopupEvents(type);
 				}
 			});
-			_('subscribe-configuration-prov table').on('click', '.delete', function () {
+			$('#subscribe-configuration-prov table').on('click', '.delete', function () {
 				// Delete a single row/item
 				var type = $(this).provType();
 				var dataTable = current[type + 'Table'];
