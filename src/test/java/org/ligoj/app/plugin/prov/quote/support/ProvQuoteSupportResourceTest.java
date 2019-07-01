@@ -238,7 +238,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("support2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
 
-	private void newSupports() {
+	private ProvQuoteSupport newSupports() {
 		final var support1 = newSupport("support1", 3);
 		support1.setAccessPhone(SupportType.ALL);
 		em.persist(support1);
@@ -251,12 +251,19 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		em.clear();
 
 		checkCost(resource.refresh(subscription), 3880.48, 6739.25, false);
+		return support1;
 	}
 
 	@Test
 	void deleteAllSupports() {
-		newSupports();
-		checkCost(qsResource.deleteAll(subscription), 3165.4, 5615.0, false);
+		final var support1 = newSupports();
+		var deleteAll = qsResource.deleteAll(subscription);
+		checkCost(deleteAll, 3165.4, 5615.0, false);
+
+		// Check deleted resources response
+		final var deleted = deleteAll.getDeleted().get(ResourceType.SUPPORT);
+		Assertions.assertEquals(2, deleted.size());
+		Assertions.assertTrue(deleted.contains(support1.getId()));
 
 		// Check the exact new cost
 		// @see #delete() for details of this computation
