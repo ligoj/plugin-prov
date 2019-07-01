@@ -2771,44 +2771,72 @@ define(function () {
 				if (usage.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(usage), function (a, b) {
 						return current.types.indexOf(a.data.type) - current.types.indexOf(b.data.type);
-					}, function (data, d) {
-						var tooltip;
-						if (data.type === 'latency') {
-							tooltip = 'Latency: ' + current.formatStorageLatency(data.name, true);
-						} else if (data.type === 'os') {
-							tooltip = current.formatOs(data.name, true, ' fa-2x');
-						} else if (data.type === 'engine') {
-							tooltip = current.formatDatabaseEngine(data.name, true, ' fa-2x');
-						} else if (data.type === 'instance') {
-							var instance = conf.instancesById[data.name];
-							tooltip = 'Name: ' + instance.name
-								+ '</br>Type: ' + instance.price.type.name
-								+ '</br>OS: ' + current.formatOs(instance.price.os, true)
-								+ '</br>Term: ' + instance.price.term.name
-								+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
-						} else if (data.type === 'storage') {
-							var storage = conf.storagesById[data.name];
-							tooltip = 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
-						} else if (data.type === 'support') {
-							var support = conf.supportsById[data.name];
-							tooltip = 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
-						} else if (data.type === 'database') {
-							var database = conf.databasesById[data.name];
-							tooltip = 'Name: ' + database.name
-								+ '</br>Type: ' + database.price.type.name
-								+ '</br>Engine: ' + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
-								+ '</br>Term: ' + database.price.term.name
-								+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
-						} else {
-							tooltip = data.name;
-						}
-						return '<span class="tooltip-text">' + tooltip + '<br/>Cost: ' + current.formatCost(data.size || data.value) + (d.depth && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
-					});
+					}, current.sunburstTooltip);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
 					_('prov-sunburst').addClass('hidden');
 				}
 			});
+		},
+
+		sunburstTooltip: function (data, d) {
+			var tooltip = current.sunburstBaseTooltip(data)
+			if (d.depth) {
+				d.parent.value
+			}
+			return '<span class="tooltip-text">' + tooltip
+				+ '<br/>Cost: ' + current.formatCost(data.size || data.value)
+				+ current.recursivePercent(d, true)
+				+ (d.depth && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
+		},
+		sunburstBaseTooltip: function (data) {
+			var conf = current.model.configuration;
+			switch (data.type) {
+				case 'latency':
+					return 'Latency: ' + current.formatStorageLatency(data.name, true);
+				case 'os':
+					return current.formatOs(data.name, true, ' fa-2x');
+				case 'engine':
+					return current.formatDatabaseEngine(data.name, true, ' fa-2x');
+				case 'instance':
+					var instance = conf.instancesById[data.name];
+					return 'Name: ' + instance.name
+						+ '</br>Type: ' + instance.price.type.name
+						+ '</br>OS: ' + current.formatOs(instance.price.os, true)
+						+ '</br>Term: ' + instance.price.term.name
+						+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
+				case 'storage':
+					var storage = conf.storagesById[data.name];
+					return 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
+				case 'support':
+					var support = conf.supportsById[data.name];
+					return 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
+				case 'database':
+					var database = conf.databasesById[data.name];
+					return 'Name: ' + database.name
+						+ '</br>Type: ' + database.price.type.name
+						+ '</br>Engine: ' + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
+						+ '</br>Term: ' + database.price.term.name
+						+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
+				case 'root-storage':
+					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
+				case 'root-instance':
+					return '<i class="fas fa-server fa-2x"></i><br>' + data.name;
+				case 'root-database':
+					return '<i class="fas fa-database fa-2x"></i><br>' + data.name;
+				case 'root-support':
+					return '<i class="fas fa-ambulance fa-2x"></i><br>' + data.name;
+			}
+			return data.name;
+		},
+
+		recursivePercent: function (d, first) {
+			if (!d.depth) {
+				return first ? '' : ')';
+			}
+			return (d.value === d.parent.value)
+				? current.recursivePercent(d.parent, first)
+				: ((first ? ' (' : ', ') + Math.round(d.value * 100 / d.parent.value) + '% of ' + d.parent.data.name + current.recursivePercent(d.parent, false));
 		},
 
 		/**
@@ -3110,7 +3138,7 @@ define(function () {
 		instanceToD3: function (data, usage) {
 			var allOss = {};
 			var instances = usage.instance.filtered;
-			data.name = '<i class="fas fa-server fa-2x"></i> ' + current.$messages['service:prov:instances-block'];
+			data.name = current.$messages['service:prov:instances-block'];
 			for (var i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var oss = allOss[qi.os];
@@ -3134,11 +3162,10 @@ define(function () {
 				});
 			}
 		},
-
 		databaseToD3: function (data, usage) {
 			var allEngines = {};
 			var databases = usage.database.filtered;
-			data.name = '<i class="fas fa-database fa-2x"></i> ' + current.$messages['service:prov:databases-block'];
+			data.name = current.$messages['service:prov:databases-block'];
 			for (var i = 0; i < databases.length; i++) {
 				var qi = databases[i];
 				var engines = allEngines[qi.engine];
@@ -3165,7 +3192,7 @@ define(function () {
 
 		storageToD3: function (data, usage) {
 			var storages = usage.storage.filtered;
-			data.name = '<i class="far fa-hdd fa-2x"></i> ' + current.$messages['service:prov:storages-block'];
+			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
 			for (var i = 0; i < storages.length; i++) {
 				var qs = storages[i];
@@ -3193,7 +3220,7 @@ define(function () {
 
 		supportToD3: function (data, usage) {
 			var supports = usage.support.filtered;
-			data.name = '<i class="fas fa-ambulance fa-2x"></i> ' + current.$messages['service:prov:support-block'];
+			data.name = current.$messages['service:prov:support-block'];
 			for (var i = 0; i < supports.length; i++) {
 				var support = supports[i];
 				data.value += support.cost;
