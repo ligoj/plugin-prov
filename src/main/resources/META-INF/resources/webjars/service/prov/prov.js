@@ -2787,7 +2787,7 @@ define(function () {
 			return '<span class="tooltip-text">' + tooltip
 				+ '<br/>Cost: ' + current.formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true)
-				+ (d.depth && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
+				+ (d.depth && d.depth > 1 && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
 		},
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
