@@ -649,8 +649,7 @@ define(function () {
 
 		formatUsageTemplate: function (usage, mode) {
 			if (mode === 'sort' || mode === 'filter') {
-				usage = current.model.configuration.usage || {};
-				return usage.text || usage.name;
+				return usage ? usage.text || usage.name : 'default';
 			}
 			if (usage) {
 				usage = {
