@@ -2786,7 +2786,7 @@ define(function () {
 			return '<span class="tooltip-text">' + tooltip
 				+ '<br/>Cost: ' + current.formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && d.depth > 1 && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
+				+ (d.depth && data.children ? '<br/>Count: ' + data.children.length : '') + '</span>';
 		},
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
@@ -2830,7 +2830,7 @@ define(function () {
 		},
 
 		recursivePercent: function (d, first, rate) {
-			if (!d.depth || Math.round(rate) === 0 ) {
+			if (!d.depth || Math.round(rate) === 0) {
 				return first ? '' : ')';
 			}
 			if (d.value === d.parent.value) {
