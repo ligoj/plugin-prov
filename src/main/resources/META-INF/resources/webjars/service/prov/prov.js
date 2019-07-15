@@ -700,6 +700,13 @@ define(function () {
 		/**
 		 * Return the HTML markup from the quote instance model.
 		 */
+		formatQuoteResource: function (resource) {
+			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
+		},
+
+		/**
+		 * Return the HTML markup from the quote instance model.
+		 */
 		formatQuoteInstance: function (quoteInstance) {
 			return quoteInstance.name;
 		},
@@ -950,7 +957,7 @@ define(function () {
 		 */
 		checkResource: function () {
 			var $form = $(this).prov();
-			var queries = [];
+			var queries = {};
 			var type = $form.provType();
 			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
 			var $popup = _('popup-prov-' + popupType);
@@ -965,11 +972,19 @@ define(function () {
 					current.addQuery('instance', $(this), queries);
 				}
 			});
+			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data') && _('storage-instance').select2('data').resourceType === 'database') {
+				// Replace the resource lookup
+				queries['database'] = queries['instance'];
+				delete queries['instance'];
+			}
+			var queriesArray = [];
+			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
+
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
 			$.ajax({
 				dataType: 'json',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queries.join('&'),
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queriesArray.join('&'),
 				type: 'GET',
 				success: function (suggest) {
 					current[type + 'SetUiPrice'](suggest);
@@ -993,7 +1008,7 @@ define(function () {
 				value = toValue ? toValue(value, $item) : value;
 				if (value || value === false) {
 					// Add as query
-					queries.push(queryParam + '=' + encodeURIComponent(value));
+					queries[queryParam] = encodeURIComponent(value);
 				}
 			}
 		},
@@ -1028,24 +1043,6 @@ define(function () {
 				}).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
-			}
-			current.updateInstanceCompatible(_('storage-price').select2('data'));
-		},
-
-		/**
-		 * Depending on the current storage type, enable/disable the instance selection
-		 */
-		updateInstanceCompatible: function (suggest) {
-			if (suggest && suggest.price && (typeof suggest.price.type.instanceType !== 'string')) {
-				// Disable
-				_('storage-instance').select2('data', null).select2('disable');
-				_('storage-instance').prev('.select2-container').find('.select2-chosen').text(current.$messages['service:prov:cannot-attach-instance']);
-			} else {
-				// Enable
-				_('storage-instance').select2('enable');
-				if (_('storage-instance').select2('data') === null) {
-					_('storage-instance').prev('.select2-container').find('.select2-chosen').text(current.$messages['service:prov:no-attached-instance']);
-				}
 			}
 		},
 
@@ -1401,16 +1398,19 @@ define(function () {
 
 			// Related instance of the storage
 			_('storage-instance').select2({
-				formatSelection: current.formatQuoteInstance,
-				formatResult: current.formatQuoteInstance,
+				formatSelection: current.formatQuoteResource,
+				formatResult: current.formatQuoteResource,
 				placeholder: current.$messages['service:prov:no-attached-instance'],
 				allowClear: true,
+				id: function (r) {
+					return r.resourceType + r.id;
+				},
 				escapeMarkup: function (m) {
 					return m;
 				},
 				data: function () {
 					return {
-						results: current.model.configuration.instances
+						results: current.model.configuration.instances.concat(current.model.configuration.databases)
 					};
 				}
 			});
@@ -2335,7 +2335,7 @@ define(function () {
 			delete data.quoteInstance;
 			delete data.quoteDatabase;
 			if (_('storage-instance').select2('data')) {
-				if (_('storage-instance').select2('data').type === 'database') {
+				if (_('storage-instance').select2('data').resourceType === 'database') {
 					data.quoteDatabase = (_('storage-instance').select2('data') || {}).id;
 				} else {
 					data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
