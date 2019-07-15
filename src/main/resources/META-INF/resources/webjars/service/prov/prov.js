@@ -653,7 +653,7 @@ define(function () {
 			}
 			if (usage) {
 				usage = {
-					name: (mode ? usage.name || usage.text : (usage.text || usage.name) )|| usage,
+					name: (mode ? usage.name || usage.text : (usage.text || usage.name)) || usage,
 					rate: usage.id,
 					duration: false,
 					start: false
