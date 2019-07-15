@@ -2783,7 +2783,7 @@ define(function () {
 			return '<span class="tooltip-text">' + tooltip
 				+ '<br/>Cost: ' + current.formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && data.children ? '<br/>Count: ' + (data.min ? data.min : data.children.length) : '') + '</span>';
+				+ (d.depth && data.children ? '<br/>Count: ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
@@ -3127,6 +3127,7 @@ define(function () {
 					value: 0,
 					type: 'root-' + type,
 					children: [],
+					nb: usage[type].nb,
 					min: usage[type].min,
 					unbound: usage[type].unbound
 				};
