@@ -701,14 +701,10 @@ define(function () {
 		 * Return the HTML markup from the quote instance model.
 		 */
 		formatQuoteResource: function (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
-		},
-
-		/**
-		 * Return the HTML markup from the quote instance model.
-		 */
-		formatQuoteInstance: function (quoteInstance) {
-			return quoteInstance.name;
+			if (resource) {
+				return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
+			}
+			return '';
 		},
 
 		/**
@@ -3360,7 +3356,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => (data.quoteInstance || data.quoteDatabase || {}).name
+					render: (_i, mode, data) => current.formatQuoteResource(data.quoteInstance || data.quoteDatabase)
 				}]
 			};
 		},
