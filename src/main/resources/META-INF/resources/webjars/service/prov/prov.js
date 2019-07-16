@@ -59,6 +59,7 @@ define(function () {
 				var now = moment();
 				$('.prov-export-instances-inline').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-inline-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
 				$('.prov-export-instances-split').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-split-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
+				$('.prov-export-full-json').attr('href', REST_PATH + 'subscription/' + subscription.id + '/configuration').attr('download', 'ligoj-full-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.json');
 			});
 		},
 

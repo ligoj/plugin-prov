@@ -432,3 +432,14 @@ img.flag-icon.prov-location-flag {
 .modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive="database"]) {
 	display: none;
 }
+.dropdown-menu .prov-export {
+	padding-right: 42px;
+}
+.dropdown-menu .prov-export .label{
+    position: absolute;
+    margin-left: 5px;
+    width: 32px;
+}
+.dropdown-menu .prov-export .export-type{
+    width: 0;
+}
