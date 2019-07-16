@@ -2617,7 +2617,7 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt(d3.select('#prov-barchart').style('width')), 150, data, (d, bars) => {
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + current.formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
@@ -2637,7 +2637,7 @@ define(function () {
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
 						}, d => current.formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
-						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar && $('#prov-barchart').length && current.d3Bar.resize(parseInt(d3.select('#prov-barchart').style('width'))));
+						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar && $('#prov-barchart').length && current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
 						d3Bar.update(data);
 					}
