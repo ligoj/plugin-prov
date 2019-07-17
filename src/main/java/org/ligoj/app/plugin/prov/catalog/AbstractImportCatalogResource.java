@@ -366,12 +366,11 @@ public abstract class AbstractImportCatalogResource {
 	 * @param oldCost    The old cost.
 	 * @param newCost    The new cost.
 	 * @param updateCost The consumer used to handle the price replacement operation if needed.
-	 * @param <A>        The identifier type of the price type.
 	 * @param <N>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected <A extends Serializable, N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(
+	protected <N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(
 			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
 			final Consumer<P> persister) {
 		if (oldCost != newCost) {

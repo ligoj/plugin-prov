@@ -80,9 +80,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	@Autowired
 	protected ProvUsageRepository usageRepository;
 
-	@Autowired
-	private ProvTagResource tagResource;
-
 	/**
 	 * Return the repository managing the instance pricing entities.
 	 *

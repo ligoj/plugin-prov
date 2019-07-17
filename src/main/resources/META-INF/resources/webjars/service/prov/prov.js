@@ -3553,8 +3553,8 @@ define(function () {
 			var updatedSample = null;
 			var deletedSample = null;
 			var nb = 0;
-			Object.keys(deleted).forEach(type => nb += deleted[type].length);
-			Object.keys(related).forEach(type => nb += Object.keys(related[type]).length);
+			Object.keys(deleted).forEach(t => nb += deleted[t].length);
+			Object.keys(related).forEach(t => nb += Object.keys(related[t]).length);
 			if (nb > current.changesReloadThreshold) {
 				// Global reload is more efficient
 				current.reload();
@@ -3562,10 +3562,10 @@ define(function () {
 			}
 
 			// Look the deleted resources
-			Object.keys(deleted).forEach(type => {
+			Object.keys(deleted).forEach(t => {
 				// For each deleted resource of this type, update the UI and the cost in the model
-				for (var i = deleted[type].length; i-- > 0;) {
-					var deletedR = current.delete(type.toLowerCase(), deleted[type][i]);
+				for (var i = deleted[t].length; i-- > 0;) {
+					var deletedR = current.delete(t.toLowerCase(), deleted[t][i]);
 					if (nbDeleted++ === 0) {
 						deletedSample = deletedR.name;
 					}
@@ -3577,11 +3577,11 @@ define(function () {
 				// For each updated resource of this type, update the UI and the cost in the model
 				Object.keys(related[key]).forEach(id => {
 					var relatedType = key.toLowerCase();
-					var resource = conf[relatedType + 'sById'][id];
-					current.updateCost(conf, relatedType, related[key][id], resource);
+					var relatedR = conf[relatedType + 'sById'][id];
+					current.updateCost(conf, relatedType, related[key][id], relatedR);
 
 					if (nbUpdated++ === 0) {
-						updatedSample = resource.name;
+						updatedSample = relatedR.name;
 					}
 					current.redrawResource(relatedType, id);
 				});
