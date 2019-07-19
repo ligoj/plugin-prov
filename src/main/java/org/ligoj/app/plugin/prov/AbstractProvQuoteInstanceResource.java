@@ -114,13 +114,26 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param vo     The change to apply to the entity.
 	 * @return The updated cost including the related ones.
 	 */
-	protected UpdatedCost saveOrUpdate(final C entity, final E vo) {
+	public UpdatedCost saveOrUpdate(final C entity, final E vo) {
+		// Check the associations and proceed
+		return saveOrUpdate(getQuoteFromSubscription(vo.getSubscription()), entity, vo);
+	}
+
+	/**
+	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
+	 * updated from the resource to the quote total cost.
+	 *
+	 * @param quote The related quote.
+	 * @param entity The entity to update.
+	 * @param vo     The change to apply to the entity.
+	 * @return The updated cost including the related ones.
+	 */
+	public UpdatedCost saveOrUpdate(final ProvQuote quote, final C entity, final E vo) {
 		// Compute the unbound cost delta
 		final var deltaUnbound = BooleanUtils.toInteger(vo.getMaxQuantity() == null)
 				- BooleanUtils.toInteger(entity.isUnboundCost());
 
 		// Check the associations and copy attributes to the entity
-		final var quote = getQuoteFromSubscription(vo.getSubscription());
 		final var subscription = quote.getSubscription();
 		final var providerId = subscription.getNode().getRefined().getId();
 		DescribedBean.copy(vo, entity);

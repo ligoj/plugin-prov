@@ -254,7 +254,7 @@ public class ProvQuoteStorageResource
 	}
 
 	/**
-	 * Return the available storage types from the provider linked to the given subscription..
+	 * Return the available storage types from the provider linked to the given subscription.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the storage types from the associated
 	 *                     provider.
@@ -271,7 +271,14 @@ public class ProvQuoteStorageResource
 		return lookup(getQuoteFromSubscription(subscription), query);
 	}
 
-	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorageQuery query) {
+	/**
+	 * Return the available storage types from the provider linked to the given quote.
+	 *
+	 * @param configuration The related quote.
+	 * @param query         The storage requirements.
+	 * @return The valid storage types for the given subscription.
+	 */
+	public List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorageQuery query) {
 		final var qi = checkInstance(configuration.getSubscription().getId(), query.getInstance());
 		final var qb = checkDatabase(configuration.getSubscription().getId(), query.getDatabase());
 		return lookup(configuration, query, qi, qb);

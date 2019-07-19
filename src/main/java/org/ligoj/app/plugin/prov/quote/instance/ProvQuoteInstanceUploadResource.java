@@ -47,6 +47,7 @@ import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvTag;
@@ -116,17 +117,23 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
-	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer>> mergers = Map
+	private static class UploadContext {
+		Map<String, ProvQuoteInstance> previous;
+		ProvQuote quote;
+
+	}
+
+	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, UploadContext, Integer>> mergers = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
 
 	/**
 	 * Insert mode.
 	 */
-	private Integer modeInsert(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
+	private Integer modeInsert(final QuoteInstanceEditionVo vo, final UploadContext context) {
 		// Reserve this name
 		var qi = new ProvQuoteInstance();
-		previous.put(vo.getName(), qi);
-		qi.setId(qiResource.create(vo).getId());
+		context.previous.put(vo.getName(), qi);
+		qi.setId(qiResource.saveOrUpdate(context.quote, qi, vo).getId());
 		vo.setId(qi.getId());
 		return qi.getId();
 	}
@@ -134,28 +141,28 @@ public class ProvQuoteInstanceUploadResource {
 	/**
 	 * Keep mode.
 	 */
-	private Integer modeKeep(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
+	private Integer modeKeep(final QuoteInstanceEditionVo vo, final UploadContext context) {
 		// Fix the instance's name in order to be unique during this upload.
 		var name = vo.getName();
 		var counter = 0;
-		while (previous.containsKey(name)) {
+		while (context.previous.containsKey(name)) {
 			name = vo.getName() + " " + ++counter;
 		}
 		vo.setName(name);
-		return modeInsert(vo, previous);
+		return modeInsert(vo, context);
 	}
 
 	/**
 	 * Update mode.
 	 */
-	private Integer modeUpdate(final QuoteInstanceEditionVo vo, final Map<String, ProvQuoteInstance> previous) {
-		final var qi = previous.get(vo.getName());
+	private Integer modeUpdate(final QuoteInstanceEditionVo vo, final UploadContext context) {
+		final var qi = context.previous.get(vo.getName());
 		if (qi == null) {
-			return modeInsert(vo, previous);
+			return modeInsert(vo, context);
 		}
 		// Update the previous entity
 		vo.setId(qi.getId());
-		qiResource.update(vo);
+		qiResource.saveOrUpdate(context.quote, qi, vo);
 		return null;
 	}
 
@@ -257,6 +264,7 @@ public class ProvQuoteInstanceUploadResource {
 			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
+		final var quote = resource.getRepository().findBy("subscription.id", subscription);
 		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
 
 		// Check headers validity
@@ -287,11 +295,17 @@ public class ProvQuoteInstanceUploadResource {
 		log.info("Upload provisioning : importing {} entries", list.size());
 		final var cursor = new AtomicInteger(0);
 		final var previous = qiRepository.findAll(subscription).stream()
-				.collect(Collectors.toMap(ProvQuoteInstance::getName, Function.identity()));
+				.collect(Collectors.toConcurrentMap(ProvQuoteInstance::getName, Function.identity()));
 		final var merger = mergers.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+
+		// Initialization for parallel process
+		quote.getUsages().size();
+		final var context = new UploadContext();
+		context.quote = quote;
+		context.previous = previous;
 		list.stream().filter(Objects::nonNull).forEach(i -> {
 			try {
-				persist(i, subscription, usage, ramMultiplier, merger, previous);
+				persist(i, subscription, usage, ramMultiplier, merger, context);
 				final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
 				if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
 					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
@@ -321,9 +335,9 @@ public class ProvQuoteInstanceUploadResource {
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private void persist(final InstanceUpload upload, final int subscription, String usage, final Integer ramMultiplier,
-			final BiFunction<QuoteInstanceEditionVo, Map<String, ProvQuoteInstance>, Integer> merger,
-			final Map<String, ProvQuoteInstance> previous) {
+	private void persist(final InstanceUpload upload, final int subscription, final String usage,
+			final Integer ramMultiplier, final BiFunction<QuoteInstanceEditionVo, UploadContext, Integer> merger,
+			final UploadContext context) {
 		// Validate the upload object
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setName(upload.getName());
@@ -347,11 +361,10 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setType(upload.getType());
 
 		// Find the lowest price
-		vo.setPrice(qiResource.validateLookup("instance", qiResource.lookupInternal(subscription, vo), vo.getName())
-				.getId());
+		vo.setPrice(qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
 
 		// Create the quote instance from the validated inputs
-		final var id = merger.apply(vo, previous);
+		final var id = merger.apply(vo, context);
 
 		if (id == null) {
 			// Do not continue
@@ -371,7 +384,7 @@ public class ProvQuoteInstanceUploadResource {
 					svo.setOptimized(getItem(upload.getOptimized(), index));
 
 					// Find the nicest storage
-					svo.setType(storageResource.lookup(subscription, svo).stream().findFirst()
+					svo.setType(storageResource.lookup(context.quote, svo).stream().findFirst()
 							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
 							.getName());
 
