@@ -372,7 +372,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(7, deletedI.size());
 		Assertions.assertTrue(deletedI.contains(id));
 		Assertions.assertEquals(3, deletedS.size());
-		Assertions.assertTrue(deletedI.contains(storage1));
+		Assertions.assertTrue(deletedS.contains(storage1));
 
 		// The remaining storage for this subscription is not related to a delete instance
 		Assertions.assertNull(qsRepository.findAll(subscription).get(0).getQuoteInstance());
