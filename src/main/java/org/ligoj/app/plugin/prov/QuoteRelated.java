@@ -108,10 +108,14 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param <T>        The entity type holding the cost.
 	 */
 	default <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
-		// Report the delta to the quote
 		final var quote = entity.getConfiguration();
-		quote.setCostNoSupport(round(quote.getCostNoSupport() + entity.getCost() - oldCost));
-		quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + entity.getMaxCost() - oldMaxCost));
+		if ((entity.getCost() - oldCost + entity.getMaxCost() - oldMaxCost) != 0) {
+			// Report the delta to the quote
+			synchronized (quote) {
+				quote.setCostNoSupport(round(quote.getCostNoSupport() + entity.getCost() - oldCost));
+				quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + entity.getMaxCost() - oldMaxCost));
+			}
+		}
 	}
 
 	/**

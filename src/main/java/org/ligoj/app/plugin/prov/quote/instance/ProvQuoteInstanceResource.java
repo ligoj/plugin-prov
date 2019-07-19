@@ -167,7 +167,6 @@ public class ProvQuoteInstanceResource extends
 		final var locationR = getLocation(configuration, query.getLocationName());
 
 		// Compute the rate to use
-		configuration.getUsages().size();
 		final var usage = getUsage(configuration, query.getUsageName());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();

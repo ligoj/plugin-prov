@@ -362,9 +362,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
 		entity.setMaxCostNoSupport(0d);
+		
+		// Fetch the usages of this quotes (parallel)
+		entity.getUsages().size();
 
 		// Add the compute cost, and update the unbound cost
-		entity.getUsages().size();
 		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 

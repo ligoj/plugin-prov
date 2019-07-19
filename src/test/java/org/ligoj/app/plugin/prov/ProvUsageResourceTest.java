@@ -18,15 +18,20 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
+import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
+import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
@@ -63,7 +68,13 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	private ProvUsageRepository usageRepository;
 
 	@Autowired
+	private ProvDatabasePriceRepository bpRepository;
+
+	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
+	private ProvQuoteDatabaseRepository qbRepository;
 
 	@Autowired
 	private ProvQuoteRepository repository;
@@ -77,6 +88,8 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 						ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
 						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
 						ProvQuoteInstance.class, ProvQuoteStorage.class },
+				StandardCharsets.UTF_8.name());
+		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
@@ -143,7 +156,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		em.clear();
 
 		// Usage -> 75% (update the usage's rate from 50% to 75%)
-        var usage = new UsageEditionVo();
+		var usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
 		// Min = (3165.4 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
@@ -174,22 +187,42 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	void updateAttachedInstance() {
 		attachUsageToQuote();
 
+		// Add a database
+		final var db = new ProvQuoteDatabase();
+		db.setPrice(bpRepository.findBy("code", "MYSQL2"));
+		db.setCpu(0.5);
+		db.setRam(2000);
+		db.setEngine("MYSQL");
+		db.setName("qbMYSQL1");
+		db.setConfiguration(repository.findByName("quote1"));
+		em.persist(db);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(subscription), 3135.3, 4999.3, false);
+
+		// Check the refresh has updated the database price
+		Assertions.assertEquals(116.3, qbRepository.findByName("qbMYSQL1").getCost(), DELTA);
+		Assertions.assertEquals("MYSQL1", qbRepository.findByName("qbMYSQL1").getPrice().getCode());
+
 		// Usage -> 50% (attach the quote to a 50% usage)
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Dev");
-		checkCost(resource.update(subscription, quote), 1802.425, 3666.425, false);
-		checkCost(subscription, 1802.425, 3666.425, false);
+		checkCost(resource.update(subscription, quote), 1860.575, 3724.575, false);
+		checkCost(subscription, 1860.575, 3724.575, false);
 		em.flush();
 		em.clear();
+
+		// Check the refresh has updated the database price
+		Assertions.assertEquals(58.15, qbRepository.findByName("qbMYSQL1").getCost(), DELTA);
 
 		// Usage -> 75% (update the usage's rate from 50% to 75%)
 		final var usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
-		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2483.913, 4640.713, false);
-		checkCost(subscription, 2483.913, 4640.713, false);
+		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2571.138, 4727.938, false);
+		checkCost(subscription, 2571.138, 4727.938, false);
 
 		final var entity = usageRepository.findByName("DevV2");
 		Assertions.assertEquals("DevV2", entity.getName());

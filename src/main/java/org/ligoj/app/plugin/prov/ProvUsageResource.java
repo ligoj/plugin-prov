@@ -3,9 +3,12 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
@@ -22,8 +25,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
+import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.json.PaginationJson;
@@ -56,13 +63,14 @@ public class ProvUsageResource {
 	@Autowired
 	private ProvQuoteInstanceResource qiResource;
 
+	@Autowired
+	private ProvQuoteDatabaseResource qbResource;
+
 	/**
 	 * Return the usages available for a subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param uriInfo
-	 *            filter data.
+	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
+	 * @param uriInfo      filter data.
 	 * @return The available usages for the given subscription.
 	 */
 	@GET
@@ -81,10 +89,8 @@ public class ProvUsageResource {
 	 * Create the usage inside a quote. No cost are updated during this operation since this new {@link ProvUsage} is
 	 * not yet used.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param vo
-	 *            The quote usage.
+	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
+	 * @param vo           The quote usage.
 	 * @return The created usage identifier.
 	 */
 	@POST
@@ -103,12 +109,9 @@ public class ProvUsageResource {
 	 * An instance related to this usage is either an instance explicitly linked to this usage, either an instance
 	 * linked to a quote having this usage as default.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param name
-	 *            The quote usage's name to update.
-	 * @param vo
-	 *            The new quote usage data.
+	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
+	 * @param name         The quote usage's name to update.
+	 * @param vo           The new quote usage data.
 	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@PUT
@@ -134,22 +137,23 @@ public class ProvUsageResource {
 		entity.setStart(vo.getStart());
 
 		// Prepare the updated cost of updated instances
-		final Map<ResourceType, Map<Integer, FloatingCost>> costs = new EnumMap<>(ResourceType.class);
+		final Map<ResourceType, Map<Integer, FloatingCost>> costs = Collections
+				.synchronizedMap(new EnumMap<>(ResourceType.class));
 		final var quote = entity.getConfiguration();
-		if (entity.getId() != null) {
+		
+		// Fetch the usages of this quotes
+		quote.getUsages().size();
 
-			// Update the cost of all related instances
+		if (entity.getId() != null) {
+			// This is an update, update the cost of all related instances
 			if (entity.equals(quote.getUsage())) {
 				// Update cost of all instances without explicit usage
-				quote.getInstances().stream().filter(i -> i.getUsage() == null)
-						.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
-								qiResource.addCost(i, qiResource::refresh)));
+				updateUsage(quote.getInstances(), ResourceType.INSTANCE, costs, qiResource, null);
+				updateUsage(quote.getDatabases(), ResourceType.DATABASE, costs, qbResource, null);
 			}
-			quote.getInstances().stream().filter(i -> entity.equals(i.getUsage()))
-					.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
-							qiResource.addCost(i, qiResource::refresh)));
-
-			// Save and update the costs
+			// Update cost of all instances with this explicit usage
+			updateUsage(quote.getInstances(), ResourceType.INSTANCE, costs, qiResource, entity);
+			updateUsage(quote.getDatabases(), ResourceType.DATABASE, costs, qbResource, entity);
 		}
 
 		repository.saveAndFlush(entity);
@@ -160,14 +164,19 @@ public class ProvUsageResource {
 		return resource.refreshSupportCost(cost, quote);
 	}
 
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>> void updateUsage(
+			final List<C> instances, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource, final ProvUsage entity) {
+		this.resource.newStream(instances).filter(i -> Objects.equals(i.getUsage(), entity)).forEach(i -> costs
+				.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, resource::refresh)));
+	}
+
 	/**
 	 * Delete an usage. When the usage is associated to a quote or a resource, it is replaced by a <code>null</code>
 	 * reference.
 	 *
-	 * @param subscription
-	 *            The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param name
-	 *            The {@link ProvUsage} name.
+	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
+	 * @param name         The {@link ProvUsage} name.
 	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@DELETE
