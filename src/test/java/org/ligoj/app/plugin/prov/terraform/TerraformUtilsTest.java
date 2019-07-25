@@ -280,9 +280,9 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		try (var fromStream = new FileInputStream(toZip)) {
 			resource.unzip(fromStream, to);
 		}
-		Assertions.assertEquals("bar1",
+		Assertions.assertEquals("var=\"bar1\"",
 				FileUtils.readFileToString(new File(to, "module/bar1.tf"), StandardCharsets.UTF_8));
-		Assertions.assertEquals("bar0", FileUtils.readFileToString(new File(to, "bar0.tf"), StandardCharsets.UTF_8));
+		Assertions.assertEquals("var=\"bar0\"", FileUtils.readFileToString(new File(to, "bar0.tf"), StandardCharsets.UTF_8));
 		Assertions.assertFalse(new File(to, "plan.ptf").exists());
 		Assertions.assertFalse(new File(to, "secrets.auto.tfvars").exists());
 		Assertions.assertFalse(new File(to, ".terraform/foo.tf").exists());

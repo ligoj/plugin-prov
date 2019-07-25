@@ -1,1 +1,1 @@
-bar1
+var="bar1"
