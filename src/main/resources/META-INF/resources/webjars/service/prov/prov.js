@@ -86,9 +86,7 @@ define(function () {
 		 */
 		reload: function () {
 			// Clear the tables
-			current.types.forEach(type => {
-				_('prov-' + type + 's').DataTable().clear().draw(false);
-			});
+			current.redrawAll();
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'subscription/' + current.model.subscription + '/configuration',
@@ -1138,6 +1136,7 @@ define(function () {
 					try {
 						var data = JSON.parse(localStorage.getItem('service:prov/' + type));
 						settings.oPreviousSearch.sSearchAlt = data.searchAlt;
+						current[type + 'TableFilter'] = data.searchAlt;
 						return data;
 					} catch (e) {
 						// Ignore the state error log
@@ -1305,10 +1304,28 @@ define(function () {
 				$.fn.dataTable.ext.search.push(
 					function (settings, dataFilter, dataIndex, data) {
 						var type = settings.oInit.provType;
-						if (typeof type === 'undefined' || (settings.oPreviousSearch.sSearchAlt || '') === '') {
+						// Save the last used filter
+						if (typeof type === 'undefined') {
 							return true;
 						}
-						return current.filterManager.accept(settings, type, dataFilter, data, settings.oPreviousSearch.sSearchAlt);
+
+						var filter = settings.oPreviousSearch.sSearchAlt || '';
+						if (type === 'storage' && (current.databaseTableFilter !== '' || current.instanceTableFilter !== '')) {
+							// Only storage rows unrelated to filtered instance/database can be displayed
+							// There are 2 operators: 
+							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)'
+							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)'
+							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
+								cache: current.databaseTableFilter + '/' + current.instanceTableFilter, filters: [
+									{ property: 'quoteDatabase', op: 'in', table: current.databaseTableFilter && current.databaseTable },
+									{ property: 'quoteInstance', op: 'in', table: current.instanceTableFilter && current.instanceTable },
+								]
+							});
+						}
+						if (filter === '') {
+							return true;
+						}
+						return current.filterManager.accept(settings, type, dataFilter, data, filter, {});
 					}
 				);
 			}
@@ -1334,11 +1351,22 @@ define(function () {
 
 			$('.subscribe-configuration-prov-search').on('keyup', delay(function (event) {
 				if (event.which !== 16 && event.which !== 91) {
-					var table = current[$(this).provType() + 'Table'];
+					var type = $(this).provType();
+					var table = current[type + 'Table'];
 					if (table) {
 						table.fnSettings().oPreviousSearch.sSearch = '§force§';
-						table.fnSettings().oPreviousSearch.sSearchAlt = $(this).val();
+						var filter = $(this).val()
+						table.fnSettings().oPreviousSearch.sSearchAlt = filter;
+						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
+
+						if (type === 'instance' || type === 'database') {
+							// Refresh the storage
+							var tableS = current['storageTable'];
+							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
+							var filterS = tableS.fnSettings().oPreviousSearch.sSearchAlt;
+							tableS.fnFilter('');
+						}
 						current.updateUiCost();
 					}
 				}
@@ -1348,6 +1376,9 @@ define(function () {
 				if (event.which !== 16 && event.which !== 91) {
 					$.proxy(current.checkResource, $(this))();
 				}
+			});
+			current.types.forEach(type => {
+				current[type + 'TableFilter'] = '';
 			});
 			current.types.forEach(type => {
 				current.initializeDataTableEvents(type);
@@ -2866,7 +2897,7 @@ define(function () {
 
 		getFilteredData: function (type) {
 			var result = [];
-			if (current[type + 'Table'] && current[type + 'Table'].fnSettings().oPreviousSearch.sSearchAlt) {
+			if (current[type + 'Table']) {
 				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
 				for (var index = 0; index < data.length; index++) {
 					result.push(data[index]);
@@ -3355,7 +3386,7 @@ define(function () {
 					render: current.formatStorageType
 				}, {
 					data: null,
-					type: 'string',
+					type: 'object',
 					className: 'truncate hidden-xs hidden-sm',
 					render: (_i, mode, data) => current.formatQuoteResource(data.quoteInstance || data.quoteDatabase)
 				}]

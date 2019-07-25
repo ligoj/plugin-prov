@@ -44,10 +44,21 @@ define(['jquery'], function ($) {
 				}
 			},
 			'string': {
-				'=': function (search) {
-					search = (search || '').toLowerCase();
+				/* LEFT JOIN */
+				'lj': function (collectionById) {
 					return function (value) {
-						return value.toLowerCase() === search;
+						return !value || !!collectionById[value.id];
+					};
+				},
+				/* INNER JOIN (IN) */
+				'in': function (collectionById) {
+					return function (value) {
+						return value && !!collectionById[value.id];
+					};
+				},
+				'!in': function (collectionById) {
+					return function (value) {
+						return !value || !collectionById[value.id];
 					};
 				},
 				'!=': function (search) {
@@ -78,7 +89,7 @@ define(['jquery'], function ($) {
 
 		var propertyMatchers = ['filterName', 'data'];
 
-		function newCustomFilter(settings, property, value, operator) {
+		function newCustomFilter(settings, property, operator, value) {
 			for (var j = 0; j < propertyMatchers.length; j++) {
 				var propertyMatcher = propertyMatchers[j];
 				for (var i = 0; i < settings.aoColumns.length; i++) {
@@ -101,32 +112,28 @@ define(['jquery'], function ($) {
 			}
 			console.log('Not mapped property', property);
 		}
-		function stringNewCustomFilter(property, value, operator) {
-			return genericNewCustomFilter(property, 'string', value, operator)
-		}
-		function numNewCustomFilter(property, value, operator) {
-			return genericNewCustomFilter(property, 'num', value, operator)
-		}
-		function nameNewCustomFilter(value, operator) {
-			return genericNewCustomFilter('name', 'string', value, operator);
-		}
 
-		function newFilter(settings, property, operator, value) {
-			var filter = current[property + 'NewCustomFilter'];
-			return newCustomFilter(settings, property, value, operator);
-		}
-
-		function build(settings, type, search) {
-			if (cacheFilter[type] && cacheFilter[type].search === search) {
-				// Use cache
-				return cacheFilter[type].filter;
-			}
-
-			// Need to build the cache configuration for this filter
-			var filters = search.split(',');
+		function buildJoin(specific, join) {
 			var specificKeys = [];
-			var specific = {};
-			var global = [];
+			for (var i = 0; i < (join.filters || []).length; i++) {
+				var filter = join.filters[i];
+				var property = filter.property;
+				if (filter.table) {
+					// There is a provide table, use ' IN ' condition
+					var collection = filter.table.api().rows({ filter: 'applied' }).data();
+					var collectionById = {};
+					for (var j = 0; j < collection.length; j++) {
+						collectionById[collection[j].id] = true;
+					}
+					specific[property] = propertyNewCustomFilter(property, operators['string'][filter.op](collectionById));
+					specificKeys.push(property);
+				}
+			}
+			return specificKeys;
+		}
+
+		function buildKeys(specific, settings, global, filters) {
+			var specificKeys = [];
 			for (var i = 0; i < filters.length; i++) {
 				var filter = filters[i].trim();
 				if (filter.length === 0) {
@@ -140,7 +147,7 @@ define(['jquery'], function ($) {
 					var property = filterParts[1];
 					operator = filterParts[2];
 					value = filterParts[3];
-					specific[property] = newFilter(settings, property, operator, value);
+					specific[property] = newCustomFilter(settings, property, operator, value);
 					specificKeys.push(property);
 				} else {
 					// Global filter
@@ -154,38 +161,78 @@ define(['jquery'], function ($) {
 					global.push(operators['string'][operator](value));
 				}
 			}
+			return specificKeys;
+		}
+
+		function build(settings, type, search, join) {
+			if (cacheFilter[type] && cacheFilter[type].search === search && cacheFilter[type].join === join.cache) {
+				// Use cache
+				return cacheFilter[type].filter;
+			}
+
+			// Need to build the cache configuration for this filter
+			var filters = search.split(',');
+			var specific = {};
+			var global = [];
 
 			// Update the cache
 			cacheFilter[type] = {
 				search: search,
+				join: join.cache,
 				filter: {
 					specific: specific,
-					specificKeys: specificKeys,
+					specificOrKeys: buildJoin(specific, join),
+					specificAndKeys: buildKeys(specific, settings, global, filters),
 					global: global
 				}
 			}
 			return cacheFilter[type].filter;
 		}
 
-		function accept(settings, type, dataFilter, data, search) {
-			var filter = build(settings, type, search);
-			if (filter.specificKeys.length === 0 && filter.global.length === 0) {
+		function accept(settings, type, dataFilter, data, search, join) {
+			var filter = build(settings, type, search, join);
+			if (filter.specificAndKeys.length === 0 && filter.specificOrKeys.length === 0 && filter.global.length === 0) {
 				// No filter
 				return true;
 			}
-			for (var i = 0; i < filter.specificKeys.length; i++) {
-				if (filter.specific[specificKeys[i]](dataFilter, data)) {
-					return true;
+			var found = false;
+			if (filter.specificOrKeys.length) {
+				for (var i = 0; i < filter.specificOrKeys.length; i++) {
+					if (filter.specific[filter.specificOrKeys[i]](dataFilter, data)) {
+						found = true;
+						break;
+					}
+				}
+				// Expect at least one match among the OR conditions
+				if (!found) {
+					return false;
 				}
 			}
-			for (i = 0; i < filter.global.length; i++) {
-				for (var j = 0; j < settings.aoColumns.length; j++) {
-					if (filter.global[i](dataFilter[j], data)) {
-						return true;
+			if (filter.specificAndKeys.length) {
+				// All filters must match
+				for (var i = 0; i < filter.specificAndKeys.length; i++) {
+					if (!filter.specific[filter.specificAndKeys[i]](dataFilter, data)) {
+						return false;
 					}
 				}
 			}
-			return false;
+			if (filter.global.length) {
+				// All globals must match
+				for (i = 0; i < filter.global.length; i++) {
+					found = false;
+					for (var j = 0; j < settings.aoColumns.length; j++) {
+						if (filter.global[i](dataFilter[j], data)) {
+							found = true;
+							break;
+						}
+					}
+					// Expect at least one match among the columns
+					if (!found) {
+						return false;
+					}
+				}
+			}
+			return true;
 		}
 
 		// Exports
