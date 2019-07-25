@@ -30,7 +30,7 @@ define(function () {
 		/**
 		 * Enable resource type.
 		 */
-		types: ['instance', 'storage', 'database', 'support'],
+		types: ['instance', 'database', 'storage', 'support'],
 
 		/**
 		 * Threshold
