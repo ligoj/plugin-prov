@@ -3,7 +3,6 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 import org.ligoj.bootstrap.core.model.AbstractNamedAuditedEntity;
@@ -22,12 +21,6 @@ public class TagVo extends AbstractNamedAuditedEntity<Integer> {
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Object name
-	 */
-	@NotBlank
-	private String name;
 
 	/**
 	 * Value as string.
