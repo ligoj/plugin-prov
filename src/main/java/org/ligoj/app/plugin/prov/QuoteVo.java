@@ -9,6 +9,7 @@ import java.util.Map;
 import org.ligoj.app.iam.SimpleUserOrg;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -83,6 +84,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * the parent resource type.
 	 */
 	private Map<ResourceType, Map<Integer, List<TagVo>>> tags;
+
+	/**
+	 * Networks attached to resources in this quote.
+	 */
+	private List<ProvNetwork> networks;
 
 	/**
 	 * Default location of this quote.

@@ -130,6 +130,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvTagResource tagResource;
 
 	@Autowired
+	private ProvNetworkResource networkResource;
+
+	@Autowired
 	private IamProvider[] iamProvider;
 
 	@Autowired
@@ -250,6 +253,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
 		vo.setTags(tagResource.findAll(subscription.getId()));
+		vo.setNetworks(networkResource.findAll(subscription.getId()));
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();

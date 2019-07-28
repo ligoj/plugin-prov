@@ -10,8 +10,8 @@ import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.ProvType;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,6 +28,9 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 
 	@Autowired
 	protected ProvTagResource tagResource;
+
+	@Autowired
+	protected ProvNetworkResource networkResource;
 
 	/**
 	 * Return the resource type managed by this service.
@@ -48,6 +51,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		final var quote = resource.getQuoteFromSubscription(subscription);
 		final var cost = new UpdatedCost(0);
 		tagResource.onDeleteAll(getType(), quote.getId());
+		networkResource.onDeleteAll(getType(), quote.getId());
 
 		// Delete all resources
 		final var repository = getResourceRepository();
@@ -73,6 +77,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 	 */
 	protected UpdatedCost delete(final int id) {
 		tagResource.onDelete(getType(), id);
+		networkResource.onDelete(getType(), id);
 		return resource.refreshSupportCost(new UpdatedCost(id),
 				deleteAndUpdateCost(getResourceRepository(), id, Function.identity()::apply));
 	}

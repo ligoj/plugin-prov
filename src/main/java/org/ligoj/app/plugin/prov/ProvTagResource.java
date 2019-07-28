@@ -21,15 +21,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.NamedBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
@@ -41,16 +38,10 @@ import org.springframework.stereotype.Service;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public class ProvTagResource {
+public class ProvTagResource extends AbstractLazyResource {
 
 	@Autowired
 	private ProvTagRepository repository;
-
-	@Autowired
-	private ProvResource resource;
-
-	@Autowired
-	private ApplicationContext context;
 
 	/**
 	 * Return the tags available for a subscription.
@@ -74,34 +65,14 @@ public class ProvTagResource {
 		return result;
 	}
 
-	/**
-	 * Must be invoked when a resource is deleted. This is due to the weak relationship between the resource and the
-	 * related tags.
-	 * 
-	 * @param type      The deleted resource type.
-	 * @param resources The deleted resource identifiers
-	 */
+	@Override
 	public void onDelete(final ResourceType type, final Integer... resources) {
 		Arrays.stream(resources).forEach(r -> repository.deleteAllBy("type", type, new String[] { "resource" }, r));
 	}
 
-	/**
-	 * Must be invoked when all resources of a given type is deleted within a quote. This is due to the weak
-	 * relationship between the resource and the related tags.
-	 * 
-	 * @param type  The deleted resource type.
-	 * @param quote The quote identifier
-	 */
+	@Override
 	public void onDeleteAll(final ResourceType type, final int quote) {
 		repository.deleteAllBy("configuration.id", quote, new String[] { "type" }, type);
-	}
-
-	/**
-	 * Return the repository managing the given resource type.
-	 */
-	private BaseProvQuoteResourceRepository<?> getRepository(final ResourceType type) {
-		return context.getBean("provQuote" + StringUtils.capitalize(type.name().toLowerCase()) + "Repository",
-				BaseProvQuoteResourceRepository.class);
 	}
 
 	/**
@@ -140,7 +111,7 @@ public class ProvTagResource {
 	 * @param vo           The new quote tag data.
 	 * @return The tag identifier.
 	 */
-	public int saveOrUpdate(final int subscription, final ProvTag entity, final ProvTag vo) {
+	private int saveOrUpdate(final int subscription, final ProvTag entity, final ProvTag vo) {
 		// Check the associations and copy attributes to the entity
 		var res = resource.findConfigured(getRepository(vo.getType()), vo.getResource(), subscription);
 		NamedBean.copy(vo, entity);
@@ -174,7 +145,7 @@ public class ProvTagResource {
 	public void replaceTags(Collection<TagVo> tags, final AbstractQuoteResource<?> resource) {
 		if (tags != null) {
 			// Redefine tags for this entity
-			repository.deleteAllBy("type", resource.getResourceType(), new String[] { "resource" }, resource.getId());
+			onDelete(resource.getResourceType(), resource.getId());
 			tags.stream().map(t -> {
 				final ProvTag entity = new ProvTag();
 				entity.setName(t.getName());
