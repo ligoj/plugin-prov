@@ -1,0 +1,21 @@
+#popup-prov-network .delete {
+  padding-bottom: 5px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 5px;
+}
+#popup-prov-network th.peer {
+  min-width: 200px;
+}
+#popup-prov-network th.name {
+  min-width: 150px;
+}
+
+#popup-prov-network td > .form-control {
+  margin-top: -8px;
+  margin-bottom: 0;
+}
+
+#popup-prov-network .form-group .form-control {
+  margin-bottom: 0;
+}

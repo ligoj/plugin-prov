@@ -15,6 +15,7 @@ define({
         'service:prov:manage': 'Manage',
         'service:prov:currency': 'Currency',
         'service:prov:default': 'Default',
+        'service:prov:network': 'Network',
         'service:prov:no-requirement': 'No requirement',
         'service:prov:instances-block': 'Instances',
         'service:prov:storages-block': 'Storages',

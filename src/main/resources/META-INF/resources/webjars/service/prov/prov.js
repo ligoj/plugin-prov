@@ -1192,14 +1192,14 @@ define(function () {
 					render: current.formatCost
 				}, {
 					data: null,
-					width: '32px',
+					width: '51px',
 					orderable: false,
 					searchable: false,
 					type: 'string',
 					render: function () {
-						var links =
-							'<a class="update" data-toggle="modal" data-target="#popup-prov-' + popupType + '"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						return links + '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages.delete + '"></i></a>';
+						return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
+							+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
+							+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 					}
 				});
 			$table.on('column-visibility.dt', function (e, settings, idCOl, visibility) {
