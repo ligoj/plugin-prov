@@ -1438,7 +1438,10 @@ define(function () {
 				},
 				data: function () {
 					return {
-						results: current.model.configuration.instances.concat(current.model.configuration.databases)
+						results: current.model.configuration.instances.concat(current.model.configuration.databases).map(r => {
+							r.text = r.name;
+							return r;
+						})
 					};
 				}
 			});
