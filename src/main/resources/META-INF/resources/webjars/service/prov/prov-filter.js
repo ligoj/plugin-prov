@@ -237,7 +237,6 @@ define(['jquery'], function ($) {
 
 		// Exports
 		return {
-			build: build,
 			accept: accept
 		};
 
