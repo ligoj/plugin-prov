@@ -1393,7 +1393,7 @@ define(function () {
 				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
 				$.ajax({
 					type: 'DELETE',
-					url: REST_PATH + 'service/prov/' + type + '/' + resource.id,
+					url: `${REST_PATH}service/prov/${type}/${resource.id}`,
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			}).on('click', '.delete-all', function () {
@@ -1401,7 +1401,7 @@ define(function () {
 				var type = $(this).provType();
 				$.ajax({
 					type: 'DELETE',
-					url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type,
+					url:  `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
@@ -1628,8 +1628,8 @@ define(function () {
 		 * Configure Terraform.
 		 */
 		initializeTerraform: function () {
-			_('prov-terraform-download').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform-' + current.model.subscription + '.zip');
-			_('prov-terraform-status').find('.terraform-logs a').attr('href', REST_PATH + 'service/prov/' + current.model.subscription + '/terraform.log');
+			_('prov-terraform-download').attr('href',  `${REST_PATH}service/prov/${current.model.subscription}/terraform-${current.model.subscription}.zip`);
+			_('prov-terraform-status').find('.terraform-logs a').attr('href', `${REST_PATH}service/prov/${current.model.subscription}/terraform.log`);
 			_('popup-prov-terraform')
 				.on('shown.bs.modal', () => _('terraform-cidr').trigger('focus'))
 				.on('show.bs.modal', function () {
@@ -1880,8 +1880,7 @@ define(function () {
 		 */
 		usageSelect2: function (placeholder) {
 			return current.genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return usage.name + '<span class="select2-usage-summary pull-right"><span class="x-small">(' + usage.rate + '%) </span>' +
-					'<a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="' + current.$messages.update + '" class="fas fa-fw fa-pencil-alt"></i><a></span>';
+				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span><a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
 			});
 		},
 
@@ -3386,7 +3385,7 @@ define(function () {
 					render: current.formatStorageType
 				}, {
 					data: null,
-					type: 'object',
+					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
 					render: (_i, mode, data) => current.formatQuoteResource(data.quoteInstance || data.quoteDatabase)
 				}]
