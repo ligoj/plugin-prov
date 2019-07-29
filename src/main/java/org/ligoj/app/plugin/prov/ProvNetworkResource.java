@@ -60,7 +60,8 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	}
 
 	/**
-	 * Update the network of a resource.
+	 * Update the network of a resource. All previous links associated to the resources are deleted and replaced by the
+	 * given ones.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the networks from the associated
 	 *                     provider.
@@ -83,7 +84,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 			resource.findConfigured(getRepository(t.getPeerType()), t.getPeer(), subscription);
 
 			final ProvNetwork entity = new ProvNetwork();
-			
+
 			// Validate the peer
 			if (t.isInbound()) {
 				// Incoming case
@@ -100,7 +101,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 			}
 			entity.setName(t.getName());
 			entity.setPort(t.getPort());
-			entity.setFrequency(t.getFrequency());
+			entity.setRate(t.getRate());
 			entity.setThroughput(t.getThroughput());
 			entity.setConfiguration(related.getConfiguration());
 

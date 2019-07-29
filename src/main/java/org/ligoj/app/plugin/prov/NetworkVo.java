@@ -56,7 +56,7 @@ public class NetworkVo {
 	 * for all work among the related subscription.
 	 */
 	@PositiveOrZero
-	private Integer frequency;
+	private Integer rate;
 
 	/**
 	 * Optional throughput in KiB/s.

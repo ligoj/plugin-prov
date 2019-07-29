@@ -105,7 +105,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		vo.setPeer(peer);
 		vo.setPeerType(type);
 		vo.setPort(1);
-		vo.setFrequency(2);
+		vo.setRate(2);
 		vo.setThroughput(3);
 		return vo;
 	}
@@ -135,7 +135,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(server2, list.get(0).getSource());
 		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getSourceType());
 		Assertions.assertEquals(1, list.get(0).getPort());
-		Assertions.assertEquals(2, list.get(0).getFrequency());
+		Assertions.assertEquals(2, list.get(0).getRate());
 		Assertions.assertEquals(3, list.get(0).getThroughput());
 		Assertions.assertEquals(server1, list.get(0).getTarget());
 		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getTargetType());
@@ -143,7 +143,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(server1, list.get(1).getSource());
 		Assertions.assertEquals(ResourceType.INSTANCE, list.get(1).getSourceType());
 		Assertions.assertEquals(1, list.get(1).getPort());
-		Assertions.assertEquals(2, list.get(1).getFrequency());
+		Assertions.assertEquals(2, list.get(1).getRate());
 		Assertions.assertEquals(3, list.get(1).getThroughput());
 		Assertions.assertEquals(storage1, list.get(1).getTarget());
 		Assertions.assertEquals(ResourceType.STORAGE, list.get(1).getTargetType());

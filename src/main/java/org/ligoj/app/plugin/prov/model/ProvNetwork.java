@@ -17,6 +17,7 @@ import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +31,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_NETWORK", uniqueConstraints = @UniqueConstraint(columnNames = { "source", "source_type",
 		"target", "target_type", "port", "configuration" }))
+@JsonIgnoreProperties(value = "id")
 public class ProvNetwork extends AbstractPersistable<Integer>
 		implements Configurable<ProvQuote, Integer>, INamableBean<Integer> {
 
@@ -81,13 +83,11 @@ public class ProvNetwork extends AbstractPersistable<Integer>
 	 * Optional frequency. The period is not yet specified. Might be second, or month... Whatever, it should be fixed
 	 * for all work among the related subscription.
 	 */
-	@NotNull
-	private Integer frequency;
+	private Integer rate;
 
 	/**
 	 * Optional throughput in KiB/s.
 	 */
-	@NotNull
 	private Integer throughput;
 
 	/**
