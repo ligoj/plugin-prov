@@ -3,9 +3,10 @@
  */
 define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 	function initialize() {
-		var $container = $('#prov-assessment');
+		var $view = this.$view;
+		var $container = $view.find('#prov-assessment').clone();
 		$('#subscribe-configuration-prov > .tab-content').append($container);
-		$('#service-prov-menu > .tab-content').append($('.tab-pane.tab-network.prov-filters'));
+		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
 
 		const useTransition = false;
 		const applicationLinkWidth = 1;
@@ -886,7 +887,8 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 	}
 
 	var self = {
-		initialize: initialize
+		initialize: initialize,
+		refresh: initialize
 	}
 	return self;
 });
