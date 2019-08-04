@@ -24,10 +24,13 @@ define(['jquery'], function ($) {
 		function format(tag) {
 			return tag.name ? (tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value))) : tag.text;
 		}
+		function toTagsString(resource) {
+			return toTags(resource).map(format);
+		}
 
 		function suggest(term, resource) {
 			// Get tags of current resource
-			var tags = toTags(resource).map(format);
+			var tags = toTagsString(resource);
 			var keys = {};
 			var keyValues = {};
 			Object.keys((current.model && current.model.configuration.tags) || {}).forEach(type => Object.keys(current.model.configuration.tags[type] || {}).forEach(rId =>
@@ -210,7 +213,8 @@ define(['jquery'], function ($) {
 		return {
 			render: render,
 			select2: select2,
-			build: build
+			build: build,
+			toTagsString: toTagsString
 		};
 
 	}).call(this);
