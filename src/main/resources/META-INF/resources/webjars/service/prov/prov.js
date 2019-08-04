@@ -551,13 +551,13 @@ define(function () {
 		os: {
 			'linux': ['Linux', 'fab fa-linux fa-fw'],
 			'windows': ['Windows', 'fab fa-windows fa-fw'],
-			'suse': ['SUSE', 'icon-suse fa-fw'],
-			'rhel': ['Red Hat Enterprise', 'icon-redhat fa-fw'],
-			'centos': ['CentOS', 'icon-centos fa-fw'],
+			'suse': ['SUSE', 'fab fa-suse fa-fw'],
+			'rhel': ['Red Hat Enterprise', 'fab fa-redhat fa-fw'],
+			'centos': ['CentOS', 'fab fa-centos fa-fw'],
 			'debian': ['Debian', 'icon-debian fa-fw'],
-			'fedora': ['Fedora', 'icon-fedora fa-fw'],
-			'ubuntu': ['Ubuntu', 'icon-ubuntu fa-fw'],
-			'freebsd': ['FreeBSD', 'icon-freebsd fa-fw']
+			'fedora': ['Fedora', 'fab fa-fedora fa-fw'],
+			'ubuntu': ['Ubuntu', 'fab fa-ubuntu fa-fw'],
+			'freebsd': ['FreeBSD', 'fab fa-freebsd fa-fw']
 		},
 
 		/**
@@ -2626,8 +2626,6 @@ define(function () {
 			current.defaultCallback(type, updatedCost, qx);
 			return qx;
 		},
-
-
 
 		/**
 		 * Update the D3 instance types bar chart.
