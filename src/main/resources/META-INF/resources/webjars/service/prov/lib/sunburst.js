@@ -150,14 +150,14 @@ define(['d3', 'jquery'], function (d3, $) {
 		// Restore everything to full opacity when moving off the visualization.
 		function mouseout() {
 			// Transition each segment to full opacity and then reactivate it.
-			d3.selectAll('path').style('opacity', 1);
+			svg.selectAll('path').style('opacity', 1);
 		}
 
 		function mouseover(d) {
 			var sequenceArray = getAncestors(d);
 
 			// Fade all the segments.
-			d3.selectAll('path').style('opacity', 0.3);
+			svg.selectAll('path').style('opacity', 0.3);
 
 			// Then highlight only those that are an ancestor of the current segment.
 			svg.selectAll('path')
