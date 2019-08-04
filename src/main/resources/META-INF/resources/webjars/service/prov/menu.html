@@ -1,86 +1,102 @@
 <div id="service-prov-menu">
 	<div class="prov-menu-separator"></div>
-	<div id="prov-defaults">
-		<form class="form-horizontal" autocomplete="off">
-			<fieldset>
-				<legend><i class="far fa-list-alt"></i><span> {{quote-assumptions}}</span><a class="pull-right" href="#/prov/catalog" data-toggle="tooltip" title="{{global-configuration}}" data-secured-service="service/prov/catalog" data-secured-method="get"><i class="fas fa-cog"></i></a></legend>
-				<div class="form-group">
-					<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt fa-fw" data-toggle="tooltip" title="{{quote-location}}"></i></label>
-					<div class="col-xs-10">
-						<input type="text" id="quote-location" class="form-control" required maxlength="50" />
-					</div>
-					<span class="location-wrapper select2-addon"></span>
-				</div>
-				<div class="form-group">
-					<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock fa-fw" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
-					<div class="col-xs-10">
-						<input type="text" id="quote-usage" class="form-control" />
-					</div>
-					<span class="select2-addon">
-						<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
-					</span>
-				</div>
-				<div class="form-group">
-					<label class="control-label col-xs-1" for="quote-license"><i class="fas fa-cart-arrow-down fa-fw" data-toggle="tooltip" title="{{quote-license}}"></i></label>
-					<div class="col-xs-10">
-						<input type="text" id="quote-license" class="form-control" />
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label col-xs-1" for="quote-ram-adjust-handle"><i class="fas fa-adjust fa-rotate-270 fa-fw" data-toggle="tooltip" title="{{quote-ram-adjust}}"></i></label>
-					<div class="col-xs-10 slider-wrapper">
-						<div id="quote-ram-adjust" class="form-control">
-							<div id="quote-ram-adjust-handle" class="ui-slider-handle"></div>
-						</div>
-					</div>
-				</div>
-			</fieldset>
-		</form>
-	</div>
-	<div class="prov-menu-separator"></div>
-	<ul class="nav nav-pills nav-stacked" role="tablist">
+	<ul class="nav nav-tabs nav-justified">
 		<li role="presentation" class="active">
-			<a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i><span>  {{{service:prov:instances-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
-			<div class="summary">
-				 <span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span class="odo-wrapper"></span></span> 
-				 <span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span class="odo-wrapper"></span></span>
-				 <span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span class="odo-wrapper"></span></span>
-				 <span class="hidden badge" data-os="windows" data-toggle="tooltip" data-placement="bottom" title="Windows"><i class="fab fa-windows"></i><span class="odo-wrapper prov-os-counter windows"></span></span>
-				 <span class="hidden badge" data-os="rhel" data-toggle="tooltip" data-placement="bottom" title="RedHat"><i class="icon-redhat"></i><span class="odo-wrapper prov-os-counter rhel"></span></span>
-				 <span class="hidden badge" data-os="linux" data-toggle="tooltip" data-placement="bottom" title="Linux"><i class="fab fa-linux"></i><span class="odo-wrapper prov-os-counter linux"></span></span>
-				 <span class="hidden badge" data-os="suse" data-toggle="tooltip" data-placement="bottom" title="Suse"><i class="icon-suse"></i><span class="odo-wrapper prov-os-counter suse"></span></span>
-				 <span class="hidden badge" data-os="debian" data-toggle="tooltip" data-placement="bottom" title="Debian"><i class="icon-debian"></i><span class="odo-wrapper prov-os-counter debian"></span></span>
-				 <span class="hidden badge" data-os="fedora" data-toggle="tooltip" data-placement="bottom" title="Fedora"><i class="icon-fedora"></i><span class="odo-wrapper prov-os-counter fedora"></span></span>
-				 <span class="hidden badge" data-os="ubuntu" data-toggle="tooltip" data-placement="bottom" title="Ubuntu"><i class="icon-ubuntu"></i><span class="odo-wrapper prov-os-counter ubuntu"></span></span>
-				 <span class="hidden badge" data-os="freebsd" data-toggle="tooltip" data-placement="bottom" title="FreeBSD"><i class="icon-freebsd"></i><span class="odo-wrapper prov-os-counter freebsd"></span></span>
-				</div>
-			</a></li>
+			<a href=".tab-resources" aria-controls="tab-resources" role="tab" data-toggle="tab">Resources</a></li>
 		<li role="presentation">
-			<a href="#tab-database" aria-controls="tab-database" role="tab" data-toggle="pill"><i class="fa fa-database"></i><span>  {{{service:prov:databases-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
-			<div class="summary">
-				<span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span class="odo-wrapper"></span></span> 
-				<span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span class="odo-wrapper"></span></span>
-				<span class="hidden badge size" data-engine="MYSQL" data-toggle="tooltip" data-placement="bottom" title="MySQL"><i class="icon-mysql"></i><span class="odo-wrapper prov-database-counter mysql"></span></span>
-				<span class="hidden badge size" data-engine="ORACLE" data-toggle="tooltip" data-placement="bottom" title="Oracle"><i class="icon-oracle"></i><span class="odo-wrapper prov-database-counter oracle"></span></span>
-				<span class="hidden badge size" data-engine="POSTGRESQL" data-toggle="tooltip" data-placement="bottom" title="PostgreSQL"><i class="icon-postgres"></i><span class="odo-wrapper prov-database-counter postgres"></span></span>
-				<span class="hidden badge size" data-engine="MARIADB" data-toggle="tooltip" data-placement="bottom" title="MariaDB"><i class="icon-mariadb"></i><span class="odo-wrapper prov-database-counter mariadb"></span></span>
-				<span class="hidden badge size" data-engine="SQL SERVER" data-toggle="tooltip" data-placement="bottom" title="Microsoft SQL Server"><i class="icon-mssql"></i><span class="odo-wrapper prov-database-counter mssql"></span></span>
-				<span class="hidden badge size" data-engine="AURORA" data-toggle="tooltip" data-placement="bottom" title="Amazon Aurora"><i class="icon-aws"></i><span class="odo-wrapper prov-database-counter aurora"></span></span>
-			</div>
-		</a></li>
-		<li role="presentation">
-			<a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i><span> {{{service:prov:storages-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
-			<div class="summary">
-				<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
-			</div>
-		</a></li>
-		<li role="presentation">
-			<a href="#tab-support" aria-controls="tab-support" role="tab" data-toggle="pill"><i class="fas fa-ambulance"></i><span> {{{service:prov:support-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
-			<div class="summary">
-				<span class="badge name support-first" data-toggle="tooltip" data-placement="bottom" title=""></span>
-				<span class="support-more">...</span>
-			</div>
-		</a></li>
+			<a href=".tab-network" id="prov-filters-trigger" aria-controls="tab-network" role="tab" data-toggle="tab-ajax" data-cascade="true" data-ajax="/main/home/project/graph" data-plugins="css,i18n,html,js">Network</a></li>
 	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active tab-resources" role="tabpanel">
+			<div id="prov-defaults">
+				<form class="form-horizontal" autocomplete="off">
+					<fieldset>
+						<legend><i class="far fa-list-alt"></i><span> {{quote-assumptions}}</span><a class="pull-right" href="#/prov/catalog" data-toggle="tooltip" title="{{global-configuration}}" data-secured-service="service/prov/catalog" data-secured-method="get"><i class="fas fa-cog"></i></a>
+						</legend>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt fa-fw" data-toggle="tooltip" title="{{quote-location}}"></i></label>
+							<div class="col-xs-10">
+								<input type="text" id="quote-location" class="form-control" required maxlength="50" />
+							</div>
+							<span class="location-wrapper select2-addon"></span>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock fa-fw" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
+							<div class="col-xs-10">
+								<input type="text" id="quote-usage" class="form-control" />
+							</div>
+							<span class="select2-addon">
+								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+							</span>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-license"><i class="fas fa-cart-arrow-down fa-fw" data-toggle="tooltip" title="{{quote-license}}"></i></label>
+							<div class="col-xs-10">
+								<input type="text" id="quote-license" class="form-control" />
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-ram-adjust-handle"><i class="fas fa-adjust fa-rotate-270 fa-fw" data-toggle="tooltip" title="{{quote-ram-adjust}}"></i></label>
+							<div class="col-xs-10 slider-wrapper">
+								<div id="quote-ram-adjust" class="form-control">
+									<div id="quote-ram-adjust-handle" class="ui-slider-handle"></div>
+								</div>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+			<div class="prov-menu-separator"></div>
+			<ul class="nav nav-pills nav-stacked" role="tablist">
+				<li role="presentation" class="active">
+					<a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i><span>
+							{{{service:prov:instances-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
+						<div class="summary">
+							<span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span class="odo-wrapper"></span></span>
+							<span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span class="odo-wrapper"></span></span>
+							<span class="badge internet" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:nb-public-access}}"><i class="fas fa-globe"></i><span class="odo-wrapper"></span></span>
+							<span class="hidden badge" data-os="windows" data-toggle="tooltip" data-placement="bottom" title="Windows"><i class="fab fa-windows"></i><span class="odo-wrapper prov-os-counter windows"></span></span>
+							<span class="hidden badge" data-os="rhel" data-toggle="tooltip" data-placement="bottom" title="RedHat"><i class="icon-redhat"></i><span class="odo-wrapper prov-os-counter rhel"></span></span>
+							<span class="hidden badge" data-os="linux" data-toggle="tooltip" data-placement="bottom" title="Linux"><i class="fab fa-linux"></i><span class="odo-wrapper prov-os-counter linux"></span></span>
+							<span class="hidden badge" data-os="suse" data-toggle="tooltip" data-placement="bottom" title="Suse"><i class="icon-suse"></i><span class="odo-wrapper prov-os-counter suse"></span></span>
+							<span class="hidden badge" data-os="debian" data-toggle="tooltip" data-placement="bottom" title="Debian"><i class="icon-debian"></i><span class="odo-wrapper prov-os-counter debian"></span></span>
+							<span class="hidden badge" data-os="fedora" data-toggle="tooltip" data-placement="bottom" title="Fedora"><i class="icon-fedora"></i><span class="odo-wrapper prov-os-counter fedora"></span></span>
+							<span class="hidden badge" data-os="ubuntu" data-toggle="tooltip" data-placement="bottom" title="Ubuntu"><i class="icon-ubuntu"></i><span class="odo-wrapper prov-os-counter ubuntu"></span></span>
+							<span class="hidden badge" data-os="freebsd" data-toggle="tooltip" data-placement="bottom" title="FreeBSD"><i class="icon-freebsd"></i><span class="odo-wrapper prov-os-counter freebsd"></span></span>
+						</div>
+					</a></li>
+				<li role="presentation">
+					<a href="#tab-database" aria-controls="tab-database" role="tab" data-toggle="pill"><i class="fa fa-database"></i>
+						<span> {{{service:prov:databases-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
+						<div class="summary">
+							<span class="badge cpu" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-cpu}}"><i class="fas fa-bolt"></i><span class="odo-wrapper"></span></span>
+							<span class="badge ram" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-ram}}"><i class="fas fa-microchip"></i><span class="odo-wrapper"></span></span>
+							<span class="hidden badge size" data-engine="MYSQL" data-toggle="tooltip" data-placement="bottom" title="MySQL"><i class="icon-mysql"></i><span class="odo-wrapper prov-database-counter mysql"></span></span>
+							<span class="hidden badge size" data-engine="ORACLE" data-toggle="tooltip" data-placement="bottom" title="Oracle"><i class="icon-oracle"></i><span class="odo-wrapper prov-database-counter oracle"></span></span>
+							<span class="hidden badge size" data-engine="POSTGRESQL" data-toggle="tooltip" data-placement="bottom" title="PostgreSQL"><i class="icon-postgres"></i><span class="odo-wrapper prov-database-counter postgres"></span></span>
+							<span class="hidden badge size" data-engine="MARIADB" data-toggle="tooltip" data-placement="bottom" title="MariaDB"><i class="icon-mariadb"></i><span class="odo-wrapper prov-database-counter mariadb"></span></span>
+							<span class="hidden badge size" data-engine="SQL SERVER" data-toggle="tooltip" data-placement="bottom" title="Microsoft SQL Server"><i class="icon-mssql"></i><span class="odo-wrapper prov-database-counter mssql"></span></span>
+							<span class="hidden badge size" data-engine="AURORA" data-toggle="tooltip" data-placement="bottom" title="Amazon Aurora"><i class="icon-aws"></i><span class="odo-wrapper prov-database-counter aurora"></span></span>
+						</div>
+					</a></li>
+				<li role="presentation">
+					<a href="#tab-storage" aria-controls="tab-storage" role="tab" data-toggle="pill"><i class="far fa-hdd"></i>
+						<span> {{{service:prov:storages-block}}} </span>
+						<span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span class="odo-wrapper-unbound"></span></span>
+						<div class="summary">
+							<span class="badge size" data-toggle="tooltip" data-placement="bottom" title="{{service:prov:total-storage}}"></span>
+						</div>
+					</a></li>
+				<li role="presentation">
+					<a href="#tab-support" aria-controls="tab-support" role="tab" data-toggle="pill"><i class="fas fa-ambulance"></i><span> {{{service:prov:support-block}}} </span><span class="prov-resource-counter badge pull-right"><span class="odo-wrapper"></span><span
+								class="odo-wrapper-unbound"></span></span>
+						<div class="summary">
+							<span class="badge name support-first" data-toggle="tooltip" data-placement="bottom" title=""></span>
+							<span class="support-more">...</span>
+						</div>
+					</a></li>
+			</ul>
+		</div>
+	</div>
 	<div class="prov-menu-separator"></div>
 </div>

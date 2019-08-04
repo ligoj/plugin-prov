@@ -1,232 +1,237 @@
 <div id="subscribe-configuration-prov" class="hide subscribe-configuration">
 	<div class="alert alert-warning hidden-lg">{{low-resolution}}</div>
-	<form class="form-horizontal" autocomplete="off">
-		<fieldset>
-			<div class="row nav-dashboard">
-				<div class="prov-global-summary col-lg-4 col-md-5 col-xs-6">
-					<h1 class="prov-project">
-						<span class="quote-name hidden-xs hidden-sm"></span>
-						<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="modal" data-target="#popup-prov-update"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="{{update}}"></i></span>
-						<span class="hidden-xs hidden-sm"> / </span>
-						<span class="provider"></span>
-					</h1>
-					<h2 class="text-info prov-cost-wrapper">
-						<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
-						<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
-						<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
-					</h2>
-				</div>
-				<div id="prov-dashboard" class="hidden-xs col-lg-8 col-md-7">
-					<div class="svg-wrapper row">
-						<div id="prov-sunburst" class="col-lg-4 col-md-12"></div>
-						<div id="prov-barchart" class="col-lg-8 hidden-xs hidden-sm hidden-md hidden">
-							<svg class="prov-barchart-svg pull-right"></svg>
+	<div class="tab-content">
+		<form class="form-horizontal tab-pane active tab-resources" role="tabpanel" autocomplete="off">
+			<fieldset>
+				<div class="row nav-dashboard">
+					<div class="prov-global-summary col-lg-4 col-md-5 col-xs-6">
+						<h1 class="prov-project">
+							<span class="quote-name hidden-xs hidden-sm"></span>
+							<span class="btn btn-xs prov-project-edit hidden-xs hidden-sm" data-toggle="modal" data-target="#popup-prov-update"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="{{update}}"></i></span>
+							<span class="hidden-xs hidden-sm"> / </span>
+							<span class="provider"></span>
+						</h1>
+						<h2 class="text-info prov-cost-wrapper">
+							<span data-toggle="tooltip" title="{{service:prov:cost-title}}" class="cost"></span><span class="cost-unit">/m</span>
+							<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-title}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
+							<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-title}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
+						</h2>
+					</div>
+					<div id="prov-dashboard" class="hidden-xs col-lg-8 col-md-7">
+						<div class="svg-wrapper row">
+							<div id="prov-sunburst" class="col-lg-4 col-md-12"></div>
+							<div id="prov-barchart" class="col-lg-8 hidden-xs hidden-sm hidden-md hidden">
+								<svg class="prov-barchart-svg pull-right"></svg>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		<div class="loader-wrapper hidden">
-			<div class="loader-central"></div>
-		</div>
-			<div class="tab-content">
-				<div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
-								<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
+				<div class="loader-wrapper hidden">
+					<div class="loader-central"></div>
+				</div>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="tab-instance" data-prov-type="instance">
+						<div class="row table-tools">
+							<div class="col-sm-10">
 								<div class="btn-group">
-									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-											{{service:prov:export:instances}}
-										<span class="caret"></span>
-									</button>
-									<ul class="dropdown-menu" role="menu">
-										<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-instances-inline">{{service:prov:export:instances:inline}}<span class="export-type pull-right"><span class="label small">csv</span></span></a></li>
-										<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-instances-split">{{service:prov:export:instances:split}}<span class="export-type pull-right"><span class="label small">csv</span></span></a></li>
-										<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-full-json">{{service:prov:export:full:json}}<span class="export-type pull-right"><span class="label small">json</span></span></a></li>
-									</ul>
+									<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
+									<button type="button" data-toggle="modal" data-target="#popup-prov-instance-import" class="btn btn-default">{{upload-new}}</button>
+									<div class="btn-group">
+										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"> {{service:prov:export:instances}}
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" role="menu">
+											<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-instances-inline">{{service:prov:export:instances:inline}}<span class="export-type pull-right"><span class="label small">csv</span></span></a></li>
+											<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-instances-split">{{service:prov:export:instances:split}}<span class="export-type pull-right"><span class="label small">csv</span></span></a></li>
+											<li role="presentation"><a role="menuitem" href="#" class="prov-export prov-export-full-json">{{service:prov:export:full:json}}<span class="export-type pull-right"><span class="label small">json</span></span></a></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group has-feedback">
+									<div class="col-xs-12 has-feedback">
+										<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="prov-instances" />
+										<span class="fas fa-search form-control-feedback"></span>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:instance}},..." aria-controls="prov-instances" />
-									<span class="fas fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
+						<table id="prov-instances" class="table table-striped table-bordered justified">
+							<thead>
+								<tr>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="dataTables_empty" colspan="13">{{loading}}</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-					<table id="prov-instances" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th class="noVis">{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:instance-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="13">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
+					<div role="tabpanel" class="tab-pane" id="tab-storage" data-prov-type="storage">
+						<div class="row table-tools">
+							<div class="col-sm-10">
+								<div class="btn-group">
+									<button type="button" data-toggle="modal" data-target="#popup-prov-storage" class="btn btn-success btn-raised">{{new}}</button>
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group has-feedback">
+									<div class="col-xs-12 has-feedback">
+										<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="prov-storages" />
+										<span class="fas fa-search form-control-feedback"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<table id="prov-storages" class="table table-striped table-bordered justified">
+							<thead>
+								<tr>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:storage-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}"> {{service:prov:storage-size}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-latency-title}}" class="latency">{{service:prov:storage-latency}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}" class="optimized">{{service:prov:storage-optimized}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:storage-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-instance-title}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="dataTables_empty" colspan="10">{{loading}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="tab-database" data-prov-type="database">
+						<div class="row table-tools">
+							<div class="col-sm-10">
+								<div class="btn-group">
+									<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group has-feedback">
+									<div class="col-xs-12 has-feedback">
+										<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:database}},..." aria-controls="prov-storages" />
+										<span class="fas fa-search form-control-feedback"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<table id="prov-databases" class="table table-striped table-bordered justified">
+							<thead>
+								<tr>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:database-engine-title}}"> {{service:prov:database-engine}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-edition-title}}"> {{service:prov:database-edition}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="tab-support" data-prov-type="support">
+						<div class="row table-tools">
+							<div class="col-sm-10">
+								<div class="btn-group">
+									<button type="button" data-toggle="modal" data-target="#popup-prov-support" class="btn btn-success btn-raised">{{new}}</button>
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group has-feedback">
+									<div class="col-xs-12 has-feedback">
+										<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:support}},..." aria-controls="prov-storages" />
+										<span class="fas fa-search form-control-feedback"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<table id="prov-supports" class="table table-striped table-bordered justified">
+							<thead>
+								<tr>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:support-level-title}}"><i class="fas fa-star"></i><span class="hidden-table"> {{service:prov:support-level}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-seats-title}}" class="hidden-xs icon-x3"><i class="fas fa-chair"></i><span class="hidden-table"> {{service:prov:support-seats}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-api-title}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-terminal"></i><span class="hidden-table"> {{service:prov:support-api}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-phone-title}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-phone"></i><span class="hidden-table"> {{service:prov:support-phone}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-email-title}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-envelope"></i><span class="hidden-table"> {{service:prov:support-email-title}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-chat-title}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-comments"></i><span class="hidden-table"> {{service:prov:support-chat}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-type-title}}"> {{service:prov:support-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="dataTables_empty" colspan="11">{{loading}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
-				<div role="tabpanel" class="tab-pane" id="tab-storage" data-prov-type="storage">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-storage" class="btn btn-success btn-raised">{{new}}</button>
-							</div>
-						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:storage}},..." aria-controls="prov-storages" />
-									<span class="fas fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
+			</fieldset>
+			<div class="form-actions row">
+				<div id="prov-terraform-status" class="col-xs-12 col-sm-8 col-md-8 col-lg-9 invisible">
+					<div class="progress">
 					</div>
-					<table id="prov-storages" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th class="noVis">{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:storage-quantity}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-latency-title}}" class="latency">{{service:prov:storage-latency}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}" class="optimized">{{service:prov:storage-optimized}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:storage-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-instance-title}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="10">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
+					<div class="status"></div>
+					<div class="terraform-logs"><a href="#" target="_blank">Logs</a></div>
+					<div class="terraform-dashboard hidden"><a href="#" target="_blank"><i class="fas fa-heartbeat fa-3x" data-toggle="tooltip" title="{{service:prov:terraform-dashboard}}"></i></a>
+					</div>
 				</div>
-				<div role="tabpanel" class="tab-pane" id="tab-database" data-prov-type="database">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-generic" class="btn btn-success btn-raised">{{new}}</button>
-							</div>
-						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:database}},..." aria-controls="prov-storages" />
-									<span class="fas fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
+				<div class="col-x-12 col-sm-4 col-md-4 col-lg-3">
+					<div class="dropdown dropup">
+						<button class="btn btn-info btn-raised dropdown-toggle" type="button" data-toggle="dropdown">
+							<img src="main/service/prov/img/terraform.png" class="icon tool">
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu">
+							<li role="presentation"><a role="menuitem" href="#" id="prov-terraform-download"><i class="far fa-file-archive fa-fw"></i> {{service:prov:terraform:download}}</a>
+							</li>
+							<li role="presentation"><a role="menuitem" id="prov-terraform-execute" data-toggle="modal" data-target="#popup-prov-terraform"><i class="fas fa-play fa-fw"></i>
+									{{service:prov:terraform:execute}} <span class="text-danger pull-right">[BETA]</span></a></li>
+							<li role="presentation"><a role="menuitem" id="prov-terraform-destroy" data-toggle="modal" data-target="#popup-prov-terraform-destroy"><i class="far fa-trash-alt fa-fw"></i>
+									{{service:prov:terraform:destroy}}</a></li>
+						</ul>
 					</div>
-					<table id="prov-databases" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th class="noVis">{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-quantity-title}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:database-engine-title}}">{{service:prov:database-engine}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-edition-title}}">{{service:prov:database-edition}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cpu-title}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:ram}}"><i class="fas fa-microchip"></i> {{service:prov:ram}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:term-title}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:database-type-title}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:usage-title}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:location-title}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:storage-title}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="14">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div role="tabpanel" class="tab-pane" id="tab-support" data-prov-type="support">
-					<div class="row table-tools">
-						<div class="col-sm-10">
-							<div class="btn-group">
-								<button type="button" data-toggle="modal" data-target="#popup-prov-support" class="btn btn-success btn-raised">{{new}}</button>
-							</div>
-						</div>
-						<div class="col-sm-2">
-							<div class="form-group has-feedback">
-								<div class="col-xs-12 has-feedback">
-									<input type="text" class="form-control subscribe-configuration-prov-search" placeholder="{{service:prov:support}},..." aria-controls="prov-storages" />
-									<span class="fas fa-search form-control-feedback"></span>
-								</div>
-							</div>
-						</div>
-					</div>
-					<table id="prov-supports" class="table table-striped table-bordered justified">
-						<thead>
-							<tr>
-								<th class="noVis">{{name}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:support-level-title}}"><i class="fas fa-star"></i><span class="hidden-table"> {{service:prov:support-level}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-seats-title}}" class="hidden-xs icon-x3"><i class="fas fa-chair"></i><span class="hidden-table"> {{service:prov:support-seats}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-api-title}}"   class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-terminal"></i><span class="hidden-table"> {{service:prov:support-api}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-phone-title}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-phone"></i><span class="hidden-table"> {{service:prov:support-phone}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-email-title}}"  class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-envelope"></i><span class="hidden-table"> {{service:prov:support-email-title}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-chat-title}}"  class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-comments"></i><span class="hidden-table"> {{service:prov:support-chat}}</span></th>
-								<th data-toggle="tooltip" title="{{service:prov:support-type-title}}">{{service:prov:support-type}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:tag-title}}"><i class="fas fa-tags"></i> {{service:prov:tag}}</th>
-								<th data-toggle="tooltip" title="{{service:prov:cost-title}}"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-								<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td class="dataTables_empty" colspan="11">{{loading}}</td>
-							</tr>
-						</tbody>
-					</table>
+					<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
 				</div>
 			</div>
-		</fieldset>
-		<div class="form-actions row">
-			<div id="prov-terraform-status" class="col-xs-12 col-sm-8 col-md-8 col-lg-9 invisible">
-				<div class="progress">
-				</div>
-				<div class="status"></div>
-				<div class="terraform-logs"><a href="#" target="_blank">Logs</a></div>
-				<div class="terraform-dashboard hidden"><a href="#" target="_blank"><i class="fas fa-heartbeat fa-3x" data-toggle="tooltip" title="{{service:prov:terraform-dashboard}}"></i></a></div>
-			</div>
-			<div class="col-x-12 col-sm-4 col-md-4 col-lg-3">
-				<div class="dropdown dropup">
-					<button class="btn btn-info btn-raised dropdown-toggle" type="button" data-toggle="dropdown">
-						<img src="main/service/prov/img/terraform.png" class="icon tool">
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu">
-						<li role="presentation"><a role="menuitem" href="#" id="prov-terraform-download"><i class="far fa-file-archive fa-fw"></i> {{service:prov:terraform:download}}</a></li>
-						<li role="presentation"><a role="menuitem" id="prov-terraform-execute" data-toggle="modal" data-target="#popup-prov-terraform"><i class="fas fa-play fa-fw"></i> {{service:prov:terraform:execute}} <span class="text-danger pull-right">[BETA]</span></a></li>
-						<li role="presentation"><a role="menuitem" id="prov-terraform-destroy" data-toggle="modal" data-target="#popup-prov-terraform-destroy"><i class="far fa-trash-alt fa-fw"></i> {{service:prov:terraform:destroy}}</a></li>
-					</ul>
-				</div>
-				<button type="button" class="btn btn-link cancel-subscription">{{back}}</button>
-			</div>
-		</div>
-	</form>
+		</form>
+	</div>
 	<form id="popup-prov-generic" class="modal fade" tabindex="-1" aria-labelledby="generic-modal-title" data-prov-type="" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
@@ -264,7 +269,7 @@
 								<div class="input-group">
 									<input type="text" id="database-engine" class="resource-query form-control" required />
 									<div class="input-group-addon"> / </div>
-									<input type="text" id="database-edition" class="resource-query form-control" placeholder="{{service:prov:database-edition}}"/>
+									<input type="text" id="database-edition" class="resource-query form-control" placeholder="{{service:prov:database-edition}}" />
 								</div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:database-edition-help}}"></i></span>
 							</div>
@@ -314,7 +319,7 @@
 							<label class="control-label col-sm-3" for="instance-ram">{{service:prov:ram}}</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="number" min="0" max="2000000"id="instance-ram" class="resource-query form-control input-mini" required />
+									<input type="number" min="0" max="2000000" id="instance-ram" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn" id="instance-ram-unit">
 										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											<span>{{service:prov:ram-mega}}</span>
@@ -374,7 +379,7 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-term" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term}}</label>
 							<div class="col-sm-8">
-								<input type="text" id="instance-term" class="form-control" required readonly/>
+								<input type="text" id="instance-term" class="form-control" required readonly />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
 							</div>
 						</div>
@@ -602,9 +607,8 @@
 							<div class="col-sm-8">
 								<div class="input-group">
 									<input type="text" class="form-control" readonly>
-									<div class="input-group-btn"> <span class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required>
-									</span>
-								</div>
+									<div class="input-group-btn"> <span class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required> </span>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -619,7 +623,7 @@
 								<div class="checkbox">
 									<label for="csv-headers-included">
 										<input type="checkbox" checked id="csv-headers-included" name="headers-included"> {{csv-headers-included}}
-								    </label>
+									</label>
 								</div>
 								<p class="help-block">{{csv-headers-included-help}}</p>
 							</div>
@@ -641,7 +645,7 @@
 											<input type="radio" name="mergeUpload" value="KEEP" id="merge-upload">{{service:prov:merge-upload-keep}}</label>
 										<label class="btn btn-default" data-toggle="tooltip" title="{{service:prov:merge-upload-insert-help}}">
 											<input type="radio" name="mergeUpload" value="INSERT">{{service:prov:merge-upload-insert}}</label>
-										</div>
+									</div>
 								</div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:merge-upload-help}}"></i></span>
 							</div>
@@ -778,7 +782,7 @@
 				</div>
 				<div class="modal-footer">
 					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
-					<button type="button" class="btn btn-danger" id="prov-usage-delete" >{{delete}}</button>
+					<button type="button" class="btn btn-danger" id="prov-usage-delete">{{delete}}</button>
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
 			</div>
@@ -795,7 +799,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
-						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div></div>
+						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div>
+						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-cidr">{{service:prov:terraform:cidr}}</label>
 							<div class="col-sm-8">
@@ -823,7 +828,7 @@
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-public-key">{{service:prov:terraform:public-key}}</label>
 							<div class="col-sm-8">
-								<textarea id="terraform-public-key" class="form-control" rows="5" required placeholder="ssh-rsa ..." ></textarea>
+								<textarea id="terraform-public-key" class="form-control" rows="5" required placeholder="ssh-rsa ..."></textarea>
 							</div>
 						</div>
 					</div>
@@ -846,7 +851,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
-						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div></div>
+						<div class="alert alert-info"><i class="fas fa-info-circle"></i> {{service:prov:terraform:target}}<div class="terraform-target"></div>
+						</div>
 						<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <span class="terraform-destroy-alert"></span></div>
 						<div class="form-group required">
 							<label for="terraform-destroy-confirm">{{service:prov:terraform:destroy-confirm}}</label>

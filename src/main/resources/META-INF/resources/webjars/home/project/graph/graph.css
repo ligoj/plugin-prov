@@ -1,0 +1,169 @@
+#prov-assessment .links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+  stroke-linecap: round;
+}
+
+#prov-assessment .links line.dual {
+  stroke: #383838;
+}
+
+#prov-assessment .nodes circle {
+  stroke: black;
+  stroke-width: 0px;
+}
+
+#prov-assessment .coupled {
+  color: red;
+}
+
+#prov-assessment g.node > .text {
+  cursor: pointer;
+  font-size: 10px;
+  text-shadow: 1px 1px 2px white, 0 0 2em white, 0px 0px 1.2em white;
+}
+
+#prov-assessment g.node[selected="true"] > .text {
+  font-size: 16px;
+  fill: red;
+}
+
+#prov-assessment g.node.application[selected="true"] > .text {
+  font-size: 20px;
+  fill: rgb(15, 67, 236);
+  stroke: rgb(15, 67, 236);
+}
+
+#prov-assessment g.node > .text {
+  fill: black;
+}
+
+.animated:not(.disable-animated) line.data:not(.dual) {
+  stroke-dasharray: 64, 16;
+  animation: dash 3s linear reverse infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 80;
+  }
+}
+
+#prov-assessment g.node.provider circle {
+  fill: rgb(238, 238, 238);
+}
+
+#prov-assessment g.node.provider circle {
+  fill: rgb(238, 238, 238);
+}
+
+#prov-assessment {
+  height: 100vh;
+}
+
+#prov-assessment .center {
+  pointer-events: none;
+}
+
+#prov-assessment .center p {
+  border: #607d8b96;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 4px;
+  padding: 15px;
+  user-select: none;
+  background-color: #d3d3d333;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001;
+}
+
+#prov-filters .alert,
+#prov-assessment .center p {
+  font-weight: 300;
+}
+
+#prov-assessment .node.application text {
+  font-size: 15px;
+}
+
+#prov-assessment line.account {
+  display: none;
+}
+#prov-assessment {
+  margin-left: -15px;
+  margin-right: -15px;
+  margin-top: -15px;
+}
+
+/* filter */
+.prov-filters:not(.advanced) .advanced {
+  display: none;
+}
+
+.prov-filters .fa-stack > .fa-ban {
+  margin-top: -6px;
+  margin-left: -5px;
+  color: #f5afafbd;
+}
+
+.prov-filters .fa-stack > span {
+  position: absolute;
+  color: #f8f8f8;
+  font-size: x-small;
+}
+.prov-filters .fa-stack > .fa-window-maximize + span {
+  top: -5px;
+  left: 2px;
+}
+.prov-filters .fa-stack > .fa-window-restore + span {
+  top: -5px;
+  left: 1px;
+}
+
+#prov-filters .form-group {
+  padding-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .prov-filters .form-group[data-toggle="buttons"] .form-control,
+  .prov-filters .form-group[data-toggle="buttons"] .select2-container {
+    margin-left: 54px;
+  }
+  .prov-filters .form-group[data-toggle="buttons"] .form-control,
+  .prov-filters .form-group[data-toggle="buttons"] .select2-container {
+    display: inline-block;
+  }
+}
+
+#prov-filters .form-group[data-toggle="buttons"] .form-control,
+#prov-filters .form-group[data-toggle="buttons"] .select2-container {
+  width: calc(100% - 74px);
+  display: block;
+  float: none;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+#prov-filters .form-horizontal .form-group > div:not([class*="col-"]) {
+  padding: 0;
+}
+
+#prov-filters .form-group[data-toggle="buttons"] .control-label {
+  position: absolute;
+  width: 36px;
+  margin-left: 15px;
+  padding-left: 10px;
+  font-size: 12px;
+}
+.prov-filters .btn-group label.btn.btn-default {
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+.prov-filters .alert.alert-info {
+  margin-bottom: 0;
+}
