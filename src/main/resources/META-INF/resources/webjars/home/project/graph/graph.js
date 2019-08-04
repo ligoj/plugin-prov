@@ -2,14 +2,6 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
-
-	/*
-	<script src="providerM/d3-data.js"
-		integrity_="sha384-JOEpWYMPQJt9mXUdIYXIsbk5uXZa63FOqAkynqqZ76Y1KQHI1M4xJfJvJFSyQNPK"></script>
-	<script src="providerM/d3-parse.js"
-		integrity_="sha384-CGSxlvxHCQDwxBj9lMAnVcsbz/giQBMMR1m7jcFw/o/ROLFYSFq0aiIStDacv4NM"></script>
-	<!-- REPLACE END -->
-	*/
 	function initialize() {
 		var $container = $('#prov-assessment');
 		$('#subscribe-configuration-prov > .tab-content').append($container);
@@ -19,12 +11,45 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		const applicationLinkWidth = 1;
 		const applicationStrength = 0.04;
 		const animationLinkLimit = 100;
-		const fillColors = {
-			'PROD': '#f39264',
-			'Production': '#f39264',
-			DEFAULT: '#209ff9',
-			NONE: 'grey'
-		};
+		const usageDefaultColor = '#ff0000';
+		const usageToColor = [
+			{
+				color: '#f17f28',
+				pattern: new RegExp('(pre-prod|pprod)', 'i')
+			},
+			{
+				color: '#f12828',
+				pattern: new RegExp('prod', 'i')
+			},
+			{
+				color: '#f1c028',
+				pattern: new RegExp('(pre-prod|pprod)', 'i')
+			},
+			{
+				color: '#f17f28',
+				pattern: new RegExp('perf', 'i')
+			},
+			{
+				color: '#f1a428',
+				pattern: new RegExp('(qual,qal)', 'i')
+			},
+			{
+				color: '#2847f1',
+				pattern: new RegExp('dev', 'i')
+			},
+			{
+				color: '#2dce26',
+				pattern: new RegExp('(test|tst)', 'i')
+			},
+			{
+				color: '#26ce7b',
+				pattern: new RegExp('train', 'i')
+			},
+			{
+				color: '#26cec1',
+				pattern: new RegExp('form', 'i')
+			}
+		];
 		const circleColors = {
 			'windows': '#5b98ce',
 			'rhel': '#c11a1a',
@@ -71,78 +96,57 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			});
 		}
 
-		function addApplications(applications, applicationsById) {
-			if (applications === 'string') {
-				applications = applications.split(',');
+		function addItems(items, byId) {
+			if (items === 'string') {
+				items = items.split(',');
 			}
-			if (typeof applications.length === 'undefined') {
+			if (typeof items.length === 'undefined') {
 				let asArray = [];
-				Object.keys(applications).filter(app => !!app).forEach(app => {
-					if (!!applicationsById[app.toUpperCase()]) {
+				Object.keys(items).filter(app => !!app).forEach(app => {
+					if (!!byId[app.toUpperCase()]) {
 						asArray.push(app);
-						applicationsById[app.toUpperCase()] = app.toUpperCase();
+						byId[app.toUpperCase()] = app.toUpperCase();
 					}
 				});
 				return asArray;
 			}
-			// Add the applications
-			for (const app of applications) {
-				if (app && typeof applicationsById[app.toUpperCase()] === 'undefined') {
-					applicationsById[app.toUpperCase()] = app.toUpperCase();
+			// Add the items
+			for (const app of items) {
+				if (app && typeof byId[app.toUpperCase()] === 'undefined') {
+					byId[app.toUpperCase()] = app.toUpperCase();
 				}
 			}
-			return applications;
+			return items;
 		}
 		function normalize(instances, instancesById, applicationsById, osById, majorById, environmentsById, tagsById) {
 			for (const instance of instances) {
 				instance.id = instance.id || instance.name;
 				instancesById[instance.id] = instance;
-				if (instance.os) {
-					osById[instance.os] = instance.os;
-					if (instance.major) {
-						majorById[instance.major] = instance.os + ' ' + instance.major;
-					}
-				}
-
-				// Add environments
-				if (typeof instance.env === 'string') {
-					environmentsById[instance.env] = instance.env;
-				} else if (instance.env && instance.env.length) {
-					for (const env of instance.env) {
-						environmentsById[env] = env;
-					}
-				}
+				var tags = [];
 				if (instance.tags) {
 					// Extract the tags
-					var tags = instance.tags.split(',');
+					tags = instance.tags;
 					instance.tags = [];
-					tags.filter(t => !!t && !t.startsWith('app:') && !t.startsWith('env:')).forEach(t => {
+					tags.filter(t => !!t && !t.startsWith('app:') && !t.startsWith('env:') && !t.startsWith('version:')).forEach(t => {
 						tagsById[t] = t;
 						instance.tags.push(t);
 					});
 
 					// Add the applications
-					instance.applications = addApplications(tags.filter(t => t.startsWith('app:')).map(t => t.substring(4)), applicationsById);
-				} else {
-					instance.tags = [];
-					if (typeof instance.applications === 'undefined') {
-						if (instance.application) {
-							instance.applications = [instance.application];
-						} else {
-							instance.applications = [];
-						}
-					} else {
-						instance.applications = addApplications(instance.applications, applicationsById);
-					}
+					debugger;
+					instance.applications = addItems(tags.filter(t => t.startsWith('app:')).map(t => t.substring(4)), applicationsById);
+
+					// Add the environments
+					let envs = addItems(tags.filter(t => t.startsWith('env:')).map(t => t.substring(4)), environmentsById);
+					instance.env = (envs.length > 0 && envs[0]) || instance.usage && instance.usage.name || conf.usage && conf.usage.name;
+					instance.envColor = instance.env && usageToColor.find(u => u.pattern.test(instance.envNorm));
+					instance.envColor = instance.envColor ? instance.envColor.color : usageDefaultColor;
 				}
 
-				// Parse the CSV cost
-				if (instance.type === 'instance' || instance.type === 'elb' || typeof instance.type === 'undefined') {
-					instance.iops = parseFloat(instance.iops || 0, 10);
-					instance.cost = parseFloat(instance.cost || 0, 10);
-					instance.cpu = parseInt(instance.cpu || 1, 10);
-					instance.ram = parseInt(instance.ram || 16, 10);
-					instance.disk = parseInt(instance.disk || 0, 10);
+				if (instance.os) {
+					osById[instance.os] = instance.os;
+					// Add the OS Version
+					addItems(tags.filter(t => t.startsWith('version:')).map(t => instance.os + ' ' + t.substring(8)), majorById);
 				}
 			}
 		}
@@ -283,25 +287,27 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			return false;
 		}
 
+		function isChecked(filter) {
+			return $('#prov-filter-'+ filter).closest('.form-group').find('input[type="checkbox"]').is(':checked')
+		}
+
 		function render($service, nodes, volumes, instancesById, applicationsById, osById, majorById, environmentsById, tagsById, links) {
 			normalizeFrequency(links);
-			var filterApplications = $('#prov-filter-applications-check').is(':checked');
-			var filterNotApplications = $('#prov-filter-not_applications-check').is(':checked');
-			var filterNotTags = $('#prov-filter-not_tags-check').is(':checked');
+			var filterApplications = isChecked('applications');
+			var filterNotApplications = isChecked('not_applications');
+			var filterTags = isChecked('tags');
+			var filterNotTags = isChecked('not_tags');
+			var filterInstances = isChecked('instances');
+			var filterEnvironments = isChecked('environments');
+			var filterOs = isChecked('os');
+			var filterMajor = isChecked('major');
+
 			var enabledApplicationsById = selectDataSet(filterApplications, $applications, applicationsById, filterNotApplications, $not_applications);
 			var disabledApplicationsById = selectDataSet(filterNotApplications, $not_applications, applicationsById);
-
-			var filterTags = $('#prov-filter-tags-check').is(':checked');
-			var filterNotTags = $('#prov-filter-not_tags-check').is(':checked');
 			var enabledTagsById = selectDataSet(filterTags, $tags, tagsById, filterNotTags, $not_tags);
 			var disabledTagsById = selectDataSet(filterNotTags, $not_tags, tagsById);
-
-			var filterInstances = $('#prov-filter-instances-check').is(':checked');
 			var enabledInstancesById = selectDataSet(filterInstances, $instances, instancesById, false);
-			var filterEnvironments = $('#prov-filter-environments-check').is(':checked');
 			var enabledEnvironmentsById = selectDataSet(filterEnvironments, $environments, environmentsById, false);
-			var filterOs = $('#prov-filter-os-check').is(':checked');
-			var filterMajor = $('#prov-filter-major-check').is(':checked');
 			var enabledOsById = selectDataSet(filterOs, $os, osById, false);
 			var enabledMajorById = selectDataSet(filterMajor, $major, majorById, false);
 			var showNeighbours = $('#prov-filter-showNeighbours').is(':checked');
@@ -330,12 +336,13 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			function addApplicationLinks(node, applicationsById) {
 				var id = node.id || node.name;
-				for (const tag of node.applications) {
-					if (showNeighboursApplication && !disabledApplicationsById[tag] || applicationsById[tag]) {
-						connectedApplications[tag] = true;
+				for (const appId of node.applications) {
+					if (showNeighboursApplication && !disabledApplicationsById[appId] || applicationsById[appId]) {
+						connectedApplications[appId] = true;
+
 						d3links.push({
 							source: id,
-							target: tag,
+							target: 'a' + appId,
 							strength: applicationStrength,
 							type: 'application',
 							frequency: 1
@@ -395,7 +402,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			// Add the enabled applications
 			for (const a of Object.keys(connectedApplications)) {
-				d3nodes.push($.extend({ name: a, type: 'application' }, applicationsById[a]));
+				d3nodes.push($.extend({ id: 'a' + a, a: a, type: 'application' }, applicationsById[a]));
 			}
 
 			Object.keys(showNeighboursNodes).forEach(n => connectedNodes[n] = true);
@@ -551,18 +558,25 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return `&nbsp; ${vh}&#8594; localhost`;
 				}).join('<br>')
 
+			const formatApplication = n => '<i class="fas fa-layer-group fa-fw"></i>' + n.name;
+			const formatters = {
+				'instance': $service.formatQuoteResource,
+				'database': $service.formatQuoteResource,
+				'application': formatApplication,
+			};
 			const throughput = t => '@' + formatManager.formatSize((t || 0) * 1024, 3) + '/s';
 			const frequencyOpt = f => f > 1 ? 'x' + f : '';
 			const throughputOpt = t => t ? throughput(t) : '';
+			const formatNode = n => (formatters[n.resourceType] || formatters[n.type] || toName)(n);
 			const toHtml = d => {
 				if (d.frequency) {
 					// Link
 					if (d.reverseFrequency) {
 						// Bi-directional link
-						return `<strong>Bi-directional link</strong><br>${d.streams} streams<br>${$service.formatQuoteResource(d.source)} &#8594; ${$service.formatQuoteResource(d.target)} ${frequencyOpt(d.frequency)}${throughputOpt(d.throughput)}<br>${$service.formatQuoteResource(d.target)} &#8594; ${$service.formatQuoteResource(d.source)} ${frequencyOpt(d.reverseFrequency)}${throughputOpt(d.reverseThroughput)}`
+						return `<strong>Bi-directional link</strong><br>${d.streams} streams<br>${formatNode(d.source)} &#8594; ${formatNode(d.target)} ${frequencyOpt(d.frequency)}${throughputOpt(d.throughput)}<br>${formatNode(d.target)} &#8594; ${formatNode(d.source)} ${frequencyOpt(d.reverseFrequency)}${throughputOpt(d.reverseThroughput)}`
 					} else {
 						// Simple link
-						return `<strong>Link</strong><br>${d.streams > 1 ? d.streams + 'streams<br>' : ''}${$service.formatQuoteResource(d.source)} &#8594; ${$service.formatQuoteResource(d.target)} ${frequencyOpt(d.frequency)}${throughputOpt(d.throughput)}`
+						return `<strong>Link</strong><br>${d.streams > 1 ? d.streams + 'streams<br>' : ''}${formatNode(d.source)} &#8594; ${formatNode(d.target)} ${frequencyOpt(d.frequency)}${throughputOpt(d.throughput)}`
 					}
 				}
 				// Node
@@ -570,8 +584,8 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return "<strong>Application</strong>: " + d.name
 						+ "<br><span class='coupled'><strong>Servers</strong>: " + countCoupled(d, 'application') + '</span>';
 				}
-				return "<strong>" + $service.$messages.name + "</strong>: " + $service.formatQuoteResource(d)
-					+ (d.env ? `<br><strong>Environment</strong>: ${d.env}` : '')
+				return "<strong>" + $service.$messages.name + "</strong>: " + formatNode(d)
+					+ (d.usage ? `<br><strong>${$service.$messages['service:prov:usage']}</strong>: ${d.usage.name || d.usage}` : '')
 					+ (d.applications && d.applications.length ? "<br><strong>Applications</strong>: " + d.applications.join(',') : '')
 					+ (d.tags && d.tags.length ? title('tags') + d.tags.join(',') : '')
 					+ (d.account ? "<br><strong>Account</strong>: " + toHtmlAccount(d.account) : '')
@@ -647,7 +661,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					.style('visibility', 'visible')
 					.html(() => toHtml(d));
 
-			const fillColour = d => d.env ? fillColors[d.env] || fillColors.DEFAULT : fillColors.NONE;
+			const fillColour = d => d.envColor || usageDefaultColor;
 			const circleColour = d => d.os ? circleColors[d.os.toLowerCase()] || circleColors[(d.os.toLowerCase() || '').toLowerCase()] || circleColors.DEFAULT : circleColors.NONE;
 			const circleStyle = d => circleStyles[d.major] || circleStyles.DEFAULT;
 
@@ -791,11 +805,13 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				nodes: conf.instances.map(n => {
 					var n2 = {};
 					Object.assign(n2, n);
+					n2.tags = $service.tagManager.toTagsString(n)
 					n2.id = 'i' + n.id;
 					return n2;
 				}).concat(conf.databases.map(n => {
 					var n2 = {};
 					Object.assign(n2, n);
+					n2.tags = $service.tagManager.toTagsString(n)
 					n2.id = 'd' + n.id;
 					return n2;
 				})),
@@ -824,6 +840,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			var applicationsById = {}, tagsById = {}, osById = {}, majorById = {}, nodesById = {}, environmentsById = {};
 			normalize(nodes, nodesById, applicationsById, osById, majorById, environmentsById, tagsById);
 			normalizeLinks(data_links);
+
 			data_links = reduceLinks(data_links);
 			$applications = initSelect2('applications', applicationsById);
 			$not_applications = initSelect2('not_applications', applicationsById);
@@ -839,9 +856,9 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				if (!$(this).is('input[type="checkbox"]')) {
 					if ($(this).val()) {
 						// Non empty updated value need a checked filter
-						$(this).closest('.input-group').find('input[type="checkbox"]').prop('checked', true);
+						$(this).closest('.form-group').find('input[type="checkbox"]').prop('checked', true);
 					} else if ($(this).is('.no-empty')) {
-						$(this).closest('.input-group').find('input[type="checkbox"]').prop('checked', false);
+						$(this).closest('.form-group').find('input[type="checkbox"]').prop('checked', false);
 					}
 				}
 
