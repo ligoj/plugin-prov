@@ -827,8 +827,9 @@ define(function () {
 			// Tags case issue
 			var tags = current.model && current.model.configuration.tags || {};
 			Object.keys(tags).forEach(type => {
-				tags[type.toLowerCase()] = tags[type];
+				let tagT = tags[type];
 				delete tags[type];
+				tags[type.toLowerCase()] = tagT;
 			});
 
 			// Instances
