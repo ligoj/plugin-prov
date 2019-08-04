@@ -4,6 +4,7 @@
 define({
 	'global-configuration': 'Configuration globale',
 	'service:prov': 'Provisionnement',
+	'service:prov:nb': 'Nb',
 	'service:prov:manage': 'Gérer',
 	'service:prov:currency': 'Devise',
 	'service:prov:default': 'Défaut',

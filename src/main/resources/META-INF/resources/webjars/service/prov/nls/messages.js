@@ -11,6 +11,7 @@ define({
         'quote-ram-adjust': 'Adjustment rate applied to required RAM to lookup the suiting instance type.',
         'quote-assumptions': 'Assumptions',
         'service:prov': 'Provisioning',
+        'service:prov:nb': 'Nb',
         'service:prov:date': 'Date',
         'service:prov:manage': 'Manage',
         'service:prov:currency': 'Currency',

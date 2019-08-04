@@ -660,13 +660,13 @@ define(function () {
 			} else {
 				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
 			}
-			var tooltip = current.$messages.name + ': ' + usage.name;
-			tooltip += '<br>' + current.$messages['service:prov:usage-rate'] + ': ' + (usage.rate || 100) + '%';
+			var tooltip = current.title('name') + usage.name;
+			tooltip += '<br>' + current.title('usage-rate') + (usage.rate || 100) + '%';
 			if (usage.duration !== false) {
-				tooltip += '<br>' + current.$messages['service:prov:usage-duration'] + ': ' + (usage.duration || 1) + ' month(s)';
+				tooltip += '<br>' + current.title('usage-duration') + (usage.duration || 1) + ' month(s)';
 			}
 			if (usage.start !== false) {
-				tooltip += '<br>' + current.$messages['service:prov:usage-start'] + ': ' + (usage.start || 0) + ' month(s)';
+				tooltip += '<br>' + current.title('usage-start') + (usage.start || 0) + ' month(s)';
 			}
 			return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
 		},
@@ -1402,7 +1402,7 @@ define(function () {
 				var type = $(this).provType();
 				$.ajax({
 					type: 'DELETE',
-					url:  `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
+					url: `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
@@ -1632,7 +1632,7 @@ define(function () {
 		 * Configure Terraform.
 		 */
 		initializeTerraform: function () {
-			_('prov-terraform-download').attr('href',  `${REST_PATH}service/prov/${current.model.subscription}/terraform-${current.model.subscription}.zip`);
+			_('prov-terraform-download').attr('href', `${REST_PATH}service/prov/${current.model.subscription}/terraform-${current.model.subscription}.zip`);
 			_('prov-terraform-status').find('.terraform-logs a').attr('href', `${REST_PATH}service/prov/${current.model.subscription}/terraform.log`);
 			_('popup-prov-terraform')
 				.on('shown.bs.modal', () => _('terraform-cidr').trigger('focus'))
@@ -2810,39 +2810,47 @@ define(function () {
 		sunburstTooltip: function (data, d) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
-				+ '<br/>Cost: ' + current.formatCost(data.size || data.value)
+				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + current.formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && data.children ? '<br/>Count: ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+		},
+
+		title: function (key) {
+			return (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
 		},
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
 			switch (data.type) {
 				case 'latency':
-					return 'Latency: ' + current.formatStorageLatency(data.name, true);
+					return current.title('storage-latency') + current.formatStorageLatency(data.name, true);
 				case 'os':
 					return current.formatOs(data.name, true, ' fa-2x');
 				case 'engine':
 					return current.formatDatabaseEngine(data.name, true, ' fa-2x');
 				case 'instance':
 					var instance = conf.instancesById[data.name];
-					return 'Name: ' + instance.name
-						+ '</br>Type: ' + instance.price.type.name
-						+ '</br>OS: ' + current.formatOs(instance.price.os, true)
-						+ '</br>Term: ' + instance.price.term.name
-						+ '</br>Usage: ' + (instance.usage ? instance.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
+					return current.title('name') + instance.name
+						+ '<br>' + current.title('instance-type') + instance.price.type.name
+						+ '<br>' + current.title('os') + current.formatOs(instance.price.os, true)
+						+ '<br>' + current.title('term') + instance.price.term.name
+						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
 				case 'storage':
 					var storage = conf.storagesById[data.name];
-					return 'Name: ' + storage.name + '</br>Type: ' + storage.price.type.name + '</br>Latency: ' + current.formatStorageLatency(storage.price.type.latency, true) + '</br>Optimized: ' + storage.price.type.optimized;
+					return current.title('name') + storage.name
+						+ '<br>' + current.title('storage-type') + storage.price.type.name
+						+ '<br>' + current.title('storage-latency') + current.formatStorageLatency(storage.price.type.latency, true)
+						+ '<br>' + current.title('storage-optimized') + storage.price.type.optimized;
 				case 'support':
 					var support = conf.supportsById[data.name];
-					return 'Name: ' + support.name + '</br>Type: ' + support.price.type.name;
+					return current.title('name') + support.name
+						+ '<br>' + current.title('support-type') + support.price.type.name;
 				case 'database':
 					var database = conf.databasesById[data.name];
-					return 'Name: ' + database.name
-						+ '</br>Type: ' + database.price.type.name
-						+ '</br>Engine: ' + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
-						+ '</br>Term: ' + database.price.term.name
-						+ '</br>Usage: ' + (database.usage ? database.usage.name : ('(default) ' + (conf.usage ? conf.usage.name : '100%')));
+					return current.title('name') + database.name
+						+ '<br>' + current.title('database-type') + database.price.type.name
+						+ '<br>' + current.title('database-engine') + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
+						+ '<br>' + current.title('term') + database.price.term.name
+						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
 				case 'root-storage':
 					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
 				case 'root-instance':
