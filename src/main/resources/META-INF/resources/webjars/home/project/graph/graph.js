@@ -9,6 +9,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
 
 		const useTransition = false;
+		const minimalLinkWidth = 2
 		const applicationLinkWidth = 1;
 		const applicationStrength = 0.04;
 		const animationLinkLimit = 100;
@@ -252,7 +253,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			var frequencyWeight = parseFloat($frequencyWeight.val() || 1, 10);
 			var model = Math[$frequencyModel.val() || 'log2'];
 			for (const link of links) {
-				link.frequencyModel = Math.max(model(link.frequency || 1) * frequencyWeight, 1);
+				link.frequencyModel = Math.max(model(link.frequency || 1) * frequencyWeight, minimalLinkWidth);
 			}
 		}
 
@@ -502,11 +503,11 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					svg.selectAll("g.node")
 						.filter(node => implied(d, node))
 						.attr("selected", "true");
-					transition(svg.selectAll("line")
+					transition(svg.selectAll(".network-links line,.application-links line")
 						.attr("selected", null)
 						.filter(link => !impliedLink(d, link)))
 						.style("opacity", opacity);
-					svg.selectAll("line")
+					svg.selectAll(".network-links line,.application-links line")
 						.filter(link => impliedLink(d, link))
 						.attr("selected", "true");
 				};
@@ -521,11 +522,11 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					svg.selectAll("g.node")
 						.filter(node => impliedFromLink(link, node))
 						.attr("selected", "true");
-					transition(svg.selectAll("line")
+					transition(svg.selectAll(".network-links line,.application-links line")
 						.attr("selected", null)
 						.filter(l => l !== link))
 						.style("opacity", opacity);
-					svg.selectAll("line")
+					svg.selectAll(".network-links line,.application-links line")
 						.filter(l => l === link)
 						.attr("selected", "true");
 				};
@@ -671,7 +672,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				transition(svg.selectAll("g.node")
 					.attr("selected", null))
 					.style("opacity", opacityDefault);
-				transition(svg.selectAll("line")
+				transition(svg.selectAll(".network-links line,.application-links line")
 					.attr("selected", null))
 					.style("opacity", opacityDefault);
 			}
@@ -679,32 +680,38 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			var g = svg.append("g")
 				.attr("class", "everything");
 
-			g.append("g")
-				.attr("class", "links")
-				.selectAll("line")
-				.data(links)
-				.enter()
-				.filter(d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application')
-				.append("line")
-				.attr("stroke-width", linkWidth)
-				.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
-				.on("mouseover", fadeLink(.15))
-				.on("mouseout", mouseoutChord)
-				.on("mousemove", mouseoverNodeOrLink);
 
-			g.append("g")
-				.attr("class", "links")
-				.selectAll("line")
-				.data(links)
-				.enter()
-				.filter(d => d.type === 'account' || d.type === 'application')
-				.append("line")
-				.attr("class", d => d.type)
-				.attr("stroke-width", applicationLinkWidth)
-				.style("stroke-dasharray", ("2, 5"))
-				.style("stroke", "grey")
-				.on("mouseout", mouseoutChord)
-				.on("mousemove", mouseoverNodeOrLink);
+			function createSvgLinks(group, filter, width, style) {
+				style(g.append("g")
+					.attr("class", group)
+					.selectAll("line")
+					.data(links)
+					.enter()
+					.filter(filter)
+					.append("line")
+					.attr("stroke-width", width))
+					.on("mouseout", mouseoutChord)
+					.on("mousemove", mouseoverNodeOrLink);
+
+			}
+
+			// Network links
+			createSvgLinks("network-links", d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application', linkWidth,
+				svg => svg.style("stroke-dasharray", ("2, 5"))
+					.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
+					.on("mouseover", fadeLink(.15)))
+
+			// Non network links (invisible for easiest focus)
+			createSvgLinks("application-links-t", d => d.type === 'account' || d.type === 'application', applicationLinkWidth + 5,
+				svg => svg
+					.attr("class", d => d.type)
+					.on("mouseover", fadeLink(.15)))
+			// Non network visible link
+			createSvgLinks("application-links", d => d.type === 'account' || d.type === 'application', applicationLinkWidth,
+				svg => svg
+					.style("stroke-dasharray", ("2, 5"))
+					.attr("class", d => d.type)
+					.on("mouseover", fadeLink(.15)))
 
 			// draw circles for the nodes 
 			var node = g.append("g")

@@ -1,10 +1,14 @@
-#prov-assessment .links line {
+#prov-assessment .network-links line, #prov-assessment .application-links line {
   stroke: #999;
   stroke-opacity: 0.6;
   stroke-linecap: round;
 }
+#prov-assessment .application-links-t line {
+  opacity: 0;
+  stroke: black;
+}
 
-#prov-assessment .links line.dual {
+#prov-assessment .network-links line.dual {
   stroke: #383838;
 }
 
