@@ -133,7 +133,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					});
 
 					// Add the applications
-					debugger;
 					instance.applications = addItems(tags.filter(t => t.startsWith('app:')).map(t => t.substring(4)), applicationsById);
 
 					// Add the environments
@@ -288,7 +287,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		}
 
 		function isChecked(filter) {
-			return $('#prov-filter-'+ filter).closest('.form-group').find('input[type="checkbox"]').is(':checked')
+			return $('#prov-filter-' + filter).closest('.form-group').find('input[type="checkbox"]').is(':checked')
 		}
 
 		function render($service, nodes, volumes, instancesById, applicationsById, osById, majorById, environmentsById, tagsById, links) {
@@ -402,7 +401,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			// Add the enabled applications
 			for (const a of Object.keys(connectedApplications)) {
-				d3nodes.push($.extend({ id: 'a' + a, a: a, type: 'application' }, applicationsById[a]));
+				d3nodes.push($.extend({ id: 'a' + a, name: a, type: 'application' }, applicationsById[a]));
 			}
 
 			Object.keys(showNeighboursNodes).forEach(n => connectedNodes[n] = true);
@@ -558,7 +557,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return `&nbsp; ${vh}&#8594; localhost`;
 				}).join('<br>')
 
-			const formatApplication = n => '<i class="fas fa-layer-group fa-fw"></i>' + n.name;
+			const formatApplication = n => '<i class="fas fa-layer-group fa-fw"></i>' + (n.name || n.id);
 			const formatters = {
 				'instance': $service.formatQuoteResource,
 				'database': $service.formatQuoteResource,
@@ -567,6 +566,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			const throughput = t => '@' + formatManager.formatSize((t || 0) * 1024, 3) + '/s';
 			const frequencyOpt = f => f > 1 ? 'x' + f : '';
 			const throughputOpt = t => t ? throughput(t) : '';
+			const toName = d => d.name || d.id;
 			const formatNode = n => (formatters[n.resourceType] || formatters[n.type] || toName)(n);
 			const toHtml = d => {
 				if (d.frequency) {
