@@ -29,43 +29,52 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		const dashedLinkLimit = 500;
 		const opacityFade = .15;
 		const animationLinkLimit = 100;
-		const usageDefaultColor = '#ff0000';
+		const usageDefaultColor = '#058aec';
 		const usageToColor = [
 			{
+				name: 'Pre-Production',
 				color: '#f17f28',
-				pattern: new RegExp('(pre-prod|pprod)', 'i')
+				pattern: new RegExp('(pre-prod|pprod|stag|backup)', 'i')
 			},
 			{
+				name: 'Production',
 				color: '#f12828',
 				pattern: new RegExp('prod', 'i')
 			},
 			{
+				name: 'Performance',
 				color: '#f1c028',
-				pattern: new RegExp('(pre-prod|pprod)', 'i')
+				pattern: new RegExp('(perf|bench)', 'i')
 			},
 			{
-				color: '#f17f28',
-				pattern: new RegExp('perf', 'i')
-			},
-			{
+				name: 'Quality',
 				color: '#f1a428',
-				pattern: new RegExp('(qual,qal)', 'i')
+				pattern: new RegExp('(qual|qal)', 'i')
 			},
 			{
+				name: 'Integration',
+				color: '#f1a428',
+				pattern: new RegExp('integration', 'i')
+			},
+			{
+				name: 'Development',
 				color: '#2847f1',
 				pattern: new RegExp('dev', 'i')
 			},
 			{
+				name: 'Test',
 				color: '#2dce26',
-				pattern: new RegExp('(test|tst)', 'i')
+				pattern: new RegExp('(test|tst|demand|spot|dry run|sandbox)', 'i')
 			},
 			{
+				name: 'Training',
 				color: '#26ce7b',
-				pattern: new RegExp('train', 'i')
+				pattern: new RegExp('(train|form)', 'i')
 			},
 			{
-				color: '#26cec1',
-				pattern: new RegExp('form', 'i')
+				name: 'Offline',
+				color: '#6f7170',
+				pattern: new RegExp('(archive|offline|decom|delete)', 'i')
 			}
 		];
 		const circleColors = {
@@ -156,8 +165,13 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					// Add the environments
 					let envs = addItems(tags.filter(t => t.startsWith('env:')).map(t => t.substring(4)), environmentsById);
 					instance.env = (envs.length > 0 && envs[0]) || instance.usage && instance.usage.name || conf.usage && conf.usage.name;
-					instance.envColor = instance.env && usageToColor.find(u => u.pattern.test(instance.envNorm));
-					instance.envColor = instance.envColor ? instance.envColor.color : usageDefaultColor;
+					var envConfig = instance.env && usageToColor.find(u => u.pattern.test(instance.env));
+					if (envConfig) {
+						instance.envColor = envConfig.color;
+						instance.envNorm = envConfig.name;
+					} else {
+						instance.envColor = usageDefaultColor;
+					}
 				}
 
 				if (instance.os) {
@@ -531,7 +545,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			function fadeLink(opacity) {
 				return function (link, i) {
-					debugger;
 					transition(svg.selectAll("g.node")
 						.attr("selected", null)
 						.filter(node => !impliedFromLink(link, node)))
@@ -603,7 +616,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return `<strong>${current.$messages.application}</strong>: ${formatApplication(d)}<br><span class='coupled'><strong>Nodes</strong>: ${countCoupled(d, 'application')}</span>`;
 				}
 				return "<strong>" + $service.$messages.name + "</strong>: " + formatNode(d)
-					+ (d.usage ? title('usage') + (d.usage.name || d.usage) : '')
+					+ (d.env ? `${title('usage')}${d.env}${d.envNorm ? ' (' + d.envNorm + ')' : ''}` : '')
 					+ (d.applications && d.applications.length ? `${title('applications')}${d.applications.join(',')} (${d.applications.length})` : '')
 					+ (d.tags && d.tags.length ? title('tags') + d.tags.join(',') : '')
 					+ (d.account ? title('Account') + toHtmlAccount(d.account) : '')
