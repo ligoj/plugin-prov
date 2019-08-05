@@ -10,6 +10,9 @@ define({
         network: 'Network',
         outbound: 'Outbound',
         inbound: 'Inbound',
+        application: 'Application',
+        applications: 'Applications',
+        account: 'Account'
     },
     'fr': true
 });
