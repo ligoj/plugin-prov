@@ -131,8 +131,8 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				let asArray = [];
 				Object.keys(items).filter(app => !!app).forEach(app => {
 					if (!!byId[app.toUpperCase()]) {
-						asArray.push(app);
-						byId[app.toUpperCase()] = app.toUpperCase();
+						asArray.push(app.toUpperCase());
+						byId[app.toUpperCase()] = app;
 					}
 				});
 				return asArray;
@@ -140,7 +140,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			// Add the items
 			for (const app of items) {
 				if (app && typeof byId[app.toUpperCase()] === 'undefined') {
-					byId[app.toUpperCase()] = app.toUpperCase();
+					byId[app.toUpperCase()] = app;
 				}
 			}
 			return items;
@@ -166,6 +166,9 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					let envs = addItems(tags.filter(t => t.startsWith('env:')).map(t => t.substring(4)), environmentsById);
 					instance.env = (envs.length > 0 && envs[0]) || instance.usage && instance.usage.name || conf.usage && conf.usage.name;
 					var envConfig = instance.env && usageToColor.find(u => u.pattern.test(instance.env));
+					if (instance.env) {
+						instance.env = instance.env.toUpperCase();
+					}
 					if (envConfig) {
 						instance.envColor = envConfig.color;
 						instance.envNorm = envConfig.name;
@@ -616,7 +619,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return `<strong>${current.$messages.application}</strong>: ${formatApplication(d)}<br><span class='coupled'><strong>Nodes</strong>: ${countCoupled(d, 'application')}</span>`;
 				}
 				return "<strong>" + $service.$messages.name + "</strong>: " + formatNode(d)
-					+ (d.env ? `${title('usage')}${d.env}${d.envNorm ? ' (' + d.envNorm + ')' : ''}` : '')
+					+ (d.env ? `${title('usage')}${environmentsById[d.env]}${d.envNorm ? ' (' + d.envNorm + ')' : ''}` : '')
 					+ (d.applications && d.applications.length ? `${title('applications')}${d.applications.join(',')} (${d.applications.length})` : '')
 					+ (d.tags && d.tags.length ? title('tags') + d.tags.join(',') : '')
 					+ (d.account ? title('Account') + toHtmlAccount(d.account) : '')
