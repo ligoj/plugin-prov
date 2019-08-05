@@ -619,6 +619,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					+ ((d.network_in || d.network_out) ? `${title('Network')}in${throughput(d.network_in)}, out${throughput(d.network_out)}` : '')
 					+ (d.cost ? title('cost') + $service.formatCost(d) : '')
 					+ (d.os ? title('os') + $service.formatOs(d.os) + (d.major ? ' ' + d.major : '') : '')
+					+ (d.engine ? title('database-engine') + $service.formatDatabaseEngine(d.engine) + (d.edition ? ' ' + d.edition : '') : '')
 					+ (d.nginx ? `${title('NGNIX')}<br>${toHtmlVHosts(d.nginx.vhosts)}` : '')
 					+ (d['ha-proxy'] ? `${title('HA-PROXY')}:<br>${toHtmlListeners(d['ha-proxy'].listeners)}` : '')
 					+ "<br><span class='coupled'><strong>Coupled</strong>: " + countCoupled(d, null, 'application') + '</span>';
