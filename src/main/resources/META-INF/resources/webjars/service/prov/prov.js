@@ -2850,7 +2850,7 @@ define(function () {
 						+ '<br>' + current.title('database-type') + database.price.type.name
 						+ '<br>' + current.title('database-engine') + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
 						+ '<br>' + current.title('term') + database.price.term.name
-						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
+						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
 				case 'root-storage':
 					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
 				case 'root-instance':
