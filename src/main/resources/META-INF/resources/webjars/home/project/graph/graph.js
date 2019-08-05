@@ -450,7 +450,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			svg.selectAll('svg').remove();
 			$container.find('svg').empty().remove();
 			$container.find('.tooltip').remove();
-			$container.append($('<svg width="100%" height="100vh"></svg>'));
+			$container.append($('<svg width="100%" height="100%"></svg>'));
 			svg = d3.select('#prov-assessment svg');
 			var width = $container[0].offsetWidth,
 				height = $container[0].offsetHeight;
