@@ -119,7 +119,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				formatSelection: format,
 				formatResult: format,
 				createSearchChoice: () => null,
-				data: array
+				data: array.sort((a, b) => (a.text || a).toLowerCase().localeCompare((b.text || b).toLowerCase()))
 			});
 		}
 
