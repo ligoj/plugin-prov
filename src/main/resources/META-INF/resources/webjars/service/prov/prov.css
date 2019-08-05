@@ -337,7 +337,7 @@ img.flag-icon.prov-location-flag {
   left: -11px;
 }
 
-#service-prov-menu li {
+#service-prov-menu .nav > li {
   margin-left: 7px;
 }
 .retracted #service-prov-menu span,
