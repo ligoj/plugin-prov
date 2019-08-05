@@ -5,8 +5,20 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 	function initialize() {
 		var $view = this.$view;
 		var $container = $view.find('#prov-assessment').clone();
+		var current = $cascade.$current;
+		var subscription = current.currentSubscription;
+		var conf = subscription.configuration;
 		$('#subscribe-configuration-prov > .tab-content').append($container);
 		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
+
+		var $tab = _('prov-filters');
+		$tab.off('change', '.toggle-advanced').on('change', '.toggle-advanced', () => $tab.toggleClass('advanced'));
+		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
+		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
+			current.$super('requireService')(current.$parent, 'service:prov', function ($service) {
+				configure($service, conf);
+			});
+		});
 
 		const useTransition = false;
 		const useApplicationLinkHelper = false;
@@ -15,6 +27,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		const applicationLinkWidth = 1;
 		const applicationStrength = 0.04;
 		const dashedLinkLimit = 500;
+		const opacityFade = .15;
 		const animationLinkLimit = 100;
 		const usageDefaultColor = '#ff0000';
 		const usageToColor = [
@@ -497,7 +510,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				return n;
 			}
 
-			function fade(opacity) {
+			function fadeNode(opacity) {
 				return function (d, i) {
 					transition(svg.selectAll("g.node")
 						.attr("selected", null)
@@ -518,6 +531,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			function fadeLink(opacity) {
 				return function (link, i) {
+					debugger;
 					transition(svg.selectAll("g.node")
 						.attr("selected", null)
 						.filter(node => !impliedFromLink(link, node)))
@@ -586,33 +600,31 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				}
 				// Node
 				if (d.type === 'application') {
-					return "<strong>Application</strong>: " + d.name
-						+ "<br><span class='coupled'><strong>Servers</strong>: " + countCoupled(d, 'application') + '</span>';
+					return `<strong>${current.$messages.application}</strong>: ${formatApplication(d)}<br><span class='coupled'><strong>Nodes</strong>: ${countCoupled(d, 'application')}</span>`;
 				}
 				return "<strong>" + $service.$messages.name + "</strong>: " + formatNode(d)
-					+ (d.usage ? `<br><strong>${$service.$messages['service:prov:usage']}</strong>: ${d.usage.name || d.usage}` : '')
-					+ (d.applications && d.applications.length ? "<br><strong>Applications</strong>: " + d.applications.join(',') : '')
+					+ (d.usage ? title('usage') + (d.usage.name || d.usage) : '')
+					+ (d.applications && d.applications.length ? `${title('applications')}${d.applications.join(',')} (${d.applications.length})` : '')
 					+ (d.tags && d.tags.length ? title('tags') + d.tags.join(',') : '')
-					+ (d.account ? "<br><strong>Account</strong>: " + toHtmlAccount(d.account) : '')
+					+ (d.account ? title('Account') + toHtmlAccount(d.account) : '')
 					+ (d.type ? title('instance-type') + d.type : '')
-					+ (d.price ? title('instance-type') + d.price.type.name + ' (' + d.resourceType + ')' : '')
-					+ (d.ip ? "<br><strong>IP</strong>: " + toHtmlIp(d.ip) : '')
-					+ (d.type === 'elb' ? "<br><strong>ELB</strong>: " + d.dns : '')
+					+ (d.price ? `${title('instance-type')}${d.price.type.name} (${d.resourceType})` : '')
+					+ (d.ip ? title('IP') + toHtmlIp(d.ip) : '')
+					+ (d.type === 'elb' ? title('ELB') + d.dns : '')
 					+ toPercent('cpu', [d.cpu_avg, d.cpu_max, d.cpu, d.price && d.price.type.cpu], $service.formatCpu)
 					+ toPercent('ram', [d.ram_max, d.ram, d.price && d.price.type.ram], $service.formatRam)
 					+ toPercent('storage', [d.disk_max, d.disk], $service.formatStorage)
 					+ toVolumes(d)
-					+ (d.iops ? "<br><strong>IOPS</strong>: " + d.iops : '')
-					+ ((d.network_in || d.network_out) ? `<br><strong>Network</strong>: in${throughput(d.network_in)}, out${throughput(d.network_out)}` : '')
+					+ (d.iops ? title('IOPS') + d.iops : '')
+					+ ((d.network_in || d.network_out) ? `${title('Network')}in${throughput(d.network_in)}, out${throughput(d.network_out)}` : '')
 					+ (d.cost ? title('cost') + $service.formatCost(d) : '')
 					+ (d.os ? title('os') + $service.formatOs(d.os) + (d.major ? ' ' + d.major : '') : '')
-					+ (d.nginx ? "<br><strong>NGNIX</strong>:<br>" + toHtmlVHosts(d.nginx.vhosts) : '')
-					+ (d['ha-proxy'] ? "<br><strong>HA-PROXY</strong>:<br>" + toHtmlListeners(d['ha-proxy'].listeners) : '')
+					+ (d.nginx ? `${title('NGNIX')}<br>${toHtmlVHosts(d.nginx.vhosts)}` : '')
+					+ (d['ha-proxy'] ? `${title('HA-PROXY')}:<br>${toHtmlListeners(d['ha-proxy'].listeners)}` : '')
 					+ "<br><span class='coupled'><strong>Coupled</strong>: " + countCoupled(d, null, 'application') + '</span>';
 			};
 
-
-			const title = key => key ? '<br><strong>' + $service.$messages['service:prov:' + key] + '</strong>: ' : '';
+			const title = key => key ? '<br><strong>' + ($service.$messages['service:prov:' + key] || current.$messages['service:prov:' + key] || $service.$messages[key] || current.$messages[key] || key) + '</strong>: ' : '';
 
 			function toVolumes(node) {
 				let nVolumes = volumes.filter(v => v.node === node.id);
@@ -699,6 +711,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			createSvgLinks("network-links", d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application', linkWidth,
 				svg => svg.style("stroke-dasharray", ("2, 5"))
 					.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
+					.on('mouseover', fadeLink(opacityFade))
 			)
 
 			if (useApplicationLinkHelper) {
@@ -710,7 +723,8 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			if (useApplicationLink) {
 				// Non network visible link
 				createSvgLinks("application-links", d => d.type === 'account' || d.type === 'application', applicationLinkWidth,
-					svg => svg);
+					svg => svg
+						.on('mouseover', fadeLink(opacityFade)));
 			}
 
 			// Adaptive performance
@@ -722,7 +736,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			}
 
 			// Global events
-			$container.off('mouseout').on('mouseout', 'line', mouseoutChord).off('mouseover').on('mouseover', 'line', fadeLink(.15));
+			$container.off('mouseout').on('mouseout', mouseoutChord);
 
 			// Circles for the nodes 
 			var node = g.append("g")
@@ -735,15 +749,16 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.enter()
 				.append("g")
 				.attr("class", d => 'node ' + d.type)
-				.call(drag(simulation));
+				.call(drag(simulation))
+				.on('mouseover', fadeNode(opacityFade))
+				.on("mousemove", mouseoverNodeOrLink);
 
 			node.filter(d => d.type !== 'elb')
 				.append('circle')
 				.attr("stroke", circleColour)
 				.attr("stroke-dasharray", circleStyle)
 				.attr("r", radius)
-				.attr("fill", fillColour)
-				.on("mousemove", mouseoverNodeOrLink);
+				.attr("fill", fillColour);
 
 			node.filter(d => d.type === 'elb')
 				.append('rect')
@@ -753,8 +768,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("height", 40)
 				.attr("ry", 10)
 				.attr("ry", 10)
-				.attr("fill", fillColour)
-				.on("mousemove", mouseoverNodeOrLink);
+				.attr("fill", fillColour);
 
 			node.filter(d => typeof d.icon !== 'undefined')
 				.append("svg:image")
@@ -764,14 +778,11 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("height", d => 2 * d.radius)
 				.attr("width", d => 2 * d.radius);
 
-
 			node.filter(d => typeof d.icon === 'undefined')
 				.append("text")
 				.text(d => d.name)
 				.attr("class", "text")
-				.attr("text-anchor", "middle")
-				.on("mousemove", mouseoverNodeOrLink);
-
+				.attr("text-anchor", "middle");
 
 			//Zoom functions 
 			d3.zoom().on("zoom", () => g.attr("transform", d3.event.transform))(svg);
@@ -878,19 +889,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				render($service, nodes, data.volumes, nodesById, applicationsById, osById, majorById, environmentsById, tagsById, data_links);
 			});
 		}
-
-		var $tab = _('prov-filters');
-		$tab.off('change', '.toggle-advanced').on('change', '.toggle-advanced', () => $tab.toggleClass('advanced'));
-		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
-		var current = $cascade.$current;
-		var subscription = current.currentSubscription;
-		var conf = subscription.configuration;
-		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
-			current.$super('requireService')(current.$parent, 'service:prov', function ($service) {
-				configure($service, conf);
-			});
-		});
-
 	}
 
 	var self = {
