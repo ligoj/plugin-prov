@@ -1,14 +1,17 @@
-#prov-assessment .network-links line, #prov-assessment .application-links line {
+.network-links line, .application-links line {
   stroke: #999;
   stroke-opacity: 0.6;
   stroke-linecap: round;
 }
-#prov-assessment .application-links-t line {
+.application-links-t line {
   opacity: 0;
   stroke: black;
 }
+.application-links.dashed line {
+  stroke-dasharray: 2 5;
+}
 
-#prov-assessment .network-links line.dual {
+.network-links line.dual {
   stroke: #383838;
 }
 
@@ -38,11 +41,7 @@
   stroke: rgb(15, 67, 236);
 }
 
-#prov-assessment g.node > .text {
-  fill: black;
-}
-
-.animated:not(.disable-animated) line.data:not(.dual) {
+#prov-assessment.animated:not(.disable-animated) .network-links line:not(.dual) {
   stroke-dasharray: 64, 16;
   animation: dash 3s linear reverse infinite;
 }

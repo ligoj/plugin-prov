@@ -9,9 +9,12 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
 
 		const useTransition = false;
+		const useApplicationLinkHelper = false;
+		const useApplicationLink = true;
 		const minimalLinkWidth = 2
 		const applicationLinkWidth = 1;
 		const applicationStrength = 0.04;
+		const dashedLinkLimit = 500;
 		const animationLinkLimit = 100;
 		const usageDefaultColor = '#ff0000';
 		const usageToColor = [
@@ -667,7 +670,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			const circleColour = d => d.os ? circleColors[d.os.toLowerCase()] || circleColors[(d.os.toLowerCase() || '').toLowerCase()] || circleColors.DEFAULT : circleColors.NONE;
 			const circleStyle = d => circleStyles[d.major] || circleStyles.DEFAULT;
 
-			function mouseoutChord(d) {
+			function mouseoutChord() {
 				tooltip.style('visibility', 'hidden')
 				transition(svg.selectAll("g.node")
 					.attr("selected", null))
@@ -677,8 +680,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					.style("opacity", opacityDefault);
 			}
 
-			var g = svg.append("g")
-				.attr("class", "everything");
+			var g = svg.append("g").attr("class", "everything");
 
 
 			function createSvgLinks(group, filter, width, style) {
@@ -690,30 +692,39 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					.filter(filter)
 					.append("line")
 					.attr("stroke-width", width))
-					.on("mouseout", mouseoutChord)
 					.on("mousemove", mouseoverNodeOrLink);
-
 			}
 
 			// Network links
 			createSvgLinks("network-links", d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application', linkWidth,
 				svg => svg.style("stroke-dasharray", ("2, 5"))
 					.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
-					.on("mouseover", fadeLink(.15)))
+			)
 
-			// Non network links (invisible for easiest focus)
-			createSvgLinks("application-links-t", d => d.type === 'account' || d.type === 'application', applicationLinkWidth + 5,
-				svg => svg
-					.attr("class", d => d.type)
-					.on("mouseover", fadeLink(.15)))
-			// Non network visible link
-			createSvgLinks("application-links", d => d.type === 'account' || d.type === 'application', applicationLinkWidth,
-				svg => svg
-					.style("stroke-dasharray", ("2, 5"))
-					.attr("class", d => d.type)
-					.on("mouseover", fadeLink(.15)))
+			if (useApplicationLinkHelper) {
+				// Non network links (invisible for easiest focus)
+				createSvgLinks("application-links-t", d => d.type === 'account' || d.type === 'application', applicationLinkWidth + 5,
+					svg => svg);
+			}
 
-			// draw circles for the nodes 
+			if (useApplicationLink) {
+				// Non network visible link
+				createSvgLinks("application-links", d => d.type === 'account' || d.type === 'application', applicationLinkWidth,
+					svg => svg);
+			}
+
+			// Adaptive performance
+			if (links.length > dashedLinkLimit) {
+				$('.application-links').removeClass('dashed');
+				setTimeout(() => $('.application-links').addClass('dashed'), 10000);
+			} else {
+				$('.application-links').addClass('dashed');
+			}
+
+			// Global events
+			$container.off('mouseout').on('mouseout', 'line', mouseoutChord).off('mouseover').on('mouseover', 'line', fadeLink(.15));
+
+			// Circles for the nodes 
 			var node = g.append("g")
 				.attr("stroke-width", 3)
 				.style("font-weight", "normal")
@@ -732,8 +743,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("stroke-dasharray", circleStyle)
 				.attr("r", radius)
 				.attr("fill", fillColour)
-				.on("mouseover", fade(.15))
-				.on("mouseout", mouseoutChord)
 				.on("mousemove", mouseoverNodeOrLink);
 
 			node.filter(d => d.type === 'elb')
@@ -745,8 +754,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("ry", 10)
 				.attr("ry", 10)
 				.attr("fill", fillColour)
-				.on("mouseover", fade(.15))
-				.on("mouseout", mouseoutChord)
 				.on("mousemove", mouseoverNodeOrLink);
 
 			node.filter(d => typeof d.icon !== 'undefined')
@@ -763,26 +770,19 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.text(d => d.name)
 				.attr("class", "text")
 				.attr("text-anchor", "middle")
-				.on("mouseover", fade(.15))
-				.on("mouseout", mouseoutChord)
 				.on("mousemove", mouseoverNodeOrLink);
 
-			// Add zoom capabilities 
-			var zoom_handler = d3.zoom()
-				.on("zoom", zoom_actions);
-			zoom_handler(svg);
+
+			//Zoom functions 
+			d3.zoom().on("zoom", () => g.attr("transform", d3.event.transform))(svg);
 
 			function linkWidth(d) {
 				return d.frequencyModel || 0;
 			}
 
-			//Zoom functions 
-			function zoom_actions() {
-				g.attr("transform", d3.event.transform)
-			}
-
+			var lines = svg.selectAll("line");
 			function ticked() {
-				svg.selectAll("line")
+				lines
 					.attr("x1", d => d.source.x)
 					.attr("y1", d => d.source.y)
 					.attr("x2", d => d.target.x)
