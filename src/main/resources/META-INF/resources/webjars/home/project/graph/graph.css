@@ -57,14 +57,6 @@
   fill: rgb(238, 238, 238);
 }
 
-#prov-assessment g.node.provider circle {
-  fill: rgb(238, 238, 238);
-}
-
-#prov-assessment {
-  height: 100vh;
-}
-
 #prov-assessment .center {
   pointer-events: none;
 }
@@ -137,9 +129,6 @@
   .prov-filters .form-group[data-toggle="buttons"] .form-control,
   .prov-filters .form-group[data-toggle="buttons"] .select2-container {
     margin-left: 54px;
-  }
-  .prov-filters .form-group[data-toggle="buttons"] .form-control,
-  .prov-filters .form-group[data-toggle="buttons"] .select2-container {
     display: inline-block;
   }
   #prov-assessment {

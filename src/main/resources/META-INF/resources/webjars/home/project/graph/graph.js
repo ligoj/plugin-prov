@@ -5,6 +5,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 	function initialize() {
 		var $view = this.$view;
 		var $container = $view.find('#prov-assessment').clone();
+		var $frequencyModel,$frequencyWeight,$applications,$not_applications,$tags,$not_tags,$instances,$environments,$os,$major;
 		var current = $cascade.$current;
 		var subscription = current.currentSubscription;
 		var conf = subscription.configuration;
@@ -102,9 +103,9 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					id: value.id || value.name || key,
 					text: value.name || value
 				});
-			};
+			}
 			var $input = $('#prov-filter-' + type);
-			return $select2 = $input.select2({
+			return $input.select2({
 				multiple: true,
 				formatSelection: format,
 				formatResult: format,
@@ -394,7 +395,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					d3nodes.push($.extend({}, node));
 					connectedNodes[node.id || node.name] = true;
 				}
-			};
+			}
 
 			// Filter the links relating two enabled nodes
 			var showNeighboursNodes = {};
@@ -457,9 +458,9 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.force('collision', d3.forceCollide().radius(radius))
 				.on("tick", ticked);
 
-			const drag = simulation => {
+			const drag = s => {
 				function dragstarted(d) {
-					if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+					if (!d3.event.active) s.alphaTarget(0.3).restart();
 					d.fx = d.x;
 					d.fy = d.y;
 				}
@@ -470,7 +471,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				}
 
 				function dragended(d) {
-					if (!d3.event.active) simulation.alphaTarget(0);
+					if (!d3.event.active) s.alphaTarget(0);
 					d.fx = null;
 					d.fy = null;
 				}
@@ -896,7 +897,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 		$('#subscribe-configuration-prov > .tab-content').append($container);
 		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
-		var $tab = _('prov-filters');
+		let $tab = _('prov-filters');
 		$tab.off('change', '.toggle-advanced').on('change', '.toggle-advanced', () => $tab.toggleClass('advanced'));
 		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
 		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
