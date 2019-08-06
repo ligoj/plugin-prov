@@ -105,18 +105,18 @@ define(['d3', 'jquery'], function (d3) {
             var legend = params.legend = svg.selectAll('.legend')
                 .data(clusterNames)
                 .enter().append('g')
-                .attr('class', 'legend');
+                .attr('class', 'legend')
+                .on('click', function (d) {
+                    chosen.cluster = chosen.cluster === d ? null : d;
+                    refresh();
+                });
 
             legend.append('rect')
                 .attr('x', margin.left - 63)
                 .attr('y', (_, i) => 20 * (clusterNames.length - i))
                 .attr('height', 18)
                 .attr('width', 18)
-                .attr('fill', color)
-                .on('click', function (d) {
-                    chosen.cluster = chosen.cluster === d ? null : d;
-                    refresh();
-                });
+                .attr('fill', color);
 
             legend.append('text')
                 .attr('x', margin.left - 70)
