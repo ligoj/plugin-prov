@@ -107,6 +107,12 @@
   color: #f5afafbd;
 }
 
+.prov-filters .fa-stack > .fa-expand-arrows-alt {
+  margin-top: -7px;
+  margin-left: -4px;
+  color: #bdb5b5;
+}
+
 .prov-filters .fa-stack > span {
   position: absolute;
   color: #f8f8f8;
