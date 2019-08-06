@@ -19,7 +19,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 		var $tr = $(`
 		<tr>
 			<td class="hidden-xs"><input type="text" class="form-control network-name" maxlength="100"/></td>
-			<td><input type="text" required class="form-control network-peer" autocomplete="off" placeholder="${$cascade.$messages[inbound?'source':'target']}" /></td>
+			<td><input type="text" required class="form-control network-peer" autocomplete="off" placeholder="${$cascade.$messages[inbound ? 'source' : 'target']}" /></td>
 			<td><input type="number" min="1" max="65535" required autocomplete="off" class="form-control network-port"/></td>
 			<td><input type="number" min="0" autocomplete="off" class="form-control network-rate" /></td>
 			<td><input type="number" min="0" autocomplete="off" class="form-control network-throughput"/></td>
@@ -101,8 +101,9 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 				success: function () {
 					// Update the modal
 					// Remove the previous links
-					for (var i = networks.length; i-- > 0;) {
-						var link = networks[i];
+					var link, i;
+					for (i = networks.length; i-- > 0;) {
+						link = networks[i];
 						if (link.sourceType === resourceType && link.source === resourceId || link.targetType === resourceType && link.target === resourceId) {
 							// Delete this old link
 							networks.splice(i, 1);

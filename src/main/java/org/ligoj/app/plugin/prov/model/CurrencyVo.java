@@ -17,6 +17,11 @@ public class CurrencyVo extends ProvCurrency {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Amount of quotes using this currency.
+	 */
+	private long nbQuotes;
+
+	/**
 	 * @param parent   The {@link ProvCurrency} entity.
 	 * @param nbQuotes The amount of quotes using this currency.
 	 */
@@ -28,9 +33,4 @@ public class CurrencyVo extends ProvCurrency {
 		setDescription(parent.getDescription());
 		setRate(parent.getRate());
 	}
-
-	/**
-	 * Amount of quotes using this currency.
-	 */
-	private long nbQuotes;
 }

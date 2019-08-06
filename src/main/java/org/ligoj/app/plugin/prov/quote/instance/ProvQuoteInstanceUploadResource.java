@@ -117,14 +117,13 @@ public class ProvQuoteInstanceUploadResource {
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
-	private static class UploadContext {
-		Map<String, ProvQuoteInstance> previous;
-		ProvQuote quote;
-
-	}
-
 	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, UploadContext, Integer>> mergers = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
+
+	private static class UploadContext {
+		private Map<String, ProvQuoteInstance> previous;
+		private ProvQuote quote;
+	}
 
 	/**
 	 * Insert mode.

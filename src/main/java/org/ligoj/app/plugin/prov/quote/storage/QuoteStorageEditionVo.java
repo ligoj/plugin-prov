@@ -94,6 +94,11 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	@Positive
 	private Integer subscription;
 
+	/**
+	 * The tags to override when not <code>null</code>.
+	 */
+	private List<TagVo> tags;
+
 	@Override
 	public Integer getInstance() {
 		return getQuoteInstance();
@@ -110,9 +115,4 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	public String getLocationName() {
 		return getLocation();
 	}
-
-	/**
-	 * The tags to override when not <code>null</code>.
-	 */
-	private List<TagVo> tags;
 }

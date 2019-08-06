@@ -196,8 +196,9 @@ define(['jquery'], function ($) {
 				return true;
 			}
 			var found = false;
+			var i;
 			if (filter.specificOrKeys.length) {
-				for (var i = 0; i < filter.specificOrKeys.length; i++) {
+				for (i = 0; i < filter.specificOrKeys.length; i++) {
 					if (filter.specific[filter.specificOrKeys[i]](dataFilter, data)) {
 						found = true;
 						break;
@@ -210,7 +211,7 @@ define(['jquery'], function ($) {
 			}
 			if (filter.specificAndKeys.length) {
 				// All filters must match
-				for (var i = 0; i < filter.specificAndKeys.length; i++) {
+				for (i = 0; i < filter.specificAndKeys.length; i++) {
 					if (!filter.specific[filter.specificAndKeys[i]](dataFilter, data)) {
 						return false;
 					}

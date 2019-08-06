@@ -1,8 +1,8 @@
 define(['d3'], function (d3) {
 
-/*
- * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
- */
+	/*
+	 * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+	 */
 	(function (d3) {
 		var idGenerator = (function () {
 			var count = 0;
@@ -237,28 +237,29 @@ define(['d3'], function (d3) {
 				// Make the wave rise. wave and waveGroup are separate so that horizontal and vertical movement can be controlled independently.
 				var waveGroupXPosition = fillCircleMargin + fillCircleRadius * 2 - waveClipWidth;
 
+				var animateWave = function () {
+					wave.transition()
+						.duration(config.get("waveAnimateTime"))
+						.ease(d3.easeLinear)
+						.attr('transform', 'translate(' + waveAnimateScale(1) + ',0)')
+						.on("end", function () {
+							var counter = config.get("counter");
+							if (counter % 2 === 0) {
+								if (typeof config.get("waveAnimateTimeInit") === 'undefined') {
+									config.set("waveAnimateTimeInit", config.get("waveAnimateTime"));
+								}
+								config.set("waveAnimateTime", config.get("waveAnimateTime") * 1.5);
+							}
+							if (counter <= 6) {
+								config.set("counter", counter + 1);
+								wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
+								animateWave();
+							}
+						});
+				};
+
 				if (config.get("waveAnimate")) {
 					config.set("counter", 0);
-					var animateWave = function () {
-						wave.transition()
-							.duration(config.get("waveAnimateTime"))
-							.ease(d3.easeLinear)
-							.attr('transform', 'translate(' + waveAnimateScale(1) + ',0)')
-							.on("end", function () {
-								var counter = config.get("counter");
-								if (counter %2  === 0) {
-									if (typeof config.get("waveAnimateTimeInit") === 'undefined') {
-										config.set("waveAnimateTimeInit", config.get("waveAnimateTime"));
-									}
-									config.set("waveAnimateTime", config.get("waveAnimateTime") * 1.5);
-								}
-								if (counter <= 6) {
-									config.set("counter", counter + 1);
-									wave.attr('transform', 'translate(' + waveAnimateScale(0) + ',0)');
-									animateWave();
-								}
-							});
-					};
 					animateWave();
 				}
 

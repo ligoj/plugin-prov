@@ -8,17 +8,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		var current = $cascade.$current;
 		var subscription = current.currentSubscription;
 		var conf = subscription.configuration;
-		$('#subscribe-configuration-prov > .tab-content').append($container);
-		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
-
-		var $tab = _('prov-filters');
-		$tab.off('change', '.toggle-advanced').on('change', '.toggle-advanced', () => $tab.toggleClass('advanced'));
-		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
-		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
-			current.$super('requireService')(current.$parent, 'service:prov', function ($service) {
-				configure($service, conf);
-			});
-		});
 
 		const useTransition = false;
 		const useApplicationLinkHelper = false;
@@ -28,6 +17,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		const applicationStrength = 0.04;
 		const dashedLinkLimit = 500;
 		const opacityFade = .15;
+		const opacityDefault = 1;
 		const animationLinkLimit = 100;
 		const usageDefaultColor = '#058aec';
 		const usageToColor = [
@@ -565,8 +555,27 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				};
 			}
 
-			//Highlight hovered over chord
-			const opacityDefault = 1;
+			const formatApplication = n => '<i class="fas fa-layer-group fa-fw"></i>' + (n.name || n.id);
+			const formatters = {
+				'instance': $service.formatQuoteResource,
+				'database': $service.formatQuoteResource,
+				'application': formatApplication,
+			};
+			const throughput = t => '@' + formatManager.formatSize((t || 0) * 1024, 3) + '/s';
+			const frequencyOpt = f => f > 1 ? 'x' + f : '';
+			const throughputOpt = t => t ? throughput(t) : '';
+			const toName = d => d.name || d.id;
+			const formatNode = n => (formatters[n.resourceType] || formatters[n.type] || toName)(n);
+			const title = key => key ? '<br><strong>' + ($service.$messages['service:prov:' + key] || current.$messages['service:prov:' + key] || $service.$messages[key] || current.$messages[key] || key) + '</strong>: ' : '';
+			const countCoupled = (d, type, excludedType) => {
+				let count = 0;
+				for (const link of links) {
+					if ((link.source.name === d.name || link.target.name === d.name) && (typeof type === 'undefined' || type === null || link.type === type) && (typeof excludedType === 'undefined' || excludedType === null || link.type !== excludedType)) {
+						count++;
+					}
+				}
+				return count;
+			};
 
 			const toHtmlListeners = ls =>
 				ls.map(l => `&nbsp; &#8594; ${l.target.host}${(l.target.name && l.target.name !== l.target.host) ? '(' + l.target.name + ')' : ''}:${l.target.port}`).join('<br>');
@@ -592,17 +601,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					return `&nbsp; ${vh}&#8594; localhost`;
 				}).join('<br>')
 
-			const formatApplication = n => '<i class="fas fa-layer-group fa-fw"></i>' + (n.name || n.id);
-			const formatters = {
-				'instance': $service.formatQuoteResource,
-				'database': $service.formatQuoteResource,
-				'application': formatApplication,
-			};
-			const throughput = t => '@' + formatManager.formatSize((t || 0) * 1024, 3) + '/s';
-			const frequencyOpt = f => f > 1 ? 'x' + f : '';
-			const throughputOpt = t => t ? throughput(t) : '';
-			const toName = d => d.name || d.id;
-			const formatNode = n => (formatters[n.resourceType] || formatters[n.type] || toName)(n);
 			const toHtml = d => {
 				if (d.frequency) {
 					// Link
@@ -641,8 +639,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					+ "<br><span class='coupled'><strong>Coupled</strong>: " + countCoupled(d, null, 'application') + '</span>';
 			};
 
-			const title = key => key ? '<br><strong>' + ($service.$messages['service:prov:' + key] || current.$messages['service:prov:' + key] || $service.$messages[key] || current.$messages[key] || key) + '</strong>: ' : '';
-
 			function toVolumes(node) {
 				let nVolumes = volumes.filter(v => v.node === node.id);
 				if (nVolumes.length) {
@@ -679,15 +675,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				});
 				return result;
 			}
-			const countCoupled = (d, type, excludedType) => {
-				let count = 0;
-				for (const link of links) {
-					if ((link.source.name === d.name || link.target.name === d.name) && (typeof type === 'undefined' || type === null || link.type === type) && (typeof excludedType === 'undefined' || excludedType === null || link.type !== excludedType)) {
-						count++;
-					}
-				}
-				return count;
-			};
 			const mouseoverNodeOrLink = (d, i) =>
 				tooltip
 					.style("left", d3.event.pageX + 12 + "px")
@@ -906,6 +893,17 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				render($service, nodes, data.volumes, nodesById, applicationsById, osById, majorById, environmentsById, tagsById, data_links);
 			});
 		}
+
+		$('#subscribe-configuration-prov > .tab-content').append($container);
+		$('#service-prov-menu > .tab-content').append($view.find('.tab-pane.tab-network.prov-filters').clone());
+		var $tab = _('prov-filters');
+		$tab.off('change', '.toggle-advanced').on('change', '.toggle-advanced', () => $tab.toggleClass('advanced'));
+		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
+		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
+			current.$super('requireService')(current.$parent, 'service:prov', function ($service) {
+				configure($service, conf);
+			});
+		});
 	}
 
 	var self = {
