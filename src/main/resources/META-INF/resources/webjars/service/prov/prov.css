@@ -337,6 +337,10 @@ img.flag-icon.prov-location-flag {
   left: -11px;
 }
 
+#prov-sunburst .node, .prov-barchart-svg .legend, .prov-barchart-svg .bar {
+  cursor: pointer;
+}
+
 #service-prov-menu .nav > li {
   margin-left: 7px;
 }
