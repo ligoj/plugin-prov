@@ -888,7 +888,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 		$tab.off('change', '.toggle-animated').on('change', '.toggle-animated', () => $container.toggleClass('disable-animated'));
 		$('#prov-filters-trigger').off('show.bs.tab').on('show.bs.tab', function () {
 			current.$super('requireService')(current.$parent, 'service:prov', function ($service) {
-				configure($service, conf);
+				configure($service);
 			});
 		});
 	}

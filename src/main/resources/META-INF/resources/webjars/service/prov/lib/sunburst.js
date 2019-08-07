@@ -168,9 +168,9 @@ define(['d3', 'jquery'], function (d3, $) {
 				.style('opacity', 1);
 		}
 
-		sunburst.update = function (data) {
+		sunburst.update = function (d) {
 			sunburst.path
-				.data(partition.value(data).nodes)
+				.data(partition.value(d).nodes)
 				.transition()
 				.duration(1500)
 				.attrTween('d', sunburst.arcTween);
