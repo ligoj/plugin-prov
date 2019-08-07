@@ -377,14 +377,11 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				let node = enabledInstancesById[n];
 				if ((!filterOs || (node.os && enabledOsById[node.os]))
 					&& (!filterMajor || (node.major && enabledMajorById[node.major]))
+					&& (!filterInstances || enabledInstancesById[node.id])
 					&& (!filterTags || (node.tags && hasIntersection(enabledTagsById, node.tags)))
 					&& (!filterEnvironments || (node.env && enabledEnvironmentsById[node.env]))
 					&& (!filterApplications || (node.applications && hasIntersection(enabledApplicationsById, node.applications)))) {
 					addNodeAndApplicationLinks(node, enabledApplicationsById);
-				} else if (!filterOs && !filterMajor && !filterTags && !filterEnvironments && !filterApplications) {
-					// Not filtered node, add it
-					filteredNodes.push($.extend({}, node));
-					connectedNodes[node.id || node.name] = true;
 				}
 			}
 
