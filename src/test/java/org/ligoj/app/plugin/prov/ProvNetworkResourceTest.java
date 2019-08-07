@@ -142,11 +142,17 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 		Assertions.assertEquals(server1, list.get(1).getSource());
 		Assertions.assertEquals(ResourceType.INSTANCE, list.get(1).getSourceType());
+		Assertions.assertEquals("key", list.get(1).getName());
 		Assertions.assertEquals(1, list.get(1).getPort());
 		Assertions.assertEquals(2, list.get(1).getRate());
 		Assertions.assertEquals(3, list.get(1).getThroughput());
 		Assertions.assertEquals(storage1, list.get(1).getTarget());
 		Assertions.assertEquals(ResourceType.STORAGE, list.get(1).getTargetType());
+		final var networks = resource.getConfiguration(subscription).getNetworks();
+		Assertions.assertEquals(2, networks.size());
+		Assertions.assertEquals(1, networks.get(0).getPort());
+		Assertions.assertEquals("key", list.get(0).getName());
+		Assertions.assertNotNull(list.get(0).getConfiguration());
 
 		// Replace the IO links to only one link server1->server3
 		io.clear();
@@ -156,11 +162,13 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(1, list2.size());
 		Assertions.assertEquals(server1, list2.get(0).getSource());
 		Assertions.assertEquals(server3, list2.get(0).getTarget());
+		Assertions.assertEquals(1, resource.getConfiguration(subscription).getNetworks().size());
 
 		// Remove all IO
 		io.clear();
 		networkResource.update(subscription, ResourceType.INSTANCE, server1, io);
 		Assertions.assertEquals(0, networkRepository.findAll(subscription).size());
+		Assertions.assertEquals(0, networks.size());
 	}
 
 	@Test
