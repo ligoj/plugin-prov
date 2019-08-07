@@ -5,7 +5,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 	function initialize() {
 		var $view = this.$view;
 		var $container = $view.find('#prov-assessment').clone();
-		var $frequencyModel,$frequencyWeight,$applications,$not_applications,$tags,$not_tags,$instances,$environments,$os,$major;
+		var $frequencyModel, $frequencyWeight, $applications, $not_applications, $tags, $not_tags, $instances, $environments, $os, $major;
 		var current = $cascade.$current;
 		var subscription = current.currentSubscription;
 		var conf = subscription.configuration;
@@ -83,15 +83,6 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			'2008': '5,5',
 			DEFAULT: ''
 		};
-		var $frequencyModel;
-		var $frequencyWeight;
-		var $applications;
-		var $not_applications;
-		var $tags;
-		var $not_tags;
-		var $instances;
-		var $environments;
-		var $os;
 
 		function initSelect2(type, byId, format) {
 			var array = [];
@@ -356,16 +347,16 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			// Filter the enabled nodes
 			var connectedNodes = {};
 			var connectedApplications = {};
-			var d3nodes = [];
-			var d3links = [];
+			var filteredNodes = [];
+			var filteredLinks = [];
 
-			function addApplicationLinks(node, applicationsById) {
+			function addApplicationLinks(node, filteredAppById) {
 				var id = node.id || node.name;
 				for (const appId of node.applications) {
-					if (showNeighboursApplication && !disabledApplicationsById[appId] || applicationsById[appId]) {
+					if (showNeighboursApplication && !disabledApplicationsById[appId] || filteredAppById[appId]) {
 						connectedApplications[appId] = true;
 
-						d3links.push({
+						filteredLinks.push({
 							source: id,
 							target: 'a' + appId,
 							strength: applicationStrength,
@@ -375,11 +366,11 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					}
 				}
 			}
-			function addNodeAndApplicationLinks(node, applicationsById) {
-				d3nodes.push($.extend({}, node));
+			function addNodeAndApplicationLinks(node, filteredAppById) {
+				filteredNodes.push($.extend({}, node));
 				var id = node.id || node.name;
 				connectedNodes[id] = true;
-				addApplicationLinks(node, applicationsById);
+				addApplicationLinks(node, filteredAppById);
 			}
 
 			for (const n of Object.keys(enabledInstancesById)) {
@@ -392,7 +383,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 					addNodeAndApplicationLinks(node, enabledApplicationsById);
 				} else if (!filterOs && !filterMajor && !filterTags && !filterEnvironments && !filterApplications) {
 					// Not filtered node, add it
-					d3nodes.push($.extend({}, node));
+					filteredNodes.push($.extend({}, node));
 					connectedNodes[node.id || node.name] = true;
 				}
 			}
@@ -402,9 +393,9 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			function addNeighbour(link, node) {
 				if (!hasIntersection(disabledApplicationsById, instancesById[node].applications)
 					&& !hasIntersection(disabledTagsById, instancesById[node].tags)) {
-					d3links.push($.extend({}, link));
+					filteredLinks.push($.extend({}, link));
 					if (!showNeighboursNodes[node]) {
-						d3nodes.push($.extend({}, instancesById[node]));
+						filteredNodes.push($.extend({}, instancesById[node]));
 						showNeighboursNodes[node] = true;
 						if (showNeighboursApplication) {
 							addApplicationLinks(instancesById[node], applicationsById);
@@ -415,7 +406,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			for (const link of links) {
 				if (connectedNodes[link.source] && connectedNodes[link.target]) {
-					d3links.push($.extend({}, link))
+					filteredLinks.push($.extend({}, link))
 				} else if (showNeighbours) {
 					if (connectedNodes[link.source] && instancesById[link.target]) {
 						addNeighbour(link, link.target)
@@ -423,22 +414,20 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 						addNeighbour(link, link.source)
 					}
 				}
-			};
+			}
 
 			// Add the enabled applications
 			for (const a of Object.keys(connectedApplications)) {
-				d3nodes.push($.extend({ id: 'a' + a, name: a, type: 'application' }, applicationsById[a]));
+				filteredNodes.push($.extend({ id: 'a' + a, name: a, type: 'application' }, applicationsById[a]));
 			}
 
 			Object.keys(showNeighboursNodes).forEach(n => connectedNodes[n] = true);
-			summary(nodes, applicationsById, links, connectedNodes, connectedApplications, d3links);
-			if (d3links.length > animationLinkLimit) {
+			summary(nodes, applicationsById, links, connectedNodes, connectedApplications, filteredLinks);
+			if (filteredLinks.length > animationLinkLimit) {
 				$container.removeClass('animated');
 			} else {
 				$container.addClass('animated');
 			}
-			nodes = d3nodes;
-			links = d3links;
 
 			var svg = d3.select('#prov-assessment svg');
 			svg.selectAll('svg').remove();
@@ -451,8 +440,8 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			//set up the simulation and add forces
 			const radius = d => d.radius === -1 ? 0 : (d.radius || (d.cpu ? 4 + d.cpu * 4 + d.ram / 5 / 1024 : 0));
-			const simulation = d3.forceSimulation(nodes)
-				.force("link", d3.forceLink(links).id(d => d.id).strength(link => link.strength))
+			const simulation = d3.forceSimulation(filteredNodes)
+				.force("link", d3.forceLink(filteredLinks).id(d => d.id).strength(link => link.strength))
 				.force("charge", d3.forceManyBody().strength(-100).distanceMin(radius))
 				.force("center", d3.forceCenter(width / 2, height / 2))
 				.force('collision', d3.forceCollide().radius(radius))
@@ -496,7 +485,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				if (other.name === node.name) {
 					return true;
 				}
-				for (const link of links) {
+				for (const link of filteredLinks) {
 					if ((link.source.name === other.name && link.target.name === node.name)
 						|| (link.target.name === other.name && link.source.name === node.name)) {
 						return true;
@@ -570,7 +559,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			const title = key => key ? '<br><strong>' + ($service.$messages['service:prov:' + key] || current.$messages['service:prov:' + key] || $service.$messages[key] || current.$messages[key] || key) + '</strong>: ' : '';
 			const countCoupled = (d, type, excludedType) => {
 				let count = 0;
-				for (const link of links) {
+				for (const link of filteredLinks) {
 					if ((link.source.name === d.name || link.target.name === d.name) && (typeof type === 'undefined' || type === null || link.type === type) && (typeof excludedType === 'undefined' || excludedType === null || link.type !== excludedType)) {
 						count++;
 					}
@@ -700,21 +689,21 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			var g = svg.append("g").attr("class", "everything");
 
 
-			function createSvgLinks(group, filter, width, style) {
+			function createSvgLinks(group, filter, strokeWidth, style) {
 				style(g.append("g")
 					.attr("class", group)
 					.selectAll("line")
-					.data(links)
+					.data(filteredLinks)
 					.enter()
 					.filter(filter)
 					.append("line")
-					.attr("stroke-width", width))
+					.attr("stroke-width", strokeWidth))
 					.on("mousemove", mouseoverNodeOrLink);
 			}
 
 			// Network links
 			createSvgLinks("network-links", d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application', linkWidth,
-				svg => svg.style("stroke-dasharray", ("2, 5"))
+				l => l.style("stroke-dasharray", ("2, 5"))
 					.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
 					.on('mouseover', fadeLink(opacityFade))
 			)
@@ -722,18 +711,18 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			if (useApplicationLinkHelper) {
 				// Non network links (invisible for easiest focus)
 				createSvgLinks("application-links-t", d => d.type === 'account' || d.type === 'application', applicationLinkWidth + 5,
-					svg => svg);
+					l => l);
 			}
 
 			if (useApplicationLink) {
 				// Non network visible link
 				createSvgLinks("application-links", d => d.type === 'account' || d.type === 'application', applicationLinkWidth,
-					svg => svg
+					l => l
 						.on('mouseover', fadeLink(opacityFade)));
 			}
 
 			// Adaptive performance
-			if (links.length > dashedLinkLimit) {
+			if (filteredLinks.length > dashedLinkLimit) {
 				$('.application-links').removeClass('dashed');
 				setTimeout(() => $('.application-links').addClass('dashed'), 10000);
 			} else {
@@ -744,13 +733,13 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			$container.off('mouseout').on('mouseout', mouseoutChord);
 
 			// Circles for the nodes 
-			var node = g.append("g")
+			var d3Nodes = g.append("g")
 				.attr("stroke-width", 3)
 				.style("font-weight", "normal")
 				.style("text-transform", "uppercase")
 				.style("font-family", "sans-serif")
 				.selectAll("circle")
-				.data(nodes)
+				.data(filteredNodes)
 				.enter()
 				.append("g")
 				.attr("class", d => 'node ' + d.type)
@@ -758,14 +747,14 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.on('mouseover', fadeNode(opacityFade))
 				.on("mousemove", mouseoverNodeOrLink);
 
-			node.filter(d => d.type !== 'elb')
+			d3Nodes.filter(d => d.type !== 'elb')
 				.append('circle')
 				.attr("stroke", circleColour)
 				.attr("stroke-dasharray", circleStyle)
 				.attr("r", radius)
 				.attr("fill", fillColour);
 
-			node.filter(d => d.type === 'elb')
+			d3Nodes.filter(d => d.type === 'elb')
 				.append('rect')
 				.attr("stroke", circleColour)
 				.attr("stroke-dasharray", circleStyle)
@@ -775,7 +764,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("ry", 10)
 				.attr("fill", fillColour);
 
-			node.filter(d => typeof d.icon !== 'undefined')
+			d3Nodes.filter(d => typeof d.icon !== 'undefined')
 				.append("svg:image")
 				.attr("xlink:href", d => d.icon)
 				.attr("x", d => -d.radius)
@@ -783,7 +772,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				.attr("height", d => 2 * d.radius)
 				.attr("width", d => 2 * d.radius);
 
-			node.filter(d => typeof d.icon === 'undefined')
+			d3Nodes.filter(d => typeof d.icon === 'undefined')
 				.append("text")
 				.text(d => d.name)
 				.attr("class", "text")
@@ -796,14 +785,14 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 				return d.frequencyModel || 0;
 			}
 
-			var lines = svg.selectAll("line");
+			let lines = svg.selectAll("line");
 			function ticked() {
 				lines
 					.attr("x1", d => d.source.x)
 					.attr("y1", d => d.source.y)
 					.attr("x2", d => d.target.x)
 					.attr("y2", d => d.target.y);
-				node.attr("transform", d => `translate(${d.x} ${d.y})`);
+				d3Nodes.attr("transform", d => `translate(${d.x} ${d.y})`);
 			}
 		}
 		function resetUi(data) {
@@ -824,7 +813,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 			$('#prov-filter-frequencyWeight').val(1);
 		}
 
-		function configure($service, conf) {
+		function configure($service) {
 			var data = {
 				nodes: conf.instances.map(n => {
 					var n2 = {};

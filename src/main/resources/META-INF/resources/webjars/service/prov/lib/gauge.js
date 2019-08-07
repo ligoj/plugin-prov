@@ -3,7 +3,7 @@ define(['d3'], function (d3) {
 	/*
 	 * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
 	 */
-	(function (d3) {
+	(function () {
 		var idGenerator = (function () {
 			var count = 0;
 			return function (prefix) {
@@ -97,23 +97,17 @@ define(['d3'], function (d3) {
 				var waveClipWidth = waveLength * waveClipCount;
 
 				// Rounding functions so that the correct number of decimal places is always displayed as the value counts up.
-				var textRounder = function (value) {
-					return Math.round(value);
-				};
+				let textRounder = Math.round;
 				if (parseFloat(textFinalValue) != parseFloat(textRounder(textFinalValue))) {
-					textRounder = function (value) {
-						return parseFloat(value).toFixed(1);
-					};
+					textRounder = v => parseFloat(v).toFixed(1);
 				}
 				if (parseFloat(textFinalValue) != parseFloat(textRounder(textFinalValue))) {
-					textRounder = function (value) {
-						return parseFloat(value).toFixed(2);
-					};
+					textRounder = v => parseFloat(v).toFixed(2);
 				}
 
 				// Data for building the clip wave area.
-				var data = [];
-				for (var i = 0; i <= 40 * waveClipCount; i++) {
+				let data = [];
+				for (let i = 0; i <= 40 * waveClipCount; i++) {
 					data.push({
 						x: i / (40 * waveClipCount),
 						y: (i / (40))
@@ -268,9 +262,9 @@ define(['d3'], function (d3) {
 					if (animateText) {
 						var textTween = function () {
 							var that = d3.select(this);
-							var i = d3.interpolate(from, to);
+							let int = d3.interpolate(from, to);
 							return function (t) {
-								that.text(textRounder(i(t)) + percentText);
+								that.text(textRounder(int(t)) + percentText);
 							};
 						};
 						text1.transition()
@@ -331,5 +325,5 @@ define(['d3'], function (d3) {
 				});
 			});
 		};
-	})(d3);
+	})();
 });

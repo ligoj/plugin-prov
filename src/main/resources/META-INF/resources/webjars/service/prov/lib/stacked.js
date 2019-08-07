@@ -257,28 +257,28 @@ define(['d3', 'jquery'], function (d3) {
                     d3.event.preventDefault();
                     refresh();
                 })
-                .on('click', function (d) {
+                .on('click', function (r) {
                     if (params.click) {
                         var isClicked = d.clicked;
                         if (params.clicked) {
                             // Uselect the previous selection
                             bar.selectAll('rect')
-                                .filter(d => d.clicked)
-                                .each(d => d.clicked = false)
+                                .filter(o => o.clicked)
+                                .each(o => o.clicked = false)
                                 .attr('class', '')
-                                .attr('fill', d => params.color(d.cluster));
+                                .attr('fill', o => params.color(o.cluster));
                         }
                         var bars = bar.selectAll('rect').filter(f => f.x === d.x);
                         if (isClicked) {
                             params.clicked = false;
                             bars.attr('class', 'selected')
-                                .attr('fill', d => d3.rgb(params.color(d.cluster)).brighter());
+                                .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
                         } else {
                             // Change the current selection
                             params.clicked = true;
-                            bars.each(d => d.clicked = true)
+                            bars.each(o => o.clicked = true)
                                 .attr('class', 'clicked')
-                                .attr('fill', d => d3.rgb(params.color(d.cluster)).darker());
+                                .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
                         }
                         params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
                     }
@@ -294,8 +294,8 @@ define(['d3', 'jquery'], function (d3) {
                         var bars1 = bar.selectAll('rect').filter(f => f.x === data1.x);
                         var bars2 = bar.selectAll('rect').filter(f => f.x === data2.x);
                         sameCost = clusterNames.filter(cluster => {
-                            var cost1 = bars1.filter(d => d.cluster === cluster);
-                            var cost2 = bars2.filter(d => d.cluster === cluster);
+                            var cost1 = bars1.filter(o => o.cluster === cluster);
+                            var cost2 = bars2.filter(o => o.cluster === cluster);
                             return cost1.size() && cost2.size() && cost1.data()[0].height0 === cost2.data()[0].height0;
                         }).length === clusterNames.length;
                     }
@@ -304,11 +304,11 @@ define(['d3', 'jquery'], function (d3) {
                     if (d.clicked) {
                         // Restore the clicked state of the full bar
                         bars.attr('class', 'clicked')
-                            .attr('fill', d => d3.rgb(params.color(d.cluster)).darker());
+                            .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
                     } else {
                         // Unselect the full bar
                         bars.attr('class', '')
-                            .attr('fill', d => params.color(d.cluster));
+                            .attr('fill', o => params.color(o.cluster));
                     }
                     svg.selectAll('.limit').remove();
                     if (params.hover && !sameCost) {
@@ -318,7 +318,7 @@ define(['d3', 'jquery'], function (d3) {
                 .on('mouseenter', function (d) {
                     var bars = bar.selectAll('rect')
                         .filter(f => f.x === d.x)
-                        .attr('fill', d => d3.rgb(params.color(d.cluster)).brighter());
+                        .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
                     if (d.clicked) {
                         bars.attr('class', 'clicked selected');
                     } else {
@@ -466,13 +466,13 @@ define(['d3', 'jquery'], function (d3) {
         function setUpColors() {
             return d3.scaleOrdinal(d3.schemeCategory10);
         }
-        function create(selector, selectorPercentCB, width, height, data, tooltip, hover, click, axisY, sort) {
+        function create(selector, selectorPercentCB, width, height, data, tooltipCB, hover, click, axisY, sort) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
             params.selector = selector;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
-            params.tooltip = tooltip;
+            params.tooltip = tooltipCB;
             params.hover = hover;
             params.click = click;
             params.clicked = null;

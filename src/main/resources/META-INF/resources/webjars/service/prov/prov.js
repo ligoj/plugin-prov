@@ -1365,7 +1365,6 @@ define(function () {
 							// Refresh the storage
 							var tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
-							var filterS = tableS.fnSettings().oPreviousSearch.sSearchAlt;
 							tableS.fnFilter('');
 						}
 						current.updateUiCost();

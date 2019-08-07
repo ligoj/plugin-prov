@@ -33,18 +33,18 @@ define([], function () {
             };
 
             var sum = 0;
-            $.each(configuration, function (command, configurationI) {
+            $.each(configuration, function (command, confI) {
                 if ($.inArray(command, sequence) === -1) {
-                    configurationI.width = 0;
+                    confI.width = 0;
                 } else {
-                    sum += configurationI.width;
+                    sum += confI.width;
                 }
             });
 
             // Complement to 100%
             var ratio = 100 / (sum || 0.01);
-            $.each(configuration, function (command, configurationI) {
-                configurationI.width *= ratio;
+            $.each(configuration, function (command, confI) {
+                confI.width *= ratio;
             });
 
             // Update the progress tooltips and witdh

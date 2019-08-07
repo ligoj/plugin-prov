@@ -128,9 +128,9 @@ define(['d3', 'jquery'], function (d3, $) {
 					};
 				})
 				.selectAll('path')
-				.attrTween('d', function (d) {
+				.attrTween('d', function (a) {
 					return function () {
-						return arc(d);
+						return arc(a);
 					};
 				});
 		}

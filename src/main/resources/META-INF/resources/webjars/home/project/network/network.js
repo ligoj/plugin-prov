@@ -121,7 +121,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 						delete link.peer;
 						delete link.peerType;
 						networks.push(link);
-					};
+					}
 
 					$popup.modal('hide');
 				}
