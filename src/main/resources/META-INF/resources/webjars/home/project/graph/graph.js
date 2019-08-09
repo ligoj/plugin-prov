@@ -700,8 +700,7 @@ define(['jquery', 'cascade', 'd3'], function ($, $cascade, d3) {
 
 			// Network links
 			createSvgLinks("network-links", d => (typeof d.type) !== 'undefined' && d.type !== 'account' && d.type !== 'provider' && d.type !== 'application', linkWidth,
-				l => l.style("stroke-dasharray", ("2, 5"))
-					.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
+				l => l.attr("class", d => d.type + (d.reverseFrequency ? ' dual' : ''))
 					.on('mouseover', fadeLink(opacityFade))
 			)
 
