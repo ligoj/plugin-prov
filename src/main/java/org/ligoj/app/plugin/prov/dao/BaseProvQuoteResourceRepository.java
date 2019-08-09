@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -49,6 +50,15 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	@Query("FROM #{#entityName} AS qi INNER JOIN FETCH qi.price qsp INNER JOIN FETCH qsp.type"
 			+ " WHERE qi.configuration.subscription.id = :subscription")
 	List<C> findAll(int subscription);
+
+	/**
+	 * Return the quote item identifier from the related subscription.
+	 *
+	 * @param subscription The subscription identifier linking the quote.
+	 * @return The resource quote identifiers with the optional linked instance.
+	 */
+	@Query("SELECT id FROM #{#entityName} AS qi WHERE qi.configuration.subscription.id = :subscription")
+	Set<Integer> findAllId(int subscription);
 
 	/**
 	 * Return used price codes among the quotes relate to a given node.

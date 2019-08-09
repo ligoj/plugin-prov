@@ -28,6 +28,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -101,13 +102,26 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 	private NetworkVo newVo(final boolean inbound, final int peer, final ResourceType type) {
 		final var vo = new NetworkVo();
 		vo.setInbound(inbound);
+		fill(peer, type, vo);
+		return vo;
+	}
+
+	private NetworkFullVo newFullVo(final int source, final ResourceType sourceType, final int peer,
+			final ResourceType type) {
+		final var vo = new NetworkFullVo();
+		vo.setSource(source);
+		vo.setSourceType(sourceType);
+		fill(peer, type, vo);
+		return vo;
+	}
+
+	private void fill(final int peer, final ResourceType type, final NetworkVo vo) {
 		vo.setName("key");
 		vo.setPeer(peer);
 		vo.setPeerType(type);
 		vo.setPort(1);
 		vo.setRate(2);
 		vo.setThroughput(3);
-		return vo;
 	}
 
 	private List<NetworkVo> prepare() {
@@ -123,6 +137,49 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	void updateAll() {
+		final List<NetworkFullVo> io = new ArrayList<>();
+		final var server1 = qiRepository.findByName("server1").getId();
+		final var server2 = qiRepository.findByName("server2").getId();
+		final var server3 = qiRepository.findByName("server3").getId();
+		final var storage1 = qsRepository.findByName("server1-root").getId();
+
+		io.add(newFullVo(server2, ResourceType.INSTANCE, server1, ResourceType.INSTANCE));
+		io.add(newFullVo(server1, ResourceType.INSTANCE, storage1, ResourceType.STORAGE));
+		io.add(newFullVo(server3, ResourceType.INSTANCE, storage1, ResourceType.STORAGE));
+		networkResource.update(subscription, io);
+		var list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(3, list.size());
+		assertLink0(server1, server2, list);
+		assertLink1(server1, storage1, list);
+		Assertions.assertEquals(server3, list.get(2).getSource());
+		Assertions.assertEquals(storage1, list.get(2).getTarget());
+
+		// Idempotent
+		networkResource.update(subscription, io);
+		list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(3, list.size());
+		assertLink0(server1, server2, list);
+		assertLink1(server1, storage1, list);
+		Assertions.assertEquals(server3, list.get(2).getSource());
+		Assertions.assertEquals(storage1, list.get(2).getTarget());
+
+		// Remove all IO
+		io.clear();
+		networkResource.update(subscription, io);
+		list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(0, list.size());
+	}
+
+	@Test
+	void updateNotExistAll() {
+		final List<NetworkFullVo> io = new ArrayList<>();
+		final var server1 = qiRepository.findByName("server1").getId();
+		io.add(newFullVo(server1, ResourceType.INSTANCE, 0, ResourceType.INSTANCE));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.update(subscription, io));
+	}
+
+	@Test
 	void update() {
 		final List<NetworkVo> io = prepare();
 		final var server1 = qiRepository.findByName("server1").getId();
@@ -132,22 +189,8 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 		final var list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(2, list.size());
-		Assertions.assertEquals(server2, list.get(0).getSource());
-		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getSourceType());
-		Assertions.assertEquals(1, list.get(0).getPort());
-		Assertions.assertEquals(2, list.get(0).getRate());
-		Assertions.assertEquals(3, list.get(0).getThroughput());
-		Assertions.assertEquals(server1, list.get(0).getTarget());
-		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getTargetType());
-
-		Assertions.assertEquals(server1, list.get(1).getSource());
-		Assertions.assertEquals(ResourceType.INSTANCE, list.get(1).getSourceType());
-		Assertions.assertEquals("key", list.get(1).getName());
-		Assertions.assertEquals(1, list.get(1).getPort());
-		Assertions.assertEquals(2, list.get(1).getRate());
-		Assertions.assertEquals(3, list.get(1).getThroughput());
-		Assertions.assertEquals(storage1, list.get(1).getTarget());
-		Assertions.assertEquals(ResourceType.STORAGE, list.get(1).getTargetType());
+		assertLink0(server1, server2, list);
+		assertLink1(server1, storage1, list);
 		final var networks = resource.getConfiguration(subscription).getNetworks();
 		Assertions.assertEquals(2, networks.size());
 		Assertions.assertEquals(1, networks.get(0).getPort());
@@ -168,7 +211,28 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		io.clear();
 		networkResource.update(subscription, ResourceType.INSTANCE, server1, io);
 		Assertions.assertEquals(0, networkRepository.findAll(subscription).size());
-		Assertions.assertEquals(0, networks.size());
+		Assertions.assertEquals(0, resource.getConfiguration(subscription).getNetworks().size());
+	}
+
+	private void assertLink1(final Integer server1, final Integer storage1, final List<ProvNetwork> list) {
+		Assertions.assertEquals(server1, list.get(1).getSource());
+		Assertions.assertEquals(ResourceType.INSTANCE, list.get(1).getSourceType());
+		Assertions.assertEquals("key", list.get(1).getName());
+		Assertions.assertEquals(1, list.get(1).getPort());
+		Assertions.assertEquals(2, list.get(1).getRate());
+		Assertions.assertEquals(3, list.get(1).getThroughput());
+		Assertions.assertEquals(storage1, list.get(1).getTarget());
+		Assertions.assertEquals(ResourceType.STORAGE, list.get(1).getTargetType());
+	}
+
+	private void assertLink0(final Integer server1, final Integer server2, final List<ProvNetwork> list) {
+		Assertions.assertEquals(server2, list.get(0).getSource());
+		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getSourceType());
+		Assertions.assertEquals(1, list.get(0).getPort());
+		Assertions.assertEquals(2, list.get(0).getRate());
+		Assertions.assertEquals(3, list.get(0).getThroughput());
+		Assertions.assertEquals(server1, list.get(0).getTarget());
+		Assertions.assertEquals(ResourceType.INSTANCE, list.get(0).getTargetType());
 	}
 
 	@Test

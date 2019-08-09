@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.bootstrap.core.dao.RestRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 /**
@@ -17,10 +18,13 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 	/**
 	 * Return all {@link ProvNetwork} related to given subscription identifier.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
+	 * @param subscription The subscription identifier to match.
 	 * @return All {@link ProvNetwork} related to given subscription identifier.
 	 */
 	@Query("FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
 	List<ProvNetwork> findAll(int subscription);
+
+	@Modifying
+	@Query("DELETE FROM #{#entityName} WHERE configuration.id = :configuration")
+	void deleteAll(int configuration);
 }
