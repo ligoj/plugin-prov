@@ -4,10 +4,7 @@
 package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
 
-import org.hibernate.validator.constraints.Range;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 
 import lombok.Getter;
@@ -19,18 +16,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class NetworkVo {
-
-	/**
-	 * When <code>true</code> is inbound network. Otherwise, is outbound network. By default, is out.
-	 */
-	private boolean inbound;
-
-	/**
-	 * Optional name.
-	 */
-	@Size(min = 1, max = 255)
-	private String name;
+public class NetworkVo extends AbstractNetworkVo{
 
 	/**
 	 * The related peer resource identifier.
@@ -43,25 +29,5 @@ public class NetworkVo {
 	 */
 	@NotNull
 	private ResourceType peerType;
-
-	/**
-	 * The peer port number.
-	 */
-	@NotNull
-	@Range(min = 1, max = 65535)
-	private Integer port;
-
-	/**
-	 * Optional frequency. The period is not yet specified. Might be second, or month... Whatever, it should be fixed
-	 * for all work among the related subscription.
-	 */
-	@PositiveOrZero
-	private Integer rate;
-
-	/**
-	 * Optional throughput in KiB/s.
-	 */
-	@PositiveOrZero
-	private Integer throughput;
 
 }

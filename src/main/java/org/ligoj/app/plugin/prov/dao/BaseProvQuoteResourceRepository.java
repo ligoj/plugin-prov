@@ -55,10 +55,19 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	 * Return the quote item identifier from the related subscription.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
-	 * @return The resource quote identifiers with the optional linked instance.
+	 * @return The resource quote identifiers.
 	 */
 	@Query("SELECT id FROM #{#entityName} AS qi WHERE qi.configuration.subscription.id = :subscription")
 	Set<Integer> findAllId(int subscription);
+
+	/**
+	 * Return the quote item identifier from the related subscription with the related name.
+	 *
+	 * @param subscription The subscription identifier linking the quote.
+	 * @return The resource quote identifiers with its name.
+	 */
+	@Query("SELECT id, name FROM #{#entityName} AS qi WHERE qi.configuration.subscription.id = :subscription")
+	List<Object[]> findAllIdName(int subscription);
 
 	/**
 	 * Return used price codes among the quotes relate to a given node.

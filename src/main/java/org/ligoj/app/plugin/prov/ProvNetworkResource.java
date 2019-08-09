@@ -5,9 +5,12 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
@@ -23,6 +26,7 @@ import org.ligoj.app.plugin.prov.dao.ProvNetworkRepository;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -64,8 +68,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		repository.deleteAllBy("configuration.id", quote, new String[] { "targetType" }, type);
 	}
 
-	private void validityCheck(final ResourceType type, final Integer id,
-			final Map<ResourceType, Set<Integer>> existing) {
+	private void validateId(final ResourceType type, final Integer id, final Map<ResourceType, Set<Integer>> existing) {
 		if (!existing.get(type).contains(id)) {
 			throw new EntityNotFoundException(id.toString());
 		}
@@ -83,11 +86,8 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	@POST
 	@Path("{subscription:\\d+}/network")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void update(@PathParam("subscription") final int subscription, final List<NetworkFullVo> io) {
-
-		// First delete all IO of this subscription
-		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
-		repository.deleteAll(quote.getId());
+	public void updateAllById(@PathParam("subscription") final int subscription, final List<NetworkFullVo> io) {
+		final ProvQuote quote = deleteAll(subscription);
 
 		// Get all resources identifiers grouped by types
 		final Map<ResourceType, Set<Integer>> ids = new EnumMap<>(ResourceType.class);
@@ -95,10 +95,78 @@ public class ProvNetworkResource extends AbstractLazyResource {
 
 		io.stream().map(t -> {
 			// Check the peer is in this subscription
-			validityCheck(t.getPeerType(), t.getPeer(), ids);
-			validityCheck(t.getSourceType(), t.getSource(), ids);
+			validateId(t.getPeerType(), t.getPeer(), ids);
+			validateId(t.getSourceType(), t.getSource(), ids);
 			return newNetwork(t.getSourceType(), t.getSource(), quote, t);
 		}).forEach(repository::save);
+	}
+
+	/**
+	 * Update the network of all resources using their name instead of their identifier. All previous links associated
+	 * to the subscription are deleted and replaced by the given ones.
+	 *
+	 * @param subscription The subscription identifier, will be used to filter the networks from the associated
+	 *                     provider.
+	 * @param io           The new network links related to the subscription.
+	 * @see #updateAllById(int, List)
+	 */
+	@PUT
+	@POST
+	@Path("{subscription:\\d+}/network-name")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateAllByName(@PathParam("subscription") final int subscription, final List<NetworkFullByNameVo> io) {
+		final ProvQuote quote = deleteAll(subscription);
+
+		// Get all resources identifiers grouped by types
+		final Map<ResourceType, Map<Integer, String>> idAndNames = new EnumMap<>(ResourceType.class);
+		Arrays.stream(ResourceType.values()).forEach(t -> idAndNames.put(t, getRepository(t).findAllIdName(subscription)
+				.stream().collect(Collectors.toMap(o -> (Integer) o[0], o -> (String) o[1]))));
+
+		// Build a reversed map with duplicated name handling
+		final Map<ResourceType, Map<String, Integer>> nameAndIds = new EnumMap<>(ResourceType.class);
+		final Map<String, Integer> counters = new HashMap<>();
+		Arrays.stream(ResourceType.values()).forEach(t -> {
+			final Map<String, Integer> names = new HashMap<>();
+			nameAndIds.put(t, names);
+			idAndNames.get(t).forEach((id, name) -> {
+				counters.computeIfPresent(name, (n, o) -> 2);
+				counters.computeIfAbsent(name, n -> 1);
+				names.computeIfAbsent(name, n -> id);
+			});
+		});
+		io.stream().map(n -> {
+			// Check the peer is in this subscription
+			final var entity = new ProvNetwork();
+			validateName(nameAndIds, counters, n.getSource(), entity::setSource, entity::setSourceType);
+			validateName(nameAndIds, counters, n.getPeer(), entity::setTarget, entity::setTargetType);
+			return copyNetworkData(quote, n, entity);
+		}).forEach(repository::save);
+	}
+
+	/**
+	 * Validate the given name can be resolved to an unique resource identifier.
+	 */
+	private void validateName(final Map<ResourceType, Map<String, Integer>> nameAndIds,
+			final Map<String, Integer> counters, final String name, final Consumer<Integer> setId,
+			Consumer<ResourceType> setType) {
+		if (!counters.containsKey(name)) {
+			// No resource with this name has been found
+			throw new EntityNotFoundException(name);
+		}
+		// At least one resource with this name has been found
+		ValidationJsonException.assertTrue(counters.get(name).intValue() == 1, "ambiguous-name", "name", name);
+
+		nameAndIds.entrySet().stream().filter(e -> e.getValue().containsKey(name)).limit(1).forEach(e -> {
+			setId.accept(e.getValue().get(name));
+			setType.accept(e.getKey());
+		});
+	}
+
+	private ProvQuote deleteAll(final int subscription) {
+		// First delete all IO of this subscription
+		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
+		repository.deleteAll(quote.getId());
+		return quote;
 	}
 
 	/**
@@ -128,6 +196,9 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		}).forEach(repository::save);
 	}
 
+	/**
+	 * Create an new {@link ProvNetwork} instance from the user data. Identifiers and consistency are not checked.
+	 */
 	private ProvNetwork newNetwork(final ResourceType type, final Integer id, final ProvQuote quote,
 			final NetworkVo t) {
 		final ProvNetwork entity = new ProvNetwork();
@@ -146,12 +217,20 @@ public class ProvNetworkResource extends AbstractLazyResource {
 			entity.setTarget(t.getPeer());
 			entity.setTargetType(t.getPeerType());
 		}
-		entity.setName(t.getName());
-		entity.setPort(t.getPort());
-		entity.setRate(t.getRate());
-		entity.setThroughput(t.getThroughput());
-		entity.setConfiguration(quote);
+		copyNetworkData(quote, t, entity);
+		return entity;
+	}
 
+	/**
+	 * Copy the common network data to the given entity
+	 */
+	private <N extends AbstractNetworkVo> ProvNetwork copyNetworkData(final ProvQuote quote, final N vo,
+			final ProvNetwork entity) {
+		entity.setName(vo.getName());
+		entity.setPort(vo.getPort());
+		entity.setRate(vo.getRate());
+		entity.setThroughput(vo.getThroughput());
+		entity.setConfiguration(quote);
 		return entity;
 	}
 

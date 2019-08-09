@@ -39,6 +39,7 @@ import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -115,6 +116,17 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		return vo;
 	}
 
+	private NetworkFullByNameVo newFullByNameVo(final String source, final String peer) {
+		final var vo = new NetworkFullByNameVo();
+		vo.setSource(source);
+		vo.setPeer(peer);
+		vo.setName("key");
+		vo.setPort(1);
+		vo.setRate(2);
+		vo.setThroughput(3);
+		return vo;
+	}
+
 	private void fill(final int peer, final ResourceType type, final NetworkVo vo) {
 		vo.setName("key");
 		vo.setPeer(peer);
@@ -137,7 +149,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	void updateAll() {
+	void updateAllById() {
 		final List<NetworkFullVo> io = new ArrayList<>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		final var server2 = qiRepository.findByName("server2").getId();
@@ -147,7 +159,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		io.add(newFullVo(server2, ResourceType.INSTANCE, server1, ResourceType.INSTANCE));
 		io.add(newFullVo(server1, ResourceType.INSTANCE, storage1, ResourceType.STORAGE));
 		io.add(newFullVo(server3, ResourceType.INSTANCE, storage1, ResourceType.STORAGE));
-		networkResource.update(subscription, io);
+		networkResource.updateAllById(subscription, io);
 		var list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(3, list.size());
 		assertLink0(server1, server2, list);
@@ -156,7 +168,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(storage1, list.get(2).getTarget());
 
 		// Idempotent
-		networkResource.update(subscription, io);
+		networkResource.updateAllById(subscription, io);
 		list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(3, list.size());
 		assertLink0(server1, server2, list);
@@ -166,17 +178,74 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 		// Remove all IO
 		io.clear();
-		networkResource.update(subscription, io);
+		networkResource.updateAllById(subscription, io);
 		list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(0, list.size());
 	}
 
 	@Test
-	void updateNotExistAll() {
+	void updateAllByName() {
+		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		final var server1 = qiRepository.findByName("server1").getId();
+		final var server2 = qiRepository.findByName("server2").getId();
+		final var server3 = qiRepository.findByName("server3").getId();
+		final var storage1 = qsRepository.findByName("server1-root").getId();
+
+		io.add(newFullByNameVo("server2", "server1"));
+		io.add(newFullByNameVo("server1", "server1-root"));
+		io.add(newFullByNameVo("server3", "server1-root"));
+		networkResource.updateAllByName(subscription, io);
+		var list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(3, list.size());
+		assertLink0(server1, server2, list);
+		assertLink1(server1, storage1, list);
+		Assertions.assertEquals(server3, list.get(2).getSource());
+		Assertions.assertEquals(storage1, list.get(2).getTarget());
+
+		// Idempotent
+		networkResource.updateAllByName(subscription, io);
+		list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(3, list.size());
+		assertLink0(server1, server2, list);
+		assertLink1(server1, storage1, list);
+		Assertions.assertEquals(server3, list.get(2).getSource());
+		Assertions.assertEquals(storage1, list.get(2).getTarget());
+
+		// Remove all IO
+		io.clear();
+		networkResource.updateAllByName(subscription, io);
+		list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(0, list.size());
+	}
+
+	@Test
+	void updateAllByNameAmbiguous() {
+		final var storage1 = qsRepository.findByName("server1-root");
+		storage1.setName("server1");
+		em.merge(storage1);
+		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		io.add(newFullByNameVo("server2", "server1"));
+		Assertions.assertThrows(ValidationJsonException.class, () -> networkResource.updateAllByName(subscription, io));
+	}
+
+	@Test
+	void updateAllByNameNotExistSource() {
+		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
+				Collections.singletonList(newFullByNameVo("serverYYY", "server1"))));
+	}
+
+	@Test
+	void updateAllByNameNotExistTarget() {
+		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
+				Collections.singletonList(newFullByNameVo("server1", "serverYYY"))));
+	}
+
+	@Test
+	void updateNotExistAllById() {
 		final List<NetworkFullVo> io = new ArrayList<>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		io.add(newFullVo(server1, ResourceType.INSTANCE, 0, ResourceType.INSTANCE));
-		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.update(subscription, io));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllById(subscription, io));
 	}
 
 	@Test
