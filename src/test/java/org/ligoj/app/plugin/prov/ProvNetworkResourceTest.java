@@ -23,6 +23,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvNetworkRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -81,6 +82,9 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
+
+	@Autowired
+	private ProvStoragePriceRepository spRepository;
 
 	@Autowired
 	private ConfigurationResource configuration;
@@ -226,6 +230,16 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		final List<NetworkFullByNameVo> io = new ArrayList<>();
 		io.add(newFullByNameVo("server2", "server1"));
 		Assertions.assertThrows(ValidationJsonException.class, () -> networkResource.updateAllByName(subscription, io));
+	}
+
+	@Test
+	void updateAllByNameNotNetworkStorage() {
+		final var storage1 = qsRepository.findByName("server1-root");
+		storage1.setPrice(spRepository.findByExpected("code", "S3"));
+		em.merge(storage1);
+		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		io.add(newFullByNameVo("server2", "server1-root"));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription, io));
 	}
 
 	@Test

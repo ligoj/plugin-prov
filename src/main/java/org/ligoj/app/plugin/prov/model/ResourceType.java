@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import lombok.Getter;
+
 /**
  * A quote resource type.
  */
@@ -11,20 +13,27 @@ public enum ResourceType {
 	/**
 	 * Storage resource.
 	 */
-	STORAGE,
+	STORAGE(true),
 
 	/**
 	 * Instance resource.
 	 */
-	INSTANCE,
+	INSTANCE(true),
 
 	/**
 	 * Support resource.
 	 */
-	SUPPORT,
+	SUPPORT(false),
 
 	/**
 	 * Database resource
 	 */
-	DATABASE
+	DATABASE(true);
+
+	@Getter
+	private boolean network;
+
+	private ResourceType(boolean network) {
+		this.network = network;
+	}
 }

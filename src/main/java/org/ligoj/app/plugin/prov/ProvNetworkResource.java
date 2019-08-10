@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -83,7 +82,6 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 * @param io           The new network links related to the subscription.
 	 */
 	@PUT
-	@POST
 	@Path("{subscription:\\d+}/network")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void updateAllById(@PathParam("subscription") final int subscription, final List<NetworkFullVo> io) {
@@ -91,7 +89,8 @@ public class ProvNetworkResource extends AbstractLazyResource {
 
 		// Get all resources identifiers grouped by types
 		final Map<ResourceType, Set<Integer>> ids = new EnumMap<>(ResourceType.class);
-		Arrays.stream(ResourceType.values()).forEach(t -> ids.put(t, getRepository(t).findAllId(subscription)));
+		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
+				.forEach(t -> ids.put(t, getRepository(t).findAllNetworkId(subscription)));
 
 		io.stream().map(t -> {
 			// Check the peer is in this subscription
@@ -111,7 +110,6 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 * @see #updateAllById(int, List)
 	 */
 	@PUT
-	@POST
 	@Path("{subscription:\\d+}/network-name")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void updateAllByName(@PathParam("subscription") final int subscription, final List<NetworkFullByNameVo> io) {
@@ -119,13 +117,14 @@ public class ProvNetworkResource extends AbstractLazyResource {
 
 		// Get all resources identifiers grouped by types
 		final Map<ResourceType, Map<Integer, String>> idAndNames = new EnumMap<>(ResourceType.class);
-		Arrays.stream(ResourceType.values()).forEach(t -> idAndNames.put(t, getRepository(t).findAllIdName(subscription)
-				.stream().collect(Collectors.toMap(o -> (Integer) o[0], o -> (String) o[1]))));
+		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
+				.forEach(t -> idAndNames.put(t, getRepository(t).findAllNetworkIdName(subscription).stream()
+						.collect(Collectors.toMap(o -> (Integer) o[0], o -> (String) o[1]))));
 
 		// Build a reversed map with duplicated name handling
 		final Map<ResourceType, Map<String, Integer>> nameAndIds = new EnumMap<>(ResourceType.class);
 		final Map<String, Integer> counters = new HashMap<>();
-		Arrays.stream(ResourceType.values()).forEach(t -> {
+		idAndNames.keySet().forEach(t -> {
 			final Map<String, Integer> names = new HashMap<>();
 			nameAndIds.put(t, names);
 			idAndNames.get(t).forEach((id, name) -> {
@@ -134,13 +133,15 @@ public class ProvNetworkResource extends AbstractLazyResource {
 				names.computeIfAbsent(name, n -> id);
 			});
 		});
-		io.stream().map(n -> {
+		io.forEach(n -> {
 			// Check the peer is in this subscription
 			final var entity = new ProvNetwork();
 			validateName(nameAndIds, counters, n.getSource(), entity::setSource, entity::setSourceType);
 			validateName(nameAndIds, counters, n.getPeer(), entity::setTarget, entity::setTargetType);
-			return copyNetworkData(quote, n, entity);
-		}).forEach(repository::save);
+			repository.save(copyNetworkData(quote, n, entity));
+		});
+		repository.flush();
+		return;
 	}
 
 	/**
@@ -180,7 +181,6 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 * @param io           The new network links related to the resource.
 	 */
 	@PUT
-	@POST
 	@Path("{subscription:\\d+}/network/{type}/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void update(@PathParam("subscription") final int subscription, @PathParam("type") final ResourceType type,

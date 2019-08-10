@@ -1,5 +1,5 @@
-node.id;name;latency;optimized;description;minimal;maximal;instanceType;iops;throughput;availability;durability9;databaseType;engine
-service:prov:test;storage1;GOOD;IOPS;storageD1;;;%;200;60;99.99;11;;
+node.id;name;latency;optimized;description;minimal;maximal;instanceType;iops;throughput;availability;durability9;databaseType;engine;network
+service:prov:test;storage1;GOOD;IOPS;storageD1;;;%;200;60;99.99;11;;;443/tcp
 service:prov:test;storage2;MEDIUM;THROUGHPUT;storageD2;512;512;%;;;;;;
 service:prov:test;storage3;LOW;DURABILITY;storageD3;;;;;;;;;
 service:prov:test;storage4;BEST;;storageD4;;;%;;;;;;

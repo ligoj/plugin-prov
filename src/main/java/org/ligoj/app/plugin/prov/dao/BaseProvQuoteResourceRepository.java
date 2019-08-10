@@ -52,22 +52,24 @@ public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource
 	List<C> findAll(int subscription);
 
 	/**
-	 * Return the quote item identifier from the related subscription.
+	 * Return the resource identifier from the related subscription, and only if this resource can be associated to
+	 * network.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
-	 * @return The resource quote identifiers.
+	 * @return The resource identifiers.
 	 */
 	@Query("SELECT id FROM #{#entityName} AS qi WHERE qi.configuration.subscription.id = :subscription")
-	Set<Integer> findAllId(int subscription);
+	Set<Integer> findAllNetworkId(int subscription);
 
 	/**
-	 * Return the quote item identifier from the related subscription with the related name.
+	 * Return the quote item identifier from the related subscription with the related name, and only if this resource
+	 * can be associated to network.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
-	 * @return The resource quote identifiers with its name.
+	 * @return The resource identifiers with its name.
 	 */
 	@Query("SELECT id, name FROM #{#entityName} AS qi WHERE qi.configuration.subscription.id = :subscription")
-	List<Object[]> findAllIdName(int subscription);
+	List<Object[]> findAllNetworkIdName(int subscription);
 
 	/**
 	 * Return used price codes among the quotes relate to a given node.

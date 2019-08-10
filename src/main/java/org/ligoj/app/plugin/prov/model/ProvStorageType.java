@@ -115,4 +115,10 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	@Positive
 	private Integer durability9;
 
+	/**
+	 * When not <code>null</code>, this storage is reachable using network using the given port by default. The string
+	 * is a network specification.
+	 */
+	private String network;
+
 }
