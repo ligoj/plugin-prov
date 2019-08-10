@@ -3,7 +3,6 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
@@ -27,7 +26,6 @@ public abstract class AbstractNetworkVo {
 	/**
 	 * The peer port number.
 	 */
-	@NotNull
 	@Range(min = 1, max = 65535)
 	private Integer port;
 
