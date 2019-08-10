@@ -40,7 +40,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 			},
 			data: () => {
 				return {
-					results: conf.instances.concat(conf.databases).concat(conf.storages).map(r => {
+					results: conf.instances.concat(conf.databases).concat(conf.storages.filter(s=>s.price.type.network)).map(r => {
 						r.text = r.name;
 						return r;
 					})
