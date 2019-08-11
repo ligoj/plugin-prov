@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -198,7 +199,8 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		io.add(newFullByNameVo("server2", "server1"));
 		io.add(newFullByNameVo("server1", "server1-root"));
 		io.add(newFullByNameVo("server3", "server1-root"));
-		networkResource.updateAllByName(subscription, io);
+		var errors = networkResource.updateAllByName(subscription, true, io);
+		Assertions.assertEquals(0, errors);
 		var list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(3, list.size());
 		assertLink0(server1, server2, list);
@@ -207,7 +209,8 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(storage1, list.get(2).getTarget());
 
 		// Idempotent
-		networkResource.updateAllByName(subscription, io);
+		errors = networkResource.updateAllByName(subscription, true, io);
+		Assertions.assertEquals(0, errors);
 		list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(3, list.size());
 		assertLink0(server1, server2, list);
@@ -217,7 +220,8 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 		// Remove all IO
 		io.clear();
-		networkResource.updateAllByName(subscription, io);
+		errors = networkResource.updateAllByName(subscription, true, io);
+		Assertions.assertEquals(0, errors);
 		list = networkRepository.findAll(subscription);
 		Assertions.assertEquals(0, list.size());
 	}
@@ -229,7 +233,8 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		em.merge(storage1);
 		final List<NetworkFullByNameVo> io = new ArrayList<>();
 		io.add(newFullByNameVo("server2", "server1"));
-		Assertions.assertThrows(ValidationJsonException.class, () -> networkResource.updateAllByName(subscription, io));
+		Assertions.assertThrows(ValidationJsonException.class,
+				() -> networkResource.updateAllByName(subscription, true, io));
 	}
 
 	@Test
@@ -239,19 +244,48 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		em.merge(storage1);
 		final List<NetworkFullByNameVo> io = new ArrayList<>();
 		io.add(newFullByNameVo("server2", "server1-root"));
-		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription, io));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> networkResource.updateAllByName(subscription, false, io));
 	}
 
 	@Test
 	void updateAllByNameNotExistSource() {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
-				Collections.singletonList(newFullByNameVo("serverYYY", "server1"))));
+				false, Collections.singletonList(newFullByNameVo("serverYYY", "server1"))));
+	}
+
+	@Test
+	void updateAllByNameNotExistSourceContinue() {
+		final var server1 = qiRepository.findByName("server1").getId();
+		final var server2 = qiRepository.findByName("server2").getId();
+
+		final var errors = networkResource.updateAllByName(subscription, true,
+				Arrays.asList(newFullByNameVo("serverYYY", "server1"), newFullByNameVo("server1", "server2")));
+		Assertions.assertEquals(1, errors);
+		final var list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(1, list.size());
+		Assertions.assertEquals(server1, list.get(0).getSource());
+		Assertions.assertEquals(server2, list.get(0).getTarget());
 	}
 
 	@Test
 	void updateAllByNameNotExistTarget() {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
-				Collections.singletonList(newFullByNameVo("server1", "serverYYY"))));
+				false, Collections.singletonList(newFullByNameVo("server1", "serverYYY"))));
+	}
+
+	@Test
+	void updateAllByNameNotExistTargetContinue() {
+		final var server1 = qiRepository.findByName("server1").getId();
+		final var server2 = qiRepository.findByName("server2").getId();
+
+		final var errors = networkResource.updateAllByName(subscription, true,
+				Arrays.asList(newFullByNameVo("server1", "server2"), newFullByNameVo("server1", "serverYYY")));
+		Assertions.assertEquals(1, errors);
+		final var list = networkRepository.findAll(subscription);
+		Assertions.assertEquals(1, list.size());
+		Assertions.assertEquals(server1, list.get(0).getSource());
+		Assertions.assertEquals(server2, list.get(0).getTarget());
 	}
 
 	@Test

@@ -9,16 +9,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.plugin.prov.dao.ProvNetworkRepository;
@@ -104,16 +107,21 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 * Update the network of all resources using their name instead of their identifier. All previous links associated
 	 * to the subscription are deleted and replaced by the given ones.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the networks from the associated
-	 *                     provider.
-	 * @param io           The new network links related to the subscription.
+	 * @param subscription    The subscription identifier, will be used to filter the networks from the associated
+	 *                        provider.
+	 * @param io              The new network links related to the subscription.
+	 * @param continueOnError When <code>true</code> the resolution error are ignored.
+	 * @return Error count. Only relevant when <code>continueOnError</code> is <code>true</code>.
 	 * @see #updateAllById(int, List)
 	 */
 	@PUT
 	@Path("{subscription:\\d+}/network-name")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateAllByName(@PathParam("subscription") final int subscription, final List<NetworkFullByNameVo> io) {
+	public int updateAllByName(@PathParam("subscription") final int subscription,
+			@QueryParam("continue-on-error") @DefaultValue("false") final boolean continueOnError,
+			final List<NetworkFullByNameVo> io) {
 		final ProvQuote quote = deleteAll(subscription);
+		var errors = new AtomicInteger();
 
 		// Get all resources identifiers grouped by types
 		final Map<ResourceType, Map<Integer, String>> idAndNames = new EnumMap<>(ResourceType.class);
@@ -136,22 +144,30 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		io.forEach(n -> {
 			// Check the peer is in this subscription
 			final var entity = new ProvNetwork();
-			validateName(nameAndIds, counters, n.getSource(), entity::setSource, entity::setSourceType);
-			validateName(nameAndIds, counters, n.getPeer(), entity::setTarget, entity::setTargetType);
-			repository.save(copyNetworkData(quote, n, entity));
+			if (validateName(nameAndIds, counters, n.getSource(), entity::setSource, entity::setSourceType,
+					continueOnError)
+					&& validateName(nameAndIds, counters, n.getPeer(), entity::setTarget, entity::setTargetType,
+							continueOnError)) {
+				repository.save(copyNetworkData(quote, n, entity));
+			} else {
+				errors.incrementAndGet();
+			}
 		});
 		repository.flush();
-		return;
+		return errors.get();
 	}
 
 	/**
 	 * Validate the given name can be resolved to an unique resource identifier.
 	 */
-	private void validateName(final Map<ResourceType, Map<String, Integer>> nameAndIds,
+	private boolean validateName(final Map<ResourceType, Map<String, Integer>> nameAndIds,
 			final Map<String, Integer> counters, final String name, final Consumer<Integer> setId,
-			Consumer<ResourceType> setType) {
+			final Consumer<ResourceType> setType, final boolean continueOnError) {
 		if (!counters.containsKey(name)) {
 			// No resource with this name has been found
+			if (continueOnError) {
+				return false;
+			}
 			throw new EntityNotFoundException(name);
 		}
 		// At least one resource with this name has been found
@@ -161,6 +177,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 			setId.accept(e.getValue().get(name));
 			setType.accept(e.getKey());
 		});
+		return true;
 	}
 
 	private ProvQuote deleteAll(final int subscription) {
