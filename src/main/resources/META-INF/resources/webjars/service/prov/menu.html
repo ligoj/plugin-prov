@@ -1,10 +1,10 @@
 <div id="service-prov-menu">
 	<div class="prov-menu-separator"></div>
-	<ul class="nav nav-tabs nav-justified">
+	<ul class="nav nav-tabs nav-justified" data-enabled-plugin="feature:cartography">
 		<li role="presentation" class="active">
 			<a data-target=".tab-resources" aria-controls="tab-resources" role="tab" data-toggle="tab">Resources</a></li>
-		<li role="presentation" data-plugin="plugin-cartography" data-plugin-on-unavailable="disable">
-			<a data-target=".tab-network" id="prov-filters-trigger" aria-controls="tab-network" role="tab" data-toggle="tab-ajax" data-cascade="true" data-ajax="/main/home/project/graph" data-plugins="css,i18n,partial,js">Network</a></li>
+		<li role="presentation">
+			<a data-target=".tab-network" id="prov-filters-trigger" aria-controls="tab-network" role="tab" data-toggle="tab-ajax" data-cascade="true" data-ajax="/main/home/project/cartography" data-plugins="css,i18n,partial,js">Network</a></li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active tab-resources" role="tabpanel">

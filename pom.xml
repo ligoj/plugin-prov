@@ -22,7 +22,7 @@
 	</scm>
 	<properties>
 		<awaitility.version>3.1.0</awaitility.version>
-		<bootstrap.version>2.7.6</bootstrap.version>
+		<bootstrap.version>2.7.7</bootstrap.version>
 	</properties>
 
 	<dependencies>

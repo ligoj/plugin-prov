@@ -46,7 +46,7 @@ define(function () {
 			$('.loader-wrapper').addClass('hidden');
 			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
-				_('extra-menu').append($(Handlebars.compile(menu)(current.$messages)));
+				current.$cascade.trigger('html', _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))));
 				current.tagManager = tagManager.build(current);
 				current.filterManager = filterManager;
 				current.initOdometer();
