@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
+import java.util.List;
+
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
@@ -17,12 +19,9 @@ public interface ProvUsageRepository extends RestRepository<ProvUsage, Integer> 
 	/**
 	 * Return all {@link ProvUsage} related to given subscription identifier.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param criteria
-	 *            The optional criteria to match for the name.
-	 * @param pageRequest
-	 *            The page request for ordering.
+	 * @param subscription The subscription identifier to match.
+	 * @param criteria     The optional criteria to match for the name.
+	 * @param pageRequest  The page request for ordering.
 	 * @return The filtered {@link ProvUsage}.
 	 */
 	@Query("SELECT pu FROM ProvUsage pu WHERE pu.configuration.subscription.id = :subscription"
@@ -30,13 +29,19 @@ public interface ProvUsageRepository extends RestRepository<ProvUsage, Integer> 
 	Page<ProvUsage> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return the {@link ProvUsage} by its identifier and also valid for the given
-	 * subscription.
+	 * Return all {@link ProvUsage} related to given subscription identifier.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param id
-	 *            The entity's identifier to match.
+	 * @param subscription The subscription identifier to match.
+	 * @return The {@link ProvUsage} ordered by its name.
+	 */
+	@Query("SELECT pu FROM ProvUsage pu WHERE pu.configuration.subscription.id = :subscription ORDER BY UPPER(pu.name)")
+	List<ProvUsage> findAll(int subscription);
+
+	/**
+	 * Return the {@link ProvUsage} by its identifier and also valid for the given subscription.
+	 * 
+	 * @param subscription The subscription identifier to match.
+	 * @param id           The entity's identifier to match.
 	 * @return The entity or <code>null</code>.
 	 */
 	@Query("SELECT pu FROM ProvUsage pu WHERE pu.configuration.subscription.id = :subscription AND pu.id = :id")
@@ -45,10 +50,8 @@ public interface ProvUsageRepository extends RestRepository<ProvUsage, Integer> 
 	/**
 	 * Return the {@link ProvUsage} by it's name, ignoring the case.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param name
-	 *            The name to match.
+	 * @param subscription The subscription identifier to match.
+	 * @param name         The name to match.
 	 * 
 	 * @return The entity or <code>null</code>.
 	 */

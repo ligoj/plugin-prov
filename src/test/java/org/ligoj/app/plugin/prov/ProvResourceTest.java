@@ -317,6 +317,7 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// No associated usage for this use case
 		Assertions.assertNull(vo.getUsage());
+		Assertions.assertNotNull(vo.getUsages());
 		
 		// No networks
 		Assertions.assertTrue(vo.getNetworks().isEmpty());

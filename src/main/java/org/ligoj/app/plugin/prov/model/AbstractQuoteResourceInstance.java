@@ -12,8 +12,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.bootstrap.core.INamableBean;
+import org.ligoj.bootstrap.core.model.ToIdSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,8 +25,7 @@ import lombok.Setter;
 /**
  * A resource related to an instance and with floating cost.
  *
- * @param <P>
- *            Price configuration type.
+ * @param <P> Price configuration type.
  */
 @Getter
 @Setter
@@ -84,6 +85,7 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 * Optional usage for this resource when different from the related quote.
 	 */
 	@ManyToOne
+	@JsonSerialize(using = ToIdSerializer.class)
 	private ProvUsage usage;
 
 	/**

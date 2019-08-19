@@ -99,10 +99,11 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	@Test
 	void updateNotAttached() {
 		final var usage = new UsageEditionVo();
+		usage.setId(usageRepository.findByName("Full Time").getId());
 		usage.setName("Full Time");
 		usage.setRate(1);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-		checkCost(uResource.update(subscription, "Full Time", usage).getTotal(), 3165.4, 5615.0, false);
+		checkCost(uResource.update(subscription, usage).getTotal(), 3165.4, 5615.0, false);
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
@@ -157,22 +158,23 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 
 		// Usage -> 75% (update the usage's rate from 50% to 75%)
 		var usage = new UsageEditionVo();
+		usage.setId(usageRepository.findByName("Dev").getId());
 		usage.setName("DevV2");
 		usage.setRate(75);
 		// Min = (3165.4 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
-		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2454.633, 4611.433, false);
+		checkCost(uResource.update(subscription, usage).getTotal(), 2454.633, 4611.433, false);
 		checkCost(subscription, 2454.633, 4611.433, false);
 		em.flush();
 		em.clear();
 
 		// Usage back to -> 100%
 		usage.setRate(100);
-		checkCost(uResource.update(subscription, "DevV2", usage).getTotal(), 3165.4, 5615.0, false);
+		checkCost(uResource.update(subscription, usage).getTotal(), 3165.4, 5615.0, false);
 		resource.refresh(subscription);
 
 		// Usage -> duration extended to 12 month, the term is updated, cheapest monthly bill
 		usage.setDuration(12);
-		uResource.update(subscription, "DevV2", usage);
+		uResource.update(subscription, usage);
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
 
 		final var entity = usageRepository.findByName("DevV2");
@@ -219,9 +221,10 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 
 		// Usage -> 75% (update the usage's rate from 50% to 75%)
 		final var usage = new UsageEditionVo();
+		usage.setId(usageRepository.findByName("Dev").getId());
 		usage.setName("DevV2");
 		usage.setRate(75);
-		checkCost(uResource.update(subscription, "Dev", usage).getTotal(), 2571.138, 4727.938, false);
+		checkCost(uResource.update(subscription, usage).getTotal(), 2571.138, 4727.938, false);
 		checkCost(subscription, 2571.138, 4727.938, false);
 
 		final var entity = usageRepository.findByName("DevV2");

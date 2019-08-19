@@ -110,16 +110,14 @@ public class ProvUsageResource {
 	 * linked to a quote having this usage as default.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param name         The quote usage's name to update.
 	 * @param vo           The new quote usage data.
 	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@PUT
-	@Path("{subscription:\\d+}/usage/{name}")
+	@Path("{subscription:\\d+}/usage")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public UpdatedCost update(@PathParam("subscription") final int subscription, @PathParam("name") final String name,
-			final UsageEditionVo vo) {
-		return saveOrUpdate(resource.findConfiguredByName(repository, name, subscription), vo);
+	public UpdatedCost update(@PathParam("subscription") final int subscription, final UsageEditionVo vo) {
+		return saveOrUpdate(resource.findConfigured(repository, vo.getId(), subscription), vo);
 	}
 
 	/**
@@ -140,7 +138,7 @@ public class ProvUsageResource {
 		final Map<ResourceType, Map<Integer, FloatingCost>> costs = Collections
 				.synchronizedMap(new EnumMap<>(ResourceType.class));
 		final var quote = entity.getConfiguration();
-		
+
 		// Fetch the usages of this quotes
 		quote.getUsages().size();
 

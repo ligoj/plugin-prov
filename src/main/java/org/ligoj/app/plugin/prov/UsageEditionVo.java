@@ -4,10 +4,11 @@
 package org.ligoj.app.plugin.prov;
 
 import javax.validation.constraints.Max;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+
+import org.ligoj.bootstrap.core.NamedBean;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,13 +18,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class UsageEditionVo {
+public class UsageEditionVo extends NamedBean<Integer> {
 
 	/**
-	 * Unique name within a quote.
+	 * SID
 	 */
-	@NotBlank
-	private String name;
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Usage rate base 100.
@@ -41,8 +41,8 @@ public class UsageEditionVo {
 	private int duration = 1;
 
 	/**
-	 * Start of the evaluation. Negative number is accepted and means a past start. <code>0</code> means an
-	 * immediate start.
+	 * Start of the evaluation. Negative number is accepted and means a past start. <code>0</code> means an immediate
+	 * start.
 	 */
 	@PositiveOrZero
 	private int start = 0;

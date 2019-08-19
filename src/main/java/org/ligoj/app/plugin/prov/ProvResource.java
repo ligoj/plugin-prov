@@ -254,6 +254,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
 		vo.setTags(tagResource.findAll(subscription.getId()));
 		vo.setNetworks(networkResource.findAll(subscription.getId()));
+		vo.setUsages(usageRepository.findAll(subscription.getId()));
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();
@@ -366,7 +367,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
 		entity.setMaxCostNoSupport(0d);
-		
+
 		// Fetch the usages of this quotes (parallel)
 		entity.getUsages().size();
 

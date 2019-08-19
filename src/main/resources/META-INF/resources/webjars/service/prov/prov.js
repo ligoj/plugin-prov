@@ -824,6 +824,15 @@ define(function () {
 			var conf = current.model.configuration;
 			var i, qi;
 
+			// Usages by id
+			conf.usagesById = {};
+			var usages = conf.usages;
+			for (i = 0; i < usages.length; i++) {
+				var u = usages[i];
+				// Optimize id access
+				conf.usagesById[u.id] = u;
+			}
+
 			// Tags case issue
 			var tags = current.model && current.model.configuration.tags || {};
 			Object.keys(tags).forEach(type => {
@@ -838,6 +847,9 @@ define(function () {
 			var instances = conf.instances;
 			for (i = 0; i < instances.length; i++) {
 				qi = instances[i];
+				if (qi.usage) {
+					qi.usage = conf.usagesById[qi.usage];
+				}
 				// Optimize id access
 				conf.instancesById[qi.id] = qi;
 				conf.instanceCost += qi.cost;
@@ -849,6 +861,9 @@ define(function () {
 			var databases = conf.databases;
 			for (i = 0; i < databases.length; i++) {
 				qi = databases[i];
+				if (qi.usage) {
+					qi.usage = conf.usagesById[qi.usage];
+				}
 				// Optimize id access
 				conf.databasesById[qi.id] = qi;
 				conf.databaseCost += qi.cost;
@@ -1702,16 +1717,17 @@ define(function () {
 			}).on('submit', function (e) {
 				e.preventDefault();
 				current.saveOrUpdateUsage({
+					id: parseInt(_('usage-id').val() || 0, 10),
 					name: _('usage-name').val(),
 					rate: parseInt(_('usage-rate').val() || '100', 10),
 					duration: parseInt(_('usage-duration').val() || '1', 10),
 					start: parseInt(_('usage-start').val() || '0', 10)
-				}, _('usage-old-name').val());
+				});
 			}).on('show.bs.modal', function (event) {
 				current.enableCreate(_('popup-prov-usage'));
 				if ($(event.relatedTarget).is('.btn-success')) {
 					// Create mode
-					_('usage-old-name').val('');
+					_('usage-id').val('');
 					_('usage-name').val('');
 					_('usage-rate').val(100);
 					_('usage-duration').val(1);
@@ -1719,7 +1735,7 @@ define(function () {
 				} else {
 					// Update mode
 					var usage = event.relatedTarget;
-					_('usage-old-name').val(usage.name);
+					_('usage-id').val(usage.id);
 					_('usage-name').val(usage.name);
 					_('usage-rate').val(usage.rate);
 					_('usage-duration').val(usage.duration);
@@ -1734,7 +1750,7 @@ define(function () {
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
-			_('prov-usage-delete').click(() => current.deleteUsage(_('usage-old-name').val()));
+			_('prov-usage-delete').click(() => current.deleteUsage(_('usage-id').val()));
 
 			// Usage rate template
 			var usageTemplates = [
@@ -2185,31 +2201,33 @@ define(function () {
 
 		/**
 		 * Delete an usage by its name.
-		 * @param {string} name The usage name to delete.
+		 * @param {string} id The usage identifier to delete.
 		 */
-		deleteUsage: function (name) {
+		deleteUsage: function (id) {
 			var conf = current.model.configuration;
+			var name = current.model.usagesById[id].name;
 			var $popup = _('popup-prov-usage');
 			current.disableCreate($popup);
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + encodeURIComponent(name),
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + id,
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function (newCost) {
 					// Commit to the model
-					if (conf.usage && conf.usage.name === name) {
+					if (conf.usage && conf.usage.id === id) {
 						// Update the usage of the quote
 						delete conf.usage;
 						_('prov-usage').select2('data', null);
 					}
+					delete current.model.usagesById[id];
 
 					// UI feedback
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
 					$popup.modal('hide');
 
 					// Handle updated cost
-					current.reloadAsNeed(newCost);
+					current.reloadAsNeed(newCost, true);
 				},
 				error: () => current.enableCreate($popup)
 			});
@@ -2217,29 +2235,25 @@ define(function () {
 
 		/**
 		 * Update a quote usage.
-		 * @param {string} name The usage data to persist.
-		 * @param {string} oldName The optional old name. Required for 'update' mode.
-		 * @param {function } forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
+		 * @param {string} data The usage data to persist.
 		 */
-		saveOrUpdateUsage: function (data, oldName, forceUpdateUi) {
+		saveOrUpdateUsage: function (data) {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-usage');
 			current.disableCreate($popup);
 			$.ajax({
-				type: oldName ? 'PUT' : 'POST',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage' + (oldName ? '/' + encodeURIComponent(oldName) : ''),
+				type: data.id ? 'PUT' : 'POST',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage',
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (newCost) {
 					// Commit to the model
-					if (conf.usage && conf.usage.name === oldName) {
+					Object.assign(conf.usagesById[newCost.id], data)
+					if (conf.usage && conf.usage.id === newCost.id) {
 						// Update the usage of the quote
-						conf.usage.name = data.name;
-						conf.usage.rate = data.rate;
-						data.id = 0;
+						conf.usage = data;
 						_('quote-usage').select2('data', data);
-						forceUpdateUi = true;
 					}
 
 					// UI feedback
@@ -2248,7 +2262,7 @@ define(function () {
 
 					// Handle updated cost
 					if (newCost.total) {
-						current.reloadAsNeed(newCost.total, forceUpdateUi);
+						current.reloadAsNeed(newCost.total, true);
 					}
 				},
 				error: () => current.enableCreate($popup)

@@ -117,4 +117,9 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
 	 */
 	private ProvCurrency currency;
+
+	/**
+	 * All usages associated to this quote.
+	 */
+	private List<ProvUsage> usages;
 }
