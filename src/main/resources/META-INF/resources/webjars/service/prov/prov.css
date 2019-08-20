@@ -449,6 +449,9 @@ img.flag-icon.prov-location-flag {
 .modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive="database"]) {
   display: none;
 }
+#database-edition {
+  min-width: 170px;
+}
 .dropdown-menu .prov-export {
   padding-right: 42px;
 }
