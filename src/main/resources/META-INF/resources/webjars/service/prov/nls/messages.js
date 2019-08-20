@@ -89,6 +89,7 @@ define({
         'service:prov:license': 'License',
         'service:prov:license-included': 'Included',
         'service:prov:license-byol': 'BYOL - License Mobility',
+        'service:prov:license-help': 'When undefined, the default license mode is used.<br>The OS and the software licenses are included in the cost for "Included" option',
         'service:prov:term': 'Term',
         'service:prov:term-title': 'Price condition and term',
         'service:prov:term-help': 'Price condition, period and contract. In general, the shortest is the contract, the more expensive is the instance',

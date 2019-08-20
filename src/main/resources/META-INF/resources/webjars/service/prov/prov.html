@@ -242,30 +242,30 @@
 					<h4 class="modal-title" id="generic-modal-title"></h4>
 				</div>
 				<div class="modal-body">
-					<div class="alert alert-info">{{service:prov:instance-choice}}</div>
 					<div class="form-horizontal">
+						<div class="alert alert-info">{{service:prov:instance-choice}}</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="instance-name">{{name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-name" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-description">{{description}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-description" class="form-control" maxlength="250" />
 							</div>
 						</div>
 						<div class="form-group required" data-exclusive="instance">
 							<label class="control-label col-sm-3" for="instance-os" data-toggle="tooltip" title="{{service:prov:os-title}}">{{service:prov:os}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-os" class="resource-query form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required" data-exclusive="database">
 							<label class="control-label col-sm-3" for="database-engine" data-toggle="tooltip" title="{{service:prov:database-engine-title}}">{{service:prov:database-engine}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="text" id="database-engine" class="resource-query form-control" required />
 									<div class="input-group-addon"> / </div>
@@ -276,28 +276,28 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-license" data-toggle="tooltip" title="{{service:prov:license-title}}">{{service:prov:license}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-license" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:license-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group" data-exclusive="instance">
-							<label class="control-label col-sm-3" for="instance-software" data-toggle="tooltip" title="{{service:prov:software-title}}">{{service:prov:software}}</label>
-							<div class="col-sm-8">
+							<label class="control-label col-sm-3" for="instance-software"></label>
+							<div class="col-sm-9">
 								<input type="text" id="instance-software" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:software-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="instance-internet" data-toggle="tooltip" title="{{service:prov:internet-title}}">{{service:prov:internet}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-internet" class="form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:internet-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="instance-cpu" data-toggle="tooltip" title="{{service:prov:cpu-title}}">{{service:prov:cpu}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="0" max="999" id="instance-cpu" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn resource-query" id="instance-constant">
@@ -317,7 +317,7 @@
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="instance-ram">{{service:prov:ram}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="0" max="2000000" id="instance-ram" class="resource-query form-control input-mini" required />
 									<div class="input-group-btn" id="instance-ram-unit">
@@ -336,21 +336,21 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-usage" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-usage" class="resource-query form-control named" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-location" data-toggle="tooltip" title="{{service:prov:location-title}}">{{service:prov:location}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-location" class="resource-query form-control named" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group" data-exclusive="instance">
 							<label class="control-label col-sm-3" for="instance-ephemeral" data-toggle="tooltip" title="{{service:prov:instance-ephemeral-title}}">{{service:prov:instance-ephemeral}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<label class="checkbox-inline pull-left" for="instance-ephemeral">
 										<input type="checkbox" id="instance-ephemeral" class="resource-query">
@@ -363,7 +363,7 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-min-quantity" data-toggle="tooltip" title="{{service:prov:instance-quantity-title}}">{{service:prov:instance-quantity}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="0" max="1000000" id="instance-min-quantity" class="form-control input-mini" />
 									<div class="input-group-addon">{{service:prov:instance-quantity-to}}</div>
@@ -378,14 +378,14 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-term" data-toggle="tooltip" title="{{service:prov:term-title}}">{{service:prov:term}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-term" class="form-control" required readonly />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:term-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-price" data-toggle="tooltip" title="{{service:prov:instance-title}}">{{service:prov:instance}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-price" class="form-control" required readonly />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
 							</div>
@@ -412,19 +412,19 @@
 					<div class="form-horizontal">
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="storage-name">{{name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-name" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-description">{{description}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-description" class="form-control" maxlength="250" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="storage-size" data-toggle="tooltip" title="{{service:prov:storage-size-title}}">{{service:prov:storage-size}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="1" max="200000000" id="storage-size" class="resource-query form-control input-mini" required />
 									<span class="input-group-addon">{{service:prov:storage-giga}}</span>
@@ -434,35 +434,35 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-latency" data-toggle="tooltip" title="{{service:storage-latency-title}}">{{service:prov:storage-latency}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-latency" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-latency-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-optimized" data-toggle="tooltip" title="{{service:prov:storage-optimized-title}}">{{service:prov:storage-optimized}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-optimized" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-instance" data-toggle="tooltip" title="{{service:prov:storage-instance-title}}">{{service:prov:storage-instance}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-instance" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-instance-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="storage-location" data-toggle="tooltip" title="{{service:prov:location-title}}">{{service:prov:location}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-location" class="resource-query form-control named" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="storage-price" data-toggle="tooltip" title="{{service:prov:storage-type-title}}">{{service:prov:storage-type}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="storage-price" class="form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:storage-type-help}}"></i></span>
 							</div>
@@ -489,55 +489,55 @@
 					<div class="form-horizontal">
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="support-name">{{name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-name" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-level" data-toggle="tooltip" title="{{service:support-level-title}}">{{service:prov:support-level}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-level" class="resource-query form-control" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-level-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-seats" data-toggle="tooltip" title="{{service:prov:support-seats-title}}">{{service:prov:support-seats}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="number" min="1" max="100000" id="support-seats" class="resource-query form-control input-mini" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-seats-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-access-api" data-toggle="tooltip" title="{{service:support-api-title}}">{{service:prov:support-api}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-access-api" class="resource-query form-control support-access">
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-api-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-access-phone" data-toggle="tooltip" title="{{service:support-phone-title}}">{{service:prov:support-phone}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-access-phone" class="resource-query form-control support-access">
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-phone-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-access-email" data-toggle="tooltip" title="{{service:support-email-title}}">{{service:prov:support-mail}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-access-email" class="resource-query form-control support-access">
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-email-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="support-access-chat" data-toggle="tooltip" title="{{service:support-chat-title}}">{{service:prov:support-chat}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-access-chat" class="resource-query form-control support-access">
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-chat-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="support-price" data-toggle="tooltip" title="{{service:prov:support-type-title}}">{{service:prov:support-type}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="support-price" class="form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:support-type-help}}"></i></span>
 							</div>
@@ -604,7 +604,7 @@
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="csv-file">CSV File</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="text" class="form-control" readonly>
 									<div class="input-group-btn"> <span class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required> </span>
@@ -614,12 +614,12 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="csv-upload-encoding" name="encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
 							</div>
 						</div>
 						<div class="form-group">
-							<div class="col-sm-8 col-sm-offset-3">
+							<div class="col-sm-9 col-sm-offset-3">
 								<div class="checkbox">
 									<label for="csv-headers-included">
 										<input type="checkbox" checked id="csv-headers-included" name="headers-included"> {{csv-headers-included}}
@@ -630,13 +630,13 @@
 						</div>
 						<div class="form-group hidden">
 							<label class="control-label col-sm-3" for="csv-headers">{{csv-headers}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="csv-headers" name="headers" value="" class="form-control" placeholder="name;cpu;ram;os;disk;latency;optimized">
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="merge-upload" data-toggle="tooltip">{{service:prov:merge-upload}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<div class="btn-group" data-toggle="buttons">
 										<label class="btn btn-default active" data-toggle="tooltip" title="{{service:prov:merge-upload-update-help}}">
@@ -652,7 +652,7 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-usage-upload" data-toggle="tooltip" title="{{service:prov:usage-title}}">{{service:prov:usage}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="instance-usage-upload" class="form-control" placeholder="{{default}}" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
 							</div>
@@ -660,7 +660,7 @@
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<div class="btn-group" data-toggle="buttons">
 										<label class="btn btn-default">
@@ -695,13 +695,13 @@
 					<div class="form-horizontal">
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="quote-name">{{name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="quote-name" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="quote-description">{{description}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="quote-description" class="form-control" maxlength="250" />
 							</div>
 						</div>
@@ -728,13 +728,13 @@
 					<div class="form-horizontal">
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="usage-name">{{name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="usage-name" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="usage-rate" data-toggle="tooltip" title="{{service:prov:usage-rate-title}}">{{service:prov:usage-rate}}</label>
-							<div class="col-sm-8 usage-inputs">
+							<div class="col-sm-9 usage-inputs">
 								<div id="usage-chart" class="d3-donut"></div>
 								<div class="input-group">
 									<input type="number" min="1" max="100" id="usage-rate" class="form-control input-mini" required />
@@ -760,7 +760,7 @@
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="usage-duration">{{service:prov:usage-duration}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="0" max="72" id="usage-duration" class="form-control input-mini" required />
 									<div class="input-group-addon">{{months}}</div>
@@ -770,7 +770,7 @@
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="usage-start">{{service:prov:usage-start}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="number" min="-36" max="36" id="usage-start" class="form-control input-mini" required />
 									<div class="input-group-addon">{{months}}</div>
@@ -803,31 +803,31 @@
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-cidr">{{service:prov:terraform:cidr}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="terraform-cidr" class="form-control" required value="10.0.0.0/16" placeholder="10.0.0.0/16" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-public-subnets">{{service:prov:terraform:public-subnets}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="terraform-public-subnets" class="form-control" required value="10.0.1.0/24,10.0.2.0/24,10.0.3.0/24" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-private-subnets">{{service:prov:terraform:private-subnets}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="terraform-private-subnets" class="form-control" required value="10.0.101.0/24,10.0.102.0/24,10.0.103.0/24" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-key-name">{{service:prov:terraform:key-name}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<input type="text" id="terraform-key-name" class="form-control" required value="" />
 							</div>
 						</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="terraform-public-key">{{service:prov:terraform:public-key}}</label>
-							<div class="col-sm-8">
+							<div class="col-sm-9">
 								<textarea id="terraform-public-key" class="form-control" rows="5" required placeholder="ssh-rsa ..."></textarea>
 							</div>
 						</div>
