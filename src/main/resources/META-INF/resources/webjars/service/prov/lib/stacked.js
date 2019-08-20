@@ -257,7 +257,7 @@ define(['d3', 'jquery'], function (d3) {
                     d3.event.preventDefault();
                     refresh();
                 })
-                .on('click', function (r) {
+                .on('click', function (d) {
                     if (params.click) {
                         var isClicked = d.clicked;
                         if (params.clicked) {
@@ -341,9 +341,7 @@ define(['d3', 'jquery'], function (d3) {
                         tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
                     }
                 })
-                .on('mousemove', function () {
-                    return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
-                })
+                .on('mousemove', () => tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px'))
                 .on('mouseout', () => tooltip().style('visibility', 'hidden'))
                 .transition()
                 .duration(transDuration)
@@ -463,9 +461,7 @@ define(['d3', 'jquery'], function (d3) {
             };
         }
 
-        function setUpColors() {
-            return d3.scaleOrdinal(d3.schemeCategory10);
-        }
+        const setUpColors = () => d3.scaleOrdinal(d3.schemeCategory10);
         function create(selector, selectorPercentCB, width, height, data, tooltipCB, hover, click, axisY, sort) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
