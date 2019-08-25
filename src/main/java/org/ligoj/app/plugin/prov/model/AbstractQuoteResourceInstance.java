@@ -51,10 +51,26 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	private double cpu;
 
 	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * 
+	 * @see #cpu
+	 */
+	@PositiveOrZero
+	private Double cpuMax;
+
+	/**
 	 * The requested RAM in "MiB". 1MiB = 1024 MiB.
 	 */
 	@PositiveOrZero
 	private int ram;
+
+	/**
+	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * 
+	 * @see #ram
+	 */
+	@PositiveOrZero
+	private Integer ramMax;
 
 	/**
 	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.

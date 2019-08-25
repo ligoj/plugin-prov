@@ -83,7 +83,8 @@ public class ProvQuoteInstanceUploadResource {
 			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
 			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software",
-			"description:note", "tags:(tag|label|labels)");
+			"description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu)",
+			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]max)", "diskMax:(max[-_ ]?size|size[-_ ]?max)");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -359,6 +360,10 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setSubscription(subscription);
 		vo.setType(upload.getType());
 
+		vo.setCpuMax(upload.getCpuMax());
+		vo.setRamMax(upload.getRamMax() == null ? null
+				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
+
 		// Find the lowest price
 		vo.setPrice(qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
 
@@ -374,11 +379,14 @@ public class ProvQuoteInstanceUploadResource {
 		final var disks = IntStream.range(0, upload.getDisk().size()).filter(index -> upload.getDisk().get(index) > 0)
 				.mapToObj(index -> {
 					final var size = upload.getDisk().get(index).intValue();
+					final var sizeMax = upload.getDiskMax().size() > index ? upload.getDiskMax().get(index).intValue()
+							: null;
 					// Size is provided, propagate the upload properties
 					final var svo = new QuoteStorageEditionVo();
 					svo.setName(vo.getName() + (index == 0 ? "" : index));
 					svo.setQuoteInstance(id);
 					svo.setSize(size);
+					svo.setSizeMax(sizeMax);
 					svo.setLatency(getItem(upload.getLatency(), index));
 					svo.setOptimized(getItem(upload.getOptimized(), index));
 

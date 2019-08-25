@@ -150,6 +150,7 @@ public class ProvQuoteStorageResource
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
+		entity.setSizeMax(vo.getSizeMax());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getQuoteInstance()));
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getQuoteDatabase()));
 

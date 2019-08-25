@@ -112,11 +112,14 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 
 	@Test
 	void create() {
+		Assertions.assertEquals(11, resource.getConfiguration(subscription).getUsages().size());
 		final var usage = new UsageEditionVo();
 		usage.setName("DevV2");
 		usage.setRate(75);
 		usage.setStart(6);
 		final var id = uResource.create(subscription, usage);
+		em.flush();
+		em.clear();
 		checkCost(subscription, 4704.758, 7154.358, false);
 		resource.refresh(subscription);
 		checkCost(subscription, 3165.4, 5615.0, false);
@@ -127,6 +130,7 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals(75, entity.getRate().intValue());
 		Assertions.assertEquals(6, entity.getStart().intValue());
+		Assertions.assertEquals(12, resource.getConfiguration(subscription).getUsages().size());
 		Assertions.assertEquals(12, entity.getConfiguration().getUsages().size());
 		entity.getConfiguration().setUsages(Collections.emptyList());
 	}

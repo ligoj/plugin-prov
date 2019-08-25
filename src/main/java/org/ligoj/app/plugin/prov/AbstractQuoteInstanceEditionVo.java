@@ -50,11 +50,27 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private double cpu;
 
 	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * 
+	 * @see #cpu
+	 */
+	@PositiveOrZero
+	private Double cpuMax;
+
+	/**
 	 * The requested memory in MB.
 	 */
 	@NotNull
 	@Positive
 	private int ram;
+
+	/**
+	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * 
+	 * @see #ram
+	 */
+	@PositiveOrZero
+	private Integer ramMax;
 
 	/**
 	 * The optional requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.

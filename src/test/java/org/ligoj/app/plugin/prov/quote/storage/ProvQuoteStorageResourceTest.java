@@ -695,7 +695,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(asJson.endsWith("\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"good\""
 				+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
 				+ ",\"instanceType\":\"%\",\"databaseType\":null,\"engine\":null"
-				+ ",\"availability\":99.99,\"durability9\":11}"
+				+ ",\"availability\":99.99,\"durability9\":11,\"network\":\"443/tcp\"}"
 				+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result

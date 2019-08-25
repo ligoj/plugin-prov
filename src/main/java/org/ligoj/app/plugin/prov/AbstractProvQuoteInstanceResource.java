@@ -123,7 +123,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
 	 * updated from the resource to the quote total cost.
 	 *
-	 * @param quote The related quote.
+	 * @param quote  The related quote.
 	 * @param entity The entity to update.
 	 * @param vo     The change to apply to the entity.
 	 * @return The updated cost including the related ones.
@@ -148,6 +148,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
+		entity.setRamMax(vo.getRamMax());
+		entity.setCpuMax(vo.getCpuMax());
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 

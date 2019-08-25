@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
@@ -55,7 +56,16 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> im
 	 * Required size of the storage in "GiB". 1GiB = 1024MiB
 	 */
 	@NotNull
+	@Positive
 	private int size;
+
+	/**
+	 * The maximal used size. When <code>null</code>, the requested size is used.
+	 * 
+	 * @see #sizeMax
+	 */
+	@Positive
+	private Integer sizeMax;
 
 	/**
 	 * Optional linked quoted instance.

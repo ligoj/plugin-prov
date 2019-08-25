@@ -38,10 +38,26 @@ public class InstanceUpload {
 	private double cpu = 0;
 
 	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * 
+	 * @see #cpu
+	 */
+	@PositiveOrZero
+	private Double cpuMax;
+
+	/**
 	 * Optional request RAM.
 	 */
 	@PositiveOrZero
 	private double ram = 0;
+
+	/**
+	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * 
+	 * @see #ram
+	 */
+	@PositiveOrZero
+	private Double ramMax;
 
 	/**
 	 * Optional constant
@@ -98,6 +114,11 @@ public class InstanceUpload {
 	 * Ordered disk sizes.
 	 */
 	private List<Double> disk = new ArrayList<>();
+
+	/**
+	 * Ordered disk max sizes.
+	 */
+	private List<Double> diskMax = new ArrayList<>();
 
 	/**
 	 * Ordered disk latencies.

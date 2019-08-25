@@ -49,14 +49,6 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private String description;
 
 	/**
-	 * Size of the storage in "GiB" "Gibi Bytes"
-	 *
-	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
-	 */
-	@Positive
-	private int size;
-
-	/**
 	 * Optional linked quoted instance.
 	 */
 	private Integer quoteInstance;
@@ -93,6 +85,14 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	@NotNull
 	@Positive
 	private Integer subscription;
+
+	/**
+	 * The maximal used size. When <code>null</code>, the requested size is used.
+	 * 
+	 * @see #sizeMax
+	 */
+	@Positive
+	private Integer sizeMax;
 
 	/**
 	 * The tags to override when not <code>null</code>.
