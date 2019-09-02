@@ -6,6 +6,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
         if ($.fn.provSlider) {
             return $.fn.provSlider;
         }
+        var uuid = 0;
         $.widget("ligoj.provSlider", {
             options: {
                 // Ordered values
@@ -165,7 +166,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 // Prepare containers
                 this.input = this.element;
                 this.selectedLabel = this.options.label;
-                this.id = this.input.uniqueId();
+                this.id = uuid++;
                 this.formGroup = this.input.closest('.form-group');
                 this.formLabel = this.formGroup.find('.control-label');
                 this.inputGroup = this.input.closest('.input-group').addClass('with-slider');
