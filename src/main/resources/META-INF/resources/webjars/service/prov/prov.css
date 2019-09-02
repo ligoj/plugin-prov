@@ -1,5 +1,6 @@
 @import url("font-mfizz.css");
 @import url("loader.css");
+@import url("prov-slider.css");
 @import url("odometer-theme-minimal.css");
 .masonry-container .node.service-prov.mode-th-list table.subscriptions th.features {
   width: 110px;

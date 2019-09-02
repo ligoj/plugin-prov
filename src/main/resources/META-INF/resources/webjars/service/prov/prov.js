@@ -44,7 +44,7 @@ define(function () {
 			current.model = subscription;
 			current.cleanup();
 			$('.loader-wrapper').addClass('hidden');
-			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter'], function (menu, tagManager, filterManager) {
+			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter', '../main/service/prov/prov-slider'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
 				current.$cascade.trigger('html', _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))));
 				current.tagManager = tagManager.build(current);
@@ -1031,6 +1031,8 @@ define(function () {
 			} else if ($item.prev().is('.select2-container')) {
 				var data = ($item.select2('data') || {});
 				value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
+			} else if ($item.data('ligojProvSlider')) {
+				value = $item.provSlider('value', 'reserved');
 			} else if ($item.is('[type="number"]')) {
 				value = parseInt(current.cleanData($item.val()) || "0", 10);
 			} else if (!$item.is('.select2-container')) {
@@ -2401,7 +2403,8 @@ define(function () {
 		},
 
 		genericUiToData: function (data) {
-			data.cpu = current.cleanFloat(_('instance-cpu').val());
+			data.cpu = current.cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
+			data.cpuMax = current.cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ram = current.toQueryValueRam(_('instance-ram').val());
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
@@ -2464,7 +2467,19 @@ define(function () {
 		 */
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
-			_('instance-cpu').val(quote.cpu || 1);
+			_('instance-cpu').provSlider({
+				onChange: function (label, value) {
+					console.log('onChange', label, value);
+				},
+				max: 128,
+				width: 250,
+				labels: ['max', 'reserved'],
+				values: [false, false],
+				toInternal: v => Math.log2(v / 4 + 1),
+				toValue: (w, maxWidth, maxValue, toInternal) => (Math.pow(2, w / maxWidth * toInternal(maxValue)) - 1) * 4,
+				label: 'reserved',
+				format: current.formatCpu
+			}).provSlider('value', [false, quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-constant').find('li.active').removeClass('active');
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
@@ -2545,13 +2560,12 @@ define(function () {
 			if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
 				// Auto select GB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
-				_('instance-ram').val(ram / 1024);
+				ram = ram / 1024
 			} else {
 				// Keep MB
 				_('instance-ram-unit').find('li:first-child').addClass('active');
-				_('instance-ram').val(ram);
 			}
-
+			_('instance-ram').val(ram);
 			_('instance-ram-unit').find('.btn span:first-child').text(_('instance-ram-unit').find('li.active a').text());
 		},
 
@@ -2682,7 +2696,10 @@ define(function () {
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
 						}, d => current.formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
-						$(window).off('resize.barchart').resize('resize.barchart', () => current.d3Bar && $('#prov-barchart').length && current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
+						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
+							&& typeof e.target.screenLeft === 'number'
+							&& $('#prov-barchart').length
+							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
 						d3Bar.update(data);
 					}
