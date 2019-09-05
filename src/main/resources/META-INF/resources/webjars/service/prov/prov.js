@@ -1752,7 +1752,7 @@ define(function () {
 			});
 			$('.usage-inputs input').on('change', current.synchronizeUsage);
 			$('.usage-inputs input').on('keyup', current.synchronizeUsage);
-			_('prov-usage-delete').click(() => current.deleteUsage(_('usage-id').val()));
+			_('prov-usage-delete').click(() => current.deleteUsage(parseInt(_('usage-id').val()), 10));
 
 			// Usage rate template
 			var usageTemplates = [
@@ -2207,7 +2207,7 @@ define(function () {
 		 */
 		deleteUsage: function (id) {
 			var conf = current.model.configuration;
-			var name = current.model.usagesById[id].name;
+			var name = conf.usagesById[id].name;
 			var $popup = _('popup-prov-usage');
 			current.disableCreate($popup);
 			$.ajax({
@@ -2222,7 +2222,7 @@ define(function () {
 						delete conf.usage;
 						_('prov-usage').select2('data', null);
 					}
-					delete current.model.usagesById[id];
+					delete conf.usagesById[id];
 
 					// UI feedback
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
@@ -2243,23 +2243,25 @@ define(function () {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-usage');
 			current.disableCreate($popup);
+			var method = data.id ? 'PUT' : 'POST'
 			$.ajax({
-				type: data.id ? 'PUT' : 'POST',
+				type: method,
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage',
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (newCost) {
 					// Commit to the model
-					Object.assign(conf.usagesById[newCost.id], data)
-					if (conf.usage && conf.usage.id === newCost.id) {
+					data.id = data.id || newCost.id || newCost;
+					Object.assign(conf.usagesById[data.id], data)
+					if (conf.usage && conf.usage.id === data.id) {
 						// Update the usage of the quote
 						conf.usage = data;
 						_('quote-usage').select2('data', data);
 					}
 
 					// UI feedback
-					notifyManager.notify(Handlebars.compile(current.$messages[data.id ? 'updated' : 'created'])(data.name));
+					notifyManager.notify(Handlebars.compile(current.$messages[method === 'PUT' ? 'updated' : 'created'])(data.name));
 					$popup.modal('hide');
 
 					// Handle updated cost

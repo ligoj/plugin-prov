@@ -280,12 +280,13 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 	@Test
 	void deleteUsedInInstance() {
 		attachUsageToQuote();
-		Assertions.assertNotNull(usageRepository.findByName(subscription, "Dev"));
+		final ProvUsage usage = usageRepository.findByName(subscription, "Dev");
+		Assertions.assertNotNull(usage);
 		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
 
 		// Delete the usage
 		// Check the cost is now back at 100%
-		checkUsage100AfterDelete(uResource.delete(subscription, "Dev"));
+		checkUsage100AfterDelete(uResource.delete(subscription, usage.getId()));
 	}
 
 	@Test
@@ -302,12 +303,14 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 
 		// Delete the usage
 		// Check the cost is at 100%
-		checkUsage100AfterDelete(uResource.delete(subscription, "Dev"));
+		checkUsage100AfterDelete(
+				uResource.delete(subscription, usageRepository.findByName(subscription, "Dev").getId()));
 	}
 
 	@Test
 	void deleteNotOwned() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> uResource.delete(0, "Dev"));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> uResource.delete(0, usageRepository.findByName(subscription, "Dev").getId()));
 	}
 
 	@Test
@@ -326,7 +329,8 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 
 		// Delete the usage
 		// Check the cost is now back at 100%
-		checkUsage100AfterDelete(uResource.delete(subscription, "Dev"));
+		checkUsage100AfterDelete(
+				uResource.delete(subscription, usageRepository.findByName(subscription, "Dev").getId()));
 
 	}
 

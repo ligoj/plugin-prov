@@ -174,14 +174,14 @@ public class ProvUsageResource {
 	 * reference.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the usages from the associated provider.
-	 * @param name         The {@link ProvUsage} name.
+	 * @param id           The {@link ProvUsage} identifier.
 	 * @return The updated cost. Only relevant when at least one resource was associated to this usage.
 	 */
 	@DELETE
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("{subscription:\\d+}/usage/{name}")
-	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("name") final String name) {
-		final var entity = resource.findConfiguredByName(repository, name, subscription);
+	@Path("{subscription:\\d+}/usage/{id:\\d+}")
+	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
+		final var entity = resource.findConfigured(repository, id, subscription);
 		final var quote = entity.getConfiguration();
 		final var cost = new UpdatedCost(entity.getId());
 		// Prepare the updated cost of updated instances
