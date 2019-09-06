@@ -12,16 +12,17 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 // Ordered values
                 values: [50],
 
-                // Ordered labels by constrained ascending values
-                dimensions: ['reserved'],
-
                 toInternal: value => value,
                 toValue: (w, maxWidth, maxValue, toInternal) => w / maxWidth * toInternal(maxValue),
 
 
                 // Maximal value for all labels
                 max: 100,
+
+                // Ordered labels by constrained ascending values
                 labels: ['reserved'],
+
+                // Default label
                 label: 'reserved'
             },
             // Create a public method.
@@ -66,18 +67,18 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Update the bar to reflect the business hours values.
              */
             _synchronizeBar: function ($bar, label, value, setX) {
-                var valueF = `<strong>${this.options.format(value)}</strong>&nbsp(${label})`;
+                var valueF = `<strong>${this.options.format(value)}</strong>`;
                 $bar.attr('data-original-title', valueF)
                     .tooltip('show')
                     .find('[data-toggle="tooltip"]')
                     .attr('data-original-title', valueF);
                 if (typeof value === 'number') {
-                    this.formLabel.find('li[data-label="' + label + '"]').addClass('has-value').find('.value').html(valueF);
+                    this.formGroup.find('li[data-label="' + label + '"]').addClass('has-value').find('.value').html(valueF);
                     if (label === this.selectedLabel && this.input.val() !== value) {
                         this.input.val(value);
                     }
                 } else {
-                    this.formLabel.find('li[data-label="' + label + '"]').removeClass('has-value').find('.value').text(label);
+                    this.formGroup.find('li[data-label="' + label + '"]').removeClass('has-value').find('.value').html('<i>(undefined)</i>');
                 }
                 if (setX) {
                     if (typeof value === 'number') {
@@ -100,8 +101,9 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     `<li data-label="${label}" class="${typeof value === 'number' ? 'has-value' : ''}">
                         <a class="value"></a>
                         <p>
-                            <a class="delete" data-toogle="tooltip" title="${$cascade.$messages.remove}"><i class="fa fa-fw fa-times"></i></a>
-                            <a class="add"    data-toogle="tooltip" title="${$cascade.$messages.add}"><i class="fa fa-fw fa-plus"></i></a>
+                            <span class="menu-right menu-label">${label}</span>
+                            <a class="menu-right delete" data-toogle="tooltip" title="${$cascade.$messages.remove}"><i class="fa fa-fw fa-times"></i></a>
+                            <a class="menu-right add"    data-toogle="tooltip" title="${$cascade.$messages.add}"><i class="fa fa-fw fa-plus"></i></a>
                         </p>
                     </li>`)
                 this._enableResize($bar);
@@ -183,7 +185,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     <ul class="dropdown-menu" aria-labelledby="${this.id}-s"></ul>
                 </div>`);
 
-                this.formLabel.append(this.selector);
+                this.formLabel.after(this.selector);
 
                 // Add ranges
                 var labels = this.options.labels || [];

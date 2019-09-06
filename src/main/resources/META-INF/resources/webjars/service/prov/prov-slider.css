@@ -7,16 +7,21 @@
 .prov-slider-selector {
   height: 0;
   position: absolute;
-  right: 15px;
-  top: 8px;
+  top: 11px;
+  right: 74px;
+  top: 11px;
 }
 
 .prov-slider-selector .dropdown-menu p {
   margin: 0;
 }
-.prov-slider-selector .dropdown-menu p a {
+
+.prov-slider-selector .dropdown-menu {
+  min-width: 200px;
+}
+
+.prov-slider-selector .dropdown-menu p .menu-right {
   position: absolute;
-  right: 0;
   top: 0;
   padding-top: 8px;
   padding-bottom: 8px;
@@ -24,6 +29,20 @@
   margin-right: 8px;
   margin-left: 8px;
   padding-left: 8px;
+}
+.prov-slider-selector .dropdown-menu p a.menu-right {
+  right: 0;
+}
+.prov-slider-selector .dropdown-menu li a:active + p,
+.prov-slider-selector .dropdown-menu li a:focus + p,
+.prov-slider-selector .dropdown-menu li a:hover + p {
+  color: #fff;
+}
+.prov-slider-selector .dropdown-menu p .menu-label.menu-right {
+  right: 30px;
+  pointer-events: none;
+  font-size: smaller;
+  top: 2px;
 }
 
 .prov-slider-selector > .btn.btn-default.dropdown-toggle {
