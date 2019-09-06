@@ -2481,7 +2481,7 @@ define(function () {
 				toValue: (w, maxWidth, maxValue, toInternal) => (Math.pow(2, w / maxWidth * toInternal(maxValue)) - 1) * 4,
 				label: 'reserved',
 				format: current.formatCpu
-			}).provSlider('value', [false, quote.cpuMax || false, quote.cpu || 1]);
+			}).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-constant').find('li.active').removeClass('active');
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
