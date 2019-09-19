@@ -37,7 +37,7 @@ public class ProvTag extends AbstractPersistable<Integer>
 	/**
 	 * Tag key name and value pattern.
 	 */
-	public static final String PATTERN = "[\\p{L}\\d\\s+-=._/@&#]+";
+	public static final String PATTERN = "[\\p{L}\\d\\s+-=._/@&#']+";
 
 	/**
 	 * SID
