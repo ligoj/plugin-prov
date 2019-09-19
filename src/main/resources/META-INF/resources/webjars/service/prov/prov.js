@@ -2253,7 +2253,11 @@ define(function () {
 				success: function (newCost) {
 					// Commit to the model
 					data.id = data.id || newCost.id || newCost;
-					Object.assign(conf.usagesById[data.id], data)
+					if (conf.usagesById[data.id]) {
+						Object.assign(conf.usagesById[data.id], data);
+					} else {
+						conf.usagesById[data.id] = data;
+					}
 					if (conf.usage && conf.usage.id === data.id) {
 						// Update the usage of the quote
 						conf.usage = data;
