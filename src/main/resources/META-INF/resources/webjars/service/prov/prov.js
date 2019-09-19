@@ -1611,7 +1611,6 @@ define(function () {
 				_('instance-cpu').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
-			_('storage-price').on('change', e => current.updateInstanceCompatible(e.added));
 			current.initializeTerraform();
 			current.initializeLocation();
 			current.initializeUsage();
