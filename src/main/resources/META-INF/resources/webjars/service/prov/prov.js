@@ -2758,7 +2758,11 @@ define(function () {
 			if (usage.instance.cpu.available) {
 				$summary.removeClass('hidden');
 				$summary.filter('.cpu').find('span').text(usage.instance.cpu.available);
-				$summary.filter('.ram').find('span').text(current.formatRam(usage.instance.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
+				var memoryText = current.formatRam(usage.instance.ram.available);
+				var memoryUnit = memoryText.replace(/[0-9,.]*/,'');
+				var memoryValue = memoryText.replace(/[^0-9,.]*/,'');
+				$summary.filter('.ram').find('span').first().text(memoryValue);
+				$summary.filter('.ram').find('.unit').text(memoryUnit);
 				if (usage.instance.publicAccess) {
 					$summary.filter('.internet').removeClass('hidden').find('span').text(usage.instance.publicAccess);
 				} else {
