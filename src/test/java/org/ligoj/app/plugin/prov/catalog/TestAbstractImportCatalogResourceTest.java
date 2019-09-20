@@ -197,10 +197,19 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
-	void saveAsNeeded() {
+	void saveAsNeededGb() {
 		final var entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
 		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("code");
+		saveAsNeeded(entity, 1, consumer);
+		Assertions.assertEquals("code", entity.getCode());
+	}
+
+	@Test
+	void saveAsNeeded() {
+		final var entity = new ProvInstancePrice();
+		entity.setCost(2d);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("code");
 		saveAsNeeded(entity, 1, consumer);
 		Assertions.assertEquals("code", entity.getCode());
 	}

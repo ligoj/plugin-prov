@@ -28,7 +28,9 @@ import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
+import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
@@ -377,6 +379,22 @@ public abstract class AbstractImportCatalogResource {
 			persister.accept(entity);
 		}
 	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 * 
+	 * @param <T>       The price's type.
+	 * @param <P>       The instance type's type.
+	 *
+	 * @param entity    The target entity to update.
+	 * @param newCost   The new cost.
+	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
+	 */
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(final P entity,
+			final double newCost, final Consumer<P> persister) {
+		saveAsNeeded(entity, entity.getCost(), newCost, entity::setCost, persister);
+	}
+
 
 	/**
 	 * Save a storage price when the attached cost is different from the old one.
