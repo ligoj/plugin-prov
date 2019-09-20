@@ -38,7 +38,7 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	private Double initialCost;
 
 	/**
-	 * The cost for the period.<br>
+	 * The cost for the whole period defined in the term.
 	 */
 	private double costPeriod;
 
