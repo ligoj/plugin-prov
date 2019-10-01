@@ -45,12 +45,12 @@ import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.ligoj.app.plugin.prov.InstanceUpload;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
+import org.ligoj.app.plugin.prov.TagEditionVo;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageEditionVo;
@@ -404,7 +404,7 @@ public class ProvQuoteInstanceUploadResource {
 		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;"))
 				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
 					// Instance tags
-					final var tag = new ProvTag();
+					final var tag = new TagEditionVo();
 					final var parts = StringUtils.splitPreserveAllTokens(t + ":", ':');
 					tag.setName(parts[0]);
 					tag.setValue(StringUtils.trimToNull(parts[1]));

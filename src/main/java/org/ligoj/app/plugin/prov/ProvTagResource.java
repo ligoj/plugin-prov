@@ -85,7 +85,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	@POST
 	@Path("{subscription:\\d+}/tag")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public int create(@PathParam("subscription") final int subscription, final ProvTag vo) {
+	public int create(@PathParam("subscription") final int subscription, final TagEditionVo vo) {
 		return saveOrUpdate(subscription, new ProvTag(), vo);
 	}
 
@@ -98,7 +98,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	@PUT
 	@Path("{subscription:\\d+}/tag")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void update(@PathParam("subscription") final int subscription, final ProvTag vo) {
+	public void update(@PathParam("subscription") final int subscription, final TagEditionVo vo) {
 		saveOrUpdate(subscription, resource.findConfigured(repository, vo.getId(), subscription), vo);
 	}
 
@@ -111,7 +111,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	 * @param vo           The new quote tag data.
 	 * @return The tag identifier.
 	 */
-	private int saveOrUpdate(final int subscription, final ProvTag entity, final ProvTag vo) {
+	private int saveOrUpdate(final int subscription, final ProvTag entity, final TagEditionVo vo) {
 		// Check the associations and copy attributes to the entity
 		var res = resource.findConfigured(getRepository(vo.getType()), vo.getResource(), subscription);
 		NamedBean.copy(vo, entity);
