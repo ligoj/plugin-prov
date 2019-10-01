@@ -174,7 +174,7 @@ define(['jquery'], function ($) {
 							var i;
 							if (tModel) {
 								// Update the model
-								tModel = tModel[tType][resource.id];
+								tModel = tModel[tag.type][resource.id];
 								for (i = 0; i < tModel.length; i++) {
 									if (tModel[i].id === tag.id) {
 										tModel.splice(i, 1);
