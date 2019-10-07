@@ -1204,22 +1204,22 @@ define(function () {
 					type: 'string',
 					render: current.tagManager.render
 				}, {
-					data: 'cost',
-					className: 'truncate hidden-xs',
-					type: 'num',
-					render: current.formatCost
-				}, {
-					data: null,
-					width: '51px',
-					orderable: false,
-					searchable: false,
-					type: 'string',
-					render: function () {
-						return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
-							+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
-							+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
-					}
-				});
+				data: 'cost',
+				className: 'truncate hidden-xs',
+				type: 'num',
+				render: current.formatCost
+			}, {
+				data: null,
+				width: '51px',
+				orderable: false,
+				searchable: false,
+				type: 'string',
+				render: function () {
+					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
+						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
+						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
+				}
+			});
 			$table.on('column-visibility.dt', function (e, settings, idCOl, visibility) {
 				if (visibility) {
 					$(this).DataTable().draw('page');
@@ -2756,18 +2756,7 @@ define(function () {
 			// Instance summary
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
 			if (usage.instance.cpu.available) {
-				$summary.removeClass('hidden');
-				$summary.filter('.cpu').find('span').text(usage.instance.cpu.available);
-				var memoryText = current.formatRam(usage.instance.ram.available);
-				var memoryUnit = memoryText.replace(/[0-9,.]*/,'');
-				var memoryValue = memoryText.replace(/[^0-9,.]*/,'');
-				$summary.filter('.ram').find('span').first().text(memoryValue);
-				$summary.filter('.ram').find('.unit').text(memoryUnit);
-				if (usage.instance.publicAccess) {
-					$summary.filter('.internet').removeClass('hidden').find('span').text(usage.instance.publicAccess);
-				} else {
-					$summary.filter('.internet').addClass('hidden')
-				}
+				current.updateSummary($summary, usage.instance);
 				var $oss = $summary.filter('[data-os]').addClass('hidden');
 				Object.keys(usage.instance.oss).forEach(os => $oss.filter('[data-os="' + os + '"]').removeClass('hidden').find('span').text(usage.instance.oss[os]));
 			} else {
@@ -2777,14 +2766,7 @@ define(function () {
 			// Database summary
 			$summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (usage.database.cpu.available) {
-				$summary.removeClass('hidden');
-				$summary.filter('.cpu').find('span').text(usage.database.cpu.available);
-				$summary.filter('.ram').find('span').text(current.formatRam(usage.database.ram.available).replace('</span>', '').replace('<span class="unit">', ''));
-				if (usage.database.publicAccess) {
-					$summary.filter('.internet').removeClass('hidden').find('span').text(usage.database.publicAccess);
-				} else {
-					$summary.filter('.internet').addClass('hidden');
-				}
+				current.updateSummary($summary, usage.database);
 				var $engines = $summary.filter('[data-engine]').addClass('hidden');
 				Object.keys(usage.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(usage.database.engines[engine]));
 			} else {
@@ -2844,6 +2826,21 @@ define(function () {
 					_('prov-sunburst').addClass('hidden');
 				}
 			});
+		},
+
+		updateSummary($summary, resource) {
+			$summary.removeClass('hidden');
+			$summary.filter('.cpu').find('span').text(resource.cpu.available);
+			var memoryText = current.formatRam(resource.ram.available);
+			var memoryUnit = memoryText.replace(/[0-9,.]*/, '');
+			var memoryValue = memoryText.replace(/[^0-9,.]*/, '');
+			$summary.filter('.ram').find('span').first().text(memoryValue);
+			$summary.filter('.ram').find('.unit').text(memoryUnit);
+			if (resource.publicAccess) {
+				$summary.filter('.internet').removeClass('hidden').find('span').text(resource.publicAccess);
+			} else {
+				$summary.filter('.internet').addClass('hidden');
+			}
 		},
 
 		sunburstTooltip: function (data, d) {
