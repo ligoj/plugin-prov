@@ -57,16 +57,16 @@ define(['jquery'], function ($) {
 				}
 
 				// Then add keys starting with the 'key'
-				keys.filter(k => k.startsWith(key)).forEach(k => suggests.push({ text: k + ':', id: k + ':' }))
+				keys.filter(k => k.startsWith(key)).sort().forEach(k => suggests.push({ text: k + ':', id: k + ':' }))
 
 				// Then add the values starting with the term and not yet attached to current resource
-				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).forEach(v => suggests.push({ text: v, id: v }))
+				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 
 				// Then add the keys containing the 'key'
 				keys.filter(k => k.indexOf(key) > 1).forEach(k => suggests.push({ text: k + ':', id: k + ':' }))
 
 				// Then add the values containing with the term and not yet attached to current resource
-				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).forEach(v => suggests.push({ text: v, id: v }))
+				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 			} else {
 				// Value mode
 
@@ -83,10 +83,10 @@ define(['jquery'], function ($) {
 				}
 
 				// Then add the values starting with the term
-				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).forEach(v => suggests.push({ text: v, id: v }))
+				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 
 				// Then add the values containing with the term
-				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).forEach(v => suggests.push({ text: v, id: v }))
+				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 			}
 			return suggests;
 		}
