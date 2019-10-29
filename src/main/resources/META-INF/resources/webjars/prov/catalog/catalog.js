@@ -5,6 +5,7 @@ define(['sparkline'], function () {
 	var current = {
 
 		table: null,
+		$table: null,
 
 		initialize: function () {
 			current.initializeDataTable();
@@ -14,9 +15,8 @@ define(['sparkline'], function () {
 		 * Initialize the search UI components
 		 */
 		initializeDataTable: function () {
-			_('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog);
-
-			current.table = _('table').dataTable({
+			current.$table = _('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog);
+			current.table = current.$table.dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				serverSide: false,
 				searching: true,
@@ -219,7 +219,7 @@ define(['sparkline'], function () {
 		 * Redraw a catalog with its new status.
 		 */
 		updateStatus: function (status, node) {
-			_('table').DataTable().rows(function (index, data) {
+			current.$table.DataTable().rows(function (index, data) {
 				if (data.node.id === node) {
 					// Update the status in the model
 					data.status = status;
