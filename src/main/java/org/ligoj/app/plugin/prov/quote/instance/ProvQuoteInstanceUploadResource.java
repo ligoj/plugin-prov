@@ -79,12 +79,13 @@ public class ProvQuoteInstanceUploadResource {
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name", "cpu:(vcpu|core|processor)s?", "ram:memory",
-			"constant", "os:(system|operating system)", "disk:size", "latency", "optimized:(disk)?optimized",
-			"type:instancetype", "internet", "minQuantity:min", "maxQuantity:max", "maxVariableCost:maxcost",
-			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license", "software",
-			"description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu)",
-			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]max)", "diskMax:(max[-_ ]?size|size[-_ ]?max)");
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
+			"ram:memory", "constant", "os:(system|operating system)", "disk:size", "latency",
+			"optimized:(disk)?optimized", "type:instancetype", "internet", "minQuantity:min", "maxQuantity:max",
+			"maxVariableCost:maxcost", "ephemeral:preemptive", "location:region", "usage:(use|env|environment)",
+			"license", "software", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]max)",
+			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
+			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -186,15 +187,18 @@ public class ProvQuoteInstanceUploadResource {
 		MATCH_HEADERS.forEach(c -> {
 			// Headers (K) mapped to input ones (V) for this match level
 			final Map<String, String> localMapped = new HashMap<>();
-			Arrays.stream(headers).forEach(h -> ACCEPTED_HEADERS.stream().map(a -> a.split(":"))
-					.filter(a -> match(c, a, cleanHeader(h))).filter(a -> !mapped.containsKey(a[0])).forEach(array -> {
-						final var previous = localMapped.put(array[0], h);
-						if (previous != null) {
-							// Ambiguous header
-							throw new ValidationJsonException(CSV_FILE, "ambiguous-header", "header", array[0], "name1",
-									previous, "name2", h);
-						}
-					}));
+			Arrays.stream(headers)
+					.forEach(h -> ACCEPTED_HEADERS.stream().map(mapping -> mapping.split(":"))
+							.filter(patterns -> match(c, patterns, cleanHeader(h)))
+							.filter(patterns -> !mapped.containsKey(patterns[0]) && !mapped.containsKey(h))
+							.forEach(patterns -> {
+								final var previous = localMapped.put(patterns[0], h);
+								if (previous != null) {
+									// Ambiguous header
+									throw new ValidationJsonException(CSV_FILE, "ambiguous-header", "header",
+											patterns[0], "name1", previous, "name2", h);
+								}
+							}));
 			// Complete the global set
 			mapped.putAll(localMapped);
 		});

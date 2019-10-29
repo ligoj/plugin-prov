@@ -125,6 +125,27 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	void uploadMax() throws IOException {
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0.2;500;300;LINUX;100;80", "UTF-8"),
+				new String[] { "name", "cpu", "cpuMax", "ram", "ramMax", "os", "disk", "diskMax" }, false,
+				"Full Time 12 month", 1, "UTF-8");
+		var configuration = getConfiguration();
+		checkCost(configuration.getCost(), 4828.238, 7277.838, false);
+		configuration = getConfiguration();
+		final var qi = configuration.getInstances().get(7);
+		Assertions.assertEquals("ANY", qi.getName());
+		Assertions.assertEquals("instance2", qi.getPrice().getType().getName());
+		Assertions.assertEquals(0.5, qi.getCpu());
+		Assertions.assertEquals(0.2, qi.getCpuMax());
+		Assertions.assertEquals(500, qi.getRam());
+		Assertions.assertEquals(300, qi.getRamMax());
+		final var qs = configuration.getStorages().get(4);
+		Assertions.assertEquals("ANY", qs.getName());
+		Assertions.assertEquals(100, qs.getSize());
+		Assertions.assertEquals(80, qs.getSizeMax());
+	}
+
+	@Test
 	void uploadBoundQuantities() throws IOException {
 		qiuResource.upload(
 				subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;1;true;1;1000;true", "UTF-8"), new String[] {
@@ -330,8 +351,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	/**
-	 * Expected usage does not exist for this subscription, so there is no matching
-	 * instance.
+	 * Expected usage does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
 	void uploadInvalidUsageForSubscription() {
@@ -342,8 +362,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	/**
-	 * Expected location does not exist for this subscription, so there is no
-	 * matching instance.
+	 * Expected location does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
 	void uploadInvalidLocationForSubscription() {
