@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -161,7 +162,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 * Validate the given name can be resolved to an unique resource identifier.
 	 */
 	private boolean validateName(final Map<ResourceType, Map<String, Integer>> nameAndIds,
-			final Map<String, Integer> counters, final String name, final Consumer<Integer> setId,
+			final Map<String, Integer> counters, final String name, final IntConsumer setId,
 			final Consumer<ResourceType> setType, final boolean continueOnError) {
 		if (!counters.containsKey(name)) {
 			// No resource with this name has been found

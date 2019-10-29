@@ -30,6 +30,7 @@ import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -213,7 +214,7 @@ public class ProvQuoteInstanceResource extends
 			@PathParam("os") final VmOs os) {
 		final var result = ipRepository
 				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
-		result.replaceAll(l -> StringUtils.defaultIfBlank(l, ProvQuoteInstance.LICENSE_INCLUDED));
+		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteResourceInstance.LICENSE_INCLUDED));
 		return result;
 	}
 

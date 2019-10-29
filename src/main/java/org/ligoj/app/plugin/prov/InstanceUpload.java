@@ -9,9 +9,9 @@ import java.util.List;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.model.AbstractProvTag;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
-import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
@@ -26,7 +26,7 @@ import lombok.Setter;
 public class InstanceUpload {
 
 	private static final String SEPARATOR = ",\\s;";
-	private static final String FULL_TAG = SEPARATOR + ProvTag.PATTERN + "(:" + ProvTag.PATTERN + ")?";
+	private static final String FULL_TAG = SEPARATOR + AbstractProvTag.PATTERN + "(:" + AbstractProvTag.PATTERN + ")?";
 
 	private String name;
 	private String description;
