@@ -102,6 +102,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
+		clearAllCache();
 		resource.refresh(subscription);
 	}
 

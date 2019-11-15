@@ -372,13 +372,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.getUsages().size();
 
 		// Add the compute cost, and update the unbound cost
+		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());
 		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(instanceFunction)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the database cost
+		log.info("Refresh cost finished for subscription {} / databases ... ", entity.getSubscription().getId());
 		newStream(qbRepository.findAll(subscription)).map(databaseFunction).forEach(fc -> addCost(entity, fc));
 
 		// Add the storage cost
+		log.info("Refresh cost finished for subscription {} / storages ... ", entity.getSubscription().getId());
 		newStream(qsRepository.findAll(subscription)).map(storageFunction).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation

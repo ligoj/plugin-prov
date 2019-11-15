@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -51,6 +52,7 @@ import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -77,6 +79,9 @@ public class ProvQuoteStorageResource
 
 	@Autowired
 	private ProvStoragePriceRepository spRepository;
+
+	@Autowired
+	private ProvLocationRepository locationRepository;
 
 	@Override
 	protected ProvQuoteStorageRepository getResourceRepository() {
@@ -292,16 +297,18 @@ public class ProvQuoteStorageResource
 		final var node = configuration.getSubscription().getNode().getRefined().getId();
 
 		// The the right location from instance first, then the request one
-		final String iloc;
+		final int qLoc = configuration.getLocation().getId();
+		final int qsLoc;
 		if (query.getLocationName() == null) {
-			iloc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteResourceInstance::getLocationName)
-					.orElse(configuration.getLocation().getName());
+			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteResourceInstance::getLocation)
+					.map(Persistable::getId).orElse(qLoc);
 		} else {
-			iloc = query.getLocationName();
+			qsLoc = locationRepository.toId(node, query.getLocationName());
 		}
+
 		return spRepository
 				.findLowestPrice(node, query.getSize(), query.getLatency(), query.getInstance(), query.getDatabase(),
-						query.getOptimized(), iloc, PageRequest.of(0, 10))
+						query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0])
 				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).collect(Collectors.toList());
 	}

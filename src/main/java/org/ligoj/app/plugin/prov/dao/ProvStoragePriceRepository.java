@@ -20,10 +20,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	/**
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 *
-	 * @param node
-	 *            The node (provider) to match.
-	 * @param location
-	 *            The expected location name. Case sensitive.
+	 * @param node     The node (provider) to match.
+	 * @param location The expected location name. Case sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
@@ -32,62 +30,52 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	/**
 	 * Return the cheapest storage configuration from the minimal requirements.
 	 *
-	 * @param node
-	 *            The node linked to the subscription. Is a node identifier within a provider.
-	 * @param size
-	 *            The requested size in GB.
-	 * @param latency
-	 *            The optional requested latency. May be <code>null</code>.
-	 * @param instance
-	 *            The optional requested quote instance identifier to be associated. The related instance must be in the
-	 *            same provider.
-	 * @param database
-	 *            The optional requested quote database identifier to be associated. The related database must be in the
-	 *            same provider. When <code>null</code>, only database storage compatible is excluded.
-	 * @param optimized
-	 *            The optional requested optimized. May be <code>null</code>.
-	 * @param location
-	 *            The expected location name. Case insensitive.
-	 * @param pageable
-	 *            The page control to return few item.
+	 * @param node      The node linked to the subscription. Is a node identifier within a provider.
+	 * @param size      The requested size in GB.
+	 * @param latency   The optional requested latency. May be <code>null</code>.
+	 * @param instance  The optional requested quote instance identifier to be associated. The related instance must be
+	 *                  in the same provider.
+	 * @param database  The optional requested quote database identifier to be associated. The related database must be
+	 *                  in the same provider. When <code>null</code>, only database storage compatible is excluded.
+	 * @param optimized The optional requested optimized. May be <code>null</code>.
+	 * @param location  The expected location identifier.
+	 * @param qLocation  The default location identifier.
+	 * @param pageable  The page control to return few item.
 	 * @return The cheapest storage or <code>null</code>. The first item corresponds to the storage price, the second is
 	 *         the computed price.
 	 */
 	@Query("SELECT sp, "
 			+ " (sp.cost + (CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost,  "
-			+ " st.latency AS latency FROM #{#entityName} AS sp LEFT JOIN sp.location loc INNER JOIN sp.type st "
+			+ " st.latency AS latency FROM #{#entityName} AS sp INNER JOIN sp.type st "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))                        "
 			+ " AND (:latency IS NULL OR st.latency >= :latency)                                       "
 			+ " AND (:optimized IS NULL OR st.optimized = :optimized)                                  "
 			+ " AND (st.maximal IS NULL OR st.maximal >= :size)                                        "
-			+ " AND (loc IS NULL OR UPPER(loc.name) = UPPER(:location))                                "
+			+ " AND (sp.location IS NULL OR sp.location.id = :location)                                "
 			+ " AND (:instance IS NULL OR (st.instanceType IS NOT NULL "
-			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi LEFT JOIN qi.location qiloc            "
-			+ "        LEFT JOIN qi.configuration conf LEFT JOIN qi.price pqi LEFT JOIN pqi.type type  "
+			+ "   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi                                        "
+			+ "        LEFT JOIN qi.price pqi LEFT JOIN pqi.type type                                  "
 			+ "     WHERE qi.id = :instance                                                            "
-			+ "      AND (loc IS NULL OR (qiloc IS NULL AND conf.location = loc) OR qiloc=loc)         "
+			+ "      AND (sp.location = qi.location OR sp.location.id = :qLocation)                    "
 			+ "      AND (type.name LIKE st.instanceType))))                                           "
 			+ " AND (:database IS NULL OR (st.databaseType IS NOT NULL "
-			+ "    AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb LEFT JOIN qb.location qbloc    "
-			+ "        LEFT JOIN qb.price price LEFT JOIN qb.configuration conf                 "
+			+ "    AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb    "
+			+ "        LEFT JOIN qb.price price                 "
 			+ "        LEFT JOIN qb.price pqb LEFT JOIN pqb.type type                           "
 			+ "     WHERE qb.id = :database                                                     "
-			+ "      AND (loc IS NULL OR (qbloc IS NULL AND conf.location = loc) OR qbloc=loc)  "
+			+ "      AND (sp.location = qb.location OR sp.location.id = :qLocation)             "
 			+ "      AND (type.name LIKE st.databaseType)                                       "
 			+ "      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))"
 			+ " ORDER BY cost ASC, latency DESC")
 	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance, Integer database,
-			ProvStorageOptimized optimized, String location, Pageable pageable);
+			ProvStorageOptimized optimized, int location, int qLocation, Pageable pageable);
 
 	/**
 	 * Return the {@link ProvStoragePrice} by it's name and the location and related to given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param type
-	 *            The type name to match. Case insensitive.
-	 * @param location
-	 *            The expected location name. Case insensitive.
+	 * @param subscription The subscription identifier to match.
+	 * @param type         The type name to match. Case insensitive.
+	 * @param location     The expected location name. Case insensitive.
 	 *
 	 * @return The entity or <code>null</code>.
 	 */
