@@ -92,6 +92,11 @@
 }
 .provider {
   white-space: nowrap;
+  display: block;
+  position: absolute;
+  top: 33px;
+  font-size: small;
+  margin-left: 2px;
 }
 .sunburst-part:hover {
   filter: url(#sunburst-filter);
@@ -109,7 +114,6 @@
 }
 
 .prov-project {
-  display: flex;
   margin-top: 0;
 }
 .cost-unit {
