@@ -199,7 +199,7 @@ define({
         'service:prov:software-none': 'None',
         'service:prov:tags': 'Tags',
         'service:prov:usage-failed': 'Usage {{this}} does not support all your requirements',
-        'service:prov:usage-100': 'Undefined usage',
+        'service:prov:usage-100': 'Default',
         'service:prov:usage-help': 'Chosen usage will infer the term, and the best cost. Available usages are at the subscription level. When undefined, the default usage is used. And when there is no default usage, it will be 100% for one month.',
         'service:prov:usage': 'Usage profile',
         'service:prov:usage-upload-help': 'Usage to associate to each imported entry',
