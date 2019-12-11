@@ -19,18 +19,18 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 		var $tr = $(`
 		<tr>
 			<td class="hidden-xs"><input type="text" class="form-control network-name" maxlength="100"/></td>
-			<td><input type="text" required class="form-control network-peer" autocomplete="off" placeholder="${$cascade.$messages[inbound ? 'source' : 'target']}" /></td>
+			<td><input type="text" required class="form-control network-peer" autocomplete="off" placeholder="${$cascade.$current.$messages[inbound ? 'source' : 'target']}" /></td>
 			<td><input type="number" min="1" max="65535" required autocomplete="off" class="form-control network-port"/></td>
 			<td><input type="number" min="0" autocomplete="off" class="form-control network-rate" /></td>
 			<td><input type="number" min="0" autocomplete="off" class="form-control network-throughput"/></td>
-			<td><a class="delete"><i class="fas fa-trash-alt" role="button" data-toggle="tooltip" title="${$cascade.$messages.delete}"></i></a></td>
+			<td><a class="delete"><i class="fas fa-trash-alt" role="button" data-toggle="tooltip" title="${$cascade.$current.$messages.delete}"></i></a></td>
 		</tr>`);
 		$tbody.append($tr);
 		var $peer = $tr.find('.network-peer');
 		$peer.select2({
 			formatSelection: formatQuoteResource,
 			formatResult: formatQuoteResource,
-			placeholder: $cascade.$messages['service:prov:no-attached-instance'],
+			placeholder: $cascade.$current.$messages['service:prov:no-attached-instance'],
 			allowClear: true,
 			id: function (r) {
 				return r.resourceType + r.id;
@@ -40,7 +40,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 			},
 			data: () => {
 				return {
-					results: conf.instances.concat(conf.databases).concat(conf.storages.filter(s=>s.price.type.network)).map(r => {
+					results: conf.instances.concat(conf.databases).concat(conf.storages.filter(s => s.price.type.network)).map(r => {
 						r.text = r.name;
 						return r;
 					})
@@ -62,6 +62,31 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 	}
 	function deleteAll() {
 		$(this).closest('table').find('tbody').find('tr').empty().remove();
+	}
+
+	function configure($service, resourceId, resourceType) {
+		let conf = $service.model.configuration;
+
+		// Update the popup context
+		_('u-network-resource-name').text($cascade.$current.$messages.network + ': ' + conf[resourceType + 'sById'][resourceId].name);
+		$(this).attr('data-id', resourceId).attr('data-prov-type', resourceType);
+
+		// Add the IO
+		var $in = $('.network-in');
+		var $out = $('.network-out');
+		$in.find('tbody').empty();
+		$out.find('tbody').empty();
+		var networks = conf.networks;
+		for (var i = 0; i < networks.length; i++) {
+			var link = networks[i];
+			if (link.sourceType === resourceType && link.source === resourceId) {
+				// Outgoing
+				addRow($out, false, link);
+			} else if (link.targetType === resourceType && link.target === resourceId) {
+				// Incoming
+				addRow($in, true, link);
+			}
+		}
 	}
 
 	function initialize() {
@@ -130,35 +155,18 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 			var $tr = $(e.relatedTarget).closest('tr');
 			var resourceId = parseInt($tr.attr('data-id'), 10);
 			var resourceType = $tr.closest('[data-prov-type]').attr('data-prov-type');
-			var conf = $cascade.$current.currentSubscription.configuration;
-
-			// Update the popup context
-			_('u-network-resource-name').text($cascade.$current.$messages.network + ': ' + conf[resourceType + 'sById'][resourceId].name);
-			$(this).attr('data-id', resourceId).attr('data-prov-type', resourceType);
-
-			// Add the IO
-			var $in = $('.network-in');
-			var $out = $('.network-out');
-			$in.find('tbody').empty();
-			$out.find('tbody').empty();
-			var networks = conf.networks;
-			for (var i = 0; i < networks.length; i++) {
-				var link = networks[i];
-				if (link.sourceType === resourceType && link.source === resourceId) {
-					// Outgoing
-					addRow($out, false, link);
-				} else if (link.targetType === resourceType && link.target === resourceId) {
-					// Incoming
-					addRow($in, true, link);
+			$cascade.$current.$super('requireService')($cascade.$current.$parent, 'service:prov', $service => {
+				if ($service) {
+					configure($service, resourceId, resourceType);
 				}
-			}
+			});
 		}).on('click', '.add', function () {
 			addRow($(this).closest('table'));
 		}).on('click', 'tbody .delete', deleteRow).on('click', 'thead .delete', deleteAll);
 
 	}
-	var self = {
+
+	return {
 		initialize: initialize
-	}
-	return self;
+	};
 });
