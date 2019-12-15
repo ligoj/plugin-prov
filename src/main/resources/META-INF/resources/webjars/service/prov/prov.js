@@ -189,7 +189,7 @@ define(function () {
 			}
 			if (quote.nbInstances || quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
-				resources.push('<span class="sub-item">' + current.$super('icon')('microchip', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('memory', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
 			}
 			if (quote.nbPublicAccess) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + '</span>');
@@ -227,7 +227,7 @@ define(function () {
 			}
 
 			if (type.ram) {
-				details += '<br><i class=\'fas fa-microchip fa-fw\'></i> ';
+				details += '<br><i class=\'fas fa-memory fa-fw\'></i> ';
 				details += type.ramRate ? '<i class=\'' + current.rates[type.ramRate] + '\'></i> ' : '';
 				details += current.formatRam(type.ram);
 			}
