@@ -570,6 +570,7 @@ public class ProvResourceTest extends AbstractAppTest {
 				.setParameter("location", "region-1").getResultList().forEach(ip -> ip.setLocation(location4));
 		em.flush();
 		em.clear();
+		clearAllCache();
 
 		// New cost based on region-4
 		final var quote = new QuoteEditionVo();

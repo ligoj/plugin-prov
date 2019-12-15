@@ -180,11 +180,38 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
 
-		// Return only the first matching instance
-		return ipRepository
-				.findLowestPrice(node, query.getCpu(), ramR, query.getConstant(), os, typeId, query.isEphemeral(),
-						locationR, rate, duration, licenseR, softwareR, PageRequest.of(0, 1))
-				.stream().findFirst().map(rs -> newPrice((ProvInstancePrice) rs[0], (double) rs[2])).orElse(null);
+		final var types = itRepository.findValidTypes(node, query.getCpu(), (int) ramR, query.getConstant(), typeId,
+				null);
+		Object[] lookup = null;
+		if (!types.isEmpty()) {
+			// Get the best template instance price
+			lookup = ipRepository.findLowestPrice(types, os, query.isEphemeral(), locationR, rate, duration, licenseR,
+					softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+		}
+
+		final List<Integer> dTypes = itRepository.findDynamicalTypes(node, query.getConstant(), typeId, null);
+		if (!dTypes.isEmpty()) {
+			// Get the best dynamic instance price
+			var dlookup = ipRepository.findLowestDynamicalPrice(dTypes, query.getCpu(), ramR, os, query.isEphemeral(),
+					locationR, rate, duration, licenseR, softwareR, PageRequest.of(0, 1)).stream().findFirst()
+					.orElse(null);
+			if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
+				// Keep the best one
+				lookup = dlookup;
+			}
+		}
+
+		// No result
+		if (lookup == null) {
+			return null;
+		}
+
+		// Return the best match
+		return newPrice(lookup);
+	}
+
+	private double toTotalCost(final Object[] lookup) {
+		return ((Double) lookup[1]);
 	}
 
 	private boolean canByol(final VmOs os) {
@@ -256,7 +283,9 @@ public class ProvQuoteInstanceResource extends
 	/**
 	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
-	private QuoteInstanceLookup newPrice(final ProvInstancePrice ip, final double cost) {
+	private QuoteInstanceLookup newPrice(final Object[] rs) {
+		final var ip = (ProvInstancePrice) rs[0];
+		final var cost = (double) rs[2];
 		final var result = new QuoteInstanceLookup();
 		result.setCost(round(cost));
 		result.setPrice(ip);

@@ -281,7 +281,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupCustomIsCheaper() {
 		assertPrice(qiResource.lookup(subscription, builder().ram(16000).usage("Dev").build()), "C74", "dynamic",
-				146.842, "on-demand1");
+				147.453, "on-demand1");
 	}
 
 	/**
