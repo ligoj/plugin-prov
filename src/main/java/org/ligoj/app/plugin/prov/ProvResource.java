@@ -367,6 +367,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
 		entity.setMaxCostNoSupport(0d);
+		entity.setCost(0d);
+		entity.setMaxCost(0d);
 
 		// Fetch the usages of this quotes (parallel)
 		entity.getUsages().size();
