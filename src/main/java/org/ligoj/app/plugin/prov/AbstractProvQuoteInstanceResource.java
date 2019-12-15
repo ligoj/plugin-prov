@@ -323,7 +323,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Compute the monthly cost of a custom requested resource.
 	 *
 	 * @param cpu The requested CPU.
-	 * @param ram The requested RAM.
+	 * @param ram The requested RAM in MB.
 	 * @param ip  The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
@@ -339,9 +339,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param requested The request resource amount.
 	 * @param cost      The cost of one resource.
 	 * @param weight    The weight of one resource.
-	 * @return The cost of this custom instance.
+	 * @return The cost of this custom instance resource.
 	 */
-	private double getCustomCost(final Number requested, final Double cost, final double weight) {
+	private double getCustomCost(final Number requested, final double cost, final double weight) {
 		// Compute the count of the requested resources
 		return Math.ceil(requested.doubleValue() / weight) * cost;
 	}
