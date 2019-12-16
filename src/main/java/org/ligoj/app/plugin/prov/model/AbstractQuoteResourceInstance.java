@@ -78,6 +78,11 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	private Boolean constant;
 
 	/**
+	 * Optional physical processor.
+	 */
+	private String processor;
+
+	/**
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull

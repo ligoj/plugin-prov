@@ -78,6 +78,11 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private Boolean constant;
 
 	/**
+	 * Optional physical processor.
+	 */
+	private String processor;
+
+	/**
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull

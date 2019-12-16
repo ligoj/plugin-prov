@@ -48,6 +48,12 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("license")
 	private String license;
 
+	/**
+	 * Optional physical processor.
+	 */
+	@QueryParam("processor")
+	private String processor;
+
 	@Override
 	public String getLocationName() {
 		return getLocation();

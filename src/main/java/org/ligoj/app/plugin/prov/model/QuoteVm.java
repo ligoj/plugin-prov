@@ -32,6 +32,14 @@ public interface QuoteVm {
 	Boolean getConstant();
 
 	/**
+	 * Optional physical processor.
+	 * Return Optional physical processor.
+	 *
+	 * @return Optional physical processor.
+	 */
+	String getProcessor();
+
+	/**
 	 * Return optional instance type name. May be <code>null</code>.
 	 *
 	 * @return Optional instance type name. May be <code>null</code>.
