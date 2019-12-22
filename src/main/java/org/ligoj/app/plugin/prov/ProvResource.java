@@ -47,6 +47,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
@@ -249,6 +250,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setUsage(quote.getUsage());
 		vo.setLicense(quote.getLicense());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
+		vo.setReservationMode(quote.getReservationMode());
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
@@ -310,13 +312,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldLocation = entity.getLocation();
 		var oldUsage = entity.getUsage();
 		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
+		var oldReservationMode = ObjectUtils.defaultIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
 		entity.setLicense(vo.getLicense());
 		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
+		entity.setReservationMode(vo.getReservationMode());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !oldRamAdjusted.equals(entity.getRamAdjustedRate())
+				|| !oldReservationMode.equals(entity.getReservationMode())
 				|| !Objects.equals(oldLicense, entity.getLicense())) {
 			return refresh(entity);
 		}

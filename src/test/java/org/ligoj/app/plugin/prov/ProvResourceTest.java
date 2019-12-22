@@ -45,6 +45,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
@@ -318,7 +319,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		// No associated usage for this use case
 		Assertions.assertNull(vo.getUsage());
 		Assertions.assertNotNull(vo.getUsages());
-		
+
 		// No networks
 		Assertions.assertTrue(vo.getNetworks().isEmpty());
 	}
@@ -435,6 +436,8 @@ public class ProvResourceTest extends AbstractAppTest {
 		instance.setConfiguration(configuration);
 		instance.setCpu(1D);
 		instance.setRam(2000);
+		instance.setCpuMax(0.5D);
+		instance.setRamMax(1000);
 		instance.setName("instance");
 		instance.setOs(VmOs.WINDOWS);
 		instance.setCost(0D);
@@ -453,7 +456,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
-	 * Update the RAM adjust rate.
+	 * Update the usage rate.
 	 */
 	@Test
 	void updateUsage() {
@@ -514,6 +517,53 @@ public class ProvResourceTest extends AbstractAppTest {
 		final var instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
 		Assertions.assertEquals(150, resource.getConfiguration(subscription.getId()).getRamAdjustedRate());
+	}
+
+	/**
+	 * Update the resource mode.
+	 */
+	@Test
+	void updateResourceMode() {
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet.setCpu(2);
+		instanceGet.setRam(4000);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(configuration), 1405.44, 1405.44, false);
+
+		final var quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setUsage("usage");
+		quote.setReservationMode(ReservationMode.RESERVED);
+		quote.setRefresh(true);
+		checkCost(resource.update(subscription.getId(), quote), 1405.44, 1405.44, false);
+		em.flush();
+		em.clear();
+		var quoteVo = resource.getConfiguration(subscription.getId());
+		Assertions.assertEquals(ReservationMode.RESERVED, quoteVo.getReservationMode());
+		final var instanceGet2 = quoteVo.getInstances().get(0);
+		Assertions.assertEquals("C48", instanceGet2.getPrice().getCode());
+
+		quote.setRefresh(false);
+		quote.setReservationMode(ReservationMode.MAX);
+		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		em.flush();
+		em.clear();
+		quoteVo = resource.getConfiguration(subscription.getId());
+		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
+		final var instanceGet3 = quoteVo.getInstances().get(0);
+		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+
+		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet.setCpuMax(null);
+		instanceGet.setRamMax(null);
+		em.flush();
+		em.clear();
+		quote.setRefresh(true);
+		checkCost(resource.update(subscription.getId(), quote), 1405.44, 1405.44, false);
 	}
 
 	/**

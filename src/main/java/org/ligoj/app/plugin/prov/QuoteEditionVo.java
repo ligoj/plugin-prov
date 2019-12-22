@@ -7,6 +7,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -54,6 +55,11 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	@NotNull
 	private Integer ramAdjustedRate = 100;
 
+	/**
+	 * Optional reservation mode. When <code>null</code>, is {@value ReservationMode#RESERVED}
+	 */
+	private ReservationMode reservationMode = ReservationMode.RESERVED;
+	
 	/**
 	 * When <code>true</code>, the cost is always refreshed, otherwise, only when at least one pricing dependency is
 	 * updated.

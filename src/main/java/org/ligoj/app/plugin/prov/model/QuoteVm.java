@@ -23,6 +23,20 @@ public interface QuoteVm {
 	int getRam();
 
 	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * 
+	 * @see #cpu
+	 */
+	Double getCpuMax();
+
+	/**
+	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * 
+	 * @see #ram
+	 */
+	Integer getRamMax();
+
+	/**
 	 * Return Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code> constant
 	 * CPU is requested.
 	 *

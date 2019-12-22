@@ -162,7 +162,8 @@ public class ProvQuoteInstanceResource extends
 	protected QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final var ramR = getRam(configuration, query.getRam());
+		final var ramR = getRam(configuration, query);
+		final var cpuR = getCpu(configuration, query);
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -180,8 +181,7 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
 
-		final var types = itRepository.findValidTypes(node, query.getCpu(), (int) ramR, query.getConstant(), typeId,
-				null);
+		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, null);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
@@ -192,9 +192,8 @@ public class ProvQuoteInstanceResource extends
 		final List<Integer> dTypes = itRepository.findDynamicalTypes(node, query.getConstant(), typeId, null);
 		if (!dTypes.isEmpty()) {
 			// Get the best dynamic instance price
-			var dlookup = ipRepository.findLowestDynamicalPrice(dTypes, query.getCpu(), ramR, os, query.isEphemeral(),
-					locationR, rate, duration, licenseR, softwareR, PageRequest.of(0, 1)).stream().findFirst()
-					.orElse(null);
+			var dlookup = ipRepository.findLowestDynamicalPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,
+					rate, duration, licenseR, softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
 			if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 				// Keep the best one
 				lookup = dlookup;

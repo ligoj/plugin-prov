@@ -38,6 +38,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
@@ -258,14 +259,33 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
+	 * Return the adjusted required CPU depending on the configuration.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param qi            The query context.
+	 * @return The adjusted required CPU depending on the configuration.
+	 */
+	protected double getCpu(final ProvQuote configuration, final QuoteVm qi) {
+		return getReserved(configuration, qi.getCpu(), qi.getCpuMax());
+	}
+
+	/**
 	 * Return the adjusted required RAM from the original one and the RAM configuration.
 	 *
 	 * @param configuration Configuration containing the default values.
-	 * @param ram           The required RAM.
+	 * @param qi            The query context.
 	 * @return The adjusted required RAM from the original one and the RAM configuration.
 	 */
-	protected double getRam(final ProvQuote configuration, final long ram) {
-		return Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100) * ram / 100d);
+	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
+		return Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100)
+				* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
+	}
+
+	/**
+	 * Return the right resource value depending on the reservation mode.
+	 */
+	protected <N extends Number> N getReserved(final ProvQuote configuration, N reserved, N max) {
+		return configuration.getReservationMode() == ReservationMode.MAX && max != null ? max : reserved;
 	}
 
 	/**

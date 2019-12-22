@@ -98,17 +98,25 @@ define(function () {
 					current.types.forEach(type => {
 						_('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false);
 					});
-					_('quote-location').select2('data', configuration.location);
-					$('.location-wrapper').html(current.locationMap(configuration.location));
-					_('quote-usage').select2('data', configuration.usage);
-					_('quote-support').select2('data', configuration.supports);
-					_('quote-license').select2('data', configuration.license ? {
-						id: configuration.license,
-						text: current.formatLicense(configuration.license)
-					} : null);
+					current.updateUiAssumptions(configuration);
 					current.updateUiCost();
 				}
 			});
+		},
+
+		updateUiAssumptions: function (conf) {
+			_('quote-location').select2('data', conf.location);
+			$('.location-wrapper').html(current.locationMap(conf.location));
+			_('quote-support').select2('data', conf.supports);
+			conf.reservationMode = conf.reservationMode || 'reserved';
+			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: current.formatReservationMode(conf.reservationMode) });
+			_('quote-license').select2('data', conf.license ? { id: conf.license, text: current.formatLicense(conf.license) } : null);
+			require(['jquery-ui'], function () {
+				$('#quote-ram-adjust').slider({
+					value: conf.ramAdjustedRate,
+				});
+			});
+			_('quote-usage').select2('data', conf.usage)
 		},
 
 		/**
@@ -431,6 +439,13 @@ define(function () {
 		 * Format the memory size.
 		 */
 		formatRam: function (sizeMB, mode, instance) {
+			if (instance) {
+				if (current.model.configuration.reservationMode === 'max' && instance.ramMax) {
+					sizeMB = instance.ramMax;
+				} else {
+					sizeMB = instance.ram;
+				}
+			}
 			if (mode === 'sort' || mode === 'filter') {
 				return sizeMB;
 			}
@@ -446,6 +461,13 @@ define(function () {
 		 * Format the memory size.
 		 */
 		formatCpu: function (value, mode, instance) {
+			if (instance) {
+				if (current.model.configuration.reservationMode === 'max' && instance.cpuMax) {
+					value = instance.cpuMax;
+				} else {
+					value = instance.cpu;
+				}
+			}
 			if (mode === 'sort' || mode === 'filter') {
 				return value;
 			}
@@ -1616,6 +1638,7 @@ define(function () {
 			current.initializeUsage();
 			current.initializeLicense();
 			current.initializeRamAdjustedRate();
+			current.updateUiAssumptions(current.model.configuration);
 		},
 
 		/**
@@ -1696,7 +1719,7 @@ define(function () {
 		 * Configure location.
 		 */
 		initializeLocation: function () {
-			_('quote-location').select2(current.locationSelect2(false)).select2('data', current.model.configuration.location).on('change', function (event) {
+			_('quote-location').select2(current.locationSelect2(false)).on('change', function (event) {
 				if (event.added) {
 					current.updateQuote({
 						location: event.added
@@ -1778,8 +1801,17 @@ define(function () {
 				data: usageTemplates
 			});
 			_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
+			_('quote-reservation-mode').select2({
+				placeholder: 'Reserved',
+				escapeMarkup: m => m,
+				data: [{ id: 'max', text: current.formatReservationMode('max') }, { id: 'reserved', text: current.formatReservationMode('reserved') }]
+			}).on('change', function (event) {
+				current.updateQuote({
+					reservationMode: event.added || null
+				}, 'reservationMode', true);
+			});
+
 			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
-				.select2('data', current.model.configuration.usage)
 				.on('change', function (event) {
 					current.updateQuote({
 						usage: event.added || null
@@ -1816,10 +1848,6 @@ define(function () {
 					: ('database-license/' + _('database-engine').val())
 			}));
 			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, () => 'instance-license/WINDOWS'))
-				.select2('data', current.model.configuration.license ? {
-					id: current.model.configuration.license,
-					text: current.formatLicense(current.model.configuration.license)
-				} : null)
 				.on('change', function (event) {
 					current.updateQuote({
 						license: event.added || null
@@ -1829,6 +1857,10 @@ define(function () {
 
 		formatLicense: function (license) {
 			return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
+		},
+
+		formatReservationMode: function (mode) {
+			return current.$messages['service:prov:reservation-mode-' + mode.toLowerCase()] || mode;
 		},
 
 		synchronizeUsage: function () {
@@ -2131,11 +2163,15 @@ define(function () {
 				description: conf.description,
 				location: conf.location,
 				license: conf.license,
+				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage
 			}, data || {});
 			jsonData.location = jsonData.location.name || jsonData.location;
 
+			if (jsonData.reservationMode) {
+				jsonData.reservationMode = jsonData.reservationMode.id || jsonData.reservationMode;
+			}
 			if (jsonData.license) {
 				jsonData.license = jsonData.license.id || jsonData.license;
 			}
@@ -2151,6 +2187,7 @@ define(function () {
 				&& (conf.location && conf.location.name) === jsonData.location
 				&& (conf.usage && conf.usage.name) === jsonData.usage
 				&& conf.license === jsonData.license
+				&& conf.reservationMode === jsonData.reservationMode
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
 				$popup.modal('hide');
@@ -2176,6 +2213,7 @@ define(function () {
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage || conf.usage;
 					conf.license = jsonData.license;
+					conf.reservationMode = jsonData.reservationMode;
 					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 
 					// UI feedback
@@ -2986,6 +3024,7 @@ define(function () {
 			var cpuReserved = 0;
 			var instanceCost = 0;
 			var ramAdjustedRate = conf.ramAdjustedRate / 100;
+			var reservationModeMax = conf.reservationMode === 'max';
 			var minInstances = 0;
 			var maxInstancesUnbound = false;
 			var enabledInstances = {};
@@ -2997,9 +3036,9 @@ define(function () {
 				minInstances += nb;
 				maxInstancesUnbound |= (qi.maxQuantity !== nb);
 				cpuAvailable += qi.price.type.cpu * nb;
-				cpuReserved += qi.cpu * nb;
+				cpuReserved += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
 				ramAvailable += qi.price.type.ram * nb;
-				ramReserved += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
+				ramReserved += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
 				instanceCost += cost;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 				enabledInstances[qi.id] = true;
@@ -3029,9 +3068,9 @@ define(function () {
 				minInstancesD += nb;
 				maxInstancesUnboundD |= (qi.maxQuantity !== nb);
 				cpuAvailableD += qi.price.type.cpu * nb;
-				cpuReservedD += qi.cpu * nb;
+				cpuReservedD += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
 				ramAvailableD += qi.price.type.ram * nb;
-				ramReservedD += (ramAdjustedRate > 1 ? qi.ram * ramAdjustedRate : qi.ram) * nb;
+				ramReservedD += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
 				instanceCostD += cost;
 				var engine = qi.engine.replace(/AURORA .*/, 'AURORA');
 				engines[engine] = (engines[engine] || 0) + 1;
@@ -3057,8 +3096,9 @@ define(function () {
 				} else {
 					nb = 1;
 				}
-				storageAvailable += Math.max(qs.size, qs.price.type.minimal) * nb;
-				storageReserved += qs.size * nb;
+				var qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
+				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
+				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
 				var quoteVm = qs.quoteDatabase || qs.quoteInstance;
 				if (quoteVm) {
@@ -3560,13 +3600,11 @@ define(function () {
 					});
 				},
 				columns: columns.concat([{
-					data: 'cpu',
 					className: 'truncate',
 					width: '48px',
 					type: 'num',
 					render: current.formatCpu
 				}, {
-					data: 'ram',
 					className: 'truncate',
 					width: '64px',
 					type: 'num',

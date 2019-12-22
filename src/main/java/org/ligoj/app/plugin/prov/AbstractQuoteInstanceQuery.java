@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import javax.validation.constraints.PositiveOrZero;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
@@ -32,6 +33,24 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("ram")
 	@Builder.Default
 	private int ram = 1;
+
+	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * 
+	 * @see #cpu
+	 */
+	@PositiveOrZero
+	@QueryParam("cpuMax")
+	private Double cpuMax;
+
+	/**
+	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * 
+	 * @see #ram
+	 */
+	@PositiveOrZero
+	@QueryParam("ramMax")
+	private Integer ramMax;
 
 	@QueryParam("constant")
 	private Boolean constant;

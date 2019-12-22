@@ -15,6 +15,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.DescribedAuditedBean;
@@ -112,6 +113,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.
 	 */
 	private int ramAdjustedRate = 100;
+
+	/**
+	 * Reservation mode.
+	 */
+	private ReservationMode reservationMode = ReservationMode.RESERVED;
 
 	/**
 	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.

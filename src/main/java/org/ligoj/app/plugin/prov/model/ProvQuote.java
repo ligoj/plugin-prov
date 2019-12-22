@@ -169,6 +169,11 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private Integer ramAdjustedRate = 100;
 
 	/**
+	 * Optional reservation mode. By default is {@value ReservationMode#RESERVED}
+	 */
+	private ReservationMode reservationMode = ReservationMode.RESERVED;
+
+	/**
 	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
 	 */
 	@ManyToOne

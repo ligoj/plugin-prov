@@ -114,8 +114,7 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	/**
-	 * Check the requested edition is compliant with the one of associated
-	 * {@link ProvDatabasePrice}
+	 * Check the requested edition is compliant with the one of associated {@link ProvDatabasePrice}
 	 *
 	 * @param name   The attribute to check.
 	 * @param pQuote The quote required attribute value.
@@ -166,7 +165,8 @@ public class ProvQuoteDatabaseResource extends
 	protected QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final var ramR = (int) getRam(configuration, query.getRam());
+		final var ramR = (int) getRam(configuration, query);
+		final var cpuR = getCpu(configuration, query);
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -186,8 +186,8 @@ public class ProvQuoteDatabaseResource extends
 
 		// Return only the first matching instance
 		return ipRepository
-				.findLowestPrice(node, query.getCpu(), ramR, query.getConstant(), typeId, locationR, rate, duration,
-						licenseR, engineR, editionR, PageRequest.of(0, 1))
+				.findLowestPrice(node, cpuR, ramR, query.getConstant(), typeId, locationR, rate, duration, licenseR,
+						engineR, editionR, PageRequest.of(0, 1))
 				.stream().findFirst().map(rs -> newPrice((ProvDatabasePrice) rs[0], (double) rs[2])).orElse(null);
 	}
 
@@ -211,8 +211,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available instance licenses for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param engine       The filtered engine.
 	 * @return The available licenses for the given subscription.
 	 */
@@ -229,8 +229,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database engines for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @return The available licenses for the given subscription.
 	 */
 	@GET
@@ -242,8 +242,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the available database edition software for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param engine       The filtered engine.
 	 * @return The available softwares for the given subscription.
 	 */
@@ -258,8 +258,8 @@ public class ProvQuoteDatabaseResource extends
 	/**
 	 * Return the instance types inside available for the related catalog.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the
-	 *                     instances from the associated provider.
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
 	 * @param uriInfo      filter data.
 	 * @return The valid instance types for the given subscription.
 	 */
@@ -276,8 +276,7 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and
-	 * computed price.
+	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
 	 */
 	private QuoteDatabaseLookup newPrice(final ProvDatabasePrice ip, final double cost) {
 		final var result = new QuoteDatabaseLookup();
