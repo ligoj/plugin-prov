@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.cache.annotation.CacheKey;
+import javax.cache.annotation.CacheResult;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -35,6 +37,8 @@ import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
@@ -149,6 +153,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
+	private ProvInstanceTypeRepository itRepository;
+
+	@Autowired
+	private ProvDatabaseTypeRepository btRepository;
+
+	@Autowired
 	private ProvQuoteStorageResource qsResource;
 
 	@Autowired
@@ -169,6 +179,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Autowired
 	private TerraformRunnerResource runner;
 
+	@Autowired
+	private ProvResource self;
+
 	static {
 		ORM_COLUMNS.put("name", "name");
 		ORM_COLUMNS.put("description", "description");
@@ -187,7 +200,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the locations available for a subscription.
+	 * Return the available locations for a subscription.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
 	 *                     provider.
@@ -203,6 +216,21 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(node,
 				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
 				Function.identity());
+	}
+
+	/**
+	 * Return the available processors for a subscription.
+	 *
+	 * @param node    The node identifier, will be used to filter the processors from the associated provider.
+	 * @param uriInfo filter data.
+	 * @return The available processors for the given subscription.
+	 */
+	@CacheResult(cacheName = "prov-processor")
+	protected Map<String, List<String>> findProcessors(@CacheKey final String node) {
+		final var listC = new HashMap<String, List<String>>();
+		listC.put("instance", itRepository.findProcessors(node));
+		listC.put("database", btRepository.findProcessors(node));
+		return listC;
 	}
 
 	/**
@@ -258,6 +286,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setTags(tagResource.findAll(subscription.getId()));
 		vo.setNetworks(networkResource.findAll(subscription.getId()));
 		vo.setUsages(usageRepository.findAll(subscription.getId()));
+		vo.setProcessors(self.findProcessors(subscription.getNode().getTool().getId()));
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();

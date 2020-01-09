@@ -188,6 +188,11 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("region-2", vo.getLocations().get(1).getName());
 		Assertions.assertEquals("region-4", vo.getLocations().get(2).getName());
 
+		// Processor
+		Assertions.assertEquals(2, vo.getProcessors().size());
+		Assertions.assertEquals(2, vo.getProcessors().get("instance").size());
+		Assertions.assertEquals(0, vo.getProcessors().get("database").size());
+
 		// Check compute
 		final var instances = vo.getInstances();
 		Assertions.assertEquals(7, instances.size());

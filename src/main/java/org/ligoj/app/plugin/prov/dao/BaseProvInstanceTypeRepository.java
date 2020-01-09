@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
+import java.util.List;
+
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -43,4 +45,15 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	@Query("SELECT i FROM #{#entityName} i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%') AND UPPER(i.name) = UPPER(:name)")
 	T findByName(int subscription, String name);
+
+	/**
+	 * Return all distinct processors.
+	 * 
+	 * @param node The node linked to the subscription. Is a node identifier within a provider.
+	 * @return All distinct processors.
+	 */
+	@Query("SELECT DISTINCT processor FROM #{#entityName} AS t WHERE processor IS NOT NULL "
+			+ " AND t.node.id = :node OR t.node.id LIKE CONCAT(:node, ':%')                "
+			+ " ORDER BY processor           ")
+	List<String> findProcessors(String node);
 }

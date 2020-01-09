@@ -133,4 +133,9 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All usages associated to this quote.
 	 */
 	private List<ProvUsage> usages;
+
+	/**
+	 * All valid processors for this subscription.
+	 */
+	private Map<String, List<String>> processors;
 }

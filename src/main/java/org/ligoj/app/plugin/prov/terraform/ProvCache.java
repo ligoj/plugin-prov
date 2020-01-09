@@ -35,6 +35,7 @@ public class ProvCache implements CacheManagerAware {
 		cacheManager.createCache("prov-location", cfgPL);
 		cacheManager.createCache("prov-license", provider.apply("prov-license"));
 		cacheManager.createCache("prov-software", provider.apply("prov-software"));
+		cacheManager.createCache("prov-processor", provider.apply("prov-processor"));
 
 		final var cfgPIT = provider.apply("prov-instance-type")
 				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
