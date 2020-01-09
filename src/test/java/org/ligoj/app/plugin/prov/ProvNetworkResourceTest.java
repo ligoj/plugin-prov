@@ -143,7 +143,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 	}
 
 	private List<NetworkVo> prepare() {
-		final List<NetworkVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkVo>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		final var server2 = qiRepository.findByName("server2").getId();
 		final var storage1 = qsRepository.findByName("server1-root").getId();
@@ -156,7 +156,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateAllById() {
-		final List<NetworkFullVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkFullVo>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		final var server2 = qiRepository.findByName("server2").getId();
 		final var server3 = qiRepository.findByName("server3").getId();
@@ -191,7 +191,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateAllByName() {
-		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkFullByNameVo>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		final var server2 = qiRepository.findByName("server2").getId();
 		final var server3 = qiRepository.findByName("server3").getId();
@@ -232,7 +232,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		final var storage1 = qsRepository.findByName("server1-root");
 		storage1.setName("server1");
 		em.merge(storage1);
-		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkFullByNameVo>();
 		io.add(newFullByNameVo("server2", "server1"));
 		Assertions.assertThrows(ValidationJsonException.class,
 				() -> networkResource.updateAllByName(subscription, true, io));
@@ -243,7 +243,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 		final var storage1 = qsRepository.findByName("server1-root");
 		storage1.setPrice(spRepository.findByExpected("code", "S3"));
 		em.merge(storage1);
-		final List<NetworkFullByNameVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkFullByNameVo>();
 		io.add(newFullByNameVo("server2", "server1-root"));
 		Assertions.assertThrows(EntityNotFoundException.class,
 				() -> networkResource.updateAllByName(subscription, false, io));
@@ -291,7 +291,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateNotExistAllById() {
-		final List<NetworkFullVo> io = new ArrayList<>();
+		final var io = new ArrayList<NetworkFullVo>();
 		final var server1 = qiRepository.findByName("server1").getId();
 		io.add(newFullVo(server1, ResourceType.INSTANCE, 0, ResourceType.INSTANCE));
 		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllById(subscription, io));
@@ -299,7 +299,7 @@ public class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void update() {
-		final List<NetworkVo> io = prepare();
+		final var io = prepare();
 		final var server1 = qiRepository.findByName("server1").getId();
 		final var server2 = qiRepository.findByName("server2").getId();
 		final var server3 = qiRepository.findByName("server3").getId();

@@ -65,11 +65,11 @@ public class ProvQuoteInstanceExportResource {
 		final var vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				final Map<Integer, List<ProvQuoteStorage>> qsByQi = new HashMap<>();
-				final Map<Integer, List<ProvQuoteStorage>> qsByQb = new HashMap<>();
-				final Map<Integer, List<TagVo>> itags = vo.getTags().get(ResourceType.INSTANCE);
-				final Map<Integer, List<TagVo>> dtags = vo.getTags().get(ResourceType.DATABASE);
-				final Map<Integer, List<TagVo>> stags = vo.getTags().get(ResourceType.STORAGE);
+				final var qsByQi = new HashMap<Integer, List<ProvQuoteStorage>>();
+				final var qsByQb = new HashMap<Integer, List<ProvQuoteStorage>>();
+				final var itags = vo.getTags().get(ResourceType.INSTANCE);
+				final var dtags = vo.getTags().get(ResourceType.DATABASE);
+				final var stags = vo.getTags().get(ResourceType.STORAGE);
 				vo.getStorages().stream().filter(qs -> qs.getInstance() != null)
 						.forEach(qs -> qsByQi.computeIfAbsent(qs.getInstance(), ArrayList::new).add(qs));
 				vo.getStorages().stream().filter(qs -> qs.getDatabase() != null)
@@ -146,7 +146,7 @@ public class ProvQuoteInstanceExportResource {
 						"engine", "edition", "seats");
 
 				// Write quote instances
-				final Map<Integer, List<TagVo>> itags = vo.getTags().get(ResourceType.INSTANCE);
+				final var itags = vo.getTags().get(ResourceType.INSTANCE);
 				vo.getInstances()
 						.forEach(qi -> writer.format("\n%s" + ";%s".repeat(18), toString(qi), toString(qi.getCpu()),
 								toString(qi.getCpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(),
@@ -157,7 +157,7 @@ public class ProvQuoteInstanceExportResource {
 								toString(qi, itags)));
 
 				// Write quote databases
-				final Map<Integer, List<TagVo>> dtags = vo.getTags().get(ResourceType.DATABASE);
+				final var dtags = vo.getTags().get(ResourceType.DATABASE);
 				vo.getDatabases().forEach(qi -> writer.format("\n%s" + ";%s".repeat(18) + ";;;;;;%s;%s", toString(qi),
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getRam()),
 						toString(qi.getRamMax()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
@@ -167,14 +167,14 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getEdition())));
 
 				// Write quote storages
-				final Map<Integer, List<TagVo>> stags = vo.getTags().get(ResourceType.STORAGE);
+				final var stags = vo.getTags().get(ResourceType.STORAGE);
 				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;%s;;;;;%s;;" + ";%s".repeat(8), toString(qs),
 						toString(qs.getLocation()), toString(qs.getPrice().getType()), toString(qs.getCost()),
 						toString(qs, stags), qs.getSize(), toString(qs.getSizeMax()), toString(qs.getQuoteInstance()),
 						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
 				// Write quote support
-				final Map<Integer, List<TagVo>> s2tags = vo.getTags().get(ResourceType.SUPPORT);
+				final var s2tags = vo.getTags().get(ResourceType.SUPPORT);
 				vo.getSupports()
 						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
 								toString(qs.getPrice().getType()), toString(qs.getCost()), toString(qs, s2tags),

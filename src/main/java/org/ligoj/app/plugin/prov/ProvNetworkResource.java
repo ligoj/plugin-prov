@@ -125,16 +125,16 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		var errors = new AtomicInteger();
 
 		// Get all resources identifiers grouped by types
-		final Map<ResourceType, Map<Integer, String>> idAndNames = new EnumMap<>(ResourceType.class);
+		final var idAndNames = new EnumMap<ResourceType, Map<Integer, String>>(ResourceType.class);
 		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
 				.forEach(t -> idAndNames.put(t, getRepository(t).findAllNetworkIdName(subscription).stream()
 						.collect(Collectors.toMap(o -> (Integer) o[0], o -> (String) o[1]))));
 
 		// Build a reversed map with duplicated name handling
-		final Map<ResourceType, Map<String, Integer>> nameAndIds = new EnumMap<>(ResourceType.class);
-		final Map<String, Integer> counters = new HashMap<>();
+		final var nameAndIds = new EnumMap<ResourceType, Map<String, Integer>>(ResourceType.class);
+		final var counters = new HashMap<String, Integer>();
 		idAndNames.keySet().forEach(t -> {
-			final Map<String, Integer> names = new HashMap<>();
+			final var names = new HashMap<String, Integer>();
 			nameAndIds.put(t, names);
 			idAndNames.get(t).forEach((id, name) -> {
 				counters.computeIfPresent(name, (n, o) -> 2);

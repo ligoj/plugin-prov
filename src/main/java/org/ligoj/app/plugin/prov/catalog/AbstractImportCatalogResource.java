@@ -170,7 +170,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @throws IOException When the JSON mapping file cannot be read.
 	 */
 	protected void initRate(final String type) throws IOException {
-		final Map<String, Rate> mapping = new HashMap<>();
+		final var mapping = new HashMap<String, Rate>();
 		mapRate.put(type, mapping);
 		mapping.putAll(objectMapper.readValue(IOUtils
 				.toString(new ClassPathResource("rate-" + type + ".json").getInputStream(), StandardCharsets.UTF_8),
@@ -371,9 +371,8 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <P>        The price type.
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected <N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(
-			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
-			final Consumer<P> persister) {
+	protected <N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(final P entity, final double oldCost,
+			final double newCost, final DoubleConsumer updateCost, final Consumer<P> persister) {
 		if (oldCost != newCost) {
 			updateCost.accept(newCost);
 			persister.accept(entity);
@@ -394,7 +393,6 @@ public abstract class AbstractImportCatalogResource {
 			final double newCost, final Consumer<P> persister) {
 		saveAsNeeded(entity, entity.getCost(), newCost, entity::setCost, persister);
 	}
-
 
 	/**
 	 * Save a storage price when the attached cost is different from the old one.

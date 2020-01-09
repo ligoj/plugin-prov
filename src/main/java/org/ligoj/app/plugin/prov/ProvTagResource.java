@@ -52,7 +52,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	 * @return The available tags for the given subscription.
 	 */
 	public Map<ResourceType, Map<Integer, List<TagVo>>> findAll(final int subscription) {
-		final Map<ResourceType, Map<Integer, List<TagVo>>> tags = new EnumMap<>(ResourceType.class);
+		final var tags = new EnumMap<ResourceType, Map<Integer, List<TagVo>>>(ResourceType.class);
 		repository.findAll(subscription).forEach(t -> tags.computeIfAbsent(t.getType(), a -> new HashMap<>())
 				.computeIfAbsent(t.getResource(), a -> new ArrayList<>()).add(toVo(t)));
 		return tags;

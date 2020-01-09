@@ -190,7 +190,7 @@ public class ProvQuoteInstanceResource extends
 					softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
 		}
 
-		final List<Integer> dTypes = itRepository.findDynamicTypes(node, query.getConstant(), typeId, procR);
+		final var dTypes = itRepository.findDynamicTypes(node, query.getConstant(), typeId, procR);
 		if (!dTypes.isEmpty()) {
 			// Get the best dynamic instance price
 			var dlookup = ipRepository.findLowestDynamicPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,

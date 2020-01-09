@@ -420,7 +420,7 @@ public class TerraformUtils {
 	 *             When unzip fails : download, unzip, write file,...
 	 */
 	public List<File> unzip(final InputStream source, final File toDir) throws IOException {
-		final List<File> files = new ArrayList<>();
+		final var files = new ArrayList<File>();
 		try (var zis = new ZipInputStream(source)) {
 			FileUtils.forceMkdir(toDir);
             var zipEntry = zis.getNextEntry();

@@ -135,8 +135,8 @@ public class ProvUsageResource {
 		entity.setStart(vo.getStart());
 
 		// Prepare the updated cost of updated instances
-		final Map<ResourceType, Map<Integer, FloatingCost>> costs = Collections
-				.synchronizedMap(new EnumMap<>(ResourceType.class));
+		final var costs = Collections
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
 		final var quote = entity.getConfiguration();
 
 		// Fetch the usages of this quotes
