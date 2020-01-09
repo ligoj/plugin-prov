@@ -43,6 +43,7 @@ public class ProvCache implements CacheManagerAware {
 		cacheManager.createCache("prov-instance-type-dyn", provider.apply("prov-instance-type-dyn"));
 
 		// Database caches
+		cacheManager.createCache("prov-database-type", cfgPIT);
 		cacheManager.createCache("prov-database-engine", provider.apply("prov-database-engine"));
 		cacheManager.createCache("prov-database-edition", provider.apply("prov-database-edition"));
 		cacheManager.createCache("prov-database-license", provider.apply("prov-database-license"));

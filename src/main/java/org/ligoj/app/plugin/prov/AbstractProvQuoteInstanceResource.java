@@ -145,12 +145,14 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setUsage(Optional.ofNullable(vo.getUsage()).map(u -> getUsage(quote, u)).orElse(null));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
+		entity.setProcessor(vo.getProcessor());
 		entity.setConstant(vo.getConstant());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
+		entity.setProcessor(vo.getProcessor());
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 
@@ -243,6 +245,17 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		}
 		return configuration.getUsages().stream().filter(u -> u.getName().equals(name)).findFirst()
 				.orElseThrow(() -> new EntityNotFoundException(name));
+	}
+
+	/**
+	 * Return the resolved processor requirement.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param name          The local processor requirement
+	 * @return The resolved processor requirement. May be <code>null</code>.
+	 */
+	protected String getProcessor(final ProvQuote configuration, final String processor) {
+		return ObjectUtils.defaultIfNull(processor, configuration.getProcessor());
 	}
 
 	/**
@@ -442,5 +455,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		qi.setPrice(
 				validateLookup(getType().name().toLowerCase(), lookup(qi.getConfiguration(), (Q) qi), qi.getName()));
 		return updateCost(qi);
+	}
+
+	/**
+	 * Return the total cost from the query result.
+	 * 
+	 * @param lookup The lookup result set.
+	 * @return The cost value.
+	 */
+	protected double toTotalCost(final Object[] lookup) {
+		return ((Double) lookup[1]);
 	}
 }

@@ -567,6 +567,54 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	/**
+	 * Update the processor.
+	 */
+	@Test
+	void updateProcessor() {
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet.setProcessor("Intel");
+		instanceGet.setOs(VmOs.LINUX);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(configuration), 3513.6, 3513.6, false);
+
+		final var quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setUsage("usage");
+		quote.setProcessor("AMD");
+		quote.setRefresh(true);
+		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
+		em.flush();
+		em.clear();
+		var quoteVo = resource.getConfiguration(subscription.getId());
+		Assertions.assertEquals("AMD", quoteVo.getProcessor());
+		final var instanceGet0 = quoteVo.getInstances().get(0);
+		Assertions.assertEquals("C65", instanceGet0.getPrice().getCode());
+		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", instanceGet0.getPrice().getType().getProcessor());
+
+		// Remove local requirement
+		quote.setRefresh(true);
+		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
+
+		em.flush();
+		em.clear();
+		var instanceGet1 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet1.setProcessor(null);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(configuration), 249.343, 249.343, false);
+		em.flush();
+		em.clear();
+		var quoteVo2 = resource.getConfiguration(subscription.getId());
+		final var instanceGet2 = quoteVo2.getInstances().get(0);
+		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
+		Assertions.assertEquals("AMD EPYC 7571", instanceGet2.getPrice().getType().getProcessor());
+	}
+
+	/**
 	 * Update the default license model of the quote, impact all instances using the default license model.
 	 */
 	@Test

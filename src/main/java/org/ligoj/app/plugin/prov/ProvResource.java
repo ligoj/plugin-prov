@@ -251,6 +251,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setLicense(quote.getLicense());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
+		vo.setProcessor(quote.getProcessor());
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
@@ -313,18 +314,22 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldUsage = entity.getUsage();
 		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
 		var oldReservationMode = ObjectUtils.defaultIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
+		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
 		entity.setLicense(vo.getLicense());
 		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
 		entity.setReservationMode(vo.getReservationMode());
+		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !oldRamAdjusted.equals(entity.getRamAdjustedRate())
 				|| !oldReservationMode.equals(entity.getReservationMode())
-				|| !Objects.equals(oldLicense, entity.getLicense())) {
+				|| !Objects.equals(oldLicense, entity.getLicense())
+				|| !Objects.equals(oldProcessor, entity.getProcessor())) {
 			return refresh(entity);
 		}
+
 		// No refresh needed
 		return entity.toFloatingCost();
 	}

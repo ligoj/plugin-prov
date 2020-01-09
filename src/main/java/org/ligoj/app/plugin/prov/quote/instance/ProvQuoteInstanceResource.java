@@ -164,6 +164,7 @@ public class ProvQuoteInstanceResource extends
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
+		final var procR = getProcessor(configuration, query.getProcessor());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -181,7 +182,7 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
 
-		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, null);
+		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, procR);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
@@ -189,10 +190,10 @@ public class ProvQuoteInstanceResource extends
 					softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
 		}
 
-		final List<Integer> dTypes = itRepository.findDynamicalTypes(node, query.getConstant(), typeId, null);
+		final List<Integer> dTypes = itRepository.findDynamicTypes(node, query.getConstant(), typeId, procR);
 		if (!dTypes.isEmpty()) {
 			// Get the best dynamic instance price
-			var dlookup = ipRepository.findLowestDynamicalPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,
+			var dlookup = ipRepository.findLowestDynamicPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,
 					rate, duration, licenseR, softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
 			if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 				// Keep the best one
@@ -207,10 +208,6 @@ public class ProvQuoteInstanceResource extends
 
 		// Return the best match
 		return newPrice(lookup);
-	}
-
-	private double toTotalCost(final Object[] lookup) {
-		return ((Double) lookup[1]);
 	}
 
 	private boolean canByol(final VmOs os) {

@@ -44,7 +44,7 @@ public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integ
 	private Integer ram;
 
 	/**
-	 * Optional physical processor.
+	 * Optional physical processor. May be <code>null</code>.
 	 */
 	private String processor;
 

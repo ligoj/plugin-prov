@@ -179,6 +179,11 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	@ManyToOne
 	private ProvCurrency currency;
 
+	/**
+	 * Optional physical processor. May be <code>null</code>.
+	 */
+	private String processor;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

@@ -1,4 +1,4 @@
-node.id;name;cpu;ram;constant;description;location.name
+node.id;name;cpu;ram;constant;description;location.name;processor
 service:prov:test;instance1;0.5;2000;true;instanceD1
 service:prov:test;instance2;1;2000;false;instanceD2
 service:prov:test;instance3;2;2000;true;instanceD3
@@ -9,7 +9,7 @@ service:prov:test;instance7;2;4000;true;instanceD7
 service:prov:test;instance8;2;4000;false;instanceD8
 service:prov:test;instance9;4;16000;true;instanceD9
 service:prov:test;instance10;4;8000;false;instanceD10
-service:prov:test;instance11;8;16000;true;instanceD11
+service:prov:test;instance11;8;16000;true;instanceD11;;Intel Xeon Platinum 8175 (Skylake)
 service:prov:test;instance12;8;8000;false;instanceD12
-service:prov:test;dynamic;0;0;true;dynamicD
+service:prov:test;dynamic;0;0;true;dynamicD;;AMD EPYC 7571
 service:prov:x;instanceX;8;8000;false;instanceDX

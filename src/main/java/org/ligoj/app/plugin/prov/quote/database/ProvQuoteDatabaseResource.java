@@ -32,13 +32,11 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -165,8 +163,9 @@ public class ProvQuoteDatabaseResource extends
 	protected QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
-		final var ramR = (int) getRam(configuration, query);
+		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
+		final var procR = getProcessor(configuration, query.getProcessor());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -184,11 +183,21 @@ public class ProvQuoteDatabaseResource extends
 		final var editionR = normalize(query.getEdition());
 		final var engineR = normalize(query.getEngine());
 
-		// Return only the first matching instance
-		return ipRepository
-				.findLowestPrice(node, cpuR, ramR, query.getConstant(), typeId, locationR, rate, duration, licenseR,
-						engineR, editionR, PageRequest.of(0, 1))
-				.stream().findFirst().map(rs -> newPrice((ProvDatabasePrice) rs[0], (double) rs[2])).orElse(null);
+		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, procR);
+		Object[] lookup = null;
+		if (!types.isEmpty()) {
+			// Get the best template instance price
+			lookup = ipRepository.findLowestPrice(types, locationR, rate, duration, licenseR, engineR, editionR,
+					PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+		}
+
+		// No result
+		if (lookup == null) {
+			return null;
+		}
+
+		// Return the best match
+		return newPrice(lookup);
 	}
 
 	private String normalize(final String value) {
@@ -276,9 +285,11 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
+	 * Build a new {@link QuoteDatabaseLookup} from {@link ProvDatabasePrice} and computed price.
 	 */
-	private QuoteDatabaseLookup newPrice(final ProvDatabasePrice ip, final double cost) {
+	private QuoteDatabaseLookup newPrice(final Object[] rs) {
+		final var ip = (ProvDatabasePrice) rs[0];
+		final var cost = (double) rs[2];
 		final var result = new QuoteDatabaseLookup();
 		result.setCost(round(cost));
 		result.setPrice(ip);

@@ -120,6 +120,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private ReservationMode reservationMode = ReservationMode.RESERVED;
 
 	/**
+	 * Optional physical processor. May be <code>null</code>.
+	 */
+	private String processor;
+
+	/**
 	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
 	 */
 	private ProvCurrency currency;

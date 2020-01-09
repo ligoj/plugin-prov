@@ -78,7 +78,7 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private Boolean constant;
 
 	/**
-	 * Optional physical processor.
+	 * Optional physical processor. Case insensitive with 'like' match.
 	 */
 	private String processor;
 

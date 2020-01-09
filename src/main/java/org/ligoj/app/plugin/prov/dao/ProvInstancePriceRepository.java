@@ -71,7 +71,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
 			+ "  AND (:software IS NULL OR :software = ip.software)   "
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestDynamicalPrice(List<Integer> types, double cpu, double ram, VmOs os, boolean ephemeral,
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, double cpu, double ram, VmOs os, boolean ephemeral,
 			int location, double rate, double duration, String license, String software, Pageable pageable);
 
 	/**

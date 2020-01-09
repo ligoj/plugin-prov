@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.quote.database;
 
+import static org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseQuery.builder;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -107,7 +109,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookup() {
 		final var lookup = qbResource.lookup(subscription,
-				QuoteDatabaseQuery.builder().usage("Full Time 12 month").engine("MYSQL").build());
+				builder().usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
 	}
 
@@ -117,7 +119,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupLicenseIncluded() {
 		final var lookup = qbResource.lookup(subscription,
-				QuoteDatabaseQuery.builder().usage("Full Time 12 month").license("INCLUDED").engine("MYSQL").build());
+				builder().usage("Full Time 12 month").license("INCLUDED").engine("MYSQL").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -143,7 +145,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
 				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\""
 				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);
-		QuoteDatabaseQuery.builder().toString();
+		builder().toString();
 	}
 
 	/**
@@ -151,8 +153,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupLicenseByol() {
-		final var lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.5)
-				.ram(2000).usage("Full Time 12 month").license("BYOL").engine("ORACLE").edition("ENTERPRISE").build());
+		final var lookup = qbResource.lookup(subscription, builder().cpu(0.5).ram(2000).usage("Full Time 12 month")
+				.license("BYOL").engine("ORACLE").edition("ENTERPRISE").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -165,12 +167,26 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Basic case, almost no requirements but processor.
+	 */
+	@Test
+	void lookupProcessor() {
+		final var lookup = qbResource.lookup(subscription, builder().engine("MYSQL").processor("Intel").build());
+
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("database2", pi.getType().getName());
+		Assertions.assertEquals("MYSQL3", pi.getCode());
+		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", pi.getType().getProcessor());
+	}
+
+	/**
 	 * Basic case, almost no requirements but location.
 	 */
 	@Test
 	void lookupLocation() {
 		final var lookup = qbResource.lookup(subscription,
-				QuoteDatabaseQuery.builder().location("region-1").usage("Full Time 12 month").engine("MYSQL").build());
+				builder().location("region-1").usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
 	}
 
@@ -179,8 +195,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription,
-				QuoteDatabaseQuery.builder().location("region-xxx").engine("MYSQL").build()));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> qbResource.lookup(subscription, builder().location("region-xxx").engine("MYSQL").build()));
 	}
 
 	private void checkInstance(final QuoteDatabaseLookup lookup) {
@@ -204,8 +220,8 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupHighConstraints() {
-		final var lookup = qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(0.25)
-				.ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").build());
+		final var lookup = qbResource.lookup(subscription,
+				builder().cpu(0.25).ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
@@ -224,8 +240,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatch() {
-		Assertions.assertNull(
-				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().cpu(999).engine("MYSQL").build()));
+		Assertions.assertNull(qbResource.lookup(subscription, builder().cpu(999).engine("MYSQL").build()));
 	}
 
 	/**
@@ -233,7 +248,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatchEngine() {
-		Assertions.assertNull(qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("any").build()));
+		Assertions.assertNull(qbResource.lookup(subscription, builder().engine("any").build()));
 	}
 
 	/**
@@ -241,8 +256,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatchEdition() {
-		Assertions.assertNull(
-				qbResource.lookup(subscription, QuoteDatabaseQuery.builder().engine("MYSQL").edition("any").build()));
+		Assertions.assertNull(qbResource.lookup(subscription, builder().engine("MYSQL").edition("any").build()));
 	}
 
 	@Test
@@ -488,6 +502,23 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	void createProcessor() {
+		final var vo = new QuoteDatabaseEditionVo();
+		vo.setSubscription(subscription);
+		vo.setPrice(bpRepository.findByExpected("code", "MYSQL3").getId());
+		vo.setName("serverZ");
+		vo.setEngine("MYSQL");
+		vo.setProcessor("Intel");
+		final var updatedCost = qbResource.create(vo);
+
+		checkCost(updatedCost.getCost(), 168.0, 168.0, true);
+		final var instance = qbRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("MYSQL", instance.getEngine());
+		Assertions.assertEquals("Intel", instance.getProcessor());
+		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", instance.getPrice().getType().getProcessor());
+	}
+
+	@Test
 	void createIncompatibleEngine() {
 		final var vo = new QuoteDatabaseEditionVo();
 		vo.setSubscription(subscription);
@@ -531,8 +562,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstancePriceTermsCriteria() {
-		final var tableItem = qbResource.findPriceTerms(subscription,
-				newUriInfo("deMand"));
+		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo("deMand"));
 		Assertions.assertEquals(2, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}

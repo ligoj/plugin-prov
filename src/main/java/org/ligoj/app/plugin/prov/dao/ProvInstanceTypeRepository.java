@@ -25,16 +25,16 @@ public interface ProvInstanceTypeRepository extends BaseProvInstanceTypeReposito
 	 * @param constant  The optional constant CPU behavior constraint.
 	 * @param type      The optional instance type identifier. May be <code>null</code>.
 	 * @param processor Optional processor requirement. A <code>LIKE</code> will be used.
-	 * @return The minimum instance price or <code>null</code>.
+	 * @return The matching dynamic instance types.
 	 */
 	@CacheResult(cacheName = "prov-instance-type-dyn")
 	@Query("SELECT id FROM #{#entityName} WHERE                          "
 			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
 			+ "  AND (:type IS NULL OR id = :type)                       "
 			+ "  AND cpu = 0                                             "
-			+ "  AND (:constant IS NULL OR constant = :constant)"
-			+ "  AND (:processor IS NULL OR processor LIKE CONCAT(:processor, '%'))")
-	List<Integer> findDynamicalTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Integer type,
+			+ "  AND (:constant IS NULL OR constant = :constant)" + "  AND (:processor IS NULL"
+			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
+	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Integer type,
 			@CacheKey String processor);
 
 	/**
@@ -46,15 +46,15 @@ public interface ProvInstanceTypeRepository extends BaseProvInstanceTypeReposito
 	 * @param constant  The optional constant CPU behavior constraint.
 	 * @param type      The optional instance type identifier. May be <code>null</code>.
 	 * @param processor Optional processor requirement. A <code>LIKE</code> will be used.
-	 * @return The minimum instance price or <code>null</code>.
+	 * @return The matching instance types.
 	 */
 	@CacheResult(cacheName = "prov-instance-type")
 	@Query("SELECT id FROM #{#entityName} WHERE                          "
 			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
 			+ "  AND (:type IS NULL OR id = :type)                       "
 			+ "  AND cpu != 0 AND cpu>= :cpu AND ram>=:ram               "
-			+ "  AND (:constant IS NULL OR constant = :constant)"
-			+ "  AND (:processor IS NULL OR processor LIKE CONCAT(:processor, '%'))")
+			+ "  AND (:constant IS NULL OR constant = :constant)" + "  AND (:processor IS NULL"
+			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey int ram,
 			@CacheKey Boolean constant, @CacheKey Integer type, @CacheKey String processor);
 }

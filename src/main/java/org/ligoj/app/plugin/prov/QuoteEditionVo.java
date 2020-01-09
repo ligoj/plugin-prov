@@ -59,7 +59,12 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	 * Optional reservation mode. When <code>null</code>, is {@value ReservationMode#RESERVED}
 	 */
 	private ReservationMode reservationMode = ReservationMode.RESERVED;
-	
+
+	/**
+	 * Optional physical processor. May be <code>null</code>.
+	 */
+	private String processor;
+
 	/**
 	 * When <code>true</code>, the cost is always refreshed, otherwise, only when at least one pricing dependency is
 	 * updated.

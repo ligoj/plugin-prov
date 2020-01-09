@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.MatcherUtil;
@@ -124,8 +125,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupSoftware() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).software("SQL Web").build());
+		final var lookup = qiResource.lookup(subscription, builder().os(VmOs.WINDOWS).software("SQL Web").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -133,6 +133,55 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("C121", pi.getCode());
 		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
 		Assertions.assertNull(pi.getLicense());
+	}
+
+	/**
+	 * Basic case, almost no requirements but software.
+	 */
+	@Test
+	void lookupMax() {
+		repository.findByName("quote1").setReservationMode(ReservationMode.MAX);
+		final var build = builder().ramMax(2000).cpuMax(2d).build();
+		build.setCpuMax(2d); // Only for coverage
+		build.setRamMax(2000); // Only for coverage
+		final var lookup = qiResource.lookup(subscription, build);
+
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("instance4", pi.getType().getName());
+		Assertions.assertEquals("19", pi.getCode());
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertNull(pi.getLicense());
+	}
+
+	/**
+	 * Basic case, almost no requirements but processor.
+	 */
+	@Test
+	void lookupProcessor() {
+		final var build = builder().processor("Intel").build();
+		build.setProcessor("Intel"); // Coverage only
+		final var lookup = qiResource.lookup(subscription, build);
+
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("instance11", pi.getType().getName());
+		Assertions.assertEquals("C61", pi.getCode());
+		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", pi.getType().getProcessor());
+	}
+
+	/**
+	 * Basic case, almost no requirements but processor with 'contains'.
+	 */
+	@Test
+	void lookupProcessorContains() {
+		final var lookup = qiResource.lookup(subscription, builder().processor("epyc 7571").build());
+
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("dynamic", pi.getType().getName());
+		Assertions.assertEquals("C74", pi.getCode());
+		Assertions.assertEquals("AMD EPYC 7571", pi.getType().getProcessor());
 	}
 
 	/**
@@ -734,7 +783,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("serverZ");
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
+		vo.setRamMax(10800);
 		vo.setCpu(0.5);
+		vo.setCpuMax(0.5);
 		vo.setConstant(true);
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setMaxVariableCost(210.9);
@@ -809,6 +860,22 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertNull(instance.getMaxQuantity());
 		Assertions.assertTrue(instance.isUnboundCost());
+	}
+
+	@Test
+	void createProcessor() {
+		final var vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setPrice(ipRepository.findByExpected("code", "C61").getId());
+		vo.setName("serverZ");
+		vo.setOs(VmOs.LINUX);
+		vo.setProcessor("Intel");
+		final var updatedCost = qiResource.create(vo);
+
+		checkCost(updatedCost.getCost(), 4684.8, 4684.8, true);
+		final var instance = qiRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("Intel", instance.getProcessor());
+		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", instance.getPrice().getType().getProcessor());
 	}
 
 	@Test
