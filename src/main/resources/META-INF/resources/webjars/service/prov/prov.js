@@ -1794,7 +1794,7 @@ define(function () {
 				current.usageTemplates[usageTemplates[i].id] = usageTemplates[i];
 			}
 			_('usage-template').select2({
-				placeholder: 'Template',
+				placeholder: current.$messages['service:prov:template'],
 				allowClear: true,
 				formatSelection: current.formatUsageTemplate,
 				formatResult: current.formatUsageTemplate,
@@ -1812,8 +1812,7 @@ define(function () {
 				}, { name: 'reservationMode', ui: 'quote-reservation-mode', previous: event.removed }, true);
 			});
 			_('quote-processor').select2({
-				placeholder: 'Processor',
-				// escapeMarkup: m => m,
+				placeholder: current.$messages['service:prov:processor-default'],
 				allowClear: true,
 				createSearchChoice: term => {
 					if (current.model) {
@@ -1821,7 +1820,7 @@ define(function () {
 						var processors = current.model.configuration.processors;
 						// Must be found in all resource types
 						if (processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length && processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length) {
-							return { id: term, text: term };
+							return { id: term, text: '[' + term + ']' };
 						}
 					}
 					// Invalid processor

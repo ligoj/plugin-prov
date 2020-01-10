@@ -119,6 +119,7 @@ define({
 	'service:prov:ramAdjustedRate-failed': 'Le ratio de RAM {{this}}% rend certaines instances incompatibles',
 	'service:prov:reservedMode-failed': 'Le mode de réservation {{this}} rend certaines instances incompatibles',
 	'service:prov:processor-failed': 'Le processeur de type {{this}} rend certaines instances incompatibles',
+	'service:prov:processor-default': 'Tous',
 	'service:prov:default-failed': 'La propriété "{{name}}" pour valeur "{{value}}" rend certaines instances incompatibles',
     'service:prov:storage': 'Stockage',
 	'service:prov:storage-giga': 'Go',

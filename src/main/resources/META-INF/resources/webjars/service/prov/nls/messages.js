@@ -120,6 +120,7 @@ define({
         'service:prov:ramAdjustedRate-failed': 'RAM overhead to {{this}}%  makes some instances unavailable',
         'service:prov:reservedMode-failed': 'Reservation mode {{this}} makes some instances unavailable',
         'service:prov:processor-failed': 'Processor type {{this}} makes some instances unavailable',
+        'service:prov:processor-default': 'Any',
         'service:prov:default-failed': 'Property "{{name}}" with value "{{value}}" makes some instances unavailable',
         'service:prov:storage': 'Storage',
         'service:prov:storage-giga': 'GiB',
