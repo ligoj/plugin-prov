@@ -11,7 +11,7 @@
 			<div id="prov-defaults">
 				<form class="form-horizontal" autocomplete="off">
 					<fieldset>
-						<legend><i class="far fa-list-alt"></i><span> {{quote-assumptions}}</span><a class="pull-right" href="#/prov/catalog" data-toggle="tooltip" title="{{global-configuration}}" data-secured-service="service/prov/catalog" data-secured-method="get"><i class="fas fa-cog"></i></a>
+						<legend><i class="far fa-sliders-h"></i><span> {{quote-assumptions}}</span><a class="pull-right" href="#/prov/catalog" data-toggle="tooltip" title="{{global-configuration}}" data-secured-service="service/prov/catalog" data-secured-method="get"><i class="fas fa-cog"></i></a>
 						</legend>
 						<div class="form-group">
 							<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt fa-fw" data-toggle="tooltip" title="{{quote-location}}"></i></label>
@@ -39,6 +39,16 @@
 							<label class="control-label col-xs-1" for="quote-reservation-mode"><i class="fas fa-adjust fa-rotate-270 fa-fw" data-toggle="tooltip" title="{{quote-reservation-mode}}"></i></label>
 							<div class="col-xs-10">
 								<input type="text" id="quote-reservation-mode" class="form-control" required maxlength="50" />
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-processor">
+								<span data-toggle="tooltip" title="{{quote-processor}}" class="fa-stack fa-stack-cpu">
+									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
+									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
+								</span></label>
+							<div class="col-xs-10">
+								<input type="text" id="quote-processor" class="form-control" />
 							</div>
 						</div>
 						<div class="form-group">

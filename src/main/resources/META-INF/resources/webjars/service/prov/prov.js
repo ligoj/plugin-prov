@@ -110,6 +110,7 @@ define(function () {
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: current.formatReservationMode(conf.reservationMode) });
+			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: current.formatLicense(conf.license) } : null);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
@@ -1810,6 +1811,34 @@ define(function () {
 					reservationMode: event.added || null
 				}, { name: 'reservationMode', ui: 'quote-reservation-mode', previous: event.removed }, true);
 			});
+			_('quote-processor').select2({
+				placeholder: 'Processor',
+				// escapeMarkup: m => m,
+				allowClear: true,
+				createSearchChoice: term => {
+					if (current.model) {
+						term = term.toLowerCase();
+						var processors = current.model.configuration.processors;
+						// Must be found in all resource types
+						if (processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length && processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length) {
+							return { id: term, text: term };
+						}
+					}
+					// Invalid processor
+					return null;
+				},
+				data: () => {
+					if (current.model) {
+						var processors = current.model.configuration.processors;
+						return { results: processors.instance.concat(processors.database).map(p => { return { id: p, text: p }; }) };
+					}
+					return { results: [] };
+				}
+			}).on('change', function (event) {
+				current.updateQuote({
+					processor: event.added || null
+				}, { name: 'processor', ui: 'quote-processor', previous: event.removed }, true);
+			});
 
 			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
 				.on('change', function (event) {
@@ -2163,12 +2192,16 @@ define(function () {
 				description: conf.description,
 				location: conf.location,
 				license: conf.license,
+				processor: conf.processor,
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage
 			}, data || {});
 			jsonData.location = jsonData.location.name || jsonData.location;
 
+			if (jsonData.processor) {
+				jsonData.processor = jsonData.processor.id || jsonData.processor;
+			}
 			if (jsonData.reservationMode) {
 				jsonData.reservationMode = jsonData.reservationMode.id || jsonData.reservationMode;
 			}
@@ -2187,6 +2220,7 @@ define(function () {
 				&& (conf.location && conf.location.name) === jsonData.location
 				&& (conf.usage && conf.usage.name) === jsonData.usage
 				&& conf.license === jsonData.license
+				&& conf.processor === jsonData.processor
 				&& conf.reservationMode === jsonData.reservationMode
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
@@ -2213,6 +2247,7 @@ define(function () {
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage || conf.usage;
 					conf.license = jsonData.license;
+					conf.processor = jsonData.processor;
 					conf.reservationMode = jsonData.reservationMode;
 					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 

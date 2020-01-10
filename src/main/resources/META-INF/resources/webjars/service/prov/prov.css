@@ -468,3 +468,15 @@ img.flag-icon.prov-location-flag {
 .dropdown-menu .prov-export .export-type {
   width: 0;
 }
+.fa-stack-cpu {
+  width: 16px;
+  height: 20px;
+  line-height: initial;
+  vertical-align: top;
+}
+.fa-stack-cpu i:first-child {
+  transform: scale(1, 0.7);
+}
+.fa-stack-cpu i:last-child {
+  transform: rotate(90deg) scale(1, 0.7);
+}
