@@ -1660,7 +1660,7 @@ define(function () {
 					change: function (event, slider) {
 						current.updateQuote({
 							ramAdjustedRate: slider.value
-						}, 'ramAdjustedRate', true);
+						}, { name: 'ramAdjustedRate', ui: 'quote-ram-adjust', previous: current.model.configuration.ramAdjustedRate }, true);
 					}
 				});
 			});
@@ -1723,7 +1723,7 @@ define(function () {
 				if (event.added) {
 					current.updateQuote({
 						location: event.added
-					}, 'location');
+					}, { name: 'location', ui: 'quote-location', previous: event.removed });
 					$('.location-wrapper').html(current.locationMap(event.added));
 				}
 			});
@@ -1808,14 +1808,14 @@ define(function () {
 			}).on('change', function (event) {
 				current.updateQuote({
 					reservationMode: event.added || null
-				}, 'reservationMode', true);
+				}, { name: 'reservationMode', ui: 'quote-reservation-mode', previous: event.removed }, true);
 			});
 
 			_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
 				.on('change', function (event) {
 					current.updateQuote({
 						usage: event.added || null
-					}, 'usage', true);
+					}, { name: 'usage', ui: 'quote-usage', previous: event.removed }, true);
 				});
 			var $usageSelect2 = _('quote-usage').data('select2');
 			if (typeof $usageSelect2.originalSelect === 'undefined') {
@@ -1851,7 +1851,7 @@ define(function () {
 				.on('change', function (event) {
 					current.updateQuote({
 						license: event.added || null
-					}, 'license', true);
+					}, { name: 'license', ui: 'quote-license', previous: event.removed }, true);
 				});
 		},
 
@@ -2150,10 +2150,10 @@ define(function () {
 		/**
 		 * Update the quote's details. If the total cost is updated, the quote will be updated.
 		 * @param {object} data The optional data overriding the on from the model.
-		 * @param {String} property The optional highlighted updated property name. Used for the feedback UI.
+		 * @param {String} context The optional context with property, field and previous value. Used for the feedback UI and the rollback.
 		 * @param {function } forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
-		updateQuote: function (data, property, forceUpdateUi) {
+		updateQuote: function (data, context, forceUpdateUi) {
 			var conf = current.model.configuration;
 			var $popup = _('popup-prov-update');
 
@@ -2221,17 +2221,30 @@ define(function () {
 					current.enableCreate($popup);
 
 					// Handle updated cost
-					if (property) {
+					if (context) {
 						current.reloadAsNeed(newCost, forceUpdateUi);
 					} else if (forceUpdateUi) {
 						current.updateUiCost();
 					}
 				},
 				error: function () {
-					// Restore the old property value
-					if (property) {
-						notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:' + property + '-failed'])(data[property].name));
-						_('quote-' + property).select2('data', current.model.configuration[property]);
+					// Restore the old UI property value
+					if (context) {
+						var eMsg = current.$messages['service:prov:' + context.name + '-failed'];
+						var value = data[context.name].name || data[context.name].text || data[context.name].id || data[context.name];
+						if (eMsg) {
+							notifyManager.notifyDanger(Handlebars.compile(eMsg)(value));
+						} else {
+							// Unmanaged UI error
+							notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:default-failed'])({ name: context.name, value: value }));
+						}
+						if (_(context.ui).prev('.select2-container').length) {
+							// Select2 input
+							_(context.ui).select2('data', context.previous);
+						} else {
+							// Simple input
+							_(context.ui).val(context.previous);
+						}
 					}
 					current.enableCreate($popup);
 				}
