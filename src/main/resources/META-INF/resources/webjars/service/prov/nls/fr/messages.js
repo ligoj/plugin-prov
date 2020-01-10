@@ -204,6 +204,8 @@ define({
 	'service:prov:location-help': 'Emplacement géographique de cette resource. Les prix dépendent de l\'emplacement sélectionné. Lorsque l\'emplacement n\'est pas défini, celui du devis est utilisé.',
 	'service:prov:software-none': 'Aucun',
 	'service:prov:software': 'Logiciel',
+	'service:prov:software-title': 'Logiciel pré-installé',
+	'service:prov:software-help': 'Logiciel pré-installé pour cette instance. Le prix horaire inclus les coûts et le contrat est établi entre le provider et l\'éditeur.',
 	'service:prov:tags': 'Tags',
 	'service:prov:usage-failed': 'L\'usage sélectionné {{this}} ne supporte pas toutes vos exigences',
 	'service:prov:usage-100': 'Toujours utilisé',

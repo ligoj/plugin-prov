@@ -205,6 +205,8 @@ define({
         'service:prov:location-help': 'Geographical location of this resource. Prices depend on the elected location. When undefined, the default quote\'s location is used.',
         'service:prov:software-none': 'None',
         'service:prov:software': 'Software',
+        'service:prov:software-title': 'Pre-installed sofware',
+        'service:prov:software-help': 'Pre-installed sofware for this instance. Hourly price includes its cost, the contract is between the provider and the editor.',
         'service:prov:tags': 'Tags',
         'service:prov:usage-failed': 'Usage {{this}} does not support all your requirements',
         'service:prov:usage-100': 'Always used',
