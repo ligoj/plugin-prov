@@ -480,3 +480,6 @@ img.flag-icon.prov-location-flag {
 .fa-stack-cpu i:last-child {
   transform: rotate(90deg) scale(1, 0.7);
 }
+#instance-constant, #instance-ram-unit {
+  width: 93px;
+}

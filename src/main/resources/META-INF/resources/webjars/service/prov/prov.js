@@ -3,6 +3,745 @@
  */
 /*jshint esversion: 6*/
 define(function () {
+
+	/**
+	 * OS key to markup/label mapping.
+	 */
+	var os = {
+		'linux': ['Linux', 'fab fa-linux fa-fw'],
+		'windows': ['Windows', 'fab fa-windows fa-fw'],
+		'suse': ['SUSE', 'fab fa-suse fa-fw'],
+		'rhel': ['Red Hat Enterprise', 'fab fa-redhat fa-fw'],
+		'centos': ['CentOS', 'fab fa-centos fa-fw'],
+		'debian': ['Debian', 'icon-debian fa-fw'],
+		'fedora': ['Fedora', 'fab fa-fedora fa-fw'],
+		'ubuntu': ['Ubuntu', 'fab fa-ubuntu fa-fw'],
+		'freebsd': ['FreeBSD', 'fab fa-freebsd fa-fw']
+	}
+
+	/**
+	 * Engine key to markup/label mapping.
+	 */
+	var databaseEngines = {
+		'MYSQL': ['MySQL', 'icon-mysql'],
+		'ORACLE': ['Oracle', 'icon-oracle'],
+		'MARIADB': ['MariaDB', 'icon-mariadb'],
+		'AURORA MYSQL': ['Aurora MySQL', 'icon-aws'],
+		'AURORA POSTGRESQL': ['Aurora PostgreSQL', 'icon-aws'],
+		'POSTGRESQL': ['PostgreSQL', 'icon-postgres'],
+		'SQL SERVER': ['SQL Server', 'icon-mssql'],
+	}
+
+	/**
+	 * Internet Access key to markup/label mapping.
+	 */
+	var internet = {
+		'public': ['Public', 'fas fa-globe fa-fw'],
+		'private': ['Private', 'fas fa-lock fa-fw'],
+		'private_nat': ['NAT', 'fas fa-low-vision fa-fw']
+	}
+
+	/**
+	 * Rate name (identifier) to class mapping. Classes are distributed across 5 values.
+	 */
+	var rates = {
+		'worst': 'far fa-star text-danger fa-fw',
+		'low': 'fas fa-star-half text-danger fa-fw',
+		'medium': 'fas fa-star-half fa-fw',
+		'good': 'fas fa-star text-primary fa-fw',
+		'best': 'fas fa-star text-success fa-fw',
+		'invalid': 'fas fa-ban fa-fw'
+	}
+
+	/**
+	 * Rate name (identifier) to class mapping. Classes are ditributed across 3 values.
+	*/
+	var rates3 = {
+		'low': 'far fa-star-half fa-fw',
+		'medium': 'far fa-star text-success fa-fw',
+		'good': 'fas fa-star text-success fa-fw',
+		'invalid': 'fas fa-ban fa-fw'
+	}
+
+	/**
+	 * Storage optimized key to markup/label mapping.
+	 */
+	var storageOptimized = {
+		'throughput': 'fas fa-angle-double-right fa-fw',
+		'durability': 'fas fa-archive fa-fw',
+		'iops': 'fas fa-bolt fa-fw'
+	}
+
+	/**
+	 * Support access type key to markup/label mapping.
+	 */
+	var supportAccessType = {
+		'technical': 'fas fa-wrench fa-fw',
+		'billing': 'fas fa-dollar-sign fa-fw',
+		'all': 'fas fa-users fa-fw'
+	}
+
+	var maxOpts = {
+		width: 250,
+		labels: ['max', 'reserved'],
+		values: [false, false],
+		toInternal: v => Math.log2(v / 4 + 1),
+		toValue: (w, maxWidth, maxValue, toInternal) => (Math.pow(2, w / maxWidth * toInternal(maxValue)) - 1) * 4,
+		label: 'reserved',
+	}
+
+	/**
+	 * Format the constant CPU.
+	 */
+	function formatConstant(constant) {
+		return current.$messages[constant === true ? 'service:prov:cpu-constant' : 'service:prov:cpu-variable'];
+	}
+
+	function formatDatabaseEngine(engine, mode, clazz) {
+		var cfg = databaseEngines[(engine.id || engine || 'MYSQL').toUpperCase()] || databaseEngines.MYSQL;
+		if (mode === 'sort' || mode === 'filter') {
+			return cfg[0];
+		}
+		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
+	}
+
+	/**
+	 * Format the efficiency of a data depending on the rate against the maximum value.
+	 * @param value {number} Current value.
+	 * @param max {number} Maximal value.
+	 * @param formatter {function} Option formatter function of the value. 
+	 * @returns {string} The value to display containing the rate.
+	 */
+	function formatEfficiency(value, max, formatter) {
+		var fullClass = null;
+		max = max || value || 1;
+		if (value === 0) {
+			value = max;
+		} else if (max / 2.0 > value) {
+			fullClass = 'far fa-circle text-danger';
+		} else if (max / 1.65 > value) {
+			fullClass = 'fas fa-adjust fa-rotate-270 text-danger';
+		} else if (max / 1.5 > value) {
+			fullClass = 'fas fa-adjust fa-rotate-270 text-warning';
+		} else if (max / 1.3 > value) {
+			fullClass = 'fas fa-circle text-primary';
+		} else if (max / 1.01 > value) {
+			fullClass = 'fas fa-circle text-success';
+		}
+		var rate = Math.round(value * 100 / max);
+		return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
+			Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
+	}
+
+	/**
+	 * Format the memory size.
+	 */
+	function formatCpu(value, mode, instance) {
+		if (instance) {
+			if (current.model.configuration.reservationMode === 'max' && instance.cpuMax) {
+				value = instance.cpuMax;
+			} else {
+				value = instance.cpu;
+			}
+		}
+		if (mode === 'sort' || mode === 'filter') {
+			return value;
+		}
+		if (instance) {
+			return formatEfficiency(value, instance.price.type.cpu);
+		}
+		return value;
+	}
+
+	/**
+	 * Format the memory size.
+	 */
+	function formatRam(sizeMB, mode, instance) {
+		if (instance) {
+			if (current.model.configuration.reservationMode === 'max' && instance.ramMax) {
+				sizeMB = instance.ramMax;
+			} else {
+				sizeMB = instance.ram;
+			}
+		}
+		if (mode === 'sort' || mode === 'filter') {
+			return sizeMB;
+		}
+		if (instance) {
+			return formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
+				return formatManager.formatSize(value * 1024 * 1024, 3);
+			});
+		}
+		return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
+	}
+
+	function formatLicense(license) {
+		return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
+	}
+
+	function formatReservationMode(mode) {
+		return current.$messages['service:prov:reservation-mode-' + mode.toLowerCase()] || mode;
+	}
+
+	/**
+	 * Format instance type details.
+	 */
+	function formatInstanceType(name, mode, qi) {
+		var type = qi ? qi.price.type : {};
+		name = type ? type.name : name;
+		if (mode !== 'display' || (typeof type.id === 'undefined')) {
+			// Use only the name
+			return name;
+		}
+		// Instance type details are available
+		var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
+		details += '<i class=\'fas fa-bolt fa-fw\'></i> ';
+		details += type.cpuRate ? '<i class=\'' + rates[type.cpuRate] + '\'></i> ' : '';
+		if (type.cpu) {
+			details += '#' + type.cpu;
+			details += ' ' + formatConstant(type.constant);
+		} else {
+			details += current.$messages['service:prov:instance-custom'];
+		}
+
+		if (type.ram) {
+			details += '<br><i class=\'fas fa-memory fa-fw\'></i> ';
+			details += type.ramRate ? '<i class=\'' + rates[type.ramRate] + '\'></i> ' : '';
+			details += formatRam(type.ram);
+		}
+
+		if (type.storageRate) {
+			details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
+			details += type.ramRate ? '<i class=\'' + rates[type.storageRate] + '\'></i>' : '';
+			// TODO Add instance storage
+		}
+
+		if (type.networkRate) {
+			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
+			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
+			// TODO Add memory type
+		}
+		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+	}
+
+	function formatStorageType(type, mode) {
+		type = type || {};
+		var name = type.name;
+		if (mode !== 'display' || (typeof type.id === 'undefined')) {
+			// Use only the name
+			return name;
+		}
+		// Storage type details are available
+		var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
+		details += '<i class=\'far fa-hdd fa-fw\'></i> ';
+		details += formatManager.formatSize((type.minimal || 1) * 1024 * 1024 * 1024, 3) + ' - ';
+		details += type.maximal ? formatManager.formatSize(type.maximal * 1024 * 1024 * 1024, 3) : '∞';
+
+		if (type.latency) {
+			details += '<br><i class=\'fas fa-fw fa-stopwatch\'></i> <i class=\'' + rates[type.latency] + '\'></i>';
+		}
+		if (type.iops) {
+			details += '<br><i class=\'' + storageOptimized.iops + '\'></i> ' + type.iops + ' IOPS';
+		}
+		if (type.throughput) {
+			details += '<br><i class=\'' + storageOptimized.throughput + '\'></i> ' + type.throughput + ' MB/s';
+		}
+		if (type.durability9) {
+			var nines = '9'.repeat(type.durability9);
+			nines = type.durability9 < 3 ? '0'.repeat(3 - type.durability9) : nines;
+			details += '<br><i class=\'far fa-fw fa-gem\'></i> ' + nines.substring(0, 2) + '.' + nines.substring(2) + '%';
+		}
+		if (type.availability) {
+			details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
+		}
+		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+	}
+
+	/**
+	 * Format instance term detail
+	 */
+	function formatInstanceTerm(name, mode, qi) {
+		var term = qi ? qi.price.term : null;
+		name = term ? term.name : name;
+		if (mode === 'sort' || mode === 'filter' || (term && typeof term.id === 'undefined')) {
+			// Use only the name
+			return name;
+		}
+		// Instance details are available
+		var details = '<i class=\'fas fa-clock\'></i> ';
+		if (term && term.period) {
+			details += term.period + ' months period';
+		} else {
+			details = 'on demand, hourly (or less) billing period';
+		}
+		if (qi.price.initialCost) {
+			details += '<br/>Initial cost: $' + qi.price.initialCost;
+		}
+
+		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+	}
+
+	/**
+	 * Format instance quantity
+	 */
+	function formatQuantity(quantity, mode, instance) {
+		var min = typeof instance === 'undefined' ? quantity : (instance.minQuantity || 0);
+		if (mode === 'sort' || mode === 'filter' || typeof instance === 'undefined') {
+			return min;
+		}
+
+		var max = instance.maxQuantity;
+		if (typeof max !== 'number') {
+			return min + '+';
+		}
+		if (max === min) {
+			return min;
+		}
+
+		// A range
+		return min + '-' + max;
+	}
+
+	function getCurrencyUnit() {
+		return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.unit || '$';
+	}
+
+	function getCurrencyRate() {
+		return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
+	}
+
+	function formatCostText(cost, isMax, _i, noRichText, unbound, currency) {
+		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, (currency && currency.unit) || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+	}
+
+	function formatCostOdometer(cost, isMax, $cost, noRichTest, unbound) {
+		if (isMax) {
+			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
+				var $wrapper = $cost.find('.cost-max');
+				$wrapper.find('.cost-value').html(value);
+				$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
+				$wrapper.find('.cost-unit').html(unit);
+			});
+		} else {
+			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
+				var $wrapper = $cost.find('.cost-min').removeClass('hidden');
+				$wrapper.find('.cost-value').html(value);
+				$wrapper.find('.cost-weight').html(weight);
+				$wrapper.find('.cost-unit').html(unit);
+			});
+		}
+	}
+
+	/**
+	 * Format the cost.
+	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
+	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
+	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
+	 * @return The formatted cost.
+	 */
+	function formatCost(cost, mode, obj, noRichText) {
+		if (mode === 'sort' || mode === 'filter') {
+			return cost;
+		}
+
+		var formatter = formatCostText;
+		var $cost = $();
+		if (mode instanceof jQuery) {
+			// Odomoter format
+			formatter = formatCostOdometer;
+			$cost = mode;
+		}
+
+		// Computation part
+		obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
+		if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
+			// Standard cost
+			$cost.find('.cost-min').addClass('hidden');
+			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, cost && cost.currency);
+		}
+		// A floating cost
+		var min = obj.cost || obj.min || 0;
+		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+		var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity !== obj.maxQuantity);
+		if ((typeof max !== 'number') || max === min) {
+			// Max cost is equal to min cost, no range
+			$cost.find('.cost-min').addClass('hidden');
+			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
+		}
+
+		// Max cost, is different, display a range
+		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
+	}
+
+	/**
+	 * Return the HTML markup from the storage latency.
+	 */
+	function formatStorageLatency(latency, mode, clazz) {
+		var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
+		var text = id && current.$messages['service:prov:storage-latency-' + id];
+		if (mode === 'sort' || mode === 'filter') {
+			return text;
+		}
+
+		clazz = rates[id] + (typeof clazz === 'string' ? clazz : '');
+		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+	}
+
+	/**
+	 * Format the storage size.
+	 */
+	function formatStorage(sizeGB, mode, data) {
+		if (mode === 'sort' || mode === 'filter') {
+			return sizeGB;
+		}
+		if (data && data.price.type.minimal > sizeGB) {
+			// Enable efficiency display
+			return formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
+				return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
+			});
+		}
+
+		// No efficiency rendering can be done
+		return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
+	}
+
+	/**
+	 * Return the HTML markup from the storage optimized.
+	 */
+	function formatStorageOptimized(optimized, withText, clazz) {
+		if (optimized) {
+			var id = (optimized.id || optimized).toLowerCase();
+			var text = current.$messages['service:prov:storage-optimized-' + id];
+			clazz = storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+		}
+	}
+
+	/**
+	 * Format the storage size to html markup.
+	 * @param {object} qs Quote storage with price, type and size.
+	 * @param {boolean} showName When true, the type name is displayed. Default is false.
+	 * @return {string} The HTML markup representing the quote storage : type and flags.
+	 */
+	function formatStorageHtml(qs, showName) {
+		var type = qs.price.type;
+		return (showName === true ? type.name + ' ' : '') + formatStorageLatency(type.latency) +
+			(type.optimized ? ' ' + formatStorageOptimized(type.optimized) : '') +
+			' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
+			((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
+	}
+
+	/**
+	 * Format the storage price to html markup.
+	 * @param {object} qs Quote storage with price, type and size.
+	 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
+	 */
+	function formatStoragePriceHtml(qs) {
+		return formatStorageHtml(qs, false) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
+	}
+
+	/**
+	 * Format an attached storages
+	 */
+	function formatQiStorages(instance, mode) {
+		if (mode === 'filter') {
+			return '';
+		}
+
+		if (mode === 'sort') {
+			// Compute the sum
+			var storages = instance.storages;
+			var sum = 0;
+			if (storages) {
+				storages.forEach(storage => sum += storage.size);
+			}
+			return sum;
+		}
+		// Need to build a Select2 tags markup
+		return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
+	}
+
+	/**
+	 * Return the HTML markup from the OS key name.
+	 */
+	function formatOs(value, mode, clazz) {
+		if (mode === 'sort' || mode === 'filter') {
+			return value.id || value || 'linux';
+		}
+		var cfg = os[(value.id || value || 'linux').toLowerCase()] || os.linux;
+		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+	}
+
+	/**
+	 * Return the HTML markup from the Internet privacy key name.
+	 */
+	function formatInternet(value, mode, clazz) {
+		var cfg = (value && internet[(value.id || value).toLowerCase()]) || current.value.public || 'public';
+		if (mode === 'sort' || mode === 'filter') {
+			return cfg[0];
+		}
+		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
+		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+	}
+
+	function formatUsageTemplate(usage, mode) {
+		if (mode === 'sort' || mode === 'filter') {
+			return usage ? usage.text || usage.name : 'default';
+		}
+		if (usage) {
+			usage = {
+				name: (mode ? usage.name || usage.text : (usage.text || usage.name)) || usage,
+				rate: usage.id,
+				duration: false,
+				start: false
+			}
+		} else {
+			usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
+		}
+		var tooltip = current.title('name') + usage.name;
+		tooltip += '<br>' + current.title('usage-rate') + (usage.rate || 100) + '%';
+		if (usage.duration !== false) {
+			tooltip += '<br>' + current.title('usage-duration') + (usage.duration || 1) + ' month(s)';
+		}
+		if (usage.start !== false) {
+			tooltip += '<br>' + current.title('usage-start') + (usage.start || 0) + ' month(s)';
+		}
+		return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
+	}
+
+	function locationMap(location) {
+		if (location.longitude) {
+			// https://www.google.com/maps/place/33%C2%B048'00.0%22S+151%C2%B012'00.0%22E/@-33.8,151.1978113,3z
+			// http://www.google.com/maps/place/49.46800006494457,17.11514008755796/@49.46800006494457,17.11514008755796,17z
+			//				html += '<a href="https://maps.google.com/?q=' + location.latitude + ',' + location.longitude + '" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
+			return '<a href="http://www.google.com/maps/place/' + location.latitude + ',' + location.longitude + '/@' + location.latitude + ',' + location.longitude + ',3z" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
+		} else {
+			return '';
+		}
+	}
+
+	/**
+	 * Location html renderer.
+	 */
+	function locationToHtml(location, map, short) {
+		var id = location.name;
+		var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
+		var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
+		var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
+		var html = map === true ? locationMap(location) : '';
+		if (location.countryA2) {
+			var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
+			var tooltip = m49 || id;
+			var img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			if (short === true) {
+				// Only flag
+				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
+				tooltip += '<br>Id: ' + id;
+				return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
+			}
+			html += img + ' title="' + location.name + '">';
+		}
+		html += m49 || id;
+		html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
+		html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
+		return html;
+	}
+
+	function formatLocation(location, mode, data) {
+		var conf = current.model.configuration;
+		var obj;
+		if (location) {
+			if (location.id) {
+				obj = location;
+			} else {
+				obj = conf.locationsById[location];
+			}
+		} else if (data.price && data.price.location) {
+			obj = conf.locationsById[data.price.location];
+		} else if (data.quoteInstance && data.quoteInstance.price.location) {
+			obj = conf.locationsById[data.quoteInstance.price.location];
+		} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
+			obj = conf.locationsById[data.quoteDatabase.price.location];
+		} else {
+			obj = current.model.configuration.location;
+		}
+
+		if (mode === 'sort' || mode === 'filter') {
+			return obj ? obj.name : '';
+		}
+		return locationToHtml(obj, false, true);
+	}
+
+	/**
+	 * Return the HTML markup from the quote instance model.
+	 */
+	function formatQuoteResource(resource) {
+		if (resource) {
+			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
+		}
+		return '';
+	}
+
+	/**
+	 * Return the HTML markup from the support level.
+	 */
+	function formatSupportLevel(level, mode, clazz) {
+		var id = level ? (level.id || level).toLowerCase() : '';
+		if (id) {
+			var text = current.$messages['service:prov:support-level-' + id];
+			clazz = rates3[id] + (typeof clazz === 'string' ? clazz : '');
+			if (mode === 'sort' || mode === 'filter') {
+				return text;
+			}
+
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+		}
+		return '';
+	}
+
+	/**
+	 * Return the HTML markup from the support seats.
+	 */
+	function formatSupportSeats(seats, mode) {
+		if (mode === 'sort' || mode === 'filter') {
+			return seats || 0;
+		}
+		return seats ? seats : '∞';
+	}
+
+	/**
+	 * Return the HTML markup from the support access type.
+	 */
+	function formatSupportAccess(type, mode) {
+		if (type) {
+			var id = (type.id || type).toLowerCase();
+			var text = current.$messages['service:prov:support-access-' + id];
+			if (mode === 'sort' || mode === 'filter') {
+				return text;
+			}
+			var clazz = supportAccessType[id];
+			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
+		}
+	}
+
+	function formatSupportType(type, mode) {
+		type = type || {};
+		var name = type.name;
+		if (mode !== 'display' || (typeof type.id === 'undefined')) {
+			return name;
+		}
+		// Support type details are available
+		const description = type.description;
+		var descriptionIsLink = false;
+		var details = '';
+		if (description && !description.startsWith('http://') && !description.startsWith('https://')) {
+			details = type.description.replace(/"/g, '') + '</br>';
+			descriptionIsLink = true;
+		}
+
+		var slaText;
+		if (type.slaEndTime) {
+			if (type.slaStartTime === 0 && type.slaEndTime === 86400000) {
+				slaText = '24' + (type.slaWeekEnd && '/7' || 'h Business days');
+			} else {
+				slaText = momentManager.time(type.slaStartTime || 0) + '-' + momentManager.time(type.slaEndTime) + (type.slaWeekEnd ? '' : ' Business days');
+			}
+		} else {
+			slaText = 'No SLA'
+		}
+		details += '<i class=\'fas fa-fw fa-clock\'></i> SLA: ' + slaText;
+		if (type.commitment) {
+			details += '<br><i class=\'calendar-alt\'></i> ' + current.$messages['service:prov:support-commitment'] + ': ' + moment.duration(type.commitment, 'months').humanize();
+		}
+
+		var markup = '';
+		if (descriptionIsLink) {
+			// Description as a link
+			markup = '<a href="' + description + '" target="_blank">';
+		}
+		markup += '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		if (descriptionIsLink) {
+			// Description as a link
+			markup += '</a>';
+		}
+		return markup;
+	}
+
+	/**
+	 * Generic Ajax Select2 configuration.
+	 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
+	 */
+	function genericSelect2(placeholder, renderer, path, rendererResult, orderCallback, pageSize) {
+		pageSize = pageSize || 15;
+		return {
+			formatSelection: renderer,
+			formatResult: rendererResult || renderer,
+			escapeMarkup: m => m,
+			allowClear: placeholder !== false,
+			placeholder: placeholder ? placeholder : null,
+			formatSearching: () => current.$messages.loading,
+			ajax: {
+				url: () => REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path),
+				dataType: 'json',
+				data: function (term, page) {
+					return {
+						'search[value]': term, // search term
+						'q': term, // search term
+						'rows': pageSize,
+						'page': page,
+						'start': (page - 1) * pageSize,
+						'filters': '{}',
+						'sidx': 'name',
+						'length': pageSize,
+						'columns[0][name]': 'name',
+						'order[0][column]': 0,
+						'order[0][dir]': 'asc',
+						'sortd': 'asc'
+					};
+				},
+				results: function (data, page) {
+					var result = [];
+					$((typeof data.data === 'undefined') ? data : data.data).each(function (_, item) {
+						if (typeof item === 'string') {
+							item = {
+								id: item,
+								text: renderer(item)
+							};
+						} else {
+							item.text = renderer(item);
+						}
+						result.push(item);
+					});
+					if (orderCallback) {
+						orderCallback(result);
+					}
+					return {
+						more: data.recordsFiltered > page * pageSize,
+						results: result
+					};
+				}
+			}
+		};
+	}
+
+	/**
+	 * Return the query parameter name to use to filter some other inputs.
+	 */
+	function toQueryName(type, $item) {
+		var id = $item.attr('id');
+		return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
+	}
+
+	/**
+	 * Return the memory weight: 1 or 1024.
+	 */
+	function getRamUnitWeight() {
+		return parseInt(_('instance-ram-unit').find('li.active').data('value'), 10);
+	}
+
 	var current = {
 
 		/**
@@ -106,12 +845,12 @@ define(function () {
 
 		updateUiAssumptions: function (conf) {
 			_('quote-location').select2('data', conf.location);
-			$('.location-wrapper').html(current.locationMap(conf.location));
+			$('.location-wrapper').html(locationMap(conf.location));
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
-			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: current.formatReservationMode(conf.reservationMode) });
+			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
-			_('quote-license').select2('data', conf.license ? { id: conf.license, text: current.formatLicense(conf.license) } : null);
+			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -179,7 +918,7 @@ define(function () {
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
 				subscription.data.quote.cost.currency = subscription.data.quote.currency;
-				var price = current.formatCost(subscription.data.quote.cost, null, null, true);
+				var price = formatCost(subscription.data.quote.cost, null, null, true);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
@@ -198,188 +937,20 @@ define(function () {
 			}
 			if (quote.nbInstances || quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
-				resources.push('<span class="sub-item">' + current.$super('icon')('memory', 'service:prov:total-ram') + current.formatRam(quote.totalRam) + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('memory', 'service:prov:total-ram') + formatRam(quote.totalRam) + '</span>');
 			}
 			if (quote.nbPublicAccess) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('globe', 'service:prov:nb-public-access') + quote.nbPublicAccess + '</span>');
 			}
 			if (quote.totalStorage) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('fas fa-hdd', 'service:prov:total-storage') + current.formatStorage(quote.totalStorage) + '</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('fas fa-hdd', 'service:prov:total-storage') + formatStorage(quote.totalStorage) + '</span>');
 			}
 
 			return current.$super('generateCarousel')(subscription, [
 				['name', quote.name],
 				['service:prov:resources', resources.join(', ')],
-				['service:prov:location', current.$super('icon')('map-marker-alt', 'service:prov:location') + current.locationToHtml(quote.location, true)]
+				['service:prov:location', current.$super('icon')('map-marker-alt', 'service:prov:location') + locationToHtml(quote.location, true)]
 			], 1);
-		},
-
-		/**
-		 * Format instance type details.
-		 */
-		formatInstanceType: function (name, mode, qi) {
-			var type = qi ? qi.price.type : {};
-			name = type ? type.name : name;
-			if (mode !== 'display' || (typeof type.id === 'undefined')) {
-				// Use only the name
-				return name;
-			}
-			// Instance type details are available
-			var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
-			details += '<i class=\'fas fa-bolt fa-fw\'></i> ';
-			details += type.cpuRate ? '<i class=\'' + current.rates[type.cpuRate] + '\'></i> ' : '';
-			if (type.cpu) {
-				details += '#' + type.cpu;
-				details += ' ' + current.formatConstant(type.constant);
-			} else {
-				details += current.$messages['service:prov:instance-custom'];
-			}
-
-			if (type.ram) {
-				details += '<br><i class=\'fas fa-memory fa-fw\'></i> ';
-				details += type.ramRate ? '<i class=\'' + current.rates[type.ramRate] + '\'></i> ' : '';
-				details += current.formatRam(type.ram);
-			}
-
-			if (type.storageRate) {
-				details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
-				details += type.ramRate ? '<i class=\'' + current.rates[type.storageRate] + '\'></i>' : '';
-				// TODO Add instance storage
-			}
-
-			if (type.networkRate) {
-				details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
-				details += type.ramRate ? '<i class=\'' + current.rates[type.networkRate] + '\'></i>' : '';
-				// TODO Add memory type
-			}
-			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
-		},
-
-		formatStorageType: function (type, mode) {
-			type = type || {};
-			var name = type.name;
-			if (mode !== 'display' || (typeof type.id === 'undefined')) {
-				// Use only the name
-				return name;
-			}
-			// Storage type details are available
-			var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
-			details += '<i class=\'far fa-hdd fa-fw\'></i> ';
-			details += formatManager.formatSize((type.minimal || 1) * 1024 * 1024 * 1024, 3) + ' - ';
-			details += type.maximal ? formatManager.formatSize(type.maximal * 1024 * 1024 * 1024, 3) : '∞';
-
-			if (type.latency) {
-				details += '<br><i class=\'fas fa-fw fa-stopwatch\'></i> <i class=\'' + current.rates[type.latency] + '\'></i>';
-			}
-			if (type.iops) {
-				details += '<br><i class=\'' + current.storageOptimized.iops + '\'></i> ' + type.iops + ' IOPS';
-			}
-			if (type.throughput) {
-				details += '<br><i class=\'' + current.storageOptimized.throughput + '\'></i> ' + type.throughput + ' MB/s';
-			}
-			if (type.durability9) {
-				var nines = '9'.repeat(type.durability9);
-				nines = type.durability9 < 3 ? '0'.repeat(3 - type.durability9) : nines;
-				details += '<br><i class=\'far fa-fw fa-gem\'></i> ' + nines.substring(0, 2) + '.' + nines.substring(2) + '%';
-			}
-			if (type.availability) {
-				details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
-			}
-			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
-		},
-
-		/**
-		 * Format instance term detail
-		 */
-		formatInstanceTerm: function (name, mode, qi) {
-			var term = qi ? qi.price.term : null;
-			name = term ? term.name : name;
-			if (mode === 'sort' || mode === 'filter' || (term && typeof term.id === 'undefined')) {
-				// Use only the name
-				return name;
-			}
-			// Instance details are available
-			var details = '<i class=\'fas fa-clock\'></i> ';
-			if (term && term.period) {
-				details += term.period + ' months period';
-			} else {
-				details = 'on demand, hourly (or less) billing period';
-			}
-			if (qi.price.initialCost) {
-				details += '<br/>Initial cost: $' + qi.price.initialCost;
-			}
-
-			return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
-		},
-
-		/**
-		 * Format instance quantity
-		 */
-		formatQuantity: function (quantity, mode, instance) {
-			var min = typeof instance === 'undefined' ? quantity : (instance.minQuantity || 0);
-			if (mode === 'sort' || mode === 'filter' || typeof instance === 'undefined') {
-				return min;
-			}
-
-			var max = instance.maxQuantity;
-			if (typeof max !== 'number') {
-				return min + '+';
-			}
-			if (max === min) {
-				return min;
-			}
-
-			// A range
-			return min + '-' + max;
-		},
-
-		/**
-		 * Format the constant CPU.
-		 */
-		formatConstant: function (constant) {
-			return current.$messages[constant === true ? 'service:prov:cpu-constant' : 'service:prov:cpu-variable'];
-		},
-
-		/**
-		 * Format the cost.
-		 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
-		 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
-		 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
-		 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
-		 * @return The formatted cost.
-		 */
-		formatCost: function (cost, mode, obj, noRichText) {
-			if (mode === 'sort' || mode === 'filter') {
-				return cost;
-			}
-
-			var formatter = current.formatCostText;
-			var $cost = $();
-			if (mode instanceof jQuery) {
-				// Odomoter format
-				formatter = current.formatCostOdometer;
-				$cost = mode;
-			}
-
-			// Computation part
-			obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
-			if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
-				// Standard cost
-				$cost.find('.cost-min').addClass('hidden');
-				return formatter(cost, true, $cost, noRichText, cost && cost.unbound, cost && cost.currency);
-			}
-			// A floating cost
-			var min = obj.cost || obj.min || 0;
-			var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
-			var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity !== obj.maxQuantity);
-			if ((typeof max !== 'number') || max === min) {
-				// Max cost is equal to min cost, no range
-				$cost.find('.cost-min').addClass('hidden');
-				return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
-			}
-
-			// Max cost, is different, display a range
-			return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 		},
 
 		/**
@@ -404,440 +975,6 @@ define(function () {
 					duration: 0
 				}).render();
 			});
-		},
-
-		getCurrencyUnit: function () {
-			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.unit || '$';
-		},
-
-		getCurrencyRate: function () {
-			return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
-		},
-
-		formatCostOdometer: function (cost, isMax, $cost, noRichTest, unbound) {
-			if (isMax) {
-				formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-					var $wrapper = $cost.find('.cost-max');
-					$wrapper.find('.cost-value').html(value);
-					$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
-					$wrapper.find('.cost-unit').html(unit);
-				});
-			} else {
-				formatManager.formatCost(cost * current.getCurrencyRate(), 3, current.getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-					var $wrapper = $cost.find('.cost-min').removeClass('hidden');
-					$wrapper.find('.cost-value').html(value);
-					$wrapper.find('.cost-weight').html(weight);
-					$wrapper.find('.cost-unit').html(unit);
-				});
-			}
-		},
-
-		formatCostText: function (cost, isMax, _i, noRichText, unbound, currency) {
-			return formatManager.formatCost(cost * (currency ? currency.rate || 1 : current.getCurrencyRate()), 3, (currency && currency.unit) || current.getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
-		},
-
-		/**
-		 * Format the memory size.
-		 */
-		formatRam: function (sizeMB, mode, instance) {
-			if (instance) {
-				if (current.model.configuration.reservationMode === 'max' && instance.ramMax) {
-					sizeMB = instance.ramMax;
-				} else {
-					sizeMB = instance.ram;
-				}
-			}
-			if (mode === 'sort' || mode === 'filter') {
-				return sizeMB;
-			}
-			if (instance) {
-				return current.formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-					return formatManager.formatSize(value * 1024 * 1024, 3);
-				});
-			}
-			return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
-		},
-
-		/**
-		 * Format the memory size.
-		 */
-		formatCpu: function (value, mode, instance) {
-			if (instance) {
-				if (current.model.configuration.reservationMode === 'max' && instance.cpuMax) {
-					value = instance.cpuMax;
-				} else {
-					value = instance.cpu;
-				}
-			}
-			if (mode === 'sort' || mode === 'filter') {
-				return value;
-			}
-			if (instance) {
-				return current.formatEfficiency(value, instance.price.type.cpu);
-			}
-			return value;
-		},
-
-		/**
-		 * Format the efficiency of a data depending on the rate against the maximum value.
-		 * @param value {number} Current value.
-		 * @param max {number} Maximal value.
-		 * @param formatter {function} Option formatter function of the value. 
-		 * @returns {string} The value to display containing the rate.
-		 */
-		formatEfficiency: function (value, max, formatter) {
-			var fullClass = null;
-			max = max || value || 1;
-			if (value === 0) {
-				value = max;
-			} else if (max / 2.0 > value) {
-				fullClass = 'far fa-circle text-danger';
-			} else if (max / 1.65 > value) {
-				fullClass = 'fas fa-adjust fa-rotate-270 text-danger';
-			} else if (max / 1.5 > value) {
-				fullClass = 'fas fa-adjust fa-rotate-270 text-warning';
-			} else if (max / 1.3 > value) {
-				fullClass = 'fas fa-circle text-primary';
-			} else if (max / 1.01 > value) {
-				fullClass = 'fas fa-circle text-success';
-			}
-			var rate = Math.round(value * 100 / max);
-			return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
-				Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
-		},
-
-		/**
-		 * Format the storage size.
-		 */
-		formatStorage: function (sizeGB, mode, data) {
-			if (mode === 'sort' || mode === 'filter') {
-				return sizeGB;
-			}
-			if (data && data.price.type.minimal > sizeGB) {
-				// Enable efficiency display
-				return current.formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
-					return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-				});
-			}
-
-			// No efficiency rendering can be done
-			return formatManager.formatSize(sizeGB * 1024 * 1024 * 1024, 3);
-		},
-
-		/**
-		 * Format the storage size to html markup.
-		 * @param {object} qs Quote storage with price, type and size.
-		 * @param {boolean} showName When true, the type name is displayed. Default is false.
-		 * @return {string} The HTML markup representing the quote storage : type and flags.
-		 */
-		formatStorageHtml: function (qs, showName) {
-			var type = qs.price.type;
-			return (showName === true ? type.name + ' ' : '') + current.formatStorageLatency(type.latency) +
-				(type.optimized ? ' ' + current.formatStorageOptimized(type.optimized) : '') +
-				' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
-				((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
-		},
-
-		/**
-		 * Format the storage price to html markup.
-		 * @param {object} qs Quote storage with price, type and size.
-		 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
-		 */
-		formatStoragePriceHtml: function (qs) {
-			return current.formatStorageHtml(qs, false) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + current.formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
-		},
-
-		/**
-		 * Format an attached storages
-		 */
-		formatQiStorages: function (instance, mode) {
-			if (mode === 'filter') {
-				return '';
-			}
-
-			if (mode === 'sort') {
-				// Compute the sum
-				var storages = instance.storages;
-				var sum = 0;
-				if (storages) {
-					storages.forEach(storage => sum += storage.size);
-				}
-				return sum;
-			}
-			// Need to build a Select2 tags markup
-			return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
-		},
-
-		/**
-		 * OS key to markup/label mapping.
-		 */
-		os: {
-			'linux': ['Linux', 'fab fa-linux fa-fw'],
-			'windows': ['Windows', 'fab fa-windows fa-fw'],
-			'suse': ['SUSE', 'fab fa-suse fa-fw'],
-			'rhel': ['Red Hat Enterprise', 'fab fa-redhat fa-fw'],
-			'centos': ['CentOS', 'fab fa-centos fa-fw'],
-			'debian': ['Debian', 'icon-debian fa-fw'],
-			'fedora': ['Fedora', 'fab fa-fedora fa-fw'],
-			'ubuntu': ['Ubuntu', 'fab fa-ubuntu fa-fw'],
-			'freebsd': ['FreeBSD', 'fab fa-freebsd fa-fw']
-		},
-
-		/**
-		 * Engine key to markup/label mapping.
-		 */
-		databaseEngines: {
-			'MYSQL': ['MySQL', 'icon-mysql'],
-			'ORACLE': ['Oracle', 'icon-oracle'],
-			'MARIADB': ['MariaDB', 'icon-mariadb'],
-			'AURORA MYSQL': ['Aurora MySQL', 'icon-aws'],
-			'AURORA POSTGRESQL': ['Aurora PostgreSQL', 'icon-aws'],
-			'POSTGRESQL': ['PostgreSQL', 'icon-postgres'],
-			'SQL SERVER': ['SQL Server', 'icon-mssql'],
-		},
-
-		/**
-		 * Internet Access key to markup/label mapping.
-		 */
-		internet: {
-			'public': ['Public', 'fas fa-globe fa-fw'],
-			'private': ['Private', 'fas fa-lock fa-fw'],
-			'private_nat': ['NAT', 'fas fa-low-vision fa-fw']
-		},
-
-		/**
-		 * Rate name (identifier) to class mapping. Classes are distributed across 5 values.
-		 */
-		rates: {
-			'worst': 'far fa-star text-danger fa-fw',
-			'low': 'fas fa-star-half text-danger fa-fw',
-			'medium': 'fas fa-star-half fa-fw',
-			'good': 'fas fa-star text-primary fa-fw',
-			'best': 'fas fa-star text-success fa-fw',
-			'invalid': 'fas fa-ban fa-fw'
-		},
-
-		/**
-		 * Rate name (identifier) to class mapping. Classes are ditributed across 3 values.
-	    */
-		rates3: {
-			'low': 'far fa-star-half fa-fw',
-			'medium': 'far fa-star text-success fa-fw',
-			'good': 'fas fa-star text-success fa-fw',
-			'invalid': 'fas fa-ban fa-fw'
-		},
-
-		/**
-		 * Storage optimized key to markup/label mapping.
-		 */
-		storageOptimized: {
-			'throughput': 'fas fa-angle-double-right fa-fw',
-			'durability': 'fas fa-archive fa-fw',
-			'iops': 'fas fa-bolt fa-fw'
-		},
-
-		/**
-		 * Support access type key to markup/label mapping.
-		 */
-		supportAccessType: {
-			'technical': 'fas fa-wrench fa-fw',
-			'billing': 'fas fa-dollar-sign fa-fw',
-			'all': 'fas fa-users fa-fw'
-		},
-
-		/**
-		 * Return the HTML markup from the OS key name.
-		 */
-		formatOs: function (os, mode, clazz) {
-			if (mode === 'sort' || mode === 'filter') {
-				return os.id || os || 'linux';
-			}
-			var cfg = current.os[(os.id || os || 'linux').toLowerCase()] || current.os.linux;
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
-		},
-
-		/**
-		 * Return the HTML markup from the Internet privacy key name.
-		 */
-		formatInternet: function (internet, mode, clazz) {
-			var cfg = (internet && current.internet[(internet.id || internet).toLowerCase()]) || current.internet.public || 'public';
-			if (mode === 'sort' || mode === 'filter') {
-				return cfg[0];
-			}
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
-		},
-
-		formatUsageTemplate: function (usage, mode) {
-			if (mode === 'sort' || mode === 'filter') {
-				return usage ? usage.text || usage.name : 'default';
-			}
-			if (usage) {
-				usage = {
-					name: (mode ? usage.name || usage.text : (usage.text || usage.name)) || usage,
-					rate: usage.id,
-					duration: false,
-					start: false
-				}
-			} else {
-				usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
-			}
-			var tooltip = current.title('name') + usage.name;
-			tooltip += '<br>' + current.title('usage-rate') + (usage.rate || 100) + '%';
-			if (usage.duration !== false) {
-				tooltip += '<br>' + current.title('usage-duration') + (usage.duration || 1) + ' month(s)';
-			}
-			if (usage.start !== false) {
-				tooltip += '<br>' + current.title('usage-start') + (usage.start || 0) + ' month(s)';
-			}
-			return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
-		},
-
-		formatLocation: function (location, mode, data) {
-			var conf = current.model.configuration;
-			var obj;
-			if (location) {
-				if (location.id) {
-					obj = location;
-				} else {
-					obj = conf.locationsById[location];
-				}
-			} else if (data.price && data.price.location) {
-				obj = conf.locationsById[data.price.location];
-			} else if (data.quoteInstance && data.quoteInstance.price.location) {
-				obj = conf.locationsById[data.quoteInstance.price.location];
-			} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
-				obj = conf.locationsById[data.quoteDatabase.price.location];
-			} else {
-				obj = current.model.configuration.location;
-			}
-
-			if (mode === 'sort' || mode === 'filter') {
-				return obj ? obj.name : '';
-			}
-			return current.locationToHtml(obj, false, true);
-		},
-
-		/**
-		 * Return the HTML markup from the quote instance model.
-		 */
-		formatQuoteResource: function (resource) {
-			if (resource) {
-				return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
-			}
-			return '';
-		},
-
-		/**
-		 * Return the HTML markup from the support level.
-		 */
-		formatSupportLevel: function (level, mode, clazz) {
-			var id = level ? (level.id || level).toLowerCase() : '';
-			if (id) {
-				var text = current.$messages['service:prov:support-level-' + id];
-				clazz = current.rates3[id] + (typeof clazz === 'string' ? clazz : '');
-				if (mode === 'sort' || mode === 'filter') {
-					return text;
-				}
-
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
-			}
-			return '';
-		},
-
-		/**
-		 * Return the HTML markup from the support seats.
-		 */
-		formatSupportSeats: function (seats, mode) {
-			if (mode === 'sort' || mode === 'filter') {
-				return seats || 0;
-			}
-			return seats ? seats : '∞';
-		},
-
-		/**
-		 * Return the HTML markup from the storage latency.
-		 */
-		formatStorageLatency: function (latency, mode, clazz) {
-			var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
-			var text = id && current.$messages['service:prov:storage-latency-' + id];
-			if (mode === 'sort' || mode === 'filter') {
-				return text;
-			}
-
-			clazz = current.rates[id] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
-		},
-
-		/**
-		 * Return the HTML markup from the storage optimized.
-		 */
-		formatStorageOptimized: function (optimized, withText, clazz) {
-			if (optimized) {
-				var id = (optimized.id || optimized).toLowerCase();
-				var text = current.$messages['service:prov:storage-optimized-' + id];
-				clazz = current.storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
-			}
-		},
-
-		/**
-		 * Return the HTML markup from the support access type.
-		 */
-		formatSupportAccess: function (type, mode) {
-			if (type) {
-				var id = (type.id || type).toLowerCase();
-				var text = current.$messages['service:prov:support-access-' + id];
-				if (mode === 'sort' || mode === 'filter') {
-					return text;
-				}
-				var clazz = current.supportAccessType[id];
-				return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
-			}
-		},
-
-		formatSupportType: function (type, mode) {
-			type = type || {};
-			var name = type.name;
-			if (mode !== 'display' || (typeof type.id === 'undefined')) {
-				return name;
-			}
-			// Support type details are available
-			const description = type.description;
-			var descriptionIsLink = false;
-			var details = '';
-			if (description && !description.startsWith('http://') && !description.startsWith('https://')) {
-				details = type.description.replace(/"/g, '') + '</br>';
-				descriptionIsLink = true;
-			}
-
-			var slaText;
-			if (type.slaEndTime) {
-				if (type.slaStartTime === 0 && type.slaEndTime === 86400000) {
-					slaText = '24' + (type.slaWeekEnd && '/7' || 'h Business days');
-				} else {
-					slaText = momentManager.time(type.slaStartTime || 0) + '-' + momentManager.time(type.slaEndTime) + (type.slaWeekEnd ? '' : ' Business days');
-				}
-			} else {
-				slaText = 'No SLA'
-			}
-			details += '<i class=\'fas fa-fw fa-clock\'></i> SLA: ' + slaText;
-			if (type.commitment) {
-				details += '<br><i class=\'calendar-alt\'></i> ' + current.$messages['service:prov:support-commitment'] + ': ' + moment.duration(type.commitment, 'months').humanize();
-			}
-
-			var markup = '';
-			if (descriptionIsLink) {
-				// Description as a link
-				markup = '<a href="' + description + '" target="_blank">';
-			}
-			markup += '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
-			if (descriptionIsLink) {
-				// Description as a link
-				markup += '</a>';
-			}
-			return markup;
 		},
 
 		/**
@@ -948,28 +1085,6 @@ define(function () {
 		},
 
 		/**
-		 * Return the query parameter name to use to filter some other inputs.
-		 */
-		toQueryName: function (type, $item) {
-			var id = $item.attr('id');
-			return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
-		},
-
-		/**
-		 * Return the memory query parameter value to use to filter some other inputs.
-		 */
-		toQueryValueRam: function (value) {
-			return (current.cleanInt(value) || 0) * parseInt(_('instance-ram-unit').find('li.active').data('value'), 10);
-		},
-
-		/**
-		 * Return the constant CPU query parameter value to use to filter some other inputs.
-		 */
-		toQueryValueConstant: function (value) {
-			return value === 'constant' ? true : (value === 'variable' ? false : null);
-		},
-
-		/**
 		 * Disable the create/update button
 		 * @return the related button.
 		 */
@@ -1033,9 +1148,23 @@ define(function () {
 			});
 		},
 
+		/**
+		 * Return the memory query parameter value to use to filter some other inputs.
+		 */
+		toQueryValueRam: function (value) {
+			return (current.cleanInt(value) || 0) * getRamUnitWeight();
+		},
+
+		/**
+		 * Return the constant CPU query parameter value to use to filter some other inputs.
+		 */
+		toQueryValueConstant: function (value) {
+			return value === 'constant' ? true : (value === 'variable' ? false : null);
+		},
+
 		addQuery(type, $item, queries) {
 			var value = current.getResourceValue($item);
-			var queryParam = value && current.toQueryName(type, $item);
+			var queryParam = value && toQueryName(type, $item);
 			if (queryParam) {
 				value = $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				var toValue = current['toQueryValue' + queryParam.capitalize()];
@@ -1074,8 +1203,8 @@ define(function () {
 				var suggest = suggests[0];
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
-					formatSelection: current.formatStoragePriceHtml,
-					formatResult: current.formatStoragePriceHtml
+					formatSelection: formatStoragePriceHtml,
+					formatResult: formatStoragePriceHtml
 				}).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
@@ -1091,10 +1220,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
@@ -1127,10 +1256,10 @@ define(function () {
 				_('support-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + current.formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
 					}
 				}).select2('data', suggest);
 			} else {
@@ -1230,7 +1359,7 @@ define(function () {
 				data: 'cost',
 				className: 'truncate hidden-xs',
 				type: 'num',
-				render: current.formatCost
+				render: formatCost
 			}, {
 				data: null,
 				width: '51px',
@@ -1466,8 +1595,8 @@ define(function () {
 
 			// Related instance of the storage
 			_('storage-instance').select2({
-				formatSelection: current.formatQuoteResource,
-				formatResult: current.formatQuoteResource,
+				formatSelection: formatQuoteResource,
+				formatResult: formatQuoteResource,
 				placeholder: current.$messages['service:prov:no-attached-instance'],
 				allowClear: true,
 				id: function (r) {
@@ -1487,8 +1616,8 @@ define(function () {
 			});
 
 			$('.support-access').select2({
-				formatSelection: current.formatSupportAccess,
-				formatResult: current.formatSupportAccess,
+				formatSelection: formatSupportAccess,
+				formatResult: formatSupportAccess,
 				allowClear: true,
 				placeholder: 'None',
 				escapeMarkup: m => m,
@@ -1504,8 +1633,8 @@ define(function () {
 				}]
 			});
 			_('support-level').select2({
-				formatSelection: current.formatSupportLevel,
-				formatResult: current.formatSupportLevel,
+				formatSelection: formatSupportLevel,
+				formatResult: formatSupportLevel,
 				allowClear: true,
 				placeholder: 'None',
 				escapeMarkup: m => m,
@@ -1522,8 +1651,8 @@ define(function () {
 			});
 
 			_('instance-os').select2({
-				formatSelection: current.formatOs,
-				formatResult: current.formatOs,
+				formatSelection: formatOs,
+				formatResult: formatOs,
 				escapeMarkup: m => m,
 				data: [{
 					id: 'LINUX',
@@ -1552,18 +1681,18 @@ define(function () {
 				}]
 			});
 
-			_('instance-software').select2(current.genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, function () {
+			_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, function () {
 				return 'instance-software/' + _('instance-os').val();
 			}));
-			_('database-engine').select2(current.genericSelect2(null, current.formatDatabaseEngine, 'database-engine'));
-			_('database-edition').select2(current.genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, function () {
+			_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine'));
+			_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, function () {
 				return 'database-edition/' + _('database-engine').val();
 			}));
 
 
 			_('instance-internet').select2({
-				formatSelection: current.formatInternet,
-				formatResult: current.formatInternet,
+				formatSelection: formatInternet,
+				formatResult: formatInternet,
 				formatResultCssClass: function (data) {
 					if (data.id === 'PRIVATE_NAT' && _('instance-internet').provType() === 'database') {
 						return 'hidden';
@@ -1585,8 +1714,8 @@ define(function () {
 			_('storage-optimized').select2({
 				placeholder: current.$messages['service:prov:no-requirement'],
 				allowClear: true,
-				formatSelection: current.formatStorageOptimized,
-				formatResult: current.formatStorageOptimized,
+				formatSelection: formatStorageOptimized,
+				formatResult: formatStorageOptimized,
 				escapeMarkup: m => m,
 				data: [{
 					id: 'THROUGHPUT',
@@ -1603,8 +1732,8 @@ define(function () {
 			_('storage-latency').select2({
 				placeholder: current.$messages['service:prov:no-requirement'],
 				allowClear: true,
-				formatSelection: current.formatStorageLatency,
-				formatResult: current.formatStorageLatency,
+				formatSelection: formatStorageLatency,
+				formatResult: formatStorageLatency,
 				escapeMarkup: m => m,
 				data: [{
 					id: 'BEST',
@@ -1625,13 +1754,13 @@ define(function () {
 			});
 
 			// Memory unit, CPU constant/variable selection
-			_('popup-prov-generic').on('click', '.input-group-btn li', function () {
+			_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
 				var $select = $(this).closest('.input-group-btn');
 				$select.find('li.active').removeClass('active');
 				var $active = $(this).addClass('active').find('a');
 				$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
 				// Also trigger the change of the value
-				_('instance-cpu').trigger('keyup');
+				$(e.target).prev('input').trigger('keyup');
 			});
 			_('instance-term').select2(current.instanceTermSelect2(false));
 			current.initializeTerraform();
@@ -1725,10 +1854,10 @@ define(function () {
 					current.updateQuote({
 						location: event.added
 					}, { name: 'location', ui: 'quote-location', previous: event.removed });
-					$('.location-wrapper').html(current.locationMap(event.added));
+					$('.location-wrapper').html(locationMap(event.added));
 				}
 			});
-			$('.location-wrapper').html(current.locationMap(current.model.configuration.location));
+			$('.location-wrapper').html(locationMap(current.model.configuration.location));
 			_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 			_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 		},
@@ -1796,8 +1925,8 @@ define(function () {
 			_('usage-template').select2({
 				placeholder: current.$messages['service:prov:template'],
 				allowClear: true,
-				formatSelection: current.formatUsageTemplate,
-				formatResult: current.formatUsageTemplate,
+				formatSelection: formatUsageTemplate,
+				formatResult: formatUsageTemplate,
 				escapeMarkup: m => m,
 				data: usageTemplates
 			});
@@ -1805,7 +1934,7 @@ define(function () {
 			_('quote-reservation-mode').select2({
 				placeholder: 'Reserved',
 				escapeMarkup: m => m,
-				data: [{ id: 'max', text: current.formatReservationMode('max') }, { id: 'reserved', text: current.formatReservationMode('reserved') }]
+				data: [{ id: 'max', text: formatReservationMode('max') }, { id: 'reserved', text: formatReservationMode('reserved') }]
 			}).on('change', function (event) {
 				current.updateQuote({
 					reservationMode: event.added || null
@@ -1870,25 +1999,17 @@ define(function () {
 		 * Configure license.
 		 */
 		initializeLicense: function () {
-			_('instance-license').select2(current.genericSelect2(current.$messages['service:prov:default'], current.formatLicense, function () {
+			_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
 				return _('instance-license').provType() === 'instance'
 					? 'instance-license/' + _('instance-os').val()
 					: ('database-license/' + _('database-engine').val())
 			}));
-			_('quote-license').select2(current.genericSelect2(current.$messages['service:prov:license-included'], current.formatLicense, () => 'instance-license/WINDOWS'))
+			_('quote-license').select2(genericSelect2(current.$messages['service:prov:license-included'], formatLicense, () => 'instance-license/WINDOWS'))
 				.on('change', function (event) {
 					current.updateQuote({
 						license: event.added || null
 					}, { name: 'license', ui: 'quote-license', previous: event.removed }, true);
 				});
-		},
-
-		formatLicense: function (license) {
-			return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
-		},
-
-		formatReservationMode: function (mode) {
-			return current.$messages['service:prov:reservation-mode-' + mode.toLowerCase()] || mode;
 		},
 
 		synchronizeUsage: function () {
@@ -1935,7 +2056,7 @@ define(function () {
 		 * Location Select2 configuration.
 		 */
 		locationSelect2: function (placeholder) {
-			return current.genericSelect2(placeholder, current.locationToHtml, 'location', null, current.orderByName, 100);
+			return genericSelect2(placeholder, locationToHtml, 'location', null, current.orderByName, 100);
 		},
 
 		/**
@@ -1959,7 +2080,7 @@ define(function () {
 		 * Usage Select2 configuration.
 		 */
 		usageSelect2: function (placeholder) {
-			return current.genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
+			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span><a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
 			});
 		},
@@ -1968,64 +2089,7 @@ define(function () {
 		 * Price term Select2 configuration.
 		 */
 		instanceTermSelect2: function () {
-			return current.genericSelect2(current.$messages['service:prov:default'], current.defaultToText, 'instance-price-term');
-		},
-
-		/**
-		 * Generic Ajax Select2 configuration.
-		 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
-		 */
-		genericSelect2: function (placeholder, renderer, path, rendererResult, orderCallback, pageSize) {
-			pageSize = pageSize || 15;
-			return {
-				formatSelection: renderer,
-				formatResult: rendererResult || renderer,
-				escapeMarkup: m => m,
-				allowClear: placeholder !== false,
-				placeholder: placeholder ? placeholder : null,
-				formatSearching: () => current.$messages.loading,
-				ajax: {
-					url: () => REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path),
-					dataType: 'json',
-					data: function (term, page) {
-						return {
-							'search[value]': term, // search term
-							'q': term, // search term
-							'rows': pageSize,
-							'page': page,
-							'start': (page - 1) * pageSize,
-							'filters': '{}',
-							'sidx': 'name',
-							'length': pageSize,
-							'columns[0][name]': 'name',
-							'order[0][column]': 0,
-							'order[0][dir]': 'asc',
-							'sortd': 'asc'
-						};
-					},
-					results: function (data, page) {
-						var result = [];
-						$((typeof data.data === 'undefined') ? data : data.data).each(function (_, item) {
-							if (typeof item === 'string') {
-								item = {
-									id: item,
-									text: renderer(item)
-								};
-							} else {
-								item.text = renderer(item);
-							}
-							result.push(item);
-						});
-						if (orderCallback) {
-							orderCallback(result);
-						}
-						return {
-							more: data.recordsFiltered > page * pageSize,
-							results: result
-						};
-					}
-				}
-			};
+			return genericSelect2(current.$messages['service:prov:default'], current.defaultToText, 'instance-price-term');
 		},
 
 		/**
@@ -2361,44 +2425,6 @@ define(function () {
 			});
 		},
 
-		locationMap: function (location) {
-			if (location.longitude) {
-				// https://www.google.com/maps/place/33%C2%B048'00.0%22S+151%C2%B012'00.0%22E/@-33.8,151.1978113,3z
-				// http://www.google.com/maps/place/49.46800006494457,17.11514008755796/@49.46800006494457,17.11514008755796,17z
-				//				html += '<a href="https://maps.google.com/?q=' + location.latitude + ',' + location.longitude + '" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
-				return '<a href="http://www.google.com/maps/place/' + location.latitude + ',' + location.longitude + '/@' + location.latitude + ',' + location.longitude + ',3z" target="_blank"><i class="fas fa-location-arrow"></i></a> ';
-			} else {
-				return '';
-			}
-		},
-
-		/**
-		 * Location html renderer.
-		 */
-		locationToHtml: function (location, map, short) {
-			var id = location.name;
-			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
-			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
-			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-			var html = map === true ? current.locationMap(location) : '';
-			if (location.countryA2) {
-				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-				var tooltip = m49 || id;
-				var img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
-				if (short === true) {
-					// Only flag
-					tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
-					tooltip += '<br>Id: ' + id;
-					return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
-				}
-				html += img + ' title="' + location.name + '">';
-			}
-			html += m49 || id;
-			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-			html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
-			return html;
-		},
-
 		/**
 		 * Location text renderer.
 		 */
@@ -2495,7 +2521,8 @@ define(function () {
 		genericUiToData: function (data) {
 			data.cpu = current.cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
 			data.cpuMax = current.cleanFloat(_('instance-cpu').provSlider('value', 'max'));
-			data.ram = current.toQueryValueRam(_('instance-ram').val());
+			data.ram = current.cleanFloat(_('instance-ram').provSlider('value', 'reserved'));
+			data.ramMax = current.cleanFloat(_('instance-ram').provSlider('value', 'max'));
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
@@ -2557,27 +2584,16 @@ define(function () {
 		 */
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
-			_('instance-cpu').provSlider({
-				onChange: function (label, value) {
-					console.log('onChange', label, value);
-				},
-				max: 128,
-				width: 250,
-				labels: ['max', 'reserved'],
-				values: [false, false],
-				toInternal: v => Math.log2(v / 4 + 1),
-				toValue: (w, maxWidth, maxValue, toInternal) => (Math.pow(2, w / maxWidth * toInternal(maxValue)) - 1) * 4,
-				label: 'reserved',
-				format: current.formatCpu
-			}).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
-			_('instance-constant').find('li.active').removeClass('active');
+			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
+			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
 			var license = (quote.id && (quote.license || quote.price.license)) || null;
 			_('instance-license').select2('data', license ? {
 				id: license,
-				text: current.formatLicense(license)
+				text: formatLicense(license)
 			} : null);
+			_('instance-constant').find('li.active').removeClass('active');
 			if (quote.constant === true) {
 				_('instance-constant').find('li[data-value="constant"]').addClass('active');
 			} else if (quote.constant === false) {
@@ -2769,11 +2785,11 @@ define(function () {
 						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
-							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + current.formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
+							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
 							current.types.forEach(type => {
 								var cost = bars.filter(bar => bar.cluster === type);
 								if (cost.length && cost[0].height0) {
-									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">' : '>') + current.$messages['service:prov:' + type] + ': ' + current.formatCost(cost[0].height0) + '</span>';
+									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">' : '>') + current.$messages['service:prov:' + type] + ': ' + formatCost(cost[0].height0) + '</span>';
 								}
 							});
 							return '<span class="tooltip-text">' + tooltip + '</span>';
@@ -2785,7 +2801,7 @@ define(function () {
 							// Hover of barchart -> update sunburst and global cost
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
-						}, d => current.formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
+						}, d => formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -2812,14 +2828,14 @@ define(function () {
 			var filtered = usage.cost !== conf.cost.min;
 			if (filtered) {
 				// Filtered cost
-				current.formatCost({
+				formatCost({
 					min: usage.cost,
 					max: usage.cost,
 					unbound: usage.unbound > 0
 				}, $('.cost'));
 			} else {
 				// Full cost
-				current.formatCost(conf.cost, $('.cost'));
+				formatCost(conf.cost, $('.cost'));
 			}
 
 			if (typeof current.filterDate !== 'number' && typeof current.fixedDate !== 'number') {
@@ -2862,7 +2878,7 @@ define(function () {
 			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
 			if (usage.storage.available) {
 				$summary.removeClass('hidden');
-				$summary.text(current.formatStorage(usage.storage.available));
+				$summary.text(formatStorage(usage.storage.available));
 			} else {
 				$summary.addClass('hidden');
 			}
@@ -2916,7 +2932,7 @@ define(function () {
 		updateSummary($summary, resource) {
 			$summary.removeClass('hidden');
 			$summary.filter('.cpu').find('span').text(resource.cpu.available);
-			var memoryText = current.formatRam(resource.ram.available);
+			var memoryText = formatRam(resource.ram.available);
 			var memoryUnit = memoryText.replace(/[0-9,.]*/, '');
 			var memoryValue = memoryText.replace(/[^0-9,.]*/, '');
 			$summary.filter('.ram').find('span').first().text(memoryValue);
@@ -2931,7 +2947,7 @@ define(function () {
 		sunburstTooltip: function (data, d) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
-				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + current.formatCost(data.size || data.value)
+				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true, 100)
 				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
@@ -2943,23 +2959,23 @@ define(function () {
 			var conf = current.model.configuration;
 			switch (data.type) {
 				case 'latency':
-					return current.title('storage-latency') + current.formatStorageLatency(data.name, true);
+					return current.title('storage-latency') + formatStorageLatency(data.name, true);
 				case 'os':
-					return current.formatOs(data.name, true, ' fa-2x');
+					return formatOs(data.name, true, ' fa-2x');
 				case 'engine':
-					return current.formatDatabaseEngine(data.name, true, ' fa-2x');
+					return formatDatabaseEngine(data.name, true, ' fa-2x');
 				case 'instance':
 					var instance = conf.instancesById[data.name];
 					return current.title('name') + instance.name
 						+ '<br>' + current.title('instance-type') + instance.price.type.name
-						+ '<br>' + current.title('os') + current.formatOs(instance.price.os, true)
+						+ '<br>' + current.title('os') + formatOs(instance.price.os, true)
 						+ '<br>' + current.title('term') + instance.price.term.name
 						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
 				case 'storage':
 					var storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
 						+ '<br>' + current.title('storage-type') + storage.price.type.name
-						+ '<br>' + current.title('storage-latency') + current.formatStorageLatency(storage.price.type.latency, true)
+						+ '<br>' + current.title('storage-latency') + formatStorageLatency(storage.price.type.latency, true)
 						+ '<br>' + current.title('storage-optimized') + storage.price.type.optimized;
 				case 'support':
 					var support = conf.supportsById[data.name];
@@ -2969,7 +2985,7 @@ define(function () {
 					var database = conf.databasesById[data.name];
 					return current.title('name') + database.name
 						+ '<br>' + current.title('database-type') + database.price.type.name
-						+ '<br>' + current.title('database-engine') + current.formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
+						+ '<br>' + current.title('database-engine') + formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
 						+ '<br>' + current.title('term') + database.price.term.name
 						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
 				case 'root-storage':
@@ -3402,13 +3418,13 @@ define(function () {
 				data: 'minQuantity',
 				className: 'hidden-xs',
 				type: 'num',
-				render: current.formatQuantity
+				render: formatQuantity
 			}, {
 				data: 'os',
 				className: 'truncate',
 				width: '24px',
 				type: 'string',
-				render: current.formatOs
+				render: formatOs
 			}]);
 		},
 
@@ -3424,37 +3440,37 @@ define(function () {
 					data: 'level',
 					width: '128px',
 					type: 'string',
-					render: current.formatSupportLevel
+					render: formatSupportLevel
 				}, {
 					data: 'seats',
 					className: 'hidden-xs',
 					type: 'num',
-					render: current.formatSupportSeats
+					render: formatSupportSeats
 				}, {
 					data: 'accessApi',
 					className: 'hidden-xs hidden-sm hidden-md',
 					type: 'string',
-					render: current.formatSupportAccess
+					render: formatSupportAccess
 				}, {
 					data: 'accessPhone',
 					className: 'hidden-xs hidden-sm hidden-md',
 					type: 'string',
-					render: current.formatSupportAccess
+					render: formatSupportAccess
 				}, {
 					data: 'accessEmail',
 					className: 'hidden-xs hidden-sm hidden-md',
 					type: 'string',
-					render: current.formatSupportAccess
+					render: formatSupportAccess
 				}, {
 					data: 'accessChat',
 					className: 'hidden-xs hidden-sm hidden-md',
 					type: 'string',
-					render: current.formatSupportAccess
+					render: formatSupportAccess
 				}, {
 					data: 'price.type',
 					className: 'truncate',
 					type: 'string',
-					render: current.formatSupportType
+					render: formatSupportType
 				}]
 			};
 		},
@@ -3494,33 +3510,33 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => current.formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase))
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase))
 				}, {
 					data: 'size',
 					width: '36px',
 					className: 'truncate',
 					type: 'num',
-					render: current.formatStorage
+					render: formatStorage
 				}, {
 					data: 'price.type.latency',
 					type: 'string',
 					className: 'truncate hidden-xs',
-					render: current.formatStorageLatency
+					render: formatStorageLatency
 				}, {
 					data: 'price.type.optimized',
 					type: 'string',
 					className: 'truncate hidden-xs',
-					render: current.formatStorageOptimized
+					render: formatStorageOptimized
 				}, {
 					data: 'price.type',
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
-					render: current.formatStorageType
+					render: formatStorageType
 				}, {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => current.formatQuoteResource(data.quoteInstance || data.quoteDatabase)
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase)
 				}]
 			};
 		},
@@ -3539,15 +3555,6 @@ define(function () {
 			});
 		},
 
-		formatDatabaseEngine(engine, mode, clazz) {
-			var cfg = current.databaseEngines[(engine.id || engine || 'MYSQL').toUpperCase()] || current.databaseEngines.MYSQL;
-			if (mode === 'sort' || mode === 'filter') {
-				return cfg[0];
-			}
-			clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
-		},
-
 		/**
 		 * Initialize the database datatables from the whole quote
 		 */
@@ -3556,12 +3563,12 @@ define(function () {
 				data: 'minQuantity',
 				className: 'hidden-xs',
 				type: 'num',
-				render: current.formatQuantity
+				render: formatQuantity
 			}, {
 				data: 'price.engine',
 				className: 'truncate',
 				type: 'string',
-				render: current.formatDatabaseEngine
+				render: formatDatabaseEngine
 			}, {
 				data: 'price.edition',
 				type: 'string',
@@ -3585,8 +3592,8 @@ define(function () {
 						minimumInputLength: 1,
 						createSearchChoice: () => null,
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
-						formatResult: current.formatStoragePriceHtml,
-						formatSelection: current.formatStorageHtml,
+						formatResult: formatStoragePriceHtml,
+						formatSelection: formatStorageHtml,
 						ajax: {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
@@ -3650,38 +3657,38 @@ define(function () {
 					className: 'truncate',
 					width: '48px',
 					type: 'num',
-					render: current.formatCpu
+					render: formatCpu
 				}, {
 					className: 'truncate',
 					width: '64px',
 					type: 'num',
-					render: current.formatRam
+					render: formatRam
 				}, {
 					data: 'price.term',
 					className: 'hidden-xs hidden-sm price-term',
 					type: 'string',
-					render: current.formatInstanceTerm
+					render: formatInstanceTerm
 				}, {
 					data: 'price.type',
 					className: 'truncate hidden-xs hidden-sm hidden-md',
 					type: 'string',
-					render: current.formatInstanceType
+					render: formatInstanceType
 				}, {
 					data: 'usage',
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
-					render: current.formatUsageTemplate
+					render: formatUsageTemplate
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
 					width: '24px',
 					type: 'string',
-					render: current.formatLocation
+					render: formatLocation
 				}, {
 					data: null,
 					className: 'truncate hidden-xs hidden-sm',
 					type: 'num',
-					render: current.formatQiStorages
+					render: formatQiStorages
 				}])
 			};
 		},
@@ -3826,7 +3833,13 @@ define(function () {
 				}
 			}
 		},
-
+		formatQuoteResource: formatQuoteResource,
+		formatCost: formatCost,
+		formatCpu: formatCpu,
+		formatRam: formatRam,
+		formatOs: formatOs,
+		formatDatabaseEngine: formatDatabaseEngine,
+		formatStorage: formatStorage
 	};
 	return current;
 });

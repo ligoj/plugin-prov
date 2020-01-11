@@ -204,7 +204,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     }
                 });
                 this.label(this.selectedLabel);
-                this.input.off('change.slider').on('change.slider', function () {
+                this.input.off('change.slider').on('change.slider', function (event) {
                     var val = $(this).val();
                     if ($.isNumeric(val)) {
                         $.proxy($that.value, $that)($that.selectedLabel, parseInt(val, 10));
@@ -216,6 +216,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 if (this.options.onChange) {
                     $.proxy(this.options.onChange, $bar)(label, value, this.options);
                 }
+                this.input.trigger('keyup');
             },
 
             /**
