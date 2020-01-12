@@ -995,7 +995,7 @@ define(function () {
 	}
 
 
-	function initializePopupInnerEvents() {
+	function initializeUsageInnerEvents() {
 		_('popup-prov-usage').on('shown.bs.modal', function () {
 			_('usage-name').trigger('focus');
 		}).on('submit', function (e) {
@@ -1009,8 +1009,7 @@ define(function () {
 			});
 		});
 
-		$('.usage-inputs input').on('change', current.synchronizeUsage);
-		$('.usage-inputs input').on('keyup', current.synchronizeUsage);
+		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
 		_('prov-usage-delete').click(() => current.deleteUsage(parseInt(_('usage-id').val()), 10));
 
 		// Usage rate template
@@ -1048,7 +1047,7 @@ define(function () {
 		_('popup-prov-usage').on('show.bs.modal', function (event) {
 			if (initializedPopupUsage == false) {
 				initializedPopupUsage = true;
-				initializePopupInnerEvents();
+				initializeUsageInnerEvents();
 			}
 			current.enableCreate(_('popup-prov-usage'));
 			if ($(event.relatedTarget).is('.btn-success')) {
@@ -1101,6 +1100,37 @@ define(function () {
 		})($usageSelect2.originalSelect);
 	}
 
+
+
+	function cleanData(data) {
+		return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
+	}
+
+	function getResourceValue($item) {
+		var value = '';
+		if ($item.is('.input-group-btn')) {
+			value = $item.find('li.active').data('value');
+		} else if ($item.prev().is('.select2-container')) {
+			var data = ($item.select2('data') || {});
+			value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
+		} else if ($item.data('ligojProvSlider')) {
+			value = $item.provSlider('value', 'reserved');
+		} else if ($item.is('[type="number"]')) {
+			value = parseInt(cleanData($item.val()) || "0", 10);
+		} else if (!$item.is('.select2-container')) {
+			value = cleanData($item.val());
+		}
+		return value;
+	}
+
+	function cleanFloat(data) {
+		data = cleanData(data);
+		return data && parseFloat(data, 10);
+	}
+	function cleanInt(data) {
+		data = cleanData(data);
+		return data && parseInt(data, 10);
+	}
 
 	var current = {
 
@@ -1279,7 +1309,7 @@ define(function () {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
 				subscription.data.quote.cost.currency = subscription.data.quote.currency;
 				var price = formatCost(subscription.data.quote.cost, null, null, true);
-				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-title'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
+				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-help'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
 
@@ -1512,7 +1542,7 @@ define(function () {
 		 * Return the memory query parameter value to use to filter some other inputs.
 		 */
 		toQueryValueRam: function (value) {
-			return (current.cleanInt(value) || 0) * getRamUnitWeight();
+			return (cleanInt(value) || 0) * getRamUnitWeight();
 		},
 
 		/**
@@ -1523,7 +1553,7 @@ define(function () {
 		},
 
 		addQuery(type, $item, queries) {
-			var value = current.getResourceValue($item);
+			var value = getResourceValue($item);
 			var queryParam = value && toQueryName(type, $item);
 			if (queryParam) {
 				value = $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
@@ -1534,23 +1564,6 @@ define(function () {
 					queries[queryParam] = encodeURIComponent(value);
 				}
 			}
-		},
-
-		getResourceValue: function ($item) {
-			var value = '';
-			if ($item.is('.input-group-btn')) {
-				value = $item.find('li.active').data('value');
-			} else if ($item.prev().is('.select2-container')) {
-				var data = ($item.select2('data') || {});
-				value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
-			} else if ($item.data('ligojProvSlider')) {
-				value = $item.provSlider('value', 'reserved');
-			} else if ($item.is('[type="number"]')) {
-				value = parseInt(current.cleanData($item.val()) || "0", 10);
-			} else if (!$item.is('.select2-container')) {
-				value = current.cleanData($item.val());
-			}
-			return value;
 		},
 
 		/**
@@ -2500,7 +2513,7 @@ define(function () {
 		},
 
 		storageUiToData: function (data) {
-			data.size = current.cleanInt(_('storage-size').val());
+			data.size = cleanInt(_('storage-size').val());
 			delete data.quoteInstance;
 			delete data.quoteDatabase;
 			if (_('storage-instance').select2('data')) {
@@ -2516,7 +2529,7 @@ define(function () {
 		},
 
 		supportUiToData: function (data) {
-			data.seats = current.cleanInt(_('support-seats').val());
+			data.seats = cleanInt(_('support-seats').val());
 			data.accessApi = (_('support-access-api').select2('data') || {}).id || null;
 			data.accessEmail = (_('support-access-email').select2('data') || {}).id || null;
 			data.accessPhone = (_('support-access-phone').select2('data') || {}).id || null;
@@ -2526,13 +2539,14 @@ define(function () {
 		},
 
 		genericUiToData: function (data) {
-			data.cpu = current.cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
-			data.cpuMax = current.cleanFloat(_('instance-cpu').provSlider('value', 'max'));
-			data.ram = current.cleanFloat(_('instance-ram').provSlider('value', 'reserved'));
-			data.ramMax = current.cleanFloat(_('instance-ram').provSlider('value', 'max'));
+			data.cpu = cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
+			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
+			data.ram = cleanFloat(_('instance-ram').provSlider('value', 'reserved'));
+			data.ramMax = cleanFloat(_('instance-ram').provSlider('value', 'max'));
 			data.internet = _('instance-internet').val().toLowerCase();
-			data.minQuantity = current.cleanInt(_('instance-min-quantity').val()) || 0;
-			data.maxQuantity = current.cleanInt(_('instance-max-quantity').val()) || null;
+			data.processor = _('instance-processor').val().toLowerCase();
+			data.minQuantity = cleanInt(_('instance-min-quantity').val()) || 0;
+			data.maxQuantity = cleanInt(_('instance-max-quantity').val()) || null;
 			data.license = _('instance-license').val().toLowerCase() || null;
 			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
 			data.price = _('instance-price').select2('data').price.id;
@@ -2540,7 +2554,7 @@ define(function () {
 
 		instanceUiToData: function (data) {
 			current.genericUiToData(data)
-			data.maxVariableCost = current.cleanFloat(_('instance-max-variable-cost').val());
+			data.maxVariableCost = cleanFloat(_('instance-max-variable-cost').val());
 			data.ephemeral = _('instance-ephemeral').is(':checked');
 			data.os = _('instance-os').val().toLowerCase();
 			data.software = _('instance-software').val().toLowerCase() || null;
@@ -2550,20 +2564,6 @@ define(function () {
 			current.genericUiToData(data)
 			data.engine = _('database-engine').val().toUpperCase();
 			data.edition = _('database-edition').val().toUpperCase() || null;
-		},
-
-		cleanFloat: function (data) {
-			data = current.cleanData(data);
-			return data && parseFloat(data, 10);
-		},
-
-		cleanInt: function (data) {
-			data = current.cleanData(data);
-			return data && parseInt(data, 10);
-		},
-
-		cleanData: function (data) {
-			return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
 		},
 
 		/**
@@ -2591,6 +2591,7 @@ define(function () {
 		 */
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
+			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));

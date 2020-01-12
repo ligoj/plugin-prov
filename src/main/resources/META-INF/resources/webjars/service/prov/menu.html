@@ -14,14 +14,14 @@
 						<legend><i class="fas fa-sliders-h"></i><span> {{quote-assumptions}}</span><a class="pull-right" href="#/prov/catalog" data-toggle="tooltip" title="{{global-configuration}}" data-secured-service="service/prov/catalog" data-secured-method="get"><i class="fas fa-cog"></i></a>
 						</legend>
 						<div class="form-group">
-							<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt fa-fw" data-toggle="tooltip" title="{{quote-location}}"></i></label>
+							<label class="control-label col-xs-1" for="quote-location"><i class="fas fa-map-marker-alt fa-fw" data-toggle="tooltip" title="{{service:prov:location-help}}"></i></label>
 							<div class="col-xs-10">
 								<input type="text" id="quote-location" class="form-control" required maxlength="50" />
 							</div>
 							<span class="location-wrapper select2-addon"></span>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock fa-fw" data-toggle="tooltip" title="{{quote-usage}}"></i></label>
+							<label class="control-label col-xs-1" for="quote-usage"><i class="fas fa-clock fa-fw" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></label>
 							<div class="col-xs-10">
 								<input type="text" id="quote-usage" class="form-control" />
 							</div>
@@ -30,20 +30,20 @@
 							</span>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-xs-1" for="quote-license"><i class="fas fa-cart-arrow-down fa-fw" data-toggle="tooltip" title="{{quote-license}}"></i></label>
+							<label class="control-label col-xs-1" for="quote-license"><i class="fas fa-cart-arrow-down fa-fw" data-toggle="tooltip" title="{{service:prov:license-help}}"></i></label>
 							<div class="col-xs-10">
 								<input type="text" id="quote-license" class="form-control" />
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-xs-1" for="quote-reservation-mode"><i class="fas fa-adjust fa-rotate-270 fa-fw" data-toggle="tooltip" title="{{quote-reservation-mode}}"></i></label>
+							<label class="control-label col-xs-1" for="quote-reservation-mode"><i class="fas fa-adjust fa-rotate-270 fa-fw" data-toggle="tooltip" title="{{service:prov:reservation-mode-help}}"></i></label>
 							<div class="col-xs-10">
 								<input type="text" id="quote-reservation-mode" class="form-control" required maxlength="50" />
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-xs-1" for="quote-processor">
-								<span data-toggle="tooltip" title="{{quote-processor}}" class="fa-stack fa-stack-cpu">
+								<span data-toggle="tooltip" title="{{service:prov:processor-help}}" class="fa-stack fa-stack-cpu">
 									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
 									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
 								</span></label>
