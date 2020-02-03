@@ -69,7 +69,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 
 		// Update the popup context
 		_('u-network-resource-name').text($cascade.$current.$messages.network + ': ' + conf[resourceType + 'sById'][resourceId].name);
-		$(this).attr('data-id', resourceId).attr('data-prov-type', resourceType);
+		_('popup-prov-network').attr('data-id', resourceId).attr('data-prov-type', resourceType);
 
 		// Add the IO
 		var $in = $('.network-in');
@@ -156,6 +156,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 			var resourceId = parseInt($tr.attr('data-id'), 10);
 			var resourceType = $tr.closest('[data-prov-type]').attr('data-prov-type');
 			$cascade.$current.$super('requireService')($cascade.$current.$parent, 'service:prov', $service => {
+				debugger;
 				if ($service) {
 					configure($service, resourceId, resourceType);
 				}
