@@ -93,6 +93,17 @@ define(function () {
 		label: 'reserved',
 	};
 
+	function delay(callback, ms) {
+		var timer = 0;
+		return function () {
+			var context = this, args = arguments;
+			clearTimeout(timer);
+			timer = setTimeout(function () {
+				callback.apply(context, args);
+			}, ms || 0);
+		};
+	}
+
 	function newProcessorOpts(type) {
 		return {
 			placeholder: current.$messages['service:prov:processor-default'],
@@ -774,11 +785,12 @@ define(function () {
 	function initializePopupInnerEvents() {
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('keyup', function (event) {
-			if (event.which !== 16 && event.which !== 91) {
+		$('input.resource-query[type="number"]').on('keyup', delay(function (event) {
+			if (event.which !== 16 && event.which !== 91 && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+				$(this).trigger('change');
 				$.proxy(current.checkResource, $(this))();
 			}
-		});
+		}, 50));
 		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
@@ -1844,17 +1856,6 @@ define(function () {
 					return $(this).prov().attr('data-prov-type');
 				}
 			});
-
-			function delay(callback, ms) {
-				var timer = 0;
-				return function () {
-					var context = this, args = arguments;
-					clearTimeout(timer);
-					timer = setTimeout(function () {
-						callback.apply(context, args);
-					}, ms || 0);
-				};
-			}
 
 			$('.subscribe-configuration-prov-search').on('keyup', delay(function (event) {
 				if (event.which !== 16 && event.which !== 91) {
