@@ -4,6 +4,9 @@
 /*jshint esversion: 6*/
 define(function () {
 
+	var initializedPopupEvents = false;
+	var initializedPopupUsage = false;
+
 	/**
 	 * OS key to markup/label mapping.
 	 */
@@ -952,8 +955,6 @@ define(function () {
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
 
-	var initializedPopupEvents = false;
-
 	/**
 	 * Initialize data tables and popup event : delete and details
 	 */
@@ -1039,7 +1040,6 @@ define(function () {
 
 	}
 
-	var initializedPopupUsage = false;
 	/**
 	 * Configure usage.
 	 */
@@ -1200,6 +1200,8 @@ define(function () {
 			delete current.d3Arc;
 			delete current.d3Bar
 			delete current.d3Gauge;
+			initializedPopupEvents = false;
+			initializedPopupUsage = false;
 			current.types.forEach(type => delete current[type + 'Table']);
 		},
 
