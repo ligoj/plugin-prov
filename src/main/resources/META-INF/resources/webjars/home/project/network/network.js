@@ -156,7 +156,6 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 			var resourceId = parseInt($tr.attr('data-id'), 10);
 			var resourceType = $tr.closest('[data-prov-type]').attr('data-prov-type');
 			$cascade.$current.$super('requireService')($cascade.$current.$parent, 'service:prov', $service => {
-				debugger;
 				if ($service) {
 					configure($service, resourceId, resourceType);
 				}

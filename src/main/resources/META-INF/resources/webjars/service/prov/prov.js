@@ -109,7 +109,7 @@ define(function () {
 			data: () => {
 				if (current.model) {
 					var processors = current.model.configuration.processors;
-					return { results: ((typeof type === 'function' ? processors[type()] : processors.instance.concat(processors.database)) || []).map(p => { return { id: p, text: p }; }) };
+					return { results: ((typeof type === 'function' ? processors[type()] : processors.instance.concat(processors.database)) || []).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -1224,9 +1224,7 @@ define(function () {
 					current.model = data;
 					current.optimizeModel();
 					var configuration = data.configuration;
-					current.types.forEach(type => {
-						_('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false);
-					});
+					current.types.forEach(type => _('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false));
 					current.updateUiAssumptions(configuration);
 					current.updateUiCost();
 				}
@@ -1877,9 +1875,7 @@ define(function () {
 					}
 				}
 			}, 200));
-			current.types.forEach(type => {
-				current[type + 'TableFilter'] = '';
-			});
+			current.types.forEach(type => current[type + 'TableFilter'] = '');
 			current.types.forEach(type => {
 				current.initializeDataTableEvents(type);
 				if (type !== 'database') {
