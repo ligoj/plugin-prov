@@ -58,14 +58,14 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private Double cpuMax;
 
 	/**
-	 * The requested memory in MB.
+	 * The requested memory in MiB.
 	 */
 	@NotNull
 	@Positive
 	private int ram;
 
 	/**
-	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * The maximal used RAM in MiB. When <code>null</code>, the requested RAM is used.
 	 * 
 	 * @see #ram
 	 */

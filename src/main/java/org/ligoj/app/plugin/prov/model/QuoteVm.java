@@ -16,9 +16,9 @@ public interface QuoteVm {
 	double getCpu();
 
 	/**
-	 * Return the amount of required RAM, in MB. Default is 1.
+	 * Return the amount of required RAM, in MiB. Default is 1.
 	 *
-	 * @return The amount of required RAM, in MB. Default is 1.
+	 * @return The amount of required RAM, in MiB. Default is 1.
 	 */
 	int getRam();
 
@@ -30,7 +30,7 @@ public interface QuoteVm {
 	Double getCpuMax();
 
 	/**
-	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
+	 * The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
 	 * 
 	 * @see #ram
 	 */
