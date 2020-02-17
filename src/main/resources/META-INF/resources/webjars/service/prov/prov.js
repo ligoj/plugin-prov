@@ -782,6 +782,13 @@ define(function () {
 		return parseInt(_('instance-ram-unit').find('li.active').data('value'), 10);
 	}
 
+	function synchronizeDropdownText() {
+		var $select = $(this).closest('.input-group-btn');
+		$select.find('li.active').removeClass('active');
+		var $active = $(this).addClass('active').find('a');
+		$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
+	}
+
 	function initializePopupInnerEvents() {
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
@@ -957,15 +964,13 @@ define(function () {
 
 		// Memory unit, CPU constant/variable selection
 		_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
-			var $select = $(this).closest('.input-group-btn');
-			$select.find('li.active').removeClass('active');
-			var $active = $(this).addClass('active').find('a');
-			$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
+			$.proxy(synchronizeDropdownText, $(this))();
 			// Also trigger the change of the value
-			$(e.target).prev('input').trigger('keyup');
+			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
+
 
 	/**
 	 * Initialize data tables and popup event : delete and details
@@ -1136,12 +1141,19 @@ define(function () {
 	}
 
 	function cleanFloat(data) {
-		data = cleanData(data);
-		return data && parseFloat(data, 10);
+		let cData = cleanData(data);
+		return cData && parseFloat(cData, 10);
 	}
 	function cleanInt(data) {
-		data = cleanData(data);
-		return data && parseInt(data, 10);
+		let cData = cleanData(data);
+		return cData && parseInt(cData, 10);
+	}
+	function cleanRam(mode) {
+		let cData = cleanInt(_('instance-ram').provSlider('value', mode));
+		if (cData) {
+			return cData * getRamUnitWeight();
+		};
+		return cData;
 	}
 
 	var current = {
@@ -2540,8 +2552,8 @@ define(function () {
 		genericUiToData: function (data) {
 			data.cpu = cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
-			data.ram = cleanFloat(_('instance-ram').provSlider('value', 'reserved'));
-			data.ramMax = cleanFloat(_('instance-ram').provSlider('value', 'max'));
+			data.ram = cleanRam('reserved');
+			data.ramMax = cleanRam('max');
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.processor = _('instance-processor').val().toLowerCase();
 			data.minQuantity = cleanInt(_('instance-min-quantity').val()) || 0;
@@ -2600,13 +2612,15 @@ define(function () {
 				id: license,
 				text: formatLicense(license)
 			} : null);
+
+			// Update the CPU constraint
 			_('instance-constant').find('li.active').removeClass('active');
 			if (quote.constant === true) {
-				_('instance-constant').find('li[data-value="constant"]').addClass('active');
+				_('instance-constant').find('li[data-value="constant"]').addClass('active').each(synchronizeDropdownText);
 			} else if (quote.constant === false) {
-				_('instance-constant').find('li[data-value="variable"]').addClass('active');
+				_('instance-constant').find('li[data-value="variable"]').addClass('active').each(synchronizeDropdownText);
 			} else {
-				_('instance-constant').find('li:first-child').addClass('active');
+				_('instance-constant').find('li:first-child').addClass('active').each(synchronizeDropdownText);
 			}
 		},
 
