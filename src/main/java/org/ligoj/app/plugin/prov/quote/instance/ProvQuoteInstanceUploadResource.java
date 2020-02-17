@@ -85,7 +85,7 @@ public class ProvQuoteInstanceUploadResource {
 			"maxVariableCost:maxcost", "ephemeral:preemptive", "location:region", "usage:(use|env|environment)",
 			"license", "software", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]max)",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
-			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)");
+			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)", "processor:proc");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -347,6 +347,7 @@ public class ProvQuoteInstanceUploadResource {
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
 		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		vo.setProcessor(upload.getProcessor());
 		vo.setEphemeral(upload.isEphemeral());
 		vo.setInternet(upload.getInternet());
 		vo.setMaxVariableCost(upload.getMaxVariableCost());

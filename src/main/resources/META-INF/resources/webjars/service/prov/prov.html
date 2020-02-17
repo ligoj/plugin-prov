@@ -577,7 +577,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags
+									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags;processor
 								</code>
 								<br /><code><strong>name</strong> Unique name within the quote</code>
 								<br /><code><strong>description</strong> Optional description of the resource</code>
@@ -597,6 +597,7 @@
 								<br /><code><strong>usage</strong> Usage name override of quote's one</code>
 								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay</code>
 								<br /><code><strong>tags</strong> Tags key:value, with ',', ' ' as separator. Tag value is optional</code>
+								<br /><code><strong>processor</strong> Processor: Intel Xeon, AMD,... 'startsWith' is used for the match</code>
 								<br />{{instance-import-sample}}
 								<br /><code>name;cpu;ram;os;disk;latency;optimized;constant;instance;usage</code>
 								<br /><code>mysql;1.5:2048;RHEL;20;GOOD;IOPS;true</code>

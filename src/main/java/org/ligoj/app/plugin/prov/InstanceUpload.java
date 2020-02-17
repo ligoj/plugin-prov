@@ -60,6 +60,11 @@ public class InstanceUpload {
 	private Double ramMax;
 
 	/**
+	 * Optional physical processor. Case insensitive with 'like' match.
+	 */
+	private String processor;
+
+	/**
 	 * Optional constant
 	 */
 	private Boolean constant;

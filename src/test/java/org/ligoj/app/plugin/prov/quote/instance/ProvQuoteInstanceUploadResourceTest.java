@@ -249,6 +249,17 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	void uploadProcessor() throws IOException {
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;Intel", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os", "processor" }, false, null, 1, "UTF-8");
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance11", configuration.getInstances().get(7).getPrice().getType().getName());
+		Assertions.assertEquals("Intel", configuration.getInstances().get(7).getProcessor());
+		checkCost(configuration.getCost(), 9389.558, 11839.158, false);
+	}
+
+	@Test
 	void uploadTags() throws IOException {
 		qiuResource.upload(subscription,
 				IOUtils.toInputStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8", "UTF-8"),
