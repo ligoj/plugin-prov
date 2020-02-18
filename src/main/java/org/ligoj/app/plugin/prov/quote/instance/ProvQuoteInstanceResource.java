@@ -159,7 +159,7 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	@Override
-	protected QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
+	public QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);

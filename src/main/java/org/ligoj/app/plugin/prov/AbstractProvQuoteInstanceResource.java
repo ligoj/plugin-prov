@@ -122,7 +122,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
-	 * updated from the resource to the quote total cost.
+	 * updated from the resource to the quote total cost. The change must contains a price retrieved from a previous
+	 * lookup. The match is not performed by the following function.
 	 *
 	 * @param quote  The related quote.
 	 * @param entity The entity to update.

@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov.quote.instance;
+package org.ligoj.app.plugin.prov.quote.upload;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -42,16 +43,22 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
-import org.ligoj.app.plugin.prov.InstanceUpload;
+import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseEditionVo;
+import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceEditionVo;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageEditionVo;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -70,9 +77,10 @@ import lombok.extern.slf4j.Slf4j;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @Slf4j
-public class ProvQuoteInstanceUploadResource {
+public class ProvQuoteUploadResource {
 	private static final String CSV_FILE = "csv-file";
-	private static final List<String> MINIMAL_HEADERS = List.of("name", "cpu", "ram", "os");
+	private static final List<String> MINIMAL_HEADERS_INSTANCE = List.of("name", "cpu", "ram", "os");
+	private static final List<String> MINIMAL_HEADERS_DATABASE = List.of("name", "cpu", "ram", "engine");
 	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized",
 			"tags" };
 
@@ -85,7 +93,7 @@ public class ProvQuoteInstanceUploadResource {
 			"maxVariableCost:maxcost", "ephemeral:preemptive", "location:region", "usage:(use|env|environment)",
 			"license", "software", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]max)",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
-			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)", "processor:proc");
+			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)", "processor:proc", "engine:db", "edition");
 
 	/**
 	 * Patterns from the most to the least exact match of header.
@@ -114,16 +122,27 @@ public class ProvQuoteInstanceUploadResource {
 	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
+	private ProvQuoteDatabaseResource qbResource;
+
+	@Autowired
 	private ProvTagResource tagResource;
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
+	@Autowired
+	private ProvQuoteDatabaseRepository qbRepository;
 
-	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, UploadContext, Integer>> mergers = Map
+	// Instance merger
+	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, UploadContext, Integer>> mergersInstance = Map
+			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
+
+	// Database merger
+	private final Map<MergeMode, BiFunction<QuoteDatabaseEditionVo, UploadContext, Integer>> mergersDatabase = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
 
 	private static class UploadContext {
-		private Map<String, ProvQuoteInstance> previous;
+		private Map<String, ProvQuoteInstance> previousQi;
+		private Map<String, ProvQuoteDatabase> previousQb;
 		private ProvQuote quote;
 	}
 
@@ -133,23 +152,47 @@ public class ProvQuoteInstanceUploadResource {
 	private Integer modeInsert(final QuoteInstanceEditionVo vo, final UploadContext context) {
 		// Reserve this name
 		var qi = new ProvQuoteInstance();
-		context.previous.put(vo.getName(), qi);
+		context.previousQi.put(vo.getName(), qi);
 		qi.setId(qiResource.saveOrUpdate(context.quote, qi, vo).getId());
 		vo.setId(qi.getId());
 		return qi.getId();
 	}
 
 	/**
+	 * Insert mode.
+	 */
+	private Integer modeInsert(final QuoteDatabaseEditionVo vo, final UploadContext context) {
+		// Reserve this name
+		var qb = new ProvQuoteDatabase();
+		context.previousQb.put(vo.getName(), qb);
+		qb.setId(qbResource.saveOrUpdate(context.quote, qb, vo).getId());
+		vo.setId(qb.getId());
+		return qb.getId();
+	}
+
+	private <Q extends AbstractQuoteInstanceEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
+		var name = vo.getName();
+		var counter = 0;
+		while (previous.containsKey(name)) {
+			name = vo.getName() + " " + ++counter;
+		}
+		// Fix the instance's name in order to be unique during this upload.
+		vo.setName(name);
+	}
+
+	/**
 	 * Keep mode.
 	 */
 	private Integer modeKeep(final QuoteInstanceEditionVo vo, final UploadContext context) {
-		// Fix the instance's name in order to be unique during this upload.
-		var name = vo.getName();
-		var counter = 0;
-		while (context.previous.containsKey(name)) {
-			name = vo.getName() + " " + ++counter;
-		}
-		vo.setName(name);
+		nextName(vo, context.previousQi);
+		return modeInsert(vo, context);
+	}
+
+	/**
+	 * Keep mode.
+	 */
+	private Integer modeKeep(final QuoteDatabaseEditionVo vo, final UploadContext context) {
+		nextName(vo, context.previousQb);
 		return modeInsert(vo, context);
 	}
 
@@ -157,13 +200,27 @@ public class ProvQuoteInstanceUploadResource {
 	 * Update mode.
 	 */
 	private Integer modeUpdate(final QuoteInstanceEditionVo vo, final UploadContext context) {
-		final var qi = context.previous.get(vo.getName());
+		final var qi = context.previousQi.get(vo.getName());
 		if (qi == null) {
 			return modeInsert(vo, context);
 		}
 		// Update the previous entity
 		vo.setId(qi.getId());
 		qiResource.saveOrUpdate(context.quote, qi, vo);
+		return null;
+	}
+
+	/**
+	 * Update mode.
+	 */
+	private Integer modeUpdate(final QuoteDatabaseEditionVo vo, final UploadContext context) {
+		final var qi = context.previousQb.get(vo.getName());
+		if (qi == null) {
+			return modeInsert(vo, context);
+		}
+		// Update the previous entity
+		vo.setId(qi.getId());
+		qbResource.saveOrUpdate(context.quote, qi, vo);
 		return null;
 	}
 
@@ -204,8 +261,10 @@ public class ProvQuoteInstanceUploadResource {
 		});
 
 		// Check the mandatory headers
-		CollectionUtils.removeAll(MINIMAL_HEADERS, mapped.keySet()).stream().findFirst().ifPresent(h -> {
-			throw new ValidationJsonException(CSV_FILE, "missing-header", "header", h);
+		CollectionUtils.removeAll(MINIMAL_HEADERS_INSTANCE, mapped.keySet()).stream().findFirst().ifPresent(hi -> {
+			CollectionUtils.removeAll(MINIMAL_HEADERS_DATABASE, mapped.keySet()).stream().findFirst().ifPresent(hd -> {
+				throw new ValidationJsonException(CSV_FILE, "missing-header", "header", hd);
+			});
 		});
 
 		// Return validated header and dropped ones : empty string = ""
@@ -233,9 +292,9 @@ public class ProvQuoteInstanceUploadResource {
 	 * @param encoding        CSV encoding. Default is UTF-8.
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
-	public void upload(@PathParam("subscription") final int subscription, final InputStream uploadedFile,
-			final String[] headers, final boolean headersIncluded, final String usage, final Integer ramMultiplier,
-			final String encoding) throws IOException {
+	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
+			throws IOException {
 		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding);
 	}
 
@@ -295,35 +354,86 @@ public class ProvQuoteInstanceUploadResource {
 
 		// Build entries
 		log.info("Upload provisioning : reading, using header {}", headersString);
-		final var list = csvForBean.toBean(InstanceUpload.class, reader);
+		final var list = csvForBean.toBean(VmUpload.class, reader);
 		log.info("Upload provisioning : importing {} entries", list.size());
 		final var cursor = new AtomicInteger(0);
-		final var previous = qiRepository.findAll(subscription).stream()
+		final var previousQi = qiRepository.findAll(subscription).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteInstance::getName, Function.identity()));
-		final var merger = mergers.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+		final var previousQb = qbRepository.findAll(subscription).stream()
+				.collect(Collectors.toConcurrentMap(ProvQuoteDatabase::getName, Function.identity()));
 
 		// Initialization for parallel process
 		quote.getUsages().size();
 		final var context = new UploadContext();
 		context.quote = quote;
-		context.previous = previous;
-		list.stream().filter(Objects::nonNull).forEach(i -> {
+		context.previousQi = previousQi;
+		context.previousQb = previousQb;
+		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
-				persist(i, subscription, usage, ramMultiplier, merger, context);
-				final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
-				if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
-					log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
-				}
+				persist(subscription, usage, mode, ramMultiplier, list, cursor, context, i);
 			} catch (final ValidationJsonException e) {
 				throw handleValidationError(i, e);
 			} catch (final ConstraintViolationException e) {
 				throw handleValidationError(i, new ValidationJsonException(e));
+			} catch (final Throwable e) {
+				log.error("Unmanaged error during import of " + i.getName(), e);
+				throw e;
 			}
 		});
 		log.info("Upload provisioning : flushing");
 	}
 
-	private ValidationJsonException handleValidationError(InstanceUpload i, final ValidationJsonException e) {
+	private void persist(final int subscription, final String usage, final MergeMode mode, final Integer ramMultiplier,
+			final List<VmUpload> list, final AtomicInteger cursor, final UploadContext context, VmUpload i) {
+		if (StringUtils.isNotEmpty(i.getEngine())) {
+			// Database case
+			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
+			vo.setPrice(
+					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
+			persist(i, subscription, usage, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
+					ResourceType.DATABASE);
+		} else {
+			// Instance case
+			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
+			vo.setPrice(
+					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
+			persist(i, subscription, usage, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
+					ResourceType.INSTANCE);
+		}
+		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
+		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
+			log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
+		}
+	}
+
+	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
+			final String usage, final Integer ramMultiplier, final V vo) {
+		// Validate the upload object
+		vo.setName(upload.getName());
+		vo.setDescription(upload.getDescription());
+		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		vo.setProcessor(upload.getProcessor());
+		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
+		vo.setInternet(upload.getInternet());
+		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
+		vo.setMinQuantity(upload.getMinQuantity());
+		vo.setLocation(upload.getLocation());
+		vo.setConstant(upload.getConstant());
+		vo.setUsage(Optional.ofNullable(upload.getUsage())
+				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
+		vo.setRam(
+				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		vo.setSubscription(subscription);
+		vo.setType(upload.getType());
+		vo.setCpuMax(upload.getCpuMax());
+		vo.setRamMax(upload.getRamMax() == null ? null
+				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
+		return vo;
+	}
+
+	private ValidationJsonException handleValidationError(VmUpload i, final ValidationJsonException e) {
 		log.info("Upload provisioning : failed", e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
@@ -335,42 +445,31 @@ public class ProvQuoteInstanceUploadResource {
 		return e;
 	}
 
+	private QuoteInstanceEditionVo newInstanceVo(final VmUpload upload) {
+		final var vo = new QuoteInstanceEditionVo();
+		vo.setMaxVariableCost(upload.getMaxVariableCost());
+		vo.setOs(upload.getOs());
+		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
+		vo.setSoftware(upload.getSoftware());
+		vo.setEphemeral(upload.isEphemeral());
+		return vo;
+	}
+
+	private QuoteDatabaseEditionVo newDatabaseVo(final VmUpload upload) {
+		final var vo = new QuoteDatabaseEditionVo();
+		vo.setEngine(upload.getEngine());
+		vo.setEdition(upload.getEdition());
+		return vo;
+	}
+
 	/**
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private void persist(final InstanceUpload upload, final int subscription, final String usage,
-			final Integer ramMultiplier, final BiFunction<QuoteInstanceEditionVo, UploadContext, Integer> merger,
-			final UploadContext context) {
-		// Validate the upload object
-		final var vo = new QuoteInstanceEditionVo();
-		vo.setName(upload.getName());
-		vo.setDescription(upload.getDescription());
-		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
-		vo.setProcessor(upload.getProcessor());
-		vo.setEphemeral(upload.isEphemeral());
-		vo.setInternet(upload.getInternet());
-		vo.setMaxVariableCost(upload.getMaxVariableCost());
-		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
-		vo.setMinQuantity(upload.getMinQuantity());
-		vo.setLocation(upload.getLocation());
-		vo.setOs(upload.getOs());
-		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
-		vo.setSoftware(upload.getSoftware());
-		vo.setConstant(upload.getConstant());
-		vo.setUsage(Optional.ofNullable(upload.getUsage())
-				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
-		vo.setRam(
-				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
-		vo.setSubscription(subscription);
-		vo.setType(upload.getType());
-
-		vo.setCpuMax(upload.getCpuMax());
-		vo.setRamMax(upload.getRamMax() == null ? null
-				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
-
-		// Find the lowest price
-		vo.setPrice(qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
+	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
+			final String usage, final Integer ramMultiplier, final BiFunction<V, UploadContext, Integer> merger,
+			final UploadContext context, final V vo, final BiConsumer<QuoteStorageEditionVo, Integer> diskConsumer,
+			final ResourceType resourceType) {
 
 		// Create the quote instance from the validated inputs
 		final var id = merger.apply(vo, context);
@@ -389,7 +488,7 @@ public class ProvQuoteInstanceUploadResource {
 					// Size is provided, propagate the upload properties
 					final var svo = new QuoteStorageEditionVo();
 					svo.setName(vo.getName() + (index == 0 ? "" : index));
-					svo.setQuoteInstance(id);
+					diskConsumer.accept(svo, id);
 					svo.setSize(size);
 					svo.setSizeMax(sizeMax);
 					svo.setLatency(getItem(upload.getLatency(), index));
@@ -414,7 +513,7 @@ public class ProvQuoteInstanceUploadResource {
 					tag.setName(parts[0]);
 					tag.setValue(StringUtils.trimToNull(parts[1]));
 					tag.setResource(id);
-					tag.setType(ResourceType.INSTANCE);
+					tag.setType(resourceType);
 					tagResource.create(subscription, tag);
 
 					// Storage tags

@@ -47,6 +47,7 @@ import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
+import org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -73,7 +74,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	private ProvQuoteRepository qRepository;
 
 	@Autowired
-	private ProvQuoteInstanceUploadResource qiuResource;
+	private ProvQuoteUploadResource qiuResource;
 
 	@Override
 	@BeforeEach

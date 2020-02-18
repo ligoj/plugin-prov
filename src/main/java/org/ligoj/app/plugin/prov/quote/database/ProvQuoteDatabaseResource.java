@@ -5,7 +5,6 @@
 package org.ligoj.app.plugin.prov.quote.database;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
@@ -105,10 +104,10 @@ public class ProvQuoteDatabaseResource extends
 
 	@Override
 	protected void saveOrUpdateSpec(final ProvQuoteDatabase entity, final QuoteDatabaseEditionVo vo) {
-		entity.setEngine(vo.getEngine());
-		entity.setEdition(vo.getEdition());
-		checkAttribute("engine", entity.getPrice().getEngine(), entity.getEngine());
-		checkAttribute("edition", entity.getPrice().getEdition(), entity.getEdition());
+		checkAttribute("engine", entity.getPrice().getEngine(), vo.getEngine());
+		checkAttribute("edition", entity.getPrice().getEdition(), vo.getEdition());
+		entity.setEngine(entity.getPrice().getEngine());
+		entity.setEdition(entity.getPrice().getEdition());
 	}
 
 	/**
@@ -119,8 +118,8 @@ public class ProvQuoteDatabaseResource extends
 	 * @param vPrice The price attribute value.
 	 * @param <V>    The quote property value type.
 	 */
-	protected <V> void checkAttribute(final String name, final V pQuote, final V vPrice) {
-		if (!Objects.equals(pQuote, vPrice)) {
+	protected <V> void checkAttribute(final String name, final String pQuote, final String vPrice) {
+		if (!StringUtils.equalsIgnoreCase(pQuote, vPrice)) {
 			// Incompatible, hack attempt?
 			log.warn("Attempt to create a database with an incompatible {} {} with catalog {} {}", name, pQuote, name,
 					vPrice);
@@ -160,7 +159,7 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	@Override
-	protected QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
+	public QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);

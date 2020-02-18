@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov;
+package org.ligoj.app.plugin.prov.quote.upload;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class InstanceUpload {
+public class VmUpload {
 
 	private static final String SEPARATOR = ",\\s;";
 	private static final String FULL_TAG = SEPARATOR + AbstractProvTag.PATTERN + "(:" + AbstractProvTag.PATTERN + ")?";
@@ -69,6 +69,16 @@ public class InstanceUpload {
 	 */
 	private Boolean constant;
 	private VmOs os;
+
+	/**
+	 * Database engine. When not <code>null</code>, this entry will be considered as a database instead of an instance.
+	 */
+	private String engine;
+
+	/**
+	 * Optional database edition. When not null, the {@link #engine} must be defined too.
+	 */
+	private String edition;
 
 	/**
 	 * Optional instance type.

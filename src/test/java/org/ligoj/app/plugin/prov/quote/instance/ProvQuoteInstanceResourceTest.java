@@ -149,7 +149,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Check the instance result
 		final var pi = lookup.getPrice();
 		Assertions.assertEquals("instance4", pi.getType().getName());
-		Assertions.assertEquals("19", pi.getCode());
+		Assertions.assertEquals("C19", pi.getCode());
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertNull(pi.getLicense());
 	}

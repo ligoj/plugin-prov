@@ -1,9 +1,10 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.prov.quote.instance;
+package org.ligoj.app.plugin.prov.quote.upload;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -14,9 +15,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
+import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
+import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
@@ -31,7 +36,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
-	private ProvQuoteInstanceUploadResource qiuResource;
+	private ProvQuoteUploadResource qiuResource;
 
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
@@ -125,6 +130,17 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	}
 
 	@Test
+	void uploadEmptyRow() throws IOException {
+		Assertions.assertEquals(7, getConfiguration().getInstances().size());
+		em.clear();
+		qiuResource.upload(subscription, IOUtils.toInputStream(";;;", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os" }, false, "Full Time 12 month", 1, "UTF-8");
+		var configuration = getConfiguration();
+		checkCost(configuration.getCost(), 4704.758, 7154.358, false);
+		Assertions.assertEquals(7, getConfiguration().getInstances().size());
+	}
+
+	@Test
 	void uploadMax() throws IOException {
 		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0.2;500;300;LINUX;100;80", "UTF-8"),
 				new String[] { "name", "cpu", "cpuMax", "ram", "ramMax", "os", "disk", "diskMax" }, false,
@@ -143,6 +159,55 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("ANY", qs.getName());
 		Assertions.assertEquals(100, qs.getSize());
 		Assertions.assertEquals(80, qs.getSizeMax());
+	}
+
+	@Test
+	void uploadDatabase() throws IOException {
+		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		configuration.put(ProvResource.USE_PARALLEL, "0");
+		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
+		em.clear();
+
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;MySQL", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "engine" }, false, "Full Time 12 month", 1, "UTF-8");
+		var configuration = getConfiguration();
+		checkCost(configuration.getCost(), 4794.258, 7243.858, false);
+		configuration = getConfiguration();
+		Assertions.assertEquals(7, configuration.getInstances().size());
+		Assertions.assertEquals(8, configuration.getDatabases().size());
+		final var qb = configuration.getDatabases().get(7);
+		Assertions.assertEquals("database1", qb.getPrice().getType().getName());
+		Assertions.assertEquals(0.5, qb.getCpu());
+		Assertions.assertEquals(500, qb.getRam());
+		Assertions.assertEquals("MYSQL", qb.getEngine());
+	}
+
+	@Test
+	void uploadDatabaseUpdate() throws IOException {
+		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		configuration.put(ProvResource.USE_PARALLEL, "0");
+		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
+		Assertions.assertEquals("STANDARD ONE", getConfiguration().getDatabases().stream()
+				.filter(q -> q.getName().equals("database4")).findFirst().get().getEdition());
+		em.clear();
+
+		qiuResource.upload(subscription, IOUtils.toInputStream("database4;0.5;1000;oracle;standard two", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "engine", "edition" }, false, "Full Time 12 month",
+				MergeMode.UPDATE, 1, "UTF-8");
+		var configuration = getConfiguration();
+		checkCost(configuration.getCost(), 4815.558, 7265.158, false);
+		configuration = getConfiguration();
+		Assertions.assertEquals(7, configuration.getInstances().size());
+		Assertions.assertEquals(7, configuration.getDatabases().size());
+		final var qb = configuration.getDatabases().stream().filter(q -> q.getName().equals("database4")).findFirst()
+				.get();
+		Assertions.assertEquals("database1", qb.getPrice().getType().getName());
+		Assertions.assertEquals(0.5, qb.getCpu());
+		Assertions.assertEquals(1000, qb.getRam());
+		Assertions.assertEquals("ORACLE", qb.getEngine());
+		Assertions.assertEquals("STANDARD TWO", qb.getEdition());
 	}
 
 	@Test
