@@ -404,7 +404,7 @@ define(function () {
 		// A floating cost
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
-		var unbound = (min !== max) || obj.unbound || (cost && cost.unbound) || (obj.minQuantity !== obj.maxQuantity);
+		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
 		if ((typeof max !== 'number') || max === min) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
