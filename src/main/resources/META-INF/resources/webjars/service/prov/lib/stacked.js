@@ -10,31 +10,36 @@ define(['d3', 'jquery'], function (d3) {
         // formatting Data to a more d3-friendly format
         // extracting binNames and clusterNames
         function formatData(data, sort) {
-            var clusterNames = d3.keys(data[0]).filter(function (key) { return key !== 'date'; }).sort(sort);
+            var clusterNames = d3.keys(data[0]).filter(k => k !== 'date').sort(sort);
             var binNames = [];
             var blockData = [];
+            let ranges = {};
+            clusterNames.forEach(k => ranges[k] = { min: Number.MAX_VALUE, max: -1 });
             for (var i = 0; i < data.length; i++) {
                 var y = 0;
                 binNames.push(data[i].date);
                 for (var j = 0; j < clusterNames.length; j++) {
-                    var height = parseFloat(data[i][clusterNames[j]]);
-                    y += height;
-                    var block = {
+                    let key = clusterNames[j];
+                    let value = parseFloat(data[i][key]);
+                    ranges[key].min = Math.min(ranges[key].min, value);
+                    ranges[key].max = Math.max(ranges[key].max, value);
+                    y += value;
+                    blockData.push({
                         'y0': y,
                         'y': y,
-                        'height0': height,
-                        'height': height,
+                        'height0': value,
+                        'height': value,
                         'x': data[i].date,
                         'x-index': i,
                         'cluster-index': j,
-                        'cluster': clusterNames[j]
-                    };
-                    blockData.push(block);
+                        'cluster': key
+                    });
                 }
             }
             return {
                 blockData: blockData,
                 binNames: binNames,
+                ranges: ranges,
                 clusterNames: clusterNames
             };
         }
@@ -46,11 +51,21 @@ define(['d3', 'jquery'], function (d3) {
                 clusterNames = formattedData.clusterNames;
             params.clusterNames = formattedData.clusterNames;
             params.binNames = formattedData.binNames;
+            params.ranges = formattedData.ranges;
             params.blockData = blockData;
             params.heights = setUpHeights(clusterNames, blockData);
             params.maxPerBin = setUpMax(clusterNames, blockData);
             params.scales = initializeScales(params.width, params.height);
+            params.filteredClusterNames = params.clusterNames.filter(k => params.ranges[k].max > 0);
             return formattedData;
+        }
+
+        function getLegendY(params, d, i) {
+            var i = params.filteredClusterNames.indexOf(d);
+            if (i > params.filteredClusterNames.indexOf(params.chosen.cluster)) {
+                return choice(params.chosen.cluster, d, 20 * (params.filteredClusterNames.length - i), marginTop, marginTop);
+            }
+            return choice(params.chosen.cluster, d, 20 * (params.filteredClusterNames.length - i), marginTop, marginTop);
         }
 
         function initialize() {
@@ -103,7 +118,7 @@ define(['d3', 'jquery'], function (d3) {
 
             // initialize legend
             var legend = params.legend = svg.selectAll('.legend')
-                .data(clusterNames)
+                .data(params.filteredClusterNames)
                 .enter().append('g')
                 .attr('class', 'legend')
                 .on('click', function (d) {
@@ -113,14 +128,14 @@ define(['d3', 'jquery'], function (d3) {
 
             legend.append('rect')
                 .attr('x', margin.left - 63)
-                .attr('y', (_, i) => 20 * (clusterNames.length - i))
+                .attr('y', (d, i) => getLegendY(params, d, i))
                 .attr('height', 18)
                 .attr('width', 18)
                 .attr('fill', color);
 
             legend.append('text')
                 .attr('x', margin.left - 70)
-                .attr('y', (_, i) => 20 * (clusterNames.length - i))
+                .attr('y', (d, i) => getLegendY(params, d, i))
                 .text(d => d)
                 .attr('dy', '.95em')
                 .style('text-anchor', 'end');
@@ -225,23 +240,11 @@ define(['d3', 'jquery'], function (d3) {
                 .transition()
                 .duration(transDuration)
                 .attr('height', d => choice(chosen.cluster, d, 18, 18, 0))
-                .attr('y', function (d) {
-                    var i = clusterNames.indexOf(d);
-                    if (i > clusterNames.indexOf(chosen.cluster)) {
-                        return choice(chosen.cluster, d, 20 * (clusterNames.length - i), marginTop, marginTop);
-                    }
-                    return choice(chosen.cluster, d, 20 * (clusterNames.length - i), marginTop, marginTop);
-                });
+                .attr('y', (d, i) => getLegendY(params, d, i));
             legend.selectAll('text')
                 .transition()
                 .duration(transDuration)
-                .attr('y', function (d) {
-                    var i = clusterNames.indexOf(d);
-                    if (i > clusterNames.indexOf(chosen.cluster)) {
-                        return choice(chosen.cluster, d, 20 * (clusterNames.length - i), marginTop, marginTop);
-                    }
-                    return choice(chosen.cluster, d, 20 * (clusterNames.length - i), marginTop, marginTop);
-                })
+                .attr('y', (d, i) => getLegendY(params, d, i))
                 .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,
@@ -380,11 +383,10 @@ define(['d3', 'jquery'], function (d3) {
             return heights;
         }
 
-        // getting the max value of each bin, to convert back and forth to percentage
+        // Max value of each bin, to convert back and forth to percentage
         function setUpMax(clusterNames, blockData) {
-            var lastClusterElements = blockData.filter(d => d.cluster == clusterNames[clusterNames.length - 1]);
             var maxDict = {};
-            lastClusterElements.forEach(d => maxDict[d.x] = d.y);
+            blockData.filter(d => d.cluster === clusterNames[clusterNames.length - 1]).forEach(d => maxDict[d.x] = d.y);
             return maxDict;
         }
 
