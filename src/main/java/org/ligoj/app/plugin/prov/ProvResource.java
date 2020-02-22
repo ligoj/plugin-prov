@@ -25,9 +25,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,9 +61,6 @@ import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.dao.RestRepository;
-import org.ligoj.bootstrap.core.json.PaginationJson;
-import org.ligoj.bootstrap.core.json.TableItem;
-import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -141,9 +136,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private IamProvider[] iamProvider;
 
 	@Autowired
-	private PaginationJson paginationJson;
-
-	@Autowired
 	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
@@ -200,29 +192,24 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the available locations for a subscription.
+	 * Return all available locations for a subscription.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
 	 *                     provider.
-	 * @param uriInfo      filter data.
-	 * @return The available locations for the given subscription.
+	 * @return The all available locations for the given subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/location")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvLocation> findLocations(@PathParam("subscription") final int subscription,
-			@Context final UriInfo uriInfo) {
+	public List<ProvLocation> findLocations(@PathParam("subscription") final int subscription) {
 		final var node = subscriptionResource.checkVisible(subscription).getNode().getId();
-		return paginationJson.applyPagination(uriInfo, locationRepository.findAll(node,
-				DataTableAttributes.getSearch(uriInfo), paginationJson.getPageRequest(uriInfo, ORM_COLUMNS)),
-				Function.identity());
+		return locationRepository.findAll(node);
 	}
 
 	/**
 	 * Return the available processors for a subscription.
 	 *
-	 * @param node    The node identifier, will be used to filter the processors from the associated provider.
-	 * @param uriInfo filter data.
+	 * @param node The node identifier, will be used to filter the processors from the associated provider.
 	 * @return The available processors for the given subscription.
 	 */
 	@CacheResult(cacheName = "prov-processor")

@@ -804,13 +804,13 @@ public class ProvResourceTest extends AbstractAppTest {
 
 	@Test
 	void findLocations() {
-		final var locations = resource.findLocations(subscription, newUriInfo());
+		final var locations = resource.findLocations(subscription);
 
 		// 3 regions, but only 2 have associated prices
-		Assertions.assertEquals(2, locations.getData().size());
-		Assertions.assertEquals("region-1", locations.getData().get(0).getName());
-		Assertions.assertEquals("region-2", locations.getData().get(1).getName());
-		Assertions.assertEquals("service:prov:test", locations.getData().get(1).getNode().getId());
+		Assertions.assertEquals(2, locations.size());
+		Assertions.assertEquals("region-1", locations.get(0).getName());
+		Assertions.assertEquals("region-2", locations.get(1).getName());
+		Assertions.assertEquals("service:prov:test", locations.get(1).getNode().getId());
 	}
 
 	@Test

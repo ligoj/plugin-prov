@@ -103,7 +103,26 @@ define(function () {
 			}, ms || 0);
 		};
 	}
+	function ascendingComparator(o1, o2) {
+		return o1.localeCompare(o2);
+	}
+	function locationComparator(l1, l2) {
+		return locationToStringCompare(l1).localeCompare(l2);
+	}
 
+	function locationToStringCompare(location) {
+		return location.name
+			+ '#' + (location.subRegion && (current.$messages[location.subRegion] || location.subRegion))
+			+ '#' + location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)]
+			+ '#' + location.id;
+	}
+	function locationMatcher(term, location) {
+		return matcher(term, location.name)
+			|| location.subRegion && matcher(term, (current.$messages[location.subRegion] || location.subRegion))
+			|| location.description && matcher(term, location.description)
+			|| location.countryM49 && matcher(term, current.$messages.m49[parseInt(location.countryM49, 10)])
+			|| location.countryA2 && (matcher(term, location.countryA2) || location.countryA2 === 'UK' && matcher(term, 'GB'));
+	}
 	function newProcessorOpts(type) {
 		return {
 			placeholder: current.$messages['service:prov:processor-default'],
@@ -711,14 +730,43 @@ define(function () {
 	}
 
 	/**
+	 * Return true when the term is found in the text.
+	 * @param {string} term The term to find.
+	 * @param {string} text The text candidate.
+	 */
+	function matcher(term, text) {
+		return window.Select2.util.stripDiacritics('' + text).toUpperCase().indexOf(window.Select2.util.stripDiacritics('' + term).toUpperCase()) >= 0;
+	}
+
+	function filterSelect2Result(items, options, customComparator, customMatcher) {
+		// No new Ajax query is needed
+		let filtered = [];
+		customMatcher = customMatcher || matcher;
+		const pageSize = options.data.length;
+		let i = 0;
+		for (; i < items.length && filtered.length < pageSize * options.data.page; i++) {
+			let datum = items[i];
+			let term = options.data.q;
+			if (customMatcher(term, datum)) {
+				filtered.push(datum);
+			}
+		}
+		filtered = filtered.sort(customComparator);
+		options.success({
+			results: filtered.slice((options.data.page - 1) * pageSize, options.data.page * pageSize),
+			more: i < items.length
+		});
+	}
+
+	/**
 	 * Generic Ajax Select2 configuration.
 	 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
 	 */
-	function genericSelect2(placeholder, renderer, path, rendererResult, orderCallback, pageSize) {
-		pageSize = pageSize || 15;
+	function genericSelect2(placeholder, formatSelection, path, formatResult, customComparator, matcher) {
+		const pageSize = 15;
 		return {
-			formatSelection: renderer,
-			formatResult: rendererResult || renderer,
+			formatSelection: formatSelection,
+			formatResult: formatResult || formatSelection,
 			escapeMarkup: m => m,
 			allowClear: placeholder !== false,
 			placeholder: placeholder ? placeholder : null,
@@ -726,40 +774,50 @@ define(function () {
 			ajax: {
 				url: () => REST_PATH + 'service/prov/' + current.model.subscription + '/' + (typeof path === 'function' ? path() : path),
 				dataType: 'json',
-				data: function (term, page) {
-					return {
-						'search[value]': term, // search term
-						'q': term, // search term
-						'rows': pageSize,
-						'page': page,
-						'start': (page - 1) * pageSize,
-						'filters': '{}',
-						'sidx': 'name',
-						'length': pageSize,
-						'columns[0][name]': 'name',
-						'order[0][column]': 0,
-						'order[0][dir]': 'asc',
-						'sortd': 'asc'
-					};
+				data: (term, page, opt) => typeof pageSize === 'undefined' ? { term: term, page: page, opt: opt } : {
+					'search[value]': term, // search term
+					'q': term, // search term
+					'rows': pageSize,
+					'page': page,
+					'start': (page - 1) * pageSize,
+					'filters': '{}',
+					'sidx': 'name',
+					'length': pageSize,
+					'columns[0][name]': 'name',
+					'order[0][column]': 0,
+					'order[0][dir]': 'asc',
+					'sortd': 'asc'
 				},
+				transport: typeof customComparator === 'function' ? function (options) {
+					let $this = this;
+					if ($this.cachedData) {
+						filterSelect2Result($this.cachedData, options, customComparator, matcher);
+					} else {
+						// No yet cached data
+						let success = options.success;
+						options.success = function (data) {
+							$this.cachedData = data
+							// Restore the original success funtion
+							options.success = success;
+							filterSelect2Result(data, options, customComparator, matcher);
+						}
+						$.fn.select2.ajaxDefaults.transport(options);
+					}
+				} : $.fn.select2.ajaxDefaults.transport,
 				results: function (data, page) {
-					var result = [];
-					$((typeof data.data === 'undefined') ? data : data.data).each(function (_, item) {
+					let result = ((typeof data.data === 'undefined') ? (data.results || data) : data.data).map(item => {
 						if (typeof item === 'string') {
 							item = {
 								id: item,
-								text: renderer(item)
+								text: formatSelection(item)
 							};
 						} else {
-							item.text = renderer(item);
+							item.text = formatSelection(item);
 						}
-						result.push(item);
+						return item;
 					});
-					if (orderCallback) {
-						orderCallback(result);
-					}
 					return {
-						more: data.recordsFiltered > page * pageSize,
+						more: typeof data.more === 'undefined' ? data.recordsFiltered > page * pageSize : data.more,
 						results: result
 					};
 				}
@@ -893,13 +951,9 @@ define(function () {
 				text: 'FEDORA'
 			}]
 		});
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, function () {
-			return 'instance-software/' + _('instance-os').val();
-		}));
-		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine'));
-		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, function () {
-			return 'database-edition/' + _('database-engine').val();
-		}));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
+		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
+		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
 			formatSelection: formatInternet,
 			formatResult: formatInternet,
@@ -2087,24 +2141,7 @@ define(function () {
 		 * Location Select2 configuration.
 		 */
 		locationSelect2: function (placeholder) {
-			return genericSelect2(placeholder, locationToHtml, 'location', null, current.orderByName, 100);
-		},
-
-		/**
-		 * Order the array items by their 'text'
-		 */
-		orderByName: function (data) {
-			return data.sort(function (a, b) {
-				a = a.text.toLowerCase();
-				b = b.text.toLowerCase();
-				if (a > b) {
-					return 1;
-				}
-				if (a < b) {
-					return -1;
-				}
-				return 0;
-			});
+			return genericSelect2(placeholder, locationToHtml, 'location', null, locationComparator, locationMatcher);
 		},
 
 		/**
