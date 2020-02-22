@@ -25,7 +25,8 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	 * @return All locations linked to this node.
 	 */
 	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
-			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%'))")
+			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%'))"
+			+ " AND EXISTS (SELECT 1 FROM ProvInstancePrice ip WHERE ip.location = pl)")
 	List<ProvLocation> findAll(String node);
 
 	/**
