@@ -131,7 +131,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('y', (d, i) => getLegendY(params, d, i))
                 .attr('height', 18)
                 .attr('width', 18)
-                .attr('fill', color);
+                .attr('fill', d => color(d));
 
             legend.append('text')
                 .attr('x', margin.left - 70)
@@ -482,7 +482,7 @@ define(['d3', 'jquery'], function (d3) {
 
         function resize(width) {
             params.canvas.svg.html(null);
-            create(params.selector, params.percentCB, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY);
+            create(params.selector, params.percentCB, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
         }
 
         // Exports
