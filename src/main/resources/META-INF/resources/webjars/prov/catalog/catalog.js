@@ -36,22 +36,26 @@ define(['sparkline'], function () {
 				},
 				columns: [{
 					data: 'node.id',
-					width: '100px'
+					width: '100px',
+					type: 'string'
 				}, {
-					data: 'node.name'
+					data: 'node.name',
+					type: 'string',
+					class: 'hidden-xs',
 				}, {
 					data: 'status.lastSuccess',
-					width: '120px',
 					render: function (date, mode) {
 						if (mode === 'sort') {
 							return date;
 						}
 						return formatManager.formatDateTime(date);
-					}
+					},
+					class: 'hidden-xs hidden-sm',
+					type: 'num'
 				}, {
 					data: 'nbQuotes',
 					type: 'num',
-					width: '16px'
+					width: '16px',
 				}, {
 					data: 'status.nbLocations',
 					type: 'num',
@@ -71,6 +75,7 @@ define(['sparkline'], function () {
 				}, {
 					data: 'status.end',
 					width: '16px',
+					type: 'num',
 					render: function (_i, mode, catalog) {
 						if (mode === 'sort') {
 							return catalog.status.end;
