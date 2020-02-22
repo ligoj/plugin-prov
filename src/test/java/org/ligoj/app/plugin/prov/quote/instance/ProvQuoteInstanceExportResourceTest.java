@@ -118,33 +118,38 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 	@Test
 	void exportInline() throws IOException {
+		// Force physical for server2
+		qiRepository.findByName("server2").getPrice().getType().setPhysical(true);
+		qiRepository.findByName("server2").setPhysical(true);
+		
 		final var lines = export();
 		Assertions.assertEquals(15, lines.size());
 
 		// Header
 		Assertions.assertEquals("resource-type;name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max"
-				+ ";maxvariablecost;constant;ephemeral;type;engine;edition;internet;license;cost;tags"
-				+ ";disk;diskMax;diskType;diskLatency;diskOptimized;diskCost;diskTags"
+				+ ";maxvariablecost;constant;processor;physical;ephemeral;type;engine;edition;internet;"
+				+ "license;cost;tags" + ";disk;diskMax;diskType;diskLatency;diskOptimized;diskCost;diskTags"
 				+ ";disk1;disk1Max;disk1Type;disk1Latency;disk1Optimized;disk1Cost;disk1Tags"
 				+ ";disk2;disk2Max;disk2Type;disk2Latency;disk2Optimized;disk2Cost;disk2Tags", lines.get(0));
 
 		// Instance with multiple disks
 		Assertions.assertEquals(
-				"INSTANCE;server1;0,5;;2000;;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;;;PUBLIC;;292,8;key:value,key3"
+				"INSTANCE;server1;0,5;;2000;;LINUX;;on-demand1;;2;10;10,1;true;;;false;instance1;;;PUBLIC;;292,8;key:value,key3"
 						+ ";20;;storage1;GOOD;IOPS;8,4;" + ";10;;storage2;MEDIUM;THROUGHPUT;155,6;"
 						+ ";51;;storage2;MEDIUM;THROUGHPUT;155,6;",
 				lines.get(1));
 
 		// Instance without disk
 		Assertions.assertEquals(
-				"INSTANCE;server2;0,25;;1000;;LINUX;;on-demand2;;1;1;;;true;instance1;;;PRIVATE;;128,1;", lines.get(2));
+				"INSTANCE;server2;0,25;;1000;;LINUX;;on-demand2;;1;1;;;Intel;true;true;instance1;;;PRIVATE;;128,1;",
+				lines.get(7));
 		Assertions.assertEquals(
-				"INSTANCE;server4;1;;2000;;DEBIAN;;on-demand1;;1;1;;false;false;instance3;;;PUBLIC;;292,8;",
-				lines.get(4));
+				"INSTANCE;server4;1;;2000;;DEBIAN;;on-demand1;;1;1;;false;;;false;instance3;;;PUBLIC;;292,8;",
+				lines.get(3));
 
 		// Database
 		Assertions.assertEquals(
-				"DATABASE;database1;0,5;;2000;;;;on-demand1;;1;2;;true;;database1;MYSQL;;PUBLIC;;116,3;key2"
+				"DATABASE;database1;0,5;;2000;;;;on-demand1;;1;2;;true;;;;database1;MYSQL;;PUBLIC;;116,3;key2"
 						+ ";20;19;storage5-database;GOOD;IOPS;30;",
 				lines.get(8));
 	}
@@ -159,9 +164,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		qiResource.deleteAll(subscription);
 		qbResource.deleteAll(subscription);
 		qs2Resource.deleteAll(subscription);
-		em.flush();
-		em.clear();
-		var configuration = resource.getConfiguration(subscription);
+		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 0, 0, false);
 
 		// Export (only headers)
@@ -173,21 +176,17 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		em.flush();
 		em.clear();
 		resource.refresh(subscription);
-		em.flush();
-		em.clear();
-		configuration = resource.getConfiguration(subscription);
+		configuration = getConfiguration();
 		checkCost(configuration.getCost(), 9879.288, 9879.288, false);
 
 		// Export
 		final var lines = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
-				"INSTANCE;JIRA;4;;6000;;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;false;dynamic;;;PRIVATE;;990,862"
-						+ ";;270;;storage1;GOOD;;56,7;",
+				"INSTANCE;JIRA;4;;6000;;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;;false;false;dynamic;;;"
+						+ "PRIVATE;;990,862;;270;;storage1;GOOD;;56,7;",
 				lines.get(1));
-		em.flush();
-		em.clear();
-		configuration = resource.getConfiguration(subscription);
+		configuration = getConfiguration();
 		checkCost(configuration.getCost(), 9879.288, 9879.288, false);
 
 		// Empty
@@ -196,17 +195,13 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		qsResource.deleteAll(subscription);
 		qiResource.deleteAll(subscription);
 		qbResource.deleteAll(subscription);
-		em.flush();
-		em.clear();
-		configuration = resource.getConfiguration(subscription);
+		configuration = getConfiguration();
 		checkCost(configuration.getCost(), 0, 0, false);
 
 		// Import
 		qiuResource.upload(subscription, IOUtils.toInputStream(String.join("\n", lines), "UTF-8"), null, true,
 				"Full Time 12 month", 1, "UTF-8");
-		em.flush();
-		em.clear();
-		configuration = resource.getConfiguration(subscription);
+		configuration = getConfiguration();
 
 		// Check backup restore succeed
 		checkCost(configuration.getCost(), 9879.288, 9879.288, false);
@@ -226,28 +221,27 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(21, lines.size()); // 8 VM + 7 DB + 4 Disks + 1 Support + 1 Header
 
 		// Header
-		Assertions.assertEquals(
-				"name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;ephemeral;type;internet;license;cost;tags"
-						+ ";disk;diskMax;instance;database;latency;optimized;engine;edition;seats",
-				lines.get(0));
+		Assertions.assertEquals("name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
+				+ "processor;physical;ephemeral;type;internet;license;cost;tags;disk;diskMax;instance;database;"
+				+ "latency;optimized;engine;edition;seats", lines.get(0));
 
 		// Instance data
 		Assertions.assertEquals(
-				"server1;0,5;;2000;;LINUX;;on-demand1;;2;10;10,1;true;false;instance1;PUBLIC;;292,8;key:value,key3",
+				"server1;0,5;;2000;;LINUX;;on-demand1;;2;10;10,1;true;;;false;instance1;PUBLIC;;292,8;key:value,key3",
 				lines.get(1));
 
 		// Database data
-		Assertions.assertEquals("database2;0,25;;1000;;;;1y;;1;1;;;;database1;;;89,5;;;;;;;MYSQL;", lines.get(9));
+		Assertions.assertEquals("database2;0,25;;1000;;;;1y;;1;1;;;;;;database1;;;89,5;;;;;;;MYSQL;", lines.get(9));
 		Assertions.assertEquals(
-				"database4;0,5;;2000;;;;on-demand1;;1;1;;;;database2;;;135,42;;;;;;;ORACLE;STANDARD ONE",
+				"database4;0,5;;2000;;;;on-demand1;;1;1;;;;;;database2;;;135,42;;;;;;;ORACLE;STANDARD ONE",
 				lines.get(11));
 
 		// Storage data
-		Assertions.assertEquals("server1-temp;;;;;;;;;;;;;;storage2;;;155,6;;51;;server1;;MEDIUM;THROUGHPUT",
+		Assertions.assertEquals("server1-temp;;;;;;;;;;;;;;;;storage2;;;155,6;;51;;server1;;MEDIUM;THROUGHPUT",
 				lines.get(17));
 
 		// Support data
-		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;support2;;;577,26;;;;;;;;;1", lines.get(20));
+		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;;;support2;;;577,26;;;;;;;;;1", lines.get(20));
 	}
 
 	private List<String> export() throws IOException {

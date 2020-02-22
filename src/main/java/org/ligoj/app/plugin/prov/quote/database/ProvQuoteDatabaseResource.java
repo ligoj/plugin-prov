@@ -165,6 +165,7 @@ public class ProvQuoteDatabaseResource extends
 		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
+		final var physR = getPhysical(configuration, query.getPhysical());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -182,7 +183,8 @@ public class ProvQuoteDatabaseResource extends
 		final var editionR = normalize(query.getEdition());
 		final var engineR = normalize(query.getEngine());
 
-		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, procR);
+		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
+				procR);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price

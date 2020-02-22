@@ -8,17 +8,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Parameter;
 import org.ligoj.app.model.ParameterValue;
-import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
@@ -31,14 +27,11 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
@@ -51,28 +44,12 @@ import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
-import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link ProvResource}
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
-@Rollback
-@Transactional
-public class ProvResourceTest extends AbstractAppTest {
-
-	private static final double DELTA = 0.01d;
-
-	@Autowired
-	private ProvResource resource;
-
-	@Autowired
-	private ConfigurationResource configuration;
+public class ProvResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteRepository repository;
@@ -103,22 +80,15 @@ public class ProvResourceTest extends AbstractAppTest {
 	@Autowired
 	private ProvStorageTypeRepository stRepository;
 
-	private int subscription;
-
+	/**
+	 * Prepare test data.
+	 * 
+	 * @throws IOException When CSV cannot be read.
+	 */
 	@BeforeEach
-	void prepareData() throws IOException {
-		// Only with Spring context
-		persistSystemEntities();
-		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, Parameter.class, ParameterValue.class,
-						ProvLocation.class, ProvCurrency.class, ProvQuote.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
-						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		clearAllCache();
-		configuration.put(ProvResource.USE_PARALLEL, "0");
-		updateCost();
+	protected void prepareData() throws IOException {
+		super.prepareData();
+		persistEntities("csv", new Class[] { Parameter.class, ParameterValue.class }, StandardCharsets.UTF_8.name());
 	}
 
 	@Test
@@ -166,7 +136,7 @@ public class ProvResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	void getConfiguration() {
+	void getConfigurationTest() {
 		var vo = resource.getConfiguration(subscription);
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
@@ -183,14 +153,13 @@ public class ProvResourceTest extends AbstractAppTest {
 		Assertions.assertNotNull(vo.getLastModifiedBy());
 		Assertions.assertNotNull(vo.getLastModifiedDate());
 		Assertions.assertEquals("region-1", vo.getLocation().getName());
-		Assertions.assertEquals(3, vo.getLocations().size());
+		Assertions.assertEquals(2, vo.getLocations().size());
 		Assertions.assertEquals("region-1", vo.getLocations().get(0).getName());
 		Assertions.assertEquals("region-2", vo.getLocations().get(1).getName());
-		Assertions.assertEquals("region-4", vo.getLocations().get(2).getName());
 
 		// Processor
 		Assertions.assertEquals(2, vo.getProcessors().size());
-		Assertions.assertEquals(2, vo.getProcessors().get("instance").size());
+		Assertions.assertEquals(3, vo.getProcessors().get("instance").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("database").size());
 
 		// Check compute
@@ -357,19 +326,13 @@ public class ProvResourceTest extends AbstractAppTest {
 		checkCost(cost, 0, 0, false);
 	}
 
-	private QuoteLightVo checkCost(final int subscription, final double min, final double max, final boolean unbound) {
-		final var status = resource.getSubscriptionStatus(subscription);
+	protected QuoteLightVo checkCost(final int subscription, final double min, final double max,
+			final boolean unbound) {
+		final var status = super.checkCost(subscription, min, max, unbound);
 		final var quote = repository.findByNameExpected(status.getName());
 		Assertions.assertSame(unbound, quote.isUnboundCost());
 		Assertions.assertSame(quote, quote.getConfiguration());
-		checkCost(status.getCost(), min, max, unbound);
 		return status;
-	}
-
-	private void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
-		Assertions.assertEquals(min, cost.getMin(), DELTA);
-		Assertions.assertEquals(max, cost.getMax(), DELTA);
-		Assertions.assertEquals(unbound, cost.isUnbound());
 	}
 
 	/**
@@ -391,7 +354,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setLocation("region-1");
 		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
-		checkCost(cost, 5799.465, 9669.918, false);
+		checkCost(cost, 6328.565, 10199.018, false);
 		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 
@@ -503,23 +466,17 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setUsage("usage");
 		quote.setRamAdjustedRate(100);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		em.flush();
-		em.clear();
-		final var instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet2.getPrice().getCode());
 
 		quote.setRamAdjustedRate(50);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		em.flush();
-		em.clear();
-		final var instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setRamAdjustedRate(150);
 		checkCost(resource.update(subscription.getId(), quote), 702.72, 702.72, false);
-		em.flush();
-		em.clear();
-		final var instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
 		Assertions.assertEquals(150, resource.getConfiguration(subscription.getId()).getRamAdjustedRate());
 	}
@@ -545,9 +502,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setReservationMode(ReservationMode.RESERVED);
 		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 1405.44, 1405.44, false);
-		em.flush();
-		em.clear();
-		var quoteVo = resource.getConfiguration(subscription.getId());
+		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.RESERVED, quoteVo.getReservationMode());
 		final var instanceGet2 = quoteVo.getInstances().get(0);
 		Assertions.assertEquals("C48", instanceGet2.getPrice().getCode());
@@ -555,9 +510,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setRefresh(false);
 		quote.setReservationMode(ReservationMode.MAX);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		em.flush();
-		em.clear();
-		quoteVo = resource.getConfiguration(subscription.getId());
+		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
 		final var instanceGet3 = quoteVo.getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
@@ -579,7 +532,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
-		instanceGet.setProcessor("Intel");
+		instanceGet.setProcessor("Intel Xeon");
 		instanceGet.setOs(VmOs.LINUX);
 		em.flush();
 		em.clear();
@@ -592,9 +545,7 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setProcessor("AMD");
 		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
-		em.flush();
-		em.clear();
-		var quoteVo = resource.getConfiguration(subscription.getId());
+		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals("AMD", quoteVo.getProcessor());
 		final var instanceGet0 = quoteVo.getInstances().get(0);
 		Assertions.assertEquals("C65", instanceGet0.getPrice().getCode());
@@ -604,19 +555,54 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
 
-		em.flush();
-		em.clear();
-		var instanceGet1 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet1.setProcessor(null);
 		em.flush();
 		em.clear();
 		checkCost(resource.refresh(configuration), 249.343, 249.343, false);
-		em.flush();
-		em.clear();
-		var quoteVo2 = resource.getConfiguration(subscription.getId());
+		var quoteVo2 = getConfiguration(subscription.getId());
 		final var instanceGet2 = quoteVo2.getInstances().get(0);
 		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
 		Assertions.assertEquals("AMD EPYC 7571", instanceGet2.getPrice().getType().getProcessor());
+	}
+
+	/**
+	 * Update the physical host constraint.
+	 */
+	@Test
+	void updatePhysical() {
+		final var configuration = newProvQuote();
+		final var subscription = configuration.getSubscription();
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet.setPhysical(true);
+		instanceGet.setOs(VmOs.LINUX);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(configuration), 878.4, 878.4, false);
+
+		// Requires all quotes are "physical"
+		final var quote = new QuoteEditionVo();
+		quote.setName("new1");
+		quote.setLocation(configuration.getLocation().getName());
+		quote.setUsage("usage");
+		quote.setPhysical(true);
+		checkCost(resource.update(subscription.getId(), quote), 878.4, 878.4, false);
+		var quoteVo = getConfiguration(subscription.getId());
+		Assertions.assertTrue(quoteVo.getPhysical());
+		final var instanceGet0 = quoteVo.getInstances().get(0);
+		Assertions.assertEquals("C41", instanceGet0.getPrice().getCode());
+		Assertions.assertTrue(instanceGet0.getPrice().getType().getPhysical());
+
+		// Remove local requirement
+		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet1.setPhysical(null);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(configuration), 249.343, 249.343, false);
+		var quoteVo2 = getConfiguration(subscription.getId());
+		final var instanceGet2 = quoteVo2.getInstances().get(0);
+		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
+		Assertions.assertFalse(instanceGet2.getPrice().getType().getPhysical());
 	}
 
 	/**
@@ -633,23 +619,17 @@ public class ProvResourceTest extends AbstractAppTest {
 		quote.setLicense("BYOL");
 		quote.setUsage("usage");
 		checkCost(resource.update(subscription.getId(), quote), 102.49, 102.49, false);
-		em.flush();
-		em.clear();
-		final var instanceGet2 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C120", instanceGet2.getPrice().getCode());
 
 		quote.setLicense("INCLUDED");
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		em.flush();
-		em.clear();
-		final var instanceGet3 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setLicense(null);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		em.flush();
-		em.clear();
-		final var instanceGet4 = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet4.getPrice().getCode());
 	}
 
@@ -762,18 +742,6 @@ public class ProvResourceTest extends AbstractAppTest {
 
 		// Check the post-deletion
 		Assertions.assertEquals(0, repository.findAll().size());
-	}
-
-	private void updateCost() {
-
-		// Check the cost fully updated and exact actual cost
-		final var cost = resource.updateCost(subscription);
-		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
-		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);
-		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4704.758, 7154.358, false);
-		em.flush();
-		em.clear();
 	}
 
 	@Test

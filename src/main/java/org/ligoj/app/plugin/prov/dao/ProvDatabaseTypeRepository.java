@@ -22,6 +22,7 @@ public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeReposito
 	 * @param cpu       The minimum CPU.
 	 * @param ram       The minimum RAM in MB.
 	 * @param constant  The optional constant CPU behavior constraint.
+	 * @param physical  The optional physical (not virtual) instance type constraint.
 	 * @param type      The optional instance type identifier. May be <code>null</code>.
 	 * @param processor Optional processor requirement. A <code>LIKE</code> will be used.
 	 * @return The matching database instance types.
@@ -31,8 +32,10 @@ public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeReposito
 			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
 			+ "  AND (:type IS NULL OR id = :type)                       "
 			+ "  AND cpu != 0 AND cpu>= :cpu AND ram>=:ram               "
-			+ "  AND (:constant IS NULL OR constant = :constant)         " + "  AND (:processor IS NULL"
+			+ "  AND (:constant IS NULL OR constant = :constant)         "
+			+ "  AND (:physical IS NULL OR physical = :physical)         "
+			+ "  AND (:processor IS NULL                                 "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey int ram,
-			@CacheKey Boolean constant, @CacheKey Integer type, @CacheKey String processor);
+			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor);
 }

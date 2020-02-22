@@ -83,6 +83,11 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	private String processor;
 
 	/**
+	 * When <code>true</code>, this instance type is physical, not virtual.
+	 */
+	private Boolean physical;
+
+	/**
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull

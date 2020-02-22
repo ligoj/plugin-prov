@@ -88,7 +88,7 @@ public class ProvQuoteUploadResource {
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
-			"ram:memory", "constant", "os:(system|operating system)", "disk:size", "latency",
+			"ram:memory", "constant", "physical:metal", "os:(system|operating system)", "disk:size", "latency",
 			"optimized:(disk)?optimized", "type:instancetype", "internet", "minQuantity:min", "maxQuantity:max",
 			"maxVariableCost:maxcost", "ephemeral:preemptive", "location:region", "usage:(use|env|environment)",
 			"license", "software", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]max)",
@@ -421,6 +421,7 @@ public class ProvQuoteUploadResource {
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
 		vo.setConstant(upload.getConstant());
+		vo.setPhysical(upload.getPhysical());
 		vo.setUsage(Optional.ofNullable(upload.getUsage())
 				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
 		vo.setRam(

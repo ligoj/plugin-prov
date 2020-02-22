@@ -148,12 +148,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setCpu(vo.getCpu());
 		entity.setProcessor(vo.getProcessor());
 		entity.setConstant(vo.getConstant());
+		entity.setPhysical(vo.getPhysical());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
-		entity.setProcessor(vo.getProcessor());
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 
@@ -257,6 +257,17 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected String getProcessor(final ProvQuote configuration, final String processor) {
 		return ObjectUtils.defaultIfNull(processor, configuration.getProcessor());
+	}
+
+	/**
+	 * Return the resolved physical requirement.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param name          The local physical requirement
+	 * @return The resolved physical requirement. May be <code>null</code>.
+	 */
+	protected Boolean getPhysical(final ProvQuote configuration, final Boolean physical) {
+		return ObjectUtils.defaultIfNull(physical, configuration.getPhysical());
 	}
 
 	/**

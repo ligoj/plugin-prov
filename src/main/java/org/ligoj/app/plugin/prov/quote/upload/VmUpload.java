@@ -68,6 +68,12 @@ public class VmUpload {
 	 * Optional constant
 	 */
 	private Boolean constant;
+
+	/**
+	 * Optional physical instance type constraint. When <code>true</code>, this instance type is physical, not virtual.
+	 */
+	private Boolean physical;
+
 	private VmOs os;
 
 	/**

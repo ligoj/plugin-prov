@@ -267,6 +267,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
+		vo.setPhysical(quote.getPhysical());
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(subscription.getId()));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
@@ -331,6 +332,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
 		var oldReservationMode = ObjectUtils.defaultIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
+		var oldPhysical = entity.getPhysical();
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
@@ -338,11 +340,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
 		entity.setReservationMode(vo.getReservationMode());
 		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
+		entity.setPhysical(vo.getPhysical());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !oldRamAdjusted.equals(entity.getRamAdjustedRate())
 				|| !oldReservationMode.equals(entity.getReservationMode())
 				|| !Objects.equals(oldLicense, entity.getLicense())
-				|| !Objects.equals(oldProcessor, entity.getProcessor())) {
+				|| !Objects.equals(oldProcessor, entity.getProcessor())
+				|| !Objects.equals(oldPhysical, entity.getPhysical())) {
 			return refresh(entity);
 		}
 

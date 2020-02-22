@@ -152,8 +152,42 @@ define(function () {
 	/**
 	 * Format the constant CPU.
 	 */
-	function formatConstant(constant) {
-		return current.$messages[constant === true ? 'service:prov:cpu-constant' : 'service:prov:cpu-variable'];
+	function format3States(property, value) {
+		return current.$messages['service:prov:' + property + '-' + (typeof value === 'boolean' ? value : 'null')];
+	}
+
+	/**
+	 * Return the constant CPU query parameter value to use to filter some other inputs.
+	 */
+	function toQueryValue3States($element) {
+		let value = ($element.is('li.active') ? $element : $element.find('li.active')).data('value');
+		return (value === 'true' || value === true) ? true : ((value === 'false' || value === false) ? false : null);
+	}
+
+	/**
+	 * Update the button text corresponding to the selected value in the dropdown list.
+	 */
+	function synchronizeDropdownText() {
+		var $select = $(this).closest('.input-group-btn');
+		$select.find('li.active').removeClass('active');
+		var $active = $(this).addClass('active').find('a');
+		$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
+	}
+
+	/**
+	 * Register a 3 states component.
+	 * @param {jquery} $element UI component.
+	 * @param {booelan} value  TRUE, FALSE or NULL value.
+	 */
+	function update3States($element, value) {
+		$element.find('li.active').removeClass('active');
+		if (value === true) {
+			$element.find(`li[data-value="true"]`).addClass('active').each(synchronizeDropdownText);
+		} else if (value === false) {
+			$element.find(`li[data-value="false"]`).addClass('active').each(synchronizeDropdownText);
+		} else {
+			$element.find('li:first-child').addClass('active').each(synchronizeDropdownText);
+		}
 	}
 
 	function formatDatabaseEngine(engine, mode, clazz) {
@@ -259,7 +293,10 @@ define(function () {
 		details += type.cpuRate ? '<i class=\'' + rates[type.cpuRate] + '\'></i> ' : '';
 		if (type.cpu) {
 			details += '#' + type.cpu;
-			details += ' ' + formatConstant(type.constant);
+			details += ' ' + format3States('constant', type.constant);
+			if (typeof type.physical === "boolean") {
+				details += ' (' + format3States('physical', type.physical) + ')';
+			}
 		} else {
 			details += current.$messages['service:prov:instance-custom'];
 		}
@@ -840,14 +877,13 @@ define(function () {
 		return parseInt(_('instance-ram-unit').find('li.active').data('value'), 10);
 	}
 
-	function synchronizeDropdownText() {
-		var $select = $(this).closest('.input-group-btn');
-		$select.find('li.active').removeClass('active');
-		var $active = $(this).addClass('active').find('a');
-		$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
-	}
-
 	function initializePopupInnerEvents() {
+		// Memory unit, physical, CPU constant/variable selection
+		$('#popup-prov-generic').on('click', '.input-group-btn li', function (e) {
+			$.proxy(synchronizeDropdownText, $(this))();
+			// Also trigger the change of the value
+			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
+		});
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 		$('input.resource-query[type="number"]').on('keyup', delay(function (event) {
@@ -1014,13 +1050,6 @@ define(function () {
 				id: 'WORST',
 				text: 'WORST'
 			}]
-		});
-
-		// Memory unit, CPU constant/variable selection
-		_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
-			$.proxy(synchronizeDropdownText, $(this))();
-			// Also trigger the change of the value
-			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
@@ -1317,6 +1346,7 @@ define(function () {
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
+			update3States(_('quote-physical'), conf.physical);
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
 			require(['jquery-ui'], function () {
@@ -1621,13 +1651,6 @@ define(function () {
 		 */
 		toQueryValueRam: function (value) {
 			return (cleanInt(value) || 0) * getRamUnitWeight();
-		},
-
-		/**
-		 * Return the constant CPU query parameter value to use to filter some other inputs.
-		 */
-		toQueryValueConstant: function (value) {
-			return value === 'constant' ? true : (value === 'variable' ? false : null);
 		},
 
 		addQuery(type, $item, queries) {
@@ -2027,6 +2050,13 @@ define(function () {
 				}, { name: 'processor', ui: 'quote-processor', previous: event.removed }, true);
 			});
 
+			_('quote-physical').on('click', 'li', function (e) {
+				$.proxy(synchronizeDropdownText, $(this))();
+				current.updateQuote({
+					physical: toQueryValue3States($(this))
+				}, { name: 'physical', ui: 'quote-physical', previous: current.model.configuration.physical }, true);
+			});
+
 			require(['jquery-ui'], function () {
 				var handle = $('#quote-ram-adjust-handle');
 				$('#quote-ram-adjust').slider({
@@ -2040,9 +2070,11 @@ define(function () {
 					},
 					slide: (_, ui) => handle.text(ui.value + '%'),
 					change: function (event, slider) {
-						current.updateQuote({
-							ramAdjustedRate: slider.value
-						}, { name: 'ramAdjustedRate', ui: 'quote-ram-adjust', previous: current.model.configuration.ramAdjustedRate }, true);
+						if (event.currentTarget && slider.value !== current.model.configuration.ramAdjustedRate) {
+							current.updateQuote({
+								ramAdjustedRate: slider.value
+							}, { name: 'ramAdjustedRate', ui: 'quote-ram-adjust', previous: current.model.configuration.ramAdjustedRate }, true);
+						}
 					}
 				});
 			});
@@ -2324,6 +2356,7 @@ define(function () {
 				location: conf.location,
 				license: conf.license,
 				processor: conf.processor,
+				physical: conf.physical,
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage
@@ -2352,6 +2385,7 @@ define(function () {
 				&& (conf.usage && conf.usage.name) === jsonData.usage
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
+				&& conf.physical === jsonData.physical
 				&& conf.reservationMode === jsonData.reservationMode
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
@@ -2379,6 +2413,7 @@ define(function () {
 					conf.usage = data.usage || conf.usage;
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
+					conf.physical = jsonData.physical;
 					conf.reservationMode = jsonData.reservationMode;
 					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 
@@ -2394,7 +2429,6 @@ define(function () {
 					}
 				},
 				error: function () {
-					// Restore the old UI property value
 					if (context) {
 						var eMsg = current.$messages['service:prov:' + context.name + '-failed'];
 						var value = data[context.name].name || data[context.name].text || data[context.name].id || data[context.name];
@@ -2404,12 +2438,17 @@ define(function () {
 							// Unmanaged UI error
 							notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:default-failed'])({ name: context.name, value: value }));
 						}
-						if (_(context.ui).prev('.select2-container').length) {
+						// Restore the old UI property value
+						let $ui = _(context.ui);
+						if ($ui.prev('.select2-container').length) {
 							// Select2 input
-							_(context.ui).select2('data', context.previous);
+							$ui.select2('data', context.previous);
+						} else if ($ui.is('.input-group-btn')) {
+							// Three state input
+							update3States($ui, context.previous);
 						} else {
 							// Simple input
-							_(context.ui).val(context.previous);
+							$ui.val(context.previous);
 						}
 					}
 					current.enableCreate($popup);
@@ -2545,6 +2584,7 @@ define(function () {
 			model.minQuantity = parseInt(data.minQuantity, 10);
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
+			model.physical = data.physical;
 		},
 
 		instanceCommitToModel: function (data, model) {
@@ -2596,7 +2636,8 @@ define(function () {
 			data.minQuantity = cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = cleanInt(_('instance-max-quantity').val()) || null;
 			data.license = _('instance-license').val().toLowerCase() || null;
-			data.constant = current.toQueryValueConstant(_('instance-constant').find('li.active').data('value'));
+			data.constant = toQueryValue3States(_('instance-constant'));
+			data.physical = toQueryValue3States(_('instance-physical'));
 			data.price = _('instance-price').select2('data').price.id;
 		},
 
@@ -2651,14 +2692,8 @@ define(function () {
 			} : null);
 
 			// Update the CPU constraint
-			_('instance-constant').find('li.active').removeClass('active');
-			if (quote.constant === true) {
-				_('instance-constant').find('li[data-value="constant"]').addClass('active').each(synchronizeDropdownText);
-			} else if (quote.constant === false) {
-				_('instance-constant').find('li[data-value="variable"]').addClass('active').each(synchronizeDropdownText);
-			} else {
-				_('instance-constant').find('li:first-child').addClass('active').each(synchronizeDropdownText);
-			}
+			update3States(_('instance-constant'), quote.constant);
+			update3States(_('instance-physical'), quote.physical);
 		},
 
 		/**

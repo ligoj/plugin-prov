@@ -49,6 +49,11 @@ public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integ
 	private String processor;
 
 	/**
+	 * When <code>true</code>, this instance type is physical, not virtual.
+	 */
+	private Boolean physical = false;
+
+	/**
 	 * CPU performance.
 	 */
 	@NotNull

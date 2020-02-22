@@ -165,6 +165,7 @@ public class ProvQuoteInstanceResource extends
 		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
+		final var physR = getPhysical(configuration, query.getPhysical());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -182,7 +183,8 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
 
-		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), typeId, procR);
+		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
+				procR);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
@@ -190,7 +192,7 @@ public class ProvQuoteInstanceResource extends
 					softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
 		}
 
-		final var dTypes = itRepository.findDynamicTypes(node, query.getConstant(), typeId, procR);
+		final var dTypes = itRepository.findDynamicTypes(node, query.getConstant(), query.getPhysical(), typeId, procR);
 		if (!dTypes.isEmpty()) {
 			// Get the best dynamic instance price
 			var dlookup = ipRepository.findLowestDynamicPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,

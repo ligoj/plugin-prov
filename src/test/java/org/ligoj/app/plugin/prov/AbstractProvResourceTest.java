@@ -81,6 +81,33 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		updateCost();
 	}
 
+	
+	/**
+	 * Flush the current JPA context and return the configuration of current subscription.
+	 * 
+	 * @return The configuration of current subscription.
+	 */
+	protected QuoteVo getConfiguration() {
+		return getConfiguration(subscription);
+	}
+
+	/**
+	 * Flush the current JPA context and return the configuration of given subscription.
+	 * 
+	 * @param subscription The subscription to get.
+	 * @return The configuration of given subscription.
+	 */
+	protected QuoteVo getConfiguration(final int subscription) {
+		em.flush();
+		em.clear();
+		return resource.getConfiguration(subscription);
+	}
+
+	/**
+	 * Add two basic tags to the given object.
+	 * 
+	 * @param vo The object to complete with the new tags.
+	 */
 	protected void newTags(final QuoteTagSupport vo) {
 		List<TagVo> tags = new ArrayList<>();
 		final var tag1 = new TagVo();
@@ -93,6 +120,11 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		vo.setTags(tags);
 	}
 
+	/**
+	 * Check the basics tags are associated to the given resource.
+	 * 
+	 * @param resource The resource to test.
+	 */
 	protected void assertTags(final AbstractQuoteResource<?> resource) {
 		Assertions.assertTrue(tagRepository
 				.findAllBy("configuration.id", resource.getConfiguration().getId(), new String[] { "resource", "type" },

@@ -159,8 +159,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupProcessor() {
-		final var build = builder().processor("Intel").build();
-		build.setProcessor("Intel"); // Coverage only
+		final var build = builder().processor("Intel Xeon").build();
+		build.setProcessor("Intel Xeon"); // Coverage only
 		final var lookup = qiResource.lookup(subscription, build);
 
 		// Check the instance result
@@ -168,6 +168,22 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance11", pi.getType().getName());
 		Assertions.assertEquals("C61", pi.getCode());
 		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", pi.getType().getProcessor());
+	}
+
+	/**
+	 * Basic case, almost no requirements but physical/metal.
+	 */
+	@Test
+	void lookupPhysical() {
+		final var build = builder().physical(true).build();
+		build.setPhysical(true); // Coverage only
+		final var lookup = qiResource.lookup(subscription, build);
+
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("instance7", pi.getType().getName());
+		Assertions.assertEquals("C37", pi.getCode());
+		Assertions.assertTrue(pi.getType().getPhysical());
 	}
 
 	/**
@@ -787,6 +803,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setCpu(0.5);
 		vo.setCpuMax(0.5);
 		vo.setConstant(true);
+		vo.setPhysical(false);
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setMaxVariableCost(210.9);
 		vo.setEphemeral(true);

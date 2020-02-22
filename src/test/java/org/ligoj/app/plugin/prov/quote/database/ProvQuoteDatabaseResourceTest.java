@@ -92,7 +92,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void getConfiguration() {
+	void getConfigurationTest() {
 		final var databases = resource.getConfiguration(subscription).getDatabases();
 		Assertions.assertEquals(7, databases.size());
 	}

@@ -48,7 +48,20 @@
 									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
 								</span></label>
 							<div class="col-xs-10">
-								<input type="text" id="quote-processor" class="form-control" />
+								<div class="input-group">
+									<input type="text" id="quote-processor" class="form-control" />
+									<div class="input-group-btn" id="quote-physical">
+										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span><i class="fas fa-ellipsis-h"></i></span>
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu">
+											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:physical-null}}</a></li>
+											<li data-value="false"><a><i class="fas fa-grip-horizontal fa-fw"></i> {{service:prov:physical-false}}</a></li>
+											<li data-value="true"><a><i class="fas fa-grip-lines fa-fw"></i> {{service:prov:physical-true}}</a></li>
+										</ul>
+									</div>
+								</div>
 							</div>
 						</div>
 						<div class="form-group">

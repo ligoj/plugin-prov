@@ -73,6 +73,12 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("processor")
 	private String processor;
 
+	/**
+	 * When <code>true</code>, this instance type is physical, not virtual.
+	 */
+	@QueryParam("physical")
+	private Boolean physical;
+
 	@Override
 	public String getLocationName() {
 		return getLocation();

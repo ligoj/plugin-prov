@@ -305,9 +305,9 @@
 											<span class="caret"></span>
 										</button>
 										<ul class="dropdown-menu">
-											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:cpu-any}}</a></li>
-											<li data-value="variable"><a><i class="fas fa-bolt fa-fw"></i> {{service:prov:cpu-variable}}</a></li>
-											<li data-value="constant"><a><i class="fas fa-minus fa-fw"></i> {{service:prov:cpu-constant}}</a></li>
+											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:constant-null}}</a></li>
+											<li data-value="false"><a><i class="fas fa-wave fa-fw"></i> {{service:prov:constant-false}}</a></li>
+											<li data-value="true"><a><i class="fas fa-minus fa-fw"></i> {{service:prov:constant-true}}</a></li>
 										</ul>
 									</div>
 								</div>
@@ -336,7 +336,20 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-processor">{{service:prov:processor}}</label>
 							<div class="col-sm-9">
-								<input type="text" id="instance-processor" class="resource-query form-control" />
+								<div class="input-group">
+									<input type="text" id="instance-processor" class="resource-query form-control" />
+									<div class="input-group-btn resource-query" id="instance-physical">
+										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span><i class="fas fa-ellipsis-h"></i></span>
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu">
+											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:physical-null}}</a></li>
+											<li data-value="false"><a><i class="fas fa-grip-horizontal fa-fw"></i> {{service:prov:physical-false}}</a></li>
+											<li data-value="true"><a><i class="fas fa-grip-lines fa-fw"></i> {{service:prov:physical-true}}</a></li>
+										</ul>
+									</div>
+								</div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:processor-help}}"></i></span>
 							</div>
 						</div>
@@ -577,13 +590,13 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags;processor
+									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags;processor;physical
 								</code>
 								<br /><code><strong>name</strong> Unique name within the quote</code>
 								<br /><code><strong>description</strong> Optional description of the resource</code>
 								<br /><code><strong>cpu</strong> Minimum CPU, decimal</code>
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
-								<br /><code><strong>constant</strong> [true,(false)] for CPU behavior</code>
+								<br /><code><strong>constant</strong> [(null),true,false] for CPU behavior</code>
 								<br /><code><strong>os</strong> [(LINUX),WINDOWS,RHEL,SUSE,CENTOS,DEBIAN]</code>
 								<br /><code><strong>disk</strong> Optional disk size, in Gibi Byte (GiB)</code>
 								<br /><code><strong>latency</strong> [WORST, LOW, MEDIUM, GOOD, BEST], default is GOOD</code>
@@ -598,6 +611,7 @@
 								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay</code>
 								<br /><code><strong>tags</strong> Tags key:value, with ',', ' ' as separator. Tag value is optional</code>
 								<br /><code><strong>processor</strong> Processor: Intel Xeon, AMD,... 'startsWith' is used for the match</code>
+								<br /><code><strong>physical</strong> [(null),true,false] for physical/virtual</code>
 								<br />{{instance-import-sample}}
 								<br /><code>name;cpu;ram;os;disk;latency;optimized;constant;instance;usage</code>
 								<br /><code>mysql;1.5:2048;RHEL;20;GOOD;IOPS;true</code>

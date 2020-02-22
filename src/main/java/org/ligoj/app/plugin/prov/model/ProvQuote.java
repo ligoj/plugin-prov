@@ -180,9 +180,15 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private ProvCurrency currency;
 
 	/**
-	 * Optional physical processor. May be <code>null</code>.
+	 * Optional processor. May be <code>null</code>.
 	 */
 	private String processor;
+
+	/**
+	 * Optional physical host requirement. May be <code>null</code>. When <code>true</code>, this instance type is
+	 * physical, not virtual.
+	 */
+	private Boolean physical;
 
 	@Override
 	@JsonIgnore

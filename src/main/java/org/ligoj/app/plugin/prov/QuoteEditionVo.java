@@ -66,6 +66,12 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private String processor;
 
 	/**
+	 * Optional physical host requirement. May be <code>null</code>. When <code>true</code>, this instance type is
+	 * physical, not virtual.
+	 */
+	private Boolean physical;
+
+	/**
 	 * When <code>true</code>, the cost is always refreshed, otherwise, only when at least one pricing dependency is
 	 * updated.
 	 */

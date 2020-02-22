@@ -193,14 +193,17 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 				.filter(q -> q.getName().equals("database4")).findFirst().get().getEdition());
 		em.clear();
 
-		qiuResource.upload(subscription, IOUtils.toInputStream("database4;0.5;1000;oracle;standard two", "UTF-8"),
+		qiuResource.upload(subscription,
+				IOUtils.toInputStream("database4;0.5;1000;oracle;standard two\ndatabaseNEW;0.4;800;mysql;", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "engine", "edition" }, false, "Full Time 12 month",
 				MergeMode.UPDATE, 1, "UTF-8");
 		var configuration = getConfiguration();
-		checkCost(configuration.getCost(), 4815.558, 7265.158, false);
+		checkCost(configuration.getCost(), 4905.058, 7354.658, false);
 		configuration = getConfiguration();
 		Assertions.assertEquals(7, configuration.getInstances().size());
-		Assertions.assertEquals(7, configuration.getDatabases().size());
+		Assertions.assertEquals(8, configuration.getDatabases().size());
+
+		// Updated database
 		final var qb = configuration.getDatabases().stream().filter(q -> q.getName().equals("database4")).findFirst()
 				.get();
 		Assertions.assertEquals("database1", qb.getPrice().getType().getName());
@@ -208,6 +211,14 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals(1000, qb.getRam());
 		Assertions.assertEquals("ORACLE", qb.getEngine());
 		Assertions.assertEquals("STANDARD TWO", qb.getEdition());
+
+		// New database
+		final var qb2 = configuration.getDatabases().stream().filter(q -> q.getName().equals("databaseNEW"))
+				.findFirst().get();
+		Assertions.assertEquals("database1", qb2.getPrice().getType().getName());
+		Assertions.assertEquals(0.4, qb2.getCpu());
+		Assertions.assertEquals(800, qb2.getRam());
+		Assertions.assertEquals("MYSQL", qb2.getEngine());
 	}
 
 	@Test
@@ -229,12 +240,6 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		final var storagesFloatingCost = toStoragesFloatingCost("ANY");
 		Assertions.assertEquals(1, storagesFloatingCost.size());
 		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 210, false);
-	}
-
-	private QuoteVo getConfiguration() {
-		em.flush();
-		em.clear();
-		return resource.getConfiguration(subscription);
 	}
 
 	@Test
@@ -315,12 +320,12 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	void uploadProcessor() throws IOException {
-		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;Intel", "UTF-8"),
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;Intel Xeon", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "processor" }, false, null, 1, "UTF-8");
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance11", configuration.getInstances().get(7).getPrice().getType().getName());
-		Assertions.assertEquals("Intel", configuration.getInstances().get(7).getProcessor());
+		Assertions.assertEquals("Intel Xeon", configuration.getInstances().get(7).getProcessor());
 		checkCost(configuration.getCost(), 9389.558, 11839.158, false);
 	}
 

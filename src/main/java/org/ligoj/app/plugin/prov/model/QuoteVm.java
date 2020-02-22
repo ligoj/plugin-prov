@@ -54,6 +54,14 @@ public interface QuoteVm {
 	String getProcessor();
 
 	/**
+	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual.
+	 * Return Optional physical processor.
+	 *
+	 * @return Optional physical processor.
+	 */
+	 Boolean getPhysical();
+
+	/**
 	 * Return optional instance type name. May be <code>null</code>.
 	 *
 	 * @return Optional instance type name. May be <code>null</code>.

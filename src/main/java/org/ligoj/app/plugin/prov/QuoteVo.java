@@ -125,6 +125,12 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private String processor;
 
 	/**
+	 * Optional physical host requirement. May be <code>null</code>. When <code>true</code>, this instance type is
+	 * physical, not virtual.
+	 */
+	private Boolean physical;
+
+	/**
 	 * Optional currency. When <code>null</code>, the currency is <code>USD</code> with <code>1</code> rate.
 	 */
 	private ProvCurrency currency;
