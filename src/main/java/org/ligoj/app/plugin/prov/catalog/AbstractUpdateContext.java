@@ -68,6 +68,12 @@ public abstract class AbstractUpdateContext {
 	private Map<String, ProvInstancePriceTerm> priceTerms;
 
 	/**
+	 * The already merge instance terms.
+	 */
+	@Getter
+	private Set<String> priceTermsMerged =  ConcurrentHashMap.newKeySet();
+
+	/**
 	 * The previous installed EC2 prices.
 	 */
 	@Getter

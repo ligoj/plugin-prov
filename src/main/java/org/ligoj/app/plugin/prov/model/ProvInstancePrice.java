@@ -40,16 +40,6 @@ public class ProvInstancePrice extends AbstractTermPrice<ProvInstanceType> {
 	public static final String LICENSE_BYOL = "BYOL";
 
 	/**
-	 * The optional monthly cost of one requested CPU. May be <code>null</code>.
-	 */
-	private Double costCpu;
-
-	/**
-	 * The optional monthly cost of one requested GB memory. May be <code>null</code>.
-	 */
-	private Double costRam;
-
-	/**
 	 * The optional tenancy of the related instance. By default, the tenancy is {@link ProvTenancy#SHARED}
 	 */
 	@Enumerated(EnumType.STRING)

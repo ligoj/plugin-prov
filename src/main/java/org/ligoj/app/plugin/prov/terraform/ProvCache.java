@@ -37,17 +37,24 @@ public class ProvCache implements CacheManagerAware {
 		cacheManager.createCache("prov-software", provider.apply("prov-software"));
 		cacheManager.createCache("prov-processor", provider.apply("prov-processor"));
 
-		final var cfgPIT = provider.apply("prov-instance-type")
-				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
-						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
-		cacheManager.createCache("prov-instance-type", cfgPIT);
-		cacheManager.createCache("prov-instance-type-dyn", provider.apply("prov-instance-type-dyn"));
+		newCacheConfig(cacheManager, provider, "prov-instance-type");
+		newCacheConfig(cacheManager, provider, "prov-instance-type-dyn");
+		newCacheConfig(cacheManager, provider, "prov-instance-type-has-dyn");
+		newCacheConfig(cacheManager, provider, "prov-database-type");
+		newCacheConfig(cacheManager, provider, "prov-database-type-dyn");
+		newCacheConfig(cacheManager, provider, "prov-database-type-has-dyn");
+		newCacheConfig(cacheManager, provider, "prov-instance-term");
 
-		// Database caches
-		cacheManager.createCache("prov-database-type", cfgPIT);
 		cacheManager.createCache("prov-database-engine", provider.apply("prov-database-engine"));
 		cacheManager.createCache("prov-database-edition", provider.apply("prov-database-edition"));
 		cacheManager.createCache("prov-database-license", provider.apply("prov-database-license"));
 	}
 
+	private void newCacheConfig(final HazelcastCacheManager cacheManager,
+			final Function<String, CacheConfig<?, ?>> provider, final String name) {
+		final var cfgPIT = provider.apply(name)
+				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
+						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
+		cacheManager.createCache(name, cfgPIT);
+	}
 }

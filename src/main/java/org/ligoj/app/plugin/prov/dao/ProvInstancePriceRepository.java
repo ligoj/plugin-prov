@@ -47,7 +47,8 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types     The required instance type identifiers.
+	 * @param types     The valid instance type identifiers.
+	 * @param terms     The valid instance terms identifiers.
 	 * @param cpu       The minimum CPU.
 	 * @param ram       The minimum RAM in MB.
 	 * @param os        The requested OS.
@@ -60,24 +61,27 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param software  Optional software notice. When not <code>null</code> a software constraint is added. WHen
 	 *                  <code>null</code>, installed software is also accepted.
 	 * @param pageable  The page control to return few item.
-	 * @return The minimum instance price or <code>null</code>.
+	 * @return The minimum instance price or empty result.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate * :duration) AS totalCost,"
 			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate)  AS monthlyCost                     "
 			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
-			+ "  WHERE (i.id IN :types) AND (:os IS NULL OR ip.os=:os)"
+			+ "  WHERE (i.id IN :types) AND (ip.term.id IN :terms)   "
+			+ "  AND (:os IS NULL OR ip.os=:os)                      "
 			+ "  AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ "  AND (:software IS NULL OR :software = ip.software)  "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND (:software IS NULL OR :software = ip.software)   "
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestDynamicPrice(List<Integer> types, double cpu, double ram, VmOs os, boolean ephemeral,
-			int location, double rate, double duration, String license, String software, Pageable pageable);
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
+			boolean ephemeral, int location, double rate, double duration, String license, String software,
+			Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types     The required instance type identifiers.
+	 * @param types     The valid instance type identifiers.
+	 * @param terms     The valid instance terms identifiers.
 	 * @param os        The requested OS.
 	 * @param ephemeral When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only non
 	 *                  ephemeral instance are accepted.
@@ -88,7 +92,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param software  Optional software notice. When not <code>null</code> a software constraint is added. WHen
 	 *                  <code>null</code>, installed software is also accepted.
 	 * @param pageable  The page control to return few item.
-	 * @return The minimum instance price or <code>null</code>.
+	 * @return The minimum instance price or empty result.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " CASE                                                 "
@@ -98,11 +102,12 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  WHEN t.period = 0 THEN (ip.cost * :rate)            "
 			+ "  ELSE ip.cost END AS monthlyCost                     "
 			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
-			+ "  WHERE (ip.type.id IN :types) AND (:os IS NULL OR ip.os=:os)"
+			+ "  WHERE (ip.type.id IN :types) AND (ip.term.id IN :terms)"
+			+ "  AND (:os IS NULL OR ip.os=:os)                      "
 			+ "  AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ "  AND (:software IS NULL OR :software = ip.software)  "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND (:software IS NULL OR :software = ip.software)   "
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestPrice(List<Integer> types, VmOs os, boolean ephemeral, int location, double rate,
-			double duration, String license, String software, Pageable pageable);
+	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, boolean ephemeral, int location,
+			double rate, double duration, String license, String software, Pageable pageable);
 }

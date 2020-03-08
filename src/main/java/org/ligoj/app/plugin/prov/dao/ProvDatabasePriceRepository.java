@@ -55,6 +55,36 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	List<String> findAllEngines(@CacheKey String node);
 
 	/**
+	 * Return the lowest database price configuration from the minimal requirements.
+	 *
+	 * @param types    The valid instance type identifiers.
+	 * @param terms    The valid instance terms identifiers.
+	 * @param cpu      The minimum CPU.
+	 * @param ram      The minimum RAM in MB.
+	 * @param engine   Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 *                 <code>null</code>, installed software is also accepted.
+	 * @param edition  Optional database edition.
+	 * @param location The requested location identifier.
+	 * @param rate     Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration The duration in month. Minimum is 1.
+	 * @param license  Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param pageable The page control to return few item.
+	 * @return The minimum database price or empty result.
+	 */
+	@Query("SELECT ip,                                               "
+			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate * :duration) AS totalCost,"
+			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate)  AS monthlyCost                     "
+			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
+			+ "  WHERE (i.id IN :types) AND (ip.term.id IN :terms)   "
+			+ "  AND :engine = ip.engine                             "
+			+ "  AND (:edition IS NULL OR ip.edition=:edition)       "
+			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
+			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
+			String engine, String edition, int location, double rate, double duration, String license,
+			Pageable pageable);
+
+	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.
 	 *
 	 * @param types    The required instance type identifiers.
@@ -66,7 +96,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 *                 <code>null</code>, installed software is also accepted.
 	 * @param edition  Optional database edition.
 	 * @param pageable The page control to return few item.
-	 * @return The minimum instance price or <code>null</code>.
+	 * @return The minimum instance price or empty result.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " CASE                                                 "
@@ -77,9 +107,10 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  ELSE ip.cost END AS monthlyCost                     "
 			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
 			+ "  WHERE (ip.type.id IN :types)                        "
+			+ "  AND :engine = ip.engine                             "
 			+ "  AND (:edition IS NULL OR ip.edition=:edition)       "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND :engine = ip.engine  AND ip.location.id = :location ORDER BY totalCost ASC")
+			+ "  AND ip.location.id = :location ORDER BY totalCost ASC")
 	List<Object[]> findLowestPrice(List<Integer> types, int location, double rate, double duration, String license,
 			String engine, String edition, Pageable pageable);
 

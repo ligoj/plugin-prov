@@ -22,6 +22,7 @@ import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -73,6 +74,9 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvDatabasePriceRepository bpRepository;
+
+	@Autowired
+	private ProvDatabaseTypeRepository btRepository;
 
 	@Override
 	@BeforeEach
@@ -135,6 +139,46 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(lookup.toString().contains("engine=MYSQL, edition=null"));
 		new ProvQuoteDatabase().setStorages(null);
 		Assertions.assertNotNull(qbResource.getItRepository());
+	}
+
+	/**
+	 * Lookup for a only dynamic price.
+	 */
+	@Test
+	void lookupDynamical() {
+		final var lookup = qbResource.lookup(subscription,
+				builder().usage("Full Time 12 month").engine("MYSQL").cpu(100).ram(2048).build());
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("databaseD0", pi.getType().getName());
+		Assertions.assertEquals(0, pi.getType().getCpu().intValue());
+		Assertions.assertEquals(0, pi.getType().getRam().intValue());
+		Assertions.assertEquals("MYSQL0", pi.getCode());
+		Assertions.assertEquals(0d, pi.getCost(), DELTA);
+		Assertions.assertEquals(0d, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals("MYSQL", pi.getEngine());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(100200.0, lookup.getCost(), DELTA);
+	}
+
+	/**
+	 * Lookup for a only dynamic price but deleted.
+	 */
+	@Test
+	void lookupNoMatchDynamical() {
+		bpRepository.deleteAllBy("code", "MYSQL0");
+		btRepository.deleteAllBy("name", "databaseD0");
+		Assertions.assertNull(qbResource.lookup(subscription, builder().engine("MYSQL").cpu(100).build()));
+	}
+
+	/**
+	 * Remove the dynamic type from the catalog.
+	 */
+	@Test
+	void lookupNoDynamical() {
+		btRepository.deleteAllBy("name", "");
+		lookup();
 	}
 
 	/**
@@ -240,7 +284,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatch() {
-		Assertions.assertNull(qbResource.lookup(subscription, builder().cpu(999).engine("MYSQL").build()));
+		Assertions.assertNull(qbResource.lookup(subscription, builder().cpu(999).engine("ORACLE").build()));
 	}
 
 	/**
@@ -630,7 +674,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findAllTypes() {
 		final var tableItem = qbResource.findAllTypes(subscription, newUriInfo());
-		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("database1", tableItem.getData().get(0).getName());
 	}
 

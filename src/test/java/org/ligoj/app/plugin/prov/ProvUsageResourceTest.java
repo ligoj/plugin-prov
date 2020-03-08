@@ -116,8 +116,9 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(11, resource.getConfiguration(subscription).getUsages().size());
 		final var usage = new UsageEditionVo();
 		usage.setName("DevV2");
-		usage.setRate(75);
-		usage.setStart(6);
+		usage.setRate(75).setStart(6);
+		usage.setConvertibleEngine(true).setConvertibleOs(true).setConvertibleLocation(true).setConvertibleFamily(true)
+				.setConvertibleType(true).setReservation(true);
 		final var id = uResource.create(subscription, usage);
 		em.flush();
 		em.clear();
@@ -133,6 +134,14 @@ public class ProvUsageResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(6, entity.getStart().intValue());
 		Assertions.assertEquals(12, resource.getConfiguration(subscription).getUsages().size());
 		Assertions.assertEquals(12, entity.getConfiguration().getUsages().size());
+
+		Assertions.assertTrue(entity.getConvertibleEngine());
+		Assertions.assertTrue(entity.getConvertibleOs());
+		Assertions.assertTrue(entity.getConvertibleLocation());
+		Assertions.assertTrue(entity.getConvertibleFamily());
+		Assertions.assertTrue(entity.getConvertibleType());
+		Assertions.assertTrue(entity.getReservation());
+
 		entity.getConfiguration().setUsages(Collections.emptyList());
 	}
 

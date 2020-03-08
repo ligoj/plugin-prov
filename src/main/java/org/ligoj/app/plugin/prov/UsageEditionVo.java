@@ -12,12 +12,14 @@ import org.ligoj.bootstrap.core.NamedBean;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * Usage definition inside a quote.
  */
 @Getter
 @Setter
+@Accessors(chain = true)
 public class UsageEditionVo extends NamedBean<Integer> {
 
 	/**
@@ -46,5 +48,38 @@ public class UsageEditionVo extends NamedBean<Integer> {
 	 */
 	@PositiveOrZero
 	private int start = 0;
+
+	/**
+	 * When <code>true</code>, the resolved OS may be changed during the commitment, otherwise is <code>false</code>.
+	 */
+	private Boolean convertibleOs;
+
+	/**
+	 * When <code>true</code>, the resolved engine may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleEngine;
+
+	/**
+	 * When <code>true</code>, the resolved location may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleLocation;
+
+	/**
+	 * When <code>true</code>, the resolved family may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleFamily;
+
+	/**
+	 * When <code>true</code>, the resolved type may be changed during the commitment, otherwise is <code>false</code>.
+	 */
+	private Boolean convertibleType;
+
+	/**
+	 * When <code>true</code>, a reservation is required, otherwise is <code>false</code>.
+	 */
+	private Boolean reservation;
 
 }

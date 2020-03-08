@@ -593,15 +593,20 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("C41", instanceGet0.getPrice().getCode());
 		Assertions.assertTrue(instanceGet0.getPrice().getType().getPhysical());
 
-		// Remove local requirement
+		// Remove local requirement -> no change because of global requirement
 		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet1.setPhysical(null);
 		em.flush();
 		em.clear();
-		checkCost(resource.refresh(configuration), 249.343, 249.343, false);
+		checkCost(resource.refresh(configuration), 878.4, 878.4, false);
+		checkCost(resource.update(subscription.getId(), quote), 878.4, 878.4, false);
+
+		// Remove global requirement
+		quote.setPhysical(null);
+		checkCost(resource.update(subscription.getId(), quote), 102.48, 102.48, false);
 		var quoteVo2 = getConfiguration(subscription.getId());
 		final var instanceGet2 = quoteVo2.getInstances().get(0);
-		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
+		Assertions.assertEquals("C11", instanceGet2.getPrice().getCode());
 		Assertions.assertFalse(instanceGet2.getPrice().getType().getPhysical());
 	}
 

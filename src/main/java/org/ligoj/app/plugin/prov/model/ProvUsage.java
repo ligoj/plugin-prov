@@ -19,12 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * Named resource usage : 1 to 100. Corresponds to percentage.
  */
 @Getter
 @Setter
+@Accessors(chain = true)
 @Entity
 @Table(name = "LIGOJ_PROV_USAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
 public class ProvUsage extends AbstractNamedEntity<Integer> implements Configurable<ProvQuote, Integer> {
@@ -61,5 +63,38 @@ public class ProvUsage extends AbstractNamedEntity<Integer> implements Configura
 	 * immediate start.
 	 */
 	private Integer start = 0;
+
+	/**
+	 * When <code>true</code>, the resolved OS may be changed during the commitment, otherwise is <code>false</code>.
+	 */
+	private Boolean convertibleOs;
+
+	/**
+	 * When <code>true</code>, the resolved engine may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleEngine;
+
+	/**
+	 * When <code>true</code>, the resolved location may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleLocation;
+
+	/**
+	 * When <code>true</code>, the resolved family may be changed during the commitment, otherwise is
+	 * <code>false</code>.
+	 */
+	private Boolean convertibleFamily;
+
+	/**
+	 * When <code>true</code>, the resolved type may be changed during the commitment, otherwise is <code>false</code>.
+	 */
+	private Boolean convertibleType;
+
+	/**
+	 * When <code>true</code>, a reservation is required, otherwise is <code>false</code>.
+	 */
+	private Boolean reservation;
 
 }

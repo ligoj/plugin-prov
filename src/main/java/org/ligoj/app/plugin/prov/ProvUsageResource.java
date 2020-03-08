@@ -129,10 +129,11 @@ public class ProvUsageResource {
 	 */
 	private UpdatedCost saveOrUpdate(final ProvUsage entity, final UsageEditionVo vo) {
 		// Check the associations and copy attributes to the entity
-		entity.setRate(vo.getRate());
-		entity.setDuration(vo.getDuration());
 		entity.setName(vo.getName());
-		entity.setStart(vo.getStart());
+		entity.setRate(vo.getRate()).setDuration(vo.getDuration()).setStart(vo.getStart());
+		entity.setConvertibleEngine(vo.getConvertibleEngine()).setConvertibleOs(vo.getConvertibleOs())
+				.setConvertibleType(vo.getConvertibleType()).setConvertibleFamily(vo.getConvertibleFamily())
+				.setConvertibleLocation(vo.getConvertibleLocation()).setReservation(vo.getReservation());
 
 		// Prepare the updated cost of updated instances
 		final var costs = Collections

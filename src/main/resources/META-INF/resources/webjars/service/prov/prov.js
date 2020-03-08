@@ -1096,18 +1096,51 @@ define(function () {
 	}
 
 
+	function copyToData($form, prefix, data) {
+		$form.find('input[id^=' + prefix + ']:not(.ui-only)').each(function () {
+			let $input = $(this);
+			let name = $input.attr('id').substring(prefix.length);
+			if (typeof data[name] === 'undefined') {
+				if ($input.data('ligojCheckbox3')) {
+					data[name] = $input.checkbox3('value');
+				} else if ($input.is('[type="checkbox"]')) {
+					data[name] = $input.is(':checked');
+				} else if ($input.is('[type="number"]') || name === 'id') {
+					data[name] = cleanInt($input.val());
+				} else {
+					data[name] = $input.val();
+				}
+			}
+		});
+		return data;
+	}
+
+	function copyToUi($form, prefix, data) {
+		$form.find('input[id^=' + prefix + ']:not(.ui-only)').each(function () {
+			let $input = $(this);
+			let name = $input.attr('id').substring(prefix.length);
+			if ($input.data('ligojCheckbox3')) {
+				$input.checkbox3('value', typeof data[name] === 'boolean' ? data[name] : null);
+			} else if ($input.is('[type="checkbox"]')) {
+				$input.prop('checked', data[name] === true);
+			} else if (typeof data[name] !== 'undefined') {
+				$input.val(data[name]);
+			} else if ($input.is('[type="number"]')) {
+				$input.val(0);
+			}
+		});
+	}
+
 	function initializeUsageInnerEvents() {
+		_('popup-prov-usage').find('.checkbox3').checkbox3({ value: null });
 		_('popup-prov-usage').on('shown.bs.modal', function () {
 			_('usage-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
-			current.saveOrUpdateUsage({
-				id: parseInt(_('usage-id').val() || 0, 10),
-				name: _('usage-name').val(),
+			current.saveOrUpdateUsage(copyToData($(this), 'usage-', {
 				rate: parseInt(_('usage-rate').val() || '100', 10),
-				duration: parseInt(_('usage-duration').val() || '1', 10),
-				start: parseInt(_('usage-start').val() || '0', 10)
-			});
+				duration: parseInt(_('usage-duration').val() || '1', 10)
+			}));
 		});
 
 		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
@@ -1157,14 +1190,10 @@ define(function () {
 				_('usage-rate').val(100);
 				_('usage-duration').val(1);
 				_('usage-start').val(0);
+				$(this).find('input[type="checkbox"]').checkbox3('value', null);
 			} else {
 				// Update mode
-				var usage = event.relatedTarget;
-				_('usage-id').val(usage.id);
-				_('usage-name').val(usage.name);
-				_('usage-rate').val(usage.rate);
-				_('usage-duration').val(usage.duration);
-				_('usage-start').val(usage.start || 0);
+				copyToUi($(this), 'usage-', event.relatedTarget);
 			}
 			validationManager.reset($(this));
 			validationManager.mapping.name = 'usage-name';
@@ -1280,7 +1309,7 @@ define(function () {
 			current.model = subscription;
 			current.cleanup();
 			$('.loader-wrapper').addClass('hidden');
-			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter', '../main/service/prov/prov-slider'], function (menu, tagManager, filterManager) {
+			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter', '../main/service/prov/prov-slider', '../main/service/prov/lib/checkbox3'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
 				current.$cascade.trigger('html', _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))));
 				current.tagManager = tagManager.build(current);
@@ -2000,13 +2029,10 @@ define(function () {
 				_('quote-name').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
-				current.updateQuote({
-					name: _('quote-name').val(),
-					description: _('quote-description').val()
-				});
+				current.updateQuote(copyToData($(this), 'quote-', {}));
 			}).on('show.bs.modal', function () {
-				_('quote-name').val(current.model.configuration.name);
-				_('quote-description').val(current.model.configuration.description || '');
+				debugger;
+				copyToUi($(this), 'quote-', current.model.configuration);
 			});
 
 			$('.cost-refresh').on('click', current.refreshCost);
@@ -2601,7 +2627,6 @@ define(function () {
 		},
 
 		storageUiToData: function (data) {
-			data.size = cleanInt(_('storage-size').val());
 			delete data.quoteInstance;
 			delete data.quoteDatabase;
 			if (_('storage-instance').select2('data')) {
@@ -2611,6 +2636,7 @@ define(function () {
 					data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
 				}
 			}
+			data.size = cleanInt(_('storage-size').val());
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
 			data.type = _('storage-price').select2('data').price.type.name;

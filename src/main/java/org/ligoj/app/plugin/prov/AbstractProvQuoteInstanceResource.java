@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -260,14 +261,14 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the resolved physical requirement.
+	 * Return the resolved resource requirement from the resource or from the quote.
 	 *
-	 * @param configuration Configuration containing the default values.
-	 * @param name          The local physical requirement
-	 * @return The resolved physical requirement. May be <code>null</code>.
+	 * @param configuration Quote's value.
+	 * @param name          The local requirement value.
+	 * @return The resolved requirement. May be <code>null</code>.
 	 */
-	protected Boolean getPhysical(final ProvQuote configuration, final Boolean physical) {
-		return ObjectUtils.defaultIfNull(physical, configuration.getPhysical());
+	protected Boolean getBoolean(final Boolean quoteValue, final Boolean value) {
+		return ObjectUtils.defaultIfNull(value, quoteValue);
 	}
 
 	/**
@@ -452,13 +453,143 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
+	 * Return the managed resource type.
+	 * 
+	 * @return The managed resource type.
+	 */
+	protected abstract ResourceType getResourceType();
+
+	/**
 	 * Return a lookup research corresponding to the best price.
 	 *
 	 * @param configuration The subscription configuration.
 	 * @param query         The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
-	protected abstract L lookup(final ProvQuote configuration, final Q query);
+	public L lookup(final ProvQuote configuration, final Q query) {
+
+		// Compute the rate to use
+		final var usage = getUsage(configuration, query.getUsageName());
+		final var rate = usage.getRate() / 100d;
+		final var duration = usage.getDuration();
+		final double maxPeriod = (int) Math.ceil(duration * rate * 10 / 6) * 6;
+		var lookup = this.lookup(configuration, query, maxPeriod);
+		if (lookup == null) {
+			// Another wider lookup
+			lookup = this.lookup(configuration, query, 100);
+		}
+		// Return the match
+		return lookup;
+	}
+
+	/**
+	 * Return a lookup research corresponding to the best price.
+	 *
+	 * @param configuration The subscription configuration.
+	 * @param query         The query parameters.
+	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
+	 */
+	private L lookup(final ProvQuote configuration, final Q query, final double maxPeriod) {
+		final var node = configuration.getSubscription().getNode().getId();
+		final int subscription = configuration.getSubscription().getId();
+		final var ramR = getRam(configuration, query);
+		final var cpuR = getCpu(configuration, query);
+		final var procR = getProcessor(configuration, query.getProcessor());
+		final var physR = getBoolean(configuration.getPhysical(), query.getPhysical());
+
+		// Resolve the location to use
+		final var locationR = getLocation(configuration, query.getLocationName());
+
+		// Compute the rate to use
+		final var usage = getUsage(configuration, query.getUsageName());
+		final var convOs = BooleanUtils.toBoolean(usage.getConvertibleOs());
+		final var convEngine = BooleanUtils.toBoolean(usage.getConvertibleEngine());
+		final var convType = BooleanUtils.toBoolean(usage.getConvertibleType());
+		final var convFamily = BooleanUtils.toBoolean(usage.getConvertibleFamily());
+		final var convLocation = BooleanUtils.toBoolean(usage.getConvertibleLocation());
+		final var reservation = BooleanUtils.toBoolean(usage.getReservation());
+		final var rate = usage.getRate() / 100d;
+		final var duration = usage.getDuration();
+
+		// Resolve the required instance type
+		final var typeId = getType(subscription, query.getType());
+
+		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
+				procR);
+		final var terms = iptRepository.findValidTerms(node,
+				getResourceType() == ResourceType.INSTANCE ? convOs : false,
+				getResourceType() == ResourceType.DATABASE ? convEngine : false, convType, convFamily, convLocation,
+				reservation, maxPeriod);
+		Object[] lookup = null;
+		if (!types.isEmpty()) {
+			// Get the best template instance price
+			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration).stream().findFirst()
+					.orElse(null);
+		}
+
+		// Dynamic type test
+		if (getItRepository().hasDynamicalTypes(node)) {
+			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR);
+			if (!dTypes.isEmpty()) {
+				// Get the best dynamic instance price
+				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, ramR, locationR, rate,
+						duration).stream().findFirst().orElse(null);
+				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
+					// Keep the best one
+					lookup = dlookup;
+				}
+			}
+		}
+
+		// No result
+		if (lookup == null) {
+			return null;
+		}
+
+		// Return the best match
+		return newPrice(lookup);
+
+	}
+
+	/**
+	 * Build a new {@link AbstractLookup} from {@link ProvInstancePrice} and computed price.
+	 * 
+	 * @param rs Raw result from the lookup.
+	 * @return a new {@link AbstractLookup} instance.
+	 */
+	protected abstract L newPrice(final Object[] rs);
+
+	/**
+	 * Return the lowest price matching all requirements.
+	 * 
+	 * @param configuration The subscription configuration.
+	 * @param query         The query parameters.
+	 * @param types         The valid types matching to the requirements.
+	 * @param terms         The valid terms matching to the requirements.
+	 * @param locationR     The required location.
+	 * @param rate          The usage rate.
+	 * @param duration      The committed duration.
+	 * @return The valid prices result.
+	 */
+	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
+			List<Integer> terms, int locationR, double rate, int duration);
+
+	/**
+	 * Return the lowest price matching all requirements for dynamic types.
+	 * 
+	 * @param configuration The subscription configuration.
+	 * @param query         The query parameters.
+	 * @param types         The valid dynamic types matching to the requirements.
+	 * @param terms         The valid terms matching to the requirements.
+	 * @param cpuR          The required CPU.
+	 * @param ramR          The required RAM.
+	 * @param locationR     The required location.
+	 * @param rate          The usage rate.
+	 * @param duration      The committed duration.
+	 * @return The valid prices result.
+	 */
+	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
+			List<Integer> terms, double cpuR, double ramR, int locationR, double rate, int duration);
 
 	@SuppressWarnings("unchecked")
 	@Override

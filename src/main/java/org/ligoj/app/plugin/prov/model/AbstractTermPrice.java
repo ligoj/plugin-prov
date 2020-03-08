@@ -42,6 +42,16 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	 */
 	private double costPeriod;
 
+	/**
+	 * The optional monthly cost of one requested CPU. May be <code>null</code>.
+	 */
+	private Double costCpu;
+
+	/**
+	 * The optional monthly cost of one requested GB memory. May be <code>null</code>.
+	 */
+	private Double costRam;
+
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;

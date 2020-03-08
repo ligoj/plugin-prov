@@ -5,6 +5,8 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.List;
 
+import javax.cache.annotation.CacheKey;
+
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -56,4 +58,61 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ " AND t.node.id = :node OR t.node.id LIKE CONCAT(:node, ':%')                "
 			+ " ORDER BY processor           ")
 	List<String> findProcessors(String node);
+
+	/**
+	 * Return the valid database types matching the requirements.
+	 *
+	 * @param node      The node linked to the subscription. Is a node identifier within a provider.
+	 * @param cpu       The minimum CPU.
+	 * @param ram       The minimum RAM in MB.
+	 * @param constant  The optional constant CPU behavior constraint.
+	 * @param physical  The optional physical (not virtual) instance type constraint.
+	 * @param type      The optional instance type identifier. May be <code>null</code>.
+	 * @param processor Optional processor requirement. A <code>LIKE</code> will be used.
+	 * @return The matching database instance types.
+	 */
+	@Query("SELECT id FROM #{#entityName} WHERE                          "
+			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
+			+ "  AND (:type IS NULL OR id = :type)                       "
+			+ "  AND cpu != 0 AND cpu>= :cpu AND ram>=:ram               "
+			+ "  AND (:constant IS NULL OR constant = :constant)         "
+			+ "  AND (:physical IS NULL OR physical = :physical)         "
+			+ "  AND (:processor IS NULL                                 "
+			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
+	List<Integer> findValidTypes(String node, double cpu, int ram, Boolean constant, Boolean physical, Integer type,
+			String processor);
+
+	/**
+	 * Return the valid instance types matching the requirements.
+	 *
+	 * @param node      The node linked to the subscription. Is a node identifier within a provider.
+	 * @param cpu       The minimum CPU.
+	 * @param ram       The minimum RAM in MB.
+	 * @param constant  The optional constant CPU behavior constraint.
+	 * @param physical  The optional physical (not virtual) instance type constraint.
+	 * @param type      The optional instance type identifier. May be <code>null</code>.
+	 * @param processor Optional processor requirement. A <code>LIKE</code> will be used.
+	 * @return The matching dynamic instance types.
+	 */
+	@Query("SELECT id FROM #{#entityName} WHERE                          "
+			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
+			+ "  AND (:type IS NULL OR id = :type)                       "
+			+ "  AND cpu = 0                                             "
+			+ "  AND (:constant IS NULL OR constant = :constant)         "
+			+ "  AND (:physical IS NULL OR physical = :physical)         "
+			+ "  AND (:processor IS NULL                                 "
+			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
+	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
+			@CacheKey Integer type, @CacheKey String processor);
+
+	/**
+	 * Return <code>true</code> when there is at least one dynamic type in this repository.
+	 * 
+	 * @param node The node linked to the subscription. Is a node identifier within a provider.
+	 * @return <code>true</code> when there is at least one dynamic type in this repository.
+	 */
+	@Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM #{#entityName} WHERE                        "
+			+ "  (:node = node.id OR :node LIKE CONCAT(node.id,':%'))    "
+			+ "  AND cpu = 0                                             ")
+	boolean hasDynamicalTypes(String node);
 }

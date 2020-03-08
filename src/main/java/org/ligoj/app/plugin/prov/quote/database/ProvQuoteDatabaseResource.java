@@ -159,46 +159,31 @@ public class ProvQuoteDatabaseResource extends
 	}
 
 	@Override
-	public QuoteDatabaseLookup lookup(final ProvQuote configuration, final QuoteDatabase query) {
-		final var node = configuration.getSubscription().getNode().getId();
-		final int subscription = configuration.getSubscription().getId();
-		final var ramR = getRam(configuration, query);
-		final var cpuR = getCpu(configuration, query);
-		final var procR = getProcessor(configuration, query.getProcessor());
-		final var physR = getPhysical(configuration, query.getPhysical());
+	protected ResourceType getResourceType() {
+		return ResourceType.DATABASE;
+	}
 
-		// Resolve the location to use
-		final var locationR = getLocation(configuration, query.getLocationName());
-
-		// Compute the rate to use
-		final var usage = getUsage(configuration, query.getUsageName());
-		final var rate = usage.getRate() / 100d;
-		final var duration = usage.getDuration();
-
-		// Resolve the required instance type
-		final var typeId = getType(subscription, query.getType());
-
+	@Override
+	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
+			final List<Integer> types, final List<Integer> terms, final int locationR, final double rate,
+			final int duration) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
-		final var editionR = normalize(query.getEdition());
 		final var engineR = normalize(query.getEngine());
+		final var editionR = normalize(query.getEdition());
+		return ipRepository.findLowestPrice(types, locationR, rate, duration, licenseR, engineR, editionR,
+				PageRequest.of(0, 1));
+	}
 
-		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
-				procR);
-		Object[] lookup = null;
-		if (!types.isEmpty()) {
-			// Get the best template instance price
-			lookup = ipRepository.findLowestPrice(types, locationR, rate, duration, licenseR, engineR, editionR,
-					PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-		}
-
-		// No result
-		if (lookup == null) {
-			return null;
-		}
-
-		// Return the best match
-		return newPrice(lookup);
+	@Override
+	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteDatabase query,
+			final List<Integer> types, final List<Integer> terms, final double cpuR, final double ramR,
+			final int locationR, final double rate, final int duration) {
+		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final var engineR = normalize(query.getEngine());
+		final var editionR = normalize(query.getEdition());
+		return ipRepository.findLowestDynamicPrice(types, terms, cpuR, ramR, engineR, editionR, locationR, rate,
+				duration, licenseR, PageRequest.of(0, 1));
 	}
 
 	private String normalize(final String value) {
@@ -285,10 +270,8 @@ public class ProvQuoteDatabaseResource extends
 				Function.identity());
 	}
 
-	/**
-	 * Build a new {@link QuoteDatabaseLookup} from {@link ProvDatabasePrice} and computed price.
-	 */
-	private QuoteDatabaseLookup newPrice(final Object[] rs) {
+	@Override
+	protected QuoteDatabaseLookup newPrice(final Object[] rs) {
 		final var ip = (ProvDatabasePrice) rs[0];
 		final var cost = (double) rs[2];
 		final var result = new QuoteDatabaseLookup();

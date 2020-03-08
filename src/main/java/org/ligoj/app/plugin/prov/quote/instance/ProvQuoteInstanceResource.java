@@ -159,57 +159,32 @@ public class ProvQuoteInstanceResource extends
 	}
 
 	@Override
-	public QuoteInstanceLookup lookup(final ProvQuote configuration, final QuoteInstance query) {
-		final var node = configuration.getSubscription().getNode().getId();
-		final int subscription = configuration.getSubscription().getId();
-		final var ramR = getRam(configuration, query);
-		final var cpuR = getCpu(configuration, query);
-		final var procR = getProcessor(configuration, query.getProcessor());
-		final var physR = getPhysical(configuration, query.getPhysical());
+	protected ResourceType getResourceType() {
+		return ResourceType.INSTANCE;
+	}
 
-		// Resolve the location to use
-		final var locationR = getLocation(configuration, query.getLocationName());
-
-		// Compute the rate to use
-		final var usage = getUsage(configuration, query.getUsageName());
-		final var rate = usage.getRate() / 100d;
-		final var duration = usage.getDuration();
-
-		// Resolve the required instance type
-		final var typeId = getType(subscription, query.getType());
-
+	@Override
+	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteInstance query,
+			final List<Integer> types, final List<Integer> terms, final int locationR, final double rate,
+			final int duration) {
 		// Resolve the right license model
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
+		return ipRepository.findLowestPrice(types, terms, os, query.isEphemeral(), locationR, rate, duration, licenseR,
+				softwareR, PageRequest.of(0, 1));
+	}
 
-		final var types = itRepository.findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
-				procR);
-		Object[] lookup = null;
-		if (!types.isEmpty()) {
-			// Get the best template instance price
-			lookup = ipRepository.findLowestPrice(types, os, query.isEphemeral(), locationR, rate, duration, licenseR,
-					softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-		}
-
-		final var dTypes = itRepository.findDynamicTypes(node, query.getConstant(), query.getPhysical(), typeId, procR);
-		if (!dTypes.isEmpty()) {
-			// Get the best dynamic instance price
-			var dlookup = ipRepository.findLowestDynamicPrice(dTypes, cpuR, ramR, os, query.isEphemeral(), locationR,
-					rate, duration, licenseR, softwareR, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-			if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
-				// Keep the best one
-				lookup = dlookup;
-			}
-		}
-
-		// No result
-		if (lookup == null) {
-			return null;
-		}
-
-		// Return the best match
-		return newPrice(lookup);
+	@Override
+	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteInstance query,
+			final List<Integer> types, final List<Integer> terms, final double cpuR, final double ramR,
+			final int locationR, final double rate, final int duration) {
+		// Resolve the right license model
+		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
+		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
+		final var softwareR = StringUtils.trimToNull(query.getSoftware());
+		return ipRepository.findLowestDynamicPrice(types, terms, cpuR, ramR, os, query.isEphemeral(), locationR, rate,
+				duration, licenseR, softwareR, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final VmOs os) {
@@ -278,10 +253,8 @@ public class ProvQuoteInstanceResource extends
 				Function.identity());
 	}
 
-	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
-	 */
-	private QuoteInstanceLookup newPrice(final Object[] rs) {
+	@Override
+	protected QuoteInstanceLookup newPrice(final Object[] rs) {
 		final var ip = (ProvInstancePrice) rs[0];
 		final var cost = (double) rs[2];
 		final var result = new QuoteInstanceLookup();

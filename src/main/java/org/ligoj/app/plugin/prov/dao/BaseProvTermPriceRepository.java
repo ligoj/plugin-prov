@@ -24,8 +24,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 		extends RestRepository<P, Integer> {
 
 	/**
-	 * Return all {@link ProvInstancePrice} related to given node and within a
-	 * specific location.
+	 * Return all {@link ProvInstancePrice} related to given node and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
 	 * @param location The expected location name. Case sensitive.
@@ -33,5 +32,30 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	 */
 	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
 	List<P> findAll(String node, String location);
+
+	/**
+	 * Return all {@link ProvInstancePrice} related to given node and within a specific location.
+	 *
+	 * @param node     The node (provider) to match.
+	 * @param location The expected location name. Case sensitive.
+	 * @param term     The expected term name prefix.
+	 * @return The filtered {@link ProvInstancePrice}.
+	 */
+	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node"
+			+ " AND term.name LIKE CONCAT(:term, '%')")
+	List<P> findAllTerms(String node, String location, final String term);
+
+	/**
+	 * Return all {@link ProvInstancePrice} related to given node and within a specific location.
+	 *
+	 * @param node     The node (provider) to match.
+	 * @param location The expected location name. Case sensitive.
+	 * @param term1    The expected term name prefix alternative 1.
+	 * @param term2    The expected term name prefix alternative 2.
+	 * @return The filtered {@link ProvInstancePrice}.
+	 */
+	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node"
+			+ " AND (term.name LIKE CONCAT(:term1, '%') OR term.name LIKE CONCAT(:term2, '%'))")
+	List<P> findAllTerms(String node, String location, final String term1, final String term2);
 
 }
