@@ -91,4 +91,13 @@ public interface QuoteVm {
 	 */
 	String getLicense();
 
+	/**
+	 * Return Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
+	 * accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
+	 *
+	 * @return Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
+	 *         accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
+	 */
+	boolean isEphemeral();
+
 }

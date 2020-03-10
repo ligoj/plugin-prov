@@ -51,11 +51,6 @@ public class ProvQuoteInstance extends AbstractQuoteResourceInstance<ProvInstanc
 	private Double maxVariableCost;
 
 	/**
-	 * The instance could be terminated by the provider.
-	 */
-	private boolean ephemeral;
-
-	/**
 	 * Optional software.
 	 */
 	private String software;

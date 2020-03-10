@@ -449,7 +449,13 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	public L lookupInternal(final int subscription, final Q query) {
-		return lookup(getQuoteFromSubscription(subscription), query);
+		final var result = lookup(getQuoteFromSubscription(subscription), query);
+		if (result != null) {
+			// Fetch term and the type for serialization
+			result.getPrice().getTerm();
+			result.getPrice().getType();
+		}
+		return result;
 	}
 
 	/**
@@ -516,10 +522,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
 				procR);
+
 		final var terms = iptRepository.findValidTerms(node,
 				getResourceType() == ResourceType.INSTANCE ? convOs : false,
 				getResourceType() == ResourceType.DATABASE ? convEngine : false, convType, convFamily, convLocation,
-				reservation, maxPeriod);
+				reservation, maxPeriod, query.isEphemeral());
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price

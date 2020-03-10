@@ -171,8 +171,8 @@ public class ProvQuoteInstanceResource extends
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
-		return ipRepository.findLowestPrice(types, terms, os, query.isEphemeral(), locationR, rate, duration, licenseR,
-				softwareR, PageRequest.of(0, 1));
+		return ipRepository.findLowestPrice(types, terms, os, locationR, rate, duration, licenseR, softwareR,
+				PageRequest.of(0, 1));
 	}
 
 	@Override
@@ -183,8 +183,8 @@ public class ProvQuoteInstanceResource extends
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
-		return ipRepository.findLowestDynamicPrice(types, terms, cpuR, ramR, os, query.isEphemeral(), locationR, rate,
-				duration, licenseR, softwareR, PageRequest.of(0, 1));
+		return ipRepository.findLowestDynamicPrice(types, terms, cpuR, ramR, os, locationR, rate, duration, licenseR,
+				softwareR, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final VmOs os) {
@@ -255,11 +255,9 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	protected QuoteInstanceLookup newPrice(final Object[] rs) {
-		final var ip = (ProvInstancePrice) rs[0];
-		final var cost = (double) rs[2];
 		final var result = new QuoteInstanceLookup();
-		result.setCost(round(cost));
-		result.setPrice(ip);
+		result.setPrice((ProvInstancePrice) rs[0]);
+		result.setCost(round((double) rs[2]));
 		return result;
 	}
 

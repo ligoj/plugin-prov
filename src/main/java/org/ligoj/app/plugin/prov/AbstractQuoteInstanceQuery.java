@@ -79,6 +79,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("physical")
 	private Boolean physical;
 
+	@QueryParam("ephemeral")
+	private boolean ephemeral;
+
 	@Override
 	public String getLocationName() {
 		return getLocation();

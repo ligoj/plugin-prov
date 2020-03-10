@@ -40,11 +40,6 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo imple
 	private Double maxVariableCost;
 
 	/**
-	 * The instance could be terminated by the provider. Default <code>false</code>.
-	 */
-	private boolean ephemeral;
-
-	/**
 	 * Optional built-in software.
 	 */
 	private String software;

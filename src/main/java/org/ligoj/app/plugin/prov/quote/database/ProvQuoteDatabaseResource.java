@@ -272,11 +272,9 @@ public class ProvQuoteDatabaseResource extends
 
 	@Override
 	protected QuoteDatabaseLookup newPrice(final Object[] rs) {
-		final var ip = (ProvDatabasePrice) rs[0];
-		final var cost = (double) rs[2];
 		final var result = new QuoteDatabaseLookup();
-		result.setCost(round(cost));
-		result.setPrice(ip);
+		result.setPrice((ProvDatabasePrice) rs[0]);
+		result.setCost(round((double) rs[2]));
 		return result;
 	}
 

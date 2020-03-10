@@ -131,4 +131,9 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * The tags to override when not <code>null</code>.
 	 */
 	private List<TagVo> tags;
+
+	/**
+	 * The instance could be terminated by the provider. Default <code>false</code>.
+	 */
+	private boolean ephemeral;
 }

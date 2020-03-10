@@ -120,6 +120,11 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 */
 	private String license;
 
+	/**
+	 * The instance could be terminated by the provider.
+	 */
+	private boolean ephemeral;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

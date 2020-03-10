@@ -30,9 +30,6 @@ public class QuoteInstanceQuery extends AbstractQuoteInstanceQuery implements Qu
 	@Builder.Default
 	private VmOs os = VmOs.LINUX;
 
-	@QueryParam("ephemeral")
-	private boolean ephemeral;
-
 	@QueryParam("software")
 	private String software;
 }

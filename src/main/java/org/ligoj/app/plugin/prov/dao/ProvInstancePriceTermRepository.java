@@ -66,6 +66,8 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @param convLocation When <code>true</code>, terms convertible location are required.
 	 * @param reservation  When <code>true</code>, terms with reservation are required.
 	 * @param maxPeriod    Maximal accepted period.
+	 * @param ephemeral    When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only
+	 *                     non ephemeral instance are accepted.
 	 * @return The matching instance terms.
 	 */
 	@CacheResult(cacheName = "prov-instance-term")
@@ -77,8 +79,9 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 			+ "  AND (:convFamily = FALSE OR :convFamily = convertibleFamily)           "
 			+ "  AND (:convLocation = FALSE OR :convLocation = convertibleLocation)     "
 			+ "  AND (:reservation = FALSE OR :reservation = reservation)               "
+			+ "  AND (:ephemeral = TRUE OR ephemeral = FALSE)                           "
 			+ "  AND :maxPeriod >= period     ")
 	List<Integer> findValidTerms(@CacheKey String node, @CacheKey boolean convOs, @CacheKey boolean convEngine,
 			@CacheKey boolean convType, @CacheKey boolean convFamily, @CacheKey boolean convLocation,
-			@CacheKey boolean reservation, @CacheKey double maxPeriod);
+			@CacheKey boolean reservation, @CacheKey double maxPeriod, @CacheKey boolean ephemeral);
 }

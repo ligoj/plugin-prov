@@ -47,67 +47,60 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types     The valid instance type identifiers.
-	 * @param terms     The valid instance terms identifiers.
-	 * @param cpu       The minimum CPU.
-	 * @param ram       The minimum RAM in MB.
-	 * @param os        The requested OS.
-	 * @param ephemeral When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only non
-	 *                  ephemeral instance are accepted.
-	 * @param location  The requested location identifier.
-	 * @param rate      Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration  The duration in month. Minimum is 1.
-	 * @param license   Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software  Optional software notice. When not <code>null</code> a software constraint is added. WHen
-	 *                  <code>null</code>, installed software is also accepted.
-	 * @param pageable  The page control to return few item.
+	 * @param types    The valid instance type identifiers.
+	 * @param terms    The valid instance terms identifiers.
+	 * @param cpu      The minimum CPU.
+	 * @param ram      The minimum RAM in MB.
+	 * @param os       The requested OS.
+	 * @param location The requested location identifier.
+	 * @param rate     Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration The duration in month. Minimum is 1.
+	 * @param license  Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param software Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 *                 <code>null</code>, installed software is also accepted.
+	 * @param pageable The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate * :duration) AS totalCost,"
-			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate)  AS monthlyCost                     "
-			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
-			+ "  WHERE (i.id IN :types) AND (ip.term.id IN :terms)   "
+			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate)  AS monthlyCost          "
+			+ " FROM #{#entityName} ip                               "
+			+ "  WHERE (ip.type.id IN :types) AND (ip.term.id IN :terms)   "
 			+ "  AND (:os IS NULL OR ip.os=:os)                      "
-			+ "  AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
 			+ "  AND (:software IS NULL OR :software = ip.software)  "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
-			boolean ephemeral, int location, double rate, double duration, String license, String software,
-			Pageable pageable);
+			int location, double rate, double duration, String license, String software, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types     The valid instance type identifiers.
-	 * @param terms     The valid instance terms identifiers.
-	 * @param os        The requested OS.
-	 * @param ephemeral When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only non
-	 *                  ephemeral instance are accepted.
-	 * @param location  The requested location identifier.
-	 * @param rate      Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration  The duration in month. Minimum is 1.
-	 * @param license   Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software  Optional software notice. When not <code>null</code> a software constraint is added. WHen
-	 *                  <code>null</code>, installed software is also accepted.
-	 * @param pageable  The page control to return few item.
+	 * @param types    The valid instance type identifiers.
+	 * @param terms    The valid instance terms identifiers.
+	 * @param os       The requested OS.
+	 * @param location The requested location identifier.
+	 * @param rate     Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration The duration in month. Minimum is 1.
+	 * @param license  Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param software Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 *                 <code>null</code>, installed software is also accepted.
+	 * @param pageable The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
 	@Query("SELECT ip,                                               "
 			+ " CASE                                                 "
-			+ "  WHEN t.period = 0 THEN (ip.cost * :rate * :duration)"
-			+ "  ELSE (ip.costPeriod * CEIL(:duration/t.period)) END AS totalCost,"
+			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)"
+			+ "  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,"
 			+ " CASE                                                 "
-			+ "  WHEN t.period = 0 THEN (ip.cost * :rate)            "
+			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)           "
 			+ "  ELSE ip.cost END AS monthlyCost                     "
-			+ " FROM #{#entityName} ip  INNER JOIN FETCH ip.type AS i INNER JOIN FETCH ip.term AS t"
+			+ " FROM #{#entityName} ip                               "
 			+ "  WHERE (ip.type.id IN :types) AND (ip.term.id IN :terms)"
-			+ "  AND (:os IS NULL OR ip.os=:os)                      "
-			+ "  AND (:ephemeral IS TRUE OR t.ephemeral = :ephemeral)"
+			+ "  AND ip.os=:os                                       "
 			+ "  AND (:software IS NULL OR :software = ip.software)  "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
 			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
-	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, boolean ephemeral, int location,
-			double rate, double duration, String license, String software, Pageable pageable);
+	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
+			double duration, String license, String software, Pageable pageable);
 }
