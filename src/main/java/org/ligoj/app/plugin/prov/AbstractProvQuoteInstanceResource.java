@@ -477,7 +477,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var usage = getUsage(configuration, query.getUsageName());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
-		final double maxPeriod = (int) Math.ceil(duration * rate * 10 / 6) * 6;
+		final var maxPeriod = (int) Math.ceil(duration * rate * 10 / 6) * 6;
 		var lookup = this.lookup(configuration, query, maxPeriod);
 		if (lookup == null) {
 			// Another wider lookup
@@ -494,7 +494,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param query         The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
-	private L lookup(final ProvQuote configuration, final Q query, final double maxPeriod) {
+	private L lookup(final ProvQuote configuration, final Q query, final int maxPeriod) {
 		final var node = configuration.getSubscription().getNode().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);
