@@ -153,9 +153,10 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(vo.getLastModifiedBy());
 		Assertions.assertNotNull(vo.getLastModifiedDate());
 		Assertions.assertEquals("region-1", vo.getLocation().getName());
-		Assertions.assertEquals(2, vo.getLocations().size());
+		Assertions.assertEquals(3, vo.getLocations().size());
 		Assertions.assertEquals("region-1", vo.getLocations().get(0).getName());
 		Assertions.assertEquals("region-2", vo.getLocations().get(1).getName());
+		Assertions.assertEquals("region-5", vo.getLocations().get(2).getName());
 
 		// Processor
 		Assertions.assertEquals(2, vo.getProcessors().size());
@@ -780,7 +781,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		final var locations = resource.findLocations(subscription);
 
 		// 3 regions, but only 2 have associated prices
-		Assertions.assertEquals(2, locations.size());
+		Assertions.assertEquals(3, locations.size());
 		Assertions.assertEquals("region-1", locations.get(0).getName());
 		Assertions.assertEquals("region-2", locations.get(1).getName());
 		Assertions.assertEquals("service:prov:test", locations.get(1).getNode().getId());

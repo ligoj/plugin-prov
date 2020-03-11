@@ -1,4 +1,4 @@
-configuration.id!;name;rate;duration
+configuration.id!;name;rate;duration;convertibleOs;convertibleEngine;convertibleLocation;convertibleFamily;convertibleType;reservation
 1;Full Time;100
 1;Dev;50
 1;Full Time 11 month;100;11
@@ -10,5 +10,6 @@ configuration.id!;name;rate;duration
 1;Dev 11 month;25;11
 1;Dev 12 month;25;12
 1;Dev 13 month;25;13
+1;Full Time global;100;12;false;false;true;true;true;false
 2;Dev;25
 2;Full Time2;100

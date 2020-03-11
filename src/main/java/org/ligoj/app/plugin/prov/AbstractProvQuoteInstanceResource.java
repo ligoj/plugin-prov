@@ -526,7 +526,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var terms = iptRepository.findValidTerms(node,
 				getResourceType() == ResourceType.INSTANCE ? convOs : false,
 				getResourceType() == ResourceType.DATABASE ? convEngine : false, convType, convFamily, convLocation,
-				reservation, maxPeriod, query.isEphemeral());
+				reservation, maxPeriod, query.isEphemeral(), locationR);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
@@ -573,13 +573,13 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param query         The query parameters.
 	 * @param types         The valid types matching to the requirements.
 	 * @param terms         The valid terms matching to the requirements.
-	 * @param locationR     The required location.
+	 * @param location      The required location.
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int locationR, double rate, int duration);
+			List<Integer> terms, int location, double rate, int duration);
 
 	/**
 	 * Return the lowest price matching all requirements for dynamic types.
@@ -588,15 +588,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param query         The query parameters.
 	 * @param types         The valid dynamic types matching to the requirements.
 	 * @param terms         The valid terms matching to the requirements.
-	 * @param cpuR          The required CPU.
-	 * @param ramR          The required RAM.
-	 * @param locationR     The required location.
+	 * @param cpu           The required CPU.
+	 * @param ram           The required RAM.
+	 * @param location      The required location.
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, double cpuR, double ramR, int locationR, double rate, int duration);
+			List<Integer> terms, double cpu, double ram, int location, double rate, int duration);
 
 	@SuppressWarnings("unchecked")
 	@Override

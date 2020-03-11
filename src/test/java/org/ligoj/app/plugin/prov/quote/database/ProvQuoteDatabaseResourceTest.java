@@ -600,14 +600,14 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceTerms() {
 		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo());
-		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	void findInstancePriceTermsCriteria() {
 		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo("deMand"));
-		Assertions.assertEquals(2, tableItem.getRecordsTotal());
+		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 

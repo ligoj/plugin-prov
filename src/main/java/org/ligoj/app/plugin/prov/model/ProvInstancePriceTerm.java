@@ -13,8 +13,10 @@ import javax.validation.constraints.NotNull;
 import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
+import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -95,5 +97,13 @@ public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> impl
 	 * When <code>true</code>, a reservation is required, otherwise is <code>false</code>, no capacity reservation.
 	 */
 	private Boolean reservation;
+
+	/**
+	 * Optional location constraint. When not <code>null</code>, is redundant of the
+	 * {@link AbstractPrice#getLocation()}.
+	 */
+	@ManyToOne
+	@JsonSerialize(using = ToNameSerializer.class)
+	private ProvLocation location;
 
 }

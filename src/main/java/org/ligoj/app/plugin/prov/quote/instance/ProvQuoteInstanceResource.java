@@ -165,25 +165,25 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteInstance query,
-			final List<Integer> types, final List<Integer> terms, final int locationR, final double rate,
+			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration) {
 		// Resolve the right license model
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
-		return ipRepository.findLowestPrice(types, terms, os, locationR, rate, duration, licenseR, softwareR,
+		return ipRepository.findLowestPrice(types, terms, os, location, rate, duration, licenseR, softwareR,
 				PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteInstance query,
-			final List<Integer> types, final List<Integer> terms, final double cpuR, final double ramR,
-			final int locationR, final double rate, final int duration) {
+			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
+			final int location, final double rate, final int duration) {
 		// Resolve the right license model
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
 		final var softwareR = StringUtils.trimToNull(query.getSoftware());
-		return ipRepository.findLowestDynamicPrice(types, terms, cpuR, ramR, os, locationR, rate, duration, licenseR,
+		return ipRepository.findLowestDynamicPrice(types, terms, cpu, ram, os, location, rate, duration, licenseR,
 				softwareR, PageRequest.of(0, 1));
 	}
 

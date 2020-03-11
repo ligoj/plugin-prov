@@ -151,9 +151,9 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(status.isFinished());
 		Assertions.assertFalse(status.isFailed());
 		Assertions.assertNotEquals(0, status.getLastSuccess().getTime());
-		Assertions.assertEquals(114, status.getNbInstancePrices().intValue()); // 104 + 10
+		Assertions.assertEquals(115, status.getNbInstancePrices().intValue()); // 104 + 10
 		Assertions.assertEquals(17, status.getNbInstanceTypes().intValue()); // 13 + 3
-		Assertions.assertEquals(3, status.getNbLocations().intValue());
+		Assertions.assertEquals(4, status.getNbLocations().intValue());
 		Assertions.assertEquals(6, status.getNbStorageTypes().intValue()); // 4 + 2
 		Mockito.verify(service).updateCatalog("service:prov:test");
 	}

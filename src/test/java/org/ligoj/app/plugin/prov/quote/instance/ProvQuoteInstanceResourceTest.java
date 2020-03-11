@@ -295,6 +295,27 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Advanced case, all requirements.
+	 */
+	@Test
+	void lookupTermConstraints() throws IOException {
+		final var lookup = qiResource.lookup(subscription,
+				builder().cpu(1).usage("Full Time global").location("region-5").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance5", pi.getType().getName());
+		Assertions.assertEquals(1537.2, pi.getCost(), DELTA);
+		Assertions.assertEquals("on-demandR5", pi.getTerm().getName());
+		Assertions.assertEquals("region-5", pi.getTerm().getLocation().getName());
+		Assertions.assertFalse(pi.getTerm().getConvertibleEngine());
+		Assertions.assertFalse(pi.getTerm().getConvertibleOs());
+		Assertions.assertTrue(pi.getTerm().getConvertibleFamily());
+		Assertions.assertTrue(pi.getTerm().getConvertibleType());
+		Assertions.assertTrue(pi.getTerm().getConvertibleLocation());
+		Assertions.assertFalse(pi.getTerm().getReservation());
+	}
+
+	/**
 	 * Too much requirements for an instance
 	 */
 	@Test
@@ -912,14 +933,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceTerms() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo());
-		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	void findInstancePriceTermsCriteria() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo("deMand"));
-		Assertions.assertEquals(2, tableItem.getRecordsTotal());
+		Assertions.assertEquals(3, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 

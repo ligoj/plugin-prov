@@ -105,3 +105,5 @@ on-demand2;0;C101;1581.12;2.16;instance2;LINUX;;;region-2
 on-demand2;0;C102;1672.62;2.285;instance2;WINDOWS;;;region-2
 on-demand1;0;C103;2049.6;2.8;instance5;LINUX;;;region-2
 on-demand2;0;C104;1976.4;2.7;instance5;LINUX;;;region-2
+
+on-demandR5;0;R004;1537.2;2.1;instance5;LINUX;;;region-5
