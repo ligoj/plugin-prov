@@ -132,7 +132,7 @@ define(function () {
 					term = term.toLowerCase();
 					var processors = current.model.configuration.processors;
 					// Must be found in all resource types
-					if (processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length && processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length) {
+					if (processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length && processors.database.filter(p => p.toLowerCase().indexOf(term) >= 0).length) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -799,7 +799,7 @@ define(function () {
 	 * Generic Ajax Select2 configuration.
 	 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
 	 */
-	function genericSelect2(placeholder, formatSelection, path, formatResult, customComparator, matcher) {
+	function genericSelect2(placeholder, formatSelection, path, formatResult, customComparator, matcherFn) {
 		const pageSize = 15;
 		return {
 			formatSelection: formatSelection,
@@ -828,7 +828,7 @@ define(function () {
 				transport: typeof customComparator === 'function' ? function (options) {
 					let $this = this;
 					if ($this.cachedData) {
-						filterSelect2Result($this.cachedData, options, customComparator, matcher);
+						filterSelect2Result($this.cachedData, options, customComparator, matcherFn);
 					} else {
 						// No yet cached data
 						let success = options.success;
@@ -836,7 +836,7 @@ define(function () {
 							$this.cachedData = data
 							// Restore the original success funtion
 							options.success = success;
-							filterSelect2Result(data, options, customComparator, matcher);
+							filterSelect2Result(data, options, customComparator, matcherFn);
 						}
 						$.fn.select2.ajaxDefaults.transport(options);
 					}
@@ -1264,7 +1264,7 @@ define(function () {
 		let cData = cleanInt(_('instance-ram').provSlider('value', mode));
 		if (cData) {
 			return cData * getRamUnitWeight();
-		};
+		}
 		return cData;
 	}
 
@@ -1816,7 +1816,7 @@ define(function () {
 						callback(null);
 					}
 				},
-				stateLoadParams: function (settings, data) {
+				stateLoadParams: function (settings) {
 					$table.prov().find('.subscribe-configuration-prov-search').val(settings.oPreviousSearch.sSearchAlt || '');
 				},
 				stateSaveCallback: function (settings, data) {
@@ -2031,7 +2031,6 @@ define(function () {
 				e.preventDefault();
 				current.updateQuote(copyToData($(this), 'quote-', {}));
 			}).on('show.bs.modal', function () {
-				debugger;
 				copyToUi($(this), 'quote-', current.model.configuration);
 			});
 
@@ -2076,7 +2075,7 @@ define(function () {
 				}, { name: 'processor', ui: 'quote-processor', previous: event.removed }, true);
 			});
 
-			_('quote-physical').on('click', 'li', function (e) {
+			_('quote-physical').on('click', 'li', function () {
 				$.proxy(synchronizeDropdownText, $(this))();
 				current.updateQuote({
 					physical: toQueryValue3States($(this))
@@ -2978,7 +2977,7 @@ define(function () {
 			if (usage.instance.cpu.available) {
 				current.updateSummary($summary, usage.instance);
 				var $oss = $summary.filter('[data-os]').addClass('hidden');
-				Object.keys(usage.instance.oss).forEach(os => $oss.filter('[data-os="' + os + '"]').removeClass('hidden').find('span').text(usage.instance.oss[os]));
+				Object.keys(usage.instance.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(usage.instance.oss[o]));
 			} else {
 				$summary.addClass('hidden');
 			}

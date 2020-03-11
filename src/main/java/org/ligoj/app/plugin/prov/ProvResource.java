@@ -459,6 +459,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		return refresh(getQuoteFromSubscription(subscription));
 	}
 
+	@Override
+	public FloatingCost refresh(final ProvQuote entity) {
+		updateCurrency(entity);
+		return processCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
+	}
+
 	/**
 	 * Update the currency from the parameter.
 	 */
@@ -466,12 +472,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setCurrency(Optional.ofNullable(
 				subscriptionResource.getParameters(entity.getSubscription().getId()).get(PARAMETER_CURRENCY_NAME))
 				.map(currencyRepository::findByName).orElse(null));
-	}
-
-	@Override
-	public FloatingCost refresh(final ProvQuote entity) {
-		updateCurrency(entity);
-		return processCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
 	}
 
 	@Override

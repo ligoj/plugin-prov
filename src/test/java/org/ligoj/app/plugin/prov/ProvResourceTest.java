@@ -544,7 +544,6 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
 		quote.setProcessor("AMD");
-		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
 		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals("AMD", quoteVo.getProcessor());
@@ -552,10 +551,11 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("C65", instanceGet0.getPrice().getCode());
 		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", instanceGet0.getPrice().getType().getProcessor());
 
-		// Remove local requirement
+		// Refresh without change
 		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
 
+		// Remove local requirement
 		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet1.setProcessor(null);
 		em.flush();
@@ -565,6 +565,13 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		final var instanceGet2 = quoteVo2.getInstances().get(0);
 		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
 		Assertions.assertEquals("AMD EPYC 7571", instanceGet2.getPrice().getType().getProcessor());
+		em.flush();
+		em.clear();
+
+		// Remove global requirement
+		quote.setProcessor(null);
+		quote.setRefresh(false);
+		checkCost(resource.update(subscription.getId(), quote), 102.48, 102.48, false);
 	}
 
 	/**

@@ -36,7 +36,6 @@ import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
@@ -431,7 +430,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			// Dual license modes are managed only for WINDOWS OS for now
 			licenseR = configuration.getLicense();
 		}
-		if (ProvQuoteInstance.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
+		if (AbstractQuoteResourceInstance.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
 			// Database handle included license as 'null'
 			licenseR = null;
 		} else if (licenseR != null) {
@@ -523,9 +522,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
 				procR);
 
-		final var terms = iptRepository.findValidTerms(node,
-				getResourceType() == ResourceType.INSTANCE ? convOs : false,
-				getResourceType() == ResourceType.DATABASE ? convEngine : false, convType, convFamily, convLocation,
+		final var terms = iptRepository.findValidTerms(node, getResourceType() == ResourceType.INSTANCE && convOs,
+				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,
 				reservation, maxPeriod, query.isEphemeral(), locationR);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {

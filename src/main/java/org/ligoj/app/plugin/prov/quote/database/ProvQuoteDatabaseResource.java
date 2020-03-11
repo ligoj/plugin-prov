@@ -116,9 +116,8 @@ public class ProvQuoteDatabaseResource extends
 	 * @param name   The attribute to check.
 	 * @param pQuote The quote required attribute value.
 	 * @param vPrice The price attribute value.
-	 * @param <V>    The quote property value type.
 	 */
-	protected <V> void checkAttribute(final String name, final String pQuote, final String vPrice) {
+	protected void checkAttribute(final String name, final String pQuote, final String vPrice) {
 		if (!StringUtils.equalsIgnoreCase(pQuote, vPrice)) {
 			// Incompatible, hack attempt?
 			log.warn("Attempt to create a database with an incompatible {} {} with catalog {} {}", name, pQuote, name,

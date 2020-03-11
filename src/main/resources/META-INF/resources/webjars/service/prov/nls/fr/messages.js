@@ -112,7 +112,7 @@ define({
 	'service:prov:storage-giga': 'Go',
 	'service:prov:storage-help': 'Taille du stockage, en Go',
 	'service:prov:storage-quantity': 'Quantité',
-	'service:prov:storage-quantity-help': 'Nombre de volumes. Lorsque liés à des instances, correspond au nombre d\instances associées.',
+	'service:prov:storage-quantity-help': 'Nombre de volumes. Lorsque liés à des instances, correspond au nombre d\'instances associées.',
 	'service:prov:storage-type': 'Type',
 	'service:prov:storage-type-help': 'Type de stockage du fournisseur',
 	'service:prov:storage-latency': 'Latence',

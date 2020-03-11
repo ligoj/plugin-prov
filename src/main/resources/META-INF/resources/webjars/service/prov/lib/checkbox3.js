@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
+define(['jquery', 'cascade', 'jquery-ui'], function ($) {
     return (function () {
         if ($.fn.checkbox3) {
             return $.fn.checkbox3;

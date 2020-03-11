@@ -342,7 +342,9 @@ img.flag-icon.prov-location-flag {
   left: -11px;
 }
 
-#prov-sunburst .node, .prov-barchart-svg .legend, .prov-barchart-svg .bar {
+#prov-sunburst .node,
+.prov-barchart-svg .legend,
+.prov-barchart-svg .bar {
   cursor: pointer;
 }
 
@@ -480,6 +482,7 @@ img.flag-icon.prov-location-flag {
 .fa-stack-cpu i:last-child {
   transform: rotate(90deg) scale(1, 0.7);
 }
-#instance-constant, #instance-ram-unit {
+#instance-constant,
+#instance-ram-unit {
   width: 93px;
 }

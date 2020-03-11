@@ -60,7 +60,7 @@ define(['d3', 'jquery'], function (d3) {
             return formattedData;
         }
 
-        function getLegendY(params, d, i) {
+        function getLegendY(d) {
             var i = params.filteredClusterNames.indexOf(d);
             if (i > params.filteredClusterNames.indexOf(params.chosen.cluster)) {
                 return choice(params.chosen.cluster, d, 20 * (params.filteredClusterNames.length - i), marginTop, marginTop);
@@ -128,14 +128,14 @@ define(['d3', 'jquery'], function (d3) {
 
             legend.append('rect')
                 .attr('x', margin.left - 63)
-                .attr('y', (d, i) => getLegendY(params, d, i))
+                .attr('y', getLegendY)
                 .attr('height', 18)
                 .attr('width', 18)
                 .attr('fill', d => color(d));
 
             legend.append('text')
                 .attr('x', margin.left - 70)
-                .attr('y', (d, i) => getLegendY(params, d, i))
+                .attr('y', getLegendY)
                 .text(d => d)
                 .attr('dy', '.95em')
                 .style('text-anchor', 'end');
@@ -240,11 +240,11 @@ define(['d3', 'jquery'], function (d3) {
                 .transition()
                 .duration(transDuration)
                 .attr('height', d => choice(chosen.cluster, d, 18, 18, 0))
-                .attr('y', (d, i) => getLegendY(params, d, i));
+                .attr('y', getLegendY)
             legend.selectAll('text')
                 .transition()
                 .duration(transDuration)
-                .attr('y', (d, i) => getLegendY(params, d, i))
+                .attr('y', getLegendY)
                 .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,

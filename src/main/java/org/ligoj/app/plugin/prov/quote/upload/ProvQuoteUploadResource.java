@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -261,11 +261,11 @@ public class ProvQuoteUploadResource {
 		});
 
 		// Check the mandatory headers
-		CollectionUtils.removeAll(MINIMAL_HEADERS_INSTANCE, mapped.keySet()).stream().findFirst().ifPresent(hi -> {
-			CollectionUtils.removeAll(MINIMAL_HEADERS_DATABASE, mapped.keySet()).stream().findFirst().ifPresent(hd -> {
-				throw new ValidationJsonException(CSV_FILE, "missing-header", "header", hd);
-			});
-		});
+		CollectionUtils.removeAll(MINIMAL_HEADERS_INSTANCE, mapped.keySet()).stream().findFirst()
+				.ifPresent(hi -> CollectionUtils.removeAll(MINIMAL_HEADERS_DATABASE, mapped.keySet()).stream()
+						.findFirst().ifPresent(hd -> {
+							throw new ValidationJsonException(CSV_FILE, "missing-header", "header", hd);
+						}));
 
 		// Return validated header and dropped ones : empty string = ""
 		return Arrays.stream(headers).map(MapUtils.invertMap(mapped)::get).map(StringUtils::trimToEmpty)
@@ -383,31 +383,6 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning : flushing");
 	}
 
-	private void persist(final int subscription, final String usage, final MergeMode mode, final Integer ramMultiplier,
-			final List<VmUpload> list, final AtomicInteger cursor, final UploadContext context, VmUpload i) {
-		if (StringUtils.isNotEmpty(i.getEngine())) {
-			// Database case
-			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
-			vo.setPrice(
-					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, usage, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
-					ResourceType.DATABASE);
-		} else {
-			// Instance case
-			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
-			vo.setPrice(
-					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, usage, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
-					ResourceType.INSTANCE);
-		}
-		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
-		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
-			log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
-		}
-	}
-
 	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
 			final String usage, final Integer ramMultiplier, final V vo) {
 		// Validate the upload object
@@ -463,13 +438,38 @@ public class ProvQuoteUploadResource {
 		return vo;
 	}
 
+	private void persist(final int subscription, final String usage, final MergeMode mode, final Integer ramMultiplier,
+			final List<VmUpload> list, final AtomicInteger cursor, final UploadContext context, VmUpload i) {
+		if (StringUtils.isNotEmpty(i.getEngine())) {
+			// Database case
+			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
+			vo.setPrice(
+					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
+			persist(i, subscription, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
+					ResourceType.DATABASE);
+		} else {
+			// Instance case
+			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
+			vo.setPrice(
+					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
+			persist(i, subscription, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
+					ResourceType.INSTANCE);
+		}
+		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
+		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
+			log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
+		}
+	}
+
 	/**
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
 	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
-			final String usage, final Integer ramMultiplier, final BiFunction<V, UploadContext, Integer> merger,
-			final UploadContext context, final V vo, final BiConsumer<QuoteStorageEditionVo, Integer> diskConsumer,
+			final Integer ramMultiplier, final BiFunction<V, UploadContext, Integer> merger,
+			final UploadContext context, final V vo, final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer,
 			final ResourceType resourceType) {
 
 		// Create the quote instance from the validated inputs
