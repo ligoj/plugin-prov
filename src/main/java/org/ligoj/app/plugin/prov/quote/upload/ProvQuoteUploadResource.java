@@ -446,7 +446,7 @@ public class ProvQuoteUploadResource {
 			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
 			vo.setPrice(
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
+			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
 					ResourceType.DATABASE);
 		} else {
 			// Instance case
@@ -454,7 +454,7 @@ public class ProvQuoteUploadResource {
 			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
 			vo.setPrice(
 					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, ramMultiplier, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
+			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
 					ResourceType.INSTANCE);
 		}
 		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
@@ -468,9 +468,8 @@ public class ProvQuoteUploadResource {
 	 * {@link ProvQuoteStorage} entities.
 	 */
 	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
-			final Integer ramMultiplier, final BiFunction<V, UploadContext, Integer> merger,
-			final UploadContext context, final V vo, final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer,
-			final ResourceType resourceType) {
+			final BiFunction<V, UploadContext, Integer> merger, final UploadContext context, final V vo,
+			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 
 		// Create the quote instance from the validated inputs
 		final var id = merger.apply(vo, context);
