@@ -235,6 +235,23 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Advanced case, all requirements.
+	 */
+	@Test
+	void lookupConvertibleEngine() throws IOException {
+		final var lookup = qbResource.lookup(subscription,
+				builder().cpu(1).location("region-5").engine("MYSQL").usage("Full Time Convertible").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("database2", pi.getType().getName());
+		Assertions.assertEquals(190.0, pi.getCost(), DELTA);
+		Assertions.assertEquals("MYSQLE5", pi.getCode());
+		Assertions.assertEquals("on-demandE5", pi.getTerm().getName());
+		Assertions.assertEquals("region-5", pi.getTerm().getLocation().getName());
+		Assertions.assertTrue(pi.getTerm().getConvertibleEngine());
+	}
+
+	/**
 	 * Search instance type within a non existing region
 	 */
 	@Test
@@ -600,14 +617,14 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceTerms() {
 		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo());
-		Assertions.assertEquals(4, tableItem.getRecordsTotal());
+		Assertions.assertEquals(5, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	void findInstancePriceTermsCriteria() {
 		final var tableItem = qbResource.findPriceTerms(subscription, newUriInfo("deMand"));
-		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 

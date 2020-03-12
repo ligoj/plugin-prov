@@ -169,7 +169,7 @@ public class ProvQuoteDatabaseResource extends
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
-		final var editionR = normalize(query.getEdition());
+		final var editionR = normalize(query.getEdition());iptRepository.findAll();
 		return ipRepository.findLowestPrice(types, location, rate, duration, licenseR, engineR, editionR,
 				PageRequest.of(0, 1));
 	}

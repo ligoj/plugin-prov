@@ -10,6 +10,7 @@ configuration.id!;name;rate;duration;convertibleOs;convertibleEngine;convertible
 1;Dev 11 month;25;11
 1;Dev 12 month;25;12
 1;Dev 13 month;25;13
-1;Full Time global;100;12;false;false;true;true;true;false
+1;Full Time Convertible;100;12;true;true;false;false;false;false
+1;Full Time Global;100;12;false;false;false;false;true;false
 2;Dev;25
 2;Full Time2;100

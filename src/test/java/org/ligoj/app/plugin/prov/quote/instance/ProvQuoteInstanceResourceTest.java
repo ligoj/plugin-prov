@@ -295,12 +295,21 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Advanced case, all requirements.
+	 * Advanced case, term's location constraints.
 	 */
 	@Test
-	void lookupTermConstraints() throws IOException {
+	void lookupConvertibleKo() throws IOException {
+		Assertions.assertNull(qiResource.lookup(subscription,
+				builder().cpu(1).usage("Full Time Global").location("region-1").build()));
+	}
+
+	/**
+	 * Convertible location
+	 */
+	@Test
+	void lookupConvertibleLocation() throws IOException {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).usage("Full Time global").location("region-5").build());
+				builder().cpu(1).usage("Full Time Global").location("region-5").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance5", pi.getType().getName());
@@ -313,6 +322,34 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(pi.getTerm().getConvertibleType());
 		Assertions.assertTrue(pi.getTerm().getConvertibleLocation());
 		Assertions.assertFalse(pi.getTerm().getReservation());
+	}
+	/**
+	 * Convertible OS
+	 */
+	@Test
+	void lookupConvertibleOs() throws IOException {
+		final var lookup = qiResource.lookup(subscription,
+				builder().cpu(1).location("region-5").os(VmOs.LINUX).usage("Full Time Convertible").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(102.48, pi.getCost(), DELTA);
+		Assertions.assertEquals("C11", pi.getCode());
+		Assertions.assertEquals("1y", pi.getTerm().getName());
+	}
+
+	/**
+	 * Advanced case, all requirements.
+	 */
+	@Test
+	void lookupConvertibleLocationOnGlobal() throws IOException {
+		final var lookup = qiResource.lookup(subscription,
+				builder().cpu(1).usage("Full Time 12 month").location("region-5").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(102.48, pi.getCost(), DELTA);
+		Assertions.assertEquals("1y", pi.getTerm().getName());
 	}
 
 	/**
@@ -933,14 +970,14 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceTerms() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo());
-		Assertions.assertEquals(4, tableItem.getRecordsTotal());
+		Assertions.assertEquals(5, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
 	@Test
 	void findInstancePriceTermsCriteria() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo("deMand"));
-		Assertions.assertEquals(3, tableItem.getRecordsTotal());
+		Assertions.assertEquals(4, tableItem.getRecordsTotal());
 		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
 	}
 
