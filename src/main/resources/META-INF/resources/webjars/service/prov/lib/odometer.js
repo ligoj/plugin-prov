@@ -379,7 +379,7 @@ define(['jquery'], function () {
       };
 
       Odometer.prototype.insertDigit = function (digit, before) {
-        if (before !== null) {
+        if (before != null) {
           return this.inside.insertBefore(digit, before);
         }
         if (!this.inside.children.length) {
