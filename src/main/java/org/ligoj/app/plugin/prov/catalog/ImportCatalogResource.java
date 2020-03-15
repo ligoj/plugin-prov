@@ -96,13 +96,27 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	/**
 	 * Update the catalog prices of related provider. Asynchronous operation.
 	 *
-	 * @param node
-	 *            The node (provider) to update.
+	 * @param node  The node (provider) to update.
+	 * @param force When <code>true</code>, all cost attributes are update.
 	 * @return The catalog status.
 	 */
 	@POST
 	@Path("{node:service:prov:.+}")
 	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node) {
+		return updateCatalog(node, false);
+	}
+
+	/**
+	 * Update the catalog prices of related provider. Asynchronous operation.
+	 *
+	 * @param node  The node (provider) to update.
+	 * @param force When <code>true</code>, all cost attributes are update.
+	 * @return The catalog status.
+	 */
+	@POST
+	@Path("{node:service:prov:.+}/{force}")
+	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node,
+			@PathParam("force") final boolean force) {
 		final var entity = nodeResource.checkWritableNode(node).getTool();
 		final var catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
 		final var task = startTask(entity.getId(), t -> {
@@ -119,7 +133,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
-			updateCatalog(catalogService, entity.getId());
+			updateCatalog(catalogService, entity.getId(), force);
 			return null;
 		});
 		return task;
@@ -128,17 +142,26 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	/**
 	 * Update the catalog of given node. Synchronous operation.
 	 *
-	 * @param catalogService
-	 *            The catalog service related to the provider.
-	 * @param node
-	 *            The node to update.
+	 * @param catalogService The catalog service related to the provider.
+	 * @param node           The node to update.
 	 */
 	protected void updateCatalog(final ImportCatalogService catalogService, final String node) {
+		updateCatalog(catalogService, node, false);
+	}
+
+	/**
+	 * Update the catalog of given node. Synchronous operation.
+	 *
+	 * @param catalogService The catalog service related to the provider.
+	 * @param force          When <code>true</code>, all cost attributes are update.
+	 * @param node           The node to update.
+	 */
+	protected void updateCatalog(final ImportCatalogService catalogService, final String node, final boolean force) {
 		// Restore the context
 		log.info("Catalog update for {}", node);
-        var failed = true;
+		var failed = true;
 		try {
-			catalogService.updateCatalog(node);
+			catalogService.updateCatalog(node, force);
 			log.info("Catalog update succeed for {}", node);
 			failed = false;
 		} catch (final Exception e) {
@@ -175,8 +198,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	/**
 	 * Update the statistics of a catalog update task.
 	 *
-	 * @param task
-	 *            The task status to update.
+	 * @param task The task status to update.
 	 */
 	public void updateStats(final ImportCatalogStatus task) {
 		updateStats(task, task.getLocked().getId());
@@ -185,10 +207,8 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	/**
 	 * Update the statistics of a catalog update task.
 	 *
-	 * @param task
-	 *            The task status to update.
-	 * @param node
-	 *            The node identifier.
+	 * @param task The task status to update.
+	 * @param node The node identifier.
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
 		task.setNbInstancePrices(
@@ -206,12 +226,12 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	@GET
 	public List<CatalogVo> findAll() {
 		// Get all catalogs
-		final var statuses = taskRepository.findAllVisible(securityHelper.getLogin())
-				.stream().collect(Collectors.toMap(s -> s.getLocked().getId(), Function.identity()));
+		final var statuses = taskRepository.findAllVisible(securityHelper.getLogin()).stream()
+				.collect(Collectors.toMap(s -> s.getLocked().getId(), Function.identity()));
 
 		// Complete with nodes without populated catalog
-		final var providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "",
-				ProvResource.SERVICE_KEY, null, 1, PageRequest.of(0, 100));
+		final var providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "", ProvResource.SERVICE_KEY,
+				null, 1, PageRequest.of(0, 100));
 
 		return providers.getContent().stream().sorted().map(NodeResource::toVo)
 				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {

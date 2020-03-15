@@ -3,22 +3,28 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.model.*;
+import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
+import org.ligoj.app.plugin.prov.model.Rate;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Test class of {@link AbstractImportCatalogResource}
@@ -55,9 +61,10 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final AbstractUpdateContext context = new AbstractUpdateContext() {
 			// Nothing
 		};
-		initContext(context, "service:prov:sample");
+		initContext(context, "service:prov:sample", true);
 		Assertions.assertNotNull(context.getNode());
 		Assertions.assertEquals(1, context.getHoursMonth());
+		Assertions.assertTrue(context.isForce());
 	}
 
 	@Test
@@ -192,17 +199,81 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
-		saveAsNeeded(entity, 1, 1, null, consumer);
+		saveAsNeeded(newContext(), entity, 1, 1, null, consumer);
 		Assertions.assertEquals("old", entity.getCode());
 	}
 
 	@Test
-	void saveAsNeededGb() {
+	void saveAsNeededForce() {
+		final var entity = new ProvInstancePrice();
+		entity.setCode("old");
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+		newContext.setForce(true);
+
+		// Force mode for same cost
+		saveAsNeeded(newContext, entity, 1, 1, c -> {
+		}, consumer);
+		Assertions.assertEquals("-updated-", entity.getCode());
+		Assertions.assertEquals("-updated-", entity.getCode());
+	}
+
+	@Test
+	void copyAsNeededForce() {
+		final var entity = new ProvInstancePrice();
+		entity.setCode("old");
+		entity.setId(1);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+		newContext.setForce(true);
+
+		// Force mode for same cost
+		copyAsNeeded(newContext, entity, consumer);
+		Assertions.assertEquals("-updated-", entity.getCode());
+	}
+
+	@Test
+	void copyAsNeededNew() {
+		final var entity = new ProvInstancePrice();
+		entity.setCode("old");
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+
+		// Force mode for same cost
+		copyAsNeeded(newContext, entity, consumer);
+		Assertions.assertEquals("-updated-", entity.getCode());
+	}
+
+	@Test
+	void copyAsNeededNo() {
+		final var entity = new ProvInstancePrice();
+		entity.setCode("old");
+		entity.setId(1);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+
+		// Force mode for same cost
+		copyAsNeeded(newContext, entity, consumer);
+		Assertions.assertEquals("old", entity.getCode());
+	}
+
+	@Test
+	void saveAsNeededCostGb() {
 		final var entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
-		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("code");
-		saveAsNeeded(entity, 1, consumer);
-		Assertions.assertEquals("code", entity.getCode());
+		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("-updated-");
+		saveAsNeeded(newContext(), entity, 1, consumer);
+		Assertions.assertEquals("-updated-", entity.getCode());
+	}
+
+	@Test
+	void saveAsNeededCostGbNo() {
+		final var entity = new ProvStoragePrice();
+		entity.setCostGb(1d);
+		entity.setCode("old");
+		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("-updated-");
+		saveAsNeeded(newContext(), entity, 1, consumer);
+		Assertions.assertEquals("old", entity.getCode());
 	}
 
 	@Test
@@ -210,7 +281,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final var entity = new ProvInstancePrice();
 		entity.setCost(2d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("code");
-		saveAsNeeded(entity, 1, consumer);
+		saveAsNeeded(newContext(), entity, 1, consumer);
 		Assertions.assertEquals("code", entity.getCode());
 	}
 

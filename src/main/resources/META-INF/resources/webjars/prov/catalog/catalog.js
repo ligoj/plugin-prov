@@ -84,7 +84,7 @@ define(['sparkline'], function () {
 					}
 				}, {
 					data: null,
-					width: '16px',
+					width: '32px',
 					orderable: false,
 					render: function (_i, _j, catalog) {
 						if (catalog.canImport) {
@@ -93,7 +93,16 @@ define(['sparkline'], function () {
 								return '<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>';
 							}
 							// Refresh button
-							return '<a class="import"><i class="fas fa-sync-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
+							return `<div class="input-group-btn catalog-import">
+								<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span><i class="fas fa-undo-alt fa-flip-horizontal" data-toggle="tooltip" title="${current.$messages.update}"></i></span>
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-right">
+									<li data-toggle="tooltip" title="${current.$messages['update-standard-help']}"><a class="import"><i class="fas fa-undo-alt"></i> ${current.$messages['update-standard']}</a></li>
+									<li data-toggle="tooltip" title="${current.$messages['update-force-help']}"><a class="import force"><i class="fas fa-sync-alt"></i> ${current.$messages['update-force']}</a></li>
+								</ul>
+							</div>`
 						}
 						// No update support
 						return '';
@@ -191,9 +200,10 @@ define(['sparkline'], function () {
 			var catalog = current.table.fnGetData($(this).closest('tr')[0]);
 			var id = catalog.node.id;
 			var name = catalog.node.name;
+			var force = $(this).is('.force');
 			$.ajax({
 				type: 'POST',
-				url: REST_PATH + 'service/prov/catalog/' + id,
+				url: REST_PATH + 'service/prov/catalog/' + id + '?force=' + force,
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages['status-started'])(name));
 					catalog.status.end = null;
@@ -273,10 +283,10 @@ define(['sparkline'], function () {
 					current.updateStatus(status, node);
 					if (status.end) {
 						current.unscheduleUploadStep(node);
-						return;
+					} else {
+						// Continue polling for this catalog
+						current.scheduleUploadStep(node);
 					}
-					// Continue polling for this catalog
-					current.scheduleUploadStep(node);
 				},
 				error: function () {
 					current.unscheduleUploadStep(node);

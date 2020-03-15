@@ -98,7 +98,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(0, status.getWorkload());
 		Assertions.assertFalse(resource.getTask("service:prov:test").isFinished());
 		Thread.sleep(100);
-		Mockito.verify(service).updateCatalog("service:prov:test");
+		Mockito.verify(service).updateCatalog("service:prov:test", false);
 	}
 
 	@Test
@@ -155,7 +155,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(17, status.getNbInstanceTypes().intValue()); // 13 + 3
 		Assertions.assertEquals(4, status.getNbLocations().intValue());
 		Assertions.assertEquals(6, status.getNbStorageTypes().intValue()); // 4 + 2
-		Mockito.verify(service).updateCatalog("service:prov:test");
+		Mockito.verify(service).updateCatalog("service:prov:test", false);
 	}
 
 	@Test
@@ -163,7 +163,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
 		final var service = Mockito.mock(ImportCatalogService.class);
-		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test");
+		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test", false);
 
 		resource.updateCatalog(service, "service:prov:test");
 		assertFailed(service);
@@ -174,7 +174,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
 		final var service = Mockito.mock(ImportCatalogService.class);
-		Mockito.doThrow(new AssertionError("my-assert")).when(service).updateCatalog("service:prov:test");
+		Mockito.doThrow(new AssertionError("my-assert")).when(service).updateCatalog("service:prov:test", false);
 
 		Assertions.assertThrows(AssertionError.class, () -> resource.updateCatalog(service, "service:prov:test"));
 		assertFailed(service);
@@ -197,7 +197,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(-1, status.getNbInstanceTypes().intValue());
 		Assertions.assertEquals(-1, status.getNbLocations().intValue());
 		Assertions.assertEquals(-1, status.getNbStorageTypes().intValue());
-		Mockito.verify(service).updateCatalog("service:prov:test");
+		Mockito.verify(service).updateCatalog("service:prov:test", false);
 	}
 
 	private ImportCatalogResource newResource() {
@@ -235,7 +235,7 @@ public class ImportCatalogResourceTest extends AbstractAppTest {
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
 		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
-		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test");
+		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test", false);
 
 		final var status = resource.updateCatalog("service:prov:test:account");
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());

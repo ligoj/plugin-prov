@@ -41,6 +41,7 @@ import org.ligoj.bootstrap.core.dao.csv.CsvForJpa;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Persistable;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -136,12 +137,14 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The context to initialize.
 	 * @param node    The provider node identifier.
+	 * @param force   When <code>true</code>, all cost attributes are update.
 	 * @param <U>     The context type.
 	 * @return The context parameter.
 	 */
-	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node) {
+	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node, final boolean force) {
 		context.setNode(nodeRepository.findOneExpected(node));
 		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH));
+		context.setForce(force);
 		return context;
 	}
 
@@ -362,21 +365,43 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 *
+	 * 
+	 * @param <T>        The price type's type.
+	 * @param <P>        The price type.
+	 * @param context    The context to initialize.
 	 * @param entity     The target entity to update.
 	 * @param oldCost    The old cost.
 	 * @param newCost    The new cost.
 	 * @param updateCost The consumer used to handle the price replacement operation if needed.
-	 * @param <N>        The price type's type.
-	 * @param <P>        The price type.
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
+	 * @return The given entity.
 	 */
-	protected <N extends ProvType, P extends AbstractPrice<N>> void saveAsNeeded(final P entity, final double oldCost,
-			final double newCost, final DoubleConsumer updateCost, final Consumer<P> persister) {
-		if (oldCost != newCost) {
+	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
+			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
+			final Consumer<P> persister) {
+		if (context.isForce() || oldCost != newCost) {
 			updateCost.accept(newCost);
 			persister.accept(entity);
 		}
+		return entity;
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 * 
+	 * @param <I>     The price type's type.
+	 * @param <P>     The price type.
+	 * @param context The context to initialize.
+	 * @param entity  The target entity to update.
+	 * @param updater The consumer used to persist the replacement. Usually a repository operation.
+	 * @return The given entity.
+	 */
+	protected <P extends Persistable<?>> P copyAsNeeded(final AbstractUpdateContext context, P entity,
+			Consumer<P> updater) {
+		if (context.isForce() || entity.getId() == null) {
+			updater.accept(entity);
+		}
+		return entity;
 	}
 
 	/**
@@ -384,25 +409,26 @@ public abstract class AbstractImportCatalogResource {
 	 * 
 	 * @param <T>       The price's type.
 	 * @param <P>       The instance type's type.
-	 *
+	 * @param context   The context to initialize.
 	 * @param entity    The target entity to update.
 	 * @param newCost   The new cost.
 	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(final P entity,
-			final double newCost, final Consumer<P> persister) {
-		saveAsNeeded(entity, entity.getCost(), newCost, entity::setCost, persister);
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
+			final AbstractUpdateContext context, final P entity, final double newCost, final Consumer<P> persister) {
+		saveAsNeeded(context, entity, entity.getCost(), newCost, entity::setCost, persister);
 	}
 
 	/**
 	 * Save a storage price when the attached cost is different from the old one.
 	 *
+	 * @param context   The context to initialize.
 	 * @param entity    The price entity.
 	 * @param newCostGb The new GiB cost.
 	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
 	 */
-	protected void saveAsNeeded(final ProvStoragePrice entity, final double newCostGb,
-			final Consumer<ProvStoragePrice> persister) {
-		saveAsNeeded(entity, entity.getCostGb(), newCostGb, entity::setCostGb, persister);
+	protected void saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
+			final double newCostGb, final Consumer<ProvStoragePrice> persister) {
+		saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, entity::setCostGb, persister);
 	}
 }

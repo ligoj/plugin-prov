@@ -21,7 +21,11 @@ define({
 		'status-not-supported': 'Version {{this}}, does not support remote catalog update, requires a plug-in update',
 		'status-no-version': 'Does not support remote catalog update, requires a plug-in update',
 		'status-new': 'Never updated',
-		'status-started': 'Catalog update request of {{this}} has been sent'
+		'status-started': 'Catalog update request of {{this}} has been sent',
+		'update-standard': 'Standard update',
+		'update-standard-help': 'Update the prices from the provider pricing list',
+		'update-force': 'Full update',
+		'update-force-help': 'Update the prices and the type configurations from the provider pricing list. Slower than standard mode.'
 	},
 	fr: true
 });

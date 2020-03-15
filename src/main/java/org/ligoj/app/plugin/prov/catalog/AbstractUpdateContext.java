@@ -33,6 +33,13 @@ public abstract class AbstractUpdateContext {
 	@Getter
 	@Setter
 	private Node node;
+	
+	/**
+	 * When <code>true</code>, all cost attributes are update.
+	 */
+	@Getter
+	@Setter
+	private boolean force;
 
 	/**
 	 * Mapping from API region identifier to region name.
