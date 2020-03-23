@@ -10,6 +10,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.DescribedBean;
 
@@ -123,7 +124,7 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private String license;
 
 	/**
-	 * Optional required type. Will be erased on refresh.
+	 * Optional required type's code. Will be erased on refresh.
 	 */
 	private String type;
 
@@ -136,4 +137,29 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * The instance could be terminated by the provider. Default <code>false</code>.
 	 */
 	private boolean ephemeral;
+
+	/**
+	 * Optional auto-scaling capability requirement.
+	 */
+	private boolean autoScale;
+
+	/**
+	 * Optional CPU rate requirement.
+	 */
+	private Rate cpuRate;
+
+	/**
+	 * Optional network rate requirement.
+	 */
+	private Rate networkRate;
+
+	/**
+	 * Optional storage rate requirement.
+	 */
+	private Rate storageRate;
+
+	/**
+	 * Optional RAM rate requirement.
+	 */
+	private Rate ramRate;
 }

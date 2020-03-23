@@ -6,17 +6,10 @@ package org.ligoj.app.plugin.prov.model;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-
-import org.ligoj.app.model.Node;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,8 +23,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_STORAGE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvStorageType extends AbstractDescribedEntity<Integer> implements ProvType {
+@Table(name = "LIGOJ_PROV_STORAGE_TYPE", uniqueConstraints = { @UniqueConstraint(columnNames = { "name", "node" }),
+		@UniqueConstraint(columnNames = { "code", "node" }) })
+public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 
 	/**
 	 * SID
@@ -72,14 +66,26 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	private int throughput;
 
 	/**
-	 * When not <code>null</code>, this storage can attached to an instance whose type is matching the expression.
+	 * When not <code>null</code>, this storage can only be attached to an instance whose type's code is matching the
+	 * expression.
 	 */
 	private String instanceType = null;
 
 	/**
-	 * When not <code>null</code>, this storage can attached to an database whose type is matching the expression.
+	 * When not <code>null</code>, this storage can not be attached to an instance whose type's code is matching the
+	 * expression.
+	 */
+	private String notInstanceType = null;
+
+	/**
+	 * When not <code>null</code>, this storage can only attached to an database whose type is matching the expression.
 	 */
 	private String databaseType = null;
+
+	/**
+	 * When not <code>null</code>, this storage cannot be attached to an database whose type is matching the expression.
+	 */
+	private String notDatabaseType = null;
 
 	/**
 	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
@@ -88,14 +94,6 @@ public class ProvStorageType extends AbstractDescribedEntity<Integer> implements
 	 * @see {@link ProvDatabasePrice#getStorageEngine()}
 	 */
 	private String engine;
-
-	/**
-	 * The enabled provider.
-	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private Node node;
 
 	/**
 	 * Optional advertised availability. When <code>null</code>, the availability is not provided.

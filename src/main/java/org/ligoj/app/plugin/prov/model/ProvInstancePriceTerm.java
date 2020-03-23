@@ -4,18 +4,13 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.api.NodeScoped;
-import org.ligoj.app.model.Node;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
@@ -27,8 +22,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TERM", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> implements NodeScoped {
+@Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TERM", uniqueConstraints = {
+		@UniqueConstraint(columnNames = { "name", "node" }), @UniqueConstraint(columnNames = { "code", "node" }) })
+public class ProvInstancePriceTerm extends AbstractCodedEntity implements NodeScoped {
 
 	/**
 	 * SID
@@ -42,14 +38,6 @@ public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> impl
 	private double period = 0;
 
 	/**
-	 * The related node (VM provider) of this instance.
-	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private Node node;
-
-	/**
 	 * The price may vary within the period.
 	 */
 	private boolean variable;
@@ -58,12 +46,6 @@ public class ProvInstancePriceTerm extends AbstractDescribedEntity<Integer> impl
 	 * The instance could be terminated by the provider.
 	 */
 	private boolean ephemeral;
-
-	/**
-	 * The internal offer code.
-	 */
-	@NotNull
-	private String code;
 
 	/**
 	 * When <code>true</code>, the resolved OS may be changed during the commitment, otherwise is <code>false</code>.

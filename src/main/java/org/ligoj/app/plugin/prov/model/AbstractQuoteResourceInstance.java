@@ -6,6 +6,8 @@ package org.ligoj.app.plugin.prov.model;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
@@ -124,6 +126,35 @@ public abstract class AbstractQuoteResourceInstance<P extends AbstractPrice<?>> 
 	 * The instance could be terminated by the provider.
 	 */
 	private boolean ephemeral;
+
+	/**
+	 * Optional auto-scaling capability requirement. When <code>true</code>, auto-scale must be supported.
+	 */
+	private boolean autoScale;
+
+	/**
+	 * Optional CPU rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate cpuRate;
+
+	/**
+	 * Optional network rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate networkRate;
+
+	/**
+	 * Optional storage rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate storageRate;
+
+	/**
+	 * Optional RAM rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate ramRate;
 
 	@Override
 	@JsonIgnore

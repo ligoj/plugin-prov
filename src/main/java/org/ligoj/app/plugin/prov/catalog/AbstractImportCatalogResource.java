@@ -248,6 +248,16 @@ public abstract class AbstractImportCatalogResource {
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final VmOs os) {
 		return isEnabledOs(context, os.name());
 	}
+	/**
+	 * Indicate the given engine is enabled.
+	 *
+	 * @param context The update context.
+	 * @param os      The engine to test.
+	 * @return <code>true</code> when the configuration enable the given engine.
+	 */
+	protected boolean isEnabledEngine(final AbstractUpdateContext context, final String engine) {
+		return context.getValidDatabaseEngine().matcher(engine.toUpperCase(Locale.ENGLISH)).matches();
+	}
 
 	/**
 	 * Indicate the given OS is enabled.

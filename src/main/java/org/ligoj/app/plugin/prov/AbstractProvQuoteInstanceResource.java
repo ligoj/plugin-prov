@@ -154,6 +154,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
+		entity.setAutoScale(vo.isAutoScale());
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 
@@ -275,12 +276,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
-	 * @param type         The type name.May be <code>null</code>.
+	 * @param type         The type's code.May be <code>null</code>.
 	 * @return The instance type identifier. Will be <code>null</code> only when the given name was <code>null</code>
 	 *         too.
 	 */
 	protected Integer getType(final int subscription, final String type) {
-		return type == null ? null : assertFound(getItRepository().findByName(subscription, type), type).getId();
+		return type == null ? null : assertFound(getItRepository().findByCode(subscription, type), type).getId();
 	}
 
 	/**
@@ -520,7 +521,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var typeId = getType(subscription, query.getType());
 
 		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
-				procR);
+				procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(), query.getNetworkRate(),
+				query.getStorageRate());
 
 		final var terms = iptRepository.findValidTerms(node, getResourceType() == ResourceType.INSTANCE && convOs,
 				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,
@@ -534,7 +536,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Dynamic type test
 		if (getItRepository().hasDynamicalTypes(node)) {
-			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR);
+			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR,
+					query.isAutoScale(), query.getCpuRate(), query.getRamRate(), query.getNetworkRate(),
+					query.getStorageRate());
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, ramR, locationR, rate,
@@ -613,5 +617,15 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected double toTotalCost(final Object[] lookup) {
 		return ((Double) lookup[1]);
+	}
+
+	/**
+	 * Return a normalized form a string.
+	 * 
+	 * @param value The raw value.
+	 * @return The normalized value.
+	 */
+	protected String normalize(final String value) {
+		return StringUtils.trimToNull(StringUtils.upperCase(value));
 	}
 }

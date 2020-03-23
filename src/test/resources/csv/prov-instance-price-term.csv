@@ -4,4 +4,4 @@ service:prov:test;on-demand2;B;0;1 hour fragment;true;true
 service:prov:test;on-demandR5;C;0;Location constraint - region-5;false;true;region-5;false;false;true;true;true;false
 service:prov:test;on-demandE5;E;0;Engine convertible - region-5;false;false;region-5;true;true;false;false;false;false
 service:prov:x;1y;D;12;1 year fragment;true;true;;false;false;false;false;false;true
-service:prov:test;1y;C;12;1 year fragment;;;;true;true;false;false;false;true
+service:prov:test;1y;D;12;1 year fragment;;;;true;true;false;false;false;true

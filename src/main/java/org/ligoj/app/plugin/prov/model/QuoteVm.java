@@ -46,20 +46,19 @@ public interface QuoteVm {
 	Boolean getConstant();
 
 	/**
-	 * Optional physical processor.
-	 * Return Optional physical processor.
+	 * Optional physical processor. Return Optional physical processor.
 	 *
 	 * @return Optional physical processor.
 	 */
 	String getProcessor();
 
 	/**
-	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual.
-	 * Return Optional physical processor.
+	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual. Return
+	 * Optional physical processor.
 	 *
 	 * @return Optional physical processor.
 	 */
-	 Boolean getPhysical();
+	Boolean getPhysical();
 
 	/**
 	 * Return optional instance type name. May be <code>null</code>.
@@ -92,12 +91,28 @@ public interface QuoteVm {
 	String getLicense();
 
 	/**
-	 * Return Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
+	 * Return optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
 	 * accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 *
 	 * @return Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
 	 *         accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 */
 	boolean isEphemeral();
+
+	/**
+	 * Return optional auto-scaling capability requirement.
+	 *
+	 * @return Optional auto-scaling capability requirement.
+	 */
+	boolean isAutoScale();
+
+
+	 Rate getCpuRate();
+
+	 Rate getNetworkRate();
+
+	 Rate getStorageRate();
+
+	 Rate getRamRate();
 
 }

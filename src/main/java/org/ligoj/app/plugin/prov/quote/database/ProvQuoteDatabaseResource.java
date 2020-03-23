@@ -169,7 +169,7 @@ public class ProvQuoteDatabaseResource extends
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
-		final var editionR = normalize(query.getEdition());iptRepository.findAll();
+		final var editionR = normalize(query.getEdition());
 		return ipRepository.findLowestPrice(types, location, rate, duration, licenseR, engineR, editionR,
 				PageRequest.of(0, 1));
 	}
@@ -183,10 +183,6 @@ public class ProvQuoteDatabaseResource extends
 		final var editionR = normalize(query.getEdition());
 		return ipRepository.findLowestDynamicPrice(types, terms, cpu, ram, engineR, editionR, location, rate, duration,
 				licenseR, PageRequest.of(0, 1));
-	}
-
-	private String normalize(final String value) {
-		return StringUtils.trimToNull(StringUtils.upperCase(value));
 	}
 
 	private boolean canByol(final String engine) {

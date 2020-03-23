@@ -16,7 +16,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_INSTANCE_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
+@Table(name = "LIGOJ_PROV_INSTANCE_TYPE", uniqueConstraints = { @UniqueConstraint(columnNames = { "name", "node" }),
+		@UniqueConstraint(columnNames = { "code", "node" }) })
 public class ProvInstanceType extends AbstractInstanceType {
 
 	/**

@@ -5,13 +5,8 @@ package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
-
-import org.ligoj.app.model.Node;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -24,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integer> implements ProvType {
+public abstract class AbstractInstanceType extends AbstractCodedEntity implements ProvType {
 
 	/**
 	 * SID
@@ -88,12 +83,9 @@ public abstract class AbstractInstanceType extends AbstractDescribedEntity<Integ
 	private Boolean constant;
 
 	/**
-	 * The related node (VM provider) of this instance.
+	 * Optional auto-scaling capability requirement. When <code>true</code>, auto-scale must be supported.
 	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private Node node;
+	private boolean autoScale;
 
 	/**
 	 * Indicates this instance is customizable.

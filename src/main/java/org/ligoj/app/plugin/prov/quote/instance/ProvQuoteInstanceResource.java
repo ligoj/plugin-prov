@@ -169,8 +169,8 @@ public class ProvQuoteInstanceResource extends
 			final int duration) {
 		// Resolve the right license model
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
-		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
-		final var softwareR = StringUtils.trimToNull(query.getSoftware());
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var softwareR = normalize(query.getSoftware());
 		return ipRepository.findLowestPrice(types, terms, os, location, rate, duration, licenseR, softwareR,
 				PageRequest.of(0, 1));
 	}
@@ -181,8 +181,8 @@ public class ProvQuoteInstanceResource extends
 			final int location, final double rate, final int duration) {
 		// Resolve the right license model
 		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
-		final var licenseR = getLicense(configuration, query.getLicense(), os, this::canByol);
-		final var softwareR = StringUtils.trimToNull(query.getSoftware());
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var softwareR = normalize(query.getSoftware());
 		return ipRepository.findLowestDynamicPrice(types, terms, cpu, ram, os, location, rate, duration, licenseR,
 				softwareR, PageRequest.of(0, 1));
 	}

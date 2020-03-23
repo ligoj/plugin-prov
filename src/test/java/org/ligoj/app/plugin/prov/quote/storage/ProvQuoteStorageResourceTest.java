@@ -692,11 +692,12 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
-		Assertions.assertTrue(asJson.endsWith("\"name\":\"storage1\",\"description\":\"storageD1\",\"latency\":\"good\""
-				+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
-				+ ",\"instanceType\":\"%\",\"databaseType\":null,\"engine\":null"
-				+ ",\"availability\":99.99,\"durability9\":11,\"network\":\"443/tcp\"}"
-				+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
+		Assertions.assertTrue(asJson.endsWith(
+				"\"name\":\"storage1\",\"description\":\"storageD1\",\"code\":\"storage1\",\"latency\":\"good\""
+						+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
+						+ ",\"instanceType\":\"%\",\"databaseType\":null,\"engine\":null"
+						+ ",\"availability\":99.99,\"durability9\":11,\"network\":\"443/tcp\"}"
+						+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 
 		// Check the storage result
 		assertCSP(lookup);
@@ -731,6 +732,39 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("storage1",
 				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(999).latency(Rate.MEDIUM).build())
 						.get(0).getPrice().getType().getName());
+	}
+
+	/**
+	 * Lookup for a storage compatible to instance.
+	 */
+	@Test
+	void lookupStorageInstance() {
+		var server1 = qiRepository.findByName("server1");
+		var serverId = server1.getId();
+		var server1Type = server1.getPrice().getType();
+		Assertions.assertEquals("instance1", server1Type.getCode());
+
+		var lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		Assertions.assertEquals("storage1", lookup.getPrice().getType().getCode());
+
+		lookup.getPrice().getType().setInstanceType("-not-match-");
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		Assertions.assertEquals("storage4", lookup.getPrice().getType().getCode());
+
+		lookup.getPrice().getType().setNotInstanceType("-not-match-");
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		Assertions.assertEquals("storage4", lookup.getPrice().getType().getCode());
+
+		lookup.getPrice().getType().setNotInstanceType("%ance1");
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
+
+		lookup.getPrice().getType().setInstanceType("%ance1");
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
+
+		lookup.getPrice().getType().setNotInstanceType("%ance_");
+		Assertions.assertEquals(0,qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).size());
 	}
 
 	/**

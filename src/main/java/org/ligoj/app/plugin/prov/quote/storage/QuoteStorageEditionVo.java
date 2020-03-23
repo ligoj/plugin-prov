@@ -74,7 +74,7 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private ProvStorageOptimized optimized;
 
 	/**
-	 * Related storage type name within the given location.
+	 * Related storage type code within the given location.
 	 */
 	@NotNull
 	private String type;

@@ -9,6 +9,7 @@ import javax.cache.annotation.CacheKey;
 import javax.cache.annotation.CacheResult;
 
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
+import org.ligoj.app.plugin.prov.model.Rate;
 
 /**
  * {@link ProvDatabaseType} repository.
@@ -17,12 +18,15 @@ public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeReposito
 	@CacheResult(cacheName = "prov-database-type")
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey int ram,
-			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor);
+			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor,
+			@CacheKey boolean autoScale, @CacheKey Rate storageRate, @CacheKey Rate networkRate, @CacheKey Rate ramRate,
+			@CacheKey Rate cpuRate);
 
 	@CacheResult(cacheName = "prov-database-type-dyn")
 	@Override
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor);
+			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate storageRate,
+			@CacheKey Rate networkRate, @CacheKey Rate ramRate, @CacheKey Rate cpuRate);
 
 	@CacheResult(cacheName = "prov-database-type-has-dyn")
 	@Override

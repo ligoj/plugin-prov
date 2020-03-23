@@ -37,6 +37,7 @@ import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -128,10 +129,10 @@ public class ProvQuoteStorageResource
 	/**
 	 * Check and return the storage price matching to the requirements and related name.
 	 */
-	private ProvStoragePrice findByTypeName(final int subscription, final String name, final String location,
+	private ProvStoragePrice findByTypeCode(final int subscription, final String code, final ProvLocation location,
 			final ProvQuote quote) {
-		return assertFound(spRepository.findByTypeName(subscription, name,
-				Optional.ofNullable(location).orElse(quote.getLocation().getName())), name);
+		return assertFound(spRepository.findByTypeCode(subscription, code,
+				Optional.ofNullable(location).orElse(quote.getLocation()).getId()), code);
 	}
 
 	/**
@@ -151,7 +152,7 @@ public class ProvQuoteStorageResource
 		final var node = quote.getSubscription().getNode().getRefined().getId();
 		entity.setConfiguration(quote);
 		entity.setLocation(resource.findLocation(node, vo.getLocation()));
-		entity.setPrice(findByTypeName(subscription, vo.getType(), vo.getLocation(), quote));
+		entity.setPrice(findByTypeCode(subscription, vo.getType(), entity.getLocation(), quote));
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
@@ -164,7 +165,7 @@ public class ProvQuoteStorageResource
 		if (lookup(quote, entity, entity.getQuoteInstance(), entity.getQuoteDatabase()).stream()
 				.map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
-			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getName());
+			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getCode());
 		}
 
 		// Save and update the costs

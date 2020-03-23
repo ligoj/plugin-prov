@@ -8,6 +8,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.model.QuoteVm;
+import org.ligoj.app.plugin.prov.model.Rate;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -42,7 +43,7 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@PositiveOrZero
 	@QueryParam("cpuMax")
 	private Double cpuMax;
-
+	
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
 	 * 
@@ -55,6 +56,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("constant")
 	private Boolean constant;
 
+	/**
+	 * Code of required instance type.
+	 */
 	@QueryParam("type")
 	private String type;
 
@@ -81,6 +85,24 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 
 	@QueryParam("ephemeral")
 	private boolean ephemeral;
+
+	/**
+	 * Optional auto-scaling capability requirement.
+	 */
+	@QueryParam("autoScale")
+	private boolean autoScale;
+
+	@QueryParam("cpuRate")
+	private Rate cpuRate;
+
+	@QueryParam("networkRate")
+	private Rate networkRate;
+
+	@QueryParam("storageRate")
+	private Rate storageRate;
+
+	@QueryParam("ramRate")
+	private Rate ramRate;
 
 	@Override
 	public String getLocationName() {
