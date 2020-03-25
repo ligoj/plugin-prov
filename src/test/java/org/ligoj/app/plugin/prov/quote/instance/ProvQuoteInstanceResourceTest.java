@@ -1019,7 +1019,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findSoftwares() {
 		final var tableItem = qiResource.findSoftwares(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(1, tableItem.size());
-		Assertions.assertEquals("SQL Web", tableItem.get(0));
+		Assertions.assertEquals("SQL WEB", tableItem.get(0));
 	}
 
 	@Test

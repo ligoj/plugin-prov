@@ -548,12 +548,12 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Test
 	void uploadSoftware() throws IOException {
-		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;WINDOWS;SQL Web", "UTF-8"),
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;WINDOWS;SQL WEB", "UTF-8"),
 				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", 1, "UTF-8");
 		var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("C121", configuration.getInstances().get(7).getPrice().getCode());
-		Assertions.assertEquals("SQL Web", configuration.getInstances().get(7).getPrice().getSoftware());
+		Assertions.assertEquals("SQL WEB", configuration.getInstances().get(7).getPrice().getSoftware());
 	}
 
 	@Test
