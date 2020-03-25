@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.ObjDoubleConsumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -253,11 +253,11 @@ public abstract class AbstractImportCatalogResource {
 	 * Indicate the given engine is enabled.
 	 *
 	 * @param context The update context.
-	 * @param os      The engine to test.
+	 * @param engine  The engine to test.
 	 * @return <code>true</code> when the configuration enable the given engine.
 	 */
 	protected boolean isEnabledEngine(final AbstractUpdateContext context, final String engine) {
-		return context.getValidDatabaseEngine().matcher(engine.toUpperCase(Locale.ENGLISH)).matches();
+		return context.getValidDatabaseEngine().matcher(engine).matches();
 	}
 
 	/**
@@ -405,7 +405,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <T>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
-	 * @param price     The target entity to update.
+	 * @param price      The target entity to update.
 	 * @param oldCost    The old cost.
 	 * @param newCost    The new cost.
 	 * @param updateCost The consumer used to handle the price replacement operation if needed.
@@ -413,7 +413,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @return The given entity.
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
-			final P price, final double oldCost, final double newCost, final BiConsumer<Double, Double> updateCost,
+			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
 		if (context.isForce() || oldCost != newCostR) {

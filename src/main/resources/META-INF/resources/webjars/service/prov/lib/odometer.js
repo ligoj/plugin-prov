@@ -128,7 +128,7 @@ define(['jquery'], function () {
 
     setTimeout(wrapJQuery, 0);
 
-    Odometer = (function () {
+    var exportOdometer = (function () {
       function Odometer(options) {
         var k, property, v, _base, _i, _len, _ref, _ref1, _ref2,
           _this = this;
@@ -247,15 +247,14 @@ define(['jquery'], function () {
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           event = _ref[_i];
           _results.push(this.el.addEventListener(event, function () {
-            if (renderEnqueued) {
-              return true;
+            if (!renderEnqueued) {
+              renderEnqueued = true;
+              setTimeout(function () {
+                _this.render();
+                renderEnqueued = false;
+                return trigger(_this.el, 'odometerdone');
+              }, 0);
             }
-            renderEnqueued = true;
-            setTimeout(function () {
-              _this.render();
-              renderEnqueued = false;
-              return trigger(_this.el, 'odometerdone');
-            }, 0);
             return true;
           }, false));
         }
@@ -594,6 +593,7 @@ define(['jquery'], function () {
       return Odometer;
 
     })();
+    Odometer = exportOdometer;
 
     Odometer.options = window.odometerOptions || {};
 
