@@ -45,7 +45,10 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 *         the computed price.
 	 */
 	@Query("SELECT sp, "
-			+ " (sp.cost + (CASE WHEN :size < st.minimal THEN st.minimal ELSE :size END) * sp.costGb) AS cost,  "
+			+ " (sp.cost + (CASE WHEN :size < st.minimal THEN st.minimal                        "
+			+ "                  WHEN st.increment IS NULL THEN :size                           "
+			+ "                  ELSE (CEIL(:size / st.increment)*st.increment)                 "
+			+ "             END) * sp.costGb) AS cost,                                          "
 			+ " st.latency AS latency FROM #{#entityName} AS sp INNER JOIN sp.type st           "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))                 "
 			+ " AND (:latency IS NULL OR st.latency >= :latency)                                "
@@ -82,7 +85,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			+ "      AND (type.code LIKE st.databaseType)                                       "
 			+ "      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))"
 			+ " ORDER BY cost ASC, latency DESC")
-	List<Object[]> findLowestPrice(String node, int size, Rate latency, Integer instance, Integer database,
+	List<Object[]> findLowestPrice(String node, double size, Rate latency, Integer instance, Integer database,
 			ProvStorageOptimized optimized, int location, int qLocation, Pageable pageable);
 
 	/**

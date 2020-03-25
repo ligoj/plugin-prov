@@ -48,12 +48,17 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	/**
 	 * The minimal disk size in "GiB".
 	 */
-	private int minimal = 1;
+	private double minimal = 1;
 
 	/**
 	 * The maximum supported size in "GiB". May be <code>null</code>.
 	 */
-	private Integer maximal;
+	private Double maximal;
+
+	/**
+	 * Optional increment size in "GiB". Default is <code>1</code>.
+	 */
+	private Double increment;
 
 	/**
 	 * Maximum IOPS. When <code>null</code> or <code>0</code>, is undefined.

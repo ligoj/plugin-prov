@@ -683,6 +683,42 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Lookup with increment enable
+	 */
+	@Test
+	void lookupStorageIncrement() throws IOException {
+		var lookups = qsResource.lookup(subscription, QuoteStorageQuery.builder().size(1024).build());
+		var lookup = lookups.get(0);
+		var price = lookup.getPrice();
+		Assertions.assertEquals("S3", price.getCode());
+		Assertions.assertEquals(155.6d, lookups.get(0).getCost(), DELTA);
+		Assertions.assertNull(price.getType().getIncrement());
+
+		// Change the increment for this type
+		price.getType().setIncrement(1000d);
+		stRepository.saveAndFlush(price.getType());
+
+		lookup = lookups.get(1);
+		price = lookup.getPrice();
+		Assertions.assertEquals("S1", price.getCode());
+		Assertions.assertEquals(215.04d, lookup.getCost(), DELTA);
+		Assertions.assertNull(price.getType().getIncrement());
+
+		lookups = qsResource.lookup(subscription, QuoteStorageQuery.builder().size(1024).build());
+		lookup = lookups.get(0);
+		price = lookup.getPrice();
+		Assertions.assertEquals("S1", price.getCode());
+		Assertions.assertEquals(215.04d, lookup.getCost(), DELTA);
+		Assertions.assertNull(price.getType().getIncrement());
+
+		lookup = lookups.get(1);
+		price = lookup.getPrice();
+		Assertions.assertEquals("S3", price.getCode());
+		Assertions.assertEquals(302.0d, lookup.getCost(), DELTA);
+		Assertions.assertEquals(1000d, price.getType().getIncrement(), DELTA);
+	}
+
+	/**
 	 * Advanced case, all requirements.
 	 */
 	@Test
@@ -694,11 +730,10 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"location\":\"region-1\",\"type\":{\"id\":"));
 		Assertions.assertTrue(asJson.endsWith(
 				"\"name\":\"storage1\",\"description\":\"storageD1\",\"code\":\"storage1\",\"latency\":\"good\""
-						+ ",\"optimized\":\"iops\",\"minimal\":1,\"maximal\":null,\"iops\":200,\"throughput\":60"
-						+ ",\"instanceType\":\"%\",\"databaseType\":null,\"engine\":null"
-						+ ",\"availability\":99.99,\"durability9\":11,\"network\":\"443/tcp\"}"
-						+ ",\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
-
+						+ ",\"optimized\":\"iops\",\"minimal\":1.0,\"maximal\":null,\"increment\":null,\"iops\":200,"
+						+ "\"throughput\":60,\"instanceType\":\"%\",\"notInstanceType\":null,\"databaseType\":null,"
+						+ "\"notDatabaseType\":null,\"engine\":null,\"availability\":99.99,\"durability9\":11,"
+						+ "\"network\":\"443/tcp\"},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"));
 		// Check the storage result
 		assertCSP(lookup);
 		Assertions.assertEquals(215.04, lookup.getCost(), DELTA);
@@ -764,7 +799,8 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setNotInstanceType("%ance_");
-		Assertions.assertEquals(0,qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).size());
+		Assertions.assertEquals(0,
+				qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).size());
 	}
 
 	/**

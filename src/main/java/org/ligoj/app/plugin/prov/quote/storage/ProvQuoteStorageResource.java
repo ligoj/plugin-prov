@@ -24,6 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
@@ -341,8 +342,9 @@ public class ProvQuoteStorageResource
 	 * @return The cost of this storage.
 	 */
 	private double getCost(final ProvStoragePrice storagePrice, final int size) {
-		return round(Math.max(size, storagePrice.getType().getMinimal()) * storagePrice.getCostGb()
-				+ storagePrice.getCost());
+		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
+		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment
+				* storagePrice.getCostGb() + storagePrice.getCost());
 	}
 
 	@Override

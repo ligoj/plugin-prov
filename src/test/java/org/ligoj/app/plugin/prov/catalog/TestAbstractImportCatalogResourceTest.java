@@ -17,6 +17,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
@@ -282,6 +283,22 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		// Force mode for same cost
 		copyAsNeeded(newContext, entity, consumer);
 		Assertions.assertEquals("old", entity.getCode());
+	}
+
+	@Test
+	void saveAsNeededCostPeriod() {
+		final var entity = new ProvInstancePrice();
+		final var term = new ProvInstancePriceTerm();
+		term.setPeriod(12d);
+		entity.setTerm(term );
+		entity.setCost(2d);
+		entity.setCostPeriod(24d);
+		@SuppressWarnings("unchecked")
+		final RestRepository<ProvInstancePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		saveAsNeeded(newContext(), entity, 3, repository);
+		Assertions.assertEquals(3, entity.getCost());
+		Assertions.assertEquals(36, entity.getCostPeriod());
+		Mockito.verify(repository).save(entity);
 	}
 
 	@Test
