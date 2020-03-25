@@ -21,6 +21,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.Mockito;
 
@@ -212,10 +213,36 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		newContext.setForce(true);
 
 		// Force mode for same cost
-		saveAsNeeded(newContext, entity, 1, 1, c -> {
+		saveAsNeeded(newContext, entity, 1, 1, (cRound, c) -> {
+			entity.setCost(cRound);
 		}, consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
+		Assertions.assertEquals(1, entity.getCost());
+	}
+
+	@Test
+	void saveAsNeeded() {
+		final var entity = new ProvInstancePrice();
+		entity.setCost(1d);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		saveAsNeeded(newContext(), entity, 2.013d, 2.01234d, (cRound, c) -> {
+			entity.setCost(cRound);
+		}, consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
+		Assertions.assertEquals(2.012d, entity.getCost());
+	}
+
+	@Test
+	void saveAsNeededSameRound() {
+		final var entity = new ProvInstancePrice();
+		entity.setCost(1d);
+		entity.setCode("old");
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
+		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> {
+			entity.setCost(cRound);
+		}, consumer);
+		Assertions.assertEquals("old", entity.getCode());
+		Assertions.assertEquals(1d, entity.getCost());
 	}
 
 	@Test
@@ -261,28 +288,22 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void saveAsNeededCostGb() {
 		final var entity = new ProvStoragePrice();
 		entity.setCostGb(2d);
-		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("-updated-");
-		saveAsNeeded(newContext(), entity, 1, consumer);
-		Assertions.assertEquals("-updated-", entity.getCode());
+		@SuppressWarnings("unchecked")
+		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		saveAsNeeded(newContext(), entity, 1, repository);
+		Assertions.assertEquals(1, entity.getCostGb());
+		Mockito.verify(repository).save(entity);
 	}
 
 	@Test
-	void saveAsNeededCostGbNo() {
+	void saveAsNeededCostGbNoChange() {
 		final var entity = new ProvStoragePrice();
 		entity.setCostGb(1d);
-		entity.setCode("old");
-		final Consumer<ProvStoragePrice> consumer = p -> p.setCode("-updated-");
-		saveAsNeeded(newContext(), entity, 1, consumer);
-		Assertions.assertEquals("old", entity.getCode());
-	}
-
-	@Test
-	void saveAsNeeded() {
-		final var entity = new ProvInstancePrice();
-		entity.setCost(2d);
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("code");
-		saveAsNeeded(newContext(), entity, 1, consumer);
-		Assertions.assertEquals("code", entity.getCode());
+		@SuppressWarnings("unchecked")
+		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		saveAsNeeded(newContext(), entity, 1, repository);
+		Assertions.assertEquals(1, entity.getCostGb());
+		Mockito.verify(repository, Mockito.never()).save(entity);
 	}
 
 	private void check(final String file, final Rate def) throws IOException {

@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +28,6 @@ import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
@@ -37,6 +36,7 @@ import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.dao.csv.CsvForJpa;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,6 +248,7 @@ public abstract class AbstractImportCatalogResource {
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final VmOs os) {
 		return isEnabledOs(context, os.name());
 	}
+
 	/**
 	 * Indicate the given engine is enabled.
 	 *
@@ -348,6 +349,31 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Update the current phase for statistics and add 1 to the processed workload.
+	 *
+	 * @param context The current import context.
+	 * @param phase   The new import phase.
+	 */
+	protected void nextStep(final AbstractUpdateContext context, final String phase) {
+		nextStep(context.getNode(), phase);
+	}
+
+	/**
+	 * Update the current phase for statistics and add 1 to the processed workload.
+	 *
+	 * @param node  The current import node.
+	 * @param phase The new import phase.
+	 */
+	protected void nextStep(final Node node, final String phase) {
+		importCatalogResource.nextStep(node.getId(), t -> {
+			importCatalogResource.updateStats(t);
+			t.setWorkload(getWorkload(t));
+			t.setDone(t.getDone() + 1);
+			t.setPhase(phase);
+		});
+	}
+
+	/**
 	 * Update the statistics.
 	 * 
 	 * @param node     The node provider.
@@ -379,7 +405,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <T>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
-	 * @param entity     The target entity to update.
+	 * @param price     The target entity to update.
 	 * @param oldCost    The old cost.
 	 * @param newCost    The new cost.
 	 * @param updateCost The consumer used to handle the price replacement operation if needed.
@@ -387,13 +413,47 @@ public abstract class AbstractImportCatalogResource {
 	 * @return The given entity.
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
-			final P entity, final double oldCost, final double newCost, final DoubleConsumer updateCost,
+			final P price, final double oldCost, final double newCost, final BiConsumer<Double, Double> updateCost,
 			final Consumer<P> persister) {
-		if (context.isForce() || oldCost != newCost) {
-			updateCost.accept(newCost);
-			persister.accept(entity);
+		final var newCostR = round3Decimals(newCost);
+		if (context.isForce() || oldCost != newCostR) {
+			updateCost.accept(newCostR, newCost);
+			persister.accept(price);
 		}
-		return entity;
+		return price;
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 * 
+	 * @param <T>         The price's type.
+	 * @param <P>         The instance type's type.
+	 * @param context     The context to initialize.
+	 * @param entity      The target entity to update.
+	 * @param newCost     The new cost.
+	 * @param repositorty The repository for persist.
+	 */
+	protected <T extends ProvType, P extends AbstractTermPrice<T>> void saveAsNeeded(
+			final AbstractUpdateContext context, final P entity, final double newCost,
+			final RestRepository<P, Integer> repositorty) {
+		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
+			entity.setCost(cR);
+			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
+		}, repositorty::save);
+	}
+
+	/**
+	 * Save a storage price when the attached cost is different from the old one.
+	 *
+	 * @param context   The context to initialize.
+	 * @param entity    The price entity.
+	 * @param newCostGb The new GiB cost.
+	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
+	 */
+	protected void saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
+			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
+		saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
+				repositorty::save);
 	}
 
 	/**
@@ -412,33 +472,5 @@ public abstract class AbstractImportCatalogResource {
 			updater.accept(entity);
 		}
 		return entity;
-	}
-
-	/**
-	 * Save a price when the attached cost is different from the old one.
-	 * 
-	 * @param <T>       The price's type.
-	 * @param <P>       The instance type's type.
-	 * @param context   The context to initialize.
-	 * @param entity    The target entity to update.
-	 * @param newCost   The new cost.
-	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
-	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
-			final AbstractUpdateContext context, final P entity, final double newCost, final Consumer<P> persister) {
-		saveAsNeeded(context, entity, entity.getCost(), newCost, entity::setCost, persister);
-	}
-
-	/**
-	 * Save a storage price when the attached cost is different from the old one.
-	 *
-	 * @param context   The context to initialize.
-	 * @param entity    The price entity.
-	 * @param newCostGb The new GiB cost.
-	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
-	 */
-	protected void saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
-			final double newCostGb, final Consumer<ProvStoragePrice> persister) {
-		saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, entity::setCostGb, persister);
 	}
 }

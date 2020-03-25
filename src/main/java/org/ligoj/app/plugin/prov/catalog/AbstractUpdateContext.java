@@ -19,6 +19,8 @@ import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
+import org.ligoj.app.plugin.prov.model.ProvSupportType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +35,7 @@ public abstract class AbstractUpdateContext {
 	@Getter
 	@Setter
 	private Node node;
-	
+
 	/**
 	 * When <code>true</code>, all cost attributes are update.
 	 */
@@ -48,61 +50,75 @@ public abstract class AbstractUpdateContext {
 	private Map<String, ProvLocation> mapRegionToName = new HashMap<>();
 
 	/**
-	 * The previously installed instance types. Key is the instance name.
+	 * The previously installed instance types. Key is the instance code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvInstanceType> instanceTypes;
 
 	/**
-	 * The previously installed database types. Key is the instance name.
+	 * The previously installed support types. Key is the instance name.
+	 */
+	@Getter
+	@Setter
+	private Map<String, ProvSupportType> supportTypes;
+
+	/**
+	 * The previously installed database types. Key is the database code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvDatabaseType> databaseTypes;
 
 	/**
-	 * The already merge instance types.
+	 * The already merge instance type's codes.
 	 */
 	@Getter
-	private Set<String> instanceTypesMerged =  ConcurrentHashMap.newKeySet();
+	private Set<String> instanceTypesMerged = ConcurrentHashMap.newKeySet();
 
 	/**
-	 * The previously installed price terms.
+	 * The previously installed price term's codes.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvInstancePriceTerm> priceTerms;
 
 	/**
-	 * The already merge instance terms.
+	 * The already merge instance term's codes.
 	 */
 	@Getter
-	private Set<String> priceTermsMerged =  ConcurrentHashMap.newKeySet();
+	private Set<String> priceTermsMerged = ConcurrentHashMap.newKeySet();
 
 	/**
-	 * The previous installed EC2 prices.
+	 * The previous installed EC2 prices. Key is the code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvInstancePrice> previous;
 
 	/**
-	 * The previous installed Database prices.
+	 * The previous installed Database prices. Key is the code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvDatabasePrice> previousDatabase;
 
 	/**
-	 * The previous installed storage prices.
+	 * The previous installed storage prices. Key is the code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvStoragePrice> previousStorage;
 
 	/**
-	 * The available regions.
+	 * The previous installed support prices. Key is the name.
+	 */
+	@Getter
+	@Setter
+	private Map<String, ProvSupportPrice> previousSupport;
+
+	/**
+	 * The available regions. Key is the name.
 	 */
 	@Getter
 	@Setter
@@ -115,14 +131,14 @@ public abstract class AbstractUpdateContext {
 	private Set<String> regionsMerged = new HashSet<>();
 
 	/**
-	 * The accepted and existing storage type.
+	 * The accepted and existing storage type. Key is the code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvStorageType> storageTypes;
 
 	/**
-	 * The merged storage type.
+	 * The merged storage type. Key is the code.
 	 */
 	@Getter
 	@Setter
