@@ -115,7 +115,7 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 
 	/**
 	 * When not <code>null</code>, this storage is reachable using network using the given port by default. The string
-	 * is a network specification.
+	 * is a network specification: <code>tcp</code>, <code>nfs</code>, ...
 	 */
 	private String network;
 
