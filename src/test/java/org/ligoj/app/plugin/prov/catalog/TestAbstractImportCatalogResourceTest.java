@@ -175,7 +175,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 
 	@SuppressWarnings("unchecked")
 	@Test
-	void nextStep() {
+	void nextStepLocation() {
 		final var context = newContext();
 		final var node = new Node();
 		node.setName("newNode");
@@ -189,6 +189,25 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		}).when(importCatalogResource).nextStep(Mockito.any(), Mockito.any());
 		nextStep(context, "location", 1);
 		Assertions.assertEquals("location", status.getLocation());
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void nextStepPhase() {
+		final var context = newContext();
+		final var node = new Node();
+		node.setName("newNode");
+		node.setId("service:prov:some");
+		context.setNode(node);
+		final var status = new ImportCatalogStatus();
+
+		Mockito.doAnswer(invocation -> {
+			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
+			return null;
+		}).when(importCatalogResource).nextStep(Mockito.any(), Mockito.any());
+		nextStep(context, "phase");
+		Assertions.assertEquals("phase", status.getPhase());
 	}
 
 	@Test
@@ -364,6 +383,14 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
+	void isEnabledEngine() {
+		final var context = newContext();
+		context.setValidDatabaseEngine(Pattern.compile("ab.*"));
+		Assertions.assertFalse(isEnabledEngine(context, "axr"));
+		Assertions.assertTrue(isEnabledEngine(context, "abr"));
+	}
+
+	@Test
 	void isEnabledDatabase() {
 		final var context = newContext();
 		context.setValidDatabaseType(Pattern.compile("ab.*"));
@@ -377,24 +404,27 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@Test
 	void bean() {
 		final var context = newContext();
-		context.setStorageTypes(null);
-		context.setStorageTypesMerged(null);
-		context.setPriceTerms(null);
-		context.setPrevious(null);
-		context.setPreviousDatabase(null);
-		context.setPreviousStorage(null);
-		context.setInstanceTypes(null);
-		context.setDatabaseTypes(null);
 		context.getDatabaseTypes();
+		context.setDatabaseTypes(null);
 		context.getInstanceTypes();
-		context.getInstanceTypesMerged();
+		context.setInstanceTypes(null);
+		context.getSupportTypes();
+		context.setSupportTypes(null);
 		context.getPrevious();
+		context.setPrevious(null);
 		context.getPreviousDatabase();
+		context.setPreviousDatabase(null);
 		context.getPreviousStorage();
-		context.getPrevious();
+		context.setPreviousStorage(null);
+		context.getPreviousSupport();
+		context.setPreviousSupport(null);
 		context.getStorageTypes();
-		context.getStorageTypesMerged();
+		context.setStorageTypes(null);
 		context.getPriceTerms();
+		context.setPriceTerms(null);
+		context.getInstanceTypesMerged();
+		context.getStorageTypesMerged();
+		context.setStorageTypesMerged(null);
 		context.getPriceTermsMerged();
 	}
 
