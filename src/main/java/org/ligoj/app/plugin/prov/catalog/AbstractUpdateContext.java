@@ -4,10 +4,7 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.ligoj.app.model.Node;
@@ -71,23 +68,11 @@ public abstract class AbstractUpdateContext {
 	private Map<String, ProvDatabaseType> databaseTypes;
 
 	/**
-	 * The already merge instance type's codes.
-	 */
-	@Getter
-	private Set<String> instanceTypesMerged = ConcurrentHashMap.newKeySet();
-
-	/**
 	 * The previously installed price term's codes.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvInstancePriceTerm> priceTerms;
-
-	/**
-	 * The already merge instance term's codes.
-	 */
-	@Getter
-	private Set<String> priceTermsMerged = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The previous installed EC2 prices. Key is the code.
@@ -125,24 +110,11 @@ public abstract class AbstractUpdateContext {
 	private Map<String, ProvLocation> regions;
 
 	/**
-	 * The available merged regions.
-	 */
-	@Getter
-	private Set<String> regionsMerged = new HashSet<>();
-
-	/**
 	 * The accepted and existing storage type. Key is the code.
 	 */
 	@Getter
 	@Setter
 	private Map<String, ProvStorageType> storageTypes;
-
-	/**
-	 * The merged storage type. Key is the code.
-	 */
-	@Getter
-	@Setter
-	private Map<String, ProvStorageType> storageTypesMerged = new HashMap<>();
 
 	/**
 	 * Valid OS pattern.

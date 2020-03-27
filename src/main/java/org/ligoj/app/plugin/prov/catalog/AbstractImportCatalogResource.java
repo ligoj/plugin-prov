@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -309,20 +310,18 @@ public abstract class AbstractImportCatalogResource {
 		});
 
 		// Update the location details as needed
-		if (context.getRegionsMerged().add(region)) {
+		return copyAsNeeded(context, entity, r -> {
 			final var regionStats = context.getMapRegionToName().getOrDefault(region, new ProvLocation());
-			entity.setContinentM49(regionStats.getContinentM49());
-			entity.setCountryA2(regionStats.getCountryA2());
-			entity.setCountryM49(regionStats.getCountryM49());
-			entity.setPlacement(regionStats.getPlacement());
-			entity.setRegionM49(regionStats.getRegionM49());
-			entity.setSubRegion(regionStats.getSubRegion());
-			entity.setLatitude(regionStats.getLatitude());
-			entity.setLongitude(regionStats.getLongitude());
-			entity.setDescription(regionStats.getName());
-			locationRepository.saveAndFlush(entity);
-		}
-		return entity;
+			r.setContinentM49(regionStats.getContinentM49());
+			r.setCountryA2(regionStats.getCountryA2());
+			r.setCountryM49(regionStats.getCountryM49());
+			r.setPlacement(regionStats.getPlacement());
+			r.setRegionM49(regionStats.getRegionM49());
+			r.setSubRegion(regionStats.getSubRegion());
+			r.setLatitude(regionStats.getLatitude());
+			r.setLongitude(regionStats.getLongitude());
+			r.setDescription(regionStats.getName());
+		}, locationRepository);
 	}
 
 	/**
@@ -459,17 +458,36 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one.
 	 * 
-	 * @param <I>     The price type's type.
+	 * @param <K>     The price type's type.
 	 * @param <P>     The price type.
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
 	 * @param updater The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
-	protected <P extends Persistable<?>> P copyAsNeeded(final AbstractUpdateContext context, P entity,
-			Consumer<P> updater) {
+	protected <K extends Serializable, P extends Persistable<K>> P copyAsNeeded(final AbstractUpdateContext context,
+			final P entity, final Consumer<P> updater) {
+		return copyAsNeeded(context, entity, updater, null);
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 * 
+	 * @param <K>        The price type's type.
+	 * @param <P>        The price type.
+	 * @param context    The context to initialize.
+	 * @param entity     The target entity to update.
+	 * @param updater    The consumer used to update the replacement.
+	 * @param repository The repository used to persist the replacement. May be <code>null</code>.
+	 * @return The given entity.
+	 */
+	protected <K extends Serializable, P extends Persistable<K>> P copyAsNeeded(final AbstractUpdateContext context,
+			final P entity, Consumer<P> updater, final RestRepository<P, K> repository) {
 		if (context.isForce() || entity.getId() == null) {
 			updater.accept(entity);
+			if (repository != null) {
+				repository.save(entity);
+			}
 		}
 		return entity;
 	}

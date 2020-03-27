@@ -422,10 +422,6 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		context.setStorageTypes(null);
 		context.getPriceTerms();
 		context.setPriceTerms(null);
-		context.getInstanceTypesMerged();
-		context.getStorageTypesMerged();
-		context.setStorageTypesMerged(null);
-		context.getPriceTermsMerged();
 	}
 
 	private AbstractUpdateContext newContext() {
