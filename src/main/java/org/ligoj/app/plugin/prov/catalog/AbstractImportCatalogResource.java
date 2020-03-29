@@ -433,7 +433,7 @@ public abstract class AbstractImportCatalogResource {
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
-		if (context.isForce() || oldCost != newCostR) {
+		if (context.isForce() || price.isNew() || oldCost != newCostR) {
 			updateCost.accept(newCostR, newCost);
 			persister.accept(price);
 		}

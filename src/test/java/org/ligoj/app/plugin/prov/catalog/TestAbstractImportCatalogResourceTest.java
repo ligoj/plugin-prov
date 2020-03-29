@@ -403,6 +403,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@Test
 	void saveAsNeededCostGb() {
 		final var entity = new ProvStoragePrice();
+		entity.setId(1);
 		entity.setCostGb(2d);
 		@SuppressWarnings("unchecked")
 		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
@@ -414,6 +415,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	@Test
 	void saveAsNeededCostGbNoChange() {
 		final var entity = new ProvStoragePrice();
+		entity.setId(1);
 		entity.setCostGb(1d);
 		@SuppressWarnings("unchecked")
 		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
@@ -426,6 +428,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void saveAsNeededForce() {
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
+		entity.setId(1);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
 		final var newContext = newContext();
 		newContext.setForce(true);
@@ -442,6 +445,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void saveAsNeededPrice() {
 		final var entity = new ProvSupportPrice();
 		entity.setCost(2d);
+		entity.setId(1);
 		entity.setCode("code");
 		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
 		final var context = newContext();
@@ -452,10 +456,24 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	}
 
 	@Test
+	void saveAsNeedeNew() {
+		final var entity = new ProvSupportPrice();
+		entity.setCost(2d);
+		entity.setCode("code");
+		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
+		final var context = newContext();
+		saveAsNeeded(context, entity, 2d, repository);
+		Assertions.assertEquals(2d, entity.getCost());
+		context.getMergedTypes().contains("code");
+		Mockito.verify(repository).save(entity);
+	}
+
+	@Test
 	void saveAsNeededPriceTerm() {
 		final var entity = new ProvInstancePrice();
 		final var term = new ProvInstancePriceTerm();
 		term.setPeriod(12d);
+		entity.setId(1);
 		entity.setTerm(term);
 		entity.setCost(2d);
 		entity.setCostPeriod(24d);
@@ -473,6 +491,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void saveAsNeededSame() {
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
+		entity.setId(1);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
 		saveAsNeeded(newContext(), entity, 1, 1, null, consumer);
 		Assertions.assertEquals("old", entity.getCode());
@@ -483,6 +502,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final var entity = new ProvInstancePrice();
 		entity.setCost(1d);
 		entity.setCode("old");
+		entity.setId(1);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
 		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> {
 			entity.setCost(cRound);
