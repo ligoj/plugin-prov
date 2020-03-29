@@ -82,12 +82,17 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupRate() {
+		var build = builder().cpuRate(Rate.BEST).build();
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().cpuRate(Rate.BEST).build()).getPrice().getType().getCode());
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
-		Assertions.assertNull(qiResource.lookup(subscription,
-				builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST).build()));
+		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST).build();
+		build.setCpuRate(Rate.BEST); // Coverage only
+		build.setRamRate(Rate.BEST); // Coverage only
+		build.setNetworkRate(Rate.BEST); // Coverage only
+		build.setStorageRate(Rate.BEST); // Coverage only
+		Assertions.assertNull(qiResource.lookup(subscription, build));
 	}
 
 	/**
@@ -95,9 +100,11 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupAutoScale() {
-		Assertions.assertEquals("instance2",
-				qiResource.lookup(subscription, builder().autoScale(true).build()).getPrice().getType().getCode());
+		var build = builder().autoScale(true).build();
+		build.setAutoScale(true); // Coverage only
+		Assertions.assertEquals("instance2", qiResource.lookup(subscription, build).getPrice().getType().getCode());
 		Assertions.assertNull(qiResource.lookup(subscription, builder().autoScale(true).cpu(2).build()));
+
 	}
 
 	/**
