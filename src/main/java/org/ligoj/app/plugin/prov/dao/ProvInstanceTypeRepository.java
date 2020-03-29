@@ -19,15 +19,15 @@ public interface ProvInstanceTypeRepository extends BaseProvInstanceTypeReposito
 	@CacheResult(cacheName = "prov-instance-type-dyn")
 	@Override
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate storageRate,
-			@CacheKey Rate networkRate, @CacheKey Rate ramRate, @CacheKey Rate cpuRate);
+			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-instance-type")
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey int ram,
 			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor,
-			@CacheKey boolean autoScale, @CacheKey Rate storageRate, @CacheKey Rate networkRate, @CacheKey Rate ramRate,
-			@CacheKey Rate cpuRate);
+			@CacheKey boolean autoScale, @CacheKey Rate cpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate,
+			@CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-instance-type-has-dyn")
 	@Override

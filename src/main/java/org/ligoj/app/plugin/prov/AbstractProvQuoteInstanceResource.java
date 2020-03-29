@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -35,6 +36,7 @@ import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
@@ -43,6 +45,7 @@ import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -155,6 +158,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
 		entity.setAutoScale(vo.isAutoScale());
+		entity.setRamRate(vo.getRamRate());
+		entity.setCpuRate(vo.getCpuRate());
+		entity.setNetworkRate(vo.getNetworkRate());
+		entity.setStorageRate(vo.getStorageRate());
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 
@@ -480,7 +487,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var duration = usage.getDuration();
 		final var maxPeriod = (int) Math.ceil(duration * rate * 10 / 6) * 6;
 		var lookup = this.lookup(configuration, query, maxPeriod);
-		if (lookup == null) {
+		if (lookup == null && maxPeriod < 100) {
 			// Another wider lookup
 			lookup = this.lookup(configuration, query, 100);
 		}
@@ -519,6 +526,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
+		SpringUtils.getBean(EntityManager.class)
+				.createQuery("FROM ProvInstanceType WHERE (:cpuRate IS NULL OR cpuRate >= :cpuRate)",
+						ProvInstanceType.class)
+				.setParameter("cpuRate", org.ligoj.app.plugin.prov.model.Rate.BEST).getResultList();
 
 		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
 				procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(), query.getNetworkRate(),
@@ -557,7 +568,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Return the best match
 		return newPrice(lookup);
-
 	}
 
 	/**

@@ -17,15 +17,6 @@ import org.ligoj.app.model.Parameter;
 import org.ligoj.app.model.ParameterValue;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -52,33 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProvResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
-	private ProvQuoteRepository repository;
-
-	@Autowired
-	private ProvLocationRepository locationRepository;
-
-	@Autowired
 	private ImportCatalogStatusRepository icsRepository;
-
-	@Autowired
-	private ProvInstancePriceTermRepository iptRepository;
-	@Autowired
-	private ProvInstanceTypeRepository itRepository;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-
-	@Autowired
-	private ProvInstancePriceRepository ipRepository;
-
-	@Autowired
-	private ProvStoragePriceRepository spRepository;
-
-	@Autowired
-	private ProvStorageTypeRepository stRepository;
 
 	/**
 	 * Prepare test data.

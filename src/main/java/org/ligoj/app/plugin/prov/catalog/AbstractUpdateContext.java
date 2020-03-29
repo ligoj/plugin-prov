@@ -4,7 +4,9 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.ligoj.app.model.Node;
@@ -20,11 +22,13 @@ import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  * Base context used to perform catalog update.
  */
+@NoArgsConstructor
 public abstract class AbstractUpdateContext {
 	/**
 	 * The related AWS {@link Node}
@@ -78,14 +82,18 @@ public abstract class AbstractUpdateContext {
 	 * The previous installed EC2 prices. Key is the code.
 	 */
 	@Getter
-	@Setter
 	private Map<String, ProvInstancePrice> previous;
+
+	/**
+	 * The updated/created catalog price codes.
+	 */
+	@Getter
+	private Set<String> updatedPrices = new HashSet<String>();
 
 	/**
 	 * The previous installed Database prices. Key is the code.
 	 */
 	@Getter
-	@Setter
 	private Map<String, ProvDatabasePrice> previousDatabase;
 
 	/**
@@ -108,6 +116,12 @@ public abstract class AbstractUpdateContext {
 	@Getter
 	@Setter
 	private Map<String, ProvLocation> regions;
+
+	/**
+	 * The merged type's codes.
+	 */
+	@Getter
+	private Set<String> mergedTypes = new HashSet<String>();
 
 	/**
 	 * The accepted and existing storage type. Key is the code.
@@ -151,6 +165,8 @@ public abstract class AbstractUpdateContext {
 	@Setter
 	private Pattern validRegion;
 
+	private AbstractUpdateContext parent;
+
 	/**
 	 * Hours per month.
 	 */
@@ -158,4 +174,29 @@ public abstract class AbstractUpdateContext {
 	@Setter
 	private double hoursMonth = AbstractImportCatalogResource.DEFAULT_HOURS_MONTH;
 
+	public AbstractUpdateContext(AbstractUpdateContext parent) {
+		this();
+		this.parent = parent;
+		setForce(parent.isForce());
+		setHoursMonth(parent.getHoursMonth());
+		setNode(parent.getNode());
+	}
+
+	public void setPrevious(final Map<String, ProvInstancePrice> previous) {
+		this.previous = previous;
+		this.updatedPrices.clear();
+		if (parent != null) {
+			parent.updatedPrices = updatedPrices;
+			parent.previous = previous;
+		}
+	}
+
+	public void setPreviousDatabase(final Map<String, ProvDatabasePrice> previous) {
+		this.previousDatabase = previous;
+		this.updatedPrices.clear();
+		if (parent != null) {
+			parent.updatedPrices = updatedPrices;
+			parent.previousDatabase = previousDatabase;
+		}
+	}
 }

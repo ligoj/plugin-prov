@@ -17,7 +17,6 @@ import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -37,9 +36,6 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 
 	@Autowired
 	private ProvQuoteUploadResource qiuResource;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
 
 	private Map<String, FloatingCost> toStoragesFloatingCost(final String instanceName) {
 		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream().collect(Collectors.toMap(

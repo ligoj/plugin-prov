@@ -4,17 +4,10 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-
-import org.ligoj.app.model.Node;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_SUPPORT_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvSupportType extends AbstractDescribedEntity<Integer> implements ProvType {
+public class ProvSupportType extends AbstractCodedEntity implements ProvType {
 
 	/**
 	 * SID
@@ -128,13 +121,5 @@ public class ProvSupportType extends AbstractDescribedEntity<Integer> implements
 	 * GOOD=contextualReview, BEST=reserved
 	 */
 	private Rate level;
-
-	/**
-	 * Related node.
-	 */
-	@JsonIgnore
-	@ManyToOne
-	@NotNull
-	private Node node;
 
 }

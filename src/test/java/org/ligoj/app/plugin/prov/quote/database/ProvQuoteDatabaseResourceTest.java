@@ -21,12 +21,6 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -49,34 +43,12 @@ import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 
 /**
  * Test class of {@link ProvQuoteDatabaseResource}
  */
 public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
-
-	@Autowired
-	private ProvQuoteDatabaseResource qbResource;
-
-	@Autowired
-	private ProvQuoteRepository repository;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ProvStoragePriceRepository spRepository;
-
-	@Autowired
-	private ProvQuoteDatabaseRepository qbRepository;
-
-	@Autowired
-	private ProvDatabasePriceRepository bpRepository;
-
-	@Autowired
-	private ProvDatabaseTypeRepository btRepository;
 
 	@Override
 	@BeforeEach

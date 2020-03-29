@@ -17,7 +17,22 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
+import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
@@ -30,7 +45,10 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,16 +67,63 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected static final double DELTA = 0.01d;
 
-	@Autowired
-	protected ProvResource resource;
 
 	protected int subscription;
 
 	@Autowired
-	private ProvTagRepository tagRepository;
+	protected ConfigurationResource configuration;
 
 	@Autowired
-	protected ConfigurationResource configuration;
+	protected ProvResource resource;
+	
+	@Autowired
+	protected ProvQuoteRepository repository;
+
+	@Autowired
+	private ProvTagRepository tagRepository;
+
+
+	@Autowired
+	protected ProvUsageRepository usageRepository;
+
+	@Autowired
+	protected ProvLocationRepository locationRepository;
+
+	@Autowired
+	protected ProvQuoteStorageRepository qsRepository;
+	@Autowired
+	protected ProvQuoteStorageResource qsResource;
+	@Autowired
+	protected ProvStorageTypeRepository stRepository;
+	@Autowired
+	protected ProvStoragePriceRepository spRepository;
+
+	@Autowired
+	protected ProvQuoteInstanceResource qiResource;
+	@Autowired
+	protected ProvQuoteInstanceRepository qiRepository;
+	@Autowired
+	protected ProvInstancePriceRepository ipRepository;
+	@Autowired
+	protected ProvInstanceTypeRepository itRepository;
+	@Autowired
+	protected ProvInstancePriceTermRepository iptRepository;
+
+	@Autowired
+	protected ProvQuoteDatabaseResource qbResource;
+	@Autowired
+	protected ProvQuoteDatabaseRepository qbRepository;
+	@Autowired
+	protected ProvDatabasePriceRepository bpRepository;
+	@Autowired
+	protected ProvDatabaseTypeRepository btRepository;
+
+	@Autowired
+	protected ProvQuoteSupportResource qs2Resource;
+	@Autowired
+	protected ProvQuoteSupportRepository qs2Repository;
+	@Autowired
+	protected ProvSupportPriceRepository sp2Repository;
 
 	/**
 	 * Prepare test data.
@@ -81,7 +146,6 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		updateCost();
 	}
 
-	
 	/**
 	 * Flush the current JPA context and return the configuration of current subscription.
 	 * 

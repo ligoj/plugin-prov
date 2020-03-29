@@ -8,11 +8,7 @@ import java.util.List;
 import javax.cache.annotation.CacheKey;
 
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.bootstrap.core.dao.RestRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -22,32 +18,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @param <T> The instance type type.
  */
 @NoRepositoryBean
-public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> extends RestRepository<T, Integer> {
-
-	/**
-	 * Return all {@link ProvInstanceType} related to given subscription identifier.
-	 *
-	 * @param subscription The subscription identifier to match.
-	 * @param criteria     The option criteria to match for the name.
-	 * @param pageRequest  The page request for ordering.
-	 * @return The filtered {@link ProvInstanceType}.
-	 */
-	@Query("SELECT i FROM #{#entityName} i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%')"
-			+ " AND (:criteria IS NULL OR UPPER(i.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
-	Page<T> findAll(int subscription, String criteria, Pageable pageRequest);
-
-	/**
-	 * Return the {@link ProvInstanceType} by it's code. Case is sensitive.
-	 *
-	 * @param subscription The subscription identifier to match.
-	 * @param code         The code to match.
-	 *
-	 * @return The entity or <code>null</code>.
-	 */
-	@Query("SELECT i FROM #{#entityName} i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%') AND i.code = :code")
-	T findByCode(int subscription, String code);
+public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> extends BaseProvTypeRepository<T> {
 
 	/**
 	 * Return all distinct processors.
@@ -91,7 +62,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:processor IS NULL                                 "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
 	List<Integer> findValidTypes(String node, double cpu, int ram, Boolean constant, Boolean physical, Integer type,
-			String processor, boolean autoScale, Rate storageRate, Rate networkRate, Rate ramRate, Rate cpuRate);
+			String processor, boolean autoScale, Rate cpuRate, Rate ramRate, Rate networkRate, Rate storageRate);
 
 	/**
 	 * Return the valid instance types matching the requirements.
@@ -124,8 +95,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:processor IS NULL                                 "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, boolean autoScale, Rate storageRate, Rate networkRate,
-			Rate ramRate, Rate cpuRate);
+			@CacheKey Integer type, @CacheKey String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
+			Rate networkRate, Rate storageRate);
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.

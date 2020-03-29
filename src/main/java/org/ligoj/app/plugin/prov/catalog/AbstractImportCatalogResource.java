@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -19,17 +20,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
+import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
+import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
@@ -43,16 +52,19 @@ import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.repository.CrudRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base catalog management with rating.
  */
+@Slf4j
 public abstract class AbstractImportCatalogResource {
 
 	protected static final TypeReference<Map<String, String>> MAP_STR = new TypeReference<>() {
@@ -119,6 +131,12 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvSupportPriceRepository sp2Repository;
+
+	@Autowired
+	protected ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
+	protected ProvQuoteDatabaseRepository qdRepository;
 
 	@Setter
 	@Getter
@@ -423,7 +441,8 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Save a price when the attached cost is different from the old one.
+	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
+	 * set. The cost of the period is also updated accordingly to the attached term.
 	 * 
 	 * @param <T>         The price's type.
 	 * @param <P>         The instance type's type.
@@ -431,13 +450,35 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository for persist.
+	 * @see AbstractUpdateContext#getUpdatedCodes()
 	 */
-	protected <T extends ProvType, P extends AbstractTermPrice<T>> void saveAsNeeded(
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
-			final RestRepository<P, Integer> repositorty) {
+			final BaseProvTermPriceRepository<T, P> repositorty) {
+		context.getUpdatedPrices().add(entity.getCode());
 		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
+		}, repositorty::save);
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
+	 * set.
+	 * 
+	 * @param <T>         The price's type.
+	 * @param <P>         The instance type's type.
+	 * @param context     The context to initialize.
+	 * @param entity      The target entity to update.
+	 * @param newCost     The new cost.
+	 * @param repositorty The repository for persist.
+	 * @see AbstractUpdateContext#getUpdatedCodes()
+	 */
+	protected <T extends ProvType, P extends AbstractPrice<T>> void saveAsNeeded(final AbstractUpdateContext context,
+			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
+		context.getUpdatedPrices().add(entity.getCode());
+		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
+			entity.setCost(cR);
 		}, repositorty::save);
 	}
 
@@ -471,6 +512,28 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Save a type when the corresponding code has not yet been updated in this context.
+	 * 
+	 * @param <T>        The type's specification.
+	 * @param context    The context to initialize.
+	 * @param entity     The target entity to update.
+	 * @param updater    The consumer used to update the replacement.
+	 * @param repository The repository used to persist the replacement. May be <code>null</code>.
+	 * @return The given entity.
+	 * @see AbstractUpdateContext#getMergedTypes()
+	 */
+	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
+			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
+		if (context.getMergedTypes().add(entity.getCode())) {
+			updater.accept(entity);
+			if (repository != null) {
+				repository.save(entity);
+			}
+		}
+		return entity;
+	}
+
+	/**
 	 * Save a price when the attached cost is different from the old one.
 	 * 
 	 * @param <K>        The price type's type.
@@ -490,5 +553,33 @@ public abstract class AbstractImportCatalogResource {
 			}
 		}
 		return entity;
+	}
+
+	/**
+	 * Remove SKU that were present in the context and not refresh with this update.
+	 * 
+	 * @param context     The update context.
+	 * @param previous    The whole price context in the database. Some of them are no more available in the new
+	 *                    catalog.
+	 * @param pRepository The price repository used to clean the related price.
+	 * @param qRepository The quote repository to check for unused price.
+	 * @param <T>         The instance type.
+	 * @param <P>         The price type.
+	 */
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, Q extends AbstractQuoteResourceInstance<P>> void purgeSku(
+			final AbstractUpdateContext context, Map<String, P> previous, final CrudRepository<P, Integer> pRepository,
+			final BaseProvQuoteResourceRepository<Q> qRepository) {
+		final var purgeCodes = new HashSet<>(previous.keySet());
+		purgeCodes.removeAll(context.getUpdatedPrices());
+		if (!purgeCodes.isEmpty()) {
+			final var purge = previous.size();
+			purgeCodes.removeAll(qRepository.finUsedPrices(context.getNode().getId()));
+			log.info("Purging {} unused of {} retired catalog prices ...", purgeCodes.size(), purge);
+			purgeCodes.stream().map(previous::get).forEach(pRepository::delete);
+
+			// Remove the purged from the context
+			previous.clear();
+			log.info("Code purged");
+		}
 	}
 }

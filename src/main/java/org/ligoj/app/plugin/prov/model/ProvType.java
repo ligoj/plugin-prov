@@ -11,5 +11,10 @@ import org.ligoj.bootstrap.core.IDescribableBean;
  */
 public interface ProvType extends NodeScoped, IDescribableBean<Integer> {
 
-	// Flag interface
+	/**
+	 * Return the code of the type.
+	 * 
+	 * @return The code of the type.
+	 */
+	String getCode();
 }

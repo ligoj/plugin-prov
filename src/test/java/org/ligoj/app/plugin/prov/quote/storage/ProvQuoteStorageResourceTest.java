@@ -16,11 +16,6 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -41,31 +36,12 @@ import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 
 /**
  * Test class of {@link ProvResource}
  */
 public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
-
-	@Autowired
-	private ProvQuoteStorageResource qsResource;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-
-	@Autowired
-	private ProvQuoteDatabaseRepository qbRepository;
-
-	@Autowired
-	private ProvStorageTypeRepository stRepository;
-
-	@Autowired
-	private ProvStoragePriceRepository spRepository;
 
 	@Override
 	@BeforeEach
@@ -243,7 +219,7 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("mysqlOverOracle");
 		vo.setType("storage7-database");
-		vo.setQuoteDatabase(qbRepository.findByName("database1").getId());
+		vo.setQuoteDatabase(database1());
 		vo.setSize(512);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"type", "type-incompatible-requirements");
@@ -832,6 +808,24 @@ public class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, qsResource
 				.lookup(subscription, QuoteStorageQuery.builder().database(database1()).location("region-1").build())
 				.size());
+	}
+
+	/**
+	 * All quote databases are based on the default quote's location : "region1". And this is the requested location.
+	 */
+	@Test
+	void lookupStorageDatabase() {
+		final var query = QuoteStorageQuery.builder().database(database1()).build();
+		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		final var st5 = "storage5-database";
+		final var type = stRepository.findByCode(subscription, st5);
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		type.setNotDatabaseType("%base2");
+		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		
+		// Add database instance type constraint to the storage
+		type.setNotDatabaseType("%base1");
+		Assertions.assertEquals(0, qsResource.lookup(subscription, query).size());
 	}
 
 	/**

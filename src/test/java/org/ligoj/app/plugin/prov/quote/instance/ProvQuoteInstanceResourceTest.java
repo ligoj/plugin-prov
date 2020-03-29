@@ -16,13 +16,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
@@ -46,28 +40,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	private static final String FULL = "Full Time 12 month";
 
 	@Autowired
-	private ProvUsageRepository usageRepository;
-
-	@Autowired
-	private ProvQuoteInstanceResource qiResource;
-
-	@Autowired
 	private ProvQuoteRepository repository;
-
-	@Autowired
-	private ProvLocationRepository locationRepository;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ProvStoragePriceRepository spRepository;
-
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-
-	@Autowired
-	private ProvInstancePriceRepository ipRepository;
 
 	/**
 	 * Builder coverage
@@ -102,6 +75,29 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance2", pi.getType().getName());
 		Assertions.assertEquals("C12", pi.getCode());
 		Assertions.assertNull(pi.getLicense());
+	}
+
+	/**
+	 * Rate based lookup.
+	 */
+	@Test
+	void lookupRate() {
+		Assertions.assertEquals("instance2",
+				qiResource.lookup(subscription, builder().cpuRate(Rate.BEST).build()).getPrice().getType().getCode());
+		Assertions.assertEquals("instance2",
+				qiResource.lookup(subscription, builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
+		Assertions.assertNull(qiResource.lookup(subscription,
+				builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST).build()));
+	}
+
+	/**
+	 * AutoScale based lookup.
+	 */
+	@Test
+	void lookupAutoScale() {
+		Assertions.assertEquals("instance2",
+				qiResource.lookup(subscription, builder().autoScale(true).build()).getPrice().getType().getCode());
+		Assertions.assertNull(qiResource.lookup(subscription, builder().autoScale(true).cpu(2).build()));
 	}
 
 	/**
@@ -323,6 +319,7 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(pi.getTerm().getConvertibleLocation());
 		Assertions.assertFalse(pi.getTerm().getReservation());
 	}
+
 	/**
 	 * Convertible OS
 	 */
@@ -867,6 +864,12 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setEphemeral(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
+
+		vo.setRamRate(Rate.LOW);
+		vo.setCpuRate(Rate.MEDIUM);
+		vo.setNetworkRate(Rate.WORST);
+		vo.setStorageRate(Rate.MEDIUM);
+
 		newTags(vo);
 		final var updatedCost = qiResource.create(vo);
 
@@ -891,6 +894,12 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());
+
+		Assertions.assertEquals(Rate.LOW, instance.getRamRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getCpuRate());
+		Assertions.assertEquals(Rate.WORST, instance.getNetworkRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getStorageRate());
+
 		assertTags(instance);
 	}
 

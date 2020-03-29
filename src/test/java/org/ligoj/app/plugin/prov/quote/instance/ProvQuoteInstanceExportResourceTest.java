@@ -22,9 +22,6 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -44,9 +41,6 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
-import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
-import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -58,20 +52,6 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 
 	@Autowired
 	private ProvQuoteInstanceExportResource qieResource;
-	@Autowired
-	private ProvQuoteInstanceResource qiResource;
-	@Autowired
-	private ProvQuoteStorageResource qsResource;
-	@Autowired
-	private ProvQuoteDatabaseResource qbResource;
-	@Autowired
-	private ProvQuoteSupportResource qs2Resource;
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-	@Autowired
-	private ProvQuoteDatabaseRepository qbRepository;
-	@Autowired
-	private ProvQuoteRepository qRepository;
 
 	@Autowired
 	private ProvQuoteUploadResource qiuResource;
@@ -94,21 +74,21 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		entity.setValue("value");
 		entity.setResource(qiRepository.findByName("server1").getId());
 		entity.setType(ResourceType.INSTANCE);
-		entity.setConfiguration(qRepository.findBy("subscription.id", subscription));
+		entity.setConfiguration(repository.findBy("subscription.id", subscription));
 		em.persist(entity);
 
 		entity = new ProvTag();
 		entity.setName("key3");
 		entity.setResource(qiRepository.findByName("server1").getId());
 		entity.setType(ResourceType.INSTANCE);
-		entity.setConfiguration(qRepository.findBy("subscription.id", subscription));
+		entity.setConfiguration(repository.findBy("subscription.id", subscription));
 		em.persist(entity);
 
 		entity = new ProvTag();
 		entity.setName("key2");
 		entity.setResource(qbRepository.findByName("database1").getId());
 		entity.setType(ResourceType.DATABASE);
-		entity.setConfiguration(qRepository.findBy("subscription.id", subscription));
+		entity.setConfiguration(repository.findBy("subscription.id", subscription));
 		em.persist(entity);
 
 		clearAllCache();
