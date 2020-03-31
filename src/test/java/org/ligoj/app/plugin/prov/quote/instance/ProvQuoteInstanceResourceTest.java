@@ -872,6 +872,8 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 
+		vo.setAutoScale(true);
+
 		vo.setRamRate(Rate.LOW);
 		vo.setCpuRate(Rate.MEDIUM);
 		vo.setNetworkRate(Rate.WORST);

@@ -34,7 +34,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> implements QuoteStorage {
+public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements QuoteStorage {
 
 	/**
 	 * SID
@@ -96,7 +96,7 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> im
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {
-		return Optional.ofNullable(getQuoteResource()).map(AbstractQuoteResourceInstance::isUnboundCost).orElse(false);
+		return Optional.ofNullable(getQuoteResource()).map(AbstractQuoteVm::isUnboundCost).orElse(false);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class ProvQuoteStorage extends AbstractQuoteResource<ProvStoragePrice> im
 	 * @return the optional associated resource: instance or database.
 	 */
 	@JsonIgnore
-	public AbstractQuoteResourceInstance<?> getQuoteResource() {
+	public AbstractQuoteVm<?> getQuoteResource() {
 		return quoteInstance == null ? quoteDatabase : quoteInstance;
 	}
 

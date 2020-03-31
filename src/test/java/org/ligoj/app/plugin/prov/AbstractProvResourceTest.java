@@ -33,7 +33,7 @@ import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -189,7 +189,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	 * 
 	 * @param resource The resource to test.
 	 */
-	protected void assertTags(final AbstractQuoteResource<?> resource) {
+	protected void assertTags(final AbstractQuote<?> resource) {
 		Assertions.assertTrue(tagRepository
 				.findAllBy("configuration.id", resource.getConfiguration().getId(), new String[] { "resource", "type" },
 						resource.getId(), resource.getResourceType())

@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.Query;
  * {@link ProvQuoteInstance} repository.
  */
 public interface ProvQuoteInstanceRepository
-		extends BaseProvQuoteResourceRepository<ProvQuoteInstance>, BasePovInstanceBehavior {
+		extends BaseProvQuoteRepository<ProvQuoteInstance>, BasePovInstanceBehavior {
 
 	/**
 	 * Delete all storages linked to an instance linked to the given subscription.

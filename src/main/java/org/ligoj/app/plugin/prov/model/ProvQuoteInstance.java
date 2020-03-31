@@ -28,7 +28,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteInstance extends AbstractQuoteResourceInstance<ProvInstancePrice> implements QuoteInstance {
+public class ProvQuoteInstance extends AbstractQuoteVm<ProvInstancePrice> implements QuoteInstance {
 
 	/**
 	 * SID

@@ -56,7 +56,8 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private Integer ramAdjustedRate = 100;
 
 	/**
-	 * Optional reservation mode. When <code>null</code>, is {@value ReservationMode#RESERVED}
+	 * Optional reservation mode. When <code>null</code>, is
+	 * {@link org.ligoj.app.plugin.prov.model.ReservationMode#RESERVED}
 	 */
 	private ReservationMode reservationMode = ReservationMode.RESERVED;
 

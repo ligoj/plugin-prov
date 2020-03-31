@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvType;
@@ -26,7 +26,7 @@ import lombok.Getter;
  * @param <P> Quoted resource price type.
  * @param <T> Quoted resource price type type.
  */
-public abstract class AbstractCostedResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
+public abstract class AbstractCostedResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
 		implements QuoteRelated<C> {
 
 	@Autowired
@@ -67,7 +67,7 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 	 * @return The parent quote configuration.
 	 * @param <Q> The quote resource type.
 	 */
-	protected <Q extends AbstractQuoteResource<?>> ProvQuote deleteAndUpdateCost(
+	protected <Q extends AbstractQuote<?>> ProvQuote deleteAndUpdateCost(
 			final RestRepository<Q, Integer> repository, final Integer id, final Consumer<Q> callback) {
 		// Check the entity exists and is visible
 		final var entity = resource.findConfigured(repository, id);

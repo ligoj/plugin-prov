@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,7 +36,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Node node;
+	protected Node node;
 
 	/**
 	 * When <code>true</code>, all cost attributes are update.
@@ -55,80 +56,80 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvInstanceType> instanceTypes;
+	private Map<String, ProvInstanceType> instanceTypes = new HashMap<>();
 
 	/**
 	 * The previously installed support types. Key is the instance name.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvSupportType> supportTypes;
+	private Map<String, ProvSupportType> supportTypes = new HashMap<>();
 
 	/**
 	 * The previously installed database types. Key is the database code.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvDatabaseType> databaseTypes;
+	private Map<String, ProvDatabaseType> databaseTypes = new HashMap<>();
 
 	/**
 	 * The previously installed price term's codes.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvInstancePriceTerm> priceTerms;
+	private Map<String, ProvInstancePriceTerm> priceTerms = new HashMap<>();
 
 	/**
 	 * The previous installed EC2 prices. Key is the code.
 	 */
 	@Getter
-	private Map<String, ProvInstancePrice> previous;
+	private Map<String, ProvInstancePrice> previous = new HashMap<>();
 
 	/**
-	 * The updated/created catalog price codes.
+	 * The read catalog price codes: codes having been read from the catalog and persisted.
 	 */
 	@Getter
-	private Set<String> updatedPrices = new HashSet<String>();
+	private Set<String> prices = new HashSet<String>();
 
 	/**
 	 * The previous installed Database prices. Key is the code.
 	 */
 	@Getter
-	private Map<String, ProvDatabasePrice> previousDatabase;
+	private Map<String, ProvDatabasePrice> previousDatabase = new HashMap<>();
 
 	/**
 	 * The previous installed storage prices. Key is the code.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvStoragePrice> previousStorage;
+	private Map<String, ProvStoragePrice> previousStorage = new HashMap<>();
 
 	/**
 	 * The previous installed support prices. Key is the name.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvSupportPrice> previousSupport;
+	private Map<String, ProvSupportPrice> previousSupport = new HashMap<>();
 
 	/**
 	 * The available regions. Key is the name.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvLocation> regions;
+	private Map<String, ProvLocation> regions = new HashMap<>();
 
 	/**
 	 * The merged type's codes.
 	 */
 	@Getter
-	private Set<String> mergedTypes = new HashSet<String>();
+	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<String>());
 
 	/**
 	 * The accepted and existing storage type. Key is the code.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvStorageType> storageTypes;
+	private Map<String, ProvStorageType> storageTypes = new HashMap<>();
 
 	/**
 	 * Valid OS pattern.
@@ -165,8 +166,6 @@ public abstract class AbstractUpdateContext {
 	@Setter
 	private Pattern validRegion;
 
-	private AbstractUpdateContext parent;
-
 	/**
 	 * Hours per month.
 	 */
@@ -174,29 +173,51 @@ public abstract class AbstractUpdateContext {
 	@Setter
 	private double hoursMonth = AbstractImportCatalogResource.DEFAULT_HOURS_MONTH;
 
-	public AbstractUpdateContext(AbstractUpdateContext parent) {
+	protected AbstractUpdateContext(AbstractUpdateContext parent) {
 		this();
-		this.parent = parent;
 		setForce(parent.isForce());
 		setHoursMonth(parent.getHoursMonth());
 		setNode(parent.getNode());
+		this.mergedTypes = parent.mergedTypes;
+		this.storageTypes = parent.storageTypes;
+		this.priceTerms = parent.priceTerms;
+		this.validDatabaseEngine = parent.validDatabaseEngine;
+		this.validDatabaseType = parent.validDatabaseType;
+		this.validInstanceType = parent.validInstanceType;
+		this.validRegion = parent.validRegion;
+		this.validOs = parent.validOs;
 	}
 
 	public void setPrevious(final Map<String, ProvInstancePrice> previous) {
 		this.previous = previous;
-		this.updatedPrices.clear();
-		if (parent != null) {
-			parent.updatedPrices = updatedPrices;
-			parent.previous = previous;
-		}
+		this.previousDatabase.clear();
+		this.mergedTypes.clear();
+		this.prices.clear();
 	}
 
 	public void setPreviousDatabase(final Map<String, ProvDatabasePrice> previous) {
 		this.previousDatabase = previous;
-		this.updatedPrices.clear();
-		if (parent != null) {
-			parent.updatedPrices = updatedPrices;
-			parent.previousDatabase = previousDatabase;
-		}
+		this.previous.clear();
+		this.mergedTypes.clear();
+		this.prices.clear();
+	}
+
+	/**
+	 * Release pointers.
+	 */
+	public void cleanup() {
+		this.prices.clear();
+		this.mergedTypes.clear();
+		this.storageTypes.clear();
+		this.supportTypes.clear();
+		this.storageTypes.clear();
+		this.previous.clear();
+		this.databaseTypes.clear();
+		this.instanceTypes.clear();
+		this.previousStorage.clear();
+		this.previousDatabase.clear();
+		this.previousSupport.clear();
+		this.priceTerms.clear();
+		this.regions.clear();
 	}
 }

@@ -24,15 +24,15 @@ public interface QuoteVm {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
-	 * @see #cpu
+	 * @return The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 * @see #getCpu()
 	 */
 	Double getCpuMax();
 
 	/**
 	 * The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
-	 * 
-	 * @see #ram
+	 * @return The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
+	 * @see #getRam()
 	 */
 	Integer getRamMax();
 

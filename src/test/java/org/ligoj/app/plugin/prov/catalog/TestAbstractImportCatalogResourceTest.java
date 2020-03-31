@@ -50,23 +50,27 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void bean() {
 		final var context = newContext();
 		context.getDatabaseTypes();
-		context.setDatabaseTypes(null);
+		context.setDatabaseTypes(new HashMap<>());
 		context.getInstanceTypes();
-		context.setInstanceTypes(null);
+		context.setInstanceTypes(new HashMap<>());
 		context.getSupportTypes();
-		context.setSupportTypes(null);
+		context.setSupportTypes(new HashMap<>());
 		context.getPrevious();
-		context.setPrevious(null);
+		context.setPrevious(new HashMap<>());
 		context.getPreviousDatabase();
-		context.setPreviousDatabase(null);
+		context.setPreviousDatabase(new HashMap<>());
 		context.getPreviousStorage();
-		context.setPreviousStorage(null);
+		context.setPreviousStorage(new HashMap<>());
 		context.getPreviousSupport();
-		context.setPreviousSupport(null);
+		context.setPreviousSupport(new HashMap<>());
 		context.getStorageTypes();
-		context.setStorageTypes(null);
+		context.setStorageTypes(new HashMap<>());
 		context.getPriceTerms();
-		context.setPriceTerms(null);
+		context.setPriceTerms(new HashMap<>());
+
+		new AbstractUpdateContext(context) {
+		}.cleanup();
+
 	}
 
 	private void check(final String file, final Rate def) throws IOException {
@@ -159,7 +163,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final var previous = new HashMap<String, ProvInstancePrice>();
 		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
-		purgeSku(newContext, previous, pRepository, qRepository);
+		purgePrices(newContext, previous, pRepository, qRepository);
 		Mockito.verify(pRepository, Mockito.never()).delete(Mockito.any());
 	}
 
@@ -178,13 +182,14 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		previous.put(price1.getCode(), price1);
 		previous.put(price2.getCode(), price2);
 		previous.put(price3.getCode(), price3);
-		newContext.getUpdatedPrices().add("-updated-");
+		newContext.getPrices().add("-updated-");
 		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 
-		Mockito.doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository).finUsedPrices("service:prov:some");
+		Mockito.doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository)
+				.finUsedPrices("service:prov:some");
 
-		purgeSku(newContext, previous, pRepository, qRepository);
+		purgePrices(newContext, previous, pRepository, qRepository);
 
 		// Unused price but referenced is not deleted
 		Mockito.verify(pRepository, Mockito.never()).delete(price2);
@@ -301,6 +306,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		final var context = newContext();
 		context.setValidDatabaseType(Pattern.compile("ab.*"));
 		Assertions.assertFalse(isEnabledDatabase(context, "axr"));
+		Assertions.assertFalse(isEnabledDatabase(context, null));
 		Assertions.assertTrue(isEnabledDatabase(context, "abr"));
 	}
 
@@ -483,7 +489,7 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 		saveAsNeeded(context, entity, 3, repository);
 		Assertions.assertEquals(3, entity.getCost());
 		Assertions.assertEquals(36, entity.getCostPeriod());
-		context.getUpdatedPrices().contains("code");
+		context.getPrices().contains("code");
 		Mockito.verify(repository).save(entity);
 	}
 

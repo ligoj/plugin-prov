@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
@@ -38,7 +38,7 @@ import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
 import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
@@ -244,7 +244,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @return <code>true</code> when the configuration enable the given database type.
 	 */
 	protected boolean isEnabledDatabase(final AbstractUpdateContext context, final String type) {
-		return context.getValidDatabaseType().matcher(type).matches();
+		return type != null && context.getValidDatabaseType().matcher(type).matches();
 	}
 
 	/**
@@ -450,12 +450,12 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository for persist.
-	 * @see AbstractUpdateContext#getUpdatedCodes()
+	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getPrices()
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repositorty) {
-		context.getUpdatedPrices().add(entity.getCode());
+		context.getPrices().add(entity.getCode());
 		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
@@ -471,12 +471,12 @@ public abstract class AbstractImportCatalogResource {
 	 * @param context     The context to initialize.
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
-	 * @param repositorty The repository for persist.
-	 * @see AbstractUpdateContext#getUpdatedCodes()
+	 * @param repositorty The repository used for persist.
+	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getPrices()
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> void saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
-		context.getUpdatedPrices().add(entity.getCode());
+		context.getPrices().add(entity.getCode());
 		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 		}, repositorty::save);
@@ -485,10 +485,10 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a storage price when the attached cost is different from the old one.
 	 *
-	 * @param context   The context to initialize.
-	 * @param entity    The price entity.
-	 * @param newCostGb The new GiB cost.
-	 * @param persister The consumer used to persist the replacement. Usually a repository operation.
+	 * @param context     The context to initialize.
+	 * @param entity      The price entity.
+	 * @param newCostGb   The new GiB cost.
+	 * @param repositorty The repository used for persist.
 	 */
 	protected void saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
 			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
@@ -520,7 +520,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param updater    The consumer used to update the replacement.
 	 * @param repository The repository used to persist the replacement. May be <code>null</code>.
 	 * @return The given entity.
-	 * @see AbstractUpdateContext#getMergedTypes()
+	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getMergedTypes()
 	 */
 	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
 			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
@@ -556,30 +556,28 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Remove SKU that were present in the context and not refresh with this update.
+	 * Remove the prices that were present in the catalog and not seen in the new catalog with this update.
 	 * 
-	 * @param context     The update context.
-	 * @param previous    The whole price context in the database. Some of them are no more available in the new
-	 *                    catalog.
-	 * @param pRepository The price repository used to clean the related price.
-	 * @param qRepository The quote repository to check for unused price.
-	 * @param <T>         The instance type.
-	 * @param <P>         The price type.
+	 * @param context      The update context.
+	 * @param storedPrices The whole price context in the database. Some of them have not been seen in the new catalog.
+	 * @param pRepository  The price repository used to clean the deprecated and unused prices.
+	 * @param qRepository  The quote repository to check for unused prices.
+	 * @param <T>          The instance type.
+	 * @param <P>          The price type.
+	 * @param <Q>          The quote type.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, Q extends AbstractQuoteResourceInstance<P>> void purgeSku(
-			final AbstractUpdateContext context, Map<String, P> previous, final CrudRepository<P, Integer> pRepository,
-			final BaseProvQuoteResourceRepository<Q> qRepository) {
-		final var purgeCodes = new HashSet<>(previous.keySet());
-		purgeCodes.removeAll(context.getUpdatedPrices());
-		if (!purgeCodes.isEmpty()) {
-			final var purge = previous.size();
-			purgeCodes.removeAll(qRepository.finUsedPrices(context.getNode().getId()));
-			log.info("Purging {} unused of {} retired catalog prices ...", purgeCodes.size(), purge);
-			purgeCodes.stream().map(previous::get).forEach(pRepository::delete);
-
-			// Remove the purged from the context
-			previous.clear();
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, Q extends AbstractQuoteVm<P>> void purgePrices(
+			final AbstractUpdateContext context, final Map<String, P> storedPrices,
+			final CrudRepository<P, Integer> pRepository, final BaseProvQuoteRepository<Q> qRepository) {
+		final var retiredCodes = new HashSet<>(storedPrices.keySet());
+		retiredCodes.removeAll(context.getPrices());
+		if (!retiredCodes.isEmpty()) {
+			final var nbRetiredCodes = retiredCodes.size();
+			retiredCodes.removeAll(qRepository.finUsedPrices(context.getNode().getId()));
+			log.info("Purging {} unused of {} retired catalog prices ...", retiredCodes.size(), nbRetiredCodes);
+			retiredCodes.stream().map(storedPrices::get).forEach(pRepository::delete);
 			log.info("Code purged");
+			storedPrices.keySet().removeAll(retiredCodes);
 		}
 	}
 }

@@ -97,7 +97,6 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * Update the catalog prices of related provider. Asynchronous operation.
 	 *
 	 * @param node  The node (provider) to update.
-	 * @param force When <code>true</code>, all cost attributes are update.
 	 * @return The catalog status.
 	 */
 	@POST

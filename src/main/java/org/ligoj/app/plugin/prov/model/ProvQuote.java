@@ -169,7 +169,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private Integer ramAdjustedRate = 100;
 
 	/**
-	 * Optional reservation mode. By default is {@value ReservationMode#RESERVED}
+	 * Optional reservation mode. By default is {@link org.ligoj.app.plugin.prov.model.ReservationMode#RESERVED}
 	 */
 	private ReservationMode reservationMode = ReservationMode.RESERVED;
 

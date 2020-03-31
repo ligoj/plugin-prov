@@ -26,7 +26,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -163,7 +163,7 @@ public class ProvUsageResource {
 		return resource.refreshSupportCost(cost, quote);
 	}
 
-	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>> void updateUsage(
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void updateUsage(
 			final List<C> instances, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
 			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource, final ProvUsage entity) {
 		this.resource.newStream(instances).filter(i -> Objects.equals(i.getUsage(), entity)).forEach(i -> costs

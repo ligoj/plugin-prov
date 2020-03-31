@@ -28,7 +28,7 @@ import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -212,7 +212,7 @@ public class ProvQuoteDatabaseResource extends
 			@PathParam("engine") final String engine) {
 		final var result = ipRepository
 				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), normalize(engine));
-		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteResourceInstance.LICENSE_INCLUDED));
+		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteVm.LICENSE_INCLUDED));
 		return result;
 	}
 

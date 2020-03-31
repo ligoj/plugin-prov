@@ -8,7 +8,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 /**
  * {@link ProvQuoteSupport} repository.
  */
-public interface ProvQuoteSupportRepository extends BaseProvQuoteResourceRepository<ProvQuoteSupport> {
+public interface ProvQuoteSupportRepository extends BaseProvQuoteRepository<ProvQuoteSupport> {
 
 	// All delegated
 

@@ -27,7 +27,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE_DATABASE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteDatabase extends AbstractQuoteResourceInstance<ProvDatabasePrice> implements QuoteDatabase {
+public class ProvQuoteDatabase extends AbstractQuoteVm<ProvDatabasePrice> implements QuoteDatabase {
 
 	/**
 	 * SID

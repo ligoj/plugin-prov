@@ -7,20 +7,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * {@link AbstractQuoteResource} repository.
+ * {@link AbstractQuote} repository.
  * 
  * @param <C> Quote resource type.
  */
 @NoRepositoryBean
-public interface BaseProvQuoteResourceRepository<C extends AbstractQuoteResource<?>>
-		extends RestRepository<C, Integer> {
+public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends RestRepository<C, Integer> {
 
 	/**
 	 * Return identifiers of all resources linked to the given subscription.

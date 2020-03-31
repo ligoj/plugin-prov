@@ -30,7 +30,7 @@ import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
@@ -362,7 +362,7 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	protected BaseProvQuoteResourceRepository<ProvQuoteSupport> getResourceRepository() {
+	protected BaseProvQuoteRepository<ProvQuoteSupport> getResourceRepository() {
 		return qsRepository;
 	}
 

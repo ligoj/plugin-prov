@@ -22,14 +22,13 @@ import lombok.Setter;
 /**
  * A resource with floating cost.
  *
- * @param <P>
- *            Price configuration type.
+ * @param <P> Price configuration type.
  */
 @Getter
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends AbstractDescribedEntity<Integer>
+public abstract class AbstractQuote<P extends AbstractPrice<?>> extends AbstractDescribedEntity<Integer>
 		implements Costed {
 
 	/**
@@ -76,8 +75,7 @@ public abstract class AbstractQuoteResource<P extends AbstractPrice<?>> extends 
 	/**
 	 * Set the resolved price configuration.
 	 *
-	 * @param price
-	 *            The resolved price.
+	 * @param price The resolved price.
 	 */
 	public abstract void setPrice(P price);
 

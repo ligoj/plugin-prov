@@ -11,7 +11,7 @@ import javax.persistence.EntityNotFoundException;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.Costed;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -146,12 +146,12 @@ public interface QuoteRelated<C extends Costed> {
 	/**
 	 * Update the actual monthly cost of given resource.
 	 *
-	 * @param qr           The {@link AbstractQuoteResource} to update cost.
+	 * @param qr           The {@link AbstractQuote} to update cost.
 	 * @param costProvider The cost provider.
 	 * @param <T>          The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuoteResource<?>> FloatingCost updateCost(final T qr,
+	default <T extends AbstractQuote<?>> FloatingCost updateCost(final T qr,
 			final Function<T, FloatingCost> costProvider) {
 		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));

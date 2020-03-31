@@ -25,14 +25,14 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -55,13 +55,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * The resource part of the provisioning.
  *
  * @param <T> The instance resource type.
- * @param <C> Quoted resource type.
  * @param <P> Quoted resource price type.
+ * @param <C> Quoted resource type.
  * @param <E> Quoted resource edition VO type.
  * @param <L> Quoted resource lookup result type.
  * @param <Q> Quoted resource details type.
  */
-public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteResourceInstance<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
+public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
 		extends AbstractProvQuoteResource<T, P, C> {
 
 	/**
@@ -96,7 +96,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *
 	 * @return The repository managing the quote entities.
 	 */
-	protected abstract BaseProvQuoteResourceRepository<C> getQiRepository();
+	protected abstract BaseProvQuoteRepository<C> getQiRepository();
 
 	/**
 	 * Return the repository managing the instance type entities.
@@ -106,13 +106,13 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
 	@Override
-	protected BaseProvQuoteResourceRepository<C> getResourceRepository() {
+	protected BaseProvQuoteRepository<C> getResourceRepository() {
 		return getQiRepository();
 	}
 
 	/**
-	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
-	 * updated from the resource to the quote total cost.
+	 * Save or update the given entity from the {@link AbstractQuoteVm}. The computed cost are recursively updated from
+	 * the resource to the quote total cost.
 	 *
 	 * @param entity The entity to update.
 	 * @param vo     The change to apply to the entity.
@@ -124,9 +124,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Save or update the given entity from the {@link AbstractQuoteResourceInstance}. The computed cost are recursively
-	 * updated from the resource to the quote total cost. The change must contains a price retrieved from a previous
-	 * lookup. The match is not performed by the following function.
+	 * Save or update the given entity from the {@link AbstractQuoteVm}. The computed cost are recursively updated from
+	 * the resource to the quote total cost. The change must contains a price retrieved from a previous lookup. The
+	 * match is not performed by the following function.
 	 *
 	 * @param quote  The related quote.
 	 * @param entity The entity to update.
@@ -260,7 +260,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Return the resolved processor requirement.
 	 *
 	 * @param configuration Configuration containing the default values.
-	 * @param name          The local processor requirement
+	 * @param processor     The local processor requirement
 	 * @return The resolved processor requirement. May be <code>null</code>.
 	 */
 	protected String getProcessor(final ProvQuote configuration, final String processor) {
@@ -270,8 +270,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return the resolved resource requirement from the resource or from the quote.
 	 *
-	 * @param configuration Quote's value.
-	 * @param name          The local requirement value.
+	 * @param quoteValue Quote's value.
+	 * @param value      The local requirement value.
 	 * @return The resolved requirement. May be <code>null</code>.
 	 */
 	protected Boolean getBoolean(final Boolean quoteValue, final Boolean value) {
@@ -316,6 +316,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Return the right resource value depending on the reservation mode.
+	 * 
+	 * @param configuration Configuration containing the default values.
+	 * @param reserved      The reserved value.
+	 * @param max           The maximal value.
+	 * @param <N>           Number type.
+	 * @return The right resource value depending on the reservation mode.
 	 */
 	protected <N extends Number> N getReserved(final ProvQuote configuration, N reserved, N max) {
 		return configuration.getReservationMode() == ReservationMode.MAX && max != null ? max : reserved;
@@ -406,7 +412,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param qi   The quote resource to compute.
 	 * @return The updated cost of this resource.
 	 */
-	public static FloatingCost computeFloat(final double base, final AbstractQuoteResourceInstance<?> qi) {
+	public static FloatingCost computeFloat(final double base, final AbstractQuoteVm<?> qi) {
 		return new FloatingCost(base * qi.getMinQuantity(),
 				Optional.ofNullable(qi.getMaxQuantity()).orElse(qi.getMinQuantity()) * base, qi.isUnboundCost());
 	}
@@ -438,7 +444,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			// Dual license modes are managed only for WINDOWS OS for now
 			licenseR = configuration.getLicense();
 		}
-		if (AbstractQuoteResourceInstance.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
+		if (AbstractQuoteVm.LICENSE_INCLUDED.equalsIgnoreCase(licenseR)) {
 			// Database handle included license as 'null'
 			licenseR = null;
 		} else if (licenseR != null) {

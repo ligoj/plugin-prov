@@ -68,8 +68,6 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * Return the valid instance types matching the requirements.
 	 *
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
-	 * @param cpu         The minimum CPU.
-	 * @param ram         The minimum RAM in MB.
 	 * @param constant    The optional constant CPU behavior constraint.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.

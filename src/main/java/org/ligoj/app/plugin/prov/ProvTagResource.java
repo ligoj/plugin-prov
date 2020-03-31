@@ -22,7 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.NamedBean;
@@ -142,7 +142,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	 * @param tags     The optional collection of tags. When <code>null</code>, nothing is done.
 	 * @param resource The related resource.
 	 */
-	public void replaceTags(Collection<TagVo> tags, final AbstractQuoteResource<?> resource) {
+	public void replaceTags(Collection<TagVo> tags, final AbstractQuote<?> resource) {
 		if (tags != null) {
 			// Redefine tags for this entity
 			onDelete(resource.getResourceType(), resource.getId());

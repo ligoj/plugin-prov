@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvQuoteStorage} repository.
  */
-public interface ProvQuoteStorageRepository extends BaseProvQuoteResourceRepository<ProvQuoteStorage> {
+public interface ProvQuoteStorageRepository extends BaseProvQuoteRepository<ProvQuoteStorage> {
 
 	/**
 	 * Return the storage quote details from the related subscription.

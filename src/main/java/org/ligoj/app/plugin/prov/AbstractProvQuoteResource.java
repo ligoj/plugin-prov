@@ -6,9 +6,9 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.function.Function;
 
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResource;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <T> Quoted resource price type type.
  * @since 1.8.5
  */
-public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuoteResource<P>>
+public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
 		extends AbstractCostedResource<T, P, C> {
 
 	@Autowired
@@ -39,7 +39,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 	 */
 	protected abstract ResourceType getType();
 
-	protected abstract BaseProvQuoteResourceRepository<C> getResourceRepository();
+	protected abstract BaseProvQuoteRepository<C> getResourceRepository();
 
 	/**
 	 * Delete all resources type from a quote. The total cost is updated.

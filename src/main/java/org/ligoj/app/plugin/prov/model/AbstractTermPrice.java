@@ -44,8 +44,8 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 
 	/**
 	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing
-	 * period below 1 month. This value is a copy of {@link ProvInstancePriceTerm#getPeriod()} value for performance
-	 * purpose.
+	 * period below 1 month. This value is a copy of
+	 * {@link org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm#getPeriod()} value for performance purpose.
 	 */
 	private double period = 0;
 

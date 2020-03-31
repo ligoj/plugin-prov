@@ -36,7 +36,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteResourceInstance;
+import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
@@ -302,7 +302,7 @@ public class ProvQuoteStorageResource
 		final int qLoc = configuration.getLocation().getId();
 		final int qsLoc;
 		if (query.getLocationName() == null) {
-			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteResourceInstance::getLocation)
+			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteVm::getLocation)
 					.map(Persistable::getId).orElse(qLoc);
 		} else {
 			qsLoc = locationRepository.toId(node, query.getLocationName());

@@ -4,7 +4,7 @@
 package org.ligoj.app.plugin.prov;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteResourceRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -42,11 +42,11 @@ public abstract class AbstractLazyResource {
 	 * Return the repository managing the given resource type.
 	 * 
 	 * @param type The resource type to query.
-	 * @return The corresponding {@link BaseProvQuoteResourceRepository} managing the requested type.
+	 * @return The corresponding {@link BaseProvQuoteRepository} managing the requested type.
 	 */
-	protected BaseProvQuoteResourceRepository<?> getRepository(final ResourceType type) {
+	protected BaseProvQuoteRepository<?> getRepository(final ResourceType type) {
 		return context.getBean("provQuote" + StringUtils.capitalize(type.name().toLowerCase()) + "Repository",
-				BaseProvQuoteResourceRepository.class);
+				BaseProvQuoteRepository.class);
 	}
 
 }
