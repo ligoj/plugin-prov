@@ -89,10 +89,10 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	@Path("{subscription:\\d+}/network")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void updateAllById(@PathParam("subscription") final int subscription, final List<NetworkFullVo> io) {
-		final ProvQuote quote = deleteAll(subscription);
+		final var quote = deleteAll(subscription);
 
 		// Get all resources identifiers grouped by types
-		final Map<ResourceType, Set<Integer>> ids = new EnumMap<>(ResourceType.class);
+		final var ids = new EnumMap<ResourceType, Set<Integer>>(ResourceType.class);
 		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
 				.forEach(t -> ids.put(t, getRepository(t).findAllNetworkId(subscription)));
 
@@ -121,7 +121,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	public int updateAllByName(@PathParam("subscription") final int subscription,
 			@QueryParam("continue-on-error") @DefaultValue("false") final boolean continueOnError,
 			final List<NetworkFullByNameVo> io) {
-		final ProvQuote quote = deleteAll(subscription);
+		final var quote = deleteAll(subscription);
 		var errors = new AtomicInteger();
 
 		// Get all resources identifiers grouped by types
@@ -183,7 +183,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 
 	private ProvQuote deleteAll(final int subscription) {
 		// First delete all IO of this subscription
-		final ProvQuote quote = resource.getQuoteFromSubscription(subscription);
+		final var quote = resource.getQuoteFromSubscription(subscription);
 		repository.deleteAll(quote.getId());
 		return quote;
 	}
@@ -219,7 +219,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	 */
 	private ProvNetwork newNetwork(final ResourceType type, final Integer id, final ProvQuote quote,
 			final NetworkVo t) {
-		final ProvNetwork entity = new ProvNetwork();
+		final var entity = new ProvNetwork();
 
 		// Validate the peer
 		if (t.isInbound()) {
