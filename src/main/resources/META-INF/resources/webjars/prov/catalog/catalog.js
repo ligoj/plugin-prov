@@ -280,13 +280,18 @@ define(['sparkline'], function () {
 				url: REST_PATH + 'service/prov/catalog/' + node,
 				type: 'GET',
 				success: function (status) {
-					current.updateStatus(status, node);
-					if (status.end) {
-						current.unscheduleUploadStep(node);
+					current.isSameTransaction(current.$transaction) {
+						current.updateStatus(status, node);
+						if (status.end) {
+							current.unscheduleUploadStep(node);
+						} else {
+							// Continue polling for this catalog
+							current.scheduleUploadStep(node);
+						}
 					} else {
-						// Continue polling for this catalog
-						current.scheduleUploadStep(node);
+						current.unscheduleUploadStep(node);
 					}
+						
 				},
 				error: function () {
 					current.unscheduleUploadStep(node);
