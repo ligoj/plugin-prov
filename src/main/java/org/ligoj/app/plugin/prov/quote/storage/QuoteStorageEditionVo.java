@@ -10,14 +10,12 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.SafeHtml;
-import org.hibernate.validator.constraints.SafeHtml.Attribute;
-import org.hibernate.validator.constraints.SafeHtml.Tag;
 import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
+import org.ligoj.bootstrap.core.validation.SafeHtml;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -45,7 +43,7 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private String name;
 
 	@Length(max = 250)
-	@SafeHtml(additionalTagsWithAttributes = @Tag(name = "a", attributesWithProtocols = @Attribute(name = "href", protocols = "#")))
+	@SafeHtml
 	private String description;
 
 	/**
