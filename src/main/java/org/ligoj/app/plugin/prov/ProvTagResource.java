@@ -147,7 +147,7 @@ public class ProvTagResource extends AbstractLazyResource {
 			// Redefine tags for this entity
 			onDelete(resource.getResourceType(), resource.getId());
 			tags.stream().map(t -> {
-				final ProvTag entity = new ProvTag();
+				final var entity = new ProvTag();
 				entity.setName(t.getName());
 				entity.setValue(t.getValue());
 				entity.setResource(resource.getId());

@@ -176,7 +176,7 @@ public class TerraformUtilsTest extends AbstractServerTest {
 		}
 		Assertions.assertTrue(file.exists());
 		try (var input = new FileInputStream(file)) {
-			Assertions.assertTrue(IOUtils.toString(input, "UTF-8").startsWith("#EMPTY"));
+			Assertions.assertTrue(IOUtils.toString(input, StandardCharsets.UTF_8).startsWith("#EMPTY"));
 		}
 	}
 

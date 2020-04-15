@@ -312,7 +312,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Update the configuration details. The costs and the related resources are refreshed with lookups.
+	 * Update the configuration details. The costs and the related resources are refreshed with lookup.
 	 *
 	 * @param subscription The subscription to update
 	 * @param vo           The new quote.

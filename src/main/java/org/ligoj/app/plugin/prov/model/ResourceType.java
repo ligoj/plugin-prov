@@ -33,7 +33,7 @@ public enum ResourceType {
 	@Getter
 	private boolean network;
 
-	private ResourceType(boolean network) {
+	ResourceType(boolean network) {
 		this.network = network;
 	}
 }

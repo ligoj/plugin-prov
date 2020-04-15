@@ -49,7 +49,7 @@ public abstract class AbstractUpdateContext {
 	 * Mapping from API region identifier to region name.
 	 */
 	@Getter
-	private Map<String, ProvLocation> mapRegionToName = new HashMap<>();
+	private final Map<String, ProvLocation> mapRegionToName = new HashMap<>();
 
 	/**
 	 * The previously installed instance types. Key is the instance code.
@@ -89,7 +89,7 @@ public abstract class AbstractUpdateContext {
 	 * The read catalog price codes: codes having been read from the catalog and persisted.
 	 */
 	@Getter
-	private Set<String> prices = new HashSet<String>();
+	private final Set<String> prices = new HashSet<>();
 
 	/**
 	 * The previous installed Database prices. Key is the code.
@@ -122,7 +122,7 @@ public abstract class AbstractUpdateContext {
 	 * The merged type's codes.
 	 */
 	@Getter
-	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<String>());
+	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * The accepted and existing storage type. Key is the code.

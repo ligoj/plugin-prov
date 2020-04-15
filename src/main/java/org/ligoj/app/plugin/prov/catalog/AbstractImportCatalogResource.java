@@ -477,9 +477,7 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends ProvType, P extends AbstractPrice<T>> void saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
 		context.getPrices().add(entity.getCode());
-		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
-			entity.setCost(cR);
-		}, repositorty::save);
+		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR), repositorty::save);
 	}
 
 	/**

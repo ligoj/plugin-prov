@@ -172,7 +172,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 			throw new EntityNotFoundException(name);
 		}
 		// At least one resource with this name has been found
-		ValidationJsonException.assertTrue(counters.get(name).intValue() == 1, "ambiguous-name", "name", name);
+		ValidationJsonException.assertTrue(counters.get(name) == 1, "ambiguous-name", "name", name);
 
 		nameAndIds.entrySet().stream().filter(e -> e.getValue().containsKey(name)).limit(1).forEach(e -> {
 			setId.accept(e.getValue().get(name));
