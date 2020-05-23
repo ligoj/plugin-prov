@@ -26,7 +26,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.ProvisioningService;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -120,7 +119,8 @@ public class ProvQuoteInstanceResource extends
 	 * @param entity The instance to check.
 	 */
 	protected void checkOs(final ProvQuoteInstance entity) {
-		if (entity.getOs().toPricingOs() != entity.getPrice().getOs()) {
+		final var service = getService(entity.getConfiguration());
+		if (service.getCatalogOs(entity.getOs()) != entity.getPrice().getOs()) {
 			// Incompatible, hack attempt?
 			log.warn("Attempt to create an instance with an incompatible OS {} with catalog OS {}", entity.getOs(),
 					entity.getPrice().getOs());
@@ -169,8 +169,7 @@ public class ProvQuoteInstanceResource extends
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration) {
 		// Resolve the right OS
-		final var service = locator.getResource(configuration.getSubscription().getNode().getId(),
-				ProvisioningService.class);
+		final var service = getService(configuration);
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
