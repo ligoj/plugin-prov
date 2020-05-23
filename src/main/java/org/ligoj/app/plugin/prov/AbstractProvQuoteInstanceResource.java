@@ -44,6 +44,7 @@ import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
+import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.json.TableItem;
@@ -83,6 +84,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
     @Autowired
     protected ProvUsageRepository usageRepository;
+    
+    @Autowired
+    protected ServicePluginLocator locator;
 
     /**
      * Return the repository managing the instance pricing entities.
