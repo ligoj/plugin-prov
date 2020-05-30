@@ -44,14 +44,12 @@ define(['jquery'], function ($) {
 				}
 			},
 			'string': {
-				/* LEFT JOIN */
-				'lj': function (collectionById) {
+				'lj': function (collectionById) { /* LEFT JOIN */
 					return function (value) {
 						return !value || !!collectionById[value.id];
 					};
 				},
-				/* INNER JOIN (IN) */
-				'in': function (collectionById) {
+				'in': function (collectionById) { /* INNER JOIN (IN) */
 					return function (value) {
 						return value && !!collectionById[value.id];
 					};
@@ -67,10 +65,28 @@ define(['jquery'], function ($) {
 						return value.toLowerCase() !== search;
 					};
 				},
-				'~': function (search) {
+				'~': function (search) { // Contains
 					search = (search || '').toLowerCase();
 					return function (value) {
 						return value.toLowerCase().indexOf(search) >= 0;
+					};
+				},
+				'*=': function (search) { // Contains
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase().indexOf(search) >= 0;
+					};
+				},
+				'^=': function (search) { // Starts with
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase().indexOf(search) === 0;
+					};
+				},
+				'=': function (search) { // Equals
+					search = (search || '').toLowerCase();
+					return function (value) {
+						return value.toLowerCase() === search;
 					};
 				}
 			}
@@ -113,7 +129,7 @@ define(['jquery'], function ($) {
 			console.log('Not mapped property', property);
 		}
 
-		function buildJoin(specific, join) {
+		function buildJoin(join) {
 			var specificKeys = [];
 			for (var i = 0; i < (join.filters || []).length; i++) {
 				var filter = join.filters[i];
@@ -125,14 +141,13 @@ define(['jquery'], function ($) {
 					for (var j = 0; j < collection.length; j++) {
 						collectionById[collection[j].id] = true;
 					}
-					specific[property] = propertyNewCustomFilter(property, operators['string'][filter.op](collectionById));
-					specificKeys.push(property);
+					specificKeys.push({ property: property, filter: propertyNewCustomFilter(property, operators['string'][filter.op](collectionById)) });
 				}
 			}
 			return specificKeys;
 		}
 
-		function buildKeys(specific, settings, global, filters) {
+		function buildKeys(settings, global, filters) {
 			var specificKeys = [];
 			for (var i = 0; i < filters.length; i++) {
 				var filter = filters[i].trim();
@@ -142,23 +157,24 @@ define(['jquery'], function ($) {
 				var filterParts = filter.split('|');
 				var operator;
 				var value;
-				if (filter.startsWith('|')) {
+				if (filterParts.length === 3) {
 					// Specific filter
-					var property = filterParts[1];
-					operator = filterParts[2];
-					value = filterParts[3];
-					specific[property] = newCustomFilter(settings, property, operator, value);
-					specificKeys.push(property);
+					var property = filterParts[0];
+					operator = filterParts[1];
+					value = filterParts[2];
+					specificKeys.push({ property: property, filter: newCustomFilter(settings, property, operator, value) });
 				} else {
 					// Global filter
 					if (filterParts.length === 1) {
+						// Contains value
 						operator = '~';
 						value = filterParts[0];
 					} else {
+						// Specific operator
 						operator = filterParts[0];
 						value = filterParts[1];
 					}
-					global.push(operators['string'][operator](value));
+					global.push((operators['string'][operator] || operators['string']['~'])(value));
 				}
 			}
 			return specificKeys;
@@ -172,7 +188,6 @@ define(['jquery'], function ($) {
 
 			// Need to build the cache configuration for this filter
 			var filters = search.split(',');
-			var specific = {};
 			var global = [];
 
 			// Update the cache
@@ -180,9 +195,8 @@ define(['jquery'], function ($) {
 				search: search,
 				join: join.cache,
 				filter: {
-					specific: specific,
-					specificOrKeys: buildJoin(specific, join),
-					specificAndKeys: buildKeys(specific, settings, global, filters),
+					specificOrKeys: buildJoin(join),
+					specificAndKeys: buildKeys(settings, global, filters),
 					global: global
 				}
 			}
@@ -199,7 +213,7 @@ define(['jquery'], function ($) {
 			var i;
 			if (filter.specificOrKeys.length) {
 				for (i = 0; i < filter.specificOrKeys.length; i++) {
-					if (filter.specific[filter.specificOrKeys[i]](dataFilter, data)) {
+					if (filter.specificOrKeys[i].filter(dataFilter, data)) {
 						found = true;
 						break;
 					}
@@ -212,7 +226,7 @@ define(['jquery'], function ($) {
 			if (filter.specificAndKeys.length) {
 				// All filters must match
 				for (i = 0; i < filter.specificAndKeys.length; i++) {
-					if (!filter.specific[filter.specificAndKeys[i]](dataFilter, data)) {
+					if (!filter.specificAndKeys[i].filter(dataFilter, data)) {
 						return false;
 					}
 				}
