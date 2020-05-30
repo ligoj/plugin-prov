@@ -99,17 +99,11 @@ public class ProvQuoteUploadResource {
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version");
 
-	private static boolean hasNoPattern(final String[] a) {
-		return a[1].indexOf('?') * a[1].indexOf('*') == 0;
-	}
-
 	/**
 	 * Patterns from the most to the least exact match of header.
 	 */
-	private static final List<Function<String[], String>> LAYER_MATCHERS = List.of(a -> a[0],
-			a -> hasNoPattern(a) ? a[1] : a[0], a -> a[1], a -> a[0] + ".*",
-			a -> (hasNoPattern(a) ? a[1] : a[0]) + ".*", a -> ".*" + a[0], a -> ".*" + (hasNoPattern(a) ? a[1] : a[0]),
-			a -> ".*" + a[1], a -> ".*" + a[0] + ".*", a -> ".*" + (hasNoPattern(a) ? a[1] : a[0]) + ".*",
+	private static final List<Function<String[], String>> LAYER_MATCHERS = List.of(a -> a[0], a -> a[1],
+			a -> a[0] + ".*", a -> a[1] + ".*", a -> ".*" + a[0], a -> ".*" + a[1], a -> ".*" + a[0] + ".*",
 			a -> ".*" + a[1] + ".*");
 
 	@Autowired
