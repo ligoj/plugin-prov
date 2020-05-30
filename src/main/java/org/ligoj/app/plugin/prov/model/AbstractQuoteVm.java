@@ -173,6 +173,7 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	 *
 	 * @return The effective usage applied to the given resource. May be <code>null</code>.
 	 */
+	@JsonIgnore
 	public ProvUsage getResolvedUsage() {
 		return usage == null ? getConfiguration().getUsage() : usage;
 	}
@@ -183,6 +184,7 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	 * @return The usage name applied to the given resource. May be <code>null</code>.
 	 */
 	@Override
+	@JsonIgnore
 	public String getUsageName() {
 		return Optional.ofNullable(getResolvedUsage()).map(INamableBean::getName).orElse(null);
 	}
