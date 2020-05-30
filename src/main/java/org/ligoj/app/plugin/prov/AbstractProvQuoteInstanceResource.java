@@ -1,7 +1,6 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-
 package org.ligoj.app.plugin.prov;
 
 import java.util.HashMap;
@@ -9,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -654,6 +654,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The Spring component handling the tool provisioning node.
 	 */
 	protected ProvisioningService getService(final ProvQuote configuration) {
-		return locator.getResource(configuration.getSubscription().getNode().getId(), ProvisioningService.class);
+		return Objects.requireNonNullElseGet(configuration.getService(), () -> {
+			configuration.setService(
+					locator.getResource(configuration.getSubscription().getNode().getId(), ProvisioningService.class));
+			return configuration.getService();
+		});
 	}
 }

@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -18,6 +19,7 @@ import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.model.PluginConfiguration;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.ProvisioningService;
 import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -202,4 +204,10 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 		return this;
 	}
 
+	/**
+	 * Resolved service instance. May be <code>null</code> while unresolved.
+	 */
+	@Transient
+	@JsonIgnore
+	private ProvisioningService service;
 }
