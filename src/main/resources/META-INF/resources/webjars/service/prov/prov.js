@@ -1857,6 +1857,7 @@ define(function () {
 					orderable: false,
 					className: 'truncate hidden-xs',
 					type: 'string',
+					filterName : 'tags',
 					render: current.tagManager.render
 				}, {
 				data: 'cost',
