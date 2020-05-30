@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,21 +89,28 @@ public class ProvQuoteUploadResource {
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
-			"ram:memory", "constant", "physical:metal", "os:(system|operating system)", "disk:size", "latency",
-			"optimized:(disk)?optimized", "type:instancetype", "internet", "minQuantity:min", "maxQuantity:max",
-			"maxVariableCost:maxcost", "ephemeral:preemptive", "location:region", "usage:(use|env|environment)",
-			"license", "software", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]max)",
+			"ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
+			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
+			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
+			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
+			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
+			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
-			"diskMax:(max[-_ ]?(size|disk)|(size|disk)[-_ ]?max)", "processor:proc", "engine:db", "edition");
+			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
+			"edition:version");
+
+	private static boolean hasNoPattern(final String[] a) {
+		return a[1].indexOf('?') * a[1].indexOf('*') == 0;
+	}
 
 	/**
 	 * Patterns from the most to the least exact match of header.
 	 */
-	private static final List<Function<String[], String>> MATCH_HEADERS = List.of(a -> a[0],
-			a -> a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")"),
-			a -> (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")) + ".*",
-			a -> ".*" + (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")),
-			a -> ".*" + (a.length == 1 ? a[0] : ("(" + a[0] + "|" + a[1] + ")")) + ".*");
+	private static final List<Function<String[], String>> LAYER_MATCHERS = List.of(a -> a[0],
+			a -> hasNoPattern(a) ? a[1] : a[0], a -> a[1], a -> a[0] + ".*",
+			a -> (hasNoPattern(a) ? a[1] : a[0]) + ".*", a -> ".*" + a[0], a -> ".*" + (hasNoPattern(a) ? a[1] : a[0]),
+			a -> ".*" + a[1], a -> ".*" + a[0] + ".*", a -> ".*" + (hasNoPattern(a) ? a[1] : a[0]) + ".*",
+			a -> ".*" + a[1] + ".*");
 
 	@Autowired
 	private CsvForBean csvForBean;
@@ -237,19 +245,19 @@ public class ProvQuoteUploadResource {
 	 */
 	private String[] checkHeaders(final String... headers) {
 		// Headers (K) mapped to input ones (V)
-		final Map<String, String> mapped = new HashMap<>();
+		final var mapped = new HashMap<String, String>();
+		final var mapped_user = new HashSet<String>();
 
 		// For each pattern, from the most precise match to the least one
 		// Check the compliance of the given header against the accepted values
-		MATCH_HEADERS.forEach(c -> {
-			// Headers (K) mapped to input ones (V) for this match level
-			final Map<String, String> localMapped = new HashMap<>();
+		LAYER_MATCHERS.forEach(layer -> {
+			// Headers (K) mapped to input ones (V) for this match layer
+			final var layerMapped = new HashMap<String, String>();
 			Arrays.stream(headers)
 					.forEach(h -> ACCEPTED_HEADERS.stream().map(mapping -> mapping.split(":"))
-							.filter(patterns -> match(c, patterns, cleanHeader(h)))
-							.filter(patterns -> !mapped.containsKey(patterns[0]) && !mapped.containsKey(h))
-							.forEach(patterns -> {
-								final var previous = localMapped.put(patterns[0], h);
+							.filter(mapping -> !mapped.containsKey(mapping[0]) && !mapped_user.contains(h))
+							.filter(mapping -> match(layer, mapping, cleanHeader(h))).forEach(patterns -> {
+								final var previous = layerMapped.put(patterns[0], h);
 								if (previous != null) {
 									// Ambiguous header
 									throw new ValidationJsonException(CSV_FILE, "ambiguous-header", "header",
@@ -257,7 +265,8 @@ public class ProvQuoteUploadResource {
 								}
 							}));
 			// Complete the global set
-			mapped.putAll(localMapped);
+			mapped.putAll(layerMapped);
+			mapped_user.addAll(layerMapped.values());
 		});
 
 		// Check the mandatory headers
@@ -273,8 +282,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private boolean match(final Function<String[], String> c, final String[] namePattern, final String value) {
-		return Pattern.compile("(" + namePattern[0] + "|" + c.apply(namePattern) + ")", Pattern.CASE_INSENSITIVE)
-				.matcher(value.trim()).matches();
+		return Pattern.compile(c.apply(namePattern), Pattern.CASE_INSENSITIVE).matcher(value.trim()).matches();
 	}
 
 	/**
@@ -409,15 +417,14 @@ public class ProvQuoteUploadResource {
 		return vo;
 	}
 
-	private ValidationJsonException handleValidationError(VmUpload i, final ValidationJsonException e) {
-		log.info("Upload provisioning : failed", e);
+	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
+		final String failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
 				.forEach(errors::remove);
 		errors.put(CSV_FILE,
-				List.of(Map.of("parameters",
-						(Serializable) Map.of("name", ObjectUtils.defaultIfNull(i.getName(), "<unknown>")), "rule",
-						"csv-invalid-entry")));
+				List.of(Map.of("parameters", (Serializable) Map.of("name", failedEntry), "rule", "csv-invalid-entry")));
 		return e;
 	}
 

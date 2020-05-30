@@ -273,12 +273,12 @@ public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalog
 	void initContext() {
 		nodeRepository = Mockito.mock(NodeRepository.class);
 		configuration = Mockito.mock(ConfigurationResource.class);
-		Mockito.when(nodeRepository.findOneExpected("service:prov:sample")).thenReturn(new Node());
+		Mockito.when(nodeRepository.findOneExpected("service:prov:test")).thenReturn(new Node());
 		Mockito.when(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH)).thenReturn(1);
 		final AbstractUpdateContext context = new AbstractUpdateContext() {
 			// Nothing
 		};
-		initContext(context, "service:prov:sample", true);
+		initContext(context, "service:prov:test", true);
 		Assertions.assertNotNull(context.getNode());
 		Assertions.assertEquals(1, context.getHoursMonth());
 		Assertions.assertTrue(context.isForce());

@@ -139,7 +139,7 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	@Test
 	void uploadMax() throws IOException {
 		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0.2;500;300;LINUX;100;80", "UTF-8"),
-				new String[] { "name", "cpu", "cpuMax", "ram", "ramMax", "os", "disk", "diskMax" }, false,
+				new String[] { "name", "cpu", "cpu_max", "ram", "ram-MAX", "os", "disk", "disk_Max" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4828.238, 7277.838, false);

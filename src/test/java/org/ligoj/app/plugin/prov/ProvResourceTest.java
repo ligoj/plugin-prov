@@ -765,7 +765,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 
 			@Override
 			public String getKey() {
-				return "service:prov:sample";
+				return "service:prov:test";
 			}
 		};
 		res.provResource = resource;
