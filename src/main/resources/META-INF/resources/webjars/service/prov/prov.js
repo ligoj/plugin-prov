@@ -585,7 +585,7 @@ define(function () {
 
 	function formatUsageTemplate(usage, mode) {
 		if (mode === 'sort' || mode === 'filter') {
-			return usage ? usage.text || usage.name : 'default';
+			return usage ? usage.text || usage.name : current.model.configuration.usage ? usage.name : 'default';
 		}
 		if (usage) {
 			usage = {
@@ -3795,7 +3795,8 @@ define(function () {
 					data: 'usage',
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
-					render: formatUsageTemplate
+					render: formatUsageTemplate,
+					filter : opFunction=> (value, data) => opFunction(data.usage ? data.usage.name : current.model.configuration.usage ? current.model.configuration.usage.name : 'default')
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
