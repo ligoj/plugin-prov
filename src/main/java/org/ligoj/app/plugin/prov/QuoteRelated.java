@@ -129,6 +129,8 @@ public interface QuoteRelated<C extends Costed> {
 		synchronized (quote) {
 			quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
 			quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
+			quote.setInitialCost(round(quote.getInitialCost() + fc.getInitial()));
+			quote.setMaxInitialCost(round(quote.getMaxCostNoSupport() + fc.getMaxInitial()));
 		}
 		return fc;
 	}
@@ -156,7 +158,8 @@ public interface QuoteRelated<C extends Costed> {
 		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));
 		qr.setMaxCost(round(cost.getMax()));
-		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.isUnboundCost());
+		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.getInitialCost(), qr.getMaxInitialCost(),
+				qr.isUnboundCost());
 	}
 
 	/**

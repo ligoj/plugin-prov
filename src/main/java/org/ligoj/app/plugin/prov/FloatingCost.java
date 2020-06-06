@@ -40,6 +40,20 @@ public class FloatingCost implements Serializable {
 	private double max;
 
 	/**
+	 * Minimal initial cost.
+	 */
+	@JsonSerialize(using = RoundSerializer.class)
+	private double initial = 0d;
+
+	/**
+	 * Maximal initial cost.
+	 * 
+	 * @see #maxCost
+	 */
+	@JsonSerialize(using = RoundSerializer.class)
+	private double maxInitial = 0d;
+
+	/**
 	 * When <code>true</code>, the maximal cost is not fully determined.
 	 */
 	private boolean unbound;
@@ -55,8 +69,7 @@ public class FloatingCost implements Serializable {
 	/**
 	 * Constructor to define a fixed float.
 	 *
-	 * @param base
-	 *            The minimal and maximal value.
+	 * @param base The minimal and maximal value.
 	 */
 	public FloatingCost(double base) {
 		min = base;
@@ -66,13 +79,14 @@ public class FloatingCost implements Serializable {
 	/**
 	 * Add a another floating cost. This operation updates the current object.
 	 *
-	 * @param other
-	 *            Another cost.
+	 * @param other Another cost.
 	 * @return This object.
 	 */
 	public FloatingCost add(final FloatingCost other) {
 		min += other.min;
 		max += other.max;
+		initial += other.initial;
+		maxInitial += other.maxInitial;
 		unbound |= other.unbound;
 		return this;
 	}
@@ -83,7 +97,7 @@ public class FloatingCost implements Serializable {
 	 * @return A new instance with round values.
 	 */
 	public FloatingCost round() {
-		return new FloatingCost(round(min), round(max), unbound);
+		return new FloatingCost(round(min), round(max), initial, maxInitial, unbound);
 	}
 
 	private double round(final double value) {

@@ -81,6 +81,11 @@ public class ProvInstancePriceTerm extends AbstractCodedEntity implements NodeSc
 	private Boolean reservation;
 
 	/**
+	 * When <code>true</code>, this term is associated to initial cost.
+	 */
+	private Boolean initialCost = false;
+
+	/**
 	 * Optional location constraint. When not <code>null</code>, is redundant of the
 	 * {@link org.ligoj.app.plugin.prov.model.AbstractPrice#getLocation()}.
 	 */

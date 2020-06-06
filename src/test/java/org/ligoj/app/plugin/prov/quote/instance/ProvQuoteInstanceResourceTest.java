@@ -595,9 +595,9 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	private Map<Integer, FloatingCost> toStoragesFloatingCost(final String instanceName) {
-		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream().collect(Collectors.toMap(
-				ProvQuoteStorage::getId,
-				qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(), qs.getQuoteInstance().getMaxQuantity() == null)));
+		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream()
+				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(),
+						0, 0, qs.getQuoteInstance().getMaxQuantity() == null)));
 	}
 
 	@Test

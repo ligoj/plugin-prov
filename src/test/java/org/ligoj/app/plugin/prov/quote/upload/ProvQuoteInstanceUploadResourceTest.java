@@ -38,9 +38,9 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 	private ProvQuoteUploadResource qiuResource;
 
 	private Map<String, FloatingCost> toStoragesFloatingCost(final String instanceName) {
-		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream().collect(Collectors.toMap(
-				ProvQuoteStorage::getName,
-				qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(), qs.getQuoteInstance().getMaxQuantity() == null)));
+		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream()
+				.collect(Collectors.toMap(ProvQuoteStorage::getName, qs -> new FloatingCost(qs.getCost(),
+						qs.getMaxCost(), 0, 0, qs.getQuoteInstance().getMaxQuantity() == null)));
 	}
 
 	@Test
@@ -209,8 +209,8 @@ public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTes
 		Assertions.assertEquals("STANDARD TWO", qb.getEdition());
 
 		// New database
-		final var qb2 = configuration.getDatabases().stream().filter(q -> q.getName().equals("databaseNEW"))
-				.findFirst().get();
+		final var qb2 = configuration.getDatabases().stream().filter(q -> q.getName().equals("databaseNEW")).findFirst()
+				.get();
 		Assertions.assertEquals("database1", qb2.getPrice().getType().getName());
 		Assertions.assertEquals(0.4, qb2.getCpu());
 		Assertions.assertEquals(800, qb2.getRam());

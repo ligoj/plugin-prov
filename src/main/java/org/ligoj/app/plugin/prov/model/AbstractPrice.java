@@ -8,9 +8,8 @@ import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
-import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +18,7 @@ import lombok.ToString;
 /**
  * Resource price context.
  *
- * @param <T>
- *            Resource type.
+ * @param <T> Resource type.
  */
 @Getter
 @Setter
@@ -42,7 +40,7 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	 * Optional location constraint.
 	 */
 	@ManyToOne
-	@JsonSerialize(using = ToNameSerializer.class)
+	@JsonIgnore
 	private ProvLocation location;
 
 	/**

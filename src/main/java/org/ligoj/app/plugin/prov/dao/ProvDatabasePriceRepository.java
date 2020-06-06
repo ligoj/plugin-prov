@@ -57,61 +57,68 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest database price configuration from the minimal requirements.
 	 *
-	 * @param types    The valid instance type identifiers.
-	 * @param terms    The valid instance terms identifiers.
-	 * @param cpu      The minimum CPU.
-	 * @param ram      The minimum RAM in MB.
-	 * @param engine   Database engine notice. When not <code>null</code> a software constraint is added. WHen
-	 *                 <code>null</code>, installed software is also accepted.
-	 * @param edition  Optional database edition.
-	 * @param location The requested location identifier.
-	 * @param rate     Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration The duration in month. Minimum is 1.
-	 * @param license  Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param pageable The page control to return few item.
+	 * @param types       The valid instance type identifiers.
+	 * @param terms       The valid instance terms identifiers.
+	 * @param cpu         The minimum CPU.
+	 * @param ram         The minimum RAM in MB.
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 *                    <code>null</code>, installed software is also accepted.
+	 * @param edition     Optional database edition.
+	 * @param location    The requested location identifier.
+	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration    The duration in month. Minimum is 1.
+	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param initialCost The maximal initial cost.
+	 * @param pageable    The page control to return few item.
 	 * @return The minimum database price or empty result.
 	 */
-	@Query("SELECT ip,                                               "
+	@Query("SELECT ip,                                                                                    "
 			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate * :duration) AS totalCost,"
 			+ " (((CEIL(:cpu) * ip.costCpu) + (CEIL(:ram / 1024.0) * ip.costRam)) * :rate)  AS monthlyCost          "
-			+ " FROM #{#entityName} ip                               "
-			+ "  WHERE (ip.type.id IN :types) AND (ip.term.id IN :terms)   "
-			+ "  AND :engine = ip.engine                             "
-			+ "  AND (:edition IS NULL OR ip.edition=:edition)       "
+			+ " FROM #{#entityName} ip WHERE                                                              "
+			+ "      (ip.location IS NULL OR ip.location.id = :location)                                  "
+			+ "  AND :engine = ip.engine                                                                  "
+			+ "  AND (:edition IS NULL OR ip.edition=:edition)                                            "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND (ip.location IS NULL OR ip.location.id = :location) ORDER BY totalCost ASC")
+			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
+			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
+			+ "  ORDER BY totalCost ASC                                                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
 			String engine, String edition, int location, double rate, double duration, String license,
-			Pageable pageable);
+			double initialCost, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.
 	 *
-	 * @param types    The required instance type identifiers.
-	 * @param location The requested location identifier.
-	 * @param rate     Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration The duration in month. Minimum is 1.
-	 * @param license  Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param engine   Database engine notice. When not <code>null</code> a software constraint is added. WHen
-	 *                 <code>null</code>, installed software is also accepted.
-	 * @param edition  Optional database edition.
-	 * @param pageable The page control to return few item.
+	 * @param types       The required instance type identifiers.
+	 * @param terms       The valid instance terms identifiers.
+	 * @param location    The requested location identifier.
+	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration    The duration in month. Minimum is 1.
+	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 *                    <code>null</code>, installed software is also accepted.
+	 * @param edition     Optional database edition.
+	 * @param initialCost The maximal initial cost.
+	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
-	@Query("SELECT ip,                                               "
-			+ " CASE                                                 "
+	@Query("SELECT ip,                                                "
+			+ " CASE                                                  "
 			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)"
 			+ "  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,"
-			+ " CASE                                                 "
+			+ " CASE                                                  "
 			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)            "
-			+ "  ELSE ip.cost END AS monthlyCost                     "
-			+ " FROM #{#entityName} ip                               "
-			+ "  WHERE (ip.type.id IN :types)                        "
-			+ "  AND :engine = ip.engine                             "
-			+ "  AND (:edition IS NULL OR ip.edition=:edition)       "
+			+ "  ELSE ip.cost END AS monthlyCost                      "
+			+ " FROM #{#entityName} ip WHERE                                                              "
+			+ "      (ip.location IS NULL OR ip.location.id = :location)                                  "
+			+ "  AND :engine = ip.engine                                                                  "
+			+ "  AND (:edition IS NULL OR ip.edition=:edition)                                            "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND ip.location.id = :location ORDER BY totalCost ASC")
-	List<Object[]> findLowestPrice(List<Integer> types, int location, double rate, double duration, String license,
-			String engine, String edition, Pageable pageable);
+			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
+			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
+			+ "  ORDER BY totalCost ASC                                                                   ")
+	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
+			String license, String engine, String edition, double initialCost, Pageable pageable);
 
 }

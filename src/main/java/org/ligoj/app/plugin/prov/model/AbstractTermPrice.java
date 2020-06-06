@@ -35,7 +35,7 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	/**
 	 * The optional initial cost required to use this instance. May be <code>null</code>.
 	 */
-	private Double initialCost;
+	private Double initialCost = 0d;
 
 	/**
 	 * The cost for the whole period defined in the term.

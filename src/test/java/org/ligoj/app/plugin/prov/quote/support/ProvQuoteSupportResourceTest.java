@@ -379,7 +379,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		final var lookup = qs2Resource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
-		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
+		Assertions.assertTrue(asJson.contains("\"cost\":5.0,"));
 		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));
 
 		// Check the support result
@@ -407,7 +407,7 @@ public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		final var lookup = qs2Resource.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"price\":{\"id\":"));
-		Assertions.assertTrue(asJson.contains("\"cost\":5.0,\"location\""));
+		Assertions.assertTrue(asJson.contains("\"cost\":5.0,"));
 		Assertions.assertTrue(asJson.contains("\"name\":\"support1\""));
 
 		// Check the support result

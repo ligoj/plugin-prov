@@ -11,6 +11,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.model.Configurable;
 import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
@@ -96,5 +97,11 @@ public class ProvUsage extends AbstractNamedEntity<Integer> implements Configura
 	 * When <code>true</code>, a reservation is required, otherwise is <code>false</code>.
 	 */
 	private Boolean reservation;
+
+	/**
+	 * The maximal accepted initial cost. When <code>null</code>, is <code>0</code>.
+	 */
+	@PositiveOrZero
+	private Double initialCost;
 
 }

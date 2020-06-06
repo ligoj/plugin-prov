@@ -20,9 +20,9 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	double getCost();
 
 	/**
-	 * Return the computed max cost of this quoted element.
+	 * Return the computed maximal cost of this quoted element.
 	 *
-	 * @return The computed max cost of this quoted element.
+	 * @return The computed maximal cost of this quoted element.
 	 */
 	double getMaxCost();
 
@@ -34,11 +34,25 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	boolean isUnboundCost();
 
 	/**
+	 * Minimal initial cost.
+	 * 
+	 * @return The computed initial cost of this quoted element.
+	 */
+	double getInitialCost();
+
+	/**
+	 * Maximal initial cost.
+	 * 
+	 * @return The computed maximal initial cost of this quoted element.
+	 */
+	double getMaxInitialCost();
+
+	/**
 	 * Return the {@link FloatingCost} from the costs of this entity.
 	 *
 	 * @return The {@link FloatingCost} from the costs of this entity.
 	 */
 	default FloatingCost toFloatingCost() {
-		return new FloatingCost(getCost(), getMaxCost(), isUnboundCost());
+		return new FloatingCost(getCost(), getMaxCost(), getInitialCost(), getMaxInitialCost(), isUnboundCost());
 	}
 }

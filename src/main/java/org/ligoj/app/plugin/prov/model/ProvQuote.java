@@ -58,6 +58,20 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private double maxCost = 0d;
 
 	/**
+	 * Minimal initial cost. Does not includes support cost.
+	 */
+	@PositiveOrZero
+	private double initialCost = 0d;
+
+	/**
+	 * Maximal initial cost. Does not includes support cost.
+	 * 
+	 * @see #maxCost
+	 */
+	@PositiveOrZero
+	private double maxInitialCost = 0d;
+
+	/**
 	 * Minimal monthly support cost, computed during the creation and kept synchronized with the updates.
 	 */
 	@PositiveOrZero

@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -36,7 +35,6 @@ import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
@@ -46,7 +44,6 @@ import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
-import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -374,7 +371,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		}
 		return computeFloat(
 				rate * (ip.getCost() + (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getRam(), ip) : 0)),
-				qi);
+				ip.getInitialCost(), qi);
 	}
 
 	private int getRate(final C qi) {
@@ -410,13 +407,16 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Compute the cost using minimal and maximal quantity of related resource. no rounding there.
 	 *
-	 * @param base The cost of one resource.
-	 * @param qi   The quote resource to compute.
+	 * @param base    The cost of one resource.
+	 * @param initial The initial cost of one resource. May be <code>null</code>.
+	 * @param qi      The quote resource to compute.
 	 * @return The updated cost of this resource.
 	 */
-	public static FloatingCost computeFloat(final double base, final AbstractQuoteVm<?> qi) {
-		return new FloatingCost(base * qi.getMinQuantity(),
-				Optional.ofNullable(qi.getMaxQuantity()).orElse(qi.getMinQuantity()) * base, qi.isUnboundCost());
+	public static FloatingCost computeFloat(final double base, final Double initial, final AbstractQuoteVm<?> qi) {
+		final var initialR = Objects.requireNonNullElse(initial, 0d);
+		final var maxQuantity = Objects.requireNonNullElse(qi.getMaxQuantity(), qi.getMinQuantity());
+		return new FloatingCost(base * qi.getMinQuantity(), maxQuantity * base, initialR * qi.getMinQuantity(),
+				initialR * maxQuantity, qi.isUnboundCost());
 	}
 
 	/**
@@ -531,26 +531,22 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var reservation = BooleanUtils.toBoolean(usage.getReservation());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
+		final var initialCost = Objects.requireNonNullElse(usage.getInitialCost(), 0d);
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		SpringUtils.getBean(EntityManager.class)
-				.createQuery("FROM ProvInstanceType WHERE (:cpuRate IS NULL OR cpuRate >= :cpuRate)",
-						ProvInstanceType.class)
-				.setParameter("cpuRate", org.ligoj.app.plugin.prov.model.Rate.BEST).getResultList();
-
 		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, query.getConstant(), physR, typeId,
 				procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(), query.getNetworkRate(),
 				query.getStorageRate());
 
 		final var terms = iptRepository.findValidTerms(node, getResourceType() == ResourceType.INSTANCE && convOs,
 				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,
-				reservation, maxPeriod, query.isEphemeral(), locationR);
+				reservation, maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
-			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration).stream().findFirst()
-					.orElse(null);
+			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost)
+					.stream().findFirst().orElse(null);
 		}
 
 		// Dynamic type test
@@ -561,7 +557,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, ramR, locationR, rate,
-						duration).stream().findFirst().orElse(null);
+						duration, initialCost).stream().findFirst().orElse(null);
 				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 					// Keep the best one
 					lookup = dlookup;
@@ -596,10 +592,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param location      The required location.
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
+	 * @param initialCost   The maximal initial cost.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int location, double rate, int duration);
+			List<Integer> terms, int location, double rate, int duration, final double initialCost);
 
 	/**
 	 * Return the lowest price matching all requirements for dynamic types.
@@ -613,10 +610,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param location      The required location.
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
+	 * @param initialCost   The maximal initial cost.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, double cpu, double ram, int location, double rate, int duration);
+			List<Integer> terms, double cpu, double ram, int location, double rate, int duration, double initialCost);
 
 	@SuppressWarnings("unchecked")
 	@Override

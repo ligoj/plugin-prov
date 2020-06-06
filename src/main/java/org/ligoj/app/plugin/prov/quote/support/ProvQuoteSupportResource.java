@@ -309,7 +309,8 @@ public class ProvQuoteSupportResource
 		final var limits = toIntArray(price.getLimit());
 		final var seats = entity.getSeats();
 		return new FloatingCost(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
-				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.isUnboundCost()).round();
+				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.getInitialCost(),
+				quote.getMaxInitialCost(), quote.isUnboundCost()).round();
 	}
 
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,

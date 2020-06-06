@@ -69,6 +69,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @param ephemeral    When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only
 	 *                     non ephemeral instance are accepted.
 	 * @param location     The required location.
+	 * @param initialCost  When <code>true</code>, the terms having an initial cost are accepted.
 	 * @return The matching instance terms.
 	 */
 	@CacheResult(cacheName = "prov-instance-term")
@@ -82,9 +83,10 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 			+ "  AND (:reservation = FALSE OR :reservation = reservation)               "
 			+ "  AND (:ephemeral = TRUE OR ephemeral = FALSE)                           "
 			+ "  AND (location IS NULL OR location.id = :location)                      "
+			+ "  AND (:initialCost = TRUE OR initialCost = FALSE OR initialCost IS NULL)"
 			+ "  AND :maxPeriod >= period     ")
 	List<Integer> findValidTerms(@CacheKey String node, @CacheKey boolean convOs, @CacheKey boolean convEngine,
 			@CacheKey boolean convType, @CacheKey boolean convFamily, @CacheKey boolean convLocation,
 			@CacheKey boolean reservation, @CacheKey double maxPeriod, @CacheKey boolean ephemeral,
-			@CacheKey int location);
+			@CacheKey int location, @CacheKey boolean initialCost);
 }

@@ -52,6 +52,21 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	private double maxCost;
 
 	/**
+	 * Minimal initial cost. Does not includes support cost.
+	 */
+	@NotNull
+	@PositiveOrZero
+	private double initialCost = 0d;
+
+	/**
+	 * Maximal initial cost. Does not includes support cost.
+	 * 
+	 * @see #maxCost
+	 */
+	@NotNull
+	@PositiveOrZero
+	private double maxInitialCost = 0d;
+	/**
 	 * The parent quote.
 	 */
 	@NotNull

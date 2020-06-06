@@ -165,24 +165,24 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration) {
+			final int duration, final double initialCost) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		return ipRepository.findLowestPrice(types, location, rate, duration, licenseR, engineR, editionR,
-				PageRequest.of(0, 1));
+		return ipRepository.findLowestPrice(types, terms, location, rate, duration, licenseR, engineR, editionR,
+				initialCost, PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
-			final int location, final double rate, final int duration) {
+			final int location, final double rate, final int duration, final double initialCost) {
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		return ipRepository.findLowestDynamicPrice(types, terms, cpu, ram, engineR, editionR, location, rate, duration,
-				licenseR, PageRequest.of(0, 1));
+				licenseR, initialCost, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final String engine) {

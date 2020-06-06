@@ -302,8 +302,8 @@ public class ProvQuoteStorageResource
 		final int qLoc = configuration.getLocation().getId();
 		final int qsLoc;
 		if (query.getLocationName() == null) {
-			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteVm::getLocation)
-					.map(Persistable::getId).orElse(qLoc);
+			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteVm::getLocation).map(Persistable::getId)
+					.orElse(qLoc);
 		} else {
 			qsLoc = locationRepository.toId(node, query.getLocationName());
 		}
@@ -330,7 +330,7 @@ public class ProvQuoteStorageResource
 	protected FloatingCost getCost(final ProvQuoteStorage qs) {
 		final var base = getCost(qs.getPrice(), qs.getSize());
 		return Optional.ofNullable(qs.getQuoteResource())
-				.map(qr -> AbstractProvQuoteInstanceResource.computeFloat(base, qr))
+				.map(qr -> AbstractProvQuoteInstanceResource.computeFloat(base, 0d, qr))
 				.orElseGet(() -> new FloatingCost(base));
 	}
 
