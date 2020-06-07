@@ -180,13 +180,14 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	public <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
-		// Report the delta to the quote
+	public <T extends Costed> void addCost(final T entity, final double old, final double oldMax,
+			final double oldInitial, final double oldMaxInitial) {
+		// Report the delta to the quote. Initial costs are not updated
 		final var quote = entity.getConfiguration();
-		quote.setCost(round(quote.getCost() + entity.getCost() - oldCost));
-		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMaxCost));
-		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - oldCost));
-		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMaxCost));
+		quote.setCost(round(quote.getCost() + entity.getCost() - old));
+		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMax));
+		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - old));
+		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMax));
 	}
 
 	/**

@@ -34,6 +34,7 @@ import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -169,6 +170,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvUsageRepository usageRepository;
 
 	@Autowired
+	private ProvBudgetRepository budgetRepository;
+
+	@Autowired
 	private TerraformRunnerResource runner;
 
 	@Autowired
@@ -263,6 +267,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setDatabases(qbRepository.findAll(subscription.getId()));
 		vo.setStorages(qsRepository.findAll(subscription.getId()));
 		vo.setUsage(quote.getUsage());
+		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
@@ -274,6 +279,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setTags(tagResource.findAll(subscription.getId()));
 		vo.setNetworks(networkResource.findAll(subscription.getId()));
 		vo.setUsages(usageRepository.findAll(subscription.getId()));
+		vo.setBudgets(budgetRepository.findAll(subscription.getId()));
 		vo.setProcessors(self.findProcessors(subscription.getNode().getTool().getId()));
 
 		// Also copy the costs
@@ -330,6 +336,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldLicense = entity.getLicense();
 		var oldLocation = entity.getLocation();
 		var oldUsage = entity.getUsage();
+		var oldBudget = entity.getBudget();
 		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
 		var oldReservationMode = ObjectUtils.defaultIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
@@ -337,13 +344,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
+		entity.setBudget(Optional.ofNullable(vo.getBudget())
+				.map(u -> findConfiguredByName(budgetRepository, u, subscription)).orElse(null));
 		entity.setLicense(vo.getLicense());
 		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
 		entity.setReservationMode(vo.getReservationMode());
 		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
 		entity.setPhysical(vo.getPhysical());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
-				|| !oldRamAdjusted.equals(entity.getRamAdjustedRate())
+				|| !Objects.equals(oldBudget, entity.getBudget()) || !oldRamAdjusted.equals(entity.getRamAdjustedRate())
 				|| !oldReservationMode.equals(entity.getReservationMode())
 				|| !Objects.equals(oldLicense, entity.getLicense())
 				|| !Objects.equals(oldProcessor, entity.getProcessor())
@@ -400,9 +409,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setMaxCostNoSupport(0d);
 		entity.setCost(0d);
 		entity.setMaxCost(0d);
+		entity.setInitialCost(0d);
+		entity.setMaxInitialCost(0d);
 
-		// Fetch the usages of this quotes (parallel)
+		// Fetch the usages and budgets of this quotes (parallel)
 		entity.getUsages().size();
+		entity.getBudgets().size();
 
 		// Add the compute cost, and update the unbound cost
 		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());

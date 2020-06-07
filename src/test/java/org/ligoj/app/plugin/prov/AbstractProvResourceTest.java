@@ -17,6 +17,7 @@ import org.ligoj.app.AbstractAppTest;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
@@ -34,6 +35,7 @@ import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -67,7 +69,6 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected static final double DELTA = 0.01d;
 
-
 	protected int subscription;
 
 	@Autowired
@@ -75,16 +76,18 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	@Autowired
 	protected ProvResource resource;
-	
+
 	@Autowired
 	protected ProvQuoteRepository repository;
 
 	@Autowired
 	private ProvTagRepository tagRepository;
 
-
 	@Autowired
 	protected ProvUsageRepository usageRepository;
+
+	@Autowired
+	protected ProvBudgetRepository budgetRepository;
 
 	@Autowired
 	protected ProvLocationRepository locationRepository;
@@ -136,13 +139,20 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
-						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
+						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
+		preparePostData();
+	}
+
+	protected void preparePostData() {
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		clearAllCache();
 		configuration.put(ProvResource.USE_PARALLEL, "0");
+		clearAllCache();
+		// Set the default budget
+		final var quote = repository.findBy("subscription.id", subscription);
+		quote.setBudget(budgetRepository.findByName(subscription, "Dept1"));
 		updateCost();
 	}
 
@@ -204,17 +214,19 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		return status;
 	}
 
-	protected void checkCost(final FloatingCost cost, final double min, final double max, final boolean unbound) {
+	protected FloatingCost checkCost(final FloatingCost cost, final double min, final double max,
+			final boolean unbound) {
 		Assertions.assertEquals(min, cost.getMin(), DELTA);
 		Assertions.assertEquals(max, cost.getMax(), DELTA);
 		Assertions.assertEquals(unbound, cost.isUnbound());
+		return cost;
 	}
 
 	protected void checkCost(final UpdatedCost cost, final double min, final double max, final boolean unbound) {
 		checkCost(cost.getTotal(), min, max, unbound);
 	}
 
-	protected void updateCost() {
+	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
@@ -223,6 +235,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		checkCost(subscription, 4704.758, 7154.358, false);
 		em.flush();
 		em.clear();
+		return cost;
 	}
 
 }

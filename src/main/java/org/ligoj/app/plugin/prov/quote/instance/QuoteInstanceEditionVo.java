@@ -55,4 +55,10 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo imple
 	public String getUsageName() {
 		return getUsage();
 	}
+
+	@Override
+	@JsonIgnore
+	public String getBudgetName() {
+		return getBudget();
+	}
 }

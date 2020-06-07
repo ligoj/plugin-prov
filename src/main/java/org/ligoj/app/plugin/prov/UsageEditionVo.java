@@ -82,10 +82,4 @@ public class UsageEditionVo extends NamedBean<Integer> {
 	 */
 	private Boolean reservation;
 
-	/**
-	 * The maximal accepted initial cost. When <code>null</code>, is <code>0</code>.
-	 */
-	@PositiveOrZero
-	private double initialCost = 0;
-
 }

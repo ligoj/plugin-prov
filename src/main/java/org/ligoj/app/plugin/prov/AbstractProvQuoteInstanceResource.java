@@ -33,6 +33,7 @@ import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
@@ -66,6 +67,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * The default usage : 100% for 1 month.
 	 */
 	protected static final ProvUsage USAGE_DEFAULT = new ProvUsage();
+
+	/**
+	 * The default budget : no initial cost.
+	 */
+	protected static final ProvBudget BUDGET_DEFAULT = new ProvBudget();
 
 	@Autowired
 	protected ProvQuoteStorageResource storageResource;
@@ -258,6 +264,22 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
+	 * Return the resolved budget entity from it's name.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param name          The usage name.
+	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's budget or else
+	 *         {@link #BUDGET_DEFAULT} is used as default value.
+	 */
+	protected ProvBudget getBudget(final ProvQuote configuration, final String name) {
+		if (name == null) {
+			return ObjectUtils.defaultIfNull(configuration.getBudget(), BUDGET_DEFAULT);
+		}
+		return configuration.getBudgets().stream().filter(u -> u.getName().equals(name)).findFirst()
+				.orElseThrow(() -> new EntityNotFoundException(name));
+	}
+
+	/**
 	 * Return the resolved processor requirement.
 	 *
 	 * @param configuration Configuration containing the default values.
@@ -360,8 +382,14 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	@Override
 	protected FloatingCost getCost(final C qi) {
+		return getCost(qi, qi.getPrice());
+	}
+
+	/**
+	 * Return the computed cost from a resolved price.
+	 */
+	private FloatingCost getCost(final C qi, final P ip) {
 		// Fixed price + custom price
-		final var ip = qi.getPrice();
 		final double rate;
 		if (ip.getTerm().getPeriod() == 0) {
 			// Related term has a period lesser than the month, rate applies
@@ -415,7 +443,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	public static FloatingCost computeFloat(final double base, final Double initial, final AbstractQuoteVm<?> qi) {
 		final var initialR = Objects.requireNonNullElse(initial, 0d);
 		final var maxQuantity = Objects.requireNonNullElse(qi.getMaxQuantity(), qi.getMinQuantity());
-		return new FloatingCost(base * qi.getMinQuantity(), maxQuantity * base, initialR * qi.getMinQuantity(),
+		return new FloatingCost(base * qi.getMinQuantity(), base * maxQuantity, initialR * qi.getMinQuantity(),
 				initialR * maxQuantity, qi.isUnboundCost());
 	}
 
@@ -523,6 +551,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Compute the rate to use
 		final var usage = getUsage(configuration, query.getUsageName());
+		final var budget = getBudget(configuration, query.getBudgetName());
 		final var convOs = BooleanUtils.toBoolean(usage.getConvertibleOs());
 		final var convEngine = BooleanUtils.toBoolean(usage.getConvertibleEngine());
 		final var convType = BooleanUtils.toBoolean(usage.getConvertibleType());
@@ -531,7 +560,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var reservation = BooleanUtils.toBoolean(usage.getReservation());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
-		final var initialCost = Objects.requireNonNullElse(usage.getInitialCost(), 0d);
+		final var initialCost = Objects.requireNonNullElse(budget.getInitialCost(), 0d);
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
@@ -616,13 +645,31 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
 			List<Integer> terms, double cpu, double ram, int location, double rate, int duration, double initialCost);
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public FloatingCost refresh(final C qi) {
 		// Find the lowest price
-		qi.setPrice(
-				validateLookup(getType().name().toLowerCase(), lookup(qi.getConfiguration(), (Q) qi), qi.getName()));
+		qi.setPrice(validateLookup(qi));
 		return updateCost(qi);
+	}
+
+	/**
+	 * Return the new cost corresponding to the given criteria. No change are made to then entity.
+	 * 
+	 * @param qi The entity to validate.
+	 * @return The new cost corresponding to the given criteria. No change are made to then entity.
+	 */
+	public FloatingPrice<P> getNewPrice(final C qi) {
+		// Find the lowest price
+		final var price = validateLookup(qi);
+		return new FloatingPrice<P>(getCost(qi, price), price);
+	}
+
+	/**
+	 * Return a computed price. Never <code>null</code> because of the validation.
+	 */
+	@SuppressWarnings("unchecked")
+	private P validateLookup(final C qi) {
+		return validateLookup(getType().name().toLowerCase(), lookup(qi.getConfiguration(), (Q) qi), qi.getName());
 	}
 
 	/**

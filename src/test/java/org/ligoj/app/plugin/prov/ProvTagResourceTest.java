@@ -20,6 +20,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -82,7 +83,7 @@ public class ProvTagResourceTest extends AbstractAppTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class, ProvStoragePrice.class,
 						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
 						ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());

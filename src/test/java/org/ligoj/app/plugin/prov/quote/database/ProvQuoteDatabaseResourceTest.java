@@ -20,7 +20,7 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
-import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -56,15 +56,12 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
+				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class, ProvStoragePrice.class,
 				ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
-		clearAllCache();
-		configuration.put(ProvResource.USE_PARALLEL, "0");
-		updateCost();
+		preparePostData();
 	}
 
 	@Test
@@ -254,7 +251,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupHighConstraints() {
 		final var lookup = qbResource.lookup(subscription,
-				builder().cpu(0.25).ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").build());
+				builder().cpu(0.25).ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").budget("Dept1").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
@@ -694,7 +691,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Override
-	protected void updateCost() {
+	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(7105.198, cost.getMin(), DELTA);
@@ -703,6 +700,7 @@ public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 7105.198, 9701.098, false);
 		em.flush();
 		em.clear();
+		return cost;
 	}
 
 	@Test

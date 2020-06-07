@@ -76,6 +76,8 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 		addCost(entity, e -> {
 			e.setCost(0d);
 			e.setMaxCost(0d);
+			e.setInitialCost(0d);
+			e.setMaxInitialCost(0d);
 			return new FloatingCost();
 		});
 
@@ -94,7 +96,7 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 	 * @param qr The {@link Costed} to update cost.
 	 * @return The new cost.
 	 */
-	protected FloatingCost updateCost(final C qr) {
+	public FloatingCost updateCost(final C qr) {
 		return updateCost(qr, this::getCost);
 	}
 

@@ -136,6 +136,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private List<ProvUsage> usages = new ArrayList<>();
 
 	/**
+	 * Budgets associated to this quote..
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvBudget> budgets = new ArrayList<>();
+
+	/**
 	 * Quoted storages.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
@@ -164,10 +171,16 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	private ProvLocation location;
 
 	/**
-	 * Optional usage. When <code>null</code>, full time.
+	 * Optional default usage. When <code>null</code>, full time.
 	 */
 	@ManyToOne
 	private ProvUsage usage;
+
+	/**
+	 * Optional default budget. When <code>null</code>, full time.
+	 */
+	@ManyToOne
+	private ProvBudget budget;
 
 	/**
 	 * Optional license model. <code>null</code> value corresponds to {@value ProvQuoteInstance#LICENSE_INCLUDED}.

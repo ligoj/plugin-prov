@@ -1,0 +1,36 @@
+package org.ligoj.app.plugin.prov;
+
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.jupiter.api.Test;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import net.jnellis.binpack.LinearBin;
+import net.jnellis.binpack.LinearBinPacker;
+
+public class BinPackerTest {
+
+	@Data
+	@AllArgsConstructor
+	class Piece {
+		Double internalId;
+		String name;
+	}
+
+	@Test
+	void test() {
+		final var values = new ArrayList<Double>(List.of(2d, 5d, 10d, 1d, 7d, 1d, 17d, 21d, 9d, 18d, 5d, 12d));
+		final var piecesToIems = new IdentityHashMap<Double, Piece>();
+		final var index = new AtomicInteger(0);
+		values.forEach(v -> piecesToIems.put(v, new Piece(v, "name" + index.incrementAndGet())));
+		final var packer = new LinearBinPacker();
+		final var existingBins = new ArrayList<LinearBin>(List.of(new LinearBin(16d)));
+		final var bins = packer.packAll(values, existingBins, new ArrayList<Double>(List.of(Double.MAX_VALUE)));
+		System.out.println(bins);
+		bins.get(0).getPieces().forEach(p -> System.out.println(piecesToIems.get(p)));
+	}
+}

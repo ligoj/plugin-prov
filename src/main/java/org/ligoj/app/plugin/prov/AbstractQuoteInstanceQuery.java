@@ -68,6 +68,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("usage")
 	private String usage;
 
+	@QueryParam("budget")
+	private String budget;
+
 	@QueryParam("license")
 	private String license;
 
@@ -112,5 +115,10 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@Override
 	public String getUsageName() {
 		return getUsage();
+	}
+
+	@Override
+	public String getBudgetName() {
+		return getBudget();
 	}
 }

@@ -90,11 +90,14 @@ public interface QuoteRelated<C extends Costed> {
 		final double oldCost = ObjectUtils.defaultIfNull(entity.getCost(), 0d);
 		final double oldMaxCost = ObjectUtils.defaultIfNull(entity.getMaxCost(), 0d);
 
+		final double oldInitial = ObjectUtils.defaultIfNull(entity.getInitialCost(), 0d);
+		final double oldMaxInitial = ObjectUtils.defaultIfNull(entity.getMaxInitialCost(), 0d);
+
 		// Process the update of this entity
 		final var newCost = costUpdater.apply(entity);
 
 		// Report the delta to the quote
-		addCost(entity, oldCost, oldMaxCost);
+		addCost(entity, oldCost, oldMaxCost, oldInitial, oldMaxInitial);
 		return newCost;
 	}
 
@@ -102,18 +105,30 @@ public interface QuoteRelated<C extends Costed> {
 	 * Add a cost to the quote related to given resource entity. The global cost is not deeply computed, only delta is
 	 * applied.
 	 *
-	 * @param entity     The configured entity, related to a quote.
-	 * @param oldCost    The old cost.
-	 * @param oldMaxCost The old maximum cost.
-	 * @param <T>        The entity type holding the cost.
+	 * @param entity        The configured entity, related to a quote.
+	 * @param old           The old entity's cost.
+	 * @param oldMax        The old maximum entity's cost.
+	 * @param oldInitial    The old initial entity's cost.
+	 * @param oldMaxInitial The old maximum initial entity's cost.
+	 * @param <T>           The entity type holding the cost.
 	 */
-	default <T extends Costed> void addCost(final T entity, final double oldCost, final double oldMaxCost) {
+	default <T extends Costed> void addCost(final T entity, final double old, final double oldMax,
+			final double oldInitial, final double oldMaxInitial) {
 		final var quote = entity.getConfiguration();
-		if ((entity.getCost() - oldCost + entity.getMaxCost() - oldMaxCost) != 0) {
+		final var delta = entity.getCost() - old;
+		final var maxDelta = entity.getMaxCost() - oldMax;
+		final var deltaI = entity.getInitialCost() - oldInitial;
+		final var maxDeltaI = entity.getMaxInitialCost() - oldMaxInitial;
+		if ((Math.abs(delta) + Math.abs(maxDelta) + Math.abs(deltaI) + Math.abs(maxDeltaI)) != 0) {
 			// Report the delta to the quote
 			synchronized (quote) {
-				quote.setCostNoSupport(round(quote.getCostNoSupport() + entity.getCost() - oldCost));
-				quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + entity.getMaxCost() - oldMaxCost));
+				// Recurring part
+				quote.setCostNoSupport(round(quote.getCostNoSupport() + delta));
+				quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + maxDelta));
+
+				// Initial part
+				quote.setInitialCost(round(quote.getInitialCost() + deltaI));
+				quote.setMaxInitialCost(round(quote.getMaxInitialCost() + maxDeltaI));
 			}
 		}
 	}
@@ -127,10 +142,13 @@ public interface QuoteRelated<C extends Costed> {
 	 */
 	default FloatingCost addCost(final ProvQuote quote, final FloatingCost fc) {
 		synchronized (quote) {
+			// Recurring part
 			quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
 			quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
+
+			// Initial part
 			quote.setInitialCost(round(quote.getInitialCost() + fc.getInitial()));
-			quote.setMaxInitialCost(round(quote.getMaxCostNoSupport() + fc.getMaxInitial()));
+			quote.setMaxInitialCost(round(quote.getMaxInitialCost() + fc.getMaxInitial()));
 		}
 		return fc;
 	}
@@ -158,6 +176,8 @@ public interface QuoteRelated<C extends Costed> {
 		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));
 		qr.setMaxCost(round(cost.getMax()));
+		qr.setInitialCost(round(cost.getInitial()));
+		qr.setMaxInitialCost(round(cost.getMaxInitial()));
 		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.getInitialCost(), qr.getMaxInitialCost(),
 				qr.isUnboundCost());
 	}

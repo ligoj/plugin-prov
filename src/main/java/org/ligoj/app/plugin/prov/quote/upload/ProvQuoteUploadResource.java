@@ -366,6 +366,7 @@ public class ProvQuoteUploadResource {
 
 		// Initialization for parallel process
 		quote.getUsages().size();
+		quote.getBudgets().size();
 		final var context = new UploadContext();
 		context.quote = quote;
 		context.previousQi = previousQi;

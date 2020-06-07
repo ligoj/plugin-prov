@@ -38,16 +38,6 @@ public interface ProvUsageRepository extends RestRepository<ProvUsage, Integer> 
 	List<ProvUsage> findAll(int subscription);
 
 	/**
-	 * Return the {@link ProvUsage} by its identifier and also valid for the given subscription.
-	 * 
-	 * @param subscription The subscription identifier to match.
-	 * @param id           The entity's identifier to match.
-	 * @return The entity or <code>null</code>.
-	 */
-	@Query("SELECT pu FROM ProvUsage pu WHERE pu.configuration.subscription.id = :subscription AND pu.id = :id")
-	ProvUsage findById(int subscription, Integer id);
-
-	/**
 	 * Return the {@link ProvUsage} by it's name, ignoring the case.
 	 * 
 	 * @param subscription The subscription identifier to match.

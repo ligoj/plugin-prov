@@ -21,7 +21,8 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -62,12 +63,14 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvStorageType.class, ProvStoragePrice.class,
-				ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class,
-				ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class }, StandardCharsets.UTF_8.name());
+				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+				ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
+				ProvQuoteInstance.class, ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
+				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+
+		preparePostData();
 
 		var entity = new ProvTag();
 		entity.setName("key");
@@ -90,10 +93,8 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		entity.setType(ResourceType.DATABASE);
 		entity.setConfiguration(repository.findBy("subscription.id", subscription));
 		em.persist(entity);
-
-		clearAllCache();
-		configuration.put(ProvResource.USE_PARALLEL, "0");
-		updateCost();
+		em.flush();
+		em.clear();
 	}
 
 	@Test
@@ -101,7 +102,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		// Force physical for server2
 		qiRepository.findByName("server2").getPrice().getType().setPhysical(true);
 		qiRepository.findByName("server2").setPhysical(true);
-		
+
 		final var lines = export();
 		Assertions.assertEquals(15, lines.size());
 
@@ -234,7 +235,7 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 	}
 
 	@Override
-	protected void updateCost() {
+	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(7682.458, cost.getMin(), DELTA);
@@ -243,5 +244,6 @@ public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTes
 		checkCost(subscription, 7682.458, 10408.153, false);
 		em.flush();
 		em.clear();
+		return cost;
 	}
 }

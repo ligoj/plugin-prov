@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ligoj.app.iam.SimpleUserOrg;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
@@ -102,6 +103,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private ProvUsage usage;
 
 	/**
+	 * Default budget of this quote. May be <code>null</code>.
+	 */
+	private ProvBudget budget;
+
+	/**
 	 * Default license model. May be <code>null</code>, equivalent to 'INCLUDED'.
 	 */
 	private String license;
@@ -139,6 +145,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All usages associated to this quote.
 	 */
 	private List<ProvUsage> usages;
+
+	/**
+	 * All budgets associated to this quote.
+	 */
+	private List<ProvBudget> budgets;
 
 	/**
 	 * All valid processors for this subscription.

@@ -84,6 +84,13 @@ public interface QuoteVm {
 	String getUsageName();
 
 	/**
+	 * Return the optional budget name. May be <code>null</code> to use the default one.
+	 *
+	 * @return Optional budget name. May be <code>null</code> to use the default one.
+	 */
+	String getBudgetName();
+
+	/**
 	 * Return optional license model. When <code>null</code>, the global quote's license is used.
 	 *
 	 * @return Optional license model. When <code>null</code>, the global quote's license is used.

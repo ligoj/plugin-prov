@@ -18,6 +18,7 @@ import org.ligoj.app.model.ParameterValue;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -260,6 +261,10 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNull(vo.getUsage());
 		Assertions.assertNotNull(vo.getUsages());
 
+		// One special associated budget
+		Assertions.assertNotNull(vo.getBudget());
+		Assertions.assertNotNull(vo.getBudgets());
+
 		// No networks
 		Assertions.assertTrue(vo.getNetworks().isEmpty());
 	}
@@ -318,6 +323,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
+		quote.setBudget("Dept1");
 		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 6328.565, 10199.018, false);
@@ -364,6 +370,14 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		em.persist(usage);
 
 		configuration.setUsage(usage);
+
+		final var budget = new ProvBudget();
+		budget.setConfiguration(configuration);
+		budget.setInitialCost(100000d);
+		budget.setName("Dept0");
+		em.persist(budget);
+		configuration.setBudget(budget);
+
 		em.merge(configuration);
 
 		final var instance = new ProvQuoteInstance();
@@ -397,7 +411,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
@@ -426,7 +440,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
@@ -461,10 +475,11 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		em.clear();
 		checkCost(resource.refresh(configuration), 1405.44, 1405.44, false);
 
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
+		quote.setBudget("Dept0");
 		quote.setReservationMode(ReservationMode.RESERVED);
 		quote.setRefresh(true);
 		checkCost(resource.update(subscription.getId(), quote), 1405.44, 1405.44, false);
@@ -504,7 +519,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		em.clear();
 		checkCost(resource.refresh(configuration), 3513.6, 3513.6, false);
 
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
@@ -554,7 +569,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.refresh(configuration), 878.4, 878.4, false);
 
 		// Requires all quotes are "physical"
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setUsage("usage");
@@ -591,7 +606,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
 
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("new1");
 		quote.setLocation(configuration.getLocation().getName());
 		quote.setLicense("BYOL");
@@ -609,6 +624,12 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
 		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().get(0);
 		Assertions.assertEquals("C12", instanceGet4.getPrice().getCode());
+	}
+
+	private QuoteEditionVo newQuoteEdition() {
+		final var quote =  new QuoteEditionVo();
+		quote.setBudget("Dept0");
+		return quote;
 	}
 
 	/**
@@ -638,6 +659,7 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-4");
+		quote.setBudget("Dept1");
 		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 3165.4, 5615.0, false);
 		final var quote2 = repository.findByNameExpected("name1");
@@ -858,10 +880,11 @@ public class ProvResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void update() {
-		final var quote = new QuoteEditionVo();
+		final var quote = newQuoteEdition();
 		quote.setName("name1");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
+		quote.setBudget("Dept1");
 		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
 		checkCost(cost, 3165.4, 5615.0, false);

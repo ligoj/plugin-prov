@@ -133,8 +133,7 @@ public class ProvUsageResource {
 		entity.setRate(vo.getRate()).setDuration(vo.getDuration()).setStart(vo.getStart());
 		entity.setConvertibleEngine(vo.getConvertibleEngine()).setConvertibleOs(vo.getConvertibleOs())
 				.setConvertibleType(vo.getConvertibleType()).setConvertibleFamily(vo.getConvertibleFamily())
-				.setConvertibleLocation(vo.getConvertibleLocation()).setReservation(vo.getReservation())
-				.setInitialCost(vo.getInitialCost());
+				.setConvertibleLocation(vo.getConvertibleLocation()).setReservation(vo.getReservation());
 
 		// Prepare the updated cost of updated instances
 		final var costs = Collections

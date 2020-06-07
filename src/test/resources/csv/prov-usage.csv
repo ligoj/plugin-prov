@@ -1,16 +1,16 @@
-configuration.id!;name;rate;initialCost;duration;convertibleOs;convertibleEngine;convertibleLocation;convertibleFamily;convertibleType;reservation
-1;Full Time;100;10000
-1;Dev;50;10000
-1;Full Time 11 month;100;10000;11
-1;Full Time 12 month;100;10000;12
-1;Full Time 13 month;100;10000;13
-1;Full Time 23 month;100;10000;23
-1;Full Time 24 month;100;10000;24
-1;Full Time 25 month;100;10000;25
-1;Dev 11 month;25;10000;11
-1;Dev 12 month;25;10000;12
-1;Dev 13 month;25;10000;13
-1;Full Time Convertible;100;10000;12;true;true;false;false;false;false
-1;Full Time Global;100;10000;12;false;false;false;false;true;false
-2;Dev;25;10000
-2;Full Time2;100;10000
+configuration.id!;name;rate;duration;convertibleOs;convertibleEngine;convertibleLocation;convertibleFamily;convertibleType;reservation
+1;Full Time;100
+1;Dev;50
+1;Full Time 11 month;100;11
+1;Full Time 12 month;100;12
+1;Full Time 13 month;100;13
+1;Full Time 23 month;100;23
+1;Full Time 24 month;100;24
+1;Full Time 25 month;100;25
+1;Dev 11 month;25;11
+1;Dev 12 month;25;12
+1;Dev 13 month;25;13
+1;Full Time Convertible;100;12;true;true;false;false;false;false
+1;Full Time Global;100;12;false;false;false;false;true;false
+2;Dev;25
+2;Full Time2;100

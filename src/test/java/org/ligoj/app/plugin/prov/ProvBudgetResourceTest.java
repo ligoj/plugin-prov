@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
@@ -36,16 +37,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test class of {@link ProvUsageResource}
  */
-public class ProvUsageResourceTest extends AbstractProvResourceTest {
+public class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvUsageResource uResource;
+	@Autowired
+	private ProvBudgetResource bResource;
 
 	@Autowired
 	private ProvUsageRepository usageRepository;
 
+	@Autowired
+	private ProvBudgetRepository budgetRepository;
+
 	@BeforeEach
-	@Override
 	protected void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
@@ -58,20 +63,6 @@ public class ProvUsageResourceTest extends AbstractProvResourceTest {
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
 				StandardCharsets.UTF_8.name());
 		preparePostData();
-	}
-
-	@Test
-	void updateNotAttached() {
-		final var usage = new UsageEditionVo();
-		usage.setId(usageRepository.findByName("Full Time").getId());
-		usage.setName("Full Time");
-		usage.setRate(1);
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-		checkCost(uResource.update(subscription, usage).getTotal(), 3165.4, 5615.0, false);
-		final var quote = new QuoteEditionVo();
-		quote.setName("any");
-		quote.setLocation("region-1");
-		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}
 
 	@Test
@@ -97,6 +88,7 @@ public class ProvUsageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(6, entity.getStart().intValue());
 		Assertions.assertEquals(14, resource.getConfiguration(subscription).getUsages().size());
 		Assertions.assertEquals(14, entity.getConfiguration().getUsages().size());
+		Assertions.assertEquals(2, entity.getConfiguration().getBudgets().size());
 
 		Assertions.assertTrue(entity.getConvertibleEngine());
 		Assertions.assertTrue(entity.getConvertibleOs());
@@ -110,58 +102,13 @@ public class ProvUsageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void updateSameRate() {
+	void updateSameInitialCost() {
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Full Time");
-		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
-	}
-
-	@Test
-	void updateRateAndQuote() {
-		// Usage = 100%
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-
-		// Usage -> 50% (attach the quote to a 50% usage)
-		final var quote = new QuoteEditionVo();
-		quote.setName("any");
-		quote.setLocation("region-1");
-		quote.setUsage("Dev");
 		quote.setBudget("Dept1");
-		// Min = (3165.4 - 322.33 - 175.2[1y term])*.5 + 322.33 + 91.25 [1y term]
-		checkCost(resource.update(subscription, quote), 1743.865, 3607.865, false);
-		checkCost(subscription, 1743.865, 3607.865, false);
-		em.flush();
-		em.clear();
-
-		// Usage -> 75% (update the usage's rate from 50% to 75%)
-		var usage = new UsageEditionVo();
-		usage.setId(usageRepository.findByName("Dev").getId());
-		usage.setName("DevV2");
-		usage.setRate(75);
-		// Min = (3165.4 - 322.33 - 175.2[1y term])*.75 + 322.33 + 91.25 [1y term]
-		checkCost(uResource.update(subscription, usage).getTotal(), 2454.633, 4611.433, false);
-		checkCost(subscription, 2454.633, 4611.433, false);
-		em.flush();
-		em.clear();
-
-		// Usage back to -> 100%
-		usage.setRate(100);
-		checkCost(uResource.update(subscription, usage).getTotal(), 3165.4, 5615.0, false);
-		resource.refresh(subscription);
-
-		// Usage -> duration extended to 12 month, the term is updated, cheapest monthly bill
-		usage.setDuration(12);
-		uResource.update(subscription, usage);
-		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
-
-		final var entity = usageRepository.findByName("DevV2");
-		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assertions.assertEquals("DevV2", entity.getName());
-		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assertions.assertEquals(100, entity.getRate().intValue());
-		Assertions.assertEquals(12, entity.getDuration());
+		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}
 
 	@Test
@@ -190,6 +137,7 @@ public class ProvUsageResourceTest extends AbstractProvResourceTest {
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setUsage("Dev");
+		quote.setBudget("Dept1");
 		checkCost(resource.update(subscription, quote), 1860.575, 3724.575, false);
 		checkCost(subscription, 1860.575, 3724.575, false);
 		em.flush();
@@ -212,9 +160,105 @@ public class ProvUsageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
-	protected FloatingCost updateCost() {
-		// Check the cost fully updated and exact actual cost
-		return checkCost(resource.updateCost(subscription));
+	private void assertTermCount(final String name, final int count) {
+		Assertions.assertEquals(count, resource.getConfiguration(subscription).getInstances().stream()
+				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count());
+	}
+
+	@Test
+	void updateInitialCost() {
+		updateAttachedInstance();
+		var cost = resource.refresh(subscription);
+		checkCost(subscription, 2571.138, 4727.938, false);
+		Assertions.assertEquals(0, cost.getInitial(), DELTA);
+
+		final var usage = new UsageEditionVo();
+		usage.setId(usageRepository.findByName("DevV2").getId());
+		usage.setName("DevV2");
+		usage.setRate(100);
+		usage.setDuration(12);
+		usage.setConvertibleEngine(false).setConvertibleOs(false).setConvertibleLocation(false)
+				.setConvertibleFamily(false).setConvertibleType(false).setReservation(false);
+		cost = uResource.update(subscription, usage).getTotal();
+		checkCost(cost, 3086.54, 5243.34, false);
+
+		final var budget = new BudgetEditionVo();
+		budget.setId(budgetRepository.findByName("Dept1").getId());
+		budget.setName("Dept1");
+
+		// Usage @100% /12Month to match with the term '1 year fragment'
+		// Initial cost decomposition:
+		// - C5_ = 2x 1317,6
+		// - C12 = 1x 1229.76
+		// - C11 = 1x 1229.76
+		// = .........5094.72
+		budget.setInitialCost(10000);
+		cost = bResource.update(subscription, budget).getTotal();
+		Assertions.assertEquals(10000, budgetRepository.findByName("Dept1").getInitialCost());
+		checkCost(cost, 3086.54, 5243.34, false);
+		assertTermCount("1y", 3);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+		Assertions.assertEquals(15635.52, cost.getMaxInitial(), DELTA);
+
+		// No change
+		cost = bResource.update(subscription, budget).getTotal();
+		checkCost(cost, 3086.54, 5243.34, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+
+		// Reduce initial cost constraint (no more 1y term)
+		budget.setInitialCost(1);
+		cost = bResource.update(subscription, budget).getTotal();
+		checkCost(cost, 3254.9, 5704.5, false);
+		assertTermCount("1y", 0);
+		Assertions.assertEquals(0, cost.getInitial(), DELTA);
+		Assertions.assertEquals(0, cost.getMaxInitial(), DELTA);
+
+		// Set the initial cost constraint above the optimal one
+		budget.setInitialCost(5100);
+		cost = bResource.update(subscription, budget).getTotal();
+		checkCost(cost, 3086.54, 5243.34, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+
+		// Set the initial cost constraint below the optimal one
+		budget.setInitialCost(1320);
+		cost = bResource.update(subscription, budget).getTotal();
+		// TODO assertTermCount("1y", 1); -> C5
+		assertTermCount("1y", 3);
+		checkCost(cost, 3086.54, 5243.34, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+		// TODO Assertions.assertEquals(1229.76, cost.getInitial(), DELTA);
+
+		// Reduce initial cost constraint adjusted to "C5>x>(C11 or C12)" price
+		budget.setInitialCost(1230);
+		cost = bResource.update(subscription, budget).getTotal();
+		// TODO assertTermCount("1y", 1); -> C11 or C12
+		assertTermCount("1y", 2);
+		checkCost(cost, 3159.74, 5609.34, false);
+		Assertions.assertEquals(2459.52, cost.getInitial(), DELTA);
+		// TODO Assertions.assertEquals(1229.76, cost.getInitial(), DELTA);
+
+		// Reduce initial cost constraint adjusted to "OPTIM>x>(C11+C12)" price
+		budget.setInitialCost(2460);
+		cost = bResource.update(subscription, budget).getTotal();
+		// TODO assertTermCount("1y", 2); -> C11 + C12
+		assertTermCount("1y", 3);
+		checkCost(cost, 3086.54, 5243.34, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+		// TODO Assertions.assertEquals(2459,52, cost.getInitial(), DELTA);
+
+		// Reduce initial cost constraint adjusted to "OPTIM>x>(2*C5+C11)" price
+		budget.setInitialCost(3865);
+		cost = bResource.update(subscription, budget).getTotal();
+		assertTermCount("1y", 3);
+		checkCost(cost, 3086.54, 5243.34, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+
+		// Reduce initial cost constraint adjusted to "C11"- price (no more 1y term)
+		budget.setInitialCost(1228);
+		cost = bResource.update(subscription, budget).getTotal();
+		assertTermCount("1y", 0);
+		checkCost(cost, 3254.9, 5704.5, false);
+		Assertions.assertEquals(0, cost.getInitial(), DELTA);
 	}
 
 	private FloatingCost checkCost(final FloatingCost cost) {

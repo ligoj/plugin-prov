@@ -118,6 +118,11 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	private String usage;
 
 	/**
+	 * Optional applied budget name. When <code>null</code>, the default quote's one will be used.
+	 */
+	private String budget;
+
+	/**
 	 * Optional license model. When <code>null</code>, global's configuration is used. "BYOL" and "INCLUDED" are
 	 * accepted.
 	 */

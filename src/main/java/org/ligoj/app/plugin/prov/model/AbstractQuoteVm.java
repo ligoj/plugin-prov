@@ -116,6 +116,13 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	private ProvUsage usage;
 
 	/**
+	 * Optional budget for this resource when different from the related quote.
+	 */
+	@ManyToOne
+	@JsonSerialize(using = ToIdSerializer.class)
+	private ProvBudget budget;
+
+	/**
 	 * Optional license model. When <code>null</code>, the configuration license model will be used. May be
 	 * {@value #LICENSE_INCLUDED}.
 	 */
@@ -179,6 +186,16 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	}
 
 	/**
+	 * Return the effective budget applied to the given resource. May be <code>null</code>.
+	 *
+	 * @return The effective budget applied to the given resource. May be <code>null</code>.
+	 */
+	@JsonIgnore
+	public ProvBudget getResolvedBudget() {
+		return budget == null ? getConfiguration().getBudget() : budget;
+	}
+
+	/**
 	 * Return the usage name applied to the given resource. May be <code>null</code>.
 	 *
 	 * @return The usage name applied to the given resource. May be <code>null</code>.
@@ -187,6 +204,17 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	@JsonIgnore
 	public String getUsageName() {
 		return Optional.ofNullable(getResolvedUsage()).map(INamableBean::getName).orElse(null);
+	}
+
+	/**
+	 * Return the budget name applied to the given resource. May be <code>null</code>.
+	 *
+	 * @return The budget name applied to the given resource. May be <code>null</code>.
+	 */
+	@Override
+	@JsonIgnore
+	public String getBudgetName() {
+		return Optional.ofNullable(getResolvedBudget()).map(INamableBean::getName).orElse(null);
 	}
 
 	/**
