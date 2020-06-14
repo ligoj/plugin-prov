@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov.quote.storage;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -153,13 +154,15 @@ public class ProvQuoteStorageResource
 		final var node = quote.getSubscription().getNode().getRefined().getId();
 		entity.setConfiguration(quote);
 		entity.setLocation(resource.findLocation(node, vo.getLocation()));
-		entity.setPrice(findByTypeCode(subscription, vo.getType(), entity.getLocation(), quote));
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
 		entity.setSizeMax(vo.getSizeMax());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getQuoteInstance()));
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getQuoteDatabase()));
+		final var resolvedLocation = Objects.requireNonNullElseGet(entity.getLocation(),
+				() -> Objects.requireNonNullElse(entity.getQuoteResource(), entity).getResolvedLocation());
+		entity.setPrice(findByTypeCode(subscription, vo.getType(), resolvedLocation, quote));
 
 		// Check the storage requirements to validate the linked price
 		final var type = entity.getPrice().getType();
