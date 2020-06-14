@@ -100,7 +100,13 @@ public class FloatingCost implements Serializable {
 		return new FloatingCost(round(min), round(max), initial, maxInitial, unbound);
 	}
 
-	private double round(final double value) {
+	/**
+	 * Round up to 3 decimals the given value.
+	 *
+	 * @param value Raw value.
+	 * @return The rounded value.
+	 */
+	public static double round(final double value) {
 		return Math.round(value * 1000d) / 1000d;
 	}
 }

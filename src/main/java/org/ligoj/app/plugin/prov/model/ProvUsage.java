@@ -4,18 +4,11 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-
-import org.ligoj.app.model.Configurable;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,20 +22,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Entity
 @Table(name = "LIGOJ_PROV_USAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
-public class ProvUsage extends AbstractNamedEntity<Integer> implements Configurable<ProvQuote, Integer> {
+public class ProvUsage extends AbstractMultiScoped {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * The related quote.
-	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private ProvQuote configuration;
 
 	/**
 	 * Usage rate base 100.

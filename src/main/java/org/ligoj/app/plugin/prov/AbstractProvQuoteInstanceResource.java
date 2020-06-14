@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -89,6 +88,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected ProvUsageRepository usageRepository;
 
 	@Autowired
+	protected ProvBudgetResource budgetRepsource;
+
+	@Autowired
 	protected ServicePluginLocator locator;
 
 	/**
@@ -137,7 +139,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 *
 	 * @param quote  The related quote.
 	 * @param entity The entity to update.
-	 * @param vo     The change to apply to the entity.
+	 * @param vo     The new value to apply to the entity.
 	 * @return The updated cost including the related ones.
 	 */
 	public UpdatedCost saveOrUpdate(final ProvQuote quote, final C entity, final E vo) {
@@ -152,8 +154,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setConfiguration(quote);
 		final var oldLocation = entity.getResolvedLocation();
 		entity.setPrice(getIpRepository().findOneExpected(vo.getPrice()));
+		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage()).map(u -> getUsage(quote, u)).orElse(null));
+		entity.setBudget(Optional.ofNullable(vo.getBudget()).map(u -> getBudget(quote, u)).orElse(null));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setProcessor(vo.getProcessor());
@@ -169,7 +173,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setCpuRate(vo.getCpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
-		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		checkMinMax(entity);
 
 		saveOrUpdateSpec(entity, vo);
@@ -178,7 +181,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		quote.setUnboundCostCounter(quote.getUnboundCostCounter() + deltaUnbound);
 
 		// Save and update the costs
-		final Map<Integer, FloatingCost> storagesCosts = new HashMap<>();
+		final var storagesCosts = new HashMap<Integer, FloatingCost>();
 		final var dirtyPrice = !oldLocation.equals(entity.getResolvedLocation());
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
 			if (dirtyPrice) {
@@ -194,6 +197,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		super.saveOrUpdate(entity, vo);
 
 		// Refresh costs
+		if (BooleanUtils.isTrue(quote.getLeanOnChange())) {
+			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
+		}
 		return resource.refreshSupportCost(cost, quote);
 	}
 
@@ -214,6 +220,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	@Override
 	protected UpdatedCost deleteAll(final int subscription) {
+		final var quote = resource.getQuoteFromSubscription(subscription);
 		// Delete all resources with cascaded delete for storages
 		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription);
 		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(subscription);
@@ -223,6 +230,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		final var cost = super.deleteAll(subscription);
 		cost.getDeleted().put(ResourceType.STORAGE, sIds);
+		budgetRepsource.lean(quote, cost.getRelated());
 		return cost;
 	}
 
@@ -231,9 +239,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var cost = new UpdatedCost(id);
 		tagResource.onDelete(getType(), id);
 		networkResource.onDelete(getType(), id);
-		return resource.refreshSupportCost(cost, deleteAndUpdateCost(getQiRepository(), id, i -> {
+		final var entity = deleteAndUpdateCost(getQiRepository(), id, i -> {
 			// Delete the related storages
-
 			i.getStorages().forEach(s -> {
 				tagResource.onDelete(ResourceType.STORAGE, s.getId());
 				networkResource.onDelete(ResourceType.STORAGE, s.getId());
@@ -244,7 +251,13 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			// Decrement the unbound counter
 			final var q = i.getConfiguration();
 			q.setUnboundCostCounter(q.getUnboundCostCounter() - BooleanUtils.toInteger(i.isUnboundCost()));
-		}));
+		});
+
+		// Prepare the updated cost of updated instances
+		if (entity.getConfiguration().getLeanOnChange()) {
+			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
+		}
+		return resource.refreshSupportCost(cost, entity);
 	}
 
 	/**
@@ -560,7 +573,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var reservation = BooleanUtils.toBoolean(usage.getReservation());
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
-		final var initialCost = Objects.requireNonNullElse(budget.getInitialCost(), 0d);
+		final var initialCost = Objects.requireNonNullElse(budget.getRemainingBudget(), budget.getInitialCost());
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());

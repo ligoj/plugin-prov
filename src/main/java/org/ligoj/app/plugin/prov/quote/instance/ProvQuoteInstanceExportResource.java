@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -154,9 +155,9 @@ public class ProvQuoteInstanceExportResource {
 								toString(qi.getCpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(),
 								toString(qi.getUsage()), toString(qi.getPrice().getTerm()), toString(qi.getLocation()),
 								qi.getMinQuantity(), toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
-								toString(qi.getConstant()),toString(qi.getProcessor()),toString(qi.getPhysical()), qi.isEphemeral(), toString(qi.getPrice().getType()),
-								qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()),
-								toString(qi, itags)));
+								toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()),
+								qi.isEphemeral(), toString(qi.getPrice().getType()), qi.getInternet(),
+								toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags)));
 
 				// Write quote databases
 				final var dtags = vo.getTags().get(ResourceType.DATABASE);
@@ -164,9 +165,9 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getRam()),
 						toString(qi.getRamMax()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
 						toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
-						toString(qi.getConstant()),toString(qi.getProcessor()),toString(qi.getPhysical()), "", toString(qi.getPrice().getType()), "",
-						toString(qi.getLicense()), toString(qi.getCost()), toString(qi, dtags), qi.getEngine(),
-						toString(qi.getEdition())));
+						toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()), "",
+						toString(qi.getPrice().getType()), "", toString(qi.getLicense()), toString(qi.getCost()),
+						toString(qi, dtags), qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
 				final var stags = vo.getTags().get(ResourceType.STORAGE);
@@ -218,6 +219,6 @@ public class ProvQuoteInstanceExportResource {
 	 */
 	private String toString(final Double optional) {
 		return optional == null ? ""
-				: String.valueOf(Math.round(optional * 1000d) / 1000d).replace('.', ',').replaceFirst(",0$", "");
+				: String.valueOf(FloatingCost.round(optional)).replace('.', ',').replaceFirst(",0$", "");
 	}
 }

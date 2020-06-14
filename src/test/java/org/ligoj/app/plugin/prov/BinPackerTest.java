@@ -28,7 +28,7 @@ public class BinPackerTest {
 		final var index = new AtomicInteger(0);
 		values.forEach(v -> piecesToIems.put(v, new Piece(v, "name" + index.incrementAndGet())));
 		final var packer = new LinearBinPacker();
-		final var existingBins = new ArrayList<LinearBin>(List.of(new LinearBin(16d)));
+		final var existingBins = new ArrayList<LinearBin>(List.of(new LinearBin(1600d)));
 		final var bins = packer.packAll(values, existingBins, new ArrayList<Double>(List.of(Double.MAX_VALUE)));
 		System.out.println(bins);
 		bins.get(0).getPieces().forEach(p -> System.out.println(piecesToIems.get(p)));

@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.RoundSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -15,7 +16,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class FloatingPrice<P> {
+public class FloatingPrice<P extends AbstractTermPrice<?>> {
 
 	/**
 	 * Minimal monthly cost.

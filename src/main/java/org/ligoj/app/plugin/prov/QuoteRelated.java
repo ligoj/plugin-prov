@@ -160,7 +160,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @return The rounded value with 4 decimals.
 	 */
 	default double round(final double value) {
-		return Math.round(value * 1000d) / 1000d;
+		return FloatingCost.round(value);
 	}
 
 	/**

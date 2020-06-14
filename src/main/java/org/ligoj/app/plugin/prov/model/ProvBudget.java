@@ -4,15 +4,10 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
-
-import org.ligoj.app.model.Configurable;
-import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,20 +25,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Entity
 @Table(name = "LIGOJ_PROV_BUDGET", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "configuration" }))
-public class ProvBudget extends AbstractNamedEntity<Integer> implements Configurable<ProvQuote, Integer> {
+public class ProvBudget extends AbstractMultiScoped {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * The related quote.
-	 */
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonIgnore
-	private ProvQuote configuration;
 
 	/**
 	 * The maximal accepted initial cost.
@@ -61,7 +48,7 @@ public class ProvBudget extends AbstractNamedEntity<Integer> implements Configur
 	/**
 	 * Remaining initial budget in the current transaction.
 	 */
-	@javax.persistence.Transient
+	@Transient
 	@JsonIgnore
 	private Double remainingBudget;
 }

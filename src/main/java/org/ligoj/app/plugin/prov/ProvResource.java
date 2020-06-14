@@ -7,6 +7,8 @@ package org.ligoj.app.plugin.prov;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.iam.IamProvider;
@@ -45,11 +48,9 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
@@ -171,6 +172,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvBudgetRepository budgetRepository;
+
+	@Autowired
+	private ProvBudgetResource budgetResource;
 
 	@Autowired
 	private TerraformRunnerResource runner;
@@ -376,8 +380,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch instances) to refresh
-		return processCost(repository.getCompute(subscription), qiResource::updateCost, qsResource::updateCost,
-				qbResource::updateCost);
+		final var quote = repository.getCompute(subscription);
+		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
 
 	/**
@@ -388,7 +392,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @return The parallel or sequential stream.
 	 * @see #USE_PARALLEL
 	 */
-	public <T> Stream<T> newStream(Collection<T> collection) {
+	public <T> Stream<T> newStream(final Collection<T> collection) {
 		if (configuration.get(USE_PARALLEL, 1) == 1) {
 			return collection.parallelStream();
 		}
@@ -398,9 +402,21 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * For each resources, execute the given cost function.
 	 */
-	private FloatingCost processCost(final ProvQuote entity, Function<ProvQuoteInstance, FloatingCost> instanceFunction,
-			Function<ProvQuoteStorage, FloatingCost> storageFunction,
-			Function<ProvQuoteDatabase, FloatingCost> databaseFunction) {
+	private UpdatedCost processCost(final ProvQuote entity, boolean lean) {
+		final var relatedCosts = Collections
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
+		return processCost(entity, lean, relatedCosts);
+	}
+
+	/**
+	 * For each resources, execute the given cost function.
+	 */
+	private UpdatedCost processCost(final ProvQuote entity, final boolean lean,
+			Map<ResourceType, Map<Integer, FloatingCost>> relatedCosts) {
+		if (lean) {
+			budgetResource.lean(entity, relatedCosts);
+			return processCost(entity, false, relatedCosts);
+		}
 		log.info("Refresh cost started for subscription {}", entity.getSubscription().getId());
 		final var subscription = entity.getSubscription().getId();
 
@@ -418,22 +434,23 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Add the compute cost, and update the unbound cost
 		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());
-		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(instanceFunction)
+		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(qiResource::updateCost)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the database cost
 		log.info("Refresh cost started for subscription {} / databases ... ", entity.getSubscription().getId());
-		newStream(qbRepository.findAll(subscription)).map(databaseFunction).forEach(fc -> addCost(entity, fc));
+		newStream(qbRepository.findAll(subscription)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Add the storage cost
 		log.info("Refresh cost started for subscription {} / storages ... ", entity.getSubscription().getId());
-		newStream(qsRepository.findAll(subscription)).map(storageFunction).forEach(fc -> addCost(entity, fc));
+		newStream(qsRepository.findAll(subscription)).map(qsResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
 		log.info("Refresh cost started for support {} / storages ... ", entity.getSubscription().getId());
-		var cost = refreshSupportCost(entity).round();
+		final var cost = new UpdatedCost(entity.getId());
 		log.info("Refresh cost finished for subscription {}", entity.getSubscription().getId());
-		return cost;
+		cost.setRelated(relatedCosts);
+		return refreshSupportCost(cost, entity);
 	}
 
 	private FloatingCost refreshSupportCost(final ProvQuote entity) {
@@ -454,10 +471,21 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @return The same target cost parameter.
 	 */
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
-		cost.setTotal(refreshSupportCost(quote));
+		cost.setTotal(refreshSupportCost(quote).round());
 		quote.getSupports().forEach(s -> cost.getRelated().computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>())
 				.put(s.getId(), s.toFloatingCost()));
 		return cost;
+	}
+
+	/**
+	 * Refresh the cost of the support for the whole whole quote related to a resource.
+	 * 
+	 * @param cost   The target cost object to update.
+	 * @param entity A recently updated resource.
+	 * @return The same target cost parameter.
+	 */
+	public <Q extends AbstractQuote<?>> UpdatedCost refreshSupportCost(final UpdatedCost cost, final Q entity) {
+		return refreshSupportCost(cost, entity.getConfiguration());
 	}
 
 	/**
@@ -476,7 +504,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Override
 	public FloatingCost refresh(final ProvQuote entity) {
 		updateCurrency(entity);
-		return processCost(entity, qiResource::refresh, qsResource::refresh, qbResource::refresh);
+		return processCost(entity, true).getTotal();
 	}
 
 	/**

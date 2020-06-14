@@ -913,6 +913,62 @@ public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	void createInstanceAutoLean() {
+		// Pre-condition
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
+		Assertions.assertFalse(getQuote().getLeanOnChange());
+
+		// Standard create
+		final var vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
+		vo.setName("serverZ");
+		vo.setRam(1024);
+		vo.setMaxQuantity(1);
+		vo.setRamMax(10800);
+		vo.setCpu(0.5);
+		vo.setOs(VmOs.WINDOWS);
+		vo.setCpuMax(0.5);
+		vo.setUsage(FULL); // Important for the price select -> C12
+		vo.setBudget("Dept2");
+		var updatedCost = qiResource.create(vo);
+
+		// Check the exact new cost with no-lean on change
+		checkCost(updatedCost.getTotal(), 3374.02, 5823.62, false);
+		var instance = qiRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("Dept2", instance.getBudgetName());
+		Assertions.assertEquals("Dept2", instance.getBudget().getName());
+		Assertions.assertEquals("C10", instance.getPrice().getCode());
+		em.flush();
+		em.clear();
+
+		// Apply lean, correspond to the amount with auto lean
+		checkCost(resource.refresh(subscription), 3403.3, 5852.9, false);
+		instance = qiRepository.findOneExpected(updatedCost.getId());
+		
+		 // C10->C8 (lack of budget)
+		Assertions.assertEquals("C8", instance.getPrice().getCode());
+
+		// Apply lean on change mode
+		getQuote().setLeanOnChange(true);
+
+		// Rollback to previous state, and with lean auto
+		qiResource.delete(updatedCost.getId());
+
+		// New price is already with lean
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
+		Assertions.assertTrue(getQuote().getLeanOnChange());
+		em.flush();
+		em.clear();
+
+		// Add again the resource, expecting the lean is applied immediately
+		updatedCost = qiResource.create(vo);
+		checkCost(resource.refresh(subscription), 3403.3, 5852.9, false);
+		instance = qiRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("C8", instance.getPrice().getCode());
+	}
+
+	@Test
 	void createInstanceIncompatibleOs() {
 		final var vo = new QuoteInstanceEditionVo();
 		vo.setSubscription(subscription);

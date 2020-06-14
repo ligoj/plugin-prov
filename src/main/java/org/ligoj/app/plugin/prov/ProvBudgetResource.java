@@ -3,235 +3,344 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ResourceScope;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
-import org.ligoj.app.resource.subscription.SubscriptionResource;
-import org.ligoj.bootstrap.core.json.PaginationJson;
-import org.ligoj.bootstrap.core.json.TableItem;
-import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.jnellis.binpack.LinearBin;
+import net.jnellis.binpack.LinearBinPacker;
 
 /**
  * Budget part of provisioning.
  */
 @Service
-@Path(ProvResource.SERVICE_URL)
+@Path(ProvResource.SERVICE_URL + "{subscription:\\d+}/budget")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public class ProvBudgetResource {
+@Slf4j
+public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, ProvBudgetRepository, BudgetEditionVo> {
 
 	@Autowired
-	private SubscriptionResource subscriptionResource;
-
-	@Autowired
-	private PaginationJson paginationJson;
-
-	@Autowired
+	@Getter
 	private ProvBudgetRepository repository;
 
 	@Autowired
-	private ProvResource resource;
+	private ConfigurationResource configuration;
 
-	@Autowired
-	private ProvQuoteInstanceResource qiResource;
-
-	@Autowired
-	private ProvQuoteDatabaseResource qbResource;
-
-	/**
-	 * Return the budgets available for a subscription.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the budgets from the associated provider.
-	 * @param uriInfo      filter data.
-	 * @return The available budgets for the given subscription.
-	 */
-	@GET
-	@Path("{subscription:\\d+}/budget")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public TableItem<ProvBudget> findAll(@PathParam("subscription") final int subscription,
-			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisible(subscription);
-		return paginationJson.applyPagination(uriInfo,
-				repository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
-				Function.identity());
+	public ProvBudgetResource() {
+		super(ResourceScope::getBudget, ResourceScope::setBudget, ProvBudget::new);
 	}
 
-	/**
-	 * Create the budget inside a quote. No cost are updated during this operation since this new {@link ProvBudget} is
-	 * not yet used.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the budgets from the associated provider.
-	 * @param vo           The quote budget.
-	 * @return The created budget identifier.
-	 */
-	@POST
-	@Path("{subscription:\\d+}/budget")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public int create(@PathParam("subscription") final int subscription, final BudgetEditionVo vo) {
-		final var entity = new ProvBudget();
-		entity.setConfiguration(resource.getQuoteFromSubscription(subscription));
-		return saveOrUpdate(entity, vo).getId();
-	}
-
-	/**
-	 * Update the budget inside a quote. The computed cost are recursively updated from the related instances to the
-	 * quote total cost.<br>
-	 * The cost of all instances related to this budget will be updated to get the new price.<br>
-	 * An instance related to this budget is either an instance explicitly linked to this budget, either an instance
-	 * linked to a quote having this budget as default.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the budgets from the associated provider.
-	 * @param vo           The new quote budget data.
-	 * @return The updated cost. Only relevant when at least one resource was associated to this budget.
-	 */
-	@PUT
-	@Path("{subscription:\\d+}/budget")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public UpdatedCost update(@PathParam("subscription") final int subscription, final BudgetEditionVo vo) {
-		return saveOrUpdate(resource.findConfigured(repository, vo.getId(), subscription), vo);
-	}
-
-	/**
-	 * Save or update the given budget entity from the {@link BudgetEditionVo}. The computed cost are recursively
-	 * updated from the related instances to the quote total cost.<br>
-	 * The cost of all instances related to this budget will be updated to get the new term and related price.<br>
-	 * An instance related to this budget is either an instance explicitly linked to this budget, either an instance
-	 * linked to a quote having this budget as default.
-	 */
-	private UpdatedCost saveOrUpdate(final ProvBudget entity, final BudgetEditionVo vo) {
+	@Override
+	protected UpdatedCost saveOrUpdate(final ProvBudget entity, final BudgetEditionVo vo) {
 		// Check the associations and copy attributes to the entity
 		entity.setName(vo.getName());
 		entity.setInitialCost(vo.getInitialCost());
 
-		// Prepare the updated cost of updated instances
-		final var costs = Collections
-				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
-		final var quote = entity.getConfiguration();
-
 		// Fetch the budgets of this quotes
+		final var quote = entity.getConfiguration();
 		quote.getBudgets().size();
 
+		// Prepare the updated cost of updated instances
+		final var relatedCosts = Collections
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
+		// Prevent useless computation, check the relations
 		if (entity.getId() != null) {
 			// This is an update, update the cost of all related instances
-			// Reset the remaining initial cost
-			entity.setRemainingBudget(entity.getInitialCost());
-			final var isDefault = entity.equals(quote.getBudget());
-
-			// Get all related resources
-			var instances = getRelated(quote.getInstances(), entity, isDefault);
-			var databases = getRelated(quote.getDatabases(), entity, isDefault);
-
-			// while remaining
-			var oldRemaining = entity.getRemainingBudget();
-			final var qbPrices = new HashMap<ProvQuoteDatabase, FloatingPrice<ProvDatabasePrice>>();
-			final var qiPrices = new HashMap<ProvQuoteInstance, FloatingPrice<ProvInstancePrice>>();
-			compute(databases, qbPrices, qbResource, oldRemaining);
-			compute(instances, qiPrices, qiResource, oldRemaining);
-
-			// Pack the prices
-			// TODO
-			updatePrice(qiPrices, ResourceType.INSTANCE, costs, qiResource);
-			updatePrice(qbPrices, ResourceType.DATABASE, costs, qbResource);
+			lean(entity, relatedCosts);
 		}
 
 		repository.saveAndFlush(entity);
-		final var cost = new UpdatedCost(entity.getId());
-		cost.setRelated(costs);
 
 		// Update accordingly the support costs
-		return resource.refreshSupportCost(cost, quote);
-	}
+		final var cost = new UpdatedCost(entity.getId());
+		cost.setRelated(relatedCosts);
 
-	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void updatePrice(
-			final Map<C, FloatingPrice<P>> prices, final ResourceType type,
-			final Map<ResourceType, Map<Integer, FloatingCost>> costs,
-			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource) {
-		prices.forEach((i, price) -> costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(),
-				resource.addCost(i, qi -> {
-					qi.setPrice(price.getPrice());
-					return resource.updateCost(qi);
-				})));
-	}
-
-	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> getRelated(
-			final List<C> instances, final ProvBudget entity, final boolean includesNull) {
-		return instances.stream().filter(i -> i.getBudget() == null ? includesNull : i.getBudget().equals(entity))
-				.collect(Collectors.toList());
-	}
-
-	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void compute(
-			final List<C> nodes, final Map<C, FloatingPrice<P>> prices,
-			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource, final double initialCost) {
-		this.resource.newStream(nodes).forEach(i -> prices.put(i, resource.getNewPrice(i)));
+		final var updateCost = resource.refreshSupportCost(cost, quote);
+		log.info("Total2 monthly cost: {}", updateCost.getTotal().getMin());
+		log.info("Total2 initial cost: {}", updateCost.getTotal().getInitial());
+		return updateCost;
 	}
 
 	/**
-	 * Delete an budget. When the budget is associated to a quote or a resource, it is replaced by a <code>null</code>
-	 * reference.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the budgets from the associated provider.
-	 * @param id           The {@link ProvBudget} identifier.
-	 * @return The updated cost. Only relevant when at least one resource was associated to this budget.
+	 * Refresh the whole quote budgets.
+	 * 
+	 * @param quote The quote owning the related budget.
+	 * @param costs The updated costs and resources.
 	 */
-	@DELETE
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("{subscription:\\d+}/budget/{id:\\d+}")
-	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
-		final var entity = resource.findConfigured(repository, id, subscription);
-		final var quote = entity.getConfiguration();
-		final var cost = new UpdatedCost(entity.getId());
-		// Prepare the updated cost of updated instances
-		final var costs = cost.getRelated();
-		// Update the cost of all related instances
-		if (entity.equals(quote.getBudget())) {
-			// Update cost of all instances without explicit budget
-			quote.setBudget(null);
-			quote.getInstances().stream().filter(i -> i.getBudget() == null)
-					.forEach(i -> costs.computeIfAbsent(ResourceType.INSTANCE, k -> new HashMap<>()).put(i.getId(),
-							qiResource.addCost(i, qiResource::refresh)));
+	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		final var subscription = quote.getConfiguration().getSubscription().getId();
+		lean(quote, qiRepository.findAll(subscription), qbRepository.findAll(subscription), costs);
+	}
+
+	/**
+	 * Detect the related budgets having an initial cost and involved in the given instances/databases collections, lean
+	 * them. A refresh is also applied to all resources related to these budgets. This means that some resources not
+	 * included in the initial set may be refreshed.
+	 * 
+	 * @param quote     The quote owning the related budget.
+	 * @param instances The instances implied in the current change.
+	 * @param databases The databases implied in the current change.
+	 * @param costs     The updated costs and resources.
+	 */
+	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
+			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		// Lean all relevant budgets
+		Stream.concat(instances.stream(), databases.stream()).map(AbstractQuoteVm::getResolvedBudget)
+				.filter(Objects::nonNull).filter(b -> b.getInitialCost() > 0).distinct().forEach(b -> lean(b, costs));
+
+		// Refresh also all remaining resources unrelated to the updated budgets
+		refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
+		refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
+	}
+
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
+			final List<C> instances, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource) {
+		this.resource.newStream(instances)
+				.filter(i -> Optional.ofNullable(i.getResolvedBudget()).map(ProvBudget::getInitialCost).orElse(0d) == 0)
+				.forEach(i -> costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(),
+						resource.addCost(i, resource::refresh)));
+	}
+
+	/**
+	 * Detect the related resources to the given budget and refresh them.
+	 * 
+	 * @param entity The budget to lean.
+	 * @param costs  The updated costs and resources.
+	 */
+	public void lean(final ProvBudget entity, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		if (entity == null) {
+			// Ignore, no lean to do
+			return;
 		}
-		quote.getInstances().stream().filter(i -> entity.equals(i.getBudget())).peek(i -> i.setBudget(null))
-				.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new HashMap<>()).put(i.getId(),
-						qiResource.addCost(i, qiResource::refresh)));
+		final var quote = entity.getConfiguration();
 
-		// All references are deleted, delete the budget entity
-		repository.delete(entity);
+		// Get all related resources
+		var instances = getRelated(getRepository()::findRelatedInstances, entity);
+		var databases = getRelated(getRepository()::findRelatedDatabases, entity);
+		lean(entity, quote, instances, databases, costs);
+	}
 
-		// Update accordingly the support costs
-		return resource.refreshSupportCost(cost, quote);
+	/**
+	 * Starting from the given resources, lean the given budget. The process involve recursive bin packing to fill up
+	 * the initial cost of this budget.
+	 */
+	private void lean(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
+			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+
+		// Reset the remaining initial cost
+		budget.setRemainingBudget(budget.getInitialCost());
+		leanRecursive(budget, quote, instances, databases, costs);
+		budget.setRequiredInitialCost(FloatingCost.round(budget.getInitialCost() - budget.getRemainingBudget()));
+		budget.setRemainingBudget(null);
+		logLean(t -> {
+			log.info("Total qi monthly costs:       {}",
+					instances.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Total qb monthly costs:       {}",
+					databases.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Total qi monthly cost:        {}",
+					instances.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Total qb monthly cost:        {}",
+					databases.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Total qi initial cost:        {}",
+					instances.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+			log.info("Total qb initial cost:        {}",
+					databases.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+		});
+	}
+
+	/**
+	 * Logger as needed.
+	 */
+	private void logLean(final Consumer<ProvQuote> logger) {
+		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":" + log))) {
+			logger.accept(null);
+		}
+	}
+
+	private void leanRecursive(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
+			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		logLean(t -> {
+			log.info("Start lean instances:         {}", instances.stream()
+					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+			log.info("Start lean databases:         {}", databases.stream()
+					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+		});
+
+		// Lookup the best prices
+		// And build the pack candidates
+		final var packToQr = new IdentityHashMap<Double, AbstractQuoteVm<?>>();
+		final var prices = new HashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
+		final var validatedQi = lookup(instances, prices, qiResource, packToQr);
+		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
+
+		log.info("Lookup result:                {}",
+				prices.entrySet().stream().map(e -> e.getKey().getName() + " (code=" + e.getKey().getPrice().getCode()
+						+ " -> " + e.getValue().getPrice().getCode() + ")").collect(Collectors.toList()));
+
+		// Pack the prices having an initial cost
+		if (!packToQr.isEmpty()) {
+			// At least one initial cost is implied, use bin packing strategy
+			final var packStart = System.currentTimeMillis();
+			final var packer = new LinearBinPacker();
+			final var bins = packer.packAll(packToQr.entrySet().stream().sorted((e1, e2) -> {
+				// Priority to the most expensive price
+				final var c1 = prices.get(e1.getValue()).getPrice().getCost();
+				final var c2 = prices.get(e2.getValue()).getPrice().getCost();
+				var compare = (int) (c2 - c1);
+				if (compare == 0) {
+					// Then natural naming order
+					compare = e1.getValue().getName().compareTo(e2.getValue().getName());
+				}
+				return compare;
+			}).map(Entry::getKey).collect(Collectors.toList()),
+					new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
+					new ArrayList<>(List.of(Double.MAX_VALUE)));
+			bins.get(0).getPieces().stream().map(c -> packToQr.get(c)).forEach(i -> {
+				if (i.getResourceType() == ResourceType.INSTANCE) {
+					validatedQi.add((ProvQuoteInstance) i);
+				} else {
+					validatedQb.add((ProvQuoteDatabase) i);
+				}
+			});
+			logLean(t -> {
+				log.info("Packing result:               {}", bins.get(0).getPieces().stream().map(packToQr::get)
+						.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+				log.info("Packing result:               {}", bins);
+			});
+			logPack(packStart, packToQr, quote);
+
+			if (bins.size() > 1) {
+				// Extra bin needs to make a new pass
+				budget.setRemainingBudget(FloatingCost.round(budget.getRemainingBudget() - bins.get(0).getTotal()));
+				final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
+				final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
+				leanRecursive(budget, quote, subQi, subQb, costs);
+			} else {
+				// Pack is completed
+			}
+		}
+
+		// Commit this pack
+		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
+		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
+		logLean(t -> {
+			log.info("Lean instances:               {}", validatedQi.stream()
+					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+			log.info("Lean databases:               {}", validatedQb.stream()
+					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+			log.info("Lean instances monthly costs: {}",
+					validatedQi.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Lean databases monthly costs: {}",
+					validatedQb.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Lean instances monthly cost:  {}",
+					validatedQi.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Lean databases monthly cost:  {}",
+					validatedQb.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Lean instances initial cost:  {}",
+					validatedQi.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+			log.info("Lean databases initial cost:  {}",
+					validatedQb.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+		});
+	}
+
+	/**
+	 * Log packing statistics.
+	 * 
+	 * @param packStart Starting timestamp.
+	 * @param packToQr  The packed resources.
+	 * @param quote     The related quote.
+	 */
+	protected void logPack(final long packStart, final Map<Double, AbstractQuoteVm<?>> packToQr,
+			final ProvQuote quote) {
+		// Log packing statistic
+		final var packTime = System.currentTimeMillis() - packStart;
+		if (packTime > 500) {
+			// Enough duration to be logged
+			log.info("Packing of {} resources for subscription {} took {}", packToQr.size(),
+					quote.getSubscription().getId(), Duration.ofMillis(packTime));
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
+			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
+		return (List) bins.get(1).getPieces().stream().map(c -> packToQr.get(c))
+				.filter(i -> i.getResourceType() == type).collect(Collectors.toList());
+	}
+
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void commitPrices(
+			final List<C> nodes, final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final ResourceType type,
+			final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource) {
+		nodes.forEach(i -> {
+			@SuppressWarnings("unchecked")
+			final FloatingPrice<P> price = (FloatingPrice<P>) prices.get(i);
+			costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, qi -> {
+				qi.setPrice(price.getPrice());
+				return resource.updateCost(qi);
+			}));
+		});
+	}
+
+	/**
+	 * Execute a lookup for each resources, and store the resolved price in the "prices" parameter. Then separate the
+	 * resolved prices having an initial cost from the one without. These excluded resources are returned. The prices
+	 * having an initial cost are put in the given identity map where the key corresponds to this cost, and the value
+	 * corresponds to the resource.
+	 */
+	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> lookup(
+			final List<C> nodes, final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices,
+			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource,
+			final IdentityHashMap<Double, AbstractQuoteVm<?>> packToQi) {
+		final var validatedQi = new ArrayList<C>();
+		this.resource.newStream(nodes).forEach(i -> {
+			final var price = resource.getNewPrice(i);
+			prices.put(i, price);
+			if (price.getCost().getInitial() > 0) {
+				// Add this price to the pack
+				packToQi.put(price.getCost().getInitial(), i);
+			} else {
+				// Add this price to the commit stage
+				validatedQi.add(i);
+			}
+		});
+
+		return validatedQi;
 	}
 
 }

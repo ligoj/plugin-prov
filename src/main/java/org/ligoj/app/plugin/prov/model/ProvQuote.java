@@ -34,7 +34,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_QUOTE")
-public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implements PluginConfiguration, Costed {
+public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
+		implements PluginConfiguration, Costed, ResourceScope {
 
 	/**
 	 * SID
@@ -154,7 +155,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
-	private List<ProvQuoteSupport> supports;
+	private List<ProvQuoteSupport> supports = new ArrayList<>();
 
 	/**
 	 * Attached tags.
@@ -237,4 +238,10 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer> implement
 	@Transient
 	@JsonIgnore
 	private ProvisioningService service;
+
+	/**
+	 * When <code>true</code>, the lean process is executed after each change. This option implies more computations
+	 * when there are budgets with associated initial cost.
+	 */
+	private Boolean leanOnChange = false;
 }

@@ -151,9 +151,16 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		clearAllCache();
 		// Set the default budget
-		final var quote = repository.findBy("subscription.id", subscription);
+		final var quote = getQuote();
 		quote.setBudget(budgetRepository.findByName(subscription, "Dept1"));
 		updateCost();
+	}
+
+	/**
+	 * Return the quote associated to the current subscription.
+	 */
+	protected ProvQuote getQuote() {
+		return repository.findBy("subscription.id", subscription);
 	}
 
 	/**
