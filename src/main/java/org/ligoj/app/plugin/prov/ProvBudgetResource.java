@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -167,39 +168,34 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		leanRecursive(budget, quote, instances, databases, costs);
 		budget.setRequiredInitialCost(FloatingCost.round(budget.getInitialCost() - budget.getRemainingBudget()));
 		budget.setRemainingBudget(null);
-		logLean(t -> {
-			log.info("Total qi monthly costs:       {}",
-					instances.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Total qb monthly costs:       {}",
-					databases.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Total qi monthly cost:        {}",
-					instances.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Total qb monthly cost:        {}",
-					databases.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Total qi initial cost:        {}",
-					instances.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-			log.info("Total qb initial cost:        {}",
-					databases.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-		});
+		logLean(c -> {
+			log.info("Monthly costs:{}", c.map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Monthly cost: {}", c.mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Initial cost: {}", c.mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+		}, instances, databases);
 	}
 
 	/**
 	 * Logger as needed.
 	 */
-	private void logLean(final Consumer<ProvQuote> logger) {
-		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":" + log))) {
-			logger.accept(null);
+	private void logLean(final Consumer<Stream<? extends AbstractQuoteVm<?>>> logger,
+			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases) {
+		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
+			List.of(instances, databases).stream().map(Collection::stream).forEach(logger::accept);
+		}
+	}
+
+	private <C> void logLean(final Consumer<C> logger, C object) {
+		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
+			logger.accept(object);
 		}
 	}
 
 	private void leanRecursive(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		logLean(t -> {
-			log.info("Start lean instances:         {}", instances.stream()
-					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-			log.info("Start lean databases:         {}", databases.stream()
-					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-		});
+		logLean(c -> log.info("Start lean: {}",
+				c.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList())),
+				instances, databases);
 
 		// Lookup the best prices
 		// And build the pack candidates
@@ -237,11 +233,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 					validatedQb.add((ProvQuoteDatabase) i);
 				}
 			});
-			logLean(t -> {
-				log.info("Packing result:               {}", bins.get(0).getPieces().stream().map(packToQr::get)
+			logLean(b -> {
+				log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
 						.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-				log.info("Packing result:               {}", bins);
-			});
+				log.info("Packing result: {}", b);
+			}, bins);
 			logPack(packStart, packToQr, quote);
 
 			if (bins.size() > 1) {
@@ -259,23 +255,12 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
 		logLean(t -> {
-			log.info("Lean instances:               {}", validatedQi.stream()
-					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-			log.info("Lean databases:               {}", validatedQb.stream()
-					.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-			log.info("Lean instances monthly costs: {}",
-					validatedQi.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Lean databases monthly costs: {}",
-					validatedQb.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Lean instances monthly cost:  {}",
-					validatedQi.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Lean databases monthly cost:  {}",
-					validatedQb.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Lean instances initial cost:  {}",
-					validatedQi.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-			log.info("Lean databases initial cost:  {}",
-					validatedQb.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-		});
+			log.info("Lean:              {}",
+					t.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+			log.info("Lean monthly costs:{}", t.map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Lean monthly cost: {}", t.mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Lean initial cost: {}", t.mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+		}, validatedQi, validatedQb);
 	}
 
 	/**

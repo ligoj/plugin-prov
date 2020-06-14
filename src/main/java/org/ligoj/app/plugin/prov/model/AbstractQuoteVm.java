@@ -33,7 +33,7 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends AbstractQuote<P> implements QuoteVm, ResourceScope {
+public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends AbstractQuote<P> implements QuoteVm, ResourceScope {
 
 	/**
 	 * SID
@@ -226,5 +226,9 @@ public abstract class AbstractQuoteVm<P extends AbstractPrice<?>> extends Abstra
 	public String getLocationName() {
 		return getResolvedLocation().getName();
 	}
+
+
+	@Override
+	public abstract P getPrice();
 
 }
