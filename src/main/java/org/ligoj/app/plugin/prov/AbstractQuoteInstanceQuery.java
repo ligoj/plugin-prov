@@ -30,6 +30,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@Builder.Default
 	private double cpu = 1;
 
+	/**
+	 * Required memory in MiB.
+	 */
 	@DefaultValue(value = "1")
 	@QueryParam("ram")
 	@Builder.Default
