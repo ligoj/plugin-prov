@@ -82,7 +82,8 @@ class ProvCurrencyResourceTest extends AbstractAppTest {
 	@Test
 	void deleteUsed() {
 		Assertions.assertEquals(1, repository.count());
-		Assertions.assertThrows(DataIntegrityViolationException.class, ()->resource.delete(repository.findByName("USD").getId()));
+		final var id = repository.findByName("USD").getId();
+		Assertions.assertThrows(DataIntegrityViolationException.class, () -> resource.delete(id));
 		Assertions.assertEquals(1, repository.count());
 	}
 

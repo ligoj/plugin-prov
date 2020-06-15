@@ -54,6 +54,8 @@ import net.jnellis.binpack.LinearBinPacker;
 @Slf4j
 public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, ProvBudgetRepository, BudgetEditionVo> {
 
+	private static final String CODE = " (code=";
+
 	@Autowired
 	@Getter
 	private ProvBudgetRepository repository;
@@ -194,7 +196,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	private void leanRecursive(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		logLean(c -> log.info("Start lean: {}",
-				c.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList())),
+				c.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
 				instances, databases);
 
 		// Lookup the best prices
@@ -205,7 +207,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
 
 		log.info("Lookup result:                {}",
-				prices.entrySet().stream().map(e -> e.getKey().getName() + " (code=" + e.getKey().getPrice().getCode()
+				prices.entrySet().stream().map(e -> e.getKey().getName() + CODE + e.getKey().getPrice().getCode()
 						+ " -> " + e.getValue().getPrice().getCode() + ")").collect(Collectors.toList()));
 
 		// Pack the prices having an initial cost
@@ -226,7 +228,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			}).map(Entry::getKey).collect(Collectors.toList()),
 					new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
 					new ArrayList<>(List.of(Double.MAX_VALUE)));
-			bins.get(0).getPieces().stream().map(c -> packToQr.get(c)).forEach(i -> {
+			bins.get(0).getPieces().stream().map(packToQr::get).forEach(i -> {
 				if (i.getResourceType() == ResourceType.INSTANCE) {
 					validatedQi.add((ProvQuoteInstance) i);
 				} else {
@@ -235,7 +237,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			});
 			logLean(b -> {
 				log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
-						.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+						.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList()));
 				log.info("Packing result: {}", b);
 			}, bins);
 			logPack(packStart, packToQr, quote);
@@ -256,7 +258,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
 		logLean(t -> {
 			log.info("Lean:              {}",
-					t.map(i -> i.getName() + " (code=" + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+					t.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList()));
 			log.info("Lean monthly costs:{}", t.map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
 			log.info("Lean monthly cost: {}", t.mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.mapToDouble(i -> i.getPrice().getInitialCost()).sum());
@@ -284,7 +286,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
 			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
-		return (List) bins.get(1).getPieces().stream().map(c -> packToQr.get(c))
+		return (List) bins.get(1).getPieces().stream().map(packToQr::get)
 				.filter(i -> i.getResourceType() == type).collect(Collectors.toList());
 	}
 

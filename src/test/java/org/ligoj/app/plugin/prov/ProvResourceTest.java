@@ -627,7 +627,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	private QuoteEditionVo newQuoteEdition() {
-		final var quote =  new QuoteEditionVo();
+		final var quote = new QuoteEditionVo();
 		quote.setBudget("Dept0");
 		return quote;
 	}
@@ -874,8 +874,9 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		locationRepository.deleteAll();
 		em.flush();
 		em.clear();
-		Assertions.assertEquals("service:prov-no-catalog", Assertions
-				.assertThrows(BusinessException.class, () -> resource.create(subscription.getId())).getMessage());
+		final var id = subscription.getId();
+		Assertions.assertEquals("service:prov-no-catalog",
+				Assertions.assertThrows(BusinessException.class, () -> resource.create(id)).getMessage());
 	}
 
 	@Test
@@ -912,8 +913,9 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findConfiguredNotFound() {
 		final var qi = qiRepository.findByName("server1");
+		final var id = qi.getId();
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> resource.findConfigured(qiRepository, qi.getId(), 0).getName());
+				() -> resource.findConfigured(qiRepository, id, 0).getName());
 	}
 
 	@Test

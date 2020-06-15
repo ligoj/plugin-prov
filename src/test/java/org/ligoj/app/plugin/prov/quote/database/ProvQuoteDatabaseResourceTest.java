@@ -60,9 +60,11 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class, ProvStoragePrice.class,
-				ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class },
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
+						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
@@ -230,8 +232,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qbResource.lookup(subscription, builder().location("region-xxx").engine("MYSQL").build()));
+		final var vo = builder().location("region-xxx").engine("MYSQL").build();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.lookup(subscription, vo));
 	}
 
 	private void checkInstance(final QuoteDatabaseLookup lookup) {
@@ -255,8 +257,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupHighConstraints() {
-		final var lookup = qbResource.lookup(subscription,
-				builder().cpu(0.25).ram(1900).constant(true).usage("Full Time 12 month").engine("MYSQL").budget("Dept1").build());
+		final var lookup = qbResource.lookup(subscription, builder().cpu(0.25).ram(1900).constant(true)
+				.usage("Full Time 12 month").engine("MYSQL").budget("Dept1").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
@@ -604,21 +606,22 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstancePriceTermsNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
-				() -> qbResource.findPriceTerms(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qbResource.findPriceTerms(-1, uri));
 	}
 
 	@Test
 	void findInstancePriceTermsAnotherSubscription() {
+		final var uri = newUriInfo();
 		Assertions.assertEquals(1,
-				qbResource.findPriceTerms(getSubscription("mda", "service:prov:x"), newUriInfo()).getData().size());
+				qbResource.findPriceTerms(getSubscription("mda", "service:prov:x"), uri).getData().size());
 	}
 
 	@Test
 	void findInstancePriceTermsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qbResource.findPriceTerms(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.findPriceTerms(subscription, uri));
 	}
 
 	@Test
@@ -678,8 +681,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstanceNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
-				() -> qbResource.findAllTypes(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qbResource.findAllTypes(-1, uri));
 	}
 
 	@Test
@@ -691,8 +694,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qbResource.findAllTypes(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qbResource.findAllTypes(subscription, uri));
 	}
 
 	@Override

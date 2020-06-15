@@ -251,8 +251,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupLocationNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.lookup(subscription, builder().location("region-xxx").build()));
+		final var vo = builder().location("region-xxx").build();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
 	private void checkInstance(final QuoteInstanceLookup lookup) {
@@ -370,14 +370,14 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupUsageNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.lookup(subscription, builder().os(VmOs.LINUX).usage("any").build()));
+		final var vo = builder().os(VmOs.LINUX).usage("any").build();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
 	@Test
 	void lookupTypeNotFound() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.lookup(subscription, builder().type("any").build()));
+		final var vo = builder().type("any").build();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
 	/**
@@ -945,8 +945,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		// Apply lean, correspond to the amount with auto lean
 		checkCost(resource.refresh(subscription), 3403.3, 5852.9, false);
 		instance = qiRepository.findOneExpected(updatedCost.getId());
-		
-		 // C10->C8 (lack of budget)
+
+		// C10->C8 (lack of budget)
 		Assertions.assertEquals("C8", instance.getPrice().getCode());
 
 		// Apply lean on change mode
@@ -1057,8 +1057,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstancePriceTermsNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
-				() -> qiResource.findPriceTerms(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findPriceTerms(-1, uri));
 	}
 
 	@Test
@@ -1070,8 +1070,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstancePriceTermsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.findPriceTerms(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findPriceTerms(subscription, uri));
 	}
 
 	@Test
@@ -1120,8 +1120,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findInstanceNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
-				() -> qiResource.findAllTypes(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qiResource.findAllTypes(-1, uri));
 	}
 
 	@Test
@@ -1133,7 +1133,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findInstanceNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.findAllTypes(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAllTypes(subscription, uri));
 	}
 }

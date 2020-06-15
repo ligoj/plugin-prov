@@ -350,10 +350,10 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadTagsInvalidTagName() {
-		Assertions.assertThrows(ValidationJsonException.class,
-				() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;app:!!;8", "UTF-8"),
-						new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1, "UTF-8"));
+	void uploadTagsInvalidTagName() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX;app:!!;8", "UTF-8");
+		Assertions.assertThrows(ValidationJsonException.class, () -> qiuResource.upload(subscription, input,
+				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1, "UTF-8"));
 	}
 
 	@Test
@@ -385,11 +385,10 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadConflictName() {
-		Assertions.assertThrows(DataIntegrityViolationException.class,
-				() -> qiuResource.upload(subscription,
-						IOUtils.toInputStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX", "UTF-8"),
-						new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.INSERT, 1, "UTF-8"));
+	void uploadConflictName() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX", "UTF-8");
+		Assertions.assertThrows(DataIntegrityViolationException.class, () -> qiuResource.upload(subscription, input,
+				new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.INSERT, 1, "UTF-8"));
 	}
 
 	@Test
@@ -431,83 +430,91 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	 * Expected usage does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
-	void uploadInvalidUsageForSubscription() {
-		Assertions.assertEquals("Full Time2", Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;Full Time2", "UTF-8"),
+	void uploadInvalidUsageForSubscription() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX;Full Time2", "UTF-8");
+		Assertions.assertEquals("Full Time2",
+				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription, input,
 						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
-				.getMessage());
+						.getMessage());
 	}
 
 	/**
 	 * Expected location does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
-	void uploadInvalidLocationForSubscription() {
-		Assertions.assertEquals("region-3", Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;region-3", "UTF-8"),
-						new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
-						"UTF-8"))
-				.getMessage());
+	void uploadInvalidLocationForSubscription() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX;region-3", "UTF-8");
+		Assertions.assertEquals("region-3",
+				Assertions.assertThrows(EntityNotFoundException.class,
+						() -> qiuResource.upload(subscription, input,
+								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+								"UTF-8"))
+						.getMessage());
 	}
 
 	/**
 	 * Expected location does not exist at all?
 	 */
 	@Test
-	void uploadInvalidLocation() {
-		Assertions.assertEquals("region-ZZ", Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;region-ZZ", "UTF-8"),
-						new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
-						"UTF-8"))
-				.getMessage());
+	void uploadInvalidLocation() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX;region-ZZ", "UTF-8");
+		Assertions.assertEquals("region-ZZ",
+				Assertions.assertThrows(EntityNotFoundException.class,
+						() -> qiuResource.upload(subscription, input,
+								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month", 1,
+								"UTF-8"))
+						.getMessage());
 	}
 
 	/**
 	 * Expected usage does not exist at all.
 	 */
 	@Test
-	void uploadInvalidUsage() {
-		Assertions.assertEquals("any", Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;any", "UTF-8"),
+	void uploadInvalidUsage() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX;any", "UTF-8");
+		Assertions.assertEquals("any",
+				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription, input,
 						new String[] { "name", "cpu", "ram", "os", "usage" }, false, "Full Time 12 month", 1, "UTF-8"))
-				.getMessage());
+						.getMessage());
 	}
 
 	@Test
-	void uploadInstanceNotFound() {
-		MatcherUtil.assertThrows(
-				Assertions.assertThrows(ValidationJsonException.class,
-						() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;999;6;WINDOWS", "UTF-8"),
-								null, false, "Full Time 12 month", 1024, "UTF-8")),
+	void uploadInstanceNotFound() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;999;6;WINDOWS", "UTF-8");
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
+				() -> qiuResource.upload(subscription, input, null, false, "Full Time 12 month", 1024, "UTF-8")),
 				"csv-file.instance", "no-match-instance");
 	}
 
 	@Test
-	void uploadStorageNotFound() {
+	void uploadStorageNotFound() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT", "UTF-8");
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
-				() -> qiuResource.upload(subscription,
-						IOUtils.toInputStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT", "UTF-8"),
+				() -> qiuResource.upload(subscription, input,
 						new String[] { "name", "cpu", "ram", "os", "disk", "latency", "optimized" }, false,
 						"Full Time 12 month", 1, "UTF-8")),
 				"csv-file.storage", "NotNull");
 	}
 
 	@Test
-	void uploadMissingRequiredHeader() {
+	void uploadMissingRequiredHeader() throws IOException {
+		final var input = IOUtils.toInputStream("ANY", "UTF-8");
 		MatcherUtil.assertThrows(
-				Assertions.assertThrows(ValidationJsonException.class,
-						() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY", "UTF-8"),
-								new String[] { "any" }, false, "Full Time 12 month", 1, "UTF-8")),
+				Assertions.assertThrows(ValidationJsonException.class, () -> qiuResource.upload(subscription, input,
+						new String[] { "any" }, false, "Full Time 12 month", 1, "UTF-8")),
 				"csv-file", "missing-header");
 	}
 
 	@Test
-	void uploadAmbiguousHeader() {
-		MatcherUtil.assertThrows(
-				Assertions.assertThrows(ValidationJsonException.class,
-						() -> qiuResource.upload(subscription, IOUtils.toInputStream("ANY;ANY", "UTF-8"),
-								new String[] { "vcpu", "core" }, false, "Full Time 12 month", 1, "UTF-8")),
-				"csv-file", "ambiguous-header");
+	void uploadAmbiguousHeader() throws IOException {
+		final var input = IOUtils.toInputStream("ANY;ANY", "UTF-8");
+		MatcherUtil
+				.assertThrows(
+						Assertions
+								.assertThrows(ValidationJsonException.class,
+										() -> qiuResource.upload(subscription, input, new String[] { "vcpu", "core" },
+												false, "Full Time 12 month", 1, "UTF-8")),
+						"csv-file", "ambiguous-header");
 	}
 
 	@Test

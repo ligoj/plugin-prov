@@ -103,15 +103,17 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	void cancelNotExistNode() {
+		final var resource = newResource();
 		Assertions.assertEquals("read-only-node", Assertions
-				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:any")).getMessage());
+				.assertThrows(BusinessException.class, () -> resource.cancel("service:prov:any")).getMessage());
 	}
 
 	@Test
 	void cancelNotVisible() {
 		initSpringSecurityContext("any");
+		final var resource = newResource();
 		Assertions.assertEquals("read-only-node", Assertions
-				.assertThrows(BusinessException.class, () -> newResource().cancel("service:prov:test")).getMessage());
+				.assertThrows(BusinessException.class, () -> resource.cancel("service:prov:test")).getMessage());
 	}
 
 	@Test

@@ -50,9 +50,11 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	protected void prepareData() throws IOException {
 		// Only with Spring context
 		persistSystemEntities();
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class,
-				ProvCurrency.class, ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class, ProvStoragePrice.class,
-				ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class },
+		persistEntities("csv",
+				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
+						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
@@ -619,7 +621,8 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findTypeNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.findType(-1, uri));
 	}
 
 	@Test
@@ -631,7 +634,8 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.findType(subscription, uri));
 	}
 
 	/**
@@ -824,7 +828,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
 		type.setNotDatabaseType("%base2");
 		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
-		
+
 		// Add database instance type constraint to the storage
 		type.setNotDatabaseType("%base1");
 		Assertions.assertEquals(0, qsResource.lookup(subscription, query).size());

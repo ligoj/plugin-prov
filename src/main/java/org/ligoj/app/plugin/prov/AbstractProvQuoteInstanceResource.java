@@ -254,7 +254,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		});
 
 		// Prepare the updated cost of updated instances
-		if (entity.getConfiguration().getLeanOnChange()) {
+		if (BooleanUtils.isTrue(entity.getConfiguration().getLeanOnChange())) {
 			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
 		}
 		return resource.refreshSupportCost(cost, entity);
@@ -674,7 +674,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	public FloatingPrice<P> getNewPrice(final C qi) {
 		// Find the lowest price
 		final var price = validateLookup(qi);
-		return new FloatingPrice<P>(getCost(qi, price), price);
+		return new FloatingPrice<>(getCost(qi, price), price);
 	}
 
 	/**

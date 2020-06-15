@@ -61,9 +61,10 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 	@Test
 	void createNotSupported() {
+		final var resource = newResource(null);
+		final var context = new Context();
 		Assertions.assertEquals("terraform-no-supported", Assertions
-				.assertThrows(BusinessException.class, () -> newResource(null).create(subscription, new Context()))
-				.getMessage());
+				.assertThrows(BusinessException.class, () -> resource.create(subscription, context)).getMessage());
 	}
 
 	@Test
@@ -518,7 +519,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		super.initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> runner.getTask(getSubscription().getId()));
+		Assertions.assertThrows(EntityNotFoundException.class, () -> runner.getTask(subscription));
 	}
 
 	@Test

@@ -270,8 +270,8 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteNotOwned() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> uResource.delete(0, usageRepository.findByName(subscription, "Dev").getId()));
+		final var id = usageRepository.findByName(subscription, "Dev").getId();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> uResource.delete(0, id));
 	}
 
 	@Test
@@ -290,8 +290,8 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 
 		// Delete the usage
 		// Check the cost is now back at 100%
-		checkUsage100AfterDelete(
-				uResource.delete(subscription, usageRepository.findByName(subscription, "Dev").getId()));
+		final var id = usageRepository.findByName(subscription, "Dev").getId();
+		checkUsage100AfterDelete(uResource.delete(subscription, id));
 
 	}
 
