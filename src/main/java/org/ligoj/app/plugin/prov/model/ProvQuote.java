@@ -237,7 +237,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 */
 	@Transient
 	@JsonIgnore
-	private ProvisioningService service;
+	private transient ProvisioningService service;
 
 	/**
 	 * When <code>true</code>, the lean process is executed after each change. This option implies more computations

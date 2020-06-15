@@ -335,7 +335,8 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findSupportTypeNotExistsSubscription() {
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qs2Resource.findType(-1, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qs2Resource.findType(-1, uri));
 	}
 
 	@Test
@@ -347,7 +348,8 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@Test
 	void findSupportTypeNotVisibleSubscription() {
 		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class, () -> qs2Resource.findType(subscription, newUriInfo()));
+		final var uri = newUriInfo();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qs2Resource.findType(subscription, uri));
 	}
 
 	/**

@@ -914,8 +914,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void findConfiguredNotFound() {
 		final var qi = qiRepository.findByName("server1");
 		final var id = qi.getId();
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> resource.findConfigured(qiRepository, id, 0).getName());
+		Assertions.assertThrows(EntityNotFoundException.class, () -> resource.findConfigured(qiRepository, id, 0));
 	}
 
 	@Test

@@ -97,9 +97,9 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class, ProvStoragePrice.class,
-						ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
-						ProvQuoteInstance.class, ProvQuoteStorage.class },
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
+						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
@@ -252,8 +252,9 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateAllByNameNotExistSource() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
-				false, Collections.singletonList(newFullByNameVo("serverYYY", "server1"))));
+		final var servers = Collections.singletonList(newFullByNameVo("serverYYY", "server1"));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> networkResource.updateAllByName(subscription, false, servers));
 	}
 
 	@Test
@@ -272,8 +273,9 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateAllByNameNotExistTarget() {
-		Assertions.assertThrows(EntityNotFoundException.class, () -> networkResource.updateAllByName(subscription,
-				false, Collections.singletonList(newFullByNameVo("server1", "serverYYY"))));
+		final var servers = Collections.singletonList(newFullByNameVo("server1", "serverYYY"));
+		Assertions.assertThrows(EntityNotFoundException.class,
+				() -> networkResource.updateAllByName(subscription, false, servers));
 	}
 
 	@Test
@@ -437,8 +439,9 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 		vo.setPeerType(ResourceType.INSTANCE);
 		vo.setPort(1);
 
-		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> networkResource.update(subscription,
-				ResourceType.INSTANCE, server1, Collections.singletonList(vo)));
+		final var servers = Collections.singletonList(vo);
+		Assertions.assertThrows(JpaObjectRetrievalFailureException.class,
+				() -> networkResource.update(subscription, ResourceType.INSTANCE, server1, servers));
 	}
 
 }

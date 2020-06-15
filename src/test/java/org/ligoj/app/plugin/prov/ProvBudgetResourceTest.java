@@ -264,11 +264,9 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteNotOwned() {
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> bResource.delete(0,
-						budgetRepository.findAllBy("name", "Dept1").stream()
-								.filter(b -> b.getConfiguration().getSubscription().getId() != subscription).findFirst()
-								.get().getId()));
+		final var id = budgetRepository.findAllBy("name", "Dept1").stream()
+				.filter(b -> b.getConfiguration().getSubscription().getId() != subscription).findFirst().get().getId();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> bResource.delete(0, id));
 	}
 
 	@Test
