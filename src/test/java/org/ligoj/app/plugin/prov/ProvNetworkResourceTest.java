@@ -57,7 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class ProvNetworkResourceTest extends AbstractAppTest {
+class ProvNetworkResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private ProvResource resource;

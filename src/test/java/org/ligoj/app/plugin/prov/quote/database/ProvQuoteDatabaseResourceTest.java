@@ -50,7 +50,7 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 /**
  * Test class of {@link ProvQuoteDatabaseResource}
  */
-public class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
+class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	protected ProvBudgetResource budgetResource;

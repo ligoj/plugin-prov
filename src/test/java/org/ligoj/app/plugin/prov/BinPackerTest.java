@@ -12,7 +12,7 @@ import lombok.Data;
 import net.jnellis.binpack.LinearBin;
 import net.jnellis.binpack.LinearBinPacker;
 
-public class BinPackerTest {
+class BinPackerTest {
 
 	@Data
 	@AllArgsConstructor

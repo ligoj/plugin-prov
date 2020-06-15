@@ -51,7 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class TerraformUtilsTest extends AbstractServerTest {
+class TerraformUtilsTest extends AbstractServerTest {
 
 	private static final File MOCK_PATH = new File("target/test-classes/terraform-test").getAbsoluteFile();
 

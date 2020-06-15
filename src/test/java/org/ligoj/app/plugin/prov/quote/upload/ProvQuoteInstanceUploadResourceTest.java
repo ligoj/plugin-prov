@@ -32,7 +32,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 /**
  * Test class of {@link ProvQuoteInstanceUploadResource}
  */
-public class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
+class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteUploadResource qiuResource;

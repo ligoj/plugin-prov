@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test class of {@link ProvUsageResource}
  */
-public class ProvUsageResourceTest extends AbstractProvResourceTest {
+class ProvUsageResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvUsageResource uResource;

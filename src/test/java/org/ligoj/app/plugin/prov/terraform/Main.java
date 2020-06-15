@@ -6,7 +6,7 @@ package org.ligoj.app.plugin.prov.terraform;
 /**
  * Fake command to handle test of process builder invocation.
  */
-public class Main {
+class Main {
 
 	/**
 	 * Only the Java process bootstrap.

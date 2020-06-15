@@ -49,7 +49,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * Test class of {@link ProvQuoteInstanceExportResource}
  */
-public class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
+class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteInstanceExportResource qieResource;

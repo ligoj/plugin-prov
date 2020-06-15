@@ -31,7 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class TerraformBaseCommandTest extends AbstractTerraformTest {
+class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	@Test
 	void executeExit0() throws Exception {

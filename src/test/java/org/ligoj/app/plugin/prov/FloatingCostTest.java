@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test class of {@link FloatingCost}
  */
-public class FloatingCostTest {
+class FloatingCostTest {
 
 	private static final double DELTA = 0.001;
 

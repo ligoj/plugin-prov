@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Test class of {@link AbstractImportCatalogResource}
  */
-public class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResource {
+class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResource {
 
 	private AbstractImportCatalogResource resource;
 

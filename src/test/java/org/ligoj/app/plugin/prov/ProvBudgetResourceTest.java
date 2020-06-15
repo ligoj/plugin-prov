@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test class of {@link ProvBudgetResource}
  */
-public class ProvBudgetResourceTest extends AbstractProvResourceTest {
+class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvBudgetResource bResource;

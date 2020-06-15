@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Path(TstProvPluginResource.URL)
 @Produces(MediaType.APPLICATION_JSON)
-public class TstProvPluginResource extends AbstractProvResource {
+class TstProvPluginResource extends AbstractProvResource {
 
 	/**
 	 * Plug-in key.

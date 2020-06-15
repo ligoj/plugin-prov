@@ -35,7 +35,7 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 /**
  * Test class of {@link ProvQuoteInstanceResource}
  */
-public class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
+class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	private static final String FULL = "Full Time 12 month";
 

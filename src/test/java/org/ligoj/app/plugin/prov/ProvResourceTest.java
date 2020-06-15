@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test class of {@link ProvResource}
  */
-public class ProvResourceTest extends AbstractProvResourceTest {
+class ProvResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ImportCatalogStatusRepository icsRepository;

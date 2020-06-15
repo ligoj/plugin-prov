@@ -26,7 +26,7 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 /**
  * Test class of {@link ProvQuoteSupportResource}
  */
-public class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
+class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 	@Override
 	@BeforeEach

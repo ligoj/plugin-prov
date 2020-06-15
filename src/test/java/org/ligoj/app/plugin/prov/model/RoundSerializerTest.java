@@ -16,7 +16,7 @@ import lombok.Setter;
 /**
  * Test class of {@link RoundSerializer}
  */
-public class RoundSerializerTest {
+class RoundSerializerTest {
 
 	@Getter
 	@Setter
