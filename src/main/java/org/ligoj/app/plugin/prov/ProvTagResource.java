@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.NamedBean;
@@ -46,14 +47,13 @@ public class ProvTagResource extends AbstractLazyResource {
 	/**
 	 * Return the tags available for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
-	 *                     Ownership of the subscription is not performed there, the principal user must have been
-	 *                     previously checked.
+	 * @param quote The quote used to filter the tags from the associated provider. Ownership of the subscription is not
+	 *              performed there, the principal user must have been previously checked.
 	 * @return The available tags for the given subscription.
 	 */
-	public Map<ResourceType, Map<Integer, List<TagVo>>> findAll(final int subscription) {
+	public Map<ResourceType, Map<Integer, List<TagVo>>> findAll(final ProvQuote quote) {
 		final var tags = new EnumMap<ResourceType, Map<Integer, List<TagVo>>>(ResourceType.class);
-		repository.findAll(subscription).forEach(t -> tags.computeIfAbsent(t.getType(), a -> new HashMap<>())
+		repository.findAll(quote).forEach(t -> tags.computeIfAbsent(t.getType(), a -> new HashMap<>())
 				.computeIfAbsent(t.getResource(), a -> new ArrayList<>()).add(toVo(t)));
 		return tags;
 	}

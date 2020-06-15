@@ -94,7 +94,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		// Get all resources identifiers grouped by types
 		final var ids = new EnumMap<ResourceType, Set<Integer>>(ResourceType.class);
 		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
-				.forEach(t -> ids.put(t, getRepository(t).findAllNetworkId(subscription)));
+				.forEach(t -> ids.put(t, getRepository(t).findAllNetworkId(quote)));
 
 		io.stream().map(t -> {
 			// Check the peer is in this subscription
@@ -127,7 +127,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 		// Get all resources identifiers grouped by types
 		final var idAndNames = new EnumMap<ResourceType, Map<Integer, String>>(ResourceType.class);
 		Arrays.stream(ResourceType.values()).filter(ResourceType::isNetwork)
-				.forEach(t -> idAndNames.put(t, getRepository(t).findAllNetworkIdName(subscription).stream()
+				.forEach(t -> idAndNames.put(t, getRepository(t).findAllNetworkIdName(quote).stream()
 						.collect(Collectors.toMap(o -> (Integer) o[0], o -> (String) o[1]))));
 
 		// Build a reversed map with duplicated name handling

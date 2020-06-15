@@ -93,6 +93,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
 		Assertions.assertEquals(100d, entity.getInitialCost(), DELTA);
 		Assertions.assertEquals(3, resource.getConfiguration(subscription).getBudgets().size());
+		Assertions.assertEquals(0, entity.getRequiredInitialCost());
 
 		// Coverage only
 		entity.getConfiguration().setBudgets(Collections.emptyList());
@@ -108,6 +109,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		quote.setBudget("Dept1");
 		checkCost(resource.update(subscription, quote), 2982.4, 5139.2, false);
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
+		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 	}
 
 	@Test
@@ -123,6 +125,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		quote.setBudget(null);
 		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 		assertTermCount("1y", 0);
+		Assertions.assertEquals(0, getBudget().getRequiredInitialCost());
 	}
 
 	@Test
@@ -131,9 +134,30 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 2982.4, 5139.2, false);
 		assertTermCount("1y", 4);
 
+		// Add databases, associated to another limited budget
 		addDatabases();
-		checkCost(resource.refresh(subscription), 5230.6, 7506.9, false);
-		assertTermCount("1y", 4);
+		final var budget2 = budgetRepository.findByName(subscription, "Dept2");
+		budget2.setInitialCost(3000);
+		budgetRepository.save(budget2);
+		getQuote().getDatabases().forEach(qb -> {
+			qb.setBudget(budget2);
+			qbRepository.save(qb);
+		});
+		configuration.put("service:prov:log", "true");
+		checkCost(resource.refresh(subscription), 5357.4, 7660.5, false);
+		assertTermCount("1y", 6); // 4 Instances +2 Database
+		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
+		Assertions.assertEquals(2635.2, budgetRepository.findByName(subscription, "Dept2").getRequiredInitialCost());
+
+		// Reduce the database budget
+		budget2.setInitialCost(2000);
+		budgetRepository.save(budget2);
+		checkCost(resource.refresh(subscription), 5394.0, 7697.1, false);
+		assertTermCount("1y", 5); // Only one DB fits to the budget with 1y term
+
+		bResource.delete(subscription, budget2.getId()); // Fallback the default budget
+		assertTermCount("1y", 10); // 4 Instances +6 Database
+		Assertions.assertEquals(13629.68, getBudget().getRequiredInitialCost());
 	}
 
 	private void addDatabases() throws IOException {
@@ -142,8 +166,15 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	}
 
 	private void assertTermCount(final String name, final int count) {
-		Assertions.assertEquals(count, resource.getConfiguration(subscription).getInstances().stream()
-				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count());
+		final var iC = resource.getConfiguration(subscription).getInstances().stream()
+				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
+		final var bC = resource.getConfiguration(subscription).getDatabases().stream()
+				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
+		Assertions.assertEquals(count, iC + bC);
+	}
+
+	private ProvBudget getBudget() {
+		return budgetRepository.findByName(subscription, "Dept1");
 	}
 
 	@Test
@@ -162,6 +193,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(16865.28, cost.getMaxInitial(), DELTA);
 		Assertions.assertEquals(1000000, budgetRepository.findByName("Dept1").getInitialCost());
 		assertTermCount("1y", 4);
+		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 
 		// Reduce initial cost constraint (no more 1y term)
 		final var budget = new BudgetEditionVo();
@@ -174,6 +206,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		checkCost(cost, 3165.4, 5615.0, false);
 		Assertions.assertEquals(0, cost.getInitial(), DELTA);
 		Assertions.assertEquals(0, cost.getMaxInitial(), DELTA);
+		Assertions.assertEquals(0, getBudget().getRequiredInitialCost());
 
 		// Set the initial cost constraint above the optimal one
 		budget.setInitialCost(6325);
@@ -181,13 +214,15 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		assertTermCount("1y", 4);
 		checkCost(subscription, 2982.4, 5139.2, false);
 		Assertions.assertEquals(6324.48, cost.getInitial(), DELTA);
+		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 
 		// Set the initial cost constraint just below the optimal one
 		budget.setInitialCost(6320);
 		cost = bResource.update(subscription, budget).getTotal();
 		assertTermCount("1y", 3); // -> C5 (quantity=2)+(C11 or C12)*2
-		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
 		checkCost(subscription, 3015.34, 5172.14, false);
+		Assertions.assertEquals(5094.72, cost.getInitial(), DELTA);
+		Assertions.assertEquals(5094.72, getBudget().getRequiredInitialCost());
 
 		// Reduce initial cost constraint adjusted to "C5>x>(C11 or C12)" price
 		budget.setInitialCost(1230);
@@ -195,6 +230,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		assertTermCount("1y", 1); // -> C11 or C12
 		checkCost(cost, 3103.18, 5552.78, false);
 		Assertions.assertEquals(1229.76, cost.getInitial(), DELTA);
+		Assertions.assertEquals(1229.76, getBudget().getRequiredInitialCost());
 
 		// Reduce initial cost constraint adjusted to "OPTIM>x>(C11 or C12)*2+C5" price
 		budget.setInitialCost(3778);
@@ -202,6 +238,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		assertTermCount("1y", 1); // -> C5 (quantity = 2)
 		checkCost(subscription, 3092.2, 5249.0, false);
 		Assertions.assertEquals(2635.2, cost.getInitial(), DELTA);
+		Assertions.assertEquals(2635.2, getBudget().getRequiredInitialCost());
 
 		// Reduce initial cost constraint adjusted to "C12"- price (no more 1y term)
 		budget.setInitialCost(1228);
@@ -209,6 +246,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		assertTermCount("1y", 0);
 		checkCost(cost, 3165.4, 5615.0, false);
 		Assertions.assertEquals(0, cost.getInitial(), DELTA);
+		Assertions.assertEquals(0, getBudget().getRequiredInitialCost());
 	}
 
 	@Test
@@ -240,7 +278,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.refresh(subscription), 3070.24, 5519.84, false);
 		assertTermCount("1y", 2); // 2 less servers
 
-		final var budget = budgetRepository.findByName(subscription, "Dept1");
+		final var budget = getBudget();
 		Assertions.assertNotNull(budget);
 		Assertions.assertEquals(2, budgetRepository.findAllBy("name", "Dept1").size());
 
@@ -262,8 +300,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 		// Delete the usage
 		// Check the cost is at 100%
-		checkBudgetAfterDelete(
-				bResource.delete(subscription, budgetRepository.findByName(subscription, "Dept1").getId()));
+		checkBudgetAfterDelete(bResource.delete(subscription, getBudget().getId()));
 	}
 
 	@Test
@@ -325,7 +362,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	@Test
 	void leanBudget0() {
 		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
-		final var budget = budgetRepository.findByName(subscription, "Dept1");
+		final var budget = getBudget();
 		budget.setInitialCost(0);
 		em.merge(budget);
 		em.flush();
@@ -335,19 +372,18 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void logPackSlow() {
-		bResource.logPack(0, Collections.emptyMap(), repository.findBy("subscription.id", subscription));
+		bResource.logPack(0, Collections.emptyMap(), getBudget());
 	}
 
 	@Test
 	void logPackFast() {
-		bResource.logPack(System.currentTimeMillis(), Collections.emptyMap(),
-				repository.findBy("subscription.id", subscription));
+		bResource.logPack(System.currentTimeMillis(), Collections.emptyMap(), getBudget());
 	}
 
 	private void checkBudgetAfterDelete(final UpdatedCost cost) {
 		checkCost(cost.getTotal(), 3165.4, 5615.0, false);
 		checkCost(subscription, 3165.4, 5615.0, false);
-		Assertions.assertNull(budgetRepository.findByName(subscription, "Dept1"));
+		Assertions.assertNull(getBudget());
 		Assertions.assertEquals(1, budgetRepository.findAllBy("name", "Dept1").size());
 	}
 

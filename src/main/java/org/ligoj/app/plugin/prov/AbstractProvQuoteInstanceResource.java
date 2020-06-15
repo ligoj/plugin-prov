@@ -153,6 +153,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		DescribedBean.copy(vo, entity);
 		entity.setConfiguration(quote);
 		final var oldLocation = entity.getResolvedLocation();
+		final var oldBudget = entity.getResolvedBudget();
 		entity.setPrice(getIpRepository().findOneExpected(vo.getPrice()));
 		resource.checkVisibility(entity.getPrice().getType(), providerId);
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
@@ -199,6 +200,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		// Refresh costs
 		if (BooleanUtils.isTrue(quote.getLeanOnChange())) {
 			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
+			if (!Objects.equals(oldBudget, entity.getResolvedBudget())) {
+				// Also update the old budget
+				budgetRepsource.lean(oldBudget, cost.getRelated());
+			}
 		}
 		return resource.refreshSupportCost(cost, quote);
 	}
@@ -222,8 +227,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected UpdatedCost deleteAll(final int subscription) {
 		final var quote = resource.getQuoteFromSubscription(subscription);
 		// Delete all resources with cascaded delete for storages
-		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(subscription);
-		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(subscription);
+		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(quote);
+		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(quote);
 		tagResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
 		networkResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
 		qsRepository.flush();

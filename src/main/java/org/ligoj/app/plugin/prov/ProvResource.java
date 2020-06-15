@@ -268,8 +268,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.copyAuditData(quote, toUser());
 		vo.setLocation(quote.getLocation());
 		vo.setInstances(quote.getInstances());
-		vo.setDatabases(qbRepository.findAll(subscription.getId()));
-		vo.setStorages(qsRepository.findAll(subscription.getId()));
+		vo.setDatabases(qbRepository.findAll(quote));
+		vo.setStorages(qsRepository.findAll(quote));
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
@@ -278,12 +278,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setProcessor(quote.getProcessor());
 		vo.setPhysical(quote.getPhysical());
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
-		vo.setSupports(qs2Repository.findAll(subscription.getId()));
+		vo.setSupports(qs2Repository.findAll(quote));
 		vo.setLocations(locationRepository.findAll(subscription.getNode().getId()));
-		vo.setTags(tagResource.findAll(subscription.getId()));
+		vo.setTags(tagResource.findAll(quote));
 		vo.setNetworks(networkResource.findAll(subscription.getId()));
-		vo.setUsages(usageRepository.findAll(subscription.getId()));
-		vo.setBudgets(budgetRepository.findAll(subscription.getId()));
+		vo.setUsages(usageRepository.findAll(quote));
+		vo.setBudgets(budgetRepository.findAll(quote));
 		vo.setProcessors(self.findProcessors(subscription.getNode().getTool().getId()));
 
 		// Also copy the costs
@@ -418,7 +418,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			return processCost(entity, false, relatedCosts);
 		}
 		log.info("Refresh cost started for subscription {}", entity.getSubscription().getId());
-		final var subscription = entity.getSubscription().getId();
 
 		// Reset the costs to 0, will be updated further in this process
 		entity.setCostNoSupport(0d);
@@ -434,16 +433,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Add the compute cost, and update the unbound cost
 		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());
-		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(subscription)).map(qiResource::updateCost)
+		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(entity)).map(qiResource::updateCost)
 				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
 
 		// Add the database cost
 		log.info("Refresh cost started for subscription {} / databases ... ", entity.getSubscription().getId());
-		newStream(qbRepository.findAll(subscription)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
+		newStream(qbRepository.findAll(entity)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Add the storage cost
 		log.info("Refresh cost started for subscription {} / storages ... ", entity.getSubscription().getId());
-		newStream(qsRepository.findAll(subscription)).map(qsResource::updateCost).forEach(fc -> addCost(entity, fc));
+		newStream(qsRepository.findAll(entity)).map(qsResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
 		log.info("Refresh cost started for support {} / storages ... ", entity.getSubscription().getId());
@@ -454,7 +453,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	private FloatingCost refreshSupportCost(final ProvQuote entity) {
-		final var support = qs2Repository.findAll(entity.getSubscription().getId()).stream().map(qspResource::refresh)
+		final var support = qs2Repository.findAll(entity).stream().map(qspResource::refresh)
 				.reduce(new FloatingCost(0, 0, 0, 0, entity.isUnboundCost()), FloatingCost::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));

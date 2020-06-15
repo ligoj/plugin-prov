@@ -3,10 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -31,9 +28,7 @@ import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
-import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -226,10 +221,4 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 */
 	protected abstract UpdatedCost saveOrUpdate(final S entity, final V vo);
 
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void set(
-			final List<C> instances, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
-			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource, final ProvUsage entity) {
-		this.resource.newStream(instances).filter(i -> Objects.equals(i.getUsage(), entity)).forEach(i -> costs
-				.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, resource::refresh)));
-	}
 }

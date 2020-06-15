@@ -55,7 +55,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 
 		// Delete all resources
 		final var repository = getResourceRepository();
-		cost.getDeleted().put(getType(), repository.findAllIdentifiers(subscription));
+		cost.getDeleted().put(getType(), repository.findAllIdentifiers(quote));
 		repository.deleteAll(repository.findAllBy("configuration.subscription.id", subscription));
 		repository.flush();
 

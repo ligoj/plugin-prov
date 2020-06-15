@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -34,13 +35,13 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 	Page<S> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return all resources related to given subscription identifier.
+	 * Return all resources related to given quote identifier.
 	 * 
-	 * @param subscription The subscription identifier to match.
+	 * @param quote The quote identifier to match.
 	 * @return The resources ordered by its name.
 	 */
-	@Query("SELECT pu FROM #{#entityName} pu WHERE pu.configuration.subscription.id = :subscription ORDER BY UPPER(pu.name)")
-	List<S> findAll(int subscription);
+	@Query("SELECT pu FROM #{#entityName} pu WHERE pu.configuration = :quote ORDER BY UPPER(pu.name)")
+	List<S> findAll(ProvQuote quote);
 
 	/**
 	 * Return all instances related to given entity.

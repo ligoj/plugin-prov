@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.List;
 
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvTag;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,12 +16,11 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvTagRepository extends RestRepository<ProvTag, Integer> {
 
 	/**
-	 * Return all {@link ProvTag} related to given subscription identifier.
+	 * Return all {@link ProvTag} related to given quote identifier.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @return All {@link ProvTag} related to given subscription identifier.
+	 * @param quote The quote identifier to match.
+	 * @return All {@link ProvTag} related to given quote identifier.
 	 */
-	@Query("FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
-	List<ProvTag> findAll(int subscription);
+	@Query("FROM #{#entityName} WHERE configuration = :quote")
+	List<ProvTag> findAll(ProvQuote quote);
 }

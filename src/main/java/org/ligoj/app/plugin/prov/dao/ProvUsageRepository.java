@@ -16,10 +16,12 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvUsageRepository extends BaseMultiScopedRepository<ProvUsage> {
 
 	@Override
-	@Query("SELECT pu FROM ProvQuoteInstance pu WHERE pu.usage = :scoped OR pu.configuration.usage = :scoped")
+	@Query("SELECT pu FROM ProvQuoteInstance pu WHERE pu.usage = :scoped"
+			+ " OR (pu.usage IS NULL AND pu.configuration.usage = :scoped)")
 	Stream<ProvQuoteInstance> findRelatedInstances(ProvUsage scoped);
 
 	@Override
-	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.usage = :scoped OR pu.configuration.usage = :scoped")
+	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.usage = :scoped"
+			+ " OR (pu.usage IS NULL AND  pu.configuration.usage = :scoped)")
 	Stream<ProvQuoteDatabase> findRelatedDatabases(ProvUsage scoped);
 }

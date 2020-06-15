@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -104,8 +105,16 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param costs The updated costs and resources.
 	 */
 	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		final var subscription = quote.getConfiguration().getSubscription().getId();
-		lean(quote, qiRepository.findAll(subscription), qbRepository.findAll(subscription), costs);
+		final var instances = qiRepository.findAll(quote);
+		final var databases = qbRepository.findAll(quote);
+		lean(quote, instances, databases, costs);
+
+		// Reset the orphan budgets
+		final var usedBudgets = Stream.concat(instances.stream(), databases.stream())
+				.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull).distinct().map(ProvBudget::getId)
+				.collect(Collectors.toSet());
+		repository.findAll(quote).stream().filter(b -> !usedBudgets.contains(b.getId()))
+				.forEach(b -> b.setRequiredInitialCost(0d));
 	}
 
 	/**
@@ -139,35 +148,25 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	/**
-	 * Detect the related resources to the given budget and refresh them.
+	 * Detect the related resources to the given budget and refresh them according to the budget constraints.
 	 * 
-	 * @param entity The budget to lean.
+	 * @param budget The budget to lean.
 	 * @param costs  The updated costs and resources.
 	 */
-	public void lean(final ProvBudget entity, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		if (entity == null) {
+	public void lean(final ProvBudget budget, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		if (budget == null) {
 			// Ignore, no lean to do
 			return;
 		}
-		final var quote = entity.getConfiguration();
-
 		// Get all related resources
-		var instances = getRelated(getRepository()::findRelatedInstances, entity);
-		var databases = getRelated(getRepository()::findRelatedDatabases, entity);
-		lean(entity, quote, instances, databases, costs);
-	}
-
-	/**
-	 * Starting from the given resources, lean the given budget. The process involve recursive bin packing to fill up
-	 * the initial cost of this budget.
-	 */
-	private void lean(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
-			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		log.info("Lean budget {} in subscription {}", budget.getName(),
+				budget.getConfiguration().getSubscription().getId());
+		final var instances = getRelated(getRepository()::findRelatedInstances, budget);
+		final var databases = getRelated(getRepository()::findRelatedDatabases, budget);
 
 		// Reset the remaining initial cost
 		budget.setRemainingBudget(budget.getInitialCost());
-		leanRecursive(budget, quote, instances, databases, costs);
-		budget.setRequiredInitialCost(FloatingCost.round(budget.getInitialCost() - budget.getRemainingBudget()));
+		budget.setRequiredInitialCost(leanRecursive(budget, instances, databases, costs));
 		budget.setRemainingBudget(null);
 		logLean(c -> {
 			log.info("Monthly costs:{}", c.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
@@ -192,7 +191,25 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		}
 	}
 
-	private void leanRecursive(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
+	/**
+	 * Price priority for packing.
+	 */
+	private Comparator<? super Entry<Double, AbstractQuoteVm<?>>> priceOrder(
+			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices) {
+		return (e1, e2) -> {
+			// Priority to the most expensive price
+			final var c1 = prices.get(e1.getValue()).getPrice().getCost();
+			final var c2 = prices.get(e2.getValue()).getPrice().getCost();
+			var compare = (int) (c2 - c1);
+			if (compare == 0) {
+				// Then natural naming order
+				compare = e1.getValue().getName().compareTo(e2.getValue().getName());
+			}
+			return compare;
+		};
+	}
+
+	private double leanRecursive(final ProvBudget budget, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		logLean(c -> log.info("Start lean: {}",
 				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
@@ -210,48 +227,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 						+ " -> " + e.getValue().getPrice().getCode() + ")").collect(Collectors.toList()));
 
 		// Pack the prices having an initial cost
-		if (!packToQr.isEmpty()) {
-			// At least one initial cost is implied, use bin packing strategy
-			final var packStart = System.currentTimeMillis();
-			final var packer = new LinearBinPacker();
-			final var bins = packer.packAll(packToQr.entrySet().stream().sorted((e1, e2) -> {
-				// Priority to the most expensive price
-				final var c1 = prices.get(e1.getValue()).getPrice().getCost();
-				final var c2 = prices.get(e2.getValue()).getPrice().getCost();
-				var compare = (int) (c2 - c1);
-				if (compare == 0) {
-					// Then natural naming order
-					compare = e1.getValue().getName().compareTo(e2.getValue().getName());
-				}
-				return compare;
-			}).map(Entry::getKey).collect(Collectors.toList()),
-					new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
-					new ArrayList<>(List.of(Double.MAX_VALUE)));
-			bins.get(0).getPieces().stream().map(packToQr::get).forEach(i -> {
-				if (i.getResourceType() == ResourceType.INSTANCE) {
-					validatedQi.add((ProvQuoteInstance) i);
-				} else {
-					validatedQb.add((ProvQuoteDatabase) i);
-				}
-			});
-			logLean(b -> {
-				log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
-						.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-				log.info("Packing result: {}", b);
-			}, bins);
-			logPack(packStart, packToQr, quote);
-
-			if (bins.size() > 1) {
-				// Extra bin needs to make a new pass
-				budget.setRemainingBudget(FloatingCost.round(budget.getRemainingBudget() - bins.get(0).getTotal()));
-				final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
-				final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
-				leanRecursive(budget, quote, subQi, subQb, costs);
-			} else {
-				// Pack is completed
-			}
-		}
-
+		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, costs);
 		// Commit this pack
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
@@ -262,6 +238,51 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
 		}, validatedQi, validatedQb);
+		logLean(c -> {
+			log.info("Total intitialCost:{}", c);
+		}, init);
+		return FloatingCost.round(init);
+	}
+
+	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
+			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
+			final List<ProvQuoteDatabase> validatedQb, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+		if (packToQr.isEmpty()) {
+			return 0d;
+		}
+		// At least one initial cost is implied, use bin packing strategy
+		final var packStart = System.currentTimeMillis();
+		final var packer = new LinearBinPacker();
+		final var bins = packer.packAll(
+				packToQr.entrySet().stream().sorted(priceOrder(prices)).map(Entry::getKey).collect(Collectors.toList()),
+				new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
+				new ArrayList<>(List.of(Double.MAX_VALUE)));
+		final var bin = bins.get(0);
+		bin.getPieces().stream().map(packToQr::get).forEach(i -> {
+			if (i.getResourceType() == ResourceType.INSTANCE) {
+				validatedQi.add((ProvQuoteInstance) i);
+			} else {
+				validatedQb.add((ProvQuoteDatabase) i);
+			}
+		});
+		logLean(b -> {
+			log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
+					.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList()));
+			log.info("Packing result: {}", b);
+		}, bins);
+		logPack(packStart, packToQr, budget);
+
+		var init = bin.getTotal();
+		if (bins.size() > 1) {
+			// Extra bin needs to make a new pass
+			budget.setRemainingBudget(FloatingCost.round(budget.getRemainingBudget() - bin.getTotal()));
+			final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
+			final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
+			init += leanRecursive(budget, subQi, subQb, costs);
+		} else {
+			// Pack is completed
+		}
+		return init;
 	}
 
 	/**
@@ -269,16 +290,16 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * 
 	 * @param packStart Starting timestamp.
 	 * @param packToQr  The packed resources.
-	 * @param quote     The related quote.
+	 * @param budget    The related budget.
 	 */
 	protected void logPack(final long packStart, final Map<Double, AbstractQuoteVm<?>> packToQr,
-			final ProvQuote quote) {
+			final ProvBudget budget) {
 		// Log packing statistic
 		final var packTime = System.currentTimeMillis() - packStart;
 		if (packTime > 500) {
 			// Enough duration to be logged
 			log.info("Packing of {} resources for subscription {} took {}", packToQr.size(),
-					quote.getSubscription().getId(), Duration.ofMillis(packTime));
+					budget.getConfiguration().getSubscription().getId(), Duration.ofMillis(packTime));
 		}
 	}
 

@@ -359,9 +359,9 @@ public class ProvQuoteUploadResource {
 		final var list = csvForBean.toBean(VmUpload.class, reader);
 		log.info("Upload provisioning : importing {} entries", list.size());
 		final var cursor = new AtomicInteger(0);
-		final var previousQi = qiRepository.findAll(subscription).stream()
+		final var previousQi = qiRepository.findAll(quote).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteInstance::getName, Function.identity()));
-		final var previousQb = qbRepository.findAll(subscription).stream()
+		final var previousQb = qbRepository.findAll(quote).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteDatabase::getName, Function.identity()));
 
 		// Initialization for parallel process

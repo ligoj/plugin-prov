@@ -312,7 +312,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		// Check the exact new cost
 		checkCost(subscription, 4704.758, 7154.358, false);
 		Assertions.assertNull(qbRepository.findOne(id));
-		Assertions.assertEquals(0, qbRepository.findAll(subscription).size());
+		Assertions.assertEquals(0, qbRepository.findAll(getQuote()).size());
 
 		// Also check the associated storage is deleted
 		Assertions.assertFalse(qsRepository.existsById(storage1));
@@ -334,7 +334,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.getConfiguration(subscription).getCostNoSupport(), 3162.67, 5612.27, false);
 		checkCost(resource.getConfiguration(subscription).getCostSupport(), 338.267, 502.614, false);
 		checkCost(subscription, 3500.937, 6114.884, false);
-		Assertions.assertEquals(0, qbRepository.findAll(subscription).size());
+		Assertions.assertEquals(0, qbRepository.findAll(getQuote()).size());
 	}
 
 	@Test

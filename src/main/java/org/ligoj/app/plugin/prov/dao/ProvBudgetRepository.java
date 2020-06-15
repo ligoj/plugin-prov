@@ -16,10 +16,12 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvBudgetRepository extends BaseMultiScopedRepository<ProvBudget> {
 
 	@Override
-	@Query("SELECT pu FROM ProvQuoteInstance pu WHERE pu.budget = :scoped OR pu.configuration.budget = :scoped")
+	@Query("SELECT pu FROM ProvQuoteInstance pu WHERE pu.budget = :scoped"
+			+ " OR (pu.budget IS NULL AND pu.configuration.budget = :scoped)")
 	Stream<ProvQuoteInstance> findRelatedInstances(ProvBudget scoped);
 
 	@Override
-	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.budget = :scoped OR pu.configuration.budget = :scoped")
+	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.budget = :scoped"
+			+ " OR (pu.budget IS NULL AND pu.configuration.budget = :scoped)")
 	Stream<ProvQuoteDatabase> findRelatedDatabases(ProvBudget scoped);
 }

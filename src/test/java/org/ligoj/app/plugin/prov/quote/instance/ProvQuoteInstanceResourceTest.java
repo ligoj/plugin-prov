@@ -484,8 +484,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(qsRepository.existsById(storage2));
 		Assertions.assertTrue(qsRepository.existsById(storage3));
 		Assertions.assertEquals(8, qiRepository.count());
-		Assertions.assertEquals(7, qiRepository.findAll(subscription).size());
-		Assertions.assertEquals(4, qsRepository.findAll(subscription).size());
+		Assertions.assertEquals(7, qiRepository.findAll(getQuote()).size());
+		Assertions.assertEquals(4, qsRepository.findAll(getQuote()).size());
 		em.flush();
 		em.clear();
 
@@ -502,12 +502,12 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(deletedS.contains(storage1));
 
 		// The remaining storage for this subscription is not related to a delete instance
-		Assertions.assertNull(qsRepository.findAll(subscription).get(0).getQuoteInstance());
+		Assertions.assertNull(qsRepository.findAll(getQuote()).get(0).getQuoteInstance());
 
 		// Check the exact new cost
 		checkCost(subscription, 2.73, 2.73, false);
 		Assertions.assertNull(qiRepository.findOne(id));
-		Assertions.assertEquals(0, qiRepository.findAll(subscription).size());
+		Assertions.assertEquals(0, qiRepository.findAll(getQuote()).size());
 
 		// Also check the associated storage is deleted
 		Assertions.assertFalse(qsRepository.existsById(storage1));
@@ -531,7 +531,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.getConfiguration(subscription).getCostNoSupport(), 0, 0, false);
 		checkCost(resource.getConfiguration(subscription).getCostSupport(), 15, 15, false);
 		checkCost(subscription, 15, 15, false);
-		Assertions.assertEquals(0, qiRepository.findAll(subscription).size());
+		Assertions.assertEquals(0, qiRepository.findAll(getQuote()).size());
 	}
 
 	@Test
