@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -171,19 +170,19 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		budget.setRequiredInitialCost(FloatingCost.round(budget.getInitialCost() - budget.getRemainingBudget()));
 		budget.setRemainingBudget(null);
 		logLean(c -> {
-			log.info("Monthly costs:{}", c.map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Monthly cost: {}", c.mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Initial cost: {}", c.mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+			log.info("Monthly costs:{}", c.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Monthly cost: {}", c.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Initial cost: {}", c.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
 		}, instances, databases);
 	}
 
 	/**
 	 * Logger as needed.
 	 */
-	private void logLean(final Consumer<Stream<? extends AbstractQuoteVm<?>>> logger,
+	private void logLean(final Consumer<List<? extends AbstractQuoteVm<?>>> logger,
 			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases) {
 		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
-			List.of(instances, databases).stream().map(Collection::stream).forEach(logger::accept);
+			List.of(instances, databases).stream().forEach(logger::accept);
 		}
 	}
 
@@ -196,7 +195,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	private void leanRecursive(final ProvBudget budget, final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		logLean(c -> log.info("Start lean: {}",
-				c.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
+				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
 				instances, databases);
 
 		// Lookup the best prices
@@ -257,11 +256,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
 		logLean(t -> {
-			log.info("Lean:              {}",
-					t.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList()));
-			log.info("Lean monthly costs:{}", t.map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
-			log.info("Lean monthly cost: {}", t.mapToDouble(i -> i.getPrice().getCost()).sum());
-			log.info("Lean initial cost: {}", t.mapToDouble(i -> i.getPrice().getInitialCost()).sum());
+			log.info("Lean:              {}", t.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")")
+					.collect(Collectors.toList()));
+			log.info("Lean monthly costs:{}", t.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
+			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
+			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
 		}, validatedQi, validatedQb);
 	}
 
@@ -286,8 +285,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
 			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
-		return (List) bins.get(1).getPieces().stream().map(packToQr::get)
-				.filter(i -> i.getResourceType() == type).collect(Collectors.toList());
+		return (List) bins.get(1).getPieces().stream().map(packToQr::get).filter(i -> i.getResourceType() == type)
+				.collect(Collectors.toList());
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void commitPrices(

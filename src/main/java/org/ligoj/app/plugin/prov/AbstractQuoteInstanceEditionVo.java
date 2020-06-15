@@ -14,6 +14,8 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.DescribedBean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -167,4 +169,20 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * Optional RAM rate requirement.
 	 */
 	private Rate ramRate;
+
+
+	@JsonIgnore
+	public String getLocationName() {
+		return getLocation();
+	}
+
+	@JsonIgnore
+	public String getUsageName() {
+		return getUsage();
+	}
+
+	@JsonIgnore
+	public String getBudgetName() {
+		return getBudget();
+	}
 }

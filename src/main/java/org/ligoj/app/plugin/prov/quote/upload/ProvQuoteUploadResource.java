@@ -240,7 +240,7 @@ public class ProvQuoteUploadResource {
 	private String[] checkHeaders(final String... headers) {
 		// Headers (K) mapped to input ones (V)
 		final var mapped = new HashMap<String, String>();
-		final var mapped_user = new HashSet<String>();
+		final var mappedUser = new HashSet<String>();
 
 		// For each pattern, from the most precise match to the least one
 		// Check the compliance of the given header against the accepted values
@@ -249,7 +249,7 @@ public class ProvQuoteUploadResource {
 			final var layerMapped = new HashMap<String, String>();
 			Arrays.stream(headers)
 					.forEach(h -> ACCEPTED_HEADERS.stream().map(mapping -> mapping.split(":"))
-							.filter(mapping -> !mapped.containsKey(mapping[0]) && !mapped_user.contains(h))
+							.filter(mapping -> !mapped.containsKey(mapping[0]) && !mappedUser.contains(h))
 							.filter(mapping -> match(layer, mapping, cleanHeader(h))).forEach(patterns -> {
 								final var previous = layerMapped.put(patterns[0], h);
 								if (previous != null) {
@@ -260,7 +260,7 @@ public class ProvQuoteUploadResource {
 							}));
 			// Complete the global set
 			mapped.putAll(layerMapped);
-			mapped_user.addAll(layerMapped.values());
+			mappedUser.addAll(layerMapped.values());
 		});
 
 		// Check the mandatory headers

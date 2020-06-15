@@ -131,10 +131,14 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		checkCost(subscription, 2982.4, 5139.2, false);
 		assertTermCount("1y", 4);
 
-		persistEntities("csv/database", new Class[] { ProvQuoteDatabase.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+		addDatabases();
 		checkCost(resource.refresh(subscription), 5230.6, 7506.9, false);
 		assertTermCount("1y", 4);
+	}
+
+	private void addDatabases() throws IOException {
+		persistEntities("csv/database", new Class[] { ProvQuoteDatabase.class, ProvQuoteStorage.class },
+				StandardCharsets.UTF_8.name());
 	}
 
 	private void assertTermCount(final String name, final int count) {
@@ -298,8 +302,10 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void leanWithLog() {
+	void leanWithLog() throws IOException {
 		configuration.put("service:prov:log", "true");
+		addDatabases();
+		checkCost(resource.refresh(subscription), 5230.6, 7506.9, false);
 		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
 		bResource.lean(getQuote().getBudget(), relatedCosts);
 		Assertions.assertFalse(relatedCosts.isEmpty());

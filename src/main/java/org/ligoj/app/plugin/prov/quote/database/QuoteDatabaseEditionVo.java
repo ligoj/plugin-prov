@@ -8,8 +8,6 @@ import javax.validation.constraints.NotNull;
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,22 +33,4 @@ public class QuoteDatabaseEditionVo extends AbstractQuoteInstanceEditionVo imple
 	 * Optional database edition.
 	 */
 	private String edition;
-
-	@Override
-	@JsonIgnore
-	public String getLocationName() {
-		return getLocation();
-	}
-
-	@Override
-	@JsonIgnore
-	public String getUsageName() {
-		return getUsage();
-	}
-
-	@Override
-	@JsonIgnore
-	public String getBudgetName() {
-		return getBudget();
-	}
 }

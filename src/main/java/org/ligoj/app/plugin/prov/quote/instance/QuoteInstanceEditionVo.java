@@ -9,8 +9,6 @@ import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
 import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,22 +41,4 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo imple
 	 * Optional built-in software.
 	 */
 	private String software;
-
-	@Override
-	@JsonIgnore
-	public String getLocationName() {
-		return getLocation();
-	}
-
-	@Override
-	@JsonIgnore
-	public String getUsageName() {
-		return getUsage();
-	}
-
-	@Override
-	@JsonIgnore
-	public String getBudgetName() {
-		return getBudget();
-	}
 }

@@ -419,15 +419,17 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 		vo.setPeerType(ResourceType.INSTANCE);
 		vo.setPort(1);
 
+		final var servers = Collections.singletonList(vo);
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> networkResource.update(subscription, ResourceType.INSTANCE, s1, Collections.singletonList(vo)));
+				() -> networkResource.update(subscription, ResourceType.INSTANCE, s1, servers));
 	}
 
 	@Test
 	void createNotExistingSubscription() {
 		final var server1 = qiRepository.findByName("server1").getId();
+		final List<NetworkVo> servers = Collections.emptyList();
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> networkResource.update(0, ResourceType.INSTANCE, server1, Collections.emptyList()));
+				() -> networkResource.update(0, ResourceType.INSTANCE, server1, servers));
 	}
 
 	@Test
