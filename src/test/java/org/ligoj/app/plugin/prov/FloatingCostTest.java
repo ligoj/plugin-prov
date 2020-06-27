@@ -39,8 +39,7 @@ class FloatingCostTest {
 	void add() {
 		final var cost1 = new FloatingCost(1.1, 2.2, 0.1, 0.2, false);
 		final var cost2 = new FloatingCost(4.4, 5.5, 0.3, 0.4, false);
-		final var cost3 = new FloatingCost(6.6, 7.7, 0.5, 0.6, false);
-		cost3.setUnbound(true);
+		final var cost3 = new FloatingCost(6.6, 7.7, 0.5, 0.6, true);
 
 		cost1.add(cost2);
 		Assertions.assertEquals(5.5, cost1.getMin(), DELTA);

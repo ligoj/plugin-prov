@@ -16,8 +16,6 @@ import lombok.Setter;
 /**
  * Floating cost configuration.
  */
-@Getter
-@Setter
 @AllArgsConstructor
 public class FloatingCost implements Serializable {
 
@@ -30,6 +28,8 @@ public class FloatingCost implements Serializable {
 	 * Minimal monthly cost.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
+	@Setter
+	@Getter
 	private double min;
 
 	/**
@@ -37,12 +37,15 @@ public class FloatingCost implements Serializable {
 	 * {@link #unbound} is set to <code>true</code>.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
+	@Setter
+	@Getter
 	private double max;
 
 	/**
 	 * Minimal initial cost.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
+	@Getter
 	private double initial = 0d;
 
 	/**
@@ -51,11 +54,13 @@ public class FloatingCost implements Serializable {
 	 * @see #maxCost
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
+	@Getter
 	private double maxInitial = 0d;
 
 	/**
 	 * When <code>true</code>, the maximal cost is not fully determined.
 	 */
+	@Getter
 	private boolean unbound;
 
 	/**

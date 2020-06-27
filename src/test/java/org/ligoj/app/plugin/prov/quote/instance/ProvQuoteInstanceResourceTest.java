@@ -374,6 +374,15 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
+	/**
+	 * No such budget name.
+	 */
+	@Test
+	void lookupBudgetNotFound() {
+		final var vo = builder().os(VmOs.LINUX).budget("any").build();
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
+	}
+
 	@Test
 	void lookupTypeNotFound() {
 		final var vo = builder().type("any").build();
@@ -615,7 +624,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setCpu(0.5);
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
-		final var updatedCost = qiResource.update(vo);
+		var updatedCost = qiResource.update(vo);
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost, same as initial
@@ -627,8 +636,17 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		// Check the cost is the same
 		updateCost();
+		
+		// Identity update but with enabled lean
+		getQuote().setLeanOnChange(true);
+		em.flush();
+		em.clear();
+		updatedCost = qiResource.update(vo);
+		Assertions.assertEquals(updatedCost.getId(), vo.getId());
+		checkCost(updatedCost.getTotal(), 3143.44, 5505.2, false);
 	}
 
+	
 	@Test
 	void updateInstanceUnbound() {
 		var qs = qsRepository.findByNameExpected("server1-root");
