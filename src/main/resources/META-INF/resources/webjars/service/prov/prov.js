@@ -585,7 +585,8 @@ define(function () {
 
 	function formatUsageTemplate(usage, mode) {
 		if (mode === 'sort' || mode === 'filter') {
-			return usage ? usage.text || usage.name : current.model.configuration.usage ? usage.name : 'default';
+			usage = (typeof usage === 'undefined' || usage === null) ? current.model.configuration.usage : usage;
+			return usage ? usage.text || usage.name : 'default';
 		}
 		if (usage) {
 			usage = {
