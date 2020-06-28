@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <S> The multiple scoped resource type.
  * @param <R> The multiple scoped repository type.
  */
+@Transactional
 public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped, R extends BaseMultiScopedRepository<S>, V extends NamedBean<Integer>> {
 
 	@Autowired
