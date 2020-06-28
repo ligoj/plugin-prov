@@ -191,7 +191,8 @@ define(function () {
 	}
 
 	function formatDatabaseEngine(engine, mode, clazz) {
-		var cfg = databaseEngines[(engine.id || engine || 'MYSQL').toUpperCase()] || databaseEngines.MYSQL;
+		let engineId = (engine.id || engine || '').toUpperCase();
+		var cfg = databaseEngines[engineId] || [engine, 'far fa-question-circle'];
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
 		}
