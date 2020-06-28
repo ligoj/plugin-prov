@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/ligoj/plugin-prov.svg?branch=master)](https://travis-ci.org/ligoj/plugin-prov)
 [![Build Status](https://circleci.com/gh/ligoj/plugin-prov.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-prov)
-[![Build Status](https://semaphoreci.com/api/v1/ligoj/plugin-prov/branches/master/shields_badge.svg)](https://semaphoreci.com/ligoj/plugin-prov)
 [![Build Status](https://ci.appveyor.com/api/projects/status/u6i3563iv6f0omm7/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-prov&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-prov)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?metric=alert_status&project=org.ligoj.plugin:plugin-prov)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-prov)
