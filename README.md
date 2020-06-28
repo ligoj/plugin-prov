@@ -17,3 +17,4 @@ Provides the following features :
 Related plugins:
 - [plugin-prov-aws](https://github.com/ligoj/plugin-prov-aws)  
 - [plugin-prov-azure](https://github.com/ligoj/plugin-prov-azure)
+- [plugin-prov-digitalocean](https://github.com/ligoj/plugin-prov-digitalocean)
