@@ -25,7 +25,7 @@ import lombok.Getter;
  * Usage part of provisioning.
  */
 @Service
-@Path(ProvResource.SERVICE_URL + "{subscription:\\d+}/usage")
+@Path(ProvResource.SERVICE_URL + "/{subscription:\\d+}/usage")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, ProvUsageRepository, UsageEditionVo> {

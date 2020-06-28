@@ -48,7 +48,7 @@ import net.jnellis.binpack.LinearBinPacker;
  * Budget part of provisioning.
  */
 @Service
-@Path(ProvResource.SERVICE_URL + "{subscription:\\d+}/budget")
+@Path(ProvResource.SERVICE_URL + "/{subscription:\\d+}/budget")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @Slf4j
