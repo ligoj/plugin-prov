@@ -280,7 +280,7 @@ define(['sparkline'], function () {
 				url: REST_PATH + 'service/prov/catalog/' + node,
 				type: 'GET',
 				success: function (status) {
-					current.isSameTransaction(current.$transaction) {
+					if (current.$cascade.isSameTransaction(current.$transaction)) {
 						current.updateStatus(status, node);
 						if (status.end) {
 							current.unscheduleUploadStep(node);
@@ -291,7 +291,6 @@ define(['sparkline'], function () {
 					} else {
 						current.unscheduleUploadStep(node);
 					}
-						
 				},
 				error: function () {
 					current.unscheduleUploadStep(node);
