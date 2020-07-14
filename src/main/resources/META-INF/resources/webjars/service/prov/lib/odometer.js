@@ -129,7 +129,7 @@ define(['jquery'], function () {
     setTimeout(wrapJQuery, 0);
 
     var exportOdometer = (function () {
-      function Odometer(options) {
+      function OdometerPriv(options) {
         var k, property, v, _base, _i, _len, _ref, _ref1, _ref2,
           _this = this;
         this.options = options;
@@ -138,7 +138,7 @@ define(['jquery'], function () {
           return this.el.odometer;
         }
         this.el.odometer = this;
-        _ref = Odometer.options;
+        _ref = OdometerPriv.options;
         for (k in _ref) {
           v = _ref[k];
           if (this.options[k] == null) {
@@ -181,14 +181,14 @@ define(['jquery'], function () {
         }
       }
 
-      Odometer.prototype.renderInside = function () {
+      OdometerPriv.prototype.renderInside = function () {
         this.inside = document.createElement('div');
         this.inside.className = 'odometer-inside';
         this.el.innerHTML = '';
         return this.el.appendChild(this.inside);
       };
 
-      Odometer.prototype.watchForMutations = function () {
+      OdometerPriv.prototype.watchForMutations = function () {
         var _this = this;
         if (MutationObserver == null) {
           return;
@@ -210,7 +210,7 @@ define(['jquery'], function () {
         }
       };
 
-      Odometer.prototype.startWatchingMutations = function () {
+      OdometerPriv.prototype.startWatchingMutations = function () {
         if (this.watchMutations) {
           return this.observer.observe(this.el, {
             childList: true
@@ -218,12 +218,12 @@ define(['jquery'], function () {
         }
       };
 
-      Odometer.prototype.stopWatchingMutations = function () {
+      OdometerPriv.prototype.stopWatchingMutations = function () {
         var _ref;
         return (_ref = this.observer) != null ? _ref.disconnect() : void 0;
       };
 
-      Odometer.prototype.cleanValue = function (val) {
+      OdometerPriv.prototype.cleanValue = function (val) {
         var _ref;
         if (typeof val === 'string') {
           val = val.replace((_ref = this.format.radix) != null ? _ref : '.', '<radix>');
@@ -234,7 +234,7 @@ define(['jquery'], function () {
         return round(val, this.format.precision);
       };
 
-      Odometer.prototype.bindTransitionEnd = function () {
+      OdometerPriv.prototype.bindTransitionEnd = function () {
         var event, renderEnqueued, _i, _len, _ref, _results,
           _this = this;
         if (this.transitionEndBound) {
@@ -261,13 +261,13 @@ define(['jquery'], function () {
         return _results;
       };
 
-      Odometer.prototype.resetFormat = function () {
+      OdometerPriv.prototype.resetFormat = function () {
         var format, fractional, parsed, precision, radix, repeating, _ref, _ref1;
         format = (_ref = this.options.format) != null ? _ref : DIGIT_FORMAT;
         format || (format = 'd');
         parsed = FORMAT_PARSER.exec(format);
         if (!parsed) {
-          throw new Error("Odometer: Unparsable digit format");
+          throw new Error("OdometerPriv: Unparsable digit format");
         }
         _ref1 = parsed.slice(1, 4);
         repeating = _ref1[0];
@@ -281,7 +281,7 @@ define(['jquery'], function () {
         };
       };
 
-      Odometer.prototype.render = function (value) {
+      OdometerPriv.prototype.render = function (value) {
         var classes, cls, match, newClasses, theme, _i, _len;
         if (value == null) {
           value = this.value;
@@ -321,7 +321,7 @@ define(['jquery'], function () {
         return this.startWatchingMutations();
       };
 
-      Odometer.prototype.formatDigits = function (value) {
+      OdometerPriv.prototype.formatDigits = function (value) {
         var digit, valueDigit, valueString, wholePart, _i, _j, _len, _len1, _ref, _ref1;
         this.digits = [];
         if (this.options.formatFunction) {
@@ -351,7 +351,7 @@ define(['jquery'], function () {
         }
       };
 
-      Odometer.prototype.update = function (newValue) {
+      OdometerPriv.prototype.update = function (newValue) {
         var diff,
           _this = this;
         newValue = this.cleanValue(newValue);
@@ -373,11 +373,11 @@ define(['jquery'], function () {
         return this.value = newValue;
       };
 
-      Odometer.prototype.renderDigit = function () {
+      OdometerPriv.prototype.renderDigit = function () {
         return createFromHTML(DIGIT_HTML);
       };
 
-      Odometer.prototype.insertDigit = function (digit, before) {
+      OdometerPriv.prototype.insertDigit = function (digit, before) {
         if (before != null) {
           return this.inside.insertBefore(digit, before);
         }
@@ -387,7 +387,7 @@ define(['jquery'], function () {
         return this.inside.insertBefore(digit, this.inside.children[0]);
       };
 
-      Odometer.prototype.addSpacer = function (chr, before, extraClasses) {
+      OdometerPriv.prototype.addSpacer = function (chr, before, extraClasses) {
         var spacer = createFromHTML(FORMAT_MARK_HTML);
         spacer.innerHTML = chr;
         if (extraClasses) {
@@ -396,7 +396,7 @@ define(['jquery'], function () {
         return this.insertDigit(spacer, before);
       };
 
-      Odometer.prototype.addDigit = function (value, repeating) {
+      OdometerPriv.prototype.addDigit = function (value, repeating) {
         var chr, digit, resetted, _ref;
         if (repeating == null) {
           repeating = true;
@@ -431,7 +431,7 @@ define(['jquery'], function () {
         return this.insertDigit(digit);
       };
 
-      Odometer.prototype.animate = function (newValue) {
+      OdometerPriv.prototype.animate = function (newValue) {
         if (!TRANSITION_SUPPORT || this.options.animation === 'count') {
           return this.animateCount(newValue);
         } else {
@@ -439,7 +439,7 @@ define(['jquery'], function () {
         }
       };
 
-      Odometer.prototype.animateCount = function (newValue) {
+      OdometerPriv.prototype.animateCount = function (newValue) {
         var cur, diff, last, start, tick,
           _this = this;
         if (!(diff = +newValue - this.value)) {
@@ -471,7 +471,7 @@ define(['jquery'], function () {
         })();
       };
 
-      Odometer.prototype.getDigitCount = function () {
+      OdometerPriv.prototype.getDigitCount = function () {
         var i, max, value, values, _i, _len;
         values = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         for (i = _i = 0, _len = values.length; _i < _len; i = ++_i) {
@@ -482,7 +482,7 @@ define(['jquery'], function () {
         return Math.ceil(Math.log(max + 1) / Math.log(10));
       };
 
-      Odometer.prototype.getFractionalDigitCount = function () {
+      OdometerPriv.prototype.getFractionalDigitCount = function () {
         var i, parser, parts, value, values, _i, _len;
         values = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         parser = /^\-?\d*\.(\d*?)0*$/;
@@ -499,14 +499,14 @@ define(['jquery'], function () {
         return Math.max.apply(Math, values);
       };
 
-      Odometer.prototype.resetDigits = function () {
+      OdometerPriv.prototype.resetDigits = function () {
         this.digits = [];
         this.ribbons = [];
         this.inside.innerHTML = '';
         return this.resetFormat();
       };
 
-      Odometer.prototype.animateSlide = function (newValue) {
+      OdometerPriv.prototype.animateSlide = function (newValue) {
         var boosted, cur, diff, digitCount, digits, dist, end, fractionalCount, frame, frames, i, incr, j, mark, numEl, oldValue, start, _base, _i, _j, _k, _l, _len, _len1, _len2, _m, _ref, _results;
         oldValue = this.value;
         fractionalCount = this.getFractionalDigitCount(oldValue, newValue);
@@ -590,7 +590,7 @@ define(['jquery'], function () {
         }
       };
 
-      return Odometer;
+      return OdometerPriv;
 
     })();
     Odometer = exportOdometer;
