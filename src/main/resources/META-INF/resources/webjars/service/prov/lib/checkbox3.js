@@ -35,6 +35,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($) {
                 } else {
                     // Set to true/false
                     cb.readOnly = false;
+                    cb.indeterminate = false;
                     cb.checked = value;
                     return this;
                 }
