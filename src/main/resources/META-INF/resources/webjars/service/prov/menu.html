@@ -1,13 +1,15 @@
 <div id="service-prov-menu">
 	<div class="prov-menu-separator"></div>
-	<ul class="nav nav-tabs nav-justified" data-enabled-plugin="feature:cartography">
+	<ul class="nav nav-tabs nav-justified">
 		<li role="presentation" class="active">
-			<a data-target=".tab-resources" aria-controls="tab-resources" role="tab" data-toggle="tab">Resources</a></li>
+			<a data-target=".tab-resources" aria-controls="tab-resources" role="tab" data-toggle="tab"><i data-toggle="tooltip" title="Resources"class="fas fa-table"></i></a></li>
+		<li role="presentation" data-enabled-plugin="feature:cartography">
+			<a data-target=".tab-network" id="prov-filters-trigger" aria-controls="tab-network" role="tab" data-toggle="tab-ajax" data-cascade="true" data-ajax="/main/home/project/cartography" data-plugins="css,i18n,partial,js"><i data-toggle="tooltip" title="Network"class="fas fa-project-diagram"></i></a></li>
 		<li role="presentation">
-			<a data-target=".tab-network" id="prov-filters-trigger" aria-controls="tab-network" role="tab" data-toggle="tab-ajax" data-cascade="true" data-ajax="/main/home/project/cartography" data-plugins="css,i18n,partial,js">Network</a></li>
+			<a data-target=".tab-assumptions" aria-controls="tab-assumptions" role="tab" data-toggle="tab"><i data-toggle="tooltip" title="Assumptions"class="fas fa-sliders-h"></i></a></li>
 	</ul>
 	<div class="tab-content">
-		<div class="tab-pane active tab-resources" role="tabpanel">
+		<div class="tab-pane tab-assumptions" role="tabpanel">
 			<div id="prov-defaults">
 				<form class="form-horizontal" autocomplete="off">
 					<fieldset>
@@ -27,6 +29,15 @@
 							</div>
 							<span class="select2-addon">
 								<button type="button" data-target="#popup-prov-usage" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
+							</span>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-xs-1" for="quote-budget"><i class="fas fa-wallet fa-fw" data-toggle="tooltip" title="{{service:prov:budget-help}}"></i></label>
+							<div class="col-xs-10">
+								<input type="text" id="quote-budget" class="form-control" />
+							</div>
+							<span class="select2-addon">
+								<button type="button" data-target="#popup-prov-budget" data-toggle="modal" class="btn btn-success addon"><i class="fas fa-plus" title="{{add}}" data-toggle="tooltip"></i></button>
 							</span>
 						</div>
 						<div class="form-group">
@@ -75,7 +86,8 @@
 					</fieldset>
 				</form>
 			</div>
-			<div class="prov-menu-separator"></div>
+		</div>
+		<div class="tab-pane active tab-resources" role="tabpanel">
 			<ul class="nav nav-pills nav-stacked" role="tablist">
 				<li role="presentation" class="active">
 					<a href="#tab-instance" aria-controls="tab-instance" role="tab" data-toggle="pill"><i class="fas fa-server"></i>
@@ -127,5 +139,4 @@
 			</ul>
 		</div>
 	</div>
-	<div class="prov-menu-separator"></div>
 </div>

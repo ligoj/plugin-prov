@@ -6,6 +6,7 @@ define(function () {
 
 	var initializedPopupEvents = false;
 	var initializedPopupUsage = false;
+	var initializedPopupBudget = false;
 
 	/**
 	 * OS key to markup/label mapping.
@@ -92,6 +93,30 @@ define(function () {
 		toValue: (w, maxWidth, maxValue, toInternal) => (Math.pow(2, w / maxWidth * toInternal(maxValue)) - 1) * 4,
 		label: 'reserved',
 	};
+
+	/**
+	 * Create a cache by id for the given resource type.
+	 * @param {object} conf The current configuration.
+	 * @param {string} type The resource type.
+	 * @param {string} id The identifier attribute. Default is 'id'.
+	 */
+	function toIds(conf, type, id = 'id') {
+		let ids = {};
+		let items = conf[`${type}s`];
+		let cost = 0;
+		items.forEach(i => {
+			ids[i[id]] = i;
+			if (i.usage) {
+				i.usage = conf.usagesById[i.usage];
+			}
+			if (i.cost) {
+				cost += i.cost;
+			};
+		});
+		conf[`${type}sById`] = ids;
+		conf[`${type}Cost`] = cost;
+		return ids;
+	}
 
 	function delay(callback, ms) {
 		var timer = 0;
@@ -191,7 +216,7 @@ define(function () {
 	}
 
 	function formatDatabaseEngine(engine, mode, clazz) {
-		let engineId = (engine.id || engine || '').toUpperCase();
+		let engineId = (engine.id || engine || '').toUpperCase();
 		var cfg = databaseEngines[engineId] || [engine, 'far fa-question-circle'];
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
@@ -894,6 +919,7 @@ define(function () {
 				$.proxy(current.checkResource, $(this))();
 			}
 		}, 50));
+		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
@@ -1122,9 +1148,9 @@ define(function () {
 			let $input = $(this);
 			let name = $input.attr('id').substring(prefix.length);
 			if ($input.data('ligojCheckbox3')) {
-				$input.checkbox3('value', typeof data[name] === 'boolean' ? data[name] : null);
+				$input.checkbox3('value', typeof data[name] === 'boolean' ? data[name] : ((data[name] !== null && typeof data[name] !== 'undefined' && data[name]) || null));
 			} else if ($input.is('[type="checkbox"]')) {
-				$input.prop('checked', data[name] === true);
+				$input.prop('checked', data[name] === true || data[name]);
 			} else if (typeof data[name] !== 'undefined') {
 				$input.val(data[name]);
 			} else if ($input.is('[type="number"]')) {
@@ -1133,20 +1159,31 @@ define(function () {
 		});
 	}
 
-	function initializeUsageInnerEvents() {
-		_('popup-prov-usage').find('.checkbox3').checkbox3({ value: null });
-		_('popup-prov-usage').on('shown.bs.modal', function () {
-			_('usage-name').trigger('focus');
+	function initializeMultiScopedInnerEvents(type, toData) {
+		let $popup = _(`popup-prov-${type}`).on('shown.bs.modal', function () {
+			_(`${type}-name`).trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
-			current.saveOrUpdateUsage(copyToData($(this), 'usage-', {
-				rate: parseInt(_('usage-rate').val() || '100', 10),
-				duration: parseInt(_('usage-duration').val() || '1', 10)
-			}));
+			current.saveOrUpdateMultiScoped(type, copyToData($(this), `${type}-`, toData()));
 		});
 
+		$popup.find('.checkbox3').checkbox3({ value: null });
+		_(`prov-${type}-delete`).click(() => current.deleteMultiScoped(type, parseInt(_(`${type}-id`).val()), 10));
+	}
+
+	function initializeBudgetInnerEvents() {
+		initializeMultiScopedInnerEvents('budget', () => ({
+			initialCost: parseInt(_('budget-initialCost').val() || '0', 10),
+		}));
+	}
+
+	function initializeUsageInnerEvents() {
+		initializeMultiScopedInnerEvents('usage', () => ({
+			rate: parseInt(_('usage-rate').val() || '100', 10),
+			duration: parseInt(_('usage-duration').val() || '1', 10)
+		}));
+
 		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
-		_('prov-usage-delete').click(() => current.deleteUsage(parseInt(_('usage-id').val()), 10));
 
 		// Usage rate template
 		var usageTemplates = [
@@ -1161,9 +1198,7 @@ define(function () {
 				text: current.$messages['service:prov:usage-template-full']
 			}
 		];
-		for (var i = 0; i < usageTemplates.length; i++) {
-			current.usageTemplates[usageTemplates[i].id] = usageTemplates[i];
-		}
+		usageTemplates.forEach(t=>current.usageTemplates[t.id] = t);
 		_('usage-template').select2({
 			placeholder: current.$messages['service:prov:template'],
 			allowClear: true,
@@ -1172,66 +1207,75 @@ define(function () {
 			escapeMarkup: m => m,
 			data: usageTemplates
 		});
+	}
 
+	/**
+	 * Configure multiscoped resource type.
+	 */
+	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
+		let $popup = _(`popup-prov-${type}`);
+		$popup.on('show.bs.modal', function (event) {
+			onShowModal();
+			current.enableCreate($popup);
+			copyToUi($(this), `${type}-`, $(event.relatedTarget).is('.btn-success') ? defaultData : event.relatedTarget);
+			validationManager.reset($(this));
+			$popup.find(`input[id^=${type}-]:not(.ui-only)`).each(function () {
+				let $input = $(this);
+				let input = $input.attr('id');
+				validationManager.mapping[input] = `${type}-${input}`;
+			});
+			_(`${type}-rate`).trigger('change');
+		});
+		_(`instance-${type}-upload`).select2(current[`${type}Select2`](current.$messages['service:prov:default']));
+		let $quote = _(`quote-${type}`);
+		$quote.select2(current[`${type}Select2`](current.$messages[`service:prov:${type}-null`]))
+			.on('change', function (event) {
+				current.updateQuote({ [type]: event.added || null }, { name: type, ui: `quote-${type}`, previous: event.removed }, true);
+			});
+		var $select2 = $quote.data('select2');
+		if (typeof $select2.originalSelect === 'undefined') {
+			$select2.originalSelect = $select2.onSelect;
+		}
+		$select2.onSelect = (function (fn) {
+			return function (data, options) {
+				if (options) {
+					var $target = $(options.target).closest(`.prov-${type}-select2-action`);
+					if ($target.is('.update')) {
+						// Update action
+						$quote.select2('close');
+						$popup.modal('show', data);
+						return;
+					}
+				}
+				return fn.apply(this, arguments);
+			};
+		})($select2.originalSelect);
 	}
 
 	/**
 	 * Configure usage.
 	 */
 	function initializeUsage() {
-		_('popup-prov-usage').on('show.bs.modal', function (event) {
-			if (initializedPopupUsage == false) {
+		initializeMultiScoped('usage', () => {
+			if (initializedPopupUsage === false) {
 				initializedPopupUsage = true;
 				initializeUsageInnerEvents();
 			}
-			current.enableCreate(_('popup-prov-usage'));
-			if ($(event.relatedTarget).is('.btn-success')) {
-				// Create mode
-				_('usage-id').val('');
-				_('usage-name').val('');
-				_('usage-rate').val(100);
-				_('usage-duration').val(1);
-				_('usage-start').val(0);
-				$(this).find('input[type="checkbox"]').checkbox3('value', null);
-			} else {
-				// Update mode
-				copyToUi($(this), 'usage-', event.relatedTarget);
-			}
-			validationManager.reset($(this));
-			validationManager.mapping.name = 'usage-name';
-			validationManager.mapping.rate = 'usage-rate';
-			validationManager.mapping.duration = 'usage-duration';
-			validationManager.mapping.start = 'usage-start';
 			_('usage-rate').trigger('change');
-		});
-		_('instance-usage-upload').select2(current.usageSelect2(current.$messages['service:prov:default']));
-		_('quote-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-100']))
-			.on('change', function (event) {
-				current.updateQuote({
-					usage: event.added || null
-				}, { name: 'usage', ui: 'quote-usage', previous: event.removed }, true);
-			});
-		var $usageSelect2 = _('quote-usage').data('select2');
-		if (typeof $usageSelect2.originalSelect === 'undefined') {
-			$usageSelect2.originalSelect = $usageSelect2.onSelect;
-		}
-		$usageSelect2.onSelect = (function (fn) {
-			return function (data, options) {
-				if (options) {
-					var $target = $(options.target).closest('.prov-usage-select2-action');
-					if ($target.is('.update')) {
-						// Update action
-						_('quote-usage').select2('close');
-						_('popup-prov-usage').modal('show', data);
-						return;
-					}
-				}
-				return fn.apply(this, arguments);
-			};
-		})($usageSelect2.originalSelect);
+		}, { rate: 100, duration: 1 });
 	}
 
-
+	/**
+	 * Configure budget.
+	 */
+	function initializeBudget() {
+		initializeMultiScoped('budget', () => {
+			if (initializedPopupBudget === false) {
+				initializedPopupBudget = true;
+				initializeBudgetInnerEvents();
+			}
+		});
+	}
 
 	function cleanData(data) {
 		return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
@@ -1340,6 +1384,7 @@ define(function () {
 			delete current.d3Gauge;
 			initializedPopupEvents = false;
 			initializedPopupUsage = false;
+			initializedPopupBudget = false;
 			current.types.forEach(type => delete current[type + 'Table']);
 		},
 
@@ -1386,6 +1431,7 @@ define(function () {
 				});
 			});
 			_('quote-usage').select2('data', conf.usage)
+			_('quote-budget').select2('data', conf.budget)
 		},
 
 		/**
@@ -1511,16 +1557,8 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			var i, qi;
-
-			// Usages by id
-			conf.usagesById = {};
-			var usages = conf.usages;
-			for (i = 0; i < usages.length; i++) {
-				var u = usages[i];
-				// Optimize id access
-				conf.usagesById[u.id] = u;
-			}
+			['usage', 'budget', 'instance', 'database', 'storage'].forEach(type => toIds(conf, type));
+			toIds(conf, 'location', 'name');
 
 			// Tags case issue
 			var tags = current.model && current.model.configuration.tags || {};
@@ -1530,67 +1568,12 @@ define(function () {
 				tags[type.toLowerCase()] = tagT;
 			});
 
-			// Instances
-			conf.instancesById = {};
-			conf.instanceCost = 0;
-			var instances = conf.instances;
-			for (i = 0; i < instances.length; i++) {
-				qi = instances[i];
-				if (qi.usage) {
-					qi.usage = conf.usagesById[qi.usage];
-				}
-				// Optimize id access
-				conf.instancesById[qi.id] = qi;
-				conf.instanceCost += qi.cost;
-			}
-
-			// Databases
-			conf.databasesById = {};
-			conf.databaseCost = 0;
-			var databases = conf.databases;
-			for (i = 0; i < databases.length; i++) {
-				qi = databases[i];
-				if (qi.usage) {
-					qi.usage = conf.usagesById[qi.usage];
-				}
-				// Optimize id access
-				conf.databasesById[qi.id] = qi;
-				conf.databaseCost += qi.cost;
-			}
-
 			// Storage
-			conf.storagesById = {};
 			conf.storageCost = 0;
-			var storages = conf.storages;
-			for (i = 0; i < storages.length; i++) {
-				var qs = storages[i];
-				conf.storageCost += qs.cost;
+			conf.storages.forEach(qs => {
 				current.attachStorage(qs, 'instance', qs.quoteInstance, true);
 				current.attachStorage(qs, 'database', qs.quoteDatabase, true);
-
-				// Optimize id access
-				conf.storagesById[qs.id] = qs;
-			}
-
-			// Locations
-			conf.locationsById = {};
-			var locations = conf.locations;
-			for (i = 0; i < locations.length; i++) {
-				var loc = locations[i];
-				// Optimize id access
-				conf.locationsById[loc.name] = loc;
-			}
-
-			// Support
-			conf.supportsById = {};
-			conf.supportCost = 0;
-			var supports = conf.supports;
-			for (i = 0; i < supports.length; i++) {
-				var qs2 = supports[i];
-				// Optimize id access
-				conf.supportsById[qs2.id] = qs2;
-				conf.supportCost += qs2.cost;
-			}
+			});
 			current.initializeTerraformStatus();
 		},
 
@@ -1859,7 +1842,7 @@ define(function () {
 					orderable: false,
 					className: 'truncate hidden-xs',
 					type: 'string',
-					filterName : 'tags',
+					filterName: 'tags',
 					render: current.tagManager.render
 				}, {
 				data: 'cost',
@@ -1903,6 +1886,7 @@ define(function () {
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
+				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
@@ -2040,8 +2024,10 @@ define(function () {
 			$('.cost-refresh').on('click', current.refreshCost);
 			current.initializeTerraform();
 			initializeUsage();
+			initializeBudget();
 			current.initializeOtherAssumptionsComponents();
 			current.updateUiAssumptions(current.model.configuration);
+			$('.prov-currency').text(getCurrencyUnit());
 		},
 
 		/**
@@ -2210,6 +2196,15 @@ define(function () {
 		usageSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span><a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
+			});
+		},
+
+		/**
+		 * Budget Select2 configuration.
+		 */
+		budgetSelect2: function (placeholder) {
+			return genericSelect2(placeholder, current.budgetToText, 'budget', function (budget) {
+				return `${budget.name}<span class="select2-budget-summary pull-right"><span class="x-small">(${formatCost(budget.initialCost)}) </span><a class="update prov-budget-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
 			});
 		},
 
@@ -2387,7 +2382,8 @@ define(function () {
 				physical: conf.physical,
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
-				usage: conf.usage
+				usage: conf.usage,
+				budget: conf.budget
 			}, data || {});
 			jsonData.location = jsonData.location.name || jsonData.location;
 
@@ -2405,12 +2401,18 @@ define(function () {
 			} else {
 				delete jsonData.usage;
 			}
+			if (jsonData.budget) {
+				jsonData.budget = jsonData.budget.name;
+			} else {
+				delete jsonData.budget;
+			}
 
 			// Check the changes
 			if (conf.name === jsonData.name
 				&& conf.description === jsonData.description
 				&& (conf.location && conf.location.name) === jsonData.location
 				&& (conf.usage && conf.usage.name) === jsonData.usage
+				&& (conf.budget && conf.budget.name) === jsonData.budget
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
 				&& conf.physical === jsonData.physical
@@ -2439,6 +2441,7 @@ define(function () {
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage || conf.usage;
+					conf.budget = data.budget || conf.budget;
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
 					conf.physical = jsonData.physical;
@@ -2485,27 +2488,29 @@ define(function () {
 		},
 
 		/**
-		 * Delete an usage by its name.
-		 * @param {string} id The usage identifier to delete.
+		 * Delete a multi-scoped entity by its name.
+		 * @param {string} type The multiscoped resource type (usage, budget,...) of resource to delete.
+		 * @param {string} id The resource identifier to delete.
 		 */
-		deleteUsage: function (id) {
+		deleteMultiScoped: function (type, id) {
 			var conf = current.model.configuration;
-			var name = conf.usagesById[id].name;
-			var $popup = _('popup-prov-usage');
+			let ids = conf[type + 'sById'];
+			var name = ids[id].name;
+			var $popup = _(`popup-prov-${type}`);
 			current.disableCreate($popup);
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage/' + id,
+				url: `${REST_PATH}service/prov/${current.model.subscription}/${type}/${id}`,
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function (newCost) {
 					// Commit to the model
-					if (conf.usage && conf.usage.id === id) {
-						// Update the usage of the quote
-						delete conf.usage;
-						_('prov-usage').select2('data', null);
+					if (conf[type] && conf[type].id === id) {
+						// Update the resource of the quote
+						delete conf[type];
+						_(`prov-${type}`).select2('data', null);
 					}
-					delete conf.usagesById[id];
+					delete ids[id];
 
 					// UI feedback
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
@@ -2519,32 +2524,34 @@ define(function () {
 		},
 
 		/**
-		 * Update a quote usage.
-		 * @param {string} data The usage data to persist.
+		 * Update a multi scoped resource.
+		 * @param {string} type The multiscoped resource type (usage, budget,...) of resource to delete.
+		 * @param {string} data The multiscoped data to persist.
 		 */
-		saveOrUpdateUsage: function (data) {
+		saveOrUpdateMultiScoped: function (type, data) {
 			var conf = current.model.configuration;
-			var $popup = _('popup-prov-usage');
+			var $popup = _(`popup-prov-${type}`);
+			let ids = conf[`${type}sById`];
 			current.disableCreate($popup);
 			var method = data.id ? 'PUT' : 'POST'
 			$.ajax({
 				type: method,
-				url: REST_PATH + 'service/prov/' + current.model.subscription + '/usage',
+				url: `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (newCost) {
 					// Commit to the model
 					data.id = data.id || newCost.id || newCost;
-					if (conf.usagesById[data.id]) {
-						Object.assign(conf.usagesById[data.id], data);
+					if (ids[data.id]) {
+						Object.assign(ids[data.id], data);
 					} else {
-						conf.usagesById[data.id] = data;
+						ids[data.id] = data;
 					}
-					if (conf.usage && conf.usage.id === data.id) {
-						// Update the usage of the quote
-						conf.usage = data;
-						_('quote-usage').select2('data', data);
+					if (conf[type] && conf[type].id === data.id) {
+						// Update the resource of the quote
+						conf[type] = data;
+						_(`quote-${type}`).select2('data', data);
 					}
 
 					// UI feedback
@@ -2561,10 +2568,16 @@ define(function () {
 		},
 
 		/**
-		 * Location text renderer.
+		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
 			return usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>');
+		},
+		/**
+		 * Budget text renderer.
+		 */
+		budgetToText: function (budget) {
+			return budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>');
 		},
 
 		/**
@@ -2697,6 +2710,7 @@ define(function () {
 			_(inputType + '-description').val(model.description || '');
 			_(inputType + '-location').select2('data', model.location || null);
 			_(inputType + '-usage').select2('data', model.usage || null);
+			_(inputType + '-budget').select2('data', model.budget || null);
 			$popup.attr('data-prov-type', type);
 			current[type + 'ToUi'](model);
 			$.proxy(current.checkResource, $popup)();
@@ -2816,6 +2830,7 @@ define(function () {
 			var suggest = {
 				price: _(inputType + '-price').select2('data'),
 				usage: _(inputType + '-usage').select2('data'),
+				budget: _(inputType + '-budget').select2('data'),
 				location: _(inputType + '-location').select2('data')
 			};
 			var data = {
@@ -2824,6 +2839,7 @@ define(function () {
 				description: _(inputType + '-description').val(),
 				location: (suggest.location || {}).name,
 				usage: (suggest.usage || {}).name,
+				budget: (suggest.budget || {}).name,
 				subscription: current.model.subscription
 			};
 			// Complete the data from the UI and backup the price context
@@ -2840,7 +2856,7 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.location);
+					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
 					$popup.modal('hide');
 				},
 				error: () => current.enableCreate($popup)
@@ -2854,10 +2870,11 @@ define(function () {
 		 * @param {object} data The original data sent to the back-end.
 		 * @param {object} price The last know price suggest replacing the current price. When undefined, the original price is used.
 		 * @param {object} usage The last provided usage.
-		 * @param {object} location The last provided usage.
+		 * @param {object} budget The last provided budget.
+		 * @param {object} location The last provided location.
 		 * @return {object} The updated or created model.
 		 */
-		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, location) {
+		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, budget, location) {
 			var conf = current.model.configuration;
 
 			// Update the model
@@ -2872,6 +2889,7 @@ define(function () {
 			qx.description = data.description;
 			qx.location = location;
 			qx.usage = usage;
+			qx.budget = budget;
 			qx.resourceType = type;
 
 			// Specific data
@@ -3755,7 +3773,7 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (updatedCost) {
-									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, qi.location);
+									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, null, qi.location);
 
 									// Keep the focus on this UI after the redraw of the row
 									$(function () {
@@ -3799,7 +3817,13 @@ define(function () {
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
 					render: formatUsageTemplate,
-					filter : opFunction=> (value, data) => opFunction(data.usage ? data.usage.name : current.model.configuration.usage ? current.model.configuration.usage.name : 'default')
+					filter: opFunction => (value, data) => opFunction(data.usage ? data.usage.name : current.model.configuration.usage ? current.model.configuration.usage.name : 'default')
+				}, {
+					data: 'budget',
+					className: 'hidden-xs hidden-sm budget',
+					type: 'string',
+					render: formatUsageTemplate,
+					filter: opFunction => (value, data) => opFunction(data.budget ? data.budget.name : current.model.configuration.budget ? current.model.configuration.budget.name : 'default')
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',

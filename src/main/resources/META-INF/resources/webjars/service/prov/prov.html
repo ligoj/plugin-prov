@@ -67,6 +67,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
 									<th data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
@@ -76,7 +77,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="13">{{loading}}</td>
+									<td class="dataTables_empty" colspan="14">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -147,6 +148,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:database-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
 									<th data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
@@ -156,7 +158,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+									<td class="dataTables_empty" colspan="15">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -358,6 +360,13 @@
 							<div class="col-sm-9">
 								<input type="text" id="instance-usage" class="resource-query form-control named" />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group"></div>
+							<label class="control-label col-sm-3" for="instance-budget">{{service:prov:budget}}</label>
+							<div class="col-sm-9">
+								<input type="text" id="instance-budget" class="resource-query form-control named" />
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -590,7 +599,7 @@
 								</code>
 								<br />Valid headers
 								<code>
-									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;tags;processor;physical
+									name;cpu;ram;constant;os;disk;latency;optimized;type;internet;maxVariableCost;ephemeral;maxQuantity;minQuantity;location;usage;budget;tags;processor;physical
 								</code>
 								<br /><code><strong>name</strong> Unique name within the quote</code>
 								<br /><code><strong>description</strong> Optional description of the resource</code>
@@ -608,6 +617,7 @@
 								<br /><code><strong>maxQuantity</strong> Maximal quantity, default is 1</code>
 								<br /><code><strong>location</strong> Location name override of quote's one</code>
 								<br /><code><strong>usage</strong> Usage name override of quote's one</code>
+								<br /><code><strong>budget</strong> Budget name override of quote's one</code>
 								<br /><code><strong>maxVariableCost</strong> Maximum variable instance cost you are willing to pay</code>
 								<br /><code><strong>tags</strong> Tags key:value, with ',', ' ' as separator. Tag value is optional</code>
 								<br /><code><strong>processor</strong> Processor: Intel Xeon, AMD,... 'startsWith' is used for the match</code>
@@ -678,6 +688,14 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
 							</div>
 							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-3" for="instance-budget-upload" data-toggle="tooltip" title="{{service:prov:budget-help}}">{{service:prov:budget}}</label>
+							<div class="col-sm-9">
+								<input type="text" id="instance-budget-upload" class="form-control" placeholder="{{default}}" />
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-upload-help}}"></i></span>
+							</div>
+							<input type="text" id="instance-budget-upload-name" class="hidden" name="budget">
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
@@ -858,6 +876,44 @@
 									</label>
 								</div>
 								<p class="help-block">{{service:prov:reservation-help}}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
+					<button type="button" class="btn btn-danger" id="prov-usage-delete">{{delete}}</button>
+					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
+				</div>
+			</div>
+		</div>
+	</form>
+	<form id="popup-prov-budget" class="modal fade" tabindex="-1" aria-labelledby="r-modal-title" autocomplete="off">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="r-modal-title">{{service:prov:budget}}</h4>
+				</div>
+				<div class="modal-body">
+					<input class="hidden" type="hidden" id="budget-id">
+					<div class="form-horizontal">
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="budget-name">{{name}}</label>
+							<div class="col-sm-9">
+								<input type="text" id="budget-name" class="form-control" required maxlength="50" />
+							</div>
+						</div>
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="budget-initialCost">{{service:prov:budget-initialCost}}</label>
+							<div class="col-sm-9">
+								<div class="input-group">
+									<input type="number" min="0" max="1000000000" id="budget-initialCost" class="form-control" required />
+									<div class="input-group-addon prov-currency"></div>
+								</div>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-initialCost-help}}"></i></span>
 							</div>
 						</div>
 					</div>
