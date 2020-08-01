@@ -15,6 +15,10 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.ObjDoubleConsumer;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceContextType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
@@ -93,6 +97,9 @@ public abstract class AbstractImportCatalogResource {
 	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link #DEFAULT_HOURS_MONTH}.
 	 */
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
+
+	@PersistenceContext(type = PersistenceContextType.TRANSACTION, unitName = "pu")
+	private EntityManager em;
 
 	@Autowired
 	protected ObjectMapper objectMapper;
@@ -434,7 +441,7 @@ public abstract class AbstractImportCatalogResource {
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
-		if (context.isForce() || price.isNew() || oldCost != newCostR) {
+		if (context.isForce() || (price.isNew() && !em.contains(price)) || oldCost != newCostR) {
 			updateCost.accept(newCostR, newCost);
 			persister.accept(price);
 		}
@@ -545,13 +552,20 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <K extends Serializable, P extends Persistable<K>> P copyAsNeeded(final AbstractUpdateContext context,
 			final P entity, Consumer<P> updater, final RestRepository<P, K> repository) {
-		if (context.isForce() || entity.getId() == null) {
-			updater.accept(entity);
-			if (repository != null) {
-				repository.save(entity);
+		synchronized (entity) {
+			if (isNeedUpdate(context, entity)) {
+				updater.accept(entity);
+				if (repository != null) {
+					repository.save(entity);
+				}
 			}
 		}
 		return entity;
+	}
+
+	private <K extends Serializable, P extends Persistable<K>> boolean isNeedUpdate(final AbstractUpdateContext context,
+			final P entity) {
+		return context.isForce() || (entity.isNew() && !em.contains(entity));
 	}
 
 	/**

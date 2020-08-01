@@ -24,6 +24,6 @@ public interface ImportCatalog<U extends AbstractUpdateContext> {
 	 * @throws URISyntaxException
 	 *             When CSV or XML files cannot be read.
 	 */
-	void install(final U context) throws IOException, URISyntaxException;
+	void install(final U context) throws IOException;
 
 }
