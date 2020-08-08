@@ -1155,6 +1155,8 @@ define(function () {
 				$input.val(data[name]);
 			} else if ($input.is('[type="number"]')) {
 				$input.val(0);
+			} else {
+				$input.val('');
 			}
 		});
 	}
