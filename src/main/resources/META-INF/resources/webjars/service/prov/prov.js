@@ -16,6 +16,7 @@ define(function () {
 		'windows': ['Windows', 'fab fa-windows fa-fw'],
 		'suse': ['SUSE', 'fab fa-suse fa-fw'],
 		'rhel': ['Red Hat Enterprise', 'fab fa-redhat fa-fw'],
+		'oracle': ['Oracle Linux', 'icon-oracle fa-fw'],
 		'centos': ['CentOS', 'fab fa-centos fa-fw'],
 		'debian': ['Debian', 'icon-debian fa-fw'],
 		'fedora': ['Fedora', 'fab fa-fedora fa-fw'],

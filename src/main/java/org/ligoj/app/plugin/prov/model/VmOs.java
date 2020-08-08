@@ -58,7 +58,12 @@ public enum VmOs {
 	/**
 	 * PanOS
 	 */
-	PANOS(LINUX);
+	PANOS(LINUX),
+
+	/**
+	 * Oracle Linux
+	 */
+	ORACLE(null);
 
 	/**
 	 * The related pricing OS.
