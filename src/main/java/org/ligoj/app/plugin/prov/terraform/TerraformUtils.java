@@ -126,7 +126,7 @@ public class TerraformUtils {
 		}
 		final var shell = getOsValue(shells);
 		final var bin = getHome().resolve(configuration.get(TERRAFORM_PATH, getOsValue(bins))).toString();
-		return new ProcessBuilder(ArrayUtils.addAll(shell, bin + " " + StringUtils.join(ArrayUtils.addAll(args), ' ')));
+		return new ProcessBuilder(ArrayUtils.addAll(shell, bin + " " + String.join(" ", ArrayUtils.addAll(args))));
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class TerraformUtils {
 	 *            The OS to search.
 	 * @return The map value associated to the closest key of given OS. <code>null</code> when not found.
 	 * @param <T>
-	 *            The mapped type ot the given <code>os</code>.
+	 *            The mapped type of the given <code>os</code>.
 	 */
 	protected <T> T getOsValue(final Map<String, T> map, final String os) {
 		final var osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");

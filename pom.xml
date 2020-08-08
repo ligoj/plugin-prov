@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.2.5</version>
+		<version>3.2.6</version>
 		<relativePath />
 	</parent>
 
@@ -22,7 +22,6 @@
 		<url>https://github.com/ligoj/plugin-prov.git</url>
 	</scm>
 	<properties>
-		<bootstrap.version>[2.8.1,2.9.0)</bootstrap.version>
 		<awaitility.version>3.1.0</awaitility.version>
 	</properties>
 
