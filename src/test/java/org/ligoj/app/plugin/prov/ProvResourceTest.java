@@ -156,7 +156,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance1", instance.getName());
 		Assertions.assertEquals("instanceD1", instance.getDescription());
 		Assertions.assertEquals(0.5, instance.getCpu(), 0.0001);
-		Assertions.assertEquals(2000, instance.getRam().intValue());
+		Assertions.assertEquals(2000, instance.getRam());
 		Assertions.assertTrue(instance.getConstant());
 
 		// No minimal for this instance price
@@ -311,14 +311,6 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void updateLocation() {
-		final var location4 = locationRepository.findByName("region-4");
-
-		// Make sure there is no more world wild prices
-		em.createQuery("FROM ProvInstancePrice WHERE location IS NULL", ProvInstancePrice.class).getResultList()
-				.forEach(ip -> ip.setLocation(location4));
-		em.flush();
-		em.clear();
-
 		final var quote = new QuoteEditionVo();
 		quote.setName("name1");
 		quote.setDescription("description1");
@@ -326,7 +318,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setBudget("Dept1");
 		quote.setRefresh(true);
 		final var cost = resource.update(subscription, quote);
-		checkCost(cost, 6328.565, 10199.018, false);
+		checkCost(cost, 3165.4, 5615.0, false);
 		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 
@@ -342,7 +334,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(37.352d, location.getLongitude(), DELTA);
 		Assertions.assertEquals(-79.049d, location.getLatitude(), DELTA);
 
-		// CHeck the association on the quote
+		// Check the association on the quote
 		Assertions.assertEquals("region-1", resource.getConfiguration(subscription).getLocation().getName());
 
 		// Check the "region-1" is the one related to our provider

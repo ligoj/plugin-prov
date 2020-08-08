@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityManager;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -283,6 +285,11 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertEquals(1, context.getHoursMonth());
 		Assertions.assertTrue(context.isForce());
 	}
+	
+	@BeforeEach
+	void setupEm() {
+		this.em = Mockito.mock(EntityManager.class);
+	}
 
 	@Test
 	void installRegion() {
@@ -473,6 +480,24 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.getMergedTypes().contains("code");
 		Mockito.verify(repository).save(entity);
 	}
+
+	/**
+	 * New (without identifier) but already in the entity manager.
+	 */
+	@Test
+	void saveAsNeedeNewInEm() {
+		final var entity = new ProvSupportPrice();
+		entity.setCost(2d);
+		entity.setCode("code");
+		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
+		Mockito.doReturn(true).when(this.em).contains(entity);
+		final var context = newContext();
+		saveAsNeeded(context, entity, 2d, repository);
+		Assertions.assertEquals(2d, entity.getCost());
+		context.getMergedTypes().contains("code");
+		Mockito.verify(repository, Mockito.never()).save(entity);
+	}
+
 
 	@Test
 	void saveAsNeededPriceTerm() {

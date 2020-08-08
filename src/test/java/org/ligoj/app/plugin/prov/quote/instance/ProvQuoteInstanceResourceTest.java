@@ -214,16 +214,6 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Basic case, almost no requirements but location different from the quote's one.
-	 */
-	@Test
-	void lookupLocationNotFoundButWorldwideService() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).usage(FULL).ephemeral(true).location("region-2").build());
-		checkInstance(lookup);
-	}
-
-	/**
 	 * Search instance type within a region where minimal instance types are not available.
 	 */
 	@Test
@@ -241,7 +231,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		em.clear();
 
 		// Instance 2 is not available in this region
-		Assertions.assertEquals("instance4",
+		Assertions.assertEquals("instance5",
 				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
 						.getType().getName());
 	}
@@ -260,8 +250,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
-		Assertions.assertEquals(1, pi.getType().getCpu().intValue());
-		Assertions.assertEquals(2000, pi.getType().getRam().intValue());
+		Assertions.assertEquals(1, pi.getType().getCpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
 		Assertions.assertEquals("C11", pi.getCode());
 		Assertions.assertFalse(pi.getTerm().isEphemeral());
 		Assertions.assertEquals(102.48, pi.getCost(), DELTA);
@@ -283,8 +273,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance9", pi.getType().getName());
-		Assertions.assertEquals(4, pi.getType().getCpu().intValue());
-		Assertions.assertEquals(16000, pi.getType().getRam().intValue());
+		Assertions.assertEquals(4, pi.getType().getCpu());
+		Assertions.assertEquals(16000, pi.getType().getRam());
 		Assertions.assertTrue(pi.getType().getConstant());
 		Assertions.assertEquals(2928.0, pi.getCost(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
@@ -333,7 +323,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleOs() throws IOException {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).location("region-5").os(VmOs.LINUX).usage("Full Time Convertible").build());
+				builder().cpu(1).os(VmOs.LINUX).usage("Full Time Convertible").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -348,7 +338,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleLocationOnGlobal() throws IOException {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).usage("Full Time 12 month").location("region-5").build());
+				builder().cpu(1).usage("Full Time 12 month").location("region-1").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -380,6 +370,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupBudgetNotFound() {
 		final var vo = builder().os(VmOs.LINUX).budget("any").build();
+		vo.setBudget("any"); // Coverage only
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
@@ -400,8 +391,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("dynamic", pi.getType().getName());
-		Assertions.assertEquals(0, pi.getType().getCpu().intValue());
-		Assertions.assertEquals(0, pi.getType().getRam().intValue());
+		Assertions.assertEquals(0, pi.getType().getCpu());
+		Assertions.assertEquals(0, pi.getType().getRam());
 		Assertions.assertTrue(pi.getType().getConstant());
 		Assertions.assertEquals(0, pi.getCost(), DELTA);
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
@@ -636,7 +627,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		// Check the cost is the same
 		updateCost();
-		
+
 		// Identity update but with enabled lean
 		getQuote().setLeanOnChange(true);
 		em.flush();
@@ -646,7 +637,6 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(updatedCost.getTotal(), 3143.44, 5505.2, false);
 	}
 
-	
 	@Test
 	void updateInstanceUnbound() {
 		var qs = qsRepository.findByNameExpected("server1-root");
@@ -835,6 +825,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		// Price "C1" is replaced by "C7"
 		checkCost(resource.refresh(subscription), 3143.44, 5505.2, false);
+		Assertions.assertEquals("C7", qiRepository.findByNameExpected("server1").getPrice().getCode());
 		logQuote();
 
 		vo.setLocation("region-2"); // "region-1" -> "region-2"
@@ -843,8 +834,9 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		checkCost(qiResource.update(vo).getTotal(), 3165.4, 5615.0, false);
 		logQuote();
 
-		// Price "C1" is replaced by "C7"
-		checkCost(resource.refresh(subscription), 3164.32, 5609.6, false);
+		// Price "C1" is replaced by "C98"
+		checkCost(resource.refresh(subscription), 6092.32, 20249.6, false);
+		Assertions.assertEquals("C98", qiRepository.findByNameExpected("server1").getPrice().getCode());
 		logQuote();
 	}
 

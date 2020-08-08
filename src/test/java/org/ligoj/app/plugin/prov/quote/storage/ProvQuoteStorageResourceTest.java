@@ -835,11 +835,11 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * All quote instances are based on the default quote's location : "region1" but no instance attachment is requested
+	 * All quote instances are based on the default quote's location ("region1") but no instance attachment is requested
 	 */
 	@Test
 	void lookupStorageAnotherLocationNoInstance() {
-		Assertions.assertEquals(3,
+		Assertions.assertEquals(2,
 				qsResource.lookup(subscription, QuoteStorageQuery.builder().location("region-2").build()).size());
 	}
 

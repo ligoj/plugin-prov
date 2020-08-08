@@ -99,7 +99,7 @@ public abstract class AbstractImportCatalogResource {
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
 	@PersistenceContext(type = PersistenceContextType.TRANSACTION, unitName = "pu")
-	private EntityManager em;
+	protected EntityManager em;
 
 	@Autowired
 	protected ObjectMapper objectMapper;

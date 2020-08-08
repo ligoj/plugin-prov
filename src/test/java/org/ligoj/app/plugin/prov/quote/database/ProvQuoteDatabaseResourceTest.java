@@ -128,8 +128,10 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("databaseD0", pi.getType().getName());
-		Assertions.assertEquals(0, pi.getType().getCpu().intValue());
-		Assertions.assertEquals(0, pi.getType().getRam().intValue());
+		Assertions.assertEquals(0, pi.getType().getCpu());
+		Assertions.assertEquals(0, pi.getType().getRam());
+		Assertions.assertEquals(1, pi.getIncrementCpu());
+		Assertions.assertEquals(1, pi.getMinCpu());
 		Assertions.assertEquals("MYSQL0", pi.getCode());
 		Assertions.assertEquals(0d, pi.getCost(), DELTA);
 		Assertions.assertEquals(0d, pi.getCostPeriod(), DELTA);
@@ -241,8 +243,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database2", pi.getType().getName());
-		Assertions.assertEquals(1, pi.getType().getCpu().intValue());
-		Assertions.assertEquals(2000, pi.getType().getRam().intValue());
+		Assertions.assertEquals(1, pi.getType().getCpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
 		Assertions.assertEquals("MYSQL3", pi.getCode());
 		Assertions.assertFalse(pi.getTerm().isEphemeral());
 		Assertions.assertEquals(168.0, pi.getCost(), DELTA);
@@ -263,7 +265,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
 		Assertions.assertEquals(0.5, pi.getType().getCpu(), DELTA);
-		Assertions.assertEquals(2000, pi.getType().getRam().intValue());
+		Assertions.assertEquals(2000, pi.getType().getRam());
 		Assertions.assertTrue(pi.getType().getConstant());
 		Assertions.assertEquals(89.5, pi.getCost(), DELTA);
 		Assertions.assertEquals("MYSQL", pi.getEngine());

@@ -27,16 +27,14 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Amount of CPU. When <code>0</code>, correspond to a custom instance.
+	 * Amount of CPU. <code>0</code> for custom instance type.
 	 */
-	@NotNull
-	private Double cpu;
+	private double cpu;
 
 	/**
-	 * RAM (Memory) in "MiB" = "Mega Bytes"
+	 * RAM (Memory) in "MiB" = "Mega Bytes".
 	 */
-	@NotNull
-	private Integer ram;
+	private int ram;
 
 	/**
 	 * Optional physical processor. May be <code>null</code>.
