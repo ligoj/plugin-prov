@@ -12,11 +12,13 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.dao.NodeRepository;
@@ -97,25 +99,13 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * Update the catalog prices of related provider. Asynchronous operation.
 	 *
 	 * @param node  The node (provider) to update.
-	 * @return The catalog status.
-	 */
-	@POST
-	@Path("{node:service:prov:.+}")
-	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node) {
-		return updateCatalog(node, false);
-	}
-
-	/**
-	 * Update the catalog prices of related provider. Asynchronous operation.
-	 *
-	 * @param node  The node (provider) to update.
 	 * @param force When <code>true</code>, all cost attributes are update.
 	 * @return The catalog status.
 	 */
 	@POST
-	@Path("{node:service:prov:.+}/{force}")
+	@Path("{node:service:prov:.+}")
 	public ImportCatalogStatus updateCatalog(@PathParam("node") final String node,
-			@PathParam("force") final boolean force) {
+			@QueryParam("force") @DefaultValue("false") final boolean force) {
 		final var entity = nodeResource.checkWritableNode(node).getTool();
 		final var catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
 		final var task = startTask(entity.getId(), t -> {

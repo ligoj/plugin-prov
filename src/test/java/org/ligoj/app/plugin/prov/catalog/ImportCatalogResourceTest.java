@@ -87,7 +87,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		final var service = Mockito.mock(ImportCatalogService.class);
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
-		final var status = resource.updateCatalog("service:prov:test:account");
+		final var status = resource.updateCatalog("service:prov:test:account", false);
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
@@ -239,7 +239,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test", false);
 
-		final var status = resource.updateCatalog("service:prov:test:account");
+		final var status = resource.updateCatalog("service:prov:test:account", false);
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertNull(status.getLocation());
