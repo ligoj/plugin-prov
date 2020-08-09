@@ -2195,7 +2195,7 @@ define(function () {
 						|| current.usageTemplates[Math.ceil(percent - 1)]
 						|| null);
 				}
-				current.updateD3UsageRate(percent);
+				current.updateD3StatsRate(percent);
 			}
 		},
 
@@ -2593,7 +2593,6 @@ define(function () {
 		 * Budget text renderer.
 		 */
 		budgetToText: function (budget) {
-			debugger;
 			return budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>');
 		},
 
@@ -3703,7 +3702,7 @@ define(function () {
 		 * Donut of stats
 		 * @param {integer} rate The rate percentage 1-100%
 		 */
-		updateD3StasRate: function (rate) {
+		updateD3StatsRate: function (rate) {
 			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
 				if (current.contextDonut) {
 					donut.update(current.contextDonut, rate);
