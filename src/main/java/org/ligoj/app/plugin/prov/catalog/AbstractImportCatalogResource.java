@@ -46,6 +46,7 @@ import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvType;
@@ -347,7 +348,7 @@ public abstract class AbstractImportCatalogResource {
 			r.setLatitude(regionStats.getLatitude());
 			r.setLongitude(regionStats.getLongitude());
 			r.setDescription(regionStats.getName());
-		}, locationRepository);
+		});
 	}
 
 	/**
@@ -533,8 +534,40 @@ public abstract class AbstractImportCatalogResource {
 		if (context.getMergedTypes().add(entity.getCode())) {
 			updater.accept(entity);
 			if (repository != null) {
-				repository.save(entity);
+				repository.saveAndFlush(entity);
 			}
+		}
+		return entity;
+	}
+
+	/**
+	 * Save the given private term if not yet updated.
+	 * 
+	 * @param context The context to initialize.
+	 * @param entity  The target entity to update.
+	 * @return the given entity.
+	 */
+	protected ProvInstancePriceTerm copyAsNeeded(final AbstractUpdateContext context,
+			final ProvInstancePriceTerm entity, final Consumer<ProvInstancePriceTerm> updater) {
+		if (context.getMergedTerms().add(entity.getCode())) {
+			updater.accept(entity);
+			iptRepository.saveAndFlush(entity);
+		}
+		return entity;
+	}
+
+	/**
+	 * Save the given private location if not yet updated.
+	 * 
+	 * @param context The context to initialize.
+	 * @param entity  The target entity to update.
+	 * @return the given entity.
+	 */
+	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context,
+			final ProvLocation entity, final Consumer<ProvLocation> updater) {
+		if (context.getMergedLocations().add(entity.getName())) {
+			updater.accept(entity);
+			locationRepository.saveAndFlush(entity);
 		}
 		return entity;
 	}

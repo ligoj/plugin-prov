@@ -56,7 +56,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvInstanceType> instanceTypes = new HashMap<>();
+	protected Map<String, ProvInstanceType> instanceTypes = new HashMap<>();
 
 	/**
 	 * The previously installed support types. Key is the instance name.
@@ -70,14 +70,14 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvDatabaseType> databaseTypes = new HashMap<>();
+	protected Map<String, ProvDatabaseType> databaseTypes = new HashMap<>();
 
 	/**
 	 * The previously installed price term's codes.
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvInstancePriceTerm> priceTerms = new HashMap<>();
+	protected Map<String, ProvInstancePriceTerm> priceTerms = new HashMap<>();
 
 	/**
 	 * The previous installed EC2 prices. Key is the code.
@@ -123,6 +123,18 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<>());
+
+	/**
+	 * The merged term's codes.
+	 */
+	@Getter
+	private Set<String> mergedTerms = Collections.synchronizedSet(new HashSet<>());
+
+	/**
+	 * The merged location's codes.
+	 */
+	@Getter
+	private Set<String> mergedLocations = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * The accepted and existing storage type. Key is the code.
@@ -179,6 +191,8 @@ public abstract class AbstractUpdateContext {
 		setHoursMonth(parent.getHoursMonth());
 		setNode(parent.getNode());
 		this.mergedTypes = parent.mergedTypes;
+		this.mergedTerms = parent.mergedTerms;
+		this.mergedLocations = parent.mergedLocations;
 		this.storageTypes = parent.storageTypes;
 		this.priceTerms = parent.priceTerms;
 		this.validDatabaseEngine = parent.validDatabaseEngine;
@@ -192,6 +206,8 @@ public abstract class AbstractUpdateContext {
 		this.previous = previous;
 		this.previousDatabase.clear();
 		this.mergedTypes.clear();
+		this.mergedLocations.clear();
+		this.mergedTerms.clear();
 		this.prices.clear();
 	}
 
@@ -199,6 +215,8 @@ public abstract class AbstractUpdateContext {
 		this.previousDatabase = previous;
 		this.previous.clear();
 		this.mergedTypes.clear();
+		this.mergedTerms.clear();
+		this.mergedLocations.clear();
 		this.prices.clear();
 	}
 
@@ -208,6 +226,8 @@ public abstract class AbstractUpdateContext {
 	public void cleanup() {
 		this.prices.clear();
 		this.mergedTypes.clear();
+		this.mergedTerms.clear();
+		this.mergedLocations.clear();
 		this.storageTypes.clear();
 		this.supportTypes.clear();
 		this.storageTypes.clear();
