@@ -427,13 +427,10 @@ img.flag-icon.prov-location-flag {
 .slider-wrapper {
   margin-top: 8px;
 }
-.update.prov-usage-select2-action {
+.update.prov-usage-select2-action, .update.prov-budget-select2-action {
   height: 23px;
   width: 23px;
   display: inline-block;
-}
-.select2-usage-summary {
-  margin-right: -10px;
 }
 .configuration-wrapper-service-prov .table-tools .form-group .has-feedback {
   padding-right: 48px;
