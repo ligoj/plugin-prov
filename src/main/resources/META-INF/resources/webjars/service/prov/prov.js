@@ -110,6 +110,9 @@ define(function () {
 			if (i.usage) {
 				i.usage = conf.usagesById[i.usage];
 			}
+			if (i.budget) {
+				i.budget = conf.budgetsById[i.budget];
+			}
 			if (i.cost) {
 				cost += i.cost;
 			};
@@ -610,30 +613,40 @@ define(function () {
 		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 	}
 
+	function formatBudget(budget, mode, qi) {
+		return formatMutiScoped(budget, current.model.configuration.budge, mode, 'budge', () => {
+			if (typeof budget.initialCost === 'number' && budget.initialCost > 1) {
+				tooltip += `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}`;
+			}
+		});
+	}
+
 	function formatUsageTemplate(usage, mode) {
+		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'usage', () => {
+			if (typeof usage.start === 'number' && usage.duration > 1) {
+				tooltip += `<br>${current.title('usage-duration')}${usage.duration} month(s)`;
+			}
+			if (typeof usage.start === 'number' && usage.start > 0) {
+				tooltip += `<br>${current.title('usage-start')}${usage.start} month(s)`;
+			}
+		});
+	}
+
+	function formatMutiScoped(entity, confEntity, mode, tooltip) {
 		if (mode === 'sort' || mode === 'filter') {
-			usage = (typeof usage === 'undefined' || usage === null) ? current.model.configuration.usage : usage;
-			return usage ? usage.text || usage.name : 'default';
+			entity = (typeof entity === 'undefined' || entity === null) ? confEntity : entity;
+			return entity ? entity.text || entity.name : '';
 		}
-		if (usage) {
-			usage = {
-				name: (mode ? usage.name || usage.text : (usage.text || usage.name)) || usage,
-				rate: usage.id,
+		if (entity) {
+			entity = {
+				name: (mode ? entity.name || entity.text : (entity.text || entity.name)) || entity,
+				rate: entity.id,
 				duration: false,
-				start: false
 			}
 		} else {
-			usage = current.model.configuration.usage || { rate: 100, duration: 1, name: '<i>default</i>' };
+			entity = confEntity || { rate: 100, duration: 1, name: '<i>default</i>' };
 		}
-		var tooltip = current.title('name') + usage.name;
-		tooltip += '<br>' + current.title('usage-rate') + (usage.rate || 100) + '%';
-		if (usage.duration !== false) {
-			tooltip += '<br>' + current.title('usage-duration') + (usage.duration || 1) + ' month(s)';
-		}
-		if (usage.start !== false) {
-			tooltip += '<br>' + current.title('usage-start') + (usage.start || 0) + ' month(s)';
-		}
-		return '<span data-toggle="tooltip" title="' + tooltip + '">' + usage.name + '</span>';
+		return `<span data-toggle="tooltip" title="${current.title('name')}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}">${entity.name}</span>`;
 	}
 
 	function locationMap(location) {
@@ -920,8 +933,8 @@ define(function () {
 				$.proxy(current.checkResource, $(this))();
 			}
 		}, 50));
-		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
+		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
 			return _('instance-license').provType() === 'instance'
@@ -1201,7 +1214,7 @@ define(function () {
 				text: current.$messages['service:prov:usage-template-full']
 			}
 		];
-		usageTemplates.forEach(t=>current.usageTemplates[t.id] = t);
+		usageTemplates.forEach(t => current.usageTemplates[t.id] = t);
 		_('usage-template').select2({
 			placeholder: current.$messages['service:prov:template'],
 			allowClear: true,
@@ -2580,6 +2593,7 @@ define(function () {
 		 * Budget text renderer.
 		 */
 		budgetToText: function (budget) {
+			debugger;
 			return budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>');
 		},
 
@@ -2905,14 +2919,14 @@ define(function () {
 
 		/**
 		 * Update the D3 instance types bar chart.
-		 * @param {object} usage 
+		 * @param {object} stats 
 		 */
-		updateInstancesBarChart: function (usage) {
+		updateInstancesBarChart: function (stats) {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
-				var numDataItems = usage.timeline.length;
+				var numDataItems = stats.timeline.length;
 				var data = [];
 				for (var i = 0; i < numDataItems; i++) {
-					var value = usage.timeline[i];
+					var value = stats.timeline[i];
 					var stack = {
 						date: value.date
 					};
@@ -2920,7 +2934,7 @@ define(function () {
 					data.push(stack);
 				}
 
-				if (usage.cost) {
+				if (stats.cost) {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
@@ -2964,16 +2978,16 @@ define(function () {
 			var conf = current.model.configuration;
 
 			// Compute the new capacity and costs
-			var usage = current.computeUsage();
+			var stats = current.computeStats();
 
 			// Update the global counts
-			var filtered = usage.cost !== conf.cost.min;
+			var filtered = stats.cost !== conf.cost.min;
 			if (filtered) {
 				// Filtered cost
 				formatCost({
-					min: usage.cost,
-					max: usage.cost,
-					unbound: usage.unbound > 0
+					min: stats.cost,
+					max: stats.cost,
+					unbound: stats.unbound > 0
 				}, $('.cost'));
 			} else {
 				// Full cost
@@ -2982,55 +2996,55 @@ define(function () {
 
 			if (typeof current.filterDate !== 'number' && typeof current.fixedDate !== 'number') {
 				// Do not update itself
-				current.updateInstancesBarChart(usage);
+				current.updateInstancesBarChart(stats);
 			}
 
 			// Separated resource counters
 			current.types.forEach(type => {
-				var $usage = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
-				if (usage[type].nb) {
-					$usage.removeClass('hide').find('.odo-wrapper').text(usage[type].nb);
-					$usage.find('.odo-wrapper-unbound').text((usage[type].min && usage[type].min > usage[type].nb || usage[type].unbound) ? '+' : '');
+				var $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
+				if (stats[type].nb) {
+					$stats.removeClass('hide').find('.odo-wrapper').text(stats[type].nb);
+					$stats.find('.odo-wrapper-unbound').text((stats[type].min && stats[type].min > stats[type].nb || stats[type].unbound) ? '+' : '');
 				} else {
-					$usage.addClass('hide');
+					$stats.addClass('hide');
 				}
 			});
 
 			// Instance summary
 			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
-			if (usage.instance.cpu.available) {
-				current.updateSummary($summary, usage.instance);
+			if (stats.instance.cpu.available) {
+				current.updateSummary($summary, stats.instance);
 				var $oss = $summary.filter('[data-os]').addClass('hidden');
-				Object.keys(usage.instance.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(usage.instance.oss[o]));
+				Object.keys(stats.instance.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(stats.instance.oss[o]));
 			} else {
 				$summary.addClass('hidden');
 			}
 
 			// Database summary
 			$summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
-			if (usage.database.cpu.available) {
-				current.updateSummary($summary, usage.database);
+			if (stats.database.cpu.available) {
+				current.updateSummary($summary, stats.database);
 				var $engines = $summary.filter('[data-engine]').addClass('hidden');
-				Object.keys(usage.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(usage.database.engines[engine]));
+				Object.keys(stats.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(stats.database.engines[engine]));
 			} else {
 				$summary.addClass('hidden');
 			}
 
 			// Storage summary
 			$summary = $('.nav-pills [href="#tab-storage"] .summary> .badge.size');
-			if (usage.storage.available) {
+			if (stats.storage.available) {
 				$summary.removeClass('hidden');
-				$summary.text(formatStorage(usage.storage.available));
+				$summary.text(formatStorage(stats.storage.available));
 			} else {
 				$summary.addClass('hidden');
 			}
 
 			// Support summary
 			$summary = $('.nav-pills [href="#tab-support"] .summary');
-			if (usage.support.first) {
-				$summary.removeClass('hidden').find('.support-first').text(usage.support.first).attr("title", usage.support.first);
-				if (usage.support.more) {
-					$summary.find('.support-more').removeClass('hidden').text(usage.support.more);
+			if (stats.support.first) {
+				$summary.removeClass('hidden').find('.support-first').text(stats.support.first).attr("title", stats.support.first);
+				if (stats.support.more) {
+					$summary.find('.support-more').removeClass('hidden').text(stats.support.more);
 				} else {
 					$summary.find('.support-more').addClass('hidden');
 				}
@@ -3040,7 +3054,7 @@ define(function () {
 
 			// Update the gauge : reserved / available
 			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
-				if (typeof current.d3Gauge === 'undefined' && usage.cost) {
+				if (typeof current.d3Gauge === 'undefined' && stats.cost) {
 					current.d3Gauge = d3;
 					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
 						textColor: '#FF4444',
@@ -3051,17 +3065,17 @@ define(function () {
 						backgroundColor: '#e0e0e0'
 					});
 					$(function () {
-						current.updateGauge(d3, usage);
+						current.updateGauge(d3, stats);
 					});
 				} else {
-					current.updateGauge(d3, usage);
+					current.updateGauge(d3, stats);
 				}
 			});
 
 			// Update the sunburst total resource capacity
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
-				if (usage.cost) {
-					sunburst.init('#prov-sunburst', current.toD3(usage), function (a, b) {
+				if (stats.cost) {
+					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
 						return current.types.indexOf(a.data.type) - current.types.indexOf(b.data.type);
 					}, current.sunburstTooltip);
 					_('prov-sunburst').removeClass('hidden');
@@ -3112,7 +3126,8 @@ define(function () {
 						+ '<br>' + current.title('instance-type') + instance.price.type.name
 						+ '<br>' + current.title('os') + formatOs(instance.price.os, true)
 						+ '<br>' + current.title('term') + instance.price.term.name
-						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
+						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
+						+ '<br>' + current.title('budget') + (instance.budget ? instance.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
 				case 'storage':
 					var storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -3129,7 +3144,8 @@ define(function () {
 						+ '<br>' + current.title('database-type') + database.price.type.name
 						+ '<br>' + current.title('database-engine') + formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
 						+ '<br>' + current.title('term') + database.price.term.name
-						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')));
+						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
+						+ '<br>' + current.title('budget') + (database.budget ? database.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
 				case 'root-storage':
 					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
 				case 'root-instance':
@@ -3155,29 +3171,29 @@ define(function () {
 		},
 
 		/**
-		 * Update the gauge value depending on the computed usage.
+		 * Update the gauge value depending on the computed stats.
 		 */
-		updateGauge: function (d3, usage) {
-			if (d3.select('#prov-gauge').on('valueChanged') && usage.costNoSupport) {
+		updateGauge: function (d3, stats) {
+			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
 				var weightCost = 0;
-				if (usage.instance.cpu.available) {
-					weightCost += usage.instance.cost * 0.8 * usage.instance.cpu.reserved / usage.instance.cpu.available;
+				if (stats.instance.cpu.available) {
+					weightCost += stats.instance.cost * 0.8 * stats.instance.cpu.reserved / stats.instance.cpu.available;
 				}
-				if (usage.instance.ram.available) {
-					weightCost += usage.instance.cost * 0.2 * usage.instance.ram.reserved / usage.instance.ram.available;
+				if (stats.instance.ram.available) {
+					weightCost += stats.instance.cost * 0.2 * stats.instance.ram.reserved / stats.instance.ram.available;
 				}
-				if (usage.database.cpu.available) {
-					weightCost += usage.database.cost * 0.8 * usage.database.cpu.reserved / usage.database.cpu.available;
+				if (stats.database.cpu.available) {
+					weightCost += stats.database.cost * 0.8 * stats.database.cpu.reserved / stats.database.cpu.available;
 				}
-				if (usage.database.ram.available) {
-					weightCost += usage.database.cost * 0.2 * usage.database.ram.reserved / usage.database.ram.available;
+				if (stats.database.ram.available) {
+					weightCost += stats.database.cost * 0.2 * stats.database.ram.reserved / stats.database.ram.available;
 				}
-				if (usage.storage.available) {
-					weightCost += usage.storage.cost * usage.storage.reserved / usage.storage.available;
+				if (stats.storage.available) {
+					weightCost += stats.storage.cost * stats.storage.reserved / stats.storage.available;
 				}
 				_('prov-gauge').removeClass('hidden');
 				// Weight average of average...
-				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightCost * 100 / usage.costNoSupport));
+				d3.select('#prov-gauge').on('valueChanged')(Math.floor(weightCost * 100 / stats.costNoSupport));
 			} else {
 				$('#prov-gauge').addClass('hidden');
 			}
@@ -3202,10 +3218,10 @@ define(function () {
 		},
 
 		/**
-		 * Compute the global resource usage of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
+		 * Compute the global resource stats of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		computeUsage: function () {
+		computeStats: function () {
 			var conf = current.model.configuration;
 			var nb = 0;
 			var i, t, qi, cost;
@@ -3434,10 +3450,10 @@ define(function () {
 			}
 		},
 
-		toD3: function (usage) {
+		toD3: function (stats) {
 			var root = {
 				name: current.$messages['service:prov:total'],
-				value: usage.cost,
+				value: stats.cost,
 				children: []
 			};
 			current.types.forEach(type => {
@@ -3445,19 +3461,19 @@ define(function () {
 					value: 0,
 					type: 'root-' + type,
 					children: [],
-					nb: usage[type].nb,
-					min: usage[type].min,
-					unbound: usage[type].unbound
+					nb: stats[type].nb,
+					min: stats[type].min,
+					unbound: stats[type].unbound
 				};
-				current[type + 'ToD3'](data, usage);
+				current[type + 'ToD3'](data, stats);
 				root.children.push(data);
 			});
 			return root;
 		},
 
-		instanceToD3: function (data, usage) {
+		instanceToD3: function (data, stats) {
 			var allOss = {};
-			var instances = usage.instance.filtered;
+			var instances = stats.instance.filtered;
 			data.name = current.$messages['service:prov:instances-block'];
 			for (var i = 0; i < instances.length; i++) {
 				var qi = instances[i];
@@ -3482,9 +3498,9 @@ define(function () {
 				});
 			}
 		},
-		databaseToD3: function (data, usage) {
+		databaseToD3: function (data, stats) {
 			var allEngines = {};
-			var databases = usage.database.filtered;
+			var databases = stats.database.filtered;
 			data.name = current.$messages['service:prov:databases-block'];
 			for (var i = 0; i < databases.length; i++) {
 				var qi = databases[i];
@@ -3510,8 +3526,8 @@ define(function () {
 			}
 		},
 
-		storageToD3: function (data, usage) {
-			var storages = usage.storage.filtered;
+		storageToD3: function (data, stats) {
+			var storages = stats.storage.filtered;
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
 			for (var i = 0; i < storages.length; i++) {
@@ -3538,8 +3554,8 @@ define(function () {
 			}
 		},
 
-		supportToD3: function (data, usage) {
-			var supports = usage.support.filtered;
+		supportToD3: function (data, stats) {
+			var supports = stats.support.filtered;
 			data.name = current.$messages['service:prov:support-block'];
 			for (var i = 0; i < supports.length; i++) {
 				var support = supports[i];
@@ -3684,15 +3700,15 @@ define(function () {
 		},
 
 		/**
-		 * Donut of usage
+		 * Donut of stats
 		 * @param {integer} rate The rate percentage 1-100%
 		 */
-		updateD3UsageRate: function (rate) {
+		updateD3StasRate: function (rate) {
 			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
 				if (current.contextDonut) {
 					donut.update(current.contextDonut, rate);
 				} else {
-					current.contextDonut = donut.create("#usage-chart", rate, 250, 250);
+					current.contextDonut = donut.create("#efficiency-chart", rate, 250, 250);
 				}
 			});
 		},
@@ -3825,7 +3841,7 @@ define(function () {
 					data: 'budget',
 					className: 'hidden-xs hidden-sm budget',
 					type: 'string',
-					render: formatUsageTemplate,
+					render: formatBudget,
 					filter: opFunction => (value, data) => opFunction(data.budget ? data.budget.name : current.model.configuration.budget ? current.model.configuration.budget.name : 'default')
 				}, {
 					data: 'location',
