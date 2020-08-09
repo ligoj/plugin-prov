@@ -15,12 +15,13 @@ import org.ligoj.app.plugin.prov.model.Rate;
  * {@link ProvDatabaseType} repository.
  */
 public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeRepository<ProvDatabaseType> {
+
 	@CacheResult(cacheName = "prov-database-type")
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey int ram,
-			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor,
-			@CacheKey boolean autoScale, @CacheKey Rate cpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate,
-			@CacheKey Rate storageRate);
+			@CacheKey double maxCpu, @CacheKey int maxRam, @CacheKey Boolean constant, @CacheKey Boolean physical,
+			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-database-type-dyn")
 	@Override

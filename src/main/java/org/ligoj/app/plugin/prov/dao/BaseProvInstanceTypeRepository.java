@@ -37,6 +37,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
 	 * @param cpu         The minimum CPU.
 	 * @param ram         The minimum RAM in MB.
+	 * @param maxCpu      The maximum CPU.
+	 * @param maxRam      The maximum RAM in MB.
 	 * @param constant    The optional constant CPU behavior constraint.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.
@@ -48,21 +50,23 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param storageRate Optional minimal storage rate.
 	 * @return The matching database instance types.
 	 */
-	@Query("SELECT id FROM #{#entityName} WHERE                          "
-			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
-			+ "  AND (:type IS NULL OR id = :type)                       "
-			+ "  AND cpu != 0 AND cpu>= :cpu AND ram>=:ram               "
-			+ "  AND (:constant IS NULL OR constant = :constant)         "
-			+ "  AND (:physical IS NULL OR physical = :physical)         "
-			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)      "
-			+ "  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)           "
-			+ "  AND (:ramRate IS NULL OR ramRate >= :ramRate)           "
-			+ "  AND (:networkRate IS NULL OR networkRate >= :networkRate)  "
-			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)  "
-			+ "  AND (:processor IS NULL                                 "
+	@Query("SELECT id FROM #{#entityName} WHERE                                "
+			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))      "
+			+ "  AND (:type IS NULL OR id = :type)                             "
+			+ "  AND cpu BETWEEN :cpu AND :maxCpu                              "
+			+ "  AND ram BETWEEN :ram AND :maxRam                              "
+			+ "  AND (:constant IS NULL OR constant = :constant)               "
+			+ "  AND (:physical IS NULL OR physical = :physical)               "
+			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)            "
+			+ "  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)                 "
+			+ "  AND (:ramRate IS NULL OR ramRate >= :ramRate)                 "
+			+ "  AND (:networkRate IS NULL OR networkRate >= :networkRate)     "
+			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)     "
+			+ "  AND (:processor IS NULL                                       "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
-	List<Integer> findValidTypes(String node, double cpu, int ram, Boolean constant, Boolean physical, Integer type,
-			String processor, boolean autoScale, Rate cpuRate, Rate ramRate, Rate networkRate, Rate storageRate);
+	List<Integer> findValidTypes(String node, double cpu, int ram, double maxCpu, int maxRam, Boolean constant,
+			Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
+			Rate networkRate, Rate storageRate);
 
 	/**
 	 * Return the valid instance types matching the requirements.
