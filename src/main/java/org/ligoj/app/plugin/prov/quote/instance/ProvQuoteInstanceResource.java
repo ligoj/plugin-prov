@@ -5,7 +5,6 @@
 package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import javax.transaction.Transactional;
@@ -36,6 +35,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
@@ -168,26 +168,30 @@ public class ProvQuoteInstanceResource extends
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteInstance query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
-		// Resolve the right OS
 		final var service = getService(configuration);
+		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
+		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		return ipRepository.findLowestPrice(types, terms, os, location, rate, duration, licenseR, softwareR,
-				initialCost, PageRequest.of(0, 1));
+				initialCost, tenancyR, PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteInstance query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
+		final var service = getService(configuration);
+		// Resolve the right OS
+		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
-		final var os = Optional.ofNullable(query.getOs()).map(VmOs::toPricingOs).orElse(null);
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
+		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		return ipRepository.findLowestDynamicPrice(types, terms, cpu, ram, os, location, rate, duration, licenseR,
-				softwareR, initialCost, PageRequest.of(0, 1));
+				softwareR, initialCost, tenancyR, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final VmOs os) {

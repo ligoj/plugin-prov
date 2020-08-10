@@ -66,6 +66,11 @@ public class ProvQuoteInstance extends AbstractQuoteVm<ProvInstancePrice> implem
 	@ManyToOne
 	private ProvInstancePrice price;
 
+	/**
+	 * The requested tenancy.
+	 */
+	private ProvTenancy tenancy = ProvTenancy.SHARED;
+
 	@Override
 	public ResourceType getResourceType() {
 		return ResourceType.INSTANCE;

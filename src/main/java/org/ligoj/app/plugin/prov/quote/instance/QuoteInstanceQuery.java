@@ -7,6 +7,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceQuery;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
@@ -32,4 +33,9 @@ public class QuoteInstanceQuery extends AbstractQuoteInstanceQuery implements Qu
 
 	@QueryParam("software")
 	private String software;
+
+	@DefaultValue(value = "SHARED")
+	@QueryParam("tenancy")
+	@Builder.Default
+	private ProvTenancy tenancy = ProvTenancy.SHARED;
 }

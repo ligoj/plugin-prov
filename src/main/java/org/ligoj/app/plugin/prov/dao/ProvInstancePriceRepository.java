@@ -10,6 +10,7 @@ import javax.cache.annotation.CacheResult;
 
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -59,6 +60,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
+	 * @param tenancy     The requested tenancy.
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -73,6 +75,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "      ip.location.id = :location                                                           "
 			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
 			+ "  AND ip.os=:os                                                                            "
+			+ "  AND ip.tenancy=:tenancy                                 "
 			+ "  AND (:software IS NULL OR :software = ip.software)                                       "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                                 "
@@ -80,7 +83,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  ORDER BY totalCost ASC")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
 			int location, double rate, double duration, String license, String software, double initialCost,
-			Pageable pageable);
+			ProvTenancy tenancy, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -95,6 +98,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
+	 * @param tenancy     The requested tenancy.
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -106,14 +110,16 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)               "
 			+ "  ELSE ip.cost END AS monthlyCost                         "
 			+ " FROM #{#entityName} ip  WHERE                            "
-			+ "      ip.location.id = :location                                                           "
-			+ "  AND ip.incrementCpu IS NULL                                                          "
+			+ "      ip.location.id = :location                          "
+			+ "  AND ip.incrementCpu IS NULL                             "
 			+ "  AND ip.os=:os                                           "
+			+ "  AND ip.tenancy=:tenancy                                 "
 			+ "  AND (:software IS NULL OR :software = ip.software)      "
 			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                                 "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                          "
 			+ "  ORDER BY totalCost ASC")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
-			double duration, String license, String software, double initialCost, Pageable pageable);
+			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
+			Pageable pageable);
 }

@@ -19,6 +19,6 @@ public interface ProvisioningService {
 	 * @return The OS used in the database lookup.
 	 */
 	default VmOs getCatalogOs(VmOs os) {
-		return Optional.ofNullable(os).map(VmOs::toPricingOs).orElse(null);
+		return Optional.ofNullable(os).map(VmOs::toPricingOs).orElse(os);
 	}
 }

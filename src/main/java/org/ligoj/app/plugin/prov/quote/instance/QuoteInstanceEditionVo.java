@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov.quote.instance;
 import javax.validation.constraints.Positive;
 
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
@@ -41,4 +42,9 @@ public class QuoteInstanceEditionVo extends AbstractQuoteInstanceEditionVo imple
 	 * Optional built-in software.
 	 */
 	private String software;
+
+	/**
+	 * The requested tenancy.
+	 */
+	private ProvTenancy tenancy = ProvTenancy.SHARED;
 }
