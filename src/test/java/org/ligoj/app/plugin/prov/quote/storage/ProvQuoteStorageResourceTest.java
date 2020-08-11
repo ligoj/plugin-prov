@@ -752,6 +752,15 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Lookup for a storage with invalid location
+	 */
+	@Test
+	void lookupStorageUnknownLocation() {
+		Assertions.assertEquals(0,
+				qsResource.lookup(subscription, QuoteStorageQuery.builder().location("any").build()).size());
+	}
+
+	/**
 	 * Lookup for a storage compatible to instance.
 	 */
 	@Test
@@ -763,6 +772,11 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 		var lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
 		Assertions.assertEquals("storage1", lookup.getPrice().getType().getCode());
+
+		// Lookup invalid location fallback to quote's one
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).location("any").build())
+				.get(0);
+		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setInstanceType("-not-match-");
 		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);

@@ -308,7 +308,7 @@ public class ProvQuoteStorageResource
 			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteVm::getLocation).map(Persistable::getId)
 					.orElse(qLoc);
 		} else {
-			qsLoc = locationRepository.toId(node, query.getLocationName());
+			qsLoc = Optional.ofNullable(locationRepository.toId(node, query.getLocationName())).orElse(0);
 		}
 
 		return spRepository
