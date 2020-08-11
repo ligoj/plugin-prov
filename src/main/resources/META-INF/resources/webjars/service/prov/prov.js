@@ -3780,6 +3780,8 @@ define(function () {
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
 								subscription: current.model.subscription,
+								optimized: suggest.price.type.optimized,
+								latency: suggest.price.type.latency
 							};
 							current.$main.trimObject(data);
 							$.ajax({
