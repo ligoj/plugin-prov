@@ -340,7 +340,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The adjusted required CPU depending on the configuration.
 	 */
 	protected double getCpu(final ProvQuote configuration, final QuoteVm qi) {
-		return getReserved(configuration, qi.getCpu(), qi.getCpuMax());
+		return Math.max(0.5d, getReserved(configuration, qi.getCpu(), qi.getCpuMax()));
 	}
 
 	/**
@@ -351,7 +351,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The adjusted required RAM from the original one and the RAM configuration.
 	 */
 	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
-		return Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100)
+		return Math.max(128, Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100))
 				* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
 	}
 
@@ -542,10 +542,10 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
 		final var maxPeriod = (int) Math.ceil(duration * rate) + 12;
-		var lookup = this.lookup(configuration, query, maxPeriod, 4);
+		var lookup = this.lookup(configuration, query, maxPeriod, 10);
 		if (lookup == null) {
 			// Another wider lookup
-			lookup = this.lookup(configuration, query, 100, 100);
+			lookup = this.lookup(configuration, query, 10000, 10000);
 		}
 		// Return the match
 		return lookup;
@@ -586,8 +586,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		final var types = getItRepository().findValidTypes(node, cpuR, (int) ramR, cpuR * maxFactor,
-				(int) (ramR * maxFactor), query.getConstant(), physR, typeId, procR, query.isAutoScale(),
+		final var types = getItRepository().findValidTypes(node, cpuR, ramR, cpuR * maxFactor,
+				 ramR * maxFactor, query.getConstant(), physR, typeId, procR, query.isAutoScale(),
 				query.getCpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node, getResourceType() == ResourceType.INSTANCE && convOs,
 				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,

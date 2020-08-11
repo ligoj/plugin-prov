@@ -182,7 +182,8 @@ public class ProvQuoteDatabaseResource extends
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(cpu), Math.ceil(round(ram / 1024)), engineR,
-				editionR, location, rate, duration, licenseR, initialCost, PageRequest.of(0, 1));
+				editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
+				PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final String engine) {

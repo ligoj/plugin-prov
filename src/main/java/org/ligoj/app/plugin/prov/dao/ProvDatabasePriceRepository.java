@@ -60,12 +60,13 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param cpu         The minimum CPU.
-	 * @param ram         The minimum RAM in MB.
+	 * @param ram         The minimum RAM in GiB.
 	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param location    The requested location identifier.
 	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
@@ -73,12 +74,12 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @return The minimum database price or empty result.
 	 */
 	@Query("SELECT ip,                                                                                    "
-			+ " (((CEIL(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu) * ip.costCpu)"
+			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu * ip.incrementCpu) * ip.costCpu)"
 			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN (:rate * :duration) ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
-			+ " (((CEIL(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu) * ip.costCpu)"
+			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
+			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu * ip.incrementCpu) * ip.costCpu)"
 			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1 END)) AS monthlyCost                         "
+			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost                         "
 			+ " FROM #{#entityName} ip WHERE                                                              "
 			+ "      ip.location.id = :location                                                           "
 			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
@@ -89,7 +90,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
 			+ "  ORDER BY totalCost ASC                                                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
-			String engine, String edition, int location, double rate, double duration, String license,
+			String engine, String edition, int location, double rate, double globalRate, double duration, String license,
 			double initialCost, Pageable pageable);
 
 	/**

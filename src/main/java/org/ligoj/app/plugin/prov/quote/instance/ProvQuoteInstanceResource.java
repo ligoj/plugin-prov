@@ -110,6 +110,7 @@ public class ProvQuoteInstanceResource extends
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setInternet(vo.getInternet());
 		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
+		entity.setTenancy(ObjectUtils.defaultIfNull(vo.getTenancy(), ProvTenancy.SHARED));
 		checkOs(entity);
 	}
 
@@ -190,8 +191,9 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
 		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(cpu), Math.ceil(round(ram / 1024)), os,
-				location, rate, duration, licenseR, softwareR, initialCost, tenancyR, PageRequest.of(0, 1));
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),
+				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR, softwareR,
+				initialCost, tenancyR, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final VmOs os) {

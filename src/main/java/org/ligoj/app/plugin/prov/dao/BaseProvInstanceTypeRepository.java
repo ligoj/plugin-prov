@@ -53,8 +53,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	@Query("SELECT id FROM #{#entityName} WHERE                                "
 			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))      "
 			+ "  AND (:type IS NULL OR id = :type)                             "
-			+ "  AND cpu BETWEEN :cpu AND :maxCpu                              "
-			+ "  AND ram BETWEEN :ram AND :maxRam                              "
+			+ "  AND (cpu BETWEEN :cpu AND :maxCpu)                            "
+			+ "  AND (ram BETWEEN :ram AND :maxRam)                            "
 			+ "  AND (:constant IS NULL OR constant = :constant)               "
 			+ "  AND (:physical IS NULL OR physical = :physical)               "
 			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)            "
@@ -64,7 +64,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)     "
 			+ "  AND (:processor IS NULL                                       "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
-	List<Integer> findValidTypes(String node, double cpu, int ram, double maxCpu, int maxRam, Boolean constant,
+	List<Integer> findValidTypes(String node, double cpu, double ram, double maxCpu, double maxRam, Boolean constant,
 			Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
 			Rate networkRate, Rate storageRate);
 

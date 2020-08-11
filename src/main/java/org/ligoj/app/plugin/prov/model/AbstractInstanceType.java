@@ -34,7 +34,7 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	/**
 	 * RAM (Memory) in "MiB" = "Mega Bytes".
 	 */
-	private int ram;
+	private double ram;
 
 	/**
 	 * Optional physical processor. May be <code>null</code>.

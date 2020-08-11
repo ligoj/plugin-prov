@@ -22,6 +22,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
 import org.ligoj.app.plugin.prov.model.ProvSupportType;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
@@ -262,15 +263,18 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Advanced case, all requirements.
+	 * Lookup constant and low RAM.
 	 */
 	@Test
 	void lookupHighConstraints() throws IOException {
-		final var lookup = new ObjectMapperTrim().readValue(
-				new ObjectMapperTrim().writeValueAsString(qiResource.lookup(subscription,
-						builder().cpu(3).ram(9).constant(true).os(VmOs.WINDOWS).usage(FULL).build())),
+		final var build = builder().cpu(3).ram(9).constant(true).tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
+				.usage(FULL).build();
+		build.setTenancy(ProvTenancy.SHARED); // Coverage only
+		final var lookupObj = qiResource.lookup(subscription, build);
+		final var lookup = new ObjectMapperTrim().readValue(new ObjectMapperTrim().writeValueAsString(lookupObj),
 				QuoteInstanceLookup.class);
 		final var pi = lookup.getPrice();
+		Assertions.assertEquals("C54", pi.getCode());
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance9", pi.getType().getName());
 		Assertions.assertEquals(4, pi.getType().getCpu());
@@ -399,7 +403,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertTrue(pi.getType().isCustom());
 
-		Assertions.assertEquals(242590.846, lookup.getCost(), DELTA);
+		Assertions.assertEquals(242594.101, lookup.getCost(), DELTA);
 	}
 
 	/**
@@ -407,8 +411,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupCustomIsCheaper() {
-		assertPrice(qiResource.lookup(subscription, builder().ram(16000).usage("Dev").build()), "C74", "dynamic",
-				147.453, "on-demand1");
+		assertPrice(qiResource.lookup(subscription, builder().ram(15360).usage("Dev").build()), "C74", "dynamic",
+				145.825d, "on-demand1");
 	}
 
 	/**
@@ -877,6 +881,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setConstant(true);
 		vo.setPhysical(false);
 		vo.setInternet(InternetAccess.PUBLIC);
+		vo.setTenancy(ProvTenancy.SHARED);
 		vo.setMaxVariableCost(210.9);
 		vo.setEphemeral(true);
 		vo.setMinQuantity(10);

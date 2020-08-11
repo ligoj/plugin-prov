@@ -33,10 +33,10 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	/**
 	 * Required memory in MiB.
 	 */
-	@DefaultValue(value = "1")
+	@DefaultValue(value = "1024")
 	@QueryParam("ram")
 	@Builder.Default
-	private int ram = 1;
+	private int ram = 1024;
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.

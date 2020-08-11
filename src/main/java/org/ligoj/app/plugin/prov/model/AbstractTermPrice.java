@@ -50,22 +50,22 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	private double period = 0;
 
 	/**
-	 * The optional monthly cost of one requested CPU. Not <code>null</code> for dynamic instance type.
+	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
 	 */
 	private Double costCpu;
 
 	/**
-	 * The optional monthly cost of one requested GB memory. Not <code>null</code> for dynamic instance type.
+	 * The optional monthly cost of one requested GB memory. Required for dynamic instance type.
 	 */
 	private Double costRam;
 
 	/**
-	 * Increment CPU step. Not <code>null</code> for dynamic instance type.
+	 * Increment CPU step. Required for dynamic instance type.
 	 */
 	private Double incrementCpu;
 
 	/**
-	 * Minimal CPU. Not <code>null</code> for dynamic instance type.
+	 * Minimal CPU. Required for dynamic instance type.
 	 */
 	private Double minCpu;
 
