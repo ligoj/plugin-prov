@@ -51,7 +51,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param cpu         The minimum CPU.
-	 * @param ram         The minimum RAM in MB.
+	 * @param ram         The minimum RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
 	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
@@ -66,20 +66,20 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 */
 	@Query("SELECT ip,                                                   "
 			+ " (((CEIL(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu) * ip.costCpu)"
-			+ " + (CEIL(:ram / 1024.0) * ip.costRam) + ip.cost)          "
+			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
 			+ " * (CASE WHEN ip.period = 0 THEN (:rate * :duration) ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
 			+ " (((CEIL(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu) * ip.costCpu)"
-			+ " + (CEIL(:ram / 1024.0) * ip.costRam) + ip.cost)                                           "
+			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
 			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1 END)) AS monthlyCost                         "
 			+ " FROM #{#entityName} ip WHERE                                                              "
 			+ "      ip.location.id = :location                                                           "
 			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
 			+ "  AND ip.os=:os                                                                            "
-			+ "  AND ip.tenancy=:tenancy                                 "
+			+ "  AND ip.tenancy=:tenancy                                                                  "
 			+ "  AND (:software IS NULL OR :software = ip.software)                                       "
-			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                                 "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                          "
+			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
+			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
+			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
 			+ "  ORDER BY totalCost ASC")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
 			int location, double rate, double duration, String license, String software, double initialCost,
@@ -115,10 +115,9 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND ip.os=:os                                           "
 			+ "  AND ip.tenancy=:tenancy                                 "
 			+ "  AND (:software IS NULL OR :software = ip.software)      "
-			+ "  AND (((:license IS NULL OR :license = 'BYOL') AND ip.license IS NULL) OR :license = ip.license)"
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                                 "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                          "
-			+ "  ORDER BY totalCost ASC")
+			+ "  AND (ip.license IS NULL OR :license = ip.license)       "
+			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)"
+			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)   " + "  ORDER BY totalCost ASC")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
 			Pageable pageable);

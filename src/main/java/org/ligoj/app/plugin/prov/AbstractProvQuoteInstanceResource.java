@@ -434,7 +434,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 */
 	protected double getCustomCost(final Double cpu, final Integer ram, final P ip) {
 		// Compute the count of the requested resources
-		return getCustomCost(cpu, ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024);
+		return getCustomCost(
+				Math.round(Math.ceil(Math.max(cpu, ip.getMinCpu()) / ip.getIncrementCpu()) * ip.getIncrementCpu()),
+				ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024);
 	}
 
 	/**
