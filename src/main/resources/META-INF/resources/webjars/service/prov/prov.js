@@ -115,7 +115,7 @@ define(function () {
 			}
 			if (i.cost) {
 				cost += i.cost;
-			};
+			}
 		});
 		conf[`${type}sById`] = ids;
 		conf[`${type}Cost`] = cost;
@@ -614,21 +614,19 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMutiScoped(budget, current.model.configuration.budge, mode, 'budge', () => {
-			if (typeof budget.initialCost === 'number' && budget.initialCost > 1) {
-				tooltip += `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}`;
-			}
-		});
+		return formatMutiScoped(budget, current.model.configuration.budge, mode, 'budge', () => (typeof budget.initialCost === 'number' && budget.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
 	}
 
 	function formatUsageTemplate(usage, mode) {
 		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'usage', () => {
+			let tooltip = '';
 			if (typeof usage.start === 'number' && usage.duration > 1) {
 				tooltip += `<br>${current.title('usage-duration')}${usage.duration} month(s)`;
 			}
 			if (typeof usage.start === 'number' && usage.start > 0) {
 				tooltip += `<br>${current.title('usage-start')}${usage.start} month(s)`;
 			}
+			return tooltip;
 		});
 	}
 

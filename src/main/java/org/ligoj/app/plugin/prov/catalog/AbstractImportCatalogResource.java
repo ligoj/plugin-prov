@@ -563,8 +563,8 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity  The target entity to update.
 	 * @return the given entity.
 	 */
-	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context,
-			final ProvLocation entity, final Consumer<ProvLocation> updater) {
+	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context, final ProvLocation entity,
+			final Consumer<ProvLocation> updater) {
 		if (context.getMergedLocations().add(entity.getName())) {
 			updater.accept(entity);
 			locationRepository.saveAndFlush(entity);
@@ -585,12 +585,10 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <K extends Serializable, P extends Persistable<K>> P copyAsNeeded(final AbstractUpdateContext context,
 			final P entity, Consumer<P> updater, final RestRepository<P, K> repository) {
-		synchronized (entity) {
-			if (isNeedUpdate(context, entity)) {
-				updater.accept(entity);
-				if (repository != null) {
-					repository.save(entity);
-				}
+		if (isNeedUpdate(context, entity)) {
+			updater.accept(entity);
+			if (repository != null) {
+				repository.save(entity);
 			}
 		}
 		return entity;
