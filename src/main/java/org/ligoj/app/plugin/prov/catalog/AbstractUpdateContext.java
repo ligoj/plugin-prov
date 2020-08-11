@@ -205,18 +205,12 @@ public abstract class AbstractUpdateContext {
 	public void setPrevious(final Map<String, ProvInstancePrice> previous) {
 		this.previous = previous;
 		this.previousDatabase.clear();
-		this.mergedTypes.clear();
-		this.mergedLocations.clear();
-		this.mergedTerms.clear();
 		this.prices.clear();
 	}
 
 	public void setPreviousDatabase(final Map<String, ProvDatabasePrice> previous) {
 		this.previousDatabase = previous;
 		this.previous.clear();
-		this.mergedTypes.clear();
-		this.mergedTerms.clear();
-		this.mergedLocations.clear();
 		this.prices.clear();
 	}
 
