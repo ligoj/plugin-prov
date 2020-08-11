@@ -158,8 +158,8 @@ public class ProvQuoteStorageResource
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
 		entity.setSizeMax(vo.getSizeMax());
-		entity.setQuoteInstance(checkInstance(subscription, vo.getQuoteInstance()));
-		entity.setQuoteDatabase(checkDatabase(subscription, vo.getQuoteDatabase()));
+		entity.setQuoteInstance(checkInstance(subscription, vo.getInstance()));
+		entity.setQuoteDatabase(checkDatabase(subscription, vo.getDatabase()));
 		final var resolvedLocation = Objects.requireNonNullElseGet(entity.getLocation(),
 				() -> Objects.requireNonNullElse(entity.getQuoteResource(), entity).getResolvedLocation());
 		entity.setPrice(findByTypeCode(subscription, vo.getType(), resolvedLocation, quote));
@@ -204,8 +204,8 @@ public class ProvQuoteStorageResource
 	 * Check there is no ambiguous database/instance usage.
 	 */
 	private void checkInstance(final QuoteStorageEditionVo vo) {
-		if (vo.getQuoteInstance() != null && vo.getQuoteDatabase() != null) {
-			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getQuoteInstance());
+		if (vo.getInstance() != null && vo.getDatabase() != null) {
+			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getInstance());
 		}
 	}
 

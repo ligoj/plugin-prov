@@ -449,16 +449,14 @@ public class ProvQuoteUploadResource {
 			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
 			vo.setPrice(
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setQuoteDatabase,
-					ResourceType.DATABASE);
+			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
 			// Instance case
 			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
 			vo.setPrice(
 					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setQuoteInstance,
-					ResourceType.INSTANCE);
+			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
 		}
 		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
 		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {

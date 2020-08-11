@@ -11,8 +11,6 @@ import javax.validation.constraints.Positive;
 
 import org.hibernate.validator.constraints.Length;
 import org.ligoj.app.plugin.prov.TagVo;
-import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
-import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
 import org.ligoj.bootstrap.core.validation.SafeHtml;
@@ -47,31 +45,6 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private String description;
 
 	/**
-	 * Optional linked quoted instance.
-	 */
-	private Integer quoteInstance;
-
-	/**
-	 * Optional linked quoted instance.
-	 */
-	private Integer quoteDatabase;
-
-	/**
-	 * Optional location constraint.
-	 */
-	private String location;
-
-	/**
-	 * Optional required latency class.
-	 */
-	private Rate latency;
-
-	/**
-	 * Optional required optimized best usage of this storage
-	 */
-	private ProvStorageOptimized optimized;
-
-	/**
 	 * Related storage type code within the given location.
 	 */
 	@NotNull
@@ -96,17 +69,6 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	 * The tags to override when not <code>null</code>.
 	 */
 	private List<TagVo> tags;
-
-	@Override
-	public Integer getInstance() {
-		return getQuoteInstance();
-	}
-
-	@Override
-	@JsonIgnore
-	public Integer getDatabase() {
-		return getQuoteDatabase();
-	}
 
 	@Override
 	@JsonIgnore

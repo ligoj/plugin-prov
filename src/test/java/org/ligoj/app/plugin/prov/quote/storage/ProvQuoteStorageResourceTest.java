@@ -80,7 +80,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("storage3-root-bis");
 		vo.setType("storage3");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(1);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"type", "type-incompatible-requirements");
@@ -95,8 +95,8 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("storage1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
-		vo.setQuoteDatabase(database1());
+		vo.setInstance(server1());
+		vo.setDatabase(database1());
 		vo.setSize(1);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"instance", "ambiguous-instance-database");
@@ -136,13 +136,13 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(512);
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 7320.238, 10776.298, false);
 		checkCost(cost.getCost(), 215.04, 1075.2, false);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 1464.0, false);
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getInstance()), 292.8, 1464.0, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -163,13 +163,13 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("mysql1");
 		vo.setType("storage5-database");
-		vo.setQuoteDatabase(database1());
+		vo.setDatabase(database1());
 		vo.setSize(512);
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 7823.998, 11138.698, false);
 		checkCost(cost.getCost(), 718.8, 1437.6, false);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.DATABASE).get(vo.getQuoteDatabase()), 116.3, 232.6, false);
+		checkCost(cost.getRelated().get(ResourceType.DATABASE).get(vo.getDatabase()), 116.3, 232.6, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -193,13 +193,13 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("oracle1");
 		vo.setType("storage7-database");
-		vo.setQuoteDatabase(qbRepository.findByName("database3").getId());
+		vo.setDatabase(qbRepository.findByName("database3").getId());
 		vo.setSize(512);
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 7926.398, 10522.298, false);
 		checkCost(cost.getCost(), 821.2, 821.2, false);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.DATABASE).get(vo.getQuoteDatabase()), 146.4, 146.4, false);
+		checkCost(cost.getRelated().get(ResourceType.DATABASE).get(vo.getDatabase()), 146.4, 146.4, false);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -223,7 +223,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("mysqlOverOracle");
 		vo.setType("storage7-database");
-		vo.setQuoteDatabase(database1());
+		vo.setDatabase(database1());
 		vo.setSize(512);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"type", "type-incompatible-requirements");
@@ -238,7 +238,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("oracleOverMySQL");
 		vo.setType("storage5-database");
-		vo.setQuoteDatabase(qbRepository.findByName("database3").getId());
+		vo.setDatabase(qbRepository.findByName("database3").getId());
 		vo.setSize(512);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
 				"type", "type-incompatible-requirements");
@@ -253,13 +253,13 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setSubscription(subscription);
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(512);
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getTotal(), 7320.238, 7466.538, true);
 		checkCost(cost.getCost(), 215.04, 215.04, true);
 		Assertions.assertEquals(1, cost.getRelated().size());
-		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getQuoteInstance()), 292.8, 292.8, true);
+		checkCost(cost.getRelated().get(ResourceType.INSTANCE).get(vo.getInstance()), 292.8, 292.8, true);
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
@@ -334,7 +334,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setType("storage1");
 		vo.setOptimized(null);
 		vo.setLatency(Rate.GOOD);
-		vo.setQuoteInstance(qiRepository.findByName("server2").getId());
+		vo.setInstance(qiRepository.findByName("server2").getId());
 		vo.setSize(512);
 		final var cost = qsResource.create(vo);
 		checkCost(cost.getCost(), 107.52, 107.52, false);
@@ -345,7 +345,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 		// Change some constraints
 		vo.setLatency(Rate.WORST);
-		vo.setQuoteInstance(null);
+		vo.setInstance(null);
 		vo.setId(cost.getId());
 
 		// Cost is the same since the type still match the constraints
@@ -420,7 +420,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertFalse(qs.isUnboundCost());
 
 		// Attach back this storage to "server1
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		cost = qsResource.update(vo);
 		checkCost(cost.getTotal(), 7105.198, 7251.498, true);
 		checkCost(cost.getCost(), 8.4, 8.4, true);
@@ -438,7 +438,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(512);
 		vo.setLocation("region-1");
 		qsResource.update(vo);
@@ -455,7 +455,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(512);
 		vo.setLocation("region-Z");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
@@ -468,7 +468,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(server1());
+		vo.setInstance(server1());
 		vo.setSize(512);
 		vo.setLocation("region-3");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
@@ -543,7 +543,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(0);
+		vo.setInstance(0);
 		vo.setSize(1);
 		Assertions.assertThrows(JpaObjectRetrievalFailureException.class, () -> qsResource.update(vo));
 	}
@@ -558,7 +558,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setId(qsRepository.findByNameExpected("server1-root").getId());
 		vo.setName("server1-root-bis");
 		vo.setType("storage1");
-		vo.setQuoteInstance(qiRepository.findByName("serverX").getId());
+		vo.setInstance(qiRepository.findByName("serverX").getId());
 		vo.setSize(1);
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qsResource.update(vo));
 	}

@@ -2619,8 +2619,8 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			current.attachStorage(model, 'instance', data.quoteInstance);
-			current.attachStorage(model, 'database', data.quoteDatabase);
+			current.attachStorage(model, 'instance', data.instance);
+			current.attachStorage(model, 'database', data.database);
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2656,13 +2656,13 @@ define(function () {
 		},
 
 		storageUiToData: function (data) {
-			delete data.quoteInstance;
-			delete data.quoteDatabase;
+			delete data.instance;
+			delete data.database;
 			if (_('storage-instance').select2('data')) {
 				if (_('storage-instance').select2('data').resourceType === 'database') {
-					data.quoteDatabase = (_('storage-instance').select2('data') || {}).id;
+					data.database = (_('storage-instance').select2('data') || {}).id;
 				} else {
-					data.quoteInstance = (_('storage-instance').select2('data') || {}).id;
+					data.instance = (_('storage-instance').select2('data') || {}).id;
 				}
 			}
 			data.size = cleanInt(_('storage-size').val());
@@ -3777,9 +3777,9 @@ define(function () {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.name,
 								size: suggest.size,
-								quoteInstance: type === 'instance' && qi.id,
-								quoteDatabase: type === 'database' && qi.id,
-								subscription: current.model.subscription
+								instance: type === 'instance' && qi.id,
+								database: type === 'database' && qi.id,
+								subscription: current.model.subscription,
 							};
 							current.$main.trimObject(data);
 							$.ajax({
