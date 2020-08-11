@@ -12,6 +12,7 @@ import javax.validation.constraints.PositiveOrZero;
 import org.ligoj.app.plugin.prov.model.AbstractProvTag;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
+import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.VmOs;
 
@@ -161,6 +162,11 @@ public class VmUpload {
 	 * Optional built-in software.
 	 */
 	private String software;
+
+	/**
+	 * Optional tenancy.
+	 */
+	private ProvTenancy tenancy = ProvTenancy.SHARED;
 
 	/**
 	 * Optional tags with space, comma or semi-column separator.

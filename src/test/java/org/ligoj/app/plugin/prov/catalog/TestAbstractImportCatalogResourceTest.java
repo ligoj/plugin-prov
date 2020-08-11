@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
@@ -95,9 +96,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void copyAsNeededForce() {
-		final var entity = new ProvInstancePrice();
-		entity.setCode("old");
-		entity.setId(1);
+		final var entity = newPrice();
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
 		final var newContext = newContext();
 		newContext.setForce(true);
@@ -108,9 +107,48 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	}
 
 	@Test
-	void copyAsNeededNew() {
+	void copyAsNeededNewNotInContext() {
+		final var entity = newPrice();
+		entity.setId(null);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+
+		// Force mode for same cost + repository
+		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
+		em = Mockito.mock(EntityManager.class);
+		Mockito.when(em.contains(entity)).thenReturn(false);
+		copyAsNeeded(newContext, entity, consumer, repository);
+		Assertions.assertEquals("-updated-", entity.getCode());
+		Mockito.verify(repository, Mockito.atLeastOnce()).save(entity);
+	}
+
+	@Test
+	void copyAsNeededNewInContext() {
+		final var entity = newPrice();
+		entity.setId(null);
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
+		final var newContext = newContext();
+
+		// Force mode for same cost + repository
+		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
+		em = Mockito.mock(EntityManager.class);
+		Mockito.when(em.contains(entity)).thenReturn(true);
+		copyAsNeeded(newContext, entity, consumer, repository);
+		Assertions.assertEquals("old", entity.getCode());
+		Mockito.verify(repository, Mockito.never()).save(entity);
+	}
+
+	private ProvInstancePrice newPrice() {
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
+		entity.setId(1);
+		return entity;
+	}
+
+	@Test
+	void copyAsNeededNew() {
+		final var entity = newPrice();
+		entity.setId(null);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
 		final var newContext = newContext();
 
@@ -121,15 +159,41 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void copyAsNeededNo() {
-		final var entity = new ProvInstancePrice();
-		entity.setCode("old");
-		entity.setId(1);
+		final var entity = newPrice();
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
 		final var newContext = newContext();
 
 		// Force mode for same cost
 		copyAsNeeded(newContext, entity, consumer);
 		Assertions.assertEquals("old", entity.getCode());
+	}
+
+	@Test
+	void copyAsNeededTerm() {
+		final var entity = new ProvInstancePriceTerm();
+		entity.setCode("code");
+		entity.setName("old");
+		final Consumer<ProvInstancePriceTerm> consumer = t -> t.setName("-updated-");
+		final var newContext = newContext();
+		final var repository = Mockito.mock(ProvInstancePriceTermRepository.class);
+		this.iptRepository = repository;
+
+		// Force mode for same cost
+		copyAsNeeded(newContext, entity, consumer);
+		Assertions.assertEquals("-updated-", entity.getName());
+		newContext.getMergedTerms().contains("code");
+		Mockito.verify(repository).saveAndFlush(entity);
+
+		// No repository
+		newContext.getMergedTerms().clear();
+		final Consumer<ProvInstancePriceTerm> consumer2 = t -> t.setName("-renew-");
+		copyAsNeeded(newContext, entity, consumer2);
+		Assertions.assertEquals("-renew-", entity.getName());
+
+		// Only one update
+		final Consumer<ProvInstancePriceTerm> consumer3 = t -> t.setName("-not-called-");
+		copyAsNeeded(newContext, entity, consumer3);
+		Assertions.assertEquals("-renew-", entity.getName());
 	}
 
 	@Test
@@ -145,7 +209,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		copyAsNeeded(newContext, entity, consumer, repository);
 		Assertions.assertEquals("-updated-", entity.getName());
 		newContext.getMergedTypes().contains("code");
-		Mockito.verify(repository).save(entity);
+		Mockito.verify(repository).saveAndFlush(entity);
 
 		// No repository
 		newContext.getMergedTypes().clear();
@@ -285,7 +349,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertEquals(1, context.getHoursMonth());
 		Assertions.assertTrue(context.isForce());
 	}
-	
+
 	@BeforeEach
 	void setupEm() {
 		this.em = Mockito.mock(EntityManager.class);
@@ -439,9 +503,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void saveAsNeededForce() {
-		final var entity = new ProvInstancePrice();
-		entity.setCode("old");
-		entity.setId(1);
+		final var entity = newPrice();
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
 		final var newContext = newContext();
 		newContext.setForce(true);
@@ -498,7 +560,6 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Mockito.verify(repository, Mockito.never()).save(entity);
 	}
 
-
 	@Test
 	void saveAsNeededPriceTerm() {
 		final var entity = new ProvInstancePrice();
@@ -520,9 +581,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void saveAsNeededSame() {
-		final var entity = new ProvInstancePrice();
-		entity.setCode("old");
-		entity.setId(1);
+		final var entity = newPrice();
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
 		saveAsNeeded(newContext(), entity, 1, 1, null, consumer);
 		Assertions.assertEquals("old", entity.getCode());
@@ -530,10 +589,8 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void saveAsNeededSameRound() {
-		final var entity = new ProvInstancePrice();
+		final var entity = newPrice();
 		entity.setCost(1d);
-		entity.setCode("old");
-		entity.setId(1);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
 		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> {
 			entity.setCost(cRound);
