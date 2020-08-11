@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -189,6 +190,12 @@ public class ProvQuoteInstanceExportResource {
 		}, file).build();
 	}
 
+	/**
+	 * Return the name of a nullable object.
+	 */
+	private String toString(final ProvType optional) {
+		return optional == null ? "" : optional.getCode();
+	}
 	/**
 	 * Return the name of a nullable object.
 	 */

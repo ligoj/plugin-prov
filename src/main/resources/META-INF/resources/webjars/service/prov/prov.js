@@ -2668,7 +2668,7 @@ define(function () {
 			data.size = cleanInt(_('storage-size').val());
 			data.optimized = _('storage-optimized').val();
 			data.latency = _('storage-latency').val();
-			data.type = _('storage-price').select2('data').price.type.name;
+			data.type = _('storage-price').select2('data').price.type.code;
 		},
 
 		supportUiToData: function (data) {
@@ -2678,7 +2678,7 @@ define(function () {
 			data.accessPhone = (_('support-access-phone').select2('data') || {}).id || null;
 			data.accessChat = (_('support-access-chat').select2('data') || {}).id || null;
 			data.level = (_('support-level').select2('data') || {}).id || null;
-			data.type = _('support-price').select2('data').price.type.name;
+			data.type = _('support-price').select2('data').price.type.code;
 		},
 
 		genericUiToData: function (data) {
@@ -3775,7 +3775,7 @@ define(function () {
 							var suggest = event.added;
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
-								type: suggest.price.type.name,
+								type: suggest.price.type.code,
 								size: suggest.size,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
