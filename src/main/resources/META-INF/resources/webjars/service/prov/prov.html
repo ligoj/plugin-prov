@@ -57,27 +57,27 @@
 							</div>
 						</div>
 						<table id="prov-instances" class="table table-striped table-bordered justified">
-							<th scope="col"ead>
+							<thead>
 								<tr>
-									<th scope="col" class="noVis">{{name}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:os-help}}">{{service:prov:os}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-									<th scope="col" class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:os-help}}">{{service:prov:os}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+									<td class="dataTables_empty" colspan="15">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -99,18 +99,18 @@
 							</div>
 						</div>
 						<table id="prov-storages" class="table table-striped table-bordered justified">
-							<th scope="col"ead>
+							<thead>
 								<tr>
-									<th scope="col" class="noVis">{{name}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:storage-quantity}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-size-help}}"> {{service:prov:storage-size}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-latency-help}}" class="latency">{{service:prov:storage-latency}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}" class="optimized">{{service:prov:storage-optimized}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:storage-type}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-instance-help}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-									<th scope="col" class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:storage-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-size-help}}"> {{service:prov:storage-size}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-latency-help}}" class="latency">{{service:prov:storage-latency}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-optimized-help}}" class="optimized">{{service:prov:storage-optimized}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:storage-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-instance-help}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -137,23 +137,23 @@
 							</div>
 						</div>
 						<table id="prov-databases" class="table table-striped table-bordered justified">
-							<th scope="col"ead>
+							<thead>
 								<tr>
-									<th scope="col" class="noVis">{{name}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:database-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:database-engine-help}}"> {{service:prov:database-engine}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:database-edition-help}}"> {{service:prov:database-edition}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:database-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-									<th scope="col" class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-quantity-help}}" class="hidden-xs quantity"><i class="fas fa-ellipsis-h"></i><span class="hidden-table"> {{service:prov:instance-quantity}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:database-engine-help}}"> {{service:prov:database-engine}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-edition-help}}"> {{service:prov:database-edition}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:database-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:storage-help}}" class="hidden-xs hidden-sm"><i class="far fa-hdd"></i> {{service:prov:storage}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -180,19 +180,19 @@
 							</div>
 						</div>
 						<table id="prov-supports" class="table table-striped table-bordered justified">
-							<th scope="col"ead>
+							<thead>
 								<tr>
-									<th scope="col" class="noVis">{{name}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-level-help}}"><i class="fas fa-star"></i><span class="hidden-table"> {{service:prov:support-level}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-seats-help}}" class="hidden-xs icon-x3"><i class="fas fa-chair"></i><span class="hidden-table"> {{service:prov:support-seats}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-api-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-terminal"></i><span class="hidden-table"> {{service:prov:support-api}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-phone-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-phone"></i><span class="hidden-table"> {{service:prov:support-phone}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-email-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-envelope"></i><span class="hidden-table"> {{service:prov:support-email-help}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-chat-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-comments"></i><span class="hidden-table"> {{service:prov:support-chat}}</span></th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:support-type-help}}"> {{service:prov:support-type}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
-									<th scope="col" data-toggle="tooltip" title="{{service:prov:cost-help}}"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-									<th scope="col" class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
+									<th class="noVis">{{name}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:support-level-help}}"><i class="fas fa-star"></i><span class="hidden-table"> {{service:prov:support-level}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-seats-help}}" class="hidden-xs icon-x3"><i class="fas fa-chair"></i><span class="hidden-table"> {{service:prov:support-seats}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-api-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-terminal"></i><span class="hidden-table"> {{service:prov:support-api}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-phone-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-phone"></i><span class="hidden-table"> {{service:prov:support-phone}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-email-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-envelope"></i><span class="hidden-table"> {{service:prov:support-email-help}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-chat-help}}" class="hidden-xs hidden-sm hidden-md icon"><i class="fas fa-comments"></i><span class="hidden-table"> {{service:prov:support-chat}}</span></th>
+									<th data-toggle="tooltip" title="{{service:prov:support-type-help}}"> {{service:prov:support-type}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:cost-help}}"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
+									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 								</tr>
 							</thead>
 							<tbody>
