@@ -88,7 +88,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC                                                                   ")
+			+ "  ORDER BY totalCost ASC, ip.type.id DESC                                                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
 			String engine, String edition, int location, double rate, double globalRate, double duration, String license,
 			double initialCost, Pageable pageable);
@@ -124,7 +124,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC                                                                   ")
+			+ "  ORDER BY totalCost ASC, ip.type.id DESC                                                  ")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
 			String license, String engine, String edition, double initialCost, Pageable pageable);
 
