@@ -28,8 +28,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.TagVo;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -96,8 +96,8 @@ public class ProvQuoteInstanceExportResource {
 							toString(qi.getUsage()), toString(qi.getPrice().getTerm()), toString(qi.getLocation()),
 							qi.getMinQuantity(), toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
 							toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()),
-							qi.isEphemeral(), toString(qi.getPrice().getType()), "", "", qi.getInternet(),
-							toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags));
+							qi.isEphemeral(), toType(qi), "", "", qi.getInternet(), toString(qi.getLicense()),
+							toString(qi.getCost()), toString(qi, itags));
 					writeStorage(writer, qsByQi, stags, qi.getId());
 				});
 
@@ -107,9 +107,9 @@ public class ProvQuoteInstanceExportResource {
 							toString(qi.getCpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), "",
 							toString(qi.getUsage()), toString(qi.getPrice().getTerm()), toString(qi.getLocation()),
 							qi.getMinQuantity(), toString(qi.getMaxQuantity()), "", toString(qi.getConstant()),
-							toString(qi.getProcessor()), toString(qi.getPhysical()), "",
-							toString(qi.getPrice().getType()), qi.getEngine(), toString(qi.getEdition()),
-							qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()), toString(qi, dtags));
+							toString(qi.getProcessor()), toString(qi.getPhysical()), "", toType(qi), qi.getEngine(),
+							toString(qi.getEdition()), qi.getInternet(), toString(qi.getLicense()),
+							toString(qi.getCost()), toString(qi, dtags));
 					writeStorage(writer, qsByQb, stags, qi.getId());
 				});
 				writer.flush();
@@ -123,9 +123,9 @@ public class ProvQuoteInstanceExportResource {
 	private void writeStorage(final PrintWriter writer, final Map<Integer, List<ProvQuoteStorage>> qsByQi,
 			final Map<Integer, List<TagVo>> stags, Integer qi) {
 		qsByQi.getOrDefault(qi, Collections.emptyList())
-				.forEach(qs -> writer.format(";%s".repeat(7), qs.getSize(), toString(qs.getSizeMax()),
-						toString(qs.getPrice().getType()), toString(qs.getLatency()), toString(qs.getOptimized()),
-						toString(qs.getCost()), toString(qs, stags)));
+				.forEach(qs -> writer.format(";%s".repeat(7), qs.getSize(), toString(qs.getSizeMax()), toType(qs),
+						toString(qs.getLatency()), toString(qs.getOptimized()), toString(qs.getCost()),
+						toString(qs, stags)));
 	}
 
 	/**
@@ -157,8 +157,8 @@ public class ProvQuoteInstanceExportResource {
 								toString(qi.getUsage()), toString(qi.getPrice().getTerm()), toString(qi.getLocation()),
 								qi.getMinQuantity(), toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()),
 								toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()),
-								qi.isEphemeral(), toString(qi.getPrice().getType()), qi.getInternet(),
-								toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags)));
+								qi.isEphemeral(), toType(qi), qi.getInternet(), toString(qi.getLicense()),
+								toString(qi.getCost()), toString(qi, itags)));
 
 				// Write quote databases
 				final var dtags = vo.getTags().get(ResourceType.DATABASE);
@@ -167,35 +167,32 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getRamMax()), "", toString(qi.getUsage()), toString(qi.getPrice().getTerm()),
 						toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
 						toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()), "",
-						toString(qi.getPrice().getType()), "", toString(qi.getLicense()), toString(qi.getCost()),
-						toString(qi, dtags), qi.getEngine(), toString(qi.getEdition())));
+						toType(qi), "", toString(qi.getLicense()), toString(qi.getCost()), toString(qi, dtags),
+						qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
 				final var stags = vo.getTags().get(ResourceType.STORAGE);
-				vo.getStorages()
-						.forEach(qs -> writer.format("\n%s;;;;;;;;;%s;;;;;;;%s;;" + ";%s".repeat(8), toString(qs),
-								toString(qs.getLocation()), toString(qs.getPrice().getType()), toString(qs.getCost()),
-								toString(qs, stags), qs.getSize(), toString(qs.getSizeMax()),
-								toString(qs.getQuoteInstance()), toString(qs.getQuoteDatabase()),
-								toString(qs.getLatency()), toString(qs.getOptimized())));
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;%s;;;;;;;%s;;" + ";%s".repeat(8),
+						toString(qs), toString(qs.getLocation()), toType(qs), toString(qs.getCost()),
+						toString(qs, stags), qs.getSize(), toString(qs.getSizeMax()), toString(qs.getQuoteInstance()),
+						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
 				// Write quote support
 				final var s2tags = vo.getTags().get(ResourceType.SUPPORT);
-				vo.getSupports()
-						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
-								toString(qs.getPrice().getType()), toString(qs.getCost()), toString(qs, s2tags),
-								toString(qs.getSeats())));
+				vo.getSupports().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
+						toType(qs), toString(qs.getCost()), toString(qs, s2tags), toString(qs.getSeats())));
 				writer.flush();
 			}
 		}, file).build();
 	}
 
 	/**
-	 * Return the name of a nullable object.
+	 * Return the name of a quote resource.
 	 */
-	private String toString(final ProvType optional) {
-		return optional == null ? "" : optional.getCode();
+	private String toType(final AbstractQuote<?> resource) {
+		return resource.getPrice().getType().getCode();
 	}
+
 	/**
 	 * Return the name of a nullable object.
 	 */
