@@ -42,8 +42,8 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	 * @param term2    The expected term name prefix alternative 2.
 	 * @return The filtered {@link ProvInstancePrice}.
 	 */
-	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node"
-			+ " AND (term.name LIKE CONCAT(:term1, '%') OR term.name LIKE CONCAT(:term2, '%'))")
-	List<P> findAllTerms(String node, String location, final String term1, final String term2);
+	@Query("FROM #{#entityName} e INNER JOIN e.term tm WHERE e.location.name = :location AND e.type.node.id = :node"
+			+ " AND (tm.name LIKE CONCAT(:term1, '%') OR tm.name LIKE CONCAT(:term2, '%'))")
+	List<P> findByLocation(String node, String location, final String term1, final String term2);
 
 }

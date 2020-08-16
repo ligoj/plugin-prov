@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.ligoj.app.model.Node;
@@ -56,7 +57,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	protected Map<String, ProvInstanceType> instanceTypes = new HashMap<>();
+	protected Map<String, ProvInstanceType> instanceTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed support types. Key is the instance name.
@@ -70,14 +71,14 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	protected Map<String, ProvDatabaseType> databaseTypes = new HashMap<>();
+	protected Map<String, ProvDatabaseType> databaseTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed price term's codes.
 	 */
 	@Getter
 	@Setter
-	protected Map<String, ProvInstancePriceTerm> priceTerms = new HashMap<>();
+	protected Map<String, ProvInstancePriceTerm> priceTerms = new ConcurrentHashMap<>();
 
 	/**
 	 * The previous installed EC2 prices. Key is the code.
