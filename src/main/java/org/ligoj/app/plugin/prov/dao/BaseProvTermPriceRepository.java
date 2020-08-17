@@ -34,7 +34,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	List<P> findAll(String node, String location);
 
 	/**
-	 * Return all {@link ProvInstancePrice} related to given node and within a specific location.
+	 * Return all {@link ProvInstancePrice} related to given node, and term names, and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
 	 * @param location The expected location name. Case sensitive.

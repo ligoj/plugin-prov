@@ -120,6 +120,6 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
-			+ " t.name = :type AND t.node.id = :node             ")
+			+ " t.code = :type AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByTypeName(String node, String type);
 }
