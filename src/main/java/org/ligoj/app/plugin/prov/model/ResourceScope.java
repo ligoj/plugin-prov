@@ -34,6 +34,6 @@ public interface ResourceScope {
 	 * 
 	 * @param budget The new budget for this resource when different from the related quote. May be <code>null</code>
 	 */
-	void setBudget(ProvBudget buget);
+	void setBudget(ProvBudget budget);
 
 }

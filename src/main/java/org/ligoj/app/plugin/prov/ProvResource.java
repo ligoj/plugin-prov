@@ -481,6 +481,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * 
 	 * @param cost   The target cost object to update.
 	 * @param entity A recently updated resource.
+	 * @param <Q>    The entity type to refresh.
 	 * @return The same target cost parameter.
 	 */
 	public <Q extends AbstractQuote<?>> UpdatedCost refreshSupportCost(final UpdatedCost cost, final Q entity) {

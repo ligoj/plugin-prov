@@ -459,7 +459,6 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository for persist.
-	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getPrices()
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
@@ -481,7 +480,6 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository used for persist.
-	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getPrices()
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> void saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
@@ -527,7 +525,6 @@ public abstract class AbstractImportCatalogResource {
 	 * @param updater    The consumer used to update the replacement.
 	 * @param repository The repository used to persist the replacement. May be <code>null</code>.
 	 * @return The given entity.
-	 * @see org.ligoj.app.plugin.prov.catalog.AbstractUpdateContext#getMergedTypes()
 	 */
 	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
 			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
@@ -545,6 +542,7 @@ public abstract class AbstractImportCatalogResource {
 	 * 
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
+	 * @param updater    The consumer used to update the replacement.
 	 * @return the given entity.
 	 */
 	protected ProvInstancePriceTerm copyAsNeeded(final AbstractUpdateContext context,
@@ -561,6 +559,7 @@ public abstract class AbstractImportCatalogResource {
 	 * 
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
+	 * @param updater    The consumer used to update the replacement.
 	 * @return the given entity.
 	 */
 	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context, final ProvLocation entity,

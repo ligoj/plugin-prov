@@ -50,8 +50,6 @@ public class FloatingCost implements Serializable {
 
 	/**
 	 * Maximal initial cost.
-	 * 
-	 * @see #maxCost
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	@Getter

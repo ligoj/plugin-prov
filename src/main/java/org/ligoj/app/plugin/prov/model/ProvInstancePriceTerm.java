@@ -87,7 +87,7 @@ public class ProvInstancePriceTerm extends AbstractCodedEntity implements NodeSc
 
 	/**
 	 * Optional location constraint. When not <code>null</code>, is redundant of the
-	 * {@link org.ligoj.app.plugin.prov.model.AbstractPrice#getLocation()}.
+	 * {@link org.ligoj.app.plugin.prov.model.AbstractPrice} <code>location</code>.
 	 */
 	@ManyToOne
 	@JsonSerialize(using = ToNameSerializer.class)

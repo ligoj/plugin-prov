@@ -4,7 +4,6 @@
 package org.ligoj.app.plugin.prov.catalog;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 /**
  * Catalog resource import.
@@ -20,8 +19,6 @@ public interface ImportCatalog<U extends AbstractUpdateContext> {
 	 * @param context
 	 *            The update context.
 	 * @throws IOException
-	 *             When CSV or XML files cannot be read.
-	 * @throws URISyntaxException
 	 *             When CSV or XML files cannot be read.
 	 */
 	void install(final U context) throws IOException;

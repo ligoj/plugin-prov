@@ -116,7 +116,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
+	 * @param type The expected type code. Case sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
