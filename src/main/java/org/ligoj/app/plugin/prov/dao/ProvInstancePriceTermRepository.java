@@ -33,29 +33,6 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	Page<ProvInstancePriceTerm> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return the {@link ProvInstancePriceTerm} by it's name, ignoring the case.
-	 * 
-	 * @param subscription The subscription identifier to match.
-	 * @param name         The name to match.
-	 * 
-	 * @return The entity or <code>null</code>.
-	 */
-	@Query("SELECT ipt FROM ProvInstancePriceTerm ipt, Subscription s INNER JOIN s.node AS sn INNER JOIN ipt.node AS iptn"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(iptn.id, ':%') AND UPPER(ipt.name) = UPPER(:name)")
-	ProvInstancePriceTerm findByName(int subscription, String name);
-
-	/**
-	 * Return the {@link ProvInstancePriceTerm} by it's name for a specific provider, ignoring the case.
-	 * 
-	 * @param node The provider node identifier.
-	 * @param name The name to match.
-	 * 
-	 * @return The entity or <code>null</code>.
-	 */
-	@Query("FROM ProvInstancePriceTerm WHERE node.id=:node AND UPPER(name) = UPPER(:name)")
-	ProvInstancePriceTerm findByName(String node, String name);
-
-	/**
 	 * Return the valid terms matching the requirements.
 	 *
 	 * @param node         The node linked to the subscription. Is a node identifier within a provider.
