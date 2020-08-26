@@ -12,16 +12,16 @@ define(function () {
 	 * OS key to markup/label mapping.
 	 */
 	var os = {
-		'linux': ['Linux', 'fab fa-linux fa-fw'],
-		'windows': ['Windows', 'fab fa-windows fa-fw'],
-		'suse': ['SUSE', 'fab fa-suse fa-fw'],
-		'rhel': ['Red Hat Enterprise', 'fab fa-redhat fa-fw'],
-		'oracle': ['Oracle Linux', 'icon-oracle fa-fw'],
-		'centos': ['CentOS', 'fab fa-centos fa-fw'],
-		'debian': ['Debian', 'icon-debian fa-fw'],
-		'fedora': ['Fedora', 'fab fa-fedora fa-fw'],
-		'ubuntu': ['Ubuntu', 'fab fa-ubuntu fa-fw'],
-		'freebsd': ['FreeBSD', 'fab fa-freebsd fa-fw']
+		'linux': ['Linux', 'fab fa-linux'],
+		'windows': ['Windows', 'fab fa-windows'],
+		'suse': ['SUSE', 'fab fa-suse'],
+		'rhel': ['Red Hat Enterprise', 'fab fa-redhat'],
+		'oracle': ['Oracle Linux', 'icon-oracle'],
+		'centos': ['CentOS', 'fab fa-centos'],
+		'debian': ['Debian', 'icon-debian'],
+		'fedora': ['Fedora', 'fab fa-fedora'],
+		'ubuntu': ['Ubuntu', 'fab fa-ubuntu'],
+		'freebsd': ['FreeBSD', 'fab fa-freebsd']
 	};
 
 	/**
@@ -598,7 +598,7 @@ define(function () {
 		}
 		var cfg = os[(value.id || value || 'linux').toLowerCase()] || os.linux;
 		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+		return '<i class="' + clazz + ' fa-fw" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 	}
 
 	/**
