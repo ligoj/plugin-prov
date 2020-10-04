@@ -22,6 +22,8 @@ public class CurrencyVo extends ProvCurrency {
 	private long nbQuotes;
 
 	/**
+	 * Create a simple currency view from a given JPA entity and related statistics.
+	 * 
 	 * @param parent   The {@link ProvCurrency} entity.
 	 * @param nbQuotes The amount of quotes using this currency.
 	 */

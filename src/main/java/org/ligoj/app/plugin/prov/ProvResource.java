@@ -357,7 +357,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setPhysical(vo.getPhysical());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !Objects.equals(oldBudget, entity.getBudget()) || !oldRamAdjusted.equals(entity.getRamAdjustedRate())
-				|| !oldReservationMode.equals(entity.getReservationMode())
+				|| oldReservationMode != entity.getReservationMode()
 				|| !Objects.equals(oldLicense, entity.getLicense())
 				|| !Objects.equals(oldProcessor, entity.getProcessor())
 				|| !Objects.equals(oldPhysical, entity.getPhysical())) {

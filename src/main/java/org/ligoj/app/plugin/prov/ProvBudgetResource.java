@@ -63,6 +63,9 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	@Autowired
 	private ConfigurationResource configuration;
 
+	/**
+	 * Create a budget initiated without any cost.
+	 */
 	public ProvBudgetResource() {
 		super(ResourceScope::getBudget, ResourceScope::setBudget, ProvBudget::new);
 	}

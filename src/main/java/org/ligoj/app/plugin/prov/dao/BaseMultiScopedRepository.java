@@ -18,6 +18,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * Multi scoped resource repository.
+ * 
+ * @param <S> The scoped resource type.
  */
 @NoRepositoryBean
 public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extends RestRepository<S, Integer> {

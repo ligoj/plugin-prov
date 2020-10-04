@@ -24,6 +24,11 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 	@Query("FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
 	List<ProvNetwork> findAll(int subscription);
 
+	/**
+	 * Delete all network data related to given configuration having the given identifier.
+	 * 
+	 * @param configuration The configuration identifier.
+	 */
 	@Modifying
 	@Query("DELETE FROM #{#entityName} WHERE configuration.id = :configuration")
 	void deleteAll(int configuration);

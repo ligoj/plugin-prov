@@ -13,6 +13,8 @@ import lombok.Getter;
 
 /**
  * Floating cost configuration.
+ * 
+ * @param <P> The price term type.
  */
 @Getter
 @AllArgsConstructor

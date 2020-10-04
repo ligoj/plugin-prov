@@ -36,6 +36,9 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 
 	@Autowired
 
+	/**
+	 * Create a usage initiated without any cost.
+	 */
 	public ProvUsageResource() {
 		super(ResourceScope::getUsage, ResourceScope::setUsage, ProvUsage::new);
 	}
