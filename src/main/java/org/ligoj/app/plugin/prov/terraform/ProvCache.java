@@ -33,21 +33,29 @@ public class ProvCache implements CacheManagerAware {
 				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
 						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
 		cacheManager.createCache("prov-location", cfgPL);
-		cacheManager.createCache("prov-license", provider.apply("prov-license"));
-		cacheManager.createCache("prov-software", provider.apply("prov-software"));
-		cacheManager.createCache("prov-processor", provider.apply("prov-processor"));
+		createCache(cacheManager, provider, "prov-license");
+		createCache(cacheManager, provider, "prov-software");
+		createCache(cacheManager, provider, "prov-processor");
 
+		// Instance cache configurations
 		newCacheConfig(cacheManager, provider, "prov-instance-type");
 		newCacheConfig(cacheManager, provider, "prov-instance-type-dyn");
 		newCacheConfig(cacheManager, provider, "prov-instance-type-has-dyn");
+
+		// Database cache configurations
 		newCacheConfig(cacheManager, provider, "prov-database-type");
 		newCacheConfig(cacheManager, provider, "prov-database-type-dyn");
 		newCacheConfig(cacheManager, provider, "prov-database-type-has-dyn");
-		newCacheConfig(cacheManager, provider, "prov-instance-term");
+		createCache(cacheManager, provider, "prov-database-engine");
+		createCache(cacheManager, provider, "prov-database-edition");
+		createCache(cacheManager, provider, "prov-database-license");
 
-		cacheManager.createCache("prov-database-engine", provider.apply("prov-database-engine"));
-		cacheManager.createCache("prov-database-edition", provider.apply("prov-database-edition"));
-		cacheManager.createCache("prov-database-license", provider.apply("prov-database-license"));
+		newCacheConfig(cacheManager, provider, "prov-instance-term");
+	}
+
+	private void createCache(final HazelcastCacheManager cacheManager,
+			final Function<String, CacheConfig<?, ?>> provider, final String name) {
+		cacheManager.createCache(name, provider.apply(name));
 	}
 
 	private void newCacheConfig(final HazelcastCacheManager cacheManager,
