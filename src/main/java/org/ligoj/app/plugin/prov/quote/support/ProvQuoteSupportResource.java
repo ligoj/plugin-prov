@@ -35,7 +35,6 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
 import org.ligoj.app.plugin.prov.model.Costed;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
 import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
@@ -43,7 +42,6 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
-import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.bootstrap.core.DescribedBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
@@ -88,7 +86,7 @@ public class ProvQuoteSupportResource
 	 * Create the support plan inside a quote.
 	 *
 	 * @param vo The quote support details.
-	 * @return The created instance cost details with identifier.
+	 * @return The created support cost details with identifier.
 	 */
 	@POST
 	@Path("support")
@@ -172,7 +170,7 @@ public class ProvQuoteSupportResource
 	/**
 	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
 	 *
-	 * @param entity The quote instance to update.
+	 * @param entity The quote support to update.
 	 * @return The new computed cost.
 	 */
 	protected UpdatedCost newUpdateCost(final ProvQuoteSupport entity) {
@@ -205,7 +203,7 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Return the support types the instance inside a quote.
+	 * Return the support types the support inside a quote.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the supports from the associated
 	 *                     provider.
@@ -290,7 +288,7 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Build a new {@link QuoteInstanceLookup} from {@link ProvInstancePrice} and computed price.
+	 * Build a new {@link QuoteSupportLookup} from {@link ProvSupportPrice} and computed price.
 	 */
 	private QuoteSupportLookup newPrice(final ProvQuote quote, final ProvSupportPrice price, final Integer seats) {
 		final var result = new QuoteSupportLookup();
