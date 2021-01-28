@@ -28,12 +28,15 @@ import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
@@ -121,6 +124,9 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvInstanceTypeRepository itRepository;
 
 	@Autowired
+	protected ProvContainerTypeRepository ctRepository;
+
+	@Autowired
 	protected ProvDatabaseTypeRepository dtRepository;
 
 	@Autowired
@@ -128,6 +134,9 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvDatabasePriceRepository dpRepository;
+
+	@Autowired
+	protected ProvContainerPriceRepository cpRepository;
 
 	@Autowired
 	protected ProvStoragePriceRepository spRepository;
@@ -143,6 +152,9 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
+	protected ProvQuoteContainerRepository qcRepository;
 
 	@Autowired
 	protected ProvQuoteDatabaseRepository qdRepository;

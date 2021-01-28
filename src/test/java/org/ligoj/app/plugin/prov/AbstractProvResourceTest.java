@@ -18,12 +18,15 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
@@ -47,6 +50,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
@@ -115,11 +119,19 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	@Autowired
 	protected ProvQuoteDatabaseResource qbResource;
 	@Autowired
+	protected ProvQuoteContainerResource qcResource;
+	@Autowired
 	protected ProvQuoteDatabaseRepository qbRepository;
+	@Autowired
+	protected ProvQuoteContainerRepository qcRepository;
 	@Autowired
 	protected ProvDatabasePriceRepository bpRepository;
 	@Autowired
+	protected ProvContainerPriceRepository cpRepository;
+	@Autowired
 	protected ProvDatabaseTypeRepository btRepository;
+	@Autowired
+	protected ProvContainerTypeRepository ctRepository;
 
 	@Autowired
 	protected ProvQuoteSupportResource qs2Resource;

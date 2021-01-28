@@ -130,6 +130,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private List<ProvQuoteDatabase> databases;
 
 	/**
+	 * Quoted containers.
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvQuoteContainer> containers;
+
+	/**
 	 * Usages associated to this quote..
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)

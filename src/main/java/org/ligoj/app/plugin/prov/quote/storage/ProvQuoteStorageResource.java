@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -41,6 +42,7 @@ import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -75,6 +77,9 @@ public class ProvQuoteStorageResource
 	private ProvQuoteDatabaseRepository qbRepository;
 
 	@Autowired
+	private ProvQuoteContainerRepository qcRepository;
+
+	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
@@ -95,7 +100,7 @@ public class ProvQuoteStorageResource
 	 * Create the storage inside a quote.
 	 *
 	 * @param vo The quote storage details.
-	 * @return The created instance cost details with identifier.
+	 * @return The created storage cost details with identifier.
 	 */
 	@POST
 	@Path("storage")
@@ -123,7 +128,8 @@ public class ProvQuoteStorageResource
 
 		// Find the lowest price
 		qs.setPrice(validateLookup("storage",
-				lookup(quote, qs, qs.getQuoteInstance(), qs.getQuoteDatabase()).stream().findFirst().orElse(null),
+				lookup(quote, qs, qs.getQuoteInstance(), qs.getQuoteDatabase(), qs.getQuoteContainer()).stream()
+						.findFirst().orElse(null),
 				qs.getName()));
 		return updateCost(qs);
 	}
@@ -166,8 +172,8 @@ public class ProvQuoteStorageResource
 
 		// Check the storage requirements to validate the linked price
 		final var type = entity.getPrice().getType();
-		if (lookup(quote, entity, entity.getQuoteInstance(), entity.getQuoteDatabase()).stream()
-				.map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
+		if (lookup(quote, entity, entity.getQuoteInstance(), entity.getQuoteDatabase(), entity.getQuoteContainer())
+				.stream().map(qs -> qs.getPrice().getType()).noneMatch(type::equals)) {
 			// The related storage type does not match these requirements
 			throw new ValidationJsonException("type", "type-incompatible-requirements", type.getCode());
 		}
@@ -214,6 +220,13 @@ public class ProvQuoteStorageResource
 	 */
 	private ProvQuoteDatabase checkDatabase(final int subscription, final Integer qb) {
 		return qb == null ? null : resource.findConfigured(qbRepository, qb, subscription);
+	}
+
+	/**
+	 * Check the related quote container exists and is related to the given node.
+	 */
+	private ProvQuoteContainer checkContainer(final int subscription, final Integer qc) {
+		return qc == null ? null : resource.findConfigured(qcRepository, qc, subscription);
 	}
 
 	/**
@@ -292,11 +305,12 @@ public class ProvQuoteStorageResource
 	public List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorageQuery query) {
 		final var qi = checkInstance(configuration.getSubscription().getId(), query.getInstance());
 		final var qb = checkDatabase(configuration.getSubscription().getId(), query.getDatabase());
-		return lookup(configuration, query, qi, qb);
+		final var qc = checkContainer(configuration.getSubscription().getId(), query.getContainer());
+		return lookup(configuration, query, qi, qb, qc);
 	}
 
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorage query,
-			final ProvQuoteInstance qi, final ProvQuoteDatabase qb) {
+			final ProvQuoteInstance qi, final ProvQuoteDatabase qb, final ProvQuoteContainer qc) {
 
 		// Get the attached node and check the security on this subscription
 		final var node = configuration.getSubscription().getNode().getRefined().getId();

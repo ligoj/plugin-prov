@@ -28,7 +28,12 @@ public enum ResourceType {
 	/**
 	 * Database resource
 	 */
-	DATABASE(true);
+	DATABASE(true),
+
+	/**
+	 * Container resource
+	 */
+	CONTAINER(true);
 
 	@Getter
 	private boolean network;

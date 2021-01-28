@@ -50,6 +50,12 @@ public class ProvCache implements CacheManagerAware {
 		createCache(cacheManager, provider, "prov-database-edition");
 		createCache(cacheManager, provider, "prov-database-license");
 
+		// Container cache configurations
+		newCacheConfig(cacheManager, provider, "prov-container-type");
+		newCacheConfig(cacheManager, provider, "prov-container-type-dyn");
+		newCacheConfig(cacheManager, provider, "prov-container-type-has-dyn");
+		createCache(cacheManager, provider, "prov-container-license");
+
 		newCacheConfig(cacheManager, provider, "prov-instance-term");
 	}
 

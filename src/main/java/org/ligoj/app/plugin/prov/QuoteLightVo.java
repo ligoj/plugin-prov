@@ -33,6 +33,11 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	private int nbDatabases;
 
 	/**
+	 * The amount (minimum quantity) of containers.
+	 */
+	private int nbContainers;
+
+	/**
 	 * The size of the global storage in Giga Bytes.
 	 */
 	private int totalStorage;

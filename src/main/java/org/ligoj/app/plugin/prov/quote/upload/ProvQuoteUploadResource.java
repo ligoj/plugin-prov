@@ -451,7 +451,7 @@ public class ProvQuoteUploadResource {
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
-			// Instance case
+			// Instance/Container case
 			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
 			vo.setPrice(

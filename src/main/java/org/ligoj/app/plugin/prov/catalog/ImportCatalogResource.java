@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.DELETE;
@@ -24,6 +25,8 @@ import javax.ws.rs.core.MediaType;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
@@ -81,10 +84,16 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	private ProvDatabasePriceRepository dpRepository;
 
 	@Autowired
+	private ProvContainerPriceRepository cpRepository;
+
+	@Autowired
 	private ProvStorageTypeRepository stRepository;
 
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
+
+	@Autowired
+	private ProvContainerTypeRepository ctRepository;
 
 	@Autowired
 	private ProvDatabaseTypeRepository dtRepository;
@@ -200,9 +209,10 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @param node The node identifier.
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
-		task.setNbInstancePrices(
-				(int) ipRepository.countBy("type.node.id", node) + (int) dpRepository.countBy("type.node.id", node));
-		task.setNbInstanceTypes((int) itRepository.countBy(BY_NODE, node) + (int) dtRepository.countBy(BY_NODE, node));
+		task.setNbInstancePrices(Stream.of(ipRepository, dpRepository, cpRepository)
+				.mapToInt(r -> (int) r.countBy("type.node.id", node)).sum());
+		task.setNbInstanceTypes(Stream.of(itRepository, dtRepository, ctRepository)
+				.mapToInt(r -> (int) r.countBy(BY_NODE, node)).sum());
 		task.setNbLocations((int) locationRepository.countBy(BY_NODE, node));
 		task.setNbStorageTypes((int) stRepository.countBy(BY_NODE, node));
 	}

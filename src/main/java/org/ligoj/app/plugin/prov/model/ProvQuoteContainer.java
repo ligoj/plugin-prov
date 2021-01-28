@@ -20,15 +20,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A configured instance inside a quote. Name is unique inside a quote. The instance cost does not include the
+ * A configured container inside a quote. Name is unique inside a quote. The container cost does not include the
  * associated storages.
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_INSTANCE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
+@Table(name = "LIGOJ_PROV_QUOTE_CONTAINER", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
 		"configuration" }))
-public class ProvQuoteInstance extends AbstractQuoteVmOs<ProvInstancePrice> implements QuoteInstance {
+public class ProvQuoteContainer extends AbstractQuoteVmOs<ProvContainerPrice> implements QuoteContainer {
 
 	/**
 	 * SID
@@ -43,13 +43,8 @@ public class ProvQuoteInstance extends AbstractQuoteVmOs<ProvInstancePrice> impl
 	@Positive
 	private Double maxVariableCost;
 
-	/**
-	 * Optional software.
-	 */
-	private String software;
-
 	@JsonIgnore
-	@OneToMany(mappedBy = "quoteInstance", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "quoteContainer", cascade = CascadeType.REMOVE)
 	private List<ProvQuoteStorage> storages;
 
 	/**
@@ -57,15 +52,10 @@ public class ProvQuoteInstance extends AbstractQuoteVmOs<ProvInstancePrice> impl
 	 */
 	@NotNull
 	@ManyToOne
-	private ProvInstancePrice price;
-
-	/**
-	 * The requested tenancy.
-	 */
-	private ProvTenancy tenancy = ProvTenancy.SHARED;
+	private ProvContainerPrice price;
 
 	@Override
 	public ResourceType getResourceType() {
-		return ResourceType.INSTANCE;
+		return ResourceType.CONTAINER;
 	}
 }

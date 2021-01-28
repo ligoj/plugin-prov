@@ -6,7 +6,7 @@ package org.ligoj.app.plugin.prov.model;
 /**
  * Quote instance query.
  */
-public interface QuoteInstance extends QuoteVm {
+public interface QuoteInstance extends QuoteVmOs {
 
 	/**
 	 * Return Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint is
@@ -16,13 +16,6 @@ public interface QuoteInstance extends QuoteVm {
 	 *         added. WHen <code>null</code>, installed software is also accepted.
 	 */
 	String getSoftware();
-
-	/**
-	 * Return The requested OS, default is "LINUX".
-	 *
-	 * @return The requested OS, default is "LINUX".
-	 */
-	VmOs getOs();
 
 	/**
 	 * Return the requested tenancy, default is "SHARED".

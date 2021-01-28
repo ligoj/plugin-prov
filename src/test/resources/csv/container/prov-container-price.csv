@@ -1,0 +1,10 @@
+location.name;term.name;period;code;cost;costPeriod;initialCost;type.name;os;license;costCpu;costRam;minCpu;incrementCpu;maxCpu
+region-1;on-demand1;0;LINUX1;116.3;116.2;;container1;LINUX;;;;;
+region-1;1y;12;LINUX2;89.5;1017.4;1017.4;container1;LINUX;;;;;
+region-1;on-demand1;0;WINDOWS1;146.4;146.4;;container1;WINDOWS;;;;;
+region-1;1y;12;WINDOWS2;109.8;1317.6;1317.6;container1;WINDOWS;;;;;
+region-1;on-demand1;0;WINDOWS4;135.42;135.42;;container2;WINDOWS;BYOL;;;
+region-1;1y;12;WINDOWS5;102.48;1229.76;1229.76;container2;WINDOWS;BYOL;;;
+region-1;on-demand1;0;LINUX3;168;2034;;container2;LINUX;;;;;
+region-1;on-demand1;0;LINUXD0;0;0;;containerD0;LINUX;;1000;100;1;1;200
+region-5;on-demandE5;0;LINUXE5;190;190;;container2;LINUX;;;;;

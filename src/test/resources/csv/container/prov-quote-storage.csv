@@ -1,0 +1,6 @@
+quoteInstance.name;quoteContainer.name;price.code;size;configuration.name;name;description;cost;maxCost;latency;optimized;sizeMax
+server1;;S1;20;quote1;server1-root;server1-rootD;0;0;GOOD;IOPS
+server1;;S2;10;quote1;server1-data;server1-dataD;0;0;MEDIUM;THROUGHPUT
+server1;;S2;51;quote1;server1-temp;server1-tempD;0;0;MEDIUM;THROUGHPUT
+;;S1;13;quote1;shared-data;shared-dataD1;0;0;GOOD;IOPS
+;container1;S5;20;quote1;container1-root;container1-rootD;0;0;GOOD;IOPS;19

@@ -24,7 +24,7 @@ public interface QuoteStorage {
 
 	/**
 	 * Return the optional requested quote instance to be associated. Cannot be not <code>null</code> with
-	 * {@link #getDatabase}.
+	 * {@link #getDatabase()} or {@link #getContainer()}.
 	 *
 	 * @return The optional requested quote instance to be associated.
 	 */
@@ -32,11 +32,19 @@ public interface QuoteStorage {
 
 	/**
 	 * Return the optional requested quote database to be associated. Cannot be not <code>null</code> with
-	 * {@link #getInstance()}.
+	 * {@link #getInstance()} or {@link #getContainer()}.
 	 *
 	 * @return The optional requested quote database to be associated.
 	 */
 	Integer getDatabase();
+
+	/**
+	 * Return the optional requested quote container to be associated. Cannot be not <code>null</code> with
+	 * {@link #getInstance()} or {@link #getDatabase()}.
+	 *
+	 * @return The optional requested quote database to be associated.
+	 */
+	Integer getContainer();
 
 	/**
 	 * The optional requested {@link ProvStorageOptimized}.

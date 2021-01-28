@@ -8,7 +8,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,18 +15,18 @@ import lombok.ToString;
 
 /**
  * An priced instance with billing configuration. <br>
- * The cost attribute is the corresponding effective monthly cost of this instance. Includes the initial cost to be
- * allow quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
+ * The cost attribute is the corresponding effective monthly cost of this instance. Includes the initial cost to allow
+ * quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
  * <code>cost - initialCost / 24 / 365</code>.
  */
 @Getter
 @Setter
 @Entity
-@ToString(of = { "os", "tenancy" }, callSuper = true)
+@ToString(of = { "tenancy" }, callSuper = true)
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "location", "os", "tenancy", "license", "software", "term", "type" }),
 		@UniqueConstraint(columnNames = "code") })
-public class ProvInstancePrice extends AbstractTermPrice<ProvInstanceType> {
+public class ProvInstancePrice extends AbstractTermPriceVmOs<ProvInstanceType> {
 
 	/**
 	 * SID
@@ -44,13 +43,6 @@ public class ProvInstancePrice extends AbstractTermPrice<ProvInstanceType> {
 	 */
 	@Enumerated(EnumType.STRING)
 	private ProvTenancy tenancy = ProvTenancy.SHARED;
-
-	/**
-	 * The related price
-	 */
-	@NotNull
-	@Enumerated(EnumType.STRING)
-	private VmOs os;
 
 	/**
 	 * Optional built-in software.

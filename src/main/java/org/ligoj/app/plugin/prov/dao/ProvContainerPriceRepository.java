@@ -8,9 +8,9 @@ import java.util.List;
 import javax.cache.annotation.CacheKey;
 import javax.cache.annotation.CacheResult;
 
+import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
+import org.ligoj.app.plugin.prov.model.ProvContainerType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvTenancy;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +18,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvInstancePrice} repository.
  */
-public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository<ProvInstanceType, ProvInstancePrice> {
+public interface ProvContainerPriceRepository extends BaseProvTermPriceRepository<ProvContainerType, ProvContainerPrice> {
 
 	/**
 	 * Return all licenses related to given node identifier.
@@ -27,23 +27,10 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param os   The filtered OS.
 	 * @return The filtered licenses.
 	 */
-	@CacheResult(cacheName = "prov-license")
+	@CacheResult(cacheName = "prov-container-license")
 	@Query("SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i "
 			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%')) AND ip.os=:os ORDER BY ip.license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
-
-	/**
-	 * Return all softwares related to given node identifier.
-	 *
-	 * @param node The node linked to the subscription. Is a node identifier within a provider.
-	 * @param os   The filtered OS.
-	 * @return The filtered softwares.
-	 */
-	@CacheResult(cacheName = "prov-software")
-	@Query("SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "   AND ip.os=:os AND ip.software IS NOT NULL ORDER BY ip.software")
-	List<String> findAllSoftwares(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -58,10 +45,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
-	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
-	 * @param tenancy     The requested tenancy.
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -76,16 +60,14 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "      ip.location.id = :location                                                           "
 			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
 			+ "  AND ip.os=:os                                                                            "
-			+ "  AND ip.tenancy=:tenancy                                                                  "
-			+ "  AND (:software IS NULL OR :software = ip.software)                                       "
 			+ "  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)                                              "
 			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
 			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
-			int location, double rate, double globalRate, double duration, String license, String software,
-			double initialCost, ProvTenancy tenancy, Pageable pageable);
+			int location, double rate, double globalRate, double duration, String license, 
+			double initialCost, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -97,10 +79,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
-	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
-	 * @param tenancy     The requested tenancy.
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -115,13 +94,10 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "      ip.location.id = :location                          "
 			+ "  AND ip.incrementCpu IS NULL                             "
 			+ "  AND ip.os=:os                                           "
-			+ "  AND ip.tenancy=:tenancy                                 "
-			+ "  AND (:software IS NULL OR :software = ip.software)      "
 			+ "  AND (ip.license IS NULL OR :license = ip.license)       "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)"
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)   "
 			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
-			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
-			Pageable pageable);
+			double duration, String license, double initialCost, Pageable pageable);
 }

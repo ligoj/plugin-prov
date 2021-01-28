@@ -38,10 +38,12 @@ import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
+import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
@@ -53,6 +55,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
@@ -137,6 +140,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Autowired
 	private IamProvider[] iamProvider;
 
+	// Resources block
+
 	@Autowired
 	private ProvQuoteInstanceResource qiResource;
 
@@ -144,7 +149,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteDatabaseResource qbResource;
 
 	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
+	private ProvQuoteContainerResource qcResource;
+
+	@Autowired
+	private ProvQuoteSupportResource qspResource;
+
+	@Autowired
+	private ProvQuoteStorageResource qsResource;
+
+	// Types block
 
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
@@ -153,7 +166,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvDatabaseTypeRepository btRepository;
 
 	@Autowired
-	private ProvQuoteStorageResource qsResource;
+	private ProvContainerTypeRepository ctRepository;
+
+	// Quote block
+
+	@Autowired
+	private ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
 	private ProvQuoteStorageRepository qsRepository;
@@ -162,10 +180,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteDatabaseRepository qbRepository;
 
 	@Autowired
-	private ProvQuoteSupportRepository qs2Repository;
+	private ProvQuoteContainerRepository qcRepository;
 
 	@Autowired
-	private ProvQuoteSupportResource qspResource;
+	private ProvQuoteSupportRepository qs2Repository;
+
+	// Billing part
 
 	@Autowired
 	private ProvUsageRepository usageRepository;
@@ -225,6 +245,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var listC = new HashMap<String, List<String>>();
 		listC.put("instance", itRepository.findProcessors(node));
 		listC.put("database", btRepository.findProcessors(node));
+		listC.put("container", ctRepository.findProcessors(node));
 		return listC;
 	}
 
@@ -269,6 +290,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setLocation(quote.getLocation());
 		vo.setInstances(quote.getInstances());
 		vo.setDatabases(qbRepository.findAll(quote));
+		vo.setContainers(qcRepository.findAll(quote));
 		vo.setStorages(qsRepository.findAll(quote));
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
@@ -306,19 +328,27 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var vo = new QuoteLightVo();
 		final var compute = repository.getComputeSummary(subscription).get(0);
 		final var database = repository.getDatabaseSummary(subscription).get(0);
+		final var container = repository.getContainerSummary(subscription).get(0);
+		qcRepository.findAll().get(0).getConfiguration().getContainers().size();
 		final var storage = repository.getStorageSummary(subscription).get(0);
 		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.toFloatingCost());
-		vo.setNbInstances(((Long) compute[1]).intValue());
-		vo.setTotalCpu((Double) compute[2] + ((Double) database[2]).intValue());
-		vo.setTotalRam(((Long) compute[3]).intValue() + ((Long) database[3]).intValue());
-		vo.setNbPublicAccess(((Long) compute[4]).intValue() + ((Long) database[4]).intValue());
-		vo.setNbDatabases(((Long) database[1]).intValue());
-		vo.setNbStorages(((Long) storage[1]).intValue());
-		vo.setTotalStorage(((Long) storage[2]).intValue());
 		vo.setLocation(entity.getLocation());
 		vo.setCurrency(entity.getCurrency());
+
+		// Count resources types
+		vo.setNbInstances(((Long) compute[1]).intValue());
+		vo.setNbDatabases(((Long) database[1]).intValue());
+		vo.setNbContainers(((Long) container[1]).intValue());
+		vo.setNbStorages(((Long) storage[1]).intValue());
+
+		// Sum up resources
+		vo.setTotalCpu(Stream.of(compute, database, container).mapToDouble(r -> ((Double) r[2])).sum());
+		vo.setTotalRam(Stream.of(compute, database, container).mapToInt(r -> ((Long) r[3]).intValue()).sum());
+		vo.setNbPublicAccess(Stream.of(compute, database, container).mapToInt(r -> ((Long) r[4]).intValue()).sum());
+		vo.setTotalStorage(((Long) storage[2]).intValue());
+
 		return vo;
 	}
 
@@ -357,8 +387,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setPhysical(vo.getPhysical());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !Objects.equals(oldBudget, entity.getBudget()) || !oldRamAdjusted.equals(entity.getRamAdjustedRate())
-				|| oldReservationMode != entity.getReservationMode()
-				|| !Objects.equals(oldLicense, entity.getLicense())
+				|| oldReservationMode != entity.getReservationMode() || !Objects.equals(oldLicense, entity.getLicense())
 				|| !Objects.equals(oldProcessor, entity.getProcessor())
 				|| !Objects.equals(oldPhysical, entity.getPhysical())) {
 			return refresh(entity);
@@ -379,7 +408,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Path("{subscription:\\d+}/refresh-cost")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
-		// Get the quote (and fetch instances) to refresh
+		// Get the quote (and fetch internal resources) to refresh
 		final var quote = repository.getCompute(subscription);
 		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
@@ -440,12 +469,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		log.info("Refresh cost started for subscription {} / databases ... ", entity.getSubscription().getId());
 		newStream(qbRepository.findAll(entity)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
 
+		// Add the database cost
+		log.info("Refresh cost started for subscription {} / containers ... ", entity.getSubscription().getId());
+		newStream(qcRepository.findAll(entity)).map(qcResource::updateCost).forEach(fc -> addCost(entity, fc));
+
 		// Add the storage cost
 		log.info("Refresh cost started for subscription {} / storages ... ", entity.getSubscription().getId());
 		newStream(qsRepository.findAll(entity)).map(qsResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Return the rounded computation
-		log.info("Refresh cost started for support {} / storages ... ", entity.getSubscription().getId());
+		log.info("Refresh cost started for subscription {} / support ... ", entity.getSubscription().getId());
 		final var cost = new UpdatedCost(entity.getId());
 		log.info("Refresh cost finished for subscription {}", entity.getSubscription().getId());
 		cost.setRelated(relatedCosts);

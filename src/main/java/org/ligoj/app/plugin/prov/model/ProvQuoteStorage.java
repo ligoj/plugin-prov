@@ -15,6 +15,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 import org.springframework.data.domain.Persistable;
@@ -75,6 +76,13 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	private ProvQuoteInstance quoteInstance;
 
 	/**
+	 * Optional linked quoted container.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonSerialize(using = ToIdSerializer.class)
+	private ProvQuoteContainer quoteContainer;
+
+	/**
 	 * Optional linked quoted database.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -106,7 +114,7 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	 */
 	@JsonIgnore
 	public AbstractQuoteVm<?> getQuoteResource() {
-		return quoteInstance == null ? quoteDatabase : quoteInstance;
+		return ObjectUtils.firstNonNull(quoteDatabase, quoteInstance, quoteContainer);
 	}
 
 	@Override
@@ -119,6 +127,12 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	@JsonIgnore
 	public Integer getDatabase() {
 		return Optional.ofNullable(getQuoteDatabase()).map(Persistable::getId).orElse(null);
+	}
+
+	@Override
+	@JsonIgnore
+	public Integer getContainer() {
+		return Optional.ofNullable(getQuoteContainer()).map(Persistable::getId).orElse(null);
 	}
 
 	@Override

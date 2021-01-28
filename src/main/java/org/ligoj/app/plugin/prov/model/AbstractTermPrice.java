@@ -69,6 +69,11 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	 */
 	private Double minCpu;
 
+	/**
+	 * Maximal CPU. Only valid for dynamic instance type.
+	 */
+	private Double maxCpu;
+
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;

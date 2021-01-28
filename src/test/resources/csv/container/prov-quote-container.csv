@@ -1,0 +1,9 @@
+configuration.name;price.code;name;description;cpu;ram;os;cost;maxCost;constant;minQuantity;maxQuantity;license
+quote1;LINUX1;container1;containerD1;0.5;2000;LINUX;100;200;true;1;2
+quote1;LINUX2;container2;containerD2;0.25;1000;LINUX;0;0
+quote1;WINDOWS1;container3;containerD3;0.5;2000;WINDOWS;0;0
+quote1;WINDOWS4;container4;containerD4;0.5;2000;WINDOWS;0;0
+quote1;WINDOWS2;container5;containerD5;0.5;1700;WINDOWS;0;0
+quote1;WINDOWS4;container6;containerD6;0.5;1800;WINDOWS;0;0
+quote1;WINDOWS5;container7;containerD7;0.5;1900;WINDOWS;0;0;;1;1;BYOL
+quote3;WINDOWS1;containerX;containerDX;1;2000;WINDOWS;;0;0
