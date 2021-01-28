@@ -329,7 +329,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var compute = repository.getComputeSummary(subscription).get(0);
 		final var database = repository.getDatabaseSummary(subscription).get(0);
 		final var container = repository.getContainerSummary(subscription).get(0);
-		qcRepository.findAll().get(0).getConfiguration().getContainers().size();
 		final var storage = repository.getStorageSummary(subscription).get(0);
 		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
