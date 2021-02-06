@@ -586,10 +586,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		final var types = getItRepository().findValidTypes(node, cpuR, ramR, cpuR * maxFactor,
-				 ramR * maxFactor, query.getConstant(), physR, typeId, procR, query.isAutoScale(),
-				query.getCpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate());
-		final var terms = iptRepository.findValidTerms(node, getResourceType() == ResourceType.INSTANCE && convOs,
+		final var types = getItRepository().findValidTypes(node, cpuR, ramR, cpuR * maxFactor, ramR * maxFactor,
+				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(),
+				query.getNetworkRate(), query.getStorageRate());
+		final var terms = iptRepository.findValidTerms(node,
+				(getResourceType() == ResourceType.INSTANCE || getResourceType() == ResourceType.CONTAINER) && convOs,
 				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,
 				reservation, maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
