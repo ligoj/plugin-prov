@@ -117,48 +117,58 @@ public abstract class AbstractImportCatalogResource {
 	@Autowired
 	protected ProvLocationRepository locationRepository;
 
-	@Autowired
-	protected ProvInstancePriceTermRepository iptRepository;
-
-	@Autowired
-	protected ProvInstanceTypeRepository itRepository;
-
-	@Autowired
-	protected ProvContainerTypeRepository ctRepository;
-
+	// Database utilities
+	
 	@Autowired
 	protected ProvDatabaseTypeRepository dtRepository;
-
-	@Autowired
-	protected ProvInstancePriceRepository ipRepository;
 
 	@Autowired
 	protected ProvDatabasePriceRepository dpRepository;
 
 	@Autowired
-	protected ProvContainerPriceRepository cpRepository;
+	protected ProvQuoteDatabaseRepository qdRepository;
 
+
+	// Storage utilities
 	@Autowired
 	protected ProvStoragePriceRepository spRepository;
 
 	@Autowired
 	protected ProvStorageTypeRepository stRepository;
 
+	// Support utilities
 	@Autowired
 	protected ProvSupportTypeRepository st2Repository;
 
 	@Autowired
 	protected ProvSupportPriceRepository sp2Repository;
 
+	// Container utilities
+
 	@Autowired
-	protected ProvQuoteInstanceRepository qiRepository;
+	protected ProvContainerPriceRepository cpRepository;
+
+	@Autowired
+	protected ProvContainerTypeRepository ctRepository;
 
 	@Autowired
 	protected ProvQuoteContainerRepository qcRepository;
 
-	@Autowired
-	protected ProvQuoteDatabaseRepository qdRepository;
+	// Instance utilities
 
+	@Autowired
+	protected ProvInstancePriceTermRepository iptRepository;
+	
+	@Autowired
+	protected ProvInstancePriceRepository ipRepository;
+
+	@Autowired
+	protected ProvInstanceTypeRepository itRepository;
+
+	@Autowired
+	protected ProvQuoteInstanceRepository qiRepository;
+
+	
 	@Setter
 	@Getter
 	@Autowired
@@ -471,12 +481,13 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository for persist.
+	 * @return The saved price.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> void saveAsNeeded(
+	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repositorty) {
 		context.getPrices().add(entity.getCode());
-		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
+		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
 		}, repositorty::save);
@@ -492,11 +503,12 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The target entity to update.
 	 * @param newCost     The new cost.
 	 * @param repositorty The repository used for persist.
+	 * @return The saved price.
 	 */
-	protected <T extends ProvType, P extends AbstractPrice<T>> void saveAsNeeded(final AbstractUpdateContext context,
+	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
 		context.getPrices().add(entity.getCode());
-		saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR), repositorty::save);
+		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR), repositorty::save);
 	}
 
 	/**
@@ -506,10 +518,11 @@ public abstract class AbstractImportCatalogResource {
 	 * @param entity      The price entity.
 	 * @param newCostGb   The new GiB cost.
 	 * @param repositorty The repository used for persist.
+	 * @return The saved price.
 	 */
-	protected void saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
+	protected ProvStoragePrice saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
 			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
-		saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
+		return saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
 				repositorty::save);
 	}
 
