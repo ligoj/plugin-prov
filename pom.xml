@@ -23,6 +23,7 @@
 	</scm>
 	<properties>
 		<awaitility.version>3.1.0</awaitility.version>
+		<plugin.sonar>3.8.0.2131</plugin.sonar> <!-- Pending parent:14.0.1 -->
 	</properties>
 
 	<dependencies>
