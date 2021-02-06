@@ -721,8 +721,9 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(status.getId());
 		checkCost(status.getCost(), 7105.198, 9701.098, false);
 		Assertions.assertEquals(7, status.getNbInstances());
+		Assertions.assertEquals(0, status.getNbContainers());
 		Assertions.assertEquals(7, status.getNbDatabases());
-		Assertions.assertEquals(13.75, status.getTotalCpu(), 0.0001); // 10.75 + 3 (DB)
+		Assertions.assertEquals(14d, status.getTotalCpu(), DELTA); // 10.75 + 3 (DB)
 		Assertions.assertEquals(57976, status.getTotalRam());
 		Assertions.assertEquals(13, status.getNbPublicAccess());
 		Assertions.assertEquals(8, status.getNbStorages()); // 3*2 (server1) + 1 + 1 DB
