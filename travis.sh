@@ -92,6 +92,8 @@ BUILD)
 
   # Minimal Maven settings
   export MAVEN_OPTS="-Xmx1G -Xms128m"
+  ls /home/travis/openjdk14
+  export JAVA_HOME="/home/travis/openjdk14"
   export DISPLAY=:0.0
   MAVEN_ARGS="-Dmaven.test.redirectTestOutputToFile=false -Djava.net.preferIPv4Stack=true -Dsurefire.useFile=false -B -e -V -DbuildVersion=$BUILD_VERSION -Dskip-sonarsource-repo=true"
 
