@@ -37,8 +37,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
 	 * @param cpu         The minimum CPU.
 	 * @param ram         The minimum RAM in MB.
-	 * @param maxCpu      The maximum CPU.
-	 * @param maxRam      The maximum RAM in MB.
+	 * @param limitCpu      The maximum CPU. Used only to reduce initial lookup potential result.
+	 * @param limitRam      The maximum RAM in MB. Used only to reduce initial lookup potential result.
 	 * @param constant    The optional constant CPU behavior constraint.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.
@@ -53,8 +53,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	@Query("SELECT id FROM #{#entityName} WHERE                                "
 			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))      "
 			+ "  AND (:type IS NULL OR id = :type)                             "
-			+ "  AND (cpu BETWEEN :cpu AND :maxCpu)                            "
-			+ "  AND (ram BETWEEN :ram AND :maxRam)                            "
+			+ "  AND (cpu BETWEEN :cpu AND :limitCpu)                            "
+			+ "  AND (ram BETWEEN :ram AND :limitRam)                            "
 			+ "  AND (:constant IS NULL OR constant = :constant)               "
 			+ "  AND (:physical IS NULL OR physical = :physical)               "
 			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)            "
@@ -64,7 +64,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)     "
 			+ "  AND (:processor IS NULL                                       "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
-	List<Integer> findValidTypes(String node, double cpu, double ram, double maxCpu, double maxRam, Boolean constant,
+	List<Integer> findValidTypes(String node, double cpu, double ram, double limitCpu, double limitRam, Boolean constant,
 			Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
 			Rate networkRate, Rate storageRate);
 
@@ -97,8 +97,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:processor IS NULL                                 "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
-			Rate networkRate, Rate storageRate);
+			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.
