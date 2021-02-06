@@ -74,6 +74,16 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	 */
 	private Double maxCpu;
 
+	/**
+	 * Minimal memory in "GiB" = "Gigi Bytes". Required for dynamic instance type.
+	 */
+	private Double minRam;
+
+	/**
+	 * Maximal memory in "GiB" = "Gigi Bytes". Only valid for dynamic instance type.
+	 */
+	private Double maxRam;
+
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;

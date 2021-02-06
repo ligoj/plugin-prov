@@ -67,8 +67,8 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 	 */
 	@Query("SELECT ip,                                                                                    "
 			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
+			+ " +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)      "
+			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,       "
 			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
 			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
 			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost                       "
@@ -82,7 +82,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
+			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
 			int location, double rate, double globalRate, double duration, String license, String software,
 			double initialCost, ProvTenancy tenancy, Pageable pageable);

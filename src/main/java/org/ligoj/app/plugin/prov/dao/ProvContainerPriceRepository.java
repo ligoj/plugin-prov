@@ -37,8 +37,8 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceRepositor
 	 *
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
-	 * @param cpu         The minimum CPU.
-	 * @param ram         The minimum RAM in GiB.
+	 * @param cpu         The required CPU.
+	 * @param ram         The required RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
 	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
@@ -51,7 +51,7 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceRepositor
 	 */
 	@Query("SELECT ip,                                                                                    "
 			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
+			+ " +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)      "
 			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
 			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
 			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
@@ -64,7 +64,7 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceRepositor
 			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
 			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
+			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
 			int location, double rate, double globalRate, double duration, String license, 
 			double initialCost, Pageable pageable);
