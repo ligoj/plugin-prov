@@ -469,7 +469,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		log.info("Refresh cost started for subscription {} / databases ... ", entity.getSubscription().getId());
 		newStream(qbRepository.findAll(entity)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
 
-		// Add the database cost
+		// Add the container cost
 		log.info("Refresh cost started for subscription {} / containers ... ", entity.getSubscription().getId());
 		newStream(qcRepository.findAll(entity)).map(qcResource::updateCost).forEach(fc -> addCost(entity, fc));
 

@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov.dao;
 import java.util.stream.Stream;
 
 import org.ligoj.app.plugin.prov.model.ProvBudget;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,9 @@ public interface ProvBudgetRepository extends BaseMultiScopedRepository<ProvBudg
 	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.budget = :scoped"
 			+ " OR (pu.budget IS NULL AND pu.configuration.budget = :scoped)")
 	Stream<ProvQuoteDatabase> findRelatedDatabases(ProvBudget scoped);
+
+	@Override
+	@Query("SELECT pu FROM ProvQuoteContainer pu WHERE pu.budget = :scoped"
+			+ " OR (pu.budget IS NULL AND pu.configuration.budget = :scoped)")
+	Stream<ProvQuoteContainer> findRelatedContainers(ProvBudget scoped);
 }

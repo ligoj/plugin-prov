@@ -8,14 +8,12 @@ import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * The lowest price found for the requested resources.
  */
 @Getter
 @Setter
-@ToString(callSuper = true)
 public class QuoteContainerLookup extends AbstractLookup<ProvContainerPrice> {
 
 	// Nothing more than super class

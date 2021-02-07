@@ -18,6 +18,8 @@ import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
+import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
+import org.ligoj.app.plugin.prov.model.ProvContainerType;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -26,6 +28,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -35,6 +38,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -58,6 +62,8 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
+				StandardCharsets.UTF_8.name());
 		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
 		clearAllCache();
 		updateCost();
@@ -69,6 +75,17 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 	private int database1() {
 		return qbRepository.findByName("database1").getId();
+	}
+
+	private int container1() {
+		final var entity = new ProvQuoteContainer();
+		entity.setName("container1");
+		entity.setPrice(cpRepository.findBy("code", "LINUX1"));
+		entity.setConfiguration(getQuote());
+		entity.setCost(entity.getPrice().getCost());
+		entity.setMaxCost(entity.getCost()*2);
+		entity.setOs(VmOs.LINUX);
+		return qcRepository.saveAndFlush(entity).getId();
 	}
 
 	/**
@@ -99,7 +116,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setDatabase(database1());
 		vo.setSize(1);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qsResource.create(vo)),
-				"instance", "ambiguous-instance-database");
+				"instance", "ambiguous-instance-database-container");
 	}
 
 	/**
@@ -181,6 +198,33 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(512, storage.getSize());
 		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
 		Assertions.assertEquals(718.8, storage.getCost(), DELTA);
+		Assertions.assertFalse(storage.isUnboundCost());
+	}
+
+	@Test
+	void createContainer() {
+		final var vo = new QuoteStorageEditionVo();
+		vo.setSubscription(subscription);
+		vo.setName("storage2");
+		vo.setType("storage2");
+		vo.setContainer(container1());
+		vo.setSize(512);
+		final var cost = qsResource.create(vo);
+		checkCost(cost.getTotal(), 7182.998, 9778.898, false);
+		checkCost(cost.getCost(), 77.8, 77.8, false);
+		Assertions.assertEquals(1, cost.getRelated().size());
+		checkCost(cost.getRelated().get(ResourceType.CONTAINER).get(vo.getContainer()), 116.3, 232.6, false);
+		final int id = cost.getId();
+		em.flush();
+		em.clear();
+
+		// Check the exact new cost
+		checkCost(subscription, 7182.998, 9778.898, false);
+		final var storage = qsRepository.findOneExpected(id);
+		Assertions.assertEquals("storage2", storage.getName());
+		Assertions.assertEquals(512, storage.getSize());
+		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
+		Assertions.assertEquals(77.8, storage.getCost(), DELTA);
 		Assertions.assertFalse(storage.isUnboundCost());
 	}
 
@@ -793,6 +837,24 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		lookup.getPrice().getType().setNotInstanceType("%ance_");
 		Assertions.assertEquals(0,
 				qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).size());
+	}
+
+	/**
+	 * Lookup for a storage compatible to container.
+	 */
+	@Test
+	void lookupStorageContainer() {
+		final var container1 = container1();
+		final var query = QuoteStorageQuery.builder().container(container1).build();
+		Assertions.assertEquals("S2", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		Assertions.assertEquals("container1", qcRepository.findOneExpected(container1).getPrice().getType().getCode());
+		final var st5 = "storage2";
+		final var type = stRepository.findByCode(subscription, st5);
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		type.setNotContainerType("%tainerX");
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		type.setNotContainerType("%tainer1");
+		Assertions.assertEquals(0,  qsResource.lookup(subscription, query).size());
 	}
 
 	/**

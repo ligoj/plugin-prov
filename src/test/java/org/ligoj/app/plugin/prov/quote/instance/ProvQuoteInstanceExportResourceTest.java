@@ -23,6 +23,8 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
+import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
+import org.ligoj.app.plugin.prov.model.ProvContainerType;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
@@ -31,6 +33,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -67,8 +70,10 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class, ProvInstancePrice.class,
 				ProvQuoteInstance.class, ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8.name());
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+		csvForJpa.insert("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		csvForJpa.insert("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class,
+				ProvQuoteContainer.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
 
 		preparePostData();
 
@@ -104,7 +109,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		qiRepository.findByName("server2").setPhysical(true);
 
 		final var lines = export();
-		Assertions.assertEquals(15, lines.size());
+		Assertions.assertEquals(22, lines.size());
 
 		// Header
 		Assertions.assertEquals("resource-type;name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max"
@@ -128,6 +133,13 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				"INSTANCE;server4;1;;2000;;DEBIAN;;on-demand1;;1;1;;false;;;false;instance3;;;PUBLIC;;292,8;",
 				lines.get(3));
 
+		// Container
+		Assertions.assertEquals(
+				"CONTAINER;container1;0,5;;2000;;LINUX;;on-demand1;;1;2;;true;;;false;container1;;;PUBLIC;;116,3;"
+						+ ";20;;storage1;GOOD;IOPS;4,2;" + ";51;;storage2;MEDIUM;THROUGHPUT;77,8;"
+						+ ";20;19;storage5-database;GOOD;IOPS;30;",
+				lines.get(15));
+
 		// Database
 		Assertions.assertEquals(
 				"DATABASE;database1;0,5;;2000;;;;on-demand1;;1;2;;true;;;;database1;MYSQL;;PUBLIC;;116,3;key2"
@@ -145,6 +157,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		qiResource.deleteAll(subscription);
 		qbResource.deleteAll(subscription);
 		qs2Resource.deleteAll(subscription);
+		qcResource.deleteAll(subscription);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 0, 0, false);
 
@@ -199,7 +212,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		final var inputStreamReader = new BufferedReader(
 				new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), "cp1252"));
 		final var lines = IOUtils.readLines(inputStreamReader);
-		Assertions.assertEquals(21, lines.size()); // 8 VM + 7 DB + 4 Disks + 1 Support + 1 Header
+		Assertions.assertEquals(32, lines.size()); // 7 VM + 7 DB + 7 Container + 9 Disks + 1 Support + 1 Header
 
 		// Header
 		Assertions.assertEquals("name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
@@ -211,18 +224,22 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				"server1;0,5;;2000;;LINUX;;on-demand1;;2;10;10,1;true;;;false;instance1;PUBLIC;;292,8;key:value,key3",
 				lines.get(1));
 
+		// Container data
+		Assertions.assertEquals("container1;0,5;;2000;;LINUX;;on-demand1;;1;2;;true;;;false;container1;PUBLIC;;116,3;",
+				lines.get(8));
+
 		// Database data
-		Assertions.assertEquals("database2;0,25;;1000;;;;1y;;1;1;;;;;;database1;;;89,5;;;;;;;MYSQL;", lines.get(9));
+		Assertions.assertEquals("database2;0,25;;1000;;;;1y;;1;1;;;;;;database1;;;89,5;;;;;;;MYSQL;", lines.get(16));
 		Assertions.assertEquals(
 				"database4;0,5;;2000;;;;on-demand1;;1;1;;;;;;database2;;;135,42;;;;;;;ORACLE;STANDARD ONE",
-				lines.get(11));
+				lines.get(18));
 
 		// Storage data
-		Assertions.assertEquals("server1-temp;;;;;;;;;;;;;;;;storage2;;;155,6;;51;;server1;;MEDIUM;THROUGHPUT",
-				lines.get(17));
+		Assertions.assertEquals("server1-data;;;;;;;;;;;;;;;;storage2;;;155,6;;10;;server1;;MEDIUM;THROUGHPUT",
+				lines.get(23));
 
 		// Support data
-		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;;;support2;;;577,26;;;;;;;;;1", lines.get(20));
+		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;;;support2;;;624,762;;;;;;;;;1", lines.get(31));
 	}
 
 	private List<String> export() throws IOException {
@@ -238,10 +255,10 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
-		Assertions.assertEquals(7682.458, cost.getMin(), DELTA);
-		Assertions.assertEquals(10408.153, cost.getMax(), DELTA);
+		Assertions.assertEquals(8680.01, cost.getMin(), DELTA);
+		Assertions.assertEquals(11645.42, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 7682.458, 10408.153, false);
+		checkCost(subscription, 8680.01, 11645.42, false);
 		em.flush();
 		em.clear();
 		return cost;

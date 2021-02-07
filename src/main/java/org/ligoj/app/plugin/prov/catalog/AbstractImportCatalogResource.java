@@ -118,7 +118,7 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvLocationRepository locationRepository;
 
 	// Database utilities
-	
+
 	@Autowired
 	protected ProvDatabaseTypeRepository dtRepository;
 
@@ -127,7 +127,6 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvQuoteDatabaseRepository qdRepository;
-
 
 	// Storage utilities
 	@Autowired
@@ -158,7 +157,7 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvInstancePriceTermRepository iptRepository;
-	
+
 	@Autowired
 	protected ProvInstancePriceRepository ipRepository;
 
@@ -168,7 +167,6 @@ public abstract class AbstractImportCatalogResource {
 	@Autowired
 	protected ProvQuoteInstanceRepository qiRepository;
 
-	
 	@Setter
 	@Getter
 	@Autowired
@@ -268,13 +266,24 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Indicate the given container type is enabled.
+	 *
+	 * @param context The update context.
+	 * @param type    The container type to test.
+	 * @return <code>true</code> when the configuration enable the given container type.
+	 */
+	protected boolean isEnabledContainerType(final AbstractUpdateContext context, final String type) {
+		return type != null && context.getValidContainerType().matcher(type).matches();
+	}
+
+	/**
 	 * Indicate the given database type is enabled.
 	 *
 	 * @param context The update context.
 	 * @param type    The database type to test.
 	 * @return <code>true</code> when the configuration enable the given database type.
 	 */
-	protected boolean isEnabledDatabase(final AbstractUpdateContext context, final String type) {
+	protected boolean isEnabledDatabaseType(final AbstractUpdateContext context, final String type) {
 		return type != null && context.getValidDatabaseType().matcher(type).matches();
 	}
 
@@ -508,7 +517,8 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
 		context.getPrices().add(entity.getCode());
-		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR), repositorty::save);
+		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
+				repositorty::save);
 	}
 
 	/**
@@ -567,7 +577,7 @@ public abstract class AbstractImportCatalogResource {
 	 * 
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
-	 * @param updater    The consumer used to update the replacement.
+	 * @param updater The consumer used to update the replacement.
 	 * @return the given entity.
 	 */
 	protected ProvInstancePriceTerm copyAsNeeded(final AbstractUpdateContext context,
@@ -584,7 +594,7 @@ public abstract class AbstractImportCatalogResource {
 	 * 
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
-	 * @param updater    The consumer used to update the replacement.
+	 * @param updater The consumer used to update the replacement.
 	 * @return the given entity.
 	 */
 	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context, final ProvLocation entity,

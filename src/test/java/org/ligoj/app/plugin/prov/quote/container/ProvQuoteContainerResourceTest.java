@@ -78,7 +78,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void refresh() {
 		final var refresh = resource.refresh(subscription);
-		checkCost(refresh, 4030.72, 6626.62, false);
+		checkCost(refresh, 3911.42, 5310.92, false);
 	}
 
 	/**
@@ -156,6 +156,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertEquals(168.0, lookup.getCost(), DELTA);
+		Assertions.assertTrue(pi.toString().contains("os=LINUX"));
 	}
 
 	/**
@@ -170,17 +171,17 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void deleteAll() {
 		final var id = qcRepository.findByNameExpected("container1").getId();
 		final var storage1 = qsRepository.findByNameExpected("container1-root").getId();
-		final var storageOther = qsRepository.findByNameExpected("shared-data").getId();
+		final var storageOther = qsRepository.findByNameExpected("container1-shared-data").getId();
 		Assertions.assertTrue(qsRepository.existsById(storage1));
 		Assertions.assertEquals(8, qcRepository.count());
 		em.flush();
 		em.clear();
 
 		// After delete, it remains only the unattached storages and non container instances
-		checkCost(qcResource.deleteAll(subscription), 4704.758, 7154.358, false);
+		checkCost(qcResource.deleteAll(subscription), 4385.158, 5556.358, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 4704.758, 7154.358, false);
+		checkCost(subscription, 4385.158, 5556.358, false);
 		Assertions.assertNull(qcRepository.findOne(id));
 		Assertions.assertEquals(0, qcRepository.findAll(getQuote()).size());
 
@@ -193,17 +194,17 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void deleteAllWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8.name());
-		qsRepository.deleteAllBy("name", "shared-data");
+		qsRepository.deleteAllBy("name", "container1-shared-data");
 		resource.refresh(subscription);
-		checkCost(subscription, 4451.39, 7177.085, false);
+		checkCost(subscription, 4321.559, 5795.6, false);
 		em.flush();
 		em.clear();
 
 		// There is only quote instance with support
-		checkCost(qcResource.deleteAll(subscription), 3500.937, 6114.884, false);
-		checkCost(resource.getConfiguration(subscription).getCostNoSupport(), 3162.67, 5612.27, false);
-		checkCost(resource.getConfiguration(subscription).getCostSupport(), 338.267, 502.614, false);
-		checkCost(subscription, 3500.937, 6114.884, false);
+		checkCost(qcResource.deleteAll(subscription), 3149.377, 4436.984, false);
+		checkCost(resource.getConfiguration(subscription).getCostNoSupport(), 2843.07, 4014.27, false);
+		checkCost(resource.getConfiguration(subscription).getCostSupport(), 306.307, 422.714, false);
+		checkCost(subscription, 3149.377, 4436.984, false);
 		Assertions.assertEquals(0, qcRepository.findAll(getQuote()).size());
 	}
 
@@ -211,7 +212,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void delete() {
 		final var id = qcRepository.findByNameExpected("container1").getId();
 		final var storage1 = qsRepository.findByNameExpected("container1-root").getId();
-		final var storageOther = qsRepository.findByNameExpected("shared-data").getId();
+		final var storageOther = qsRepository.findByNameExpected("container1-shared-data").getId();
 		Assertions.assertTrue(qsRepository.existsById(storage1));
 		Assertions.assertEquals(0,
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
@@ -220,10 +221,10 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		checkCost(qcResource.delete(id), 5423.778, 7873.378, false);
+		checkCost(qcResource.delete(id), 5104.178, 6275.378, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 5423.778, 7873.378, false);
+		checkCost(subscription, 5104.178, 6275.378, false);
 		Assertions.assertEquals(0,
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 		Assertions.assertNull(qcRepository.findOne(id));
@@ -243,7 +244,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void updateIdentity() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("container1");
-		Assertions.assertEquals(1, storagePrices.size());
+		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteContainerEditionVo();
 		vo.setSubscription(subscription);
@@ -259,11 +260,11 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost, same as initial
-		checkCost(updatedCost.getTotal(), 5570.078, 8165.978, false);
+		checkCost(updatedCost.getTotal(), 5332.478, 6731.978, false);
 		checkCost(updatedCost.getCost(), 116.3, 232.6, false);
 
 		// Check the related storage prices: only one attached container storage
-		Assertions.assertEquals(1, updatedCost.getRelated().get(ResourceType.STORAGE).size());
+		Assertions.assertEquals(3, updatedCost.getRelated().get(ResourceType.STORAGE).size());
 
 		// Check the cost is the same
 		updateCost();
@@ -273,7 +274,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void update() {
 		// Check the cost of related storages of this instance
 		final var storagePrices = toStoragesFloatingCost("container1");
-		Assertions.assertEquals(1, storagePrices.size());
+		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteContainerEditionVo();
 		vo.setSubscription(subscription);
@@ -291,12 +292,12 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 5570.078, 10799.378, false);
+		checkCost(updatedCost.getTotal(), 5332.478, 10841.378, false);
 		checkCost(updatedCost.getCost(), 116.3, 2326.0, false);
-		checkCost(subscription, 5570.078, 10799.378, false);
+		checkCost(subscription, 5332.478, 10841.378, false);
 
 		// Check the related storage prices: only one attached storage
-		Assertions.assertEquals(1, updatedCost.getRelated().get(ResourceType.STORAGE).size());
+		Assertions.assertEquals(3, updatedCost.getRelated().get(ResourceType.STORAGE).size());
 
 		final var instance = qcRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("container1-bis", instance.getName());
@@ -309,7 +310,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final var updatedCost2 = qcResource.update(vo);
-		checkCost(updatedCost2.getTotal(), 5511.928, 9636.378, false);
+		checkCost(updatedCost2.getTotal(),5274.328, 9678.378, false);
 		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
 
 		// Change the region of this instance, storage is also
@@ -332,11 +333,11 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		final var updatedCost = qcResource.create(vo);
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 7034.078, 10361.978, false);
+		checkCost(updatedCost.getTotal(), 6796.478, 8927.978, false);
 		checkCost(updatedCost.getCost(), 1464.0, 2196.0, false);
 		Assertions.assertEquals(1, updatedCost.getRelated().size());
 		Assertions.assertTrue(updatedCost.getRelated().get(ResourceType.STORAGE).isEmpty());
-		checkCost(subscription, 7034.078, 10361.978, false);
+		checkCost(subscription, 6796.478, 8927.978, false);
 		final var instance = qcRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals("serverZ", instance.getName());
 		Assertions.assertEquals("serverZD", instance.getDescription());
@@ -446,10 +447,10 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
-		Assertions.assertEquals(5570.078, cost.getMin(), DELTA);
-		Assertions.assertEquals(8165.978, cost.getMax(), DELTA);
+		Assertions.assertEquals(5332.478, cost.getMin(), DELTA);
+		Assertions.assertEquals(6731.978, cost.getMax(), DELTA);
 		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 5570.078, 8165.978, false);
+		checkCost(subscription, 5332.478, 6731.978, false);
 		em.flush();
 		em.clear();
 		return cost;
@@ -461,14 +462,14 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
 		Assertions.assertNotNull(status.getId());
-		checkCost(status.getCost(), 5570.078, 8165.978, false);
+		checkCost(status.getCost(), 5332.478, 6731.978, false);
 		Assertions.assertEquals(7, status.getNbInstances());
 		Assertions.assertEquals(7, status.getNbContainers());
 		Assertions.assertEquals(14, status.getTotalCpu(), 0.0001); // 10.75 + 3,25 (Container)
 		Assertions.assertEquals(57976, status.getTotalRam());
 		Assertions.assertEquals(13, status.getNbPublicAccess());
-		Assertions.assertEquals(8, status.getNbStorages()); // 3*2 (server1) + 1 + 1 DB
-		Assertions.assertEquals(195, status.getTotalStorage()); // 175 + 20 (DB)
+		Assertions.assertEquals(4, status.getNbStorages());
+		Assertions.assertEquals(104, status.getTotalStorage());
 		Assertions.assertEquals("region-1", status.getLocation().getName());
 	}
 }

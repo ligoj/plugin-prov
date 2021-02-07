@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
@@ -111,7 +112,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		final var instances = qiRepository.findAll(quote);
 		final var databases = qbRepository.findAll(quote);
-		lean(quote, instances, databases, costs);
+		final var containers = qcRepository.findAll(quote);
+		lean(quote, instances, databases, containers, costs);
 
 		// Reset the orphan budgets
 		final var usedBudgets = Stream.concat(instances.stream(), databases.stream())
@@ -126,13 +128,15 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * them. A refresh is also applied to all resources related to these budgets. This means that some resources not
 	 * included in the initial set may be refreshed.
 	 * 
-	 * @param quote     The quote owning the related budget.
-	 * @param instances The instances implied in the current change.
-	 * @param databases The databases implied in the current change.
-	 * @param costs     The updated costs and resources.
+	 * @param quote      The quote owning the related budget.
+	 * @param instances  The instances implied in the current change.
+	 * @param databases  The databases implied in the current change.
+	 * @param containers The containers implied in the current change.
+	 * @param costs      The updated costs and resources.
 	 */
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
-			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
+			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		// Lean all relevant budgets
 		Stream.concat(instances.stream(), databases.stream()).map(AbstractQuoteVm::getResolvedBudget)
 				.filter(Objects::nonNull).filter(b -> b.getInitialCost() > 0).distinct().forEach(b -> lean(b, costs));
@@ -140,6 +144,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		// Refresh also all remaining resources unrelated to the updated budgets
 		refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
 		refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
+		refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
@@ -167,10 +172,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 				budget.getConfiguration().getSubscription().getId());
 		final var instances = getRelated(getRepository()::findRelatedInstances, budget);
 		final var databases = getRelated(getRepository()::findRelatedDatabases, budget);
+		final var containers = getRelated(getRepository()::findRelatedContainers, budget);
 
 		// Reset the remaining initial cost
 		budget.setRemainingBudget(budget.getInitialCost());
-		budget.setRequiredInitialCost(leanRecursive(budget, instances, databases, costs));
+		budget.setRequiredInitialCost(leanRecursive(budget, instances, databases, containers, costs));
 		budget.setRemainingBudget(null);
 		logLean(c -> {
 			log.info("Monthly costs:{}", c.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
@@ -214,7 +220,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	private double leanRecursive(final ProvBudget budget, final List<ProvQuoteInstance> instances,
-			final List<ProvQuoteDatabase> databases, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
+			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		logLean(c -> log.info("Start lean: {}",
 				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
 				instances, databases);
@@ -225,16 +232,18 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var prices = new HashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
 		final var validatedQi = lookup(instances, prices, qiResource, packToQr);
 		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
+		final var validatedQc = lookup(containers, prices, qcResource, packToQr);
 
 		log.info("Lookup result:                {}",
 				prices.entrySet().stream().map(e -> e.getKey().getName() + CODE + e.getKey().getPrice().getCode()
 						+ " -> " + e.getValue().getPrice().getCode() + ")").collect(Collectors.toList()));
 
 		// Pack the prices having an initial cost
-		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, costs);
+		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, costs);
 		// Commit this pack
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
+		commitPrices(validatedQc, prices, ResourceType.CONTAINER, costs, qcResource);
 		logLean(t -> {
 			log.info("Lean:              {}", t.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")")
 					.collect(Collectors.toList()));
@@ -248,7 +257,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
 			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
-			final List<ProvQuoteDatabase> validatedQb, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
+			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		if (packToQr.isEmpty()) {
 			return 0d;
 		}
@@ -263,8 +273,10 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		bin.getPieces().stream().map(packToQr::get).forEach(i -> {
 			if (i.getResourceType() == ResourceType.INSTANCE) {
 				validatedQi.add((ProvQuoteInstance) i);
-			} else {
+			} else if (i.getResourceType() == ResourceType.DATABASE) {
 				validatedQb.add((ProvQuoteDatabase) i);
+			} else {
+				validatedQc.add((ProvQuoteContainer) i);
 			}
 		});
 		logLean(b -> {
@@ -280,7 +292,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			budget.setRemainingBudget(FloatingCost.round(budget.getRemainingBudget() - bin.getTotal()));
 			final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
 			final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
-			init += leanRecursive(budget, subQi, subQb, costs);
+			final List<ProvQuoteContainer> subQc = newSubPack(packToQr, bins, ResourceType.CONTAINER);
+			init += leanRecursive(budget, subQi, subQb, subQc, costs);
 		} else {
 			// Pack is completed
 		}

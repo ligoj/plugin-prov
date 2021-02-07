@@ -157,6 +157,7 @@ public class ProvQuoteStorageResource
 		entity.setSizeMax(vo.getSizeMax());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getInstance()));
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getDatabase()));
+		entity.setQuoteContainer(checkContainer(subscription, vo.getContainer()));
 		final var resolvedLocation = Objects.requireNonNullElseGet(entity.getLocation(),
 				() -> Objects.requireNonNullElse(entity.getQuoteResource(), entity).getResolvedLocation());
 		entity.setPrice(findByTypeCode(subscription, vo.getType(), resolvedLocation, quote));
@@ -191,19 +192,20 @@ public class ProvQuoteStorageResource
 	}
 
 	/**
+	 * Check there is no ambiguous database/instance usage.
+	 */
+	private void checkInstance(final QuoteStorageEditionVo vo) {
+		if (Stream.of(vo.getInstance(), vo.getDatabase(), vo.getContainer()).filter(Objects::nonNull).limit(2)
+				.count() == 2) {
+			throw new ValidationJsonException("instance", "ambiguous-instance-database-container", vo.getInstance());
+		}
+	}
+
+	/**
 	 * Check the related quote instance exists and is related to the given node.
 	 */
 	private ProvQuoteInstance checkInstance(final int subscription, final Integer qi) {
 		return qi == null ? null : resource.findConfigured(qiRepository, qi, subscription);
-	}
-
-	/**
-	 * Check there is no ambiguous database/instance usage.
-	 */
-	private void checkInstance(final QuoteStorageEditionVo vo) {
-		if (vo.getInstance() != null && vo.getDatabase() != null) {
-			throw new ValidationJsonException("instance", "ambiguous-instance-database", vo.getInstance());
-		}
 	}
 
 	/**
@@ -315,7 +317,6 @@ public class ProvQuoteStorageResource
 		} else {
 			qsLoc = Optional.ofNullable(locationRepository.toId(node, query.getLocationName())).orElse(0);
 		}
-
 		return spRepository
 				.findLowestPrice(node, query.getSize(), query.getLatency(), query.getInstance(), query.getDatabase(),
 						query.getContainer(), query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))

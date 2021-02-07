@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.bootstrap.core.dao.RestRepository;
@@ -60,6 +61,14 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 	 * @return The resources.
 	 */
 	Stream<ProvQuoteDatabase> findRelatedDatabases(S scoped);
+
+	/**
+	 * Return all containers related to given entity.
+	 * 
+	 * @param scoped The related entity to match.
+	 * @return The resources.
+	 */
+	Stream<ProvQuoteContainer> findRelatedContainers(S scoped);
 
 	/**
 	 * Return the resource by it's name, ignoring the case.

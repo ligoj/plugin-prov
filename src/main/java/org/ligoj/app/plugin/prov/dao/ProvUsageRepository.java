@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov.dao;
 
 import java.util.stream.Stream;
 
+import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
@@ -24,4 +25,9 @@ public interface ProvUsageRepository extends BaseMultiScopedRepository<ProvUsage
 	@Query("SELECT pu FROM ProvQuoteDatabase pu WHERE pu.usage = :scoped"
 			+ " OR (pu.usage IS NULL AND  pu.configuration.usage = :scoped)")
 	Stream<ProvQuoteDatabase> findRelatedDatabases(ProvUsage scoped);
+
+	@Override
+	@Query("SELECT pu FROM ProvQuoteContainer pu WHERE pu.usage = :scoped"
+			+ " OR (pu.usage IS NULL AND  pu.configuration.usage = :scoped)")
+	Stream<ProvQuoteContainer> findRelatedContainers(ProvUsage scoped);
 }

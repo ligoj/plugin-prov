@@ -56,12 +56,16 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.setDatabaseTypes(new HashMap<>());
 		context.getInstanceTypes();
 		context.setInstanceTypes(new HashMap<>());
+		context.getContainerTypes();
+		context.setContainerTypes(new HashMap<>());
 		context.getSupportTypes();
 		context.setSupportTypes(new HashMap<>());
 		context.getPrevious();
 		context.setPrevious(new HashMap<>());
 		context.getPreviousDatabase();
 		context.setPreviousDatabase(new HashMap<>());
+		context.getPreviousContainer();
+		context.setPreviousContainer(new HashMap<>());
 		context.getPreviousStorage();
 		context.setPreviousStorage(new HashMap<>());
 		context.getPreviousSupport();
@@ -376,9 +380,18 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void isEnabledDatabase() {
 		final var context = newContext();
 		context.setValidDatabaseType(Pattern.compile("ab.*"));
-		Assertions.assertFalse(isEnabledDatabase(context, "axr"));
-		Assertions.assertFalse(isEnabledDatabase(context, null));
-		Assertions.assertTrue(isEnabledDatabase(context, "abr"));
+		Assertions.assertFalse(isEnabledDatabaseType(context, "axr"));
+		Assertions.assertFalse(isEnabledDatabaseType(context, null));
+		Assertions.assertTrue(isEnabledDatabaseType(context, "abr"));
+	}
+
+	@Test
+	void isEnabledContainer() {
+		final var context = newContext();
+		context.setValidContainerType(Pattern.compile("ab.*"));
+		Assertions.assertFalse(isEnabledContainerType(context, "axr"));
+		Assertions.assertFalse(isEnabledContainerType(context, null));
+		Assertions.assertTrue(isEnabledContainerType(context, "abr"));
 	}
 
 	@Test

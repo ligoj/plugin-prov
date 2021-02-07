@@ -61,9 +61,10 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 		// Prevent useless computation, check the relations
 		if (entity.getId() != null) {
 			// This is an update, update the cost of all related instances
-			var instances = getRelated(getRepository()::findRelatedInstances, entity);
-			var databases = getRelated(getRepository()::findRelatedDatabases, entity);
-			bRessource.lean(quote, instances, databases, relatedCosts);
+			final var instances = getRelated(getRepository()::findRelatedInstances, entity);
+			final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
+			final var containers = getRelated(getRepository()::findRelatedContainers, entity);
+			bRessource.lean(quote, instances, databases, containers, relatedCosts);
 		}
 
 		repository.saveAndFlush(entity);

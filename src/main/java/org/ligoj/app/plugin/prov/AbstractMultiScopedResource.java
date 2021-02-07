@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.ligoj.app.plugin.prov.dao.BaseMultiScopedRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
@@ -30,6 +31,7 @@ import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
+import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -65,10 +67,16 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	protected ProvQuoteDatabaseResource qbResource;
 
 	@Autowired
+	protected ProvQuoteContainerResource qcResource;
+
+	@Autowired
 	protected ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
 	protected ProvQuoteDatabaseRepository qbRepository;
+
+	@Autowired
+	protected ProvQuoteContainerRepository qcRepository;
 
 	@Autowired
 	protected ProvBudgetResource bRessource;
@@ -140,8 +148,9 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 		final var cost = new UpdatedCost(entity.getId());
 
 		// Get the related resources
-		var instances = getRelated(getRepository()::findRelatedInstances, entity);
-		var databases = getRelated(getRepository()::findRelatedDatabases, entity);
+		final var instances = getRelated(getRepository()::findRelatedInstances, entity);
+		final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
+		final var containers = getRelated(getRepository()::findRelatedContainers, entity);
 
 		if (entity.equals(quoteGetter.apply(quote))) {
 			// Update cost of all instances without explicit resource
@@ -149,7 +158,8 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 		}
 		instances.forEach(i -> quoteSetter.accept(i, null));
 		databases.forEach(i -> quoteSetter.accept(i, null));
-		bRessource.lean(quote, instances, databases, cost.getRelated());
+		containers.forEach(i -> quoteSetter.accept(i, null));
+		bRessource.lean(quote, instances, databases, containers, cost.getRelated());
 
 		// All references are deleted, delete the parent entity
 		getRepository().delete(entity);
