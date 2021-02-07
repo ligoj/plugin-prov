@@ -81,6 +81,17 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	 * expression.
 	 */
 	private String notInstanceType = null;
+	/**
+	 * When not <code>null</code>, this storage can only be attached to an container whose type's code is matching the
+	 * expression.
+	 */
+	private String containerType = null;
+
+	/**
+	 * When not <code>null</code>, this storage can not be attached to an container whose type's code is matching the
+	 * expression.
+	 */
+	private String notContainerType = null;
 
 	/**
 	 * When not <code>null</code>, this storage can only attached to an database whose type is matching the expression.

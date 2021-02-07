@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.BeanParam;
@@ -309,15 +310,15 @@ public class ProvQuoteStorageResource
 		final int qLoc = configuration.getLocation().getId();
 		final int qsLoc;
 		if (query.getLocationName() == null) {
-			qsLoc = Optional.ofNullable(qi == null ? qb : qi).map(AbstractQuoteVm::getLocation).map(Persistable::getId)
-					.orElse(qLoc);
+			qsLoc = Stream.of(qi, qb, qc).filter(Objects::nonNull).findFirst().map(AbstractQuoteVm::getLocation)
+					.map(Persistable::getId).orElse(qLoc);
 		} else {
 			qsLoc = Optional.ofNullable(locationRepository.toId(node, query.getLocationName())).orElse(0);
 		}
 
 		return spRepository
 				.findLowestPrice(node, query.getSize(), query.getLatency(), query.getInstance(), query.getDatabase(),
-						query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))
+						query.getContainer(), query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0])
 				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).collect(Collectors.toList());
 	}
