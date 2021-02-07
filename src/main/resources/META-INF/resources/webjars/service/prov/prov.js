@@ -614,11 +614,11 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMutiScoped(budget, current.model.configuration.budge, mode, 'budge', () => (typeof budget.initialCost === 'number' && budget.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', () => (typeof budget.initialCost === 'number' && budget.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
 	}
 
 	function formatUsageTemplate(usage, mode) {
-		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'usage', () => {
+		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'fa-clock', () => {
 			let tooltip = '';
 			if (typeof usage.start === 'number' && usage.duration > 1) {
 				tooltip += `<br>${current.title('usage-duration')}${usage.duration} month(s)`;
@@ -630,7 +630,7 @@ define(function () {
 		});
 	}
 
-	function formatMutiScoped(entity, confEntity, mode, tooltip) {
+	function formatMutiScoped(entity, confEntity, mode, icon, tooltip) {
 		if (mode === 'sort' || mode === 'filter') {
 			entity = (typeof entity === 'undefined' || entity === null) ? confEntity : entity;
 			return entity ? entity.text || entity.name : '';
@@ -644,7 +644,7 @@ define(function () {
 		} else {
 			entity = confEntity || { rate: 100, duration: 1, name: '<i>default</i>' };
 		}
-		return `<span data-toggle="tooltip" title="${current.title('name')}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}">${entity.name}</span>`;
+		return `<span data-toggle="tooltip" title="${current.title('name', icon)}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}">${entity.name}</span>`;
 	}
 
 	function locationMap(location) {
@@ -3105,8 +3105,8 @@ define(function () {
 				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
 
-		title: function (key) {
-			return (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
+		title: function (key, icon) {
+			return (typeof icon === 'string' ? `<i class="fas ${icon} fa-fw"></i> `: '') + (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
 		},
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
