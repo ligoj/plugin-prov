@@ -35,8 +35,6 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 	@Getter
 	private ProvUsageRepository repository;
 
-	@Autowired
-
 	/**
 	 * Create a usage initiated without any cost.
 	 */

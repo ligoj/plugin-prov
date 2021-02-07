@@ -10,26 +10,17 @@ import javax.cache.annotation.CacheResult;
 
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
 import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 
 /**
- * {@link ProvInstancePrice} repository.
+ * {@link ProvContainerPrice} repository.
  */
-public interface ProvContainerPriceRepository extends BaseProvTermPriceRepository<ProvContainerType, ProvContainerPrice> {
+public interface ProvContainerPriceRepository extends BaseProvTermPriceOsRepository<ProvContainerType, ProvContainerPrice> {
 
-	/**
-	 * Return all licenses related to given node identifier.
-	 *
-	 * @param node The node linked to the subscription. Is a node identifier within a provider.
-	 * @param os   The filtered OS.
-	 * @return The filtered licenses.
-	 */
+	@Override
 	@CacheResult(cacheName = "prov-container-license")
-	@Query("SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%')) AND ip.os=:os ORDER BY ip.license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
 	/**

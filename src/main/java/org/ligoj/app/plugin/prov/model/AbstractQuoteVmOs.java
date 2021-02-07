@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,6 +28,14 @@ public abstract class AbstractQuoteVmOs<P extends AbstractTermPriceVmOs<?>> exte
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
+	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
+	 * variable instance price type such as AWS Spot.
+	 */
+	@Positive
+	private Double maxVariableCost;
 
 	/**
 	 * The requested OS. May be different from the one related by {@link #price}, but refers to

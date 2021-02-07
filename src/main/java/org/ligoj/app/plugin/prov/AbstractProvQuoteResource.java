@@ -13,6 +13,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
+import org.ligoj.bootstrap.core.IDescribableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -23,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <T> Quoted resource price type type.
  * @since 1.8.5
  */
-public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
+public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
 		extends AbstractCostedResource<T, P, C> {
 
 	@Autowired
@@ -40,6 +41,22 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 	protected abstract ResourceType getType();
 
 	protected abstract BaseProvQuoteRepository<C> getResourceRepository();
+
+	/**
+	 * Create the container inside a quote.
+	 *
+	 * @param vo The quote container.
+	 * @return The created container cost details with identifier.
+	 */
+	public abstract UpdatedCost create(final E vo);
+
+	/**
+	 * Update the container inside a quote.
+	 *
+	 * @param vo The quote container to update.
+	 * @return The new cost configuration.
+	 */
+	public abstract UpdatedCost update(final E vo);
 
 	/**
 	 * Delete all resources type from a quote. The total cost is updated.

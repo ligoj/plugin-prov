@@ -5,7 +5,6 @@
 package org.ligoj.app.plugin.prov.quote.instance;
 
 import java.util.List;
-import java.util.function.Function;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.BeanParam;
@@ -29,7 +28,6 @@ import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -40,7 +38,6 @@ import org.ligoj.app.plugin.prov.model.QuoteInstance;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.VmOs;
 import org.ligoj.bootstrap.core.json.TableItem;
-import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -74,12 +71,7 @@ public class ProvQuoteInstanceResource extends
 		return ResourceType.INSTANCE;
 	}
 
-	/**
-	 * Create the instance inside a quote.
-	 *
-	 * @param vo The quote instance.
-	 * @return The created instance cost details with identifier.
-	 */
+	@Override
 	@POST
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -87,27 +79,19 @@ public class ProvQuoteInstanceResource extends
 		return saveOrUpdate(new ProvQuoteInstance(), vo);
 	}
 
-	/**
-	 * Update the instance inside a quote.
-	 *
-	 * @param vo The quote instance to update.
-	 * @return The new cost configuration.
-	 */
+	@Override
 	@PUT
 	@Path("instance")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost update(final QuoteInstanceEditionVo vo) {
-		return saveOrUpdate(resource.findConfigured(qiRepository, vo.getId()), vo);
+		return super.update(vo);
 	}
 
 	@Override
 	protected void saveOrUpdateSpec(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
-		entity.setOs(ObjectUtils.defaultIfNull(vo.getOs(), entity.getPrice().getOs()));
-		entity.setEphemeral(vo.isEphemeral());
-		entity.setMaxVariableCost(vo.getMaxVariableCost());
-		entity.setInternet(vo.getInternet());
 		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
 		entity.setTenancy(ObjectUtils.defaultIfNull(vo.getTenancy(), ProvTenancy.SHARED));
+		super.saveOrUpdateSpec(entity, vo);
 		checkOs(entity);
 	}
 
@@ -140,11 +124,6 @@ public class ProvQuoteInstanceResource extends
 	public QuoteInstanceLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteInstanceQuery query) {
 		return lookupInternal(subscription, query);
-	}
-
-	@Override
-	protected ResourceType getResourceType() {
-		return ResourceType.INSTANCE;
 	}
 
 	@Override
@@ -187,22 +166,12 @@ public class ProvQuoteInstanceResource extends
 		return super.findPriceTerms(subscription, uriInfo);
 	}
 
-	/**
-	 * Return the available instance licenses for a subscription.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
-	 * @param os           The filtered OS.
-	 * @return The available licenses for the given subscription.
-	 */
+	@Override
 	@GET
 	@Path("{subscription:\\d+}/instance-license/{os}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
-		final var result = ipRepository
-				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
-		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteVm.LICENSE_INCLUDED));
-		return result;
+		return super.findLicenses(subscription, os);
 	}
 
 	/**
@@ -220,24 +189,13 @@ public class ProvQuoteInstanceResource extends
 		return ipRepository.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
 	}
 
-	/**
-	 * Return the instance types inside available for the related catalog.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
-	 * @param uriInfo      filter data.
-	 * @return The valid instance types for the given subscription.
-	 */
+	@Override
 	@GET
 	@Path("{subscription:\\d+}/instance-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstanceType> findAllTypes(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisible(subscription);
-		return paginationJson.applyPagination(uriInfo,
-				itRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
-				Function.identity());
+		return super.findAllTypes(subscription, uriInfo);
 	}
 
 	@Override

@@ -68,7 +68,7 @@ import org.springframework.stereotype.Service;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteStorageResource
-		extends AbstractProvQuoteResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage> {
+		extends AbstractProvQuoteResource<ProvStorageType, ProvStoragePrice, ProvQuoteStorage, QuoteStorageEditionVo> {
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
@@ -96,12 +96,7 @@ public class ProvQuoteStorageResource
 		return qsRepository;
 	}
 
-	/**
-	 * Create the storage inside a quote.
-	 *
-	 * @param vo The quote storage details.
-	 * @return The created storage cost details with identifier.
-	 */
+	@Override
 	@POST
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -109,12 +104,7 @@ public class ProvQuoteStorageResource
 		return saveOrUpdate(new ProvQuoteStorage(), vo);
 	}
 
-	/**
-	 * Update the storage inside a quote.
-	 *
-	 * @param vo The quote storage update.
-	 * @return The new cost configuration.
-	 */
+	@Override
 	@PUT
 	@Path("storage")
 	@Consumes(MediaType.APPLICATION_JSON)

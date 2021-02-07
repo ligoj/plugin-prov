@@ -5,7 +5,6 @@
 package org.ligoj.app.plugin.prov.quote.database;
 
 import java.util.List;
-import java.util.function.Function;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.BeanParam;
@@ -37,7 +36,6 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.json.TableItem;
-import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -76,12 +74,7 @@ public class ProvQuoteDatabaseResource extends
 		return ResourceType.DATABASE;
 	}
 
-	/**
-	 * Create the database inside a quote.
-	 *
-	 * @param vo The quote instance.
-	 * @return The created instance cost details with identifier.
-	 */
+	@Override
 	@POST
 	@Path("database")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -89,17 +82,12 @@ public class ProvQuoteDatabaseResource extends
 		return saveOrUpdate(new ProvQuoteDatabase(), vo);
 	}
 
-	/**
-	 * Update the database inside a quote.
-	 *
-	 * @param vo The quote instance to update.
-	 * @return The new cost configuration.
-	 */
+	@Override
 	@PUT
 	@Path("database")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public UpdatedCost update(final QuoteDatabaseEditionVo vo) {
-		return saveOrUpdate(resource.findConfigured(qiRepository, vo.getId()), vo);
+		return super.update(vo);
 	}
 
 	@Override
@@ -155,11 +143,6 @@ public class ProvQuoteDatabaseResource extends
 	public QuoteDatabaseLookup lookup(@PathParam("subscription") final int subscription,
 			@BeanParam final QuoteDatabaseQuery query) {
 		return lookupInternal(subscription, query);
-	}
-
-	@Override
-	protected ResourceType getResourceType() {
-		return ResourceType.DATABASE;
 	}
 
 	@Override
@@ -246,24 +229,13 @@ public class ProvQuoteDatabaseResource extends
 				normalize(engine));
 	}
 
-	/**
-	 * Return the instance types inside available for the related catalog.
-	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
-	 *                     provider.
-	 * @param uriInfo      filter data.
-	 * @return The valid instance types for the given subscription.
-	 */
+	@Override
 	@GET
 	@Path("{subscription:\\d+}/database-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvDatabaseType> findAllTypes(@PathParam("subscription") final int subscription,
 			@Context final UriInfo uriInfo) {
-		subscriptionResource.checkVisible(subscription);
-		return paginationJson.applyPagination(uriInfo,
-				itRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
-						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
-				Function.identity());
+		return super.findAllTypes(subscription, uriInfo);
 	}
 
 	@Override

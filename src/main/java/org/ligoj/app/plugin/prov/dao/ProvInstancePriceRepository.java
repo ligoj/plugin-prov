@@ -18,18 +18,10 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvInstancePrice} repository.
  */
-public interface ProvInstancePriceRepository extends BaseProvTermPriceRepository<ProvInstanceType, ProvInstancePrice> {
+public interface ProvInstancePriceRepository extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
 
-	/**
-	 * Return all licenses related to given node identifier.
-	 *
-	 * @param node The node linked to the subscription. Is a node identifier within a provider.
-	 * @param os   The filtered OS.
-	 * @return The filtered licenses.
-	 */
+	@Override
 	@CacheResult(cacheName = "prov-license")
-	@Query("SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%')) AND ip.os=:os ORDER BY ip.license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
 	/**

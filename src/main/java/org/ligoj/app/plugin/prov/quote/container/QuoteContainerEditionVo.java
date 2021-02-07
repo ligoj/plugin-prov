@@ -3,11 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.quote.container;
 
-import javax.validation.constraints.Positive;
-
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractQuoteInstanceOsEditionVo;
 import org.ligoj.app.plugin.prov.model.QuoteContainer;
-import org.ligoj.app.plugin.prov.model.VmOs;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,23 +14,10 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteContainerEditionVo extends AbstractQuoteInstanceEditionVo implements QuoteContainer {
+public class QuoteContainerEditionVo extends AbstractQuoteInstanceOsEditionVo implements QuoteContainer {
 
 	/**
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * The requested OS. May be <code>null</code> and defaulted to the #instancePrice 's OS.
-	 */
-	private VmOs os;
-
-	/**
-	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
-	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
-	 * variable instance price type such as AWS Spot.
-	 */
-	@Positive
-	private Double maxVariableCost;
 }

@@ -60,7 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <Q> Quoted resource details type.
  */
 public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
-		extends AbstractProvQuoteResource<T, P, C> {
+		extends AbstractProvQuoteResource<T, P, C, E> {
 
 	/**
 	 * The default usage : 100% for 1 month.
@@ -117,6 +117,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	@Override
 	protected BaseProvQuoteRepository<C> getResourceRepository() {
 		return getQiRepository();
+	}
+
+	@Override
+	public UpdatedCost update(final E vo) {
+		return saveOrUpdate(resource.findConfigured(getQiRepository(), vo.getId()), vo);
 	}
 
 	/**
@@ -522,13 +527,6 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the managed resource type.
-	 *
-	 * @return The managed resource type.
-	 */
-	protected abstract ResourceType getResourceType();
-
-	/**
 	 * Return a lookup research corresponding to the best price.
 	 *
 	 * @param configuration The subscription configuration.
@@ -590,9 +588,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(),
 				query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node,
-				(getResourceType() == ResourceType.INSTANCE || getResourceType() == ResourceType.CONTAINER) && convOs,
-				getResourceType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation,
-				reservation, maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
+				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER) && convOs,
+				getType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation, reservation,
+				maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
@@ -727,4 +725,21 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			return configuration.getService();
 		});
 	}
+
+	/**
+	 * Return the instance types inside available for the related catalog.
+	 *
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @param uriInfo      filter data.
+	 * @return The valid instance types for the given subscription.
+	 */
+	protected TableItem<T> findAllTypes(final int subscription, final UriInfo uriInfo) {
+		subscriptionResource.checkVisible(subscription);
+		return paginationJson.applyPagination(uriInfo,
+				getItRepository().findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
+				Function.identity());
+	}
+
 }

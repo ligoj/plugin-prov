@@ -57,7 +57,7 @@ import org.springframework.stereotype.Service;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class ProvQuoteSupportResource
-		extends AbstractProvQuoteResource<ProvSupportType, ProvSupportPrice, ProvQuoteSupport> {
+		extends AbstractProvQuoteResource<ProvSupportType, ProvSupportPrice, ProvQuoteSupport, QuoteSupportEditionVo> {
 
 	@Autowired
 	private ProvSupportTypeRepository stRepository;
@@ -68,12 +68,6 @@ public class ProvQuoteSupportResource
 	@Autowired
 	private ProvQuoteSupportRepository qsRepository;
 
-	/**
-	 * Delete all supports from a quote. The total cost is updated.
-	 *
-	 * @param subscription The related subscription.
-	 * @return The updated computed cost.
-	 */
 	@DELETE
 	@Path("{subscription:\\d+}/support")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -82,12 +76,7 @@ public class ProvQuoteSupportResource
 		return super.deleteAll(subscription);
 	}
 
-	/**
-	 * Create the support plan inside a quote.
-	 *
-	 * @param vo The quote support details.
-	 * @return The created support cost details with identifier.
-	 */
+	@Override
 	@POST
 	@Path("support")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -95,12 +84,7 @@ public class ProvQuoteSupportResource
 		return saveOrUpdate(new ProvQuoteSupport(), vo);
 	}
 
-	/**
-	 * Update the support plan inside a quote.
-	 *
-	 * @param vo The quote support update.
-	 * @return The new cost configuration.
-	 */
+	@Override
 	@PUT
 	@Path("support")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -188,12 +172,6 @@ public class ProvQuoteSupportResource
 		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMax));
 	}
 
-	/**
-	 * Delete a support from a quote. The total cost is updated.
-	 *
-	 * @param id The {@link ProvQuoteSupport}'s identifier to delete.
-	 * @return The updated computed cost.
-	 */
 	@DELETE
 	@Path("support/{id:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)

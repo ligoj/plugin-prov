@@ -12,7 +12,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -34,14 +33,6 @@ public class ProvQuoteInstance extends AbstractQuoteVmOs<ProvInstancePrice> impl
 	 * SID
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
-	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
-	 * variable instance price type such as AWS Spot.
-	 */
-	@Positive
-	private Double maxVariableCost;
 
 	/**
 	 * Optional software.
