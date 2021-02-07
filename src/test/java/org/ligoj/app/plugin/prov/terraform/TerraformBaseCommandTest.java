@@ -63,22 +63,23 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 
 	@Test
 	void executeStateNotListFile() throws Exception {
-		final var resource = newResource(false, "error=0", "AAA");
-		execute(resource, "state", "show");
-		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
+		execute("state", "show");
 	}
 
 	@Test
 	void executeShowNoFile() throws Exception {
-		final var resource = newResource(false, "error=0", "AAA");
-		execute(resource, "show", "-v");
-		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
+		execute("show", "-v");
 	}
 
 	@Test
 	void executeStateListNoFile() throws Exception {
+		execute("state", "list");
+	}
+
+	@Test
+	private void execute(final String command, final String arg) throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
-		execute(resource, "state", "list");
+		execute(resource, command, arg);
 		emptyWorkload(resource.runner.getTask("service:prov:test:account"));
 	}
 
