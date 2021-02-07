@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
@@ -456,8 +457,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setMaxInitialCost(0d);
 
 		// Fetch the usages and budgets of this quotes (parallel)
-		entity.getUsages().size();
-		entity.getBudgets().size();
+		Hibernate.initialize(entity.getUsages());
+		Hibernate.initialize(entity.getBudgets());
 
 		// Add the compute cost, and update the unbound cost
 		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());

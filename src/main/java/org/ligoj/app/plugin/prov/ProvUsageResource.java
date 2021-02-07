@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
@@ -54,7 +55,7 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 
 		// Fetch the usages of this quotes
 		final var quote = entity.getConfiguration();
-		quote.getUsages().size();
+		Hibernate.initialize(quote.getUsages());
 
 		// Prepare the updated cost of updated instances
 		final var relatedCosts = Collections

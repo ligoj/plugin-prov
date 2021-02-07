@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
@@ -78,7 +79,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 		// Fetch the budgets of this quotes
 		final var quote = entity.getConfiguration();
-		quote.getBudgets().size();
+		Hibernate.initialize(quote.getBudgets());
 
 		// Prepare the updated cost of updated instances
 		final var relatedCosts = Collections

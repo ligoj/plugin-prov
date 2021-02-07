@@ -44,6 +44,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
@@ -365,8 +366,8 @@ public class ProvQuoteUploadResource {
 				.collect(Collectors.toConcurrentMap(ProvQuoteDatabase::getName, Function.identity()));
 
 		// Initialization for parallel process
-		quote.getUsages().size();
-		quote.getBudgets().size();
+		Hibernate.initialize(quote.getUsages());
+		Hibernate.initialize(quote.getBudgets());
 		final var context = new UploadContext();
 		context.quote = quote;
 		context.previousQi = previousQi;

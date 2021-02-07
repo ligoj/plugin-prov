@@ -529,9 +529,16 @@ define(['jquery'], function () {
             frames = [];
             incr = dist / (this.MAX_VALUES + this.MAX_VALUES * boosted * DIGIT_SPEEDBOOST);
             cur = start;
-            while ((dist > 0 && cur < end) || (dist < 0 && cur > end)) {
-              frames.push(Math.round(cur));
-              cur += incr;
+            if (dist > 0) {
+              while (cur < end) {
+                frames.push(Math.round(cur));
+                cur += incr;
+              }
+            } else if (dist < 0) {
+              while (cur > end) {
+                frames.push(Math.round(cur));
+                cur += incr;
+              }
             }
             if (frames[frames.length - 1] !== end) {
               frames.push(end);
