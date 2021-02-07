@@ -76,7 +76,6 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 		execute("state", "list");
 	}
 
-	@Test
 	private void execute(final String command, final String arg) throws Exception {
 		final var resource = newResource(false, "error=0", "AAA");
 		execute(resource, command, arg);

@@ -1688,7 +1688,7 @@ define(function () {
 				value = $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
 				var toValue = current['toQueryValue' + queryParam.capitalize()];
 				value = toValue ? toValue(value, $item) : value;
-				if (typeof value !== 'undefined' && value !== null && value !== '' && value !== 0) {
+				if (value || value === false) {
 					// Add as query
 					queries[queryParam] = encodeURIComponent(value);
 				}
