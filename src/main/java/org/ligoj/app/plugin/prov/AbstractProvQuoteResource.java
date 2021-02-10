@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <C> Quoted resource type.
  * @param <P> Quoted resource price type.
  * @param <T> Quoted resource price type type.
+ * @param <E> Quoted resource edition VO type.
  * @since 1.8.5
  */
 public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
