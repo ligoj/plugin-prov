@@ -9,6 +9,16 @@ define(function () {
 	var initializedPopupBudget = false;
 
 	/**
+	 * Enable resource type.
+	 */
+	var types = ['instance', 'database', 'container', 'storage', 'support'];
+
+	/**
+	 * Enable resource type to relatable to storages.
+	 */
+	var typesStorage = ['instance', 'database', 'container'];
+
+	/**
 	 * OS key to markup/label mapping.
 	 */
 	var os = {
@@ -161,7 +171,7 @@ define(function () {
 					term = term.toLowerCase();
 					var processors = current.model.configuration.processors;
 					// Must be found in all resource types
-					if (processors.instance.filter(p => p.toLowerCase().indexOf(term) >= 0).length && processors.database.filter(p => p.toLowerCase().indexOf(term) >= 0).length) {
+					if (typesStorage.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -171,7 +181,7 @@ define(function () {
 			data: () => {
 				if (current.model) {
 					var processors = current.model.configuration.processors;
-					return { results: ((typeof type === 'function' ? processors[type()] : processors.instance.concat(processors.database)) || []).map(p => ({ id: p, text: p })) };
+					return { results: (typeof type === 'function' ? processors[type()] || [] : typesStorage.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -614,17 +624,17 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', () => (typeof budget.initialCost === 'number' && budget.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', (entity) => (typeof entity.initialCost === 'number' && entity.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(entity.initialCost)}` : '');
 	}
 
 	function formatUsageTemplate(usage, mode) {
-		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'fa-clock', () => {
+		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'fa-clock', (entity) => {
 			let tooltip = '';
-			if (typeof usage.start === 'number' && usage.duration > 1) {
-				tooltip += `<br>${current.title('usage-duration')}${usage.duration} month(s)`;
+			if (typeof entity.start === 'number' && entity.duration > 1) {
+				tooltip += `<br>${current.title('usage-duration')}${entity.duration} month(s)`;
 			}
-			if (typeof usage.start === 'number' && usage.start > 0) {
-				tooltip += `<br>${current.title('usage-start')}${usage.start} month(s)`;
+			if (typeof entity.start === 'number' && entity.start > 0) {
+				tooltip += `<br>${current.title('usage-start')}${entity.start} month(s)`;
 			}
 			return tooltip;
 		});
@@ -698,6 +708,8 @@ define(function () {
 			obj = conf.locationsById[data.price.location];
 		} else if (data.quoteInstance && data.quoteInstance.price.location) {
 			obj = conf.locationsById[data.quoteInstance.price.location];
+		} else if (data.quoteContainer && data.quoteContainer.price.location) {
+			obj = conf.locationsById[data.quoteContainer.price.location];
 		} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
 			obj = conf.locationsById[data.quoteDatabase.price.location];
 		} else {
@@ -715,7 +727,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : '<i class="fas fa-database"></i>') + ' ' + resource.name;
+			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
 		}
 		return '';
 	}
@@ -811,7 +823,7 @@ define(function () {
 	 * @param {string} text The text candidate.
 	 */
 	function matcher(term, text) {
-		return window.Select2.util.stripDiacritics('' + text).toUpperCase().indexOf(window.Select2.util.stripDiacritics('' + term).toUpperCase()) >= 0;
+		return window.Select2.util.stripDiacritics('' + text).toUpperCase().includes(window.Select2.util.stripDiacritics('' + term).toUpperCase());
 	}
 
 	function filterSelect2Result(items, options, customComparator, customMatcher) {
@@ -918,7 +930,7 @@ define(function () {
 
 	function initializePopupInnerEvents() {
 		// Memory unit, physical, CPU constant/variable selection
-		$('#popup-prov-generic').on('click', '.input-group-btn li', function (e) {
+		_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
 			$.proxy(synchronizeDropdownText, $(this))();
 			// Also trigger the change of the value
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
@@ -935,9 +947,15 @@ define(function () {
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
-			return _('instance-license').provType() === 'instance'
-				? 'instance-license/' + _('instance-os').val()
-				: ('database-license/' + _('database-engine').val())
+			if (_('instance-license').provType() === 'instance') {
+				return 'instance-license/' + _('instance-os').val();
+			}
+			if (_('instance-license').provType() === 'container') {
+				return 'container-license/' + _('instance-os').val();
+			}
+			if (_('instance-license').provType() === 'database') {
+				return 'database-license/' + _('database-engine').val();
+			}
 		}));
 		_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
 		_('storage-location').select2(current.locationSelect2(current.$messages['service:prov:default']));
@@ -954,7 +972,7 @@ define(function () {
 			},
 			data: function () {
 				return {
-					results: current.model.configuration.instances.concat(current.model.configuration.databases).map(r => {
+					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => { // TODO FDA
 						r.text = r.name;
 						return r;
 					})
@@ -1100,31 +1118,34 @@ define(function () {
 	 */
 	function initializePopupEvents(type) {
 		// Resource edition pop-up
-		var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+		var popupType = typesStorage.includes(type) ? 'generic' : type;
 		var $popup = _('popup-prov-' + popupType);
 		$popup.on('shown.bs.modal', function () {
-			var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
+			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('show.bs.modal', function (event) {
-			if (initializedPopupEvents === false) {
-				initializedPopupEvents = true;
-				initializePopupInnerEvents();
-			}
-			var $source = $(event.relatedTarget);
+			let $source = $(event.relatedTarget);
+			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
-			var dynaType = $source.provType();
 			var $table = _('prov-' + dynaType + 's');
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
-			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
+			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').not('[data-exclusive="' + dynaType + '"]').find(':required').addClass('old-required').removeAttr('required');
+			debugger;
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+
+			if (initializedPopupEvents === false) {
+				initializedPopupEvents = true;
+				initializePopupInnerEvents();
+			}
+
 			if (quote.id) {
 				current.enableCreate($popup);
 			} else {
@@ -1353,11 +1374,6 @@ define(function () {
 		contextDonut: null,
 
 		/**
-		 * Enable resource type.
-		 */
-		types: ['instance', 'database', 'storage', 'support'],
-
-		/**
 		 * Threshold
 		*/
 		changesReloadThreshold: 200,
@@ -1399,7 +1415,7 @@ define(function () {
 			initializedPopupEvents = false;
 			initializedPopupUsage = false;
 			initializedPopupBudget = false;
-			current.types.forEach(type => delete current[type + 'Table']);
+			types.forEach(type => delete current[type + 'Table']);
 		},
 
 		unload: function () {
@@ -1423,7 +1439,7 @@ define(function () {
 					current.model = data;
 					current.optimizeModel();
 					var configuration = data.configuration;
-					current.types.forEach(type => _('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false));
+					types.forEach(type => _('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false));
 					current.updateUiAssumptions(configuration);
 					current.updateUiCost();
 				}
@@ -1452,7 +1468,7 @@ define(function () {
 		 * Redraw all tables
 		 */
 		redrawAll: function () {
-			current.types.forEach(type => {
+			types.forEach(type => {
 				_('prov-' + type + 's').DataTable().clear().draw(false);
 			});
 		},
@@ -1524,7 +1540,10 @@ define(function () {
 			if (quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
 			}
-			if (quote.nbInstances || quote.nbDatabases) {
+			if (quote.nbContainers) {
+				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containerss') + quote.nbContainers + ' Containers</span>');
+			}
+			if (quote.nbInstances || quote.nbDatabases || quote.nbContainers) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
 				resources.push('<span class="sub-item">' + current.$super('icon')('memory', 'service:prov:total-ram') + formatRam(quote.totalRam) + '</span>');
 			}
@@ -1571,7 +1590,7 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			['usage', 'budget', 'instance', 'database', 'storage'].forEach(type => toIds(conf, type));
+			['usage', 'budget', 'instance', 'database', 'container', 'storage'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
@@ -1584,10 +1603,7 @@ define(function () {
 
 			// Storage
 			conf.storageCost = 0;
-			conf.storages.forEach(qs => {
-				current.attachStorage(qs, 'instance', qs.quoteInstance, true);
-				current.attachStorage(qs, 'database', qs.quoteDatabase, true);
-			});
+			conf.storages.forEach(qs => typesStorage.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
 			current.initializeTerraformStatus();
 		},
 
@@ -1634,23 +1650,26 @@ define(function () {
 			var $form = $(this).prov();
 			var queries = {};
 			var type = $form.provType();
-			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var popupType = typesStorage.includes(type) ? 'generic' : type;
 			var $popup = _('popup-prov-' + popupType);
 
 			// Build the query
 			$form.find('.resource-query').filter(function () {
-				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive') === type;
+				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive').includes(type);
 			}).each(function () {
 				current.addQuery(type, $(this), queries);
-				if (type === 'database') {
+				if (type !== 'instance' && typesStorage.includes(type)) {
 					// Also include the instance inputs
 					current.addQuery('instance', $(this), queries);
 				}
 			});
-			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data') && _('storage-instance').select2('data').resourceType === 'database') {
-				// Replace the resource lookup
-				queries['database'] = queries['instance'];
-				delete queries['instance'];
+			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data')) {
+				let sType = _('storage-instance').select2('data').resourceType;
+				if (sType !== 'instance' && typesStorage.includes(sType)) {
+					// Replace the resource lookup
+					queries[sType] = queries['instance'];
+					delete queries['instance'];
+				}
 			}
 			var queriesArray = [];
 			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
@@ -1714,7 +1733,7 @@ define(function () {
 		},
 
 		/**
-		 * Set the current instance/database price.
+		 * Set the current instance/database/container price.
 		 */
 		genericSetUiPrice: function (quote) {
 			if (quote && quote.price) {
@@ -1742,9 +1761,16 @@ define(function () {
 		},
 
 		/**
-		 * Set the current instance price.
+		 * Set the current database price.
 		 */
 		databaseSetUiPrice: function (quote) {
+			current.genericSetUiPrice(quote);
+		},
+
+		/**
+		 * Set the current container price.
+		 */
+		containerSetUiPrice: function (quote) {
 			current.genericSetUiPrice(quote);
 		},
 
@@ -1794,7 +1820,7 @@ define(function () {
 		 */
 		initializeDataTableEvents: function (type) {
 			var oSettings = current[type + 'NewTable']();
-			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
+			var popupType = typesStorage.includes(type) ? 'generic' : type;
 			var $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				provType: type,
@@ -1948,16 +1974,14 @@ define(function () {
 						}
 
 						var filter = settings.oPreviousSearch.sSearchAlt || '';
-						if (type === 'storage' && (current.databaseTableFilter !== '' || current.instanceTableFilter !== '')) {
-							// Only storage rows unrelated to filtered instance/database can be displayed
+						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
+							// Only storage rows unrelated to filtered instance/database/container can be displayed
 							// There are 2 operators: 
 							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)'
 							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)'
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
-								cache: current.databaseTableFilter + '/' + current.instanceTableFilter, filters: [
-									{ property: 'quoteDatabase', op: 'in', table: current.databaseTableFilter && current.databaseTable },
-									{ property: 'quoteInstance', op: 'in', table: current.instanceTableFilter && current.instanceTable },
-								]
+								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
+								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
 							});
 						}
 						if (filter === '') {
@@ -1987,7 +2011,7 @@ define(function () {
 						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
 
-						if (type === 'instance' || type === 'database') {
+						if (typesStorage.includes(type)) {
 							// Refresh the storage
 							var tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
@@ -1997,10 +2021,10 @@ define(function () {
 					}
 				}
 			}, 200));
-			current.types.forEach(type => current[type + 'TableFilter'] = '');
-			current.types.forEach(type => {
+			types.forEach(type => current[type + 'TableFilter'] = '');
+			types.forEach(type => {
 				current.initializeDataTableEvents(type);
-				if (type !== 'database') {
+				if (type !== 'database' && type !== 'container') {
 					initializePopupEvents(type);
 				}
 			});
@@ -2619,8 +2643,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			current.attachStorage(model, 'instance', data.instance);
-			current.attachStorage(model, 'database', data.database);
+			typesStorage.forEach(type => current.attachStorage(model, type, data[sType]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2641,12 +2664,20 @@ define(function () {
 			model.constant = data.constant;
 			model.physical = data.physical;
 		},
-
-		instanceCommitToModel: function (data, model) {
+		computeCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
 			model.maxVariableCost = parseFloat(data.maxVariableCost, 10);
 			model.ephemeral = data.ephemeral;
 			model.os = data.os;
+		},
+
+
+		instanceCommitToModel: function (data, model) {
+			current.computeCommitToModel(data, model);
+		},
+
+		containerCommitToModel: function (data, model) {
+			current.computeCommitToModel(data, model);
 		},
 
 		databaseCommitToModel: function (data, model) {
@@ -2656,14 +2687,10 @@ define(function () {
 		},
 
 		storageUiToData: function (data) {
-			delete data.instance;
-			delete data.database;
-			if (_('storage-instance').select2('data')) {
-				if (_('storage-instance').select2('data').resourceType === 'database') {
-					data.database = (_('storage-instance').select2('data') || {}).id;
-				} else {
-					data.instance = (_('storage-instance').select2('data') || {}).id;
-				}
+			typesStorage.forEach(sType => delete data[sType]);
+			let storage = _('storage-instance').select2('data');
+			if (storage) {
+				data[storage.resourceType] = storage.id;
 			}
 			data.size = cleanInt(_('storage-size').val());
 			data.optimized = _('storage-optimized').val();
@@ -2696,12 +2723,20 @@ define(function () {
 			data.price = _('instance-price').select2('data').price.id;
 		},
 
-		instanceUiToData: function (data) {
+		computeUiToData: function (data) {
 			current.genericUiToData(data)
 			data.maxVariableCost = cleanFloat(_('instance-max-variable-cost').val());
 			data.ephemeral = _('instance-ephemeral').is(':checked');
 			data.os = _('instance-os').val().toLowerCase();
+		},
+
+		instanceUiToData: function (data) {
+			current.computeUiToData(data);
 			data.software = _('instance-software').val().toLowerCase() || null;
+		},
+
+		containerUiToData: function (data) {
+			current.computeUiToData(data);
 		},
 
 		databaseUiToData: function (data) {
@@ -2716,8 +2751,8 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
-			var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
+			var popupType = typesStorage.includes(type) ? 'generic' : type;
+			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			var $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
 			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
@@ -2753,10 +2788,10 @@ define(function () {
 		},
 
 		/**
-		 * Fill the instance popup with given entity or default values.
+		 * Fill the instance like popup with given entity or default values.
 		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
-		instanceToUi: function (quote) {
+		computeToUi: function (quote) {
 			current.genericToUi(quote);
 			_('instance-max-variable-cost').val(quote.maxVariableCost || null);
 			_('instance-ephemeral').prop('checked', quote.ephemeral);
@@ -2764,6 +2799,22 @@ define(function () {
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
 			current.instanceSetUiPrice(quote);
+		},
+
+		/**
+		 * Fill the instance popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		instanceToUi: function (quote) {
+			current.computeToUi(quote);
+		},
+
+		/**
+		 * Fill the container popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		containerToUi: function (quote) {
+			current.computeToUi(quote);
 		},
 
 		/**
@@ -2802,7 +2853,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || null);
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null); // TODO FDA
 			current.storageSetUiPrice(quote);
 		},
 
@@ -2836,8 +2887,8 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			var popupType = (type == 'instance' || type == 'database') ? 'generic' : type;
-			var inputType = (type == 'instance' || type == 'database') ? 'instance' : type;
+			var popupType = typesStorage.includes(type) ? 'generic' : type;
+			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			var $popup = _('popup-prov-' + popupType);
 
 			// Build the playload for API service
@@ -2927,7 +2978,7 @@ define(function () {
 					var stack = {
 						date: value.date
 					};
-					current.types.forEach(type => stack[type] = value[type]);
+					types.forEach(type => stack[type] = value[type]);
 					data.push(stack);
 				}
 
@@ -2939,7 +2990,7 @@ define(function () {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
-							current.types.forEach(type => {
+							types.forEach(type => {
 								var cost = bars.filter(bar => bar.cluster === type);
 								if (cost.length && cost[0].height0) {
 									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">' : '>') + current.$messages['service:prov:' + type] + ': ' + formatCost(cost[0].height0) + '</span>';
@@ -2954,7 +3005,7 @@ define(function () {
 							// Hover of barchart -> update sunburst and global cost
 							current.fixedDate = clicked && d && d['x-index'];
 							current.updateUiCost();
-						}, d => formatCost(d, null, null, true), (a, b) => current.types.indexOf(a) - current.types.indexOf(b));
+						}, d => formatCost(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -2966,6 +3017,18 @@ define(function () {
 					$("#prov-barchart").addClass('hidden');
 				}
 			});
+		},
+
+		updateComputeUiConst: function (stats, type) {
+			let $summary = $(`.nav-pills [href="#tab-${type}"] .summary> .badge`);
+			if (stats[type].cpu.available) {
+				let sStats = stats[type];
+				current.updateSummary($summary, sStats);
+				let $oss = $summary.filter('[data-os]').addClass('hidden');
+				Object.keys(sStats.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(sStats.oss[o]));
+			} else {
+				$summary.addClass('hidden');
+			}
 		},
 
 		/**
@@ -2997,7 +3060,7 @@ define(function () {
 			}
 
 			// Separated resource counters
-			current.types.forEach(type => {
+			types.forEach(type => {
 				var $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
 				if (stats[type].nb) {
 					$stats.removeClass('hide').find('.odo-wrapper').text(stats[type].nb);
@@ -3008,17 +3071,13 @@ define(function () {
 			});
 
 			// Instance summary
-			var $summary = $('.nav-pills [href="#tab-instance"] .summary> .badge');
-			if (stats.instance.cpu.available) {
-				current.updateSummary($summary, stats.instance);
-				var $oss = $summary.filter('[data-os]').addClass('hidden');
-				Object.keys(stats.instance.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(stats.instance.oss[o]));
-			} else {
-				$summary.addClass('hidden');
-			}
+			current.updateComputeUiConst(stats, 'instance');
+
+			// Container summary
+			current.updateComputeUiConst(stats, 'container');
 
 			// Database summary
-			$summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
+			let $summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (stats.database.cpu.available) {
 				current.updateSummary($summary, stats.database);
 				var $engines = $summary.filter('[data-engine]').addClass('hidden');
@@ -3073,7 +3132,7 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
-						return current.types.indexOf(a.data.type) - current.types.indexOf(b.data.type);
+						return types.indexOf(a.data.type) - types.indexOf(b.data.type);
 					}, current.sunburstTooltip);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
@@ -3106,8 +3165,19 @@ define(function () {
 		},
 
 		title: function (key, icon) {
-			return (typeof icon === 'string' ? `<i class="fas ${icon} fa-fw"></i> `: '') + (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
+			return (typeof icon === 'string' ? `<i class="fas ${icon} fa-fw"></i> ` : '') + (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
 		},
+
+		sunburstComputeTooltip: function (data, type) {
+			let entity = conf[type + 'sById'][data.name];
+			return current.title('name') + entity.name
+				+ '<br>' + current.title('instance-type') + entity.price.type.name
+				+ '<br>' + current.title('os') + formatOs(entity.price.os, true)
+				+ '<br>' + current.title('term') + entity.price.term.name
+				+ '<br>' + current.title('usage') + (entity.usage ? entity.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
+				+ '<br>' + current.title('budget') + (entity.budget ? entity.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
+		},
+
 		sunburstBaseTooltip: function (data) {
 			var conf = current.model.configuration;
 			switch (data.type) {
@@ -3118,13 +3188,9 @@ define(function () {
 				case 'engine':
 					return formatDatabaseEngine(data.name, true, ' fa-2x');
 				case 'instance':
-					var instance = conf.instancesById[data.name];
-					return current.title('name') + instance.name
-						+ '<br>' + current.title('instance-type') + instance.price.type.name
-						+ '<br>' + current.title('os') + formatOs(instance.price.os, true)
-						+ '<br>' + current.title('term') + instance.price.term.name
-						+ '<br>' + current.title('usage') + (instance.usage ? instance.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
-						+ '<br>' + current.title('budget') + (instance.budget ? instance.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
+					return current.sunburstComputeTooltip(data, 'instance');
+				case 'container':
+					return current.sunburstComputeTooltip(data, 'container');
 				case 'storage':
 					var storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -3147,6 +3213,8 @@ define(function () {
 					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
 				case 'root-instance':
 					return '<i class="fas fa-server fa-2x"></i><br>' + data.name;
+				case 'root-container':
+					return '<i class="fab fa-docker fa-2x"></i><br>' + data.name;
 				case 'root-database':
 					return '<i class="fas fa-database fa-2x"></i><br>' + data.name;
 				case 'root-support':
@@ -3173,18 +3241,14 @@ define(function () {
 		updateGauge: function (d3, stats) {
 			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
 				var weightCost = 0;
-				if (stats.instance.cpu.available) {
-					weightCost += stats.instance.cost * 0.8 * stats.instance.cpu.reserved / stats.instance.cpu.available;
-				}
-				if (stats.instance.ram.available) {
-					weightCost += stats.instance.cost * 0.2 * stats.instance.ram.reserved / stats.instance.ram.available;
-				}
-				if (stats.database.cpu.available) {
-					weightCost += stats.database.cost * 0.8 * stats.database.cpu.reserved / stats.database.cpu.available;
-				}
-				if (stats.database.ram.available) {
-					weightCost += stats.database.cost * 0.2 * stats.database.ram.reserved / stats.database.ram.available;
-				}
+				typesStorage.forEach(sType => {
+					if (stats[sType].cpu.available) {
+						weightCost += stats[sType].cost * 0.8 * stats[sType].cpu.reserved / stats[sType].cpu.available;
+					}
+					if (stats[sType].ram.available) {
+						weightCost += stats[sType].cost * 0.2 * stats[sType].ram.reserved / stats[sType].ram.available;
+					}
+				});
 				if (stats.storage.available) {
 					weightCost += stats.storage.cost * stats.storage.reserved / stats.storage.available;
 				}
@@ -3206,12 +3270,68 @@ define(function () {
 			} else {
 				result = current.model.configuration[type + 's'] || {};
 			}
-			if ((type === 'instance' || type === 'database' || type === 'storage') && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
+			if ((typesStorage.includes(type) || type === 'storage') && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
 				var usage = (current.model.configuration.usage || {});
 				var date = typeof current.filterDate === 'number' ? current.filterDate : current.fixedDate;
-				return result.filter(qi => (((qi.quoteInstance || qi.quoteDatabase || qi).usage || usage).start || 0) <= date);
+				return result.filter(qi => (typesStorage.map(sType => qi['quote' + sType.capitalize()]).filter(t => t).concat(qi)[0].usage || usage || 0) <= date);
 			}
 			return result;
+		},
+
+		computeStatsType: function (conf, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
+			let ramAdjustedRate = conf.ramAdjustedRate / 100;
+			let publicAccess = 0;
+			let instances = current.getFilteredData(type);
+			let ramAvailable = 0;
+			let ramReserved = 0;
+			let cpuAvailable = 0;
+			let cpuReserved = 0;
+			let instanceCost = 0;
+			let minInstances = 0;
+			let maxInstancesUnbound = false;
+			let enabledInstances = {};
+			let resultType = {};
+			if (typeof callback === 'function') {
+				callback(resultType);
+			}
+			for (let i = 0; i < instances.length; i++) {
+				let qi = instances[i];
+				let cost = qi.cost.min || qi.cost || 0;
+				let nb = qi.minQuantity || 1;
+				minInstances += nb;
+				maxInstancesUnbound |= (qi.maxQuantity !== nb);
+				cpuAvailable += qi.price.type.cpu * nb;
+				cpuReserved += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
+				ramAvailable += qi.price.type.ram * nb;
+				ramReserved += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
+				instanceCost += cost;
+				publicAccess += (qi.internet === 'public') ? 1 : 0;
+				enabledInstances[qi.id] = true;
+				if (typeof callbackQi === 'function') {
+					callbackQi(resultType, qi);
+				}
+				for (let t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
+					timeline[t][type] += cost;
+					timeline[t].cost += cost;
+				}
+			}
+			result[type] = Object.assign(resultType, {
+				nb: instances.length,
+				min: minInstances,
+				unbound: maxInstancesUnbound,
+				ram: {
+					available: ramAvailable,
+					reserved: ramReserved
+				},
+				cpu: {
+					available: cpuAvailable,
+					reserved: cpuReserved
+				},
+				publicAccess: publicAccess,
+				filtered: instances,
+				enabled: enabledInstances,
+				cost: instanceCost
+			});
 		},
 
 		/**
@@ -3220,8 +3340,8 @@ define(function () {
 		 */
 		computeStats: function () {
 			var conf = current.model.configuration;
-			var nb = 0;
-			var i, t, qi, cost;
+			var i, t;
+			let reservationModeMax = conf.reservationMode === 'max';
 
 			// Timeline
 			var timeline = [];
@@ -3233,92 +3353,40 @@ define(function () {
 				date.add(1, 'months');
 			}
 
+			let result = {};
 			// Instance statistics
-			var publicAccess = 0;
-			var instances = current.getFilteredData('instance');
-			var ramAvailable = 0;
-			var ramReserved = 0;
-			var cpuAvailable = 0;
-			var cpuReserved = 0;
-			var instanceCost = 0;
-			var ramAdjustedRate = conf.ramAdjustedRate / 100;
-			var reservationModeMax = conf.reservationMode === 'max';
-			var minInstances = 0;
-			var maxInstancesUnbound = false;
-			var enabledInstances = {};
-			var oss = {};
-			for (i = 0; i < instances.length; i++) {
-				qi = instances[i];
-				cost = qi.cost.min || qi.cost || 0;
-				nb = qi.minQuantity || 1;
-				minInstances += nb;
-				maxInstancesUnbound |= (qi.maxQuantity !== nb);
-				cpuAvailable += qi.price.type.cpu * nb;
-				cpuReserved += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
-				ramAvailable += qi.price.type.ram * nb;
-				ramReserved += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
-				instanceCost += cost;
-				publicAccess += (qi.internet === 'public') ? 1 : 0;
-				enabledInstances[qi.id] = true;
-				oss[qi.os] = (oss[qi.os] || 0) + 1;
-				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
-					timeline[t].instance += cost;
-					timeline[t].cost += cost;
-				}
-			}
-
-			// Database statistics
-			var publicAccessD = 0;
-			var databases = current.getFilteredData('database');
-			var ramAvailableD = 0;
-			var ramReservedD = 0;
-			var cpuAvailableD = 0;
-			var cpuReservedD = 0;
-			var instanceCostD = 0;
-			var minInstancesD = 0;
-			var engines = {};
-			var maxInstancesUnboundD = false;
-			var enabledInstancesD = {};
-			for (i = 0; i < databases.length; i++) {
-				qi = databases[i];
-				cost = qi.cost.min || qi.cost || 0;
-				nb = qi.minQuantity || 1;
-				minInstancesD += nb;
-				maxInstancesUnboundD |= (qi.maxQuantity !== nb);
-				cpuAvailableD += qi.price.type.cpu * nb;
-				cpuReservedD += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
-				ramAvailableD += qi.price.type.ram * nb;
-				ramReservedD += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
-				instanceCostD += cost;
-				var engine = qi.engine.replace(/AURORA .*/, 'AURORA');
-				engines[engine] = (engines[engine] || 0) + 1;
-				publicAccessD += (qi.internet === 'public') ? 1 : 0;
-				enabledInstancesD[qi.id] = true;
-				for (t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
-					timeline[t].database += cost;
-					timeline[t].cost += instanceCostD;
-				}
-			}
+			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
+				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
+				r.engines[engine] = (r.engines[engine] || 0) + 1;
+			});
 
 			// Storage statistics
 			var storageAvailable = 0;
 			var storageReserved = 0;
 			var storageCost = 0;
 			var storages = current.getFilteredData('storage');
+			let nb = 0;
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
-				if (qs.quoteInstance && enabledInstances[qs.quoteInstance.id]) {
+
+				// TODO FDA
+				if (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id]) {
 					nb = qs.quoteInstance.minQuantity || 1;
-				} else if (qs.quoteDatabase && enabledInstancesD[qs.quoteDatabase.id]) {
+				} else if (qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id]) {
 					nb = qs.quoteDatabase.minQuantity || 1;
+				} else if (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id]) {
+					nb = qs.quoteContainer.minQuantity || 1;
 				} else {
 					nb = 1;
 				}
+
 				var qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				var quoteVm = qs.quoteDatabase || qs.quoteInstance;
+				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer; // TODO
 				if (quoteVm) {
 					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
 						timeline[t].storage += qs.cost;
@@ -3342,45 +3410,12 @@ define(function () {
 				timeline[t].cost += supportCost;
 			}
 
-			return {
-				cost: instanceCost + instanceCostD + storageCost + supportCost,
-				costNoSupport: instanceCost + instanceCostD + storageCost,
-				unbound: maxInstancesUnbound || maxInstancesUnboundD,
+			let costNoSupport = typesStorage.reduce((total, sType) => total + result[sType].cost, storageCost);
+			return Object.assign(result, {
+				cost: costNoSupport + supportCost,
+				costNoSupport: costNoSupport,
+				unbound: typesStorage.some(sType => result[sType].maxInstancesUnbound),
 				timeline: timeline,
-				instance: {
-					nb: instances.length,
-					min: minInstances,
-					unbound: maxInstancesUnbound,
-					oss: oss,
-					ram: {
-						available: ramAvailable,
-						reserved: ramReserved
-					},
-					cpu: {
-						available: cpuAvailable,
-						reserved: cpuReserved
-					},
-					publicAccess: publicAccess,
-					filtered: instances,
-					cost: instanceCost
-				},
-				database: {
-					nb: databases.length,
-					min: minInstancesD,
-					unbound: maxInstancesUnboundD,
-					ram: {
-						available: ramAvailableD,
-						reserved: ramReservedD
-					},
-					cpu: {
-						available: cpuAvailableD,
-						reserved: cpuReservedD
-					},
-					engines: engines,
-					publicAccess: publicAccessD,
-					filtered: databases,
-					cost: instanceCostD
-				},
 				storage: {
 					nb: storages.length,
 					available: storageAvailable,
@@ -3395,7 +3430,7 @@ define(function () {
 					more: supports.length > 1,
 					cost: supportCost
 				}
-			};
+			});
 		},
 
 		/**
@@ -3453,7 +3488,7 @@ define(function () {
 				value: stats.cost,
 				children: []
 			};
-			current.types.forEach(type => {
+			types.forEach(type => {
 				var data = {
 					value: 0,
 					type: 'root-' + type,
@@ -3467,11 +3502,10 @@ define(function () {
 			});
 			return root;
 		},
-
-		instanceToD3: function (data, stats) {
+		computeToD3: function (data, stats, type) {
 			var allOss = {};
-			var instances = stats.instance.filtered;
-			data.name = current.$messages['service:prov:instances-block'];
+			var instances = stats[type].filtered;
+			data.name = current.$messages[`service:prov:${type}-block`];
 			for (var i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var oss = allOss[qi.os];
@@ -3490,12 +3524,19 @@ define(function () {
 				data.value += qi.cost;
 				oss.children.push({
 					name: qi.id,
-					type: 'instance',
+					type: type,
 					size: qi.cost
 				});
 			}
 		},
-		databaseToD3: function (data, stats) {
+
+		instanceToD3: function (data, stats) {
+			current.computeToD3(data, stats, 'instance');
+		},
+		containerToD3: function (data, stats) {
+			current.computeToD3(data, stats, 'container');
+		},
+		databaseToD3: function (data, stats) { // TODO FDA
 			var allEngines = {};
 			var databases = stats.database.filtered;
 			data.name = current.$messages['service:prov:databases-block'];
@@ -3566,10 +3607,10 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the instance datatables from the whole quote
+		 * Initialize the instance like datatables from the whole quote
 		 */
-		instanceNewTable: function () {
-			return current.genericInstanceNewTable('instance', [{
+		computeNewTable: function (type) {
+			return current.genericInstanceNewTable(type, [{
 				data: 'minQuantity',
 				className: 'hidden-xs',
 				type: 'num',
@@ -3581,6 +3622,19 @@ define(function () {
 				type: 'string',
 				render: formatOs
 			}]);
+		},
+		/**
+		 * Initialize the instance datatables from the whole quote
+		 */
+		instanceNewTable: function () {
+			return current.computeNewTable('instance');
+		},
+
+		/**
+		 * Initialize the container datatables from the whole quote
+		 */
+		containerNewTable: function () {
+			return current.computeNewTable('container');
 		},
 
 		/**
@@ -3665,7 +3719,7 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase))
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer)) // TODO FDA
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3691,7 +3745,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase)
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer) // TODO FDA
 				}]
 			};
 		},
@@ -3736,7 +3790,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the database datatables from the whole quote
+		 * Initialize the database/instance/container datatables from the whole quote
 		 */
 		genericInstanceNewTable: function (type, columns) {
 			return {
@@ -3779,6 +3833,7 @@ define(function () {
 								size: suggest.size,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
+								container: type === 'container' && qi.id,
 								subscription: current.model.subscription,
 								optimized: suggest.price.type.optimized,
 								latency: suggest.price.type.latency
@@ -3983,11 +4038,11 @@ define(function () {
 					delete conf[type + 'sById'][resource.id];
 					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
-						var qr = resource.quoteInstance || resource.quoteDatabase;
+						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer; // TODO FDA
 						if (qr) {
 							// Also redraw the instance
-							var attachedType = resource.quoteInstance ? 'instance' : 'database';
-							current.detachStorage(resource, 'quote' + attachedType.charAt(0).toUpperCase() + attachedType.slice(1));
+							var attachedType = resource.quoteInstance ? 'instance' : resource.quoteDatabase ? 'database' : 'container';
+							current.detachStorage(resource, 'quote' + attachedType.capitalize());
 							current.redrawResource(attachedType, qr.id);
 						}
 					}
