@@ -3167,10 +3167,10 @@ define(function () {
 			return (typeof icon === 'string' ? `<i class="fas ${icon} fa-fw"></i> ` : '') + (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
 		},
 
-		sunburstComputeTooltip: function (data, type) {
+		sunburstComputeTooltip: function (conf, data, type) {
 			let entity = conf[type + 'sById'][data.name];
 			return current.title('name') + entity.name
-				+ '<br>' + current.title('instance-type') + entity.price.type.name
+				+ '<br>' + current.title(type + '-type') + entity.price.type.name
 				+ '<br>' + current.title('os') + formatOs(entity.price.os, true)
 				+ '<br>' + current.title('term') + entity.price.term.name
 				+ '<br>' + current.title('usage') + (entity.usage ? entity.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
@@ -3187,9 +3187,9 @@ define(function () {
 				case 'engine':
 					return formatDatabaseEngine(data.name, true, ' fa-2x');
 				case 'instance':
-					return current.sunburstComputeTooltip(data, 'instance');
+					return current.sunburstComputeTooltip(conf, data, 'instance');
 				case 'container':
-					return current.sunburstComputeTooltip(data, 'container');
+					return current.sunburstComputeTooltip(conf, data, 'container');
 				case 'storage':
 					var storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -3209,15 +3209,15 @@ define(function () {
 						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
 						+ '<br>' + current.title('budget') + (database.budget ? database.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
 				case 'root-storage':
-					return '<i class="far fa-hdd fa-2x"></i><br>' + data.name;
+					return '<i class="far fa-hdd fa-2x"></i> ' + data.name;
 				case 'root-instance':
-					return '<i class="fas fa-server fa-2x"></i><br>' + data.name;
+					return '<i class="fas fa-server fa-2x"></i> ' + data.name;
 				case 'root-container':
-					return '<i class="fab fa-docker fa-2x"></i><br>' + data.name;
+					return '<i class="fab fa-docker fa-2x"></i> ' + data.name;
 				case 'root-database':
-					return '<i class="fas fa-database fa-2x"></i><br>' + data.name;
+					return '<i class="fas fa-database fa-2x"></i> ' + data.name;
 				case 'root-support':
-					return '<i class="fas fa-ambulance fa-2x"></i><br>' + data.name;
+					return '<i class="fas fa-ambulance fa-2x"></i> ' + data.name;
 			}
 			return data.name;
 		},
@@ -3348,7 +3348,9 @@ define(function () {
 			var duration = 36;
 			var date = moment().startOf('month');
 			for (i = 0; i < 36; i++) {
-				timeline.push({ cost: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), instance: 0, storage: 0, support: 0, database: 0 });
+				let monthData = { cost: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+				typesStorage.forEach(type => monthData[type] = 0);
+				timeline.push(monthData);
 				date.add(1, 'months');
 			}
 
@@ -3494,7 +3496,8 @@ define(function () {
 					children: [],
 					nb: stats[type].nb,
 					min: stats[type].min,
-					unbound: stats[type].unbound
+					unbound: stats[type].unbound,
+					name : current.$messages[`service:prov:${type}s-block`]
 				};
 				current[type + 'ToD3'](data, stats);
 				root.children.push(data);
@@ -3504,7 +3507,6 @@ define(function () {
 		computeToD3: function (data, stats, type) {
 			var allOss = {};
 			var instances = stats[type].filtered;
-			data.name = current.$messages[`service:prov:${type}-block`];
 			for (var i = 0; i < instances.length; i++) {
 				var qi = instances[i];
 				var oss = allOss[qi.os];
@@ -3538,7 +3540,6 @@ define(function () {
 		databaseToD3: function (data, stats) { // TODO FDA
 			var allEngines = {};
 			var databases = stats.database.filtered;
-			data.name = current.$messages['service:prov:databases-block'];
 			for (var i = 0; i < databases.length; i++) {
 				var qi = databases[i];
 				var engines = allEngines[qi.engine];
