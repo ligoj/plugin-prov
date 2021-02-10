@@ -1138,7 +1138,6 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			debugger;
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 
 			if (initializedPopupEvents === false) {
