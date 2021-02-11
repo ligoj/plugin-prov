@@ -197,13 +197,13 @@ define(['d3', 'jquery'], function (d3) {
             // and re-scaling back if normal view is selected
             var percentView = params.percentCB ? d3.select(params.percentCB).property("checked") : false;
             if (percentView) {
-                blockData.forEach(function (d) {
+                blockData.forEach(d => {
                     d.y = d.y0 / maxPerBin[d.x];
                     d.height = d.height0 / maxPerBin[d.x];
                 });
                 heights = setUpHeights(clusterNames, blockData);
             } else {
-                blockData.forEach(function (d) {
+                blockData.forEach(d => {
                     d.y = d.y0;
                     d.height = d.height0;
                 });
@@ -255,12 +255,12 @@ define(['d3', 'jquery'], function (d3) {
 
             // Update bars
             bar.selectAll('rect')
-                .on('contextmenu', function (d) {
+                .on('contextmenu', d => {
                     chosen.cluster = chosen.cluster === d.cluster ? null : d.cluster;
                     d3.event.preventDefault();
                     refresh();
                 })
-                .on('click', function (d) {
+                .on('click', d => {
                     if (params.click) {
                         var isClicked = d.clicked;
                         if (params.clicked) {
@@ -318,7 +318,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover();
                     }
                 })
-                .on('mouseenter', function (d) {
+                .on('mouseenter', d => {
                     var bars = bar.selectAll('rect')
                         .filter(f => f.x === d.x)
                         .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
@@ -339,7 +339,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover(d, bars);
                     }
                 })
-                .on('mouseover', function (d) {
+                .on('mouseover', d => {
                     if (params.tooltip) {
                         tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
                     }
@@ -348,7 +348,7 @@ define(['d3', 'jquery'], function (d3) {
                 .on('mouseout', () => tooltip().style('visibility', 'hidden'))
                 .transition()
                 .duration(transDuration)
-                .attr('y', function (d) {
+                .attr('y', d => {
                     refreshItem(d);
                     return choice(chosen.cluster, d.cluster,
                         y(d.y),
