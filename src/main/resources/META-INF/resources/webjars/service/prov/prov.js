@@ -3268,7 +3268,6 @@ define(function () {
 				result = current.model.configuration[type + 's'] || {};
 			}
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
-				debugger;
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
 					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi).usage || usage;
