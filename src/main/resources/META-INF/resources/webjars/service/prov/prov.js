@@ -2998,12 +2998,10 @@ define(function () {
 							return '<span class="tooltip-text">' + tooltip + '</span>';
 						}, d => {
 							// Hover of barchart -> update sunburst and global cost
-							current.filterDate = d && d['x-index'];
-							current.updateUiCost();
+							current.updateUiCost(d && d['x-index']);
 						}, (d, bars, clicked) => {
 							// Hover of barchart -> update sunburst and global cost
-							current.fixedDate = clicked && d && d['x-index'];
-							current.updateUiCost();
+							current.updateUiCost(clicked && d && d['x-index']);
 						}, d => formatCost(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
@@ -3033,11 +3031,11 @@ define(function () {
 		/**
 		 * Update the total cost of the quote.
 		 */
-		updateUiCost: function () {
+		updateUiCost: function (filterDate) {
 			var conf = current.model.configuration;
 
 			// Compute the new capacity and costs
-			var stats = current.computeStats();
+			var stats = current.computeStats(filterDate);
 
 			// Update the global counts
 			var filtered = stats.cost !== conf.cost.min;
@@ -3053,7 +3051,7 @@ define(function () {
 				formatCost(conf.cost, $('.cost'));
 			}
 
-			if (typeof current.filterDate !== 'number' && typeof current.fixedDate !== 'number') {
+			if (typeof filterDate !== 'number') {
 				// Do not update itself
 				current.updateInstancesBarChart(stats);
 			}
@@ -3259,7 +3257,7 @@ define(function () {
 			}
 		},
 
-		getFilteredData: function (type) {
+		getFilteredData: function (type, filterDate) {
 			var result = [];
 			if (current[type + 'Table']) {
 				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
@@ -3269,18 +3267,22 @@ define(function () {
 			} else {
 				result = current.model.configuration[type + 's'] || {};
 			}
-			if ((typesStorage.includes(type) || type === 'storage') && (typeof current.filterDate === 'number' || typeof current.fixedDate === 'number')) {
-				var usage = (current.model.configuration.usage || {});
-				var date = typeof current.filterDate === 'number' ? current.filterDate : current.fixedDate;
-				return result.filter(qi => (typesStorage.map(sType => qi['quote' + sType.capitalize()]).filter(t => t).concat(qi)[0].usage || usage || 0) <= date);
+			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
+				debugger;
+				let usage = current.model.configuration.usage || {};
+				return result.filter(qi => {
+					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi).usage || usage;
+					let start = rUsage.start || 0;
+					return start <= filterDate;
+				});
 			}
 			return result;
 		},
 
-		computeStatsType: function (conf, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
+		computeStatsType: function (conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
 			let ramAdjustedRate = conf.ramAdjustedRate / 100;
 			let publicAccess = 0;
-			let instances = current.getFilteredData(type);
+			let instances = current.getFilteredData(type, filterDate);
 			let ramAvailable = 0;
 			let ramReserved = 0;
 			let cpuAvailable = 0;
@@ -3337,7 +3339,7 @@ define(function () {
 		 * Compute the global resource stats of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		computeStats: function () {
+		computeStats: function (filterDate) {
 			var conf = current.model.configuration;
 			var i, t;
 			let reservationModeMax = conf.reservationMode === 'max';
@@ -3356,9 +3358,9 @@ define(function () {
 
 			let result = {};
 			// Instance statistics
-			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
+			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
 				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
 				r.engines[engine] = (r.engines[engine] || 0) + 1;
 			});
@@ -3367,7 +3369,7 @@ define(function () {
 			var storageAvailable = 0;
 			var storageReserved = 0;
 			var storageCost = 0;
-			var storages = current.getFilteredData('storage');
+			var storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
 			for (i = 0; i < storages.length; i++) {
 				var qs = storages[i];
@@ -3402,7 +3404,7 @@ define(function () {
 
 			// Support statistics
 			var supportCost = 0;
-			var supports = current.getFilteredData('support');
+			var supports = current.getFilteredData('support', filterDate);
 			for (i = 0; i < supports.length; i++) {
 				supportCost += supports[i].cost;
 			}
@@ -3497,7 +3499,7 @@ define(function () {
 					nb: stats[type].nb,
 					min: stats[type].min,
 					unbound: stats[type].unbound,
-					name : current.$messages[`service:prov:${type}s-block`]
+					name: current.$messages[`service:prov:${type}s-block`]
 				};
 				current[type + 'ToD3'](data, stats);
 				root.children.push(data);
