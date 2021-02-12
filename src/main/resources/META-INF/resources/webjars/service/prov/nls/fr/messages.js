@@ -217,6 +217,7 @@ define({
 	'service:prov:export:instances:inline': 'Allignées, compatible import',
 	'service:prov:export:instances:split': 'Une ligne par resource',
 	'service:prov:export:full:json': 'Complet',
+	'service:prov:nb-databases': 'Nombre de bases de données total',
 	'service:prov:created': '{{#if more}}{{count}} créés: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} créé{{/if}}',
 	'service:prov:deleted': '{{#if more}}{{count}} supprimés: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} supprimé{{/if}}',
 	'service:prov:updated': '{{#if more}}{{count}} mis à jours: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} mis à jours{{/if}}',
