@@ -200,7 +200,13 @@ define(function () {
 	 */
 	function toQueryValue3States($element) {
 		let value = ($element.is('li.active') ? $element : $element.find('li.active')).data('value');
-		return (value === 'true' || value === true) ? true : ((value === 'false' || value === false) ? false : null);
+		if (value === 'true' || value === true) {
+			return true;
+		}
+		if (value === 'false' || value === false) {
+			return fzlse;
+		}
+		return null;
 	}
 
 	/**
@@ -263,8 +269,17 @@ define(function () {
 			fullClass = 'fas fa-circle text-success';
 		}
 		var rate = Math.round(value * 100 / max);
-		return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
-			Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
+		let formatValue;
+		let formatParams;
+		if (formatter) {
+			formatValue = formatter(value);
+			formatParams = [formatter(value), formatter(max), rate];
+		} else {
+			formatValue = value;
+			formatParams = [value, max, rate];
+		}
+		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
+			Handlebars.compile(current.$messages['service:prov:usage-partial'])(formatParams) + '"></i></span>' : '');
 	}
 
 	/**
@@ -1806,8 +1821,8 @@ define(function () {
 					// Single price
 					suggests = [quote];
 				}
-				for (var i = 0; i < suggests.length; i++) {
-					suggests[i].id = suggests[i].id || suggests[i].price.id;
+				for (let suggest in suggests) {
+					suggest.id = suggest.id || suggest.price.id;
 				}
 				return suggests;
 			}
@@ -3294,8 +3309,7 @@ define(function () {
 			if (typeof callback === 'function') {
 				callback(resultType);
 			}
-			for (let i = 0; i < instances.length; i++) {
-				let qi = instances[i];
+			for (let qi of instances) {
 				let cost = qi.cost.min || qi.cost || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
@@ -3541,8 +3555,7 @@ define(function () {
 		databaseToD3: function (data, stats) { // TODO FDA
 			var allEngines = {};
 			var databases = stats.database.filtered;
-			for (var i = 0; i < databases.length; i++) {
-				var qi = databases[i];
+			for (let qi of databases) {
 				var engines = allEngines[qi.engine];
 				if (typeof engines === 'undefined') {
 					// First Engine
@@ -3569,8 +3582,7 @@ define(function () {
 			var storages = stats.storage.filtered;
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
-			for (var i = 0; i < storages.length; i++) {
-				var qs = storages[i];
+			for (let qs of storages) {
 				var optimizations = allOptimizations[qs.price.type.latency];
 				if (typeof optimizations === 'undefined') {
 					// First optimization
@@ -3596,8 +3608,7 @@ define(function () {
 		supportToD3: function (data, stats) {
 			var supports = stats.support.filtered;
 			data.name = current.$messages['service:prov:support-block'];
-			for (var i = 0; i < supports.length; i++) {
-				var support = supports[i];
+			for (let support of supports) {
 				data.value += support.cost;
 				data.children.push({
 					name: support.id,

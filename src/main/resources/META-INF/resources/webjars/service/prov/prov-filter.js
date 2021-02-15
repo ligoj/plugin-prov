@@ -106,10 +106,8 @@ define(['jquery'], function ($) {
 		var propertyMatchers = ['filterName', 'data'];
 
 		function newCustomFilter(settings, property, operator, value) {
-			for (var j = 0; j < propertyMatchers.length; j++) {
-				var propertyMatcher = propertyMatchers[j];
-				for (var i = 0; i < settings.aoColumns.length; i++) {
-					var column = settings.aoColumns[i];
+			for (let propertyMatcher of propertyMatchers) {
+				for (let column of settings.aoColumns) {
 					if (column[propertyMatcher] === property) {
 						// Column matching to the property has been found
 						var type = column.type || 'string';
@@ -131,15 +129,14 @@ define(['jquery'], function ($) {
 
 		function buildJoin(join) {
 			var specificKeys = [];
-			for (var i = 0; i < (join.filters || []).length; i++) {
-				var filter = join.filters[i];
+			for (let filter of (join.filters || [])) {
 				var property = filter.property;
 				if (filter.table) {
 					// There is a provide table, use ' IN ' condition
 					var collection = filter.table.api().rows({ filter: 'applied' }).data();
 					var collectionById = {};
-					for (var j = 0; j < collection.length; j++) {
-						collectionById[collection[j].id] = true;
+					for (let col of collection) {
+						collectionById[col.id] = true;
 					}
 					specificKeys.push({ property: property, filter: propertyNewCustomFilter(property, operators['string'][filter.op](collectionById)) });
 				}
@@ -149,8 +146,8 @@ define(['jquery'], function ($) {
 
 		function buildKeys(settings, global, filters) {
 			var specificKeys = [];
-			for (var i = 0; i < filters.length; i++) {
-				var filter = filters[i].trim();
+			for (let filter0 of filters) {
+				let filter = filter0.trim();
 				if (filter.length === 0) {
 					continue;
 				}
