@@ -216,7 +216,7 @@ define({
         'service:prov:budget-default': 'Default budget : {{this}}',
         'service:prov:budget-initialCost': 'Available cash:',
         'service:prov:budget-initialCost-help': 'Available cash dedicated to this budget',
-
+        'service:prov:nb-databases': 'Total number of databases',
         'service:prov:export:instances': 'Export',
         'service:prov:export:instances:inline': 'CSV Inlined, compatible import',
         'service:prov:export:instances:split': 'CSV One line per resource',
