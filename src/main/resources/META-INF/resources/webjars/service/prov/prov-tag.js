@@ -79,7 +79,7 @@ define(['jquery'], function ($) {
 						// Itself but withot the trailing (useless) ':'
 						var part = term.substring(0, term.indexOf(':'));
 						suggests.push({ text: part, id: part });
-					} else if (keyValues.includes(term) === false){
+					} else if (!keyValues.includes(term)){
 						// Itself, a well formed 'key:value'
 						suggests.push({ text: term, id: term });
 					}
