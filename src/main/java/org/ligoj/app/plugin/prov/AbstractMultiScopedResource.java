@@ -170,7 +170,8 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	/**
 	 * Return a stream of the filtered resources related to the given budget/usage.
-	 * 
+	 * @param fetcher The function returning the related resources to a given budget/usage.
+	 * @param entity The budget/usage to evaluate.
 	 * @param <P> The price type of the resource.
 	 * @param <T> The price term of the resource.
 	 * @param <C> The related resource type.
