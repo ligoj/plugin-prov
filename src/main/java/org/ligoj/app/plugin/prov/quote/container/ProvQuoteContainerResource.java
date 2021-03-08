@@ -176,4 +176,10 @@ public class ProvQuoteContainerResource extends
 		return result;
 	}
 
+	@GET
+	@Path("{subscription:\\d+}/container-os")
+	public List<String> findContainerOs(@PathParam("subscription") final int subscription) {
+		return ipRepository.findContainerOs(subscriptionResource.checkVisible(subscription).getNode().getId());
+	}
+
 }

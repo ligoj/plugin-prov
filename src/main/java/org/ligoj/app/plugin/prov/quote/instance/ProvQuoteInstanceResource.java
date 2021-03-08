@@ -206,4 +206,10 @@ public class ProvQuoteInstanceResource extends
 		return result;
 	}
 
+	@GET
+	@Path("{subscription:\\d+}/instance-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return ipRepository.findOs(subscriptionResource.checkVisible(subscription).getNode().getId());
+	}
+
 }

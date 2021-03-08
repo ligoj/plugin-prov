@@ -21,6 +21,6 @@ public interface ImportCatalogService {
 			"prov-processor", "prov-instance-type", "prov-instance-type-dyn", "prov-instance-type-has-dyn",
 			"prov-container-type", "prov-container-type-dyn", "prov-container-type-has-dyn", "prov-location",
 			"prov-database-type", "prov-database-type-dyn", "prov-database-type-has-dyn", "prov-database-engine",
-			"prov-database-edition", "prov-database-license", "prov-instance-term" })
+			"prov-database-edition", "prov-database-license", "prov-instance-term","prov-instance-os","prov-container-os" })
 	void updateCatalog(String node, boolean force) throws Exception;
 }
