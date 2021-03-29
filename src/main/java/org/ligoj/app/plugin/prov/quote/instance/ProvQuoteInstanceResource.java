@@ -205,11 +205,4 @@ public class ProvQuoteInstanceResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
-	@GET
-	@Path("{subscription:\\d+}/instance-os")
-	public List<String> findOs(@PathParam("subscription") final int subscription) {
-		return ipRepository.findOs(subscriptionResource.checkVisible(subscription).getNode().getId());
-	}
-
 }

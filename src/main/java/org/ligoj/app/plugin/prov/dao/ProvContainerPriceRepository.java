@@ -92,9 +92,4 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, double initialCost, Pageable pageable);
 
-	@CacheResult(cacheName = "prov-instance-os")
-	@Query("SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "  ORDER BY ip.os")
-	List<String> findOs(@CacheKey String node);
 }

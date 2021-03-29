@@ -41,7 +41,6 @@ public class ProvCache implements CacheManagerAware {
 		newCacheConfig(cacheManager, provider, "prov-instance-type");
 		newCacheConfig(cacheManager, provider, "prov-instance-type-dyn");
 		newCacheConfig(cacheManager, provider, "prov-instance-type-has-dyn");
-		createCache(cacheManager, provider, "prov-instance-os");
 
 		// Database cache configurations
 		newCacheConfig(cacheManager, provider, "prov-database-type");
@@ -56,7 +55,6 @@ public class ProvCache implements CacheManagerAware {
 		newCacheConfig(cacheManager, provider, "prov-container-type-dyn");
 		newCacheConfig(cacheManager, provider, "prov-container-type-has-dyn");
 		createCache(cacheManager, provider, "prov-container-license");
-		createCache(cacheManager, provider, "prov-container-os");
 
 		newCacheConfig(cacheManager, provider, "prov-instance-term");
 	}

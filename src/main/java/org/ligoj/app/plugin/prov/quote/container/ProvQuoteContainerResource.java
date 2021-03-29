@@ -175,11 +175,4 @@ public class ProvQuoteContainerResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
-	@GET
-	@Path("{subscription:\\d+}/container-os")
-	public List<String> findContainerOs(@PathParam("subscription") final int subscription) {
-		return ipRepository.findContainerOs(subscriptionResource.checkVisible(subscription).getNode().getId());
-	}
-
 }

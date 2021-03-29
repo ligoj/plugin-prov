@@ -997,14 +997,54 @@ define(function () {
 				text: 'all'
 			}]
 		});
-		_('instance-os').select2(genericSelect2(null, formatOs, function () {
-            if (_('instance-os').provType() === 'instance') {
-                return 'instance-os';
-            }
-            if (_('instance-os').provType() === 'container') {
-                return 'container-os';
-            }
-        }));
+		_('support-level').select2({
+			formatSelection: formatSupportLevel,
+			formatResult: formatSupportLevel,
+			allowClear: true,
+			placeholder: 'None',
+			escapeMarkup: m => m,
+			data: [{
+				id: 'LOW',
+				text: 'LOW'
+			}, {
+				id: 'MEDIUM',
+				text: 'MEDIUM'
+			}, {
+				id: 'GOOD',
+				text: 'GOOD'
+			}]
+		});
+
+		_('instance-os').select2({
+			formatSelection: formatOs,
+			formatResult: formatOs,
+			escapeMarkup: m => m,
+			data: [{
+				id: 'LINUX',
+				text: 'LINUX'
+			}, {
+				id: 'WINDOWS',
+				text: 'WINDOWS'
+			}, {
+				id: 'SUSE',
+				text: 'SUSE'
+			}, {
+				id: 'RHEL',
+				text: 'RHEL'
+			}, {
+				id: 'CENTOS',
+				text: 'CENTOS'
+			}, {
+				id: 'DEBIAN',
+				text: 'DEBIAN'
+			}, {
+				id: 'UBUNTU',
+				text: 'UBUNTU'
+			}, {
+				id: 'FEDORA',
+				text: 'FEDORA'
+			}]
+		});
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
