@@ -443,20 +443,6 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qcResource.findAllTypes(subscription, uri));
 	}
 
-	@Test
-	void findCointainerOs() {
-		final var tableItem = qcResource.findContainerOs(subscription);
-		Assertions.assertEquals(2, tableItem.size());
-		Assertions.assertEquals("LINUX", tableItem.get(0));
-	}
-
-	@Test
-	void findContainerOsNotVisibleSubscription() {
-		initSpringSecurityContext("any");
-		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qcResource.findContainerOs(subscription));
-	}
-
 	@Override
 	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
