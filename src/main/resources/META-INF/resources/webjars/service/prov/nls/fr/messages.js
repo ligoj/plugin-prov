@@ -150,6 +150,7 @@ define({
 	'service:prov:cost': 'Coût',
 	'service:prov:cost-help': 'Facturés par mois',
 	'service:prov:resources': 'Ressources',
+	'service:prov:tag-help':'Tags des ressources',
 	'service:prov:total': 'Total',
 	'service:prov:total-ram': 'Mémoire totale',
 	'service:prov:total-cpu': 'CPU total',
