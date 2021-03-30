@@ -1153,11 +1153,11 @@ define(function () {
 			current.model.quote = quote;
 			current.toUi(dynaType, quote);
 			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
-			if (current.model.configuration.budgets == 0 ){
-				_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:usage-null']));
+			if (current.model.configuration.budgetCost === 0 ){
+				_('instance-budget').select2Placeholder(current.$messages['service:prov:budget-null']);
 			}
-			if (current.model.configuration.usages == 0 ){
-				_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:budget-null']));
+			if (current.model.configuration.usageCost === 0 ){
+				_('instance-usage').select2Placeholder(current.$messages['service:prov:usage-null']);
 			}
 		});
 	}
