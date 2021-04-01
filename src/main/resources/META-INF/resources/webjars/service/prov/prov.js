@@ -501,7 +501,9 @@ define(function () {
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		if ((typeof max !== 'number') || max === min || max.toString().substring(0,3) === min.toString().substring(0,3)) {
+		var formatMin = formatter(min, false, $cost, noRichText);
+		var formatMax = formatter(max, false, $cost, noRichText);
+		if ((typeof max !== 'number') || max === min || formatMin === formatMax )  {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
