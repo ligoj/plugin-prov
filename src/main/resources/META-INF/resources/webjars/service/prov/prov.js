@@ -727,7 +727,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return (resource.resourceType === 'instance' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="instance"> <i class="fas fa-server"></i> </a>' : resource.resourceType === 'database' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="database"> <i class="fas fa-database"></i> </a>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
 		}
 		return '';
 	}
@@ -1127,11 +1127,16 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('show.bs.modal', function (event) {
-			let $source = $(event.relatedTarget);
+			let $source = $(event.relatedTarget)
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
-			var $table = _('prov-' + dynaType + 's');
-			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			var $table = $tr.closest('table');
+			//var $table = _('prov-' + dynaType + 's');
+			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {} ;
+			if (dynaType !== quote.resourceType && quote.resourceType !== undefined ) {
+				// Display sub ressource
+				quote = quote['quote' + dynaType.capitalize()];
+			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
@@ -1139,19 +1144,17 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
 			}
-
 			if (quote.id) {
 				current.enableCreate($popup);
 			} else {
 				current.disableCreate($popup);
 			}
 			current.model.quote = quote;
-			current.toUi(dynaType, quote);
+			current.toUi(dynaType, quote) ;
 		});
 	}
 
@@ -2642,7 +2645,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[sType]));
+			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2913,6 +2916,7 @@ define(function () {
 			current.$main.trimObject(data);
 
 			current.disableCreate($popup);
+			//debugger;
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
@@ -2921,7 +2925,7 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					$popup.modal('hide');
+					current.initializeDataTableEvents("storage");
 				},
 				error: () => current.enableCreate($popup)
 			});
