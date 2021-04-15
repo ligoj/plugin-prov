@@ -2916,7 +2916,6 @@ define(function () {
 			current.$main.trimObject(data);
 
 			current.disableCreate($popup);
-			//debugger;
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
