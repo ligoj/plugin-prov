@@ -1131,7 +1131,6 @@ define(function () {
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
 			var $table = $tr.closest('table');
-			//var $table = _('prov-' + dynaType + 's');
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {} ;
 			if (dynaType !== quote.resourceType && quote.resourceType !== undefined ) {
 				// Display sub ressource
@@ -1154,7 +1153,7 @@ define(function () {
 				current.disableCreate($popup);
 			}
 			current.model.quote = quote;
-			current.toUi(dynaType, quote) ;
+			current.toUi(dynaType, quote);
 		});
 	}
 
@@ -2925,6 +2924,7 @@ define(function () {
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
 					current.initializeDataTableEvents("storage");
+					$popup.modal('hide');
 				},
 				error: () => current.enableCreate($popup)
 			});
