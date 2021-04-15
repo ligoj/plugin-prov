@@ -1127,7 +1127,7 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('show.bs.modal', function (event) {
-			let $source = $(event.relatedTarget)
+			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
 			var $table = $tr.closest('table');
