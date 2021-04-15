@@ -727,7 +727,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="instance"> <i class="fas fa-server"></i> </a>' : resource.resourceType === 'database' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="database"> <i class="fas fa-database"></i> </a>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return (resource.resourceType === 'instance' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="instance"> <i class="fas fa-server"></i> </a>' : resource.resourceType === 'database' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="database"> <i class="fas fa-database"></i> </a>' : '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="instance"><i class="fab fa-docker"></i><a/>') + ' ' + resource.name;
 		}
 		return '';
 	}
