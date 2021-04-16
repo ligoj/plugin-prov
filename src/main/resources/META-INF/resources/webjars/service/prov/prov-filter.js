@@ -129,18 +129,18 @@ define(['jquery'], function ($) {
 
 		function buildJoin(join) {
 			var specificKeys = [];
-			for (let filter of (join.filters || [])) {
+			(join.filters || []).forEach(filter => {
 				var property = filter.property;
 				if (filter.table) {
 					// There is a provide table, use ' IN ' condition
 					var collection = filter.table.api().rows({ filter: 'applied' }).data();
 					var collectionById = {};
-					for (let col of collection) {
-						collectionById[col.id] = true;
+					for (let index = collection.length; index-- > 0;) {
+						collectionById[collection[index].id] = true;
 					}
 					specificKeys.push({ property: property, filter: propertyNewCustomFilter(property, operators['string'][filter.op](collectionById)) });
 				}
-			}
+			});
 			return specificKeys;
 		}
 
@@ -202,49 +202,20 @@ define(['jquery'], function ($) {
 
 		function accept(settings, type, dataFilter, data, search, join) {
 			var filter = build(settings, type, search, join);
-			if (filter.specificAndKeys.length === 0 && filter.specificOrKeys.length === 0 && filter.global.length === 0) {
-				// No filter
-				return true;
-			}
-			var found = false;
-			var i;
-			if (filter.specificOrKeys.length) {
-				for (i = 0; i < filter.specificOrKeys.length; i++) {
-					if (filter.specificOrKeys[i].filter(dataFilter, data)) {
-						found = true;
-						break;
-					}
-				}
-				// Expect at least one match among the OR conditions
-				if (!found) {
-					return false;
-				}
-			}
-			if (filter.specificAndKeys.length) {
-				// All filters must match
-				for (i = 0; i < filter.specificAndKeys.length; i++) {
-					if (!filter.specificAndKeys[i].filter(dataFilter, data)) {
-						return false;
-					}
-				}
-			}
-			if (filter.global.length) {
-				// All globals must match
-				for (i = 0; i < filter.global.length; i++) {
-					found = false;
-					for (var j = 0; j < settings.aoColumns.length; j++) {
-						if (filter.global[i](dataFilter[j], data)) {
-							found = true;
-							break;
+			// Expect at least one match among the OR conditions 
+			// and all AND conditions
+			// and all globals must match
+			return (filter.specificOrKeys.length === 0 || !filter.specificOrKeys.some(s => s.filter(dataFilter, data)))
+				&& (filter.specificAndKeys.length === 0 || filter.specificAndKeys.every(s => !s.filter(dataFilter, data)))
+				&& (filter.global.length === 0 || filter.global.every(global => {
+					for (let j = settings.aoColumns.length; j-- > 0;) {
+						if (global(dataFilter[j], data)) {
+							return true;
 						}
 					}
 					// Expect at least one match among the columns
-					if (!found) {
-						return false;
-					}
-				}
-			}
-			return true;
+					return false;
+				}));
 		}
 
 		// Exports
