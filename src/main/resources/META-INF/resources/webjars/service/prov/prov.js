@@ -1821,9 +1821,7 @@ define(function () {
 					// Single price
 					suggests = [quote];
 				}
-				for (let suggest in suggests) {
-					suggest.id = suggest.id || suggest.price.id;
-				}
+				suggests.forEach(s => s.id = s.id || s.price.id);
 				return suggests;
 			}
 			return null;
@@ -3309,7 +3307,7 @@ define(function () {
 			if (typeof callback === 'function') {
 				callback(resultType);
 			}
-			for (let qi of instances) {
+			instances.forEach(qi => {
 				let cost = qi.cost.min || qi.cost || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
@@ -3328,7 +3326,7 @@ define(function () {
 					timeline[t][type] += cost;
 					timeline[t].cost += cost;
 				}
-			}
+			});
 			result[type] = Object.assign(resultType, {
 				nb: instances.length,
 				min: minInstances,
@@ -3384,9 +3382,7 @@ define(function () {
 			var storageCost = 0;
 			var storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
-			for (i = 0; i < storages.length; i++) {
-				var qs = storages[i];
-
+			storages.forEach(qs => {
 				// TODO FDA
 				if (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id]) {
 					nb = qs.quoteInstance.minQuantity || 1;
@@ -3413,14 +3409,12 @@ define(function () {
 						timeline[t].cost += qs.cost;
 					}
 				}
-			}
+			});
 
 			// Support statistics
 			var supportCost = 0;
 			var supports = current.getFilteredData('support', filterDate);
-			for (i = 0; i < supports.length; i++) {
-				supportCost += supports[i].cost;
-			}
+			supports.forEach(s => supportCost += s.cost);
 			for (t = 0; t < duration; t++) {
 				timeline[t].support = supportCost;
 				timeline[t].cost += supportCost;
@@ -3521,9 +3515,7 @@ define(function () {
 		},
 		computeToD3: function (data, stats, type) {
 			var allOss = {};
-			var instances = stats[type].filtered;
-			for (var i = 0; i < instances.length; i++) {
-				var qi = instances[i];
+			stats[type].filtered.forEach(qi => {
 				var oss = allOss[qi.os];
 				if (typeof oss === 'undefined') {
 					// First OS
@@ -3543,7 +3535,7 @@ define(function () {
 					type: type,
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		instanceToD3: function (data, stats) {
@@ -3554,8 +3546,7 @@ define(function () {
 		},
 		databaseToD3: function (data, stats) { // TODO FDA
 			var allEngines = {};
-			var databases = stats.database.filtered;
-			for (let qi of databases) {
+			stats.database.filtered.forEach(qi => {
 				var engines = allEngines[qi.engine];
 				if (typeof engines === 'undefined') {
 					// First Engine
@@ -3575,14 +3566,13 @@ define(function () {
 					type: 'database',
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		storageToD3: function (data, stats) {
-			var storages = stats.storage.filtered;
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
-			for (let qs of storages) {
+			stats.storage.filtered.forEach(qs => {
 				var optimizations = allOptimizations[qs.price.type.latency];
 				if (typeof optimizations === 'undefined') {
 					// First optimization
@@ -3602,20 +3592,19 @@ define(function () {
 					type: 'storage',
 					size: qs.cost
 				});
-			}
+			});
 		},
 
 		supportToD3: function (data, stats) {
-			var supports = stats.support.filtered;
 			data.name = current.$messages['service:prov:support-block'];
-			for (let support of supports) {
+			stats.support.filtered.forEach(support => {
 				data.value += support.cost;
 				data.children.push({
 					name: support.id,
 					type: 'support',
 					size: support.cost
 				});
-			}
+			});
 		},
 
 		/**
