@@ -516,12 +516,13 @@ define(function () {
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		if ((typeof max !== 'number') || max === min) {
+		var formatMin = formatManager.formatCost(min)
+		var formatMax = formatManager.formatCost(max)
+		if ((typeof max !== 'number') || max === min|| formatMin === formatMax  )  {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
 		}
-
 		// Max cost, is different, display a range
 		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 	}
