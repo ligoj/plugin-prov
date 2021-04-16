@@ -516,12 +516,13 @@ define(function () {
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		if ((typeof max !== 'number') || max === min) {
+		var formatMin = formatManager.formatCost(min)
+		var formatMax = formatManager.formatCost(max)
+		if ((typeof max !== 'number') || max === min|| formatMin === formatMax  )  {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
 		}
-
 		// Max cost, is different, display a range
 		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 	}
@@ -1154,6 +1155,8 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop( "checked", false );
+			$('.checkbox-inline').removeClass('hidden');
 
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
@@ -2934,7 +2937,12 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					$popup.modal('hide');
+					if($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')){
+						current.enableCreate($popup);
+						$(_(inputType + '-name')).focus();		
+					}else {
+						$popup.modal('hide');					
+					}
 				},
 				error: () => current.enableCreate($popup)
 			});
