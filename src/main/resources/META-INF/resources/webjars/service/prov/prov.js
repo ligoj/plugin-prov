@@ -727,7 +727,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			debugger;
+			//debugger;
 			var lien = '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="'+resource.resourceType+'">';
 			return (resource.resourceType === 'instance' ? lien +'<i class="fas fa-server"></i> </a>':resource.resourceType === 'database' ? lien + '<i class="fas fa-database"></i> </a>' : lien + '<i class="fab fa-docker"></i><a/>') + ' ' + resource.name;
 			//return (resource.resourceType === 'instance' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="instance"> <i class="fas fa-server"></i> </a>' : resource.resourceType === 'database' ? '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="database"> <i class="fas fa-database"></i> </a>' : '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="container"><i class="fab fa-docker"></i><a/>') + ' ' + resource.name;
@@ -2635,7 +2635,6 @@ define(function () {
 		 * @param {number|Object} resourceOrId Quote resource or its identifier.
 		 */
 		redrawResource: function (type, resourceOrId) {
-			debugger;
 			var id = resourceOrId && (resourceOrId.id || resourceOrId);
 			if (id) {
 				// The instance is valid
@@ -2919,7 +2918,7 @@ define(function () {
 			current.$main.trimObject(data);
 
 			current.disableCreate($popup);
-			debugger;
+			//debugger;
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/' + type,
@@ -2928,9 +2927,7 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					//current.initializeDataTableEvents("storage");
-					//current.redrawResource(type,)
-					//current.reload();
+					current.reload();
 					$popup.modal('hide');
 				},
 				error: () => current.enableCreate($popup)
