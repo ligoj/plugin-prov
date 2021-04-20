@@ -730,7 +730,7 @@ define(function () {
 			var lien = '<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="'+resource.resourceType+'">';
 			return (resource.resourceType === 'instance' ? lien +'<i class="fas fa-server"></i> </a>':resource.resourceType === 'database' ? lien + '<i class="fas fa-database"></i> </a>' : lien + '<i class="fab fa-docker"></i><a/>') + ' ' + resource.name;
 		}
-		return '' ;
+		return '';
 	}
 
 	/**
