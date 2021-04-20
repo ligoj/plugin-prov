@@ -1127,7 +1127,6 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('show.bs.modal', function (event) {
-			current.updateUiAssumptions(current.model.configuration);
 			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
@@ -1140,6 +1139,7 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
