@@ -113,6 +113,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var instances = qiRepository.findAll(quote);
 		final var databases = qbRepository.findAll(quote);
 		final var containers = qcRepository.findAll(quote);
+		Hibernate.initialize(quote.getUsages());
+		Hibernate.initialize(quote.getBudgets());
 		lean(quote, instances, databases, containers, costs);
 
 		// Reset the orphan budgets
@@ -137,14 +139,19 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
 			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		// Lean all relevant budgets
-		Stream.concat(instances.stream(), databases.stream()).map(AbstractQuoteVm::getResolvedBudget)
-				.filter(Objects::nonNull).filter(b -> b.getInitialCost() > 0).distinct().forEach(b -> lean(b, costs));
+		synchronized (quote) {
+			// Lean all relevant budgets
+			final var budgets = Stream
+					.concat(instances.stream(), Stream.concat(databases.stream(), containers.stream()))
+					.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull)
+					.filter(b -> b.getInitialCost() > 0).distinct().collect(Collectors.toList());
+			budgets.forEach(b -> lean(b, costs));
 
-		// Refresh also all remaining resources unrelated to the updated budgets
-		refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
-		refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
-		refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
+			// Refresh also all remaining resources unrelated to the updated budgets
+			refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
+			refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
+			refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
+		}
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
