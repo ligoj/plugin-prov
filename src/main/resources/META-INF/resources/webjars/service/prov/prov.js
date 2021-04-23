@@ -2523,7 +2523,7 @@ define(function () {
 				error: function () {
 					if (context) {
 						var eMsg = current.$messages['service:prov:' + context.name + '-failed'];
-						var value = data[context.name].name || data[context.name].text || data[context.name].id || data[context.name];
+						var value = data[context.name] ? data[context.name].name || data[context.name].text || data[context.name].id || data[context.name] : null;
 						if (eMsg) {
 							notifyManager.notifyDanger(Handlebars.compile(eMsg)(value));
 						} else {
