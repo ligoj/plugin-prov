@@ -743,7 +743,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="fas ${resource.resourceType === 'instance' ? "fa-server" : resource.resourceType === 'database' ? "fa-database" : "fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -1146,8 +1146,12 @@ define(function () {
 			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
-			var $table = _('prov-' + dynaType + 's');
-			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			var $table = $tr.closest('table');
+			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {} ;
+			if (dynaType !== quote.resourceType && quote.resourceType !== undefined ) {
+				// Display sub ressource
+				quote = quote['quote' + dynaType.capitalize()];
+			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
@@ -1162,7 +1166,6 @@ define(function () {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
 			}
-
 			if (quote.id) {
 				current.enableCreate($popup);
 			} else {
@@ -2658,7 +2661,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[sType]));
+			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
