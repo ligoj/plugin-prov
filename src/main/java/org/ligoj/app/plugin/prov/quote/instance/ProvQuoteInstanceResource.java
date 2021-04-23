@@ -205,5 +205,4 @@ public class ProvQuoteInstanceResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
 }

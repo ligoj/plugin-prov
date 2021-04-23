@@ -16,7 +16,7 @@ cache:
     - $HOME/maven
 jdk: openjdk14
 node_js:
-  - "10"
+  - "12"
 dist: xenial
 env: 
   - TARGET=BUILD
@@ -27,5 +27,5 @@ branches:
 language: java
 notifications: 
   email: false
-sudo: false
+os: linux
 script: "./travis.sh"
