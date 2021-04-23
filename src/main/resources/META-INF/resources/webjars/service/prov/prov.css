@@ -449,8 +449,9 @@ img.flag-icon.prov-location-flag {
 .configuration-wrapper-service-prov .dt-buttons .buttons-collection {
   padding: 8px 14px;
 }
-.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive="instance"]),
-.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive="database"]) {
+.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive*="instance"]),
+.modal[data-prov-type="container"] [data-exclusive]:not([data-exclusive*="container"]),
+.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive*="database"]) {
   display: none;
 }
 #database-edition {

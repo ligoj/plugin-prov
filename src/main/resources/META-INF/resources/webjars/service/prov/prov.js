@@ -200,7 +200,13 @@ define(function () {
 	 */
 	function toQueryValue3States($element) {
 		let value = ($element.is('li.active') ? $element : $element.find('li.active')).data('value');
-		return (value === 'true' || value === true) ? true : ((value === 'false' || value === false) ? false : null);
+		if (value === 'true' || value === true) {
+			return true;
+		}
+		if (value === 'false' || value === false) {
+			return fzlse;
+		}
+		return null;
 	}
 
 	/**
@@ -263,8 +269,17 @@ define(function () {
 			fullClass = 'fas fa-circle text-success';
 		}
 		var rate = Math.round(value * 100 / max);
-		return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
-			Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
+		let formatValue;
+		let formatParams;
+		if (formatter) {
+			formatValue = formatter(value);
+			formatParams = [formatter(value), formatter(max), rate];
+		} else {
+			formatValue = value;
+			formatParams = [value, max, rate];
+		}
+		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
+			Handlebars.compile(current.$messages['service:prov:usage-partial'])(formatParams) + '"></i></span>' : '');
 	}
 
 	/**
@@ -501,12 +516,13 @@ define(function () {
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		if ((typeof max !== 'number') || max === min) {
+		var formatMin = formatManager.formatCost(min)
+		var formatMax = formatManager.formatCost(max)
+		if ((typeof max !== 'number') || max === min|| formatMin === formatMax  )  {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
 		}
-
 		// Max cost, is different, display a range
 		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 	}
@@ -727,7 +743,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="fas ${resource.resourceType === 'instance' ? "fa-server" : resource.resourceType === 'database' ? "fa-database" : "fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -1130,8 +1146,12 @@ define(function () {
 			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
-			var $table = _('prov-' + dynaType + 's');
-			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			var $table = $tr.closest('table');
+			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {} ;
+			if (dynaType !== quote.resourceType && quote.resourceType !== undefined ) {
+				// Display sub ressource
+				quote = quote['quote' + dynaType.capitalize()];
+			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
@@ -1139,12 +1159,12 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			
+			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop( "checked", false );
+			$('.checkbox-inline').removeClass('hidden');
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
 			}
-
 			if (quote.id) {
 				current.enableCreate($popup);
 			} else {
@@ -1818,9 +1838,7 @@ define(function () {
 					// Single price
 					suggests = [quote];
 				}
-				for (var i = 0; i < suggests.length; i++) {
-					suggests[i].id = suggests[i].id || suggests[i].price.id;
-				}
+				suggests.forEach(s => s.id = s.id || s.price.id);
 				return suggests;
 			}
 			return null;
@@ -2654,7 +2672,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[sType]));
+			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2933,7 +2951,12 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					$popup.modal('hide');
+					if($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')){
+						current.enableCreate($popup);
+						$(_(inputType + '-name')).focus();		
+					}else {
+						$popup.modal('hide');					
+					}
 				},
 				error: () => current.enableCreate($popup)
 			});
@@ -3306,8 +3329,7 @@ define(function () {
 			if (typeof callback === 'function') {
 				callback(resultType);
 			}
-			for (let i = 0; i < instances.length; i++) {
-				let qi = instances[i];
+			instances.forEach(qi => {
 				let cost = qi.cost.min || qi.cost || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
@@ -3326,7 +3348,7 @@ define(function () {
 					timeline[t][type] += cost;
 					timeline[t].cost += cost;
 				}
-			}
+			});
 			result[type] = Object.assign(resultType, {
 				nb: instances.length,
 				min: minInstances,
@@ -3382,9 +3404,7 @@ define(function () {
 			var storageCost = 0;
 			var storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
-			for (i = 0; i < storages.length; i++) {
-				var qs = storages[i];
-
+			storages.forEach(qs => {
 				// TODO FDA
 				if (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id]) {
 					nb = qs.quoteInstance.minQuantity || 1;
@@ -3411,14 +3431,12 @@ define(function () {
 						timeline[t].cost += qs.cost;
 					}
 				}
-			}
+			});
 
 			// Support statistics
 			var supportCost = 0;
 			var supports = current.getFilteredData('support', filterDate);
-			for (i = 0; i < supports.length; i++) {
-				supportCost += supports[i].cost;
-			}
+			supports.forEach(s => supportCost += s.cost);
 			for (t = 0; t < duration; t++) {
 				timeline[t].support = supportCost;
 				timeline[t].cost += supportCost;
@@ -3519,9 +3537,7 @@ define(function () {
 		},
 		computeToD3: function (data, stats, type) {
 			var allOss = {};
-			var instances = stats[type].filtered;
-			for (var i = 0; i < instances.length; i++) {
-				var qi = instances[i];
+			stats[type].filtered.forEach(qi => {
 				var oss = allOss[qi.os];
 				if (typeof oss === 'undefined') {
 					// First OS
@@ -3541,7 +3557,7 @@ define(function () {
 					type: type,
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		instanceToD3: function (data, stats) {
@@ -3552,9 +3568,7 @@ define(function () {
 		},
 		databaseToD3: function (data, stats) { // TODO FDA
 			var allEngines = {};
-			var databases = stats.database.filtered;
-			for (var i = 0; i < databases.length; i++) {
-				var qi = databases[i];
+			stats.database.filtered.forEach(qi => {
 				var engines = allEngines[qi.engine];
 				if (typeof engines === 'undefined') {
 					// First Engine
@@ -3574,15 +3588,13 @@ define(function () {
 					type: 'database',
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		storageToD3: function (data, stats) {
-			var storages = stats.storage.filtered;
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
-			for (var i = 0; i < storages.length; i++) {
-				var qs = storages[i];
+			stats.storage.filtered.forEach(qs => {
 				var optimizations = allOptimizations[qs.price.type.latency];
 				if (typeof optimizations === 'undefined') {
 					// First optimization
@@ -3602,21 +3614,19 @@ define(function () {
 					type: 'storage',
 					size: qs.cost
 				});
-			}
+			});
 		},
 
 		supportToD3: function (data, stats) {
-			var supports = stats.support.filtered;
 			data.name = current.$messages['service:prov:support-block'];
-			for (var i = 0; i < supports.length; i++) {
-				var support = supports[i];
+			stats.support.filtered.forEach(support => {
 				data.value += support.cost;
 				data.children.push({
 					name: support.id,
 					type: 'support',
 					size: support.cost
 				});
-			}
+			});
 		},
 
 		/**
