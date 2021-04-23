@@ -2076,7 +2076,7 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-
+			$('.icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
