@@ -325,7 +325,7 @@ define(function () {
 	}
 
 	function formatLicense(license) {
-		return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
+		return license ? license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license : null;
 	}
 
 	function formatReservationMode(mode) {
@@ -518,7 +518,7 @@ define(function () {
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
 		var formatMin = formatManager.formatCost(min)
 		var formatMax = formatManager.formatCost(max)
-		if ((typeof max !== 'number') || max === min|| formatMin === formatMax  )  {
+		if ((typeof max !== 'number') || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
@@ -1147,8 +1147,8 @@ define(function () {
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
 			var $table = $tr.closest('table');
-			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {} ;
-			if (dynaType !== quote.resourceType && quote.resourceType !== undefined ) {
+			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			if (dynaType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub ressource
 				quote = quote['quote' + dynaType.capitalize()];
 			}
@@ -1159,7 +1159,7 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop( "checked", false );
+			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop("checked", false);
 			$('.checkbox-inline').removeClass('hidden');
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
@@ -1173,17 +1173,11 @@ define(function () {
 			current.model.quote = quote;
 			current.toUi(dynaType, quote);
 			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
-			if (!current.model.configuration.budget){
-				_('instance-budget').select2Placeholder(current.$messages['service:prov:budget-null']);
-			}else {
-				_('instance-budget').select2Placeholder(current.budgetToText(current.model.configuration.budget));
-			}
-			if (!current.model.configuration.usage){
-				_('instance-usage').select2Placeholder(current.$messages['service:prov:usage-null']);
-			}else {
-				_('instance-usage').select2Placeholder(current.usageToText(current.model.configuration.usage));
-			}
-			
+			_('instance-budget').select2Placeholder(current.budgetToText(current.model.configuration.budget) || current.$messages['service:prov:budget-null']);
+			_('instance-usage').select2Placeholder(current.usageToText(current.model.configuration.usage) || current.$messages['service:prov:usage-null']);
+			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
+			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
+
 		});
 	}
 
@@ -2076,7 +2070,7 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-			$('.icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
+			$('.icon').attr('class', `fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -2508,7 +2502,7 @@ define(function () {
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage === null ? null : (data.usage || conf.usage);
-					conf.budget = data.budget === null ? null : (data.budget|| conf.budget);
+					conf.budget = data.budget === null ? null : (data.budget || conf.budget);
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
 					conf.physical = jsonData.physical;
@@ -2638,13 +2632,13 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>');
+			return usage ? usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>') : null;
 		},
 		/**
 		 * Budget text renderer.
 		 */
 		budgetToText: function (budget) {
-			return budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>');
+			return budget ? budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>') : null;
 		},
 
 		/**
@@ -2951,11 +2945,11 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					if($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')){
+					if ($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')) {
 						current.enableCreate($popup);
-						$(_(inputType + '-name')).focus();		
-					}else {
-						$popup.modal('hide');					
+						$(_(inputType + '-name')).focus();
+					} else {
+						$popup.modal('hide');
 					}
 				},
 				error: () => current.enableCreate($popup)
