@@ -1161,7 +1161,6 @@ define(function () {
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop( "checked", false );
 			$('.checkbox-inline').removeClass('hidden');
-
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
@@ -1173,6 +1172,18 @@ define(function () {
 			}
 			current.model.quote = quote;
 			current.toUi(dynaType, quote);
+			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
+			if (!current.model.configuration.budget){
+				_('instance-budget').select2Placeholder(current.$messages['service:prov:budget-null']);
+			}else {
+				_('instance-budget').select2Placeholder(current.budgetToText(current.model.configuration.budget));
+			}
+			if (!current.model.configuration.usage){
+				_('instance-usage').select2Placeholder(current.$messages['service:prov:usage-null']);
+			}else {
+				_('instance-usage').select2Placeholder(current.usageToText(current.model.configuration.usage));
+			}
+			
 		});
 	}
 
@@ -2496,8 +2507,8 @@ define(function () {
 					conf.name = jsonData.name;
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
-					conf.usage = data.usage || conf.usage;
-					conf.budget = data.budget || conf.budget;
+					conf.usage = data.usage === null ? null : (data.usage || conf.usage);
+					conf.budget = data.budget === null ? null : (data.budget|| conf.budget);
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
 					conf.physical = jsonData.physical;
