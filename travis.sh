@@ -23,7 +23,6 @@ function installMaven {
   echo '</repositories><pluginRepositories>' >> $M2_HOME/conf/settings.xml
   echo '<pluginRepository><id>spring-milestone-p</id><url>https://repo.spring.io/milestone/</url></pluginRepository>' >> $M2_HOME/conf/settings.xml
   echo '</pluginRepositories></profile></profiles><activeProfiles><activeProfile>spring-milestone</activeProfile></activeProfiles></settings>' >> $M2_HOME/conf/settings.xml
-
 }
 
 #
@@ -107,7 +106,8 @@ BUILD)
 
     mvn clean package jacoco:report sonar:sonar \
           $MAVEN_ARGS \
-          -Pjacoco -Djacoco.includes=org.ligoj.app.plugin.prov.* \
+          -Pjacoco -Djacoco.includes="org.ligoj.app.plugin.prov.*" \
+          -Dsonar.javascript.exclusions="node_modules,dist" \
           -Dsonar.host.url=$SONAR_HOST_URL \
           -Dsonar.organization=ligoj-github \
           -Dsonar.login=$SONAR_TOKEN \
@@ -118,24 +118,25 @@ BUILD)
           -Dmaven.ut.reuseForks=true -Dmaven.it.reuseForks=false \
           -Djava.awt.headless=true
 
-  elif [[ "$TRAVIS_BRANCH" == "branch-"* ]] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    echo 'Build release branch'
-
-    mvn install $MAVEN_ARGS
-
   elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
     echo 'Build and analyze internal pull request'
 
-    mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar \
+    mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar \
         $MAVEN_ARGS \
+          -Pjacoco -Djacoco.includes="org.ligoj.app.plugin.prov.*" \
+          -Dsonar.javascript.exclusions="node_modules,dist" \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.organization=ligoj-github \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.projectVersion=$PROJECT_VERSION \
+          -Dsonar.github.repository=$TRAVIS_REPO_SLUG \
+          -Dsonar.github.oauth=$GITHUB_TOKEN \
+          -Dmaven.javadoc.skip=true \
+          -Dmaven.ut.reuseForks=true -Dmaven.it.reuseForks=false \
+          -Djava.awt.headless=true \
         -Dsource.skip=true \
-        -Pdeploy-sonarsource \
         -Dsonar.analysis.mode=preview \
-        -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST \
-        -Dsonar.github.repository=$TRAVIS_REPO_SLUG \
-        -Dsonar.github.oauth=$GITHUB_TOKEN \
-        -Dsonar.host.url=$SONAR_HOST_URL \
-        -Dsonar.login=$SONAR_TOKEN
+        -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST
 
   else
     echo 'Build feature branch or external pull request'
