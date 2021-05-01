@@ -49,9 +49,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 	/**
 	 * Prepare test data.
-	 * 
+	 *
 	 * @throws IOException When CSV cannot be read.
 	 */
+	@Override
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		super.prepareData();
@@ -299,6 +300,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(cost, 0, 0, false);
 	}
 
+	@Override
 	protected QuoteLightVo checkCost(final int subscription, final double min, final double max,
 			final boolean unbound) {
 		final var status = super.checkCost(subscription, min, max, unbound);

@@ -22,7 +22,10 @@ define(['jquery'], function ($) {
 		}
 
 		function format(tag) {
-			return tag.name ? (tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value))) : tag.text;
+			if (typeof tag.name === 'string') {
+				return tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value)));
+			}
+			return tag.text;
 		}
 		function toTagsString(resource) {
 			return toTags(resource).map(format);

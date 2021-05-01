@@ -414,7 +414,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
-		final String failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		final var failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
 		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))

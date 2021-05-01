@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -174,7 +175,7 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 	void computeWorkloadError() throws IOException {
 		final var resource = newResource();
 		resource.utils = Mockito.mock(TerraformUtils.class);
-		Mockito.doThrow(new IOException()).when(resource.utils).toFile(Mockito.any(), Mockito.any());
+		Mockito.doThrow(new IOException()).when(resource.utils).toFile(ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var status = new TerraformStatus();
 		status.setToAdd(1);
 		resource.computeWorkload(getSubscription(), status);

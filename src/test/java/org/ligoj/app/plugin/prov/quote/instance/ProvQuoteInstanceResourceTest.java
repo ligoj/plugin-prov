@@ -236,6 +236,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
 						.getType().getName());
 	}
+
 	/**
 	 * Search instance type within a non existing region
 	 */

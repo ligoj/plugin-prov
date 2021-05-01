@@ -326,7 +326,7 @@ public class ProvQuoteSupportResource
 	 * @return The added computed support cost of each segment.
 	 */
 	public double computeRates(final double cost, final int min, final int[] rates, final int[] limits) {
-		double support = 0;
+		var support = 0D;
 		for (var i = rates.length; i-- > 0;) {
 			support += Math.max(0, Math.min(cost, i > limits.length - 1 ? Integer.MAX_VALUE : limits[i])
 					- (i == 0 ? 0 : limits[i - 1])) / 100 * rates[i];

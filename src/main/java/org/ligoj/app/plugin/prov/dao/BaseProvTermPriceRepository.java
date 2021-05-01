@@ -15,7 +15,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link ProvDatabasePrice} repository.
- * 
+ *
  * @param <T> The instance type type.
  * @param <P> The price type.
  */

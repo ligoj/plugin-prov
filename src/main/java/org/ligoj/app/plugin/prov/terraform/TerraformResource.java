@@ -101,18 +101,18 @@ public class TerraformResource {
 	 */
 	public TerraformResource() {
 		// Configure the mapping
-		commandMapping.put("generate", (context, out, arguments) -> getImpl(context.getSubscription().getNode()).generate(context));
-		commandMapping.put("secrets", (context, out, arguments) -> getImpl(context.getSubscription().getNode()).generateSecrets(context));
+		commandMapping.put("generate",
+				(context, out, arguments) -> getImpl(context.getSubscription().getNode()).generate(context));
+		commandMapping.put("secrets",
+				(context, out, arguments) -> getImpl(context.getSubscription().getNode()).generateSecrets(context));
 		commandMapping.put("clean", (context, out, arguments) -> clean(context.getSubscription()));
 	}
 
 	/**
 	 * Download the Terraform configuration files including the state in zipped format.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @param file
-	 *            The target file name.
+	 * @param subscription The related subscription.
+	 * @param file         The target file name.
 	 * @return the {@link Response} ready to be consumed.
 	 */
 	@GET
@@ -126,8 +126,7 @@ public class TerraformResource {
 	/**
 	 * Get the log of the current or last Terraform execution of a given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription.
+	 * @param subscription The related subscription.
 	 * @return the streaming {@link Response} with output.
 	 */
 	@GET
@@ -153,10 +152,8 @@ public class TerraformResource {
 	/**
 	 * Terraform creation sequence.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @param context
-	 *            The Terraform user inputs. Will be completed and passed to Terraform commands.
+	 * @param subscription The related subscription.
+	 * @param context      The Terraform user inputs. Will be completed and passed to Terraform commands.
 	 * @return The Terraform status. Never <code>null</code>.
 	 */
 	@POST
@@ -168,10 +165,8 @@ public class TerraformResource {
 	/**
 	 * Terraform destroy sequence.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @param context
-	 *            The Terraform user inputs. Will be completed and passed to Terraform commands.
+	 * @param subscription The related subscription.
+	 * @param context      The Terraform user inputs. Will be completed and passed to Terraform commands.
 	 * @return The Terraform status. Never <code>null</code>.
 	 */
 	@DELETE
@@ -223,10 +218,8 @@ public class TerraformResource {
 	/**
 	 * Start a new task with a new context.
 	 *
-	 * @param context
-	 *            The new context.
-	 * @param type
-	 *            The sequence type.
+	 * @param context The new context.
+	 * @param type    The sequence type.
 	 * @return The new Terraform status.
 	 */
 	protected TerraformStatus startTask(final Context context, final TerraformSequence type) {
@@ -247,16 +240,13 @@ public class TerraformResource {
 	/**
 	 * Prepare the Terraform environment to apply/destroy the new environment. Note there is no concurrency check.
 	 *
-	 * @param context
-	 *            The Terraform context holding the subscription, the quote and the user inputs.
-	 * @throws IOException
-	 *             When files or logs cannot cannot be generated.
-	 * @throws InterruptedException
-	 *             When Terraform execution has been interrupted.
+	 * @param context The Terraform context holding the subscription, the quote and the user inputs.
+	 * @throws IOException          When files or logs cannot cannot be generated.
+	 * @throws InterruptedException When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public void sequenceNewTransaction(final Context context) throws IOException, InterruptedException {
-        var failed = true;
+		var failed = true;
 		try {
 			context.setQuote(resource.getConfiguration(context.getSubscription().getId()));
 			context.setSubscription(subscriptionRepository.findOneExpected(context.getSubscription().getId()));
@@ -272,10 +262,8 @@ public class TerraformResource {
 	/**
 	 * Delete all files (including logs) that could generated again and we don't need to track.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @throws IOException
-	 *             When files or logs cannot cannot be deleted.
+	 * @param subscription The related subscription.
+	 * @throws IOException When files or logs cannot cannot be deleted.
 	 */
 	protected void clean(final Subscription subscription) throws IOException {
 		final var parent = utils.toFile(subscription).toPath();
@@ -291,8 +279,7 @@ public class TerraformResource {
 	 * Check the associated provider support Terraform generation and return the corresponding {@link Terraforming}
 	 * instance.
 	 *
-	 * @param node
-	 *            The related node.
+	 * @param node The related node.
 	 * @return {@link Terraforming} instance of this node. Never <code>null</code>.
 	 */
 	private Terraforming getImpl(final Node node) {
@@ -324,8 +311,7 @@ public class TerraformResource {
 	/**
 	 * Return the executor corresponding to the given command.
 	 *
-	 * @param command
-	 *            The requested command, such as <code>appy</code>, <code>clean</code> ,...
+	 * @param command The requested command, such as <code>appy</code>, <code>clean</code> ,...
 	 * @return The executor corresponding to the given command.
 	 */
 	protected TerraformAction getAction(final String command) {
@@ -336,10 +322,8 @@ public class TerraformResource {
 	 * Return the Terraform versions : current and latest version.
 	 *
 	 * @return The terraform version when succeed, or <code>null</code>. Is cached.
-	 * @throws IOException
-	 *             Stream cannot be read.
-	 * @throws InterruptedException
-	 *             The process cannot be executed.
+	 * @throws IOException          Stream cannot be read.
+	 * @throws InterruptedException The process cannot be executed.
 	 */
 	@CacheResult(cacheName = "terraform-version")
 	@Path("terraform/install")
@@ -370,13 +354,10 @@ public class TerraformResource {
 	 * Install or update the Terraform binary. Note for now there is no check about current <code>terraform</code>
 	 * command is running and may this update to fail.
 	 *
-	 * @param version
-	 *            The target version.
+	 * @param version The target version.
 	 * @return The installed and checked Terraform version.
-	 * @throws IOException
-	 *             Stream cannot be read.
-	 * @throws InterruptedException
-	 *             The process cannot be executed.
+	 * @throws IOException          Stream cannot be read.
+	 * @throws InterruptedException The process cannot be executed.
 	 */
 	@CacheRemoveAll(cacheName = "terraform-version")
 	@Path("terraform/version/{version:\\d+\\.\\d+\\.\\d+.*}")

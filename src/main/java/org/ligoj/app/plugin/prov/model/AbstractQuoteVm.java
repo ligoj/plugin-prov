@@ -33,7 +33,8 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends AbstractQuote<P> implements QuoteVm, ResourceScope {
+public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends AbstractQuote<P>
+		implements QuoteVm, ResourceScope {
 
 	/**
 	 * SID
@@ -53,7 +54,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
@@ -67,7 +68,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -226,7 +227,6 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 	public String getLocationName() {
 		return getResolvedLocation().getName();
 	}
-
 
 	@Override
 	public abstract P getPrice();

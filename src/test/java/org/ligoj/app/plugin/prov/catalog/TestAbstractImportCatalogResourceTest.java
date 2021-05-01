@@ -234,7 +234,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 		purgePrices(newContext, previous, pRepository, qRepository);
-		Mockito.verify(pRepository, Mockito.never()).delete(Mockito.any());
+		Mockito.verify(pRepository, Mockito.never()).delete(ArgumentMatchers.any());
 	}
 
 	@Test

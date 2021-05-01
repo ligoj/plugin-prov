@@ -105,7 +105,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Refresh the whole quote budgets.
-	 * 
+	 *
 	 * @param quote The quote owning the related budget.
 	 * @param costs The updated costs and resources.
 	 */
@@ -129,7 +129,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * Detect the related budgets having an initial cost and involved in the given instances/databases collections, lean
 	 * them. A refresh is also applied to all resources related to these budgets. This means that some resources not
 	 * included in the initial set may be refreshed.
-	 * 
+	 *
 	 * @param quote      The quote owning the related budget.
 	 * @param instances  The instances implied in the current change.
 	 * @param databases  The databases implied in the current change.
@@ -165,7 +165,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Detect the related resources to the given budget and refresh them according to the budget constraints.
-	 * 
+	 *
 	 * @param budget The budget to lean.
 	 * @param costs  The updated costs and resources.
 	 */
@@ -309,7 +309,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Log packing statistics.
-	 * 
+	 *
 	 * @param packStart Starting timestamp.
 	 * @param packToQr  The packed resources.
 	 * @param budget    The related budget.
@@ -338,7 +338,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource) {
 		nodes.forEach(i -> {
 			@SuppressWarnings("unchecked")
-			final FloatingPrice<P> price = (FloatingPrice<P>) prices.get(i);
+			final var price = (FloatingPrice<P>) prices.get(i);
 			costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, qi -> {
 				qi.setPrice(price.getPrice());
 				return resource.updateCost(qi);

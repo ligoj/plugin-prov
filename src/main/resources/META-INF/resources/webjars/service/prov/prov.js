@@ -365,13 +365,11 @@ define(function () {
 		if (type.storageRate) {
 			details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.storageRate] + '\'></i>' : '';
-			// TODO Add instance storage
 		}
 
 		if (type.networkRate) {
 			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
-			// TODO Add memory type
 		}
 		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 	}
@@ -604,15 +602,10 @@ define(function () {
 
 		if (mode === 'sort') {
 			// Compute the sum
-			var storages = instance.storages;
-			var sum = 0;
-			if (storages) {
-				storages.forEach(storage => sum += storage.size);
-			}
-			return sum;
+			return (instance.storages || []).reduce((acc, s) => acc + storage.size, 0);
 		}
 		// Need to build a Select2 tags markup
-		return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
+		return `<input type="text" class="storage-tags" data-instance="${instance.id}" autocomplete="off" name="storage-tags">`;
 	}
 
 	/**
@@ -641,6 +634,9 @@ define(function () {
 
 	function formatBudget(budget, mode, qi) {
 		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', (entity) => (typeof entity.initialCost === 'number' && entity.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(entity.initialCost)}` : '');
+	}
+	function filterMultiScoped(name) {
+		return opFunction => (value, data) => opFunction(data[name] ? data.budget.name : current.model.configuration[name] ? current.model.configuration[name].name : 'default');
 	}
 
 	function formatUsageTemplate(usage, mode) {
@@ -760,7 +756,7 @@ define(function () {
 				return text;
 			}
 
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+			return `<i class="${clazz}" data-toggle="tooltip" title="${text}"></i>${mode ? ' ' + text : ''}`;
 		}
 		return '';
 	}
@@ -988,7 +984,7 @@ define(function () {
 			},
 			data: function () {
 				return {
-					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => { // TODO FDA
+					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => {
 						r.text = r.name;
 						return r;
 					})
@@ -2000,8 +1996,8 @@ define(function () {
 						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container can be displayed
 							// There are 2 operators: 
-							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)'
-							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)'
+							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
+							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
 								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
 								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
@@ -2876,7 +2872,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null); // TODO FDA
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null);
 			current.storageSetUiPrice(quote);
 		},
 
@@ -3399,13 +3395,12 @@ define(function () {
 			var storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
 			storages.forEach(qs => {
-				// TODO FDA
-				if (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id]) {
-					nb = qs.quoteInstance.minQuantity || 1;
-				} else if (qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id]) {
-					nb = qs.quoteDatabase.minQuantity || 1;
-				} else if (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id]) {
-					nb = qs.quoteContainer.minQuantity || 1;
+				if (qs.quoteInstance) {
+					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
+				} else if (qs.quoteDatabase) {
+					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
+				} else if (qs.quoteContainer) {
+					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
 				} else {
 					nb = 1;
 				}
@@ -3414,7 +3409,7 @@ define(function () {
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer; // TODO
+				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer;
 				if (quoteVm) {
 					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
 						timeline[t].storage += qs.cost;
@@ -3560,7 +3555,7 @@ define(function () {
 		containerToD3: function (data, stats) {
 			current.computeToD3(data, stats, 'container');
 		},
-		databaseToD3: function (data, stats) { // TODO FDA
+		databaseToD3: function (data, stats) {
 			var allEngines = {};
 			stats.database.filtered.forEach(qi => {
 				var engines = allEngines[qi.engine];
@@ -3736,7 +3731,7 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer)) // TODO FDA
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer))
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3762,7 +3757,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer) // TODO FDA
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer)
 				}]
 			};
 		},
@@ -3907,13 +3902,13 @@ define(function () {
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
 					render: formatUsageTemplate,
-					filter: opFunction => (value, data) => opFunction(data.usage ? data.usage.name : current.model.configuration.usage ? current.model.configuration.usage.name : 'default')
+					filter: filterMultiScoped('usage')
 				}, {
 					data: 'budget',
 					className: 'hidden-xs hidden-sm budget',
 					type: 'string',
 					render: formatBudget,
-					filter: opFunction => (value, data) => opFunction(data.budget ? data.budget.name : current.model.configuration.budget ? current.model.configuration.budget.name : 'default')
+					filter: filterMultiScoped('budget')
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
@@ -4055,10 +4050,10 @@ define(function () {
 					delete conf[type + 'sById'][resource.id];
 					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
-						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer; // TODO FDA
+						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer;
 						if (qr) {
 							// Also redraw the instance
-							var attachedType = resource.quoteInstance ? 'instance' : resource.quoteDatabase ? 'database' : 'container';
+							var attachedType = qr.resourceType;
 							current.detachStorage(resource, 'quote' + attachedType.capitalize());
 							current.redrawResource(attachedType, qr.id);
 						}

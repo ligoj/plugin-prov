@@ -91,8 +91,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
 			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
-			String engine, String edition, int location, double rate, double globalRate, double duration, String license,
-			double initialCost, Pageable pageable);
+			String engine, String edition, int location, double rate, double globalRate, double duration,
+			String license, double initialCost, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.

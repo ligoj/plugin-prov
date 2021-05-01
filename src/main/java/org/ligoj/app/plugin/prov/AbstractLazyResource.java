@@ -23,7 +23,7 @@ public abstract class AbstractLazyResource {
 	/**
 	 * Must be invoked when a resource is deleted. This is due to the weak relationship between the resources and the
 	 * relationships.
-	 * 
+	 *
 	 * @param type      The deleted resource type.
 	 * @param resources The deleted resource identifiers
 	 */
@@ -32,7 +32,7 @@ public abstract class AbstractLazyResource {
 	/**
 	 * Must be invoked when all resources of a given type is deleted within a quote. This is due to the weak
 	 * relationship between the resources and the relationships.
-	 * 
+	 *
 	 * @param type  The deleted resource type.
 	 * @param quote The quote identifier
 	 */
@@ -40,7 +40,7 @@ public abstract class AbstractLazyResource {
 
 	/**
 	 * Return the repository managing the given resource type.
-	 * 
+	 *
 	 * @param type The resource type to query.
 	 * @return The corresponding {@link BaseProvQuoteRepository} managing the requested type.
 	 */

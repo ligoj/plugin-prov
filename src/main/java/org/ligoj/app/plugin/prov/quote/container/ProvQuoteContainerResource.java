@@ -102,7 +102,7 @@ public class ProvQuoteContainerResource extends
 
 	/**
 	 * Return the container prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best container price matching to the criteria.

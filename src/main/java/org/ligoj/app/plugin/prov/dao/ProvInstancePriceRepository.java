@@ -18,7 +18,8 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvInstancePrice} repository.
  */
-public interface ProvInstancePriceRepository extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
+public interface ProvInstancePriceRepository
+		extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
 
 	@Override
 	@CacheResult(cacheName = "prov-license")
@@ -119,7 +120,6 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceOsReposito
 
 	@CacheResult(cacheName = "prov-instance-os")
 	@Query("SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "  ORDER BY ip.os")
+			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))" + "  ORDER BY ip.os")
 	List<String> findOs(@CacheKey String node);
 }
