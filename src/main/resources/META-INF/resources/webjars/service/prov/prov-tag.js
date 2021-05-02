@@ -23,7 +23,7 @@ define(['jquery'], function ($) {
 
 		function format(tag) {
 			if (typeof tag.name === 'string') {
-				return tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value)));
+				return tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value));
 			}
 			return tag.text;
 		}
