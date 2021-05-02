@@ -395,53 +395,43 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Update the statistics
-	 *
-	 * @param context  The update context.
-	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
-	 */
-	protected void nextStep(final AbstractUpdateContext context, final String location, final int step) {
-		nextStep(context.getNode(), location, step);
-	}
-
-	/**
 	 * Update the current phase for statistics and add 1 to the processed workload.
 	 *
 	 * @param context The current import context.
 	 * @param phase   The new import phase.
 	 */
 	protected void nextStep(final AbstractUpdateContext context, final String phase) {
-		nextStep(context.getNode(), phase);
+		nextStep(context, phase, null, 1);
 	}
 
 	/**
-	 * Update the current phase for statistics and add 1 to the processed workload.
+	 * Update the statistics
 	 *
-	 * @param node  The current import node.
-	 * @param phase The new import phase.
+	 * @param context  The update context.
+	 * @param phase    The new import phase.
+	 * @param location The current region API name.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String phase) {
-		importCatalogResource.nextStep(node.getId(), t -> {
-			importCatalogResource.updateStats(t);
-			t.setWorkload(getWorkload(t));
-			t.setDone(t.getDone() + 1);
-			t.setPhase(phase);
-		});
+	protected void nextStep(final AbstractUpdateContext context, final String phase, final String location,
+			final int step) {
+		nextStep(context.getNode(), phase, location, step);
 	}
 
 	/**
 	 * Update the statistics.
 	 *
 	 * @param node     The node provider.
+	 * @param phase    The new import phase.
 	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String location, final int step) {
+	private void nextStep(final Node node, final String phase, final String location, final int step) {
+		log.info("Next step node={}, phase={}, region={}, step={}", node.getId(), phase, location, step);
 		importCatalogResource.nextStep(node.getId(), t -> {
 			importCatalogResource.updateStats(t);
 			t.setWorkload(getWorkload(t));
 			t.setDone(t.getDone() + step);
+			t.setPhase(phase);
 			t.setLocation(location);
 		});
 	}
