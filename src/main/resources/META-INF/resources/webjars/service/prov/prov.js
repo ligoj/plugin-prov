@@ -2046,7 +2046,6 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-			$('.icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -3693,6 +3692,7 @@ define(function () {
 		 * @param {string} resourcesByName The namespace where key is the unique name.
 		 */
 		findNewName: function (resources, prefix, increment, resourcesByName) {
+			//debugger
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
@@ -3794,8 +3794,10 @@ define(function () {
 		 * Initialize the database/instance/container datatables from the whole quote
 		 */
 		genericInstanceNewTable: function (type, columns) {
+			//debugger;
 			return {
 				rowCallback: function (nRow, qi) {
+					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3827,6 +3829,7 @@ define(function () {
 					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
 							// New storage
+							//debugger;
 							var suggest = event.added;
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
