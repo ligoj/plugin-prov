@@ -398,6 +398,7 @@ define(function () {
 	 * Format instance term detail
 	 */
 	function formatInstanceTerm(name, mode, qi) {
+		debugger;
 		var term = qi ? qi.price.term : null;
 		name = term ? term.name : name;
 		if (mode === 'sort' || mode === 'filter' || (term && typeof term.id === 'undefined')) {
@@ -730,6 +731,16 @@ define(function () {
 			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
 		}
 		return '';
+	}
+
+	/**
+	 * Return the HTML markup from the quote name.
+	 */
+	function formatName(resource){
+		debugger;
+		if(resource){
+			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">'+resource+'</a>');
+		}
 	}
 
 	/**
@@ -1873,7 +1884,9 @@ define(function () {
 			});
 			oSettings.columns.splice(0, 0, {
 				data: 'name',
-				className: 'truncate'
+				className: 'truncate',
+				type: 'string',
+				render:formatName
 			});
 			oSettings.columns.push(
 				{
@@ -3692,7 +3705,7 @@ define(function () {
 		 * @param {string} resourcesByName The namespace where key is the unique name.
 		 */
 		findNewName: function (resources, prefix, increment, resourcesByName) {
-			//debugger
+			debugger
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
@@ -3794,10 +3807,10 @@ define(function () {
 		 * Initialize the database/instance/container datatables from the whole quote
 		 */
 		genericInstanceNewTable: function (type, columns) {
-			//debugger;
+			debugger;
 			return {
 				rowCallback: function (nRow, qi) {
-					//debugger;
+					debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3829,7 +3842,7 @@ define(function () {
 					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
 							// New storage
-							//debugger;
+							debugger;
 							var suggest = event.added;
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
