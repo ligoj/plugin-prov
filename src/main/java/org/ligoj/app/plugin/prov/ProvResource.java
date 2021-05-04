@@ -296,6 +296,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
+		vo.setUiSettings(quote.getUiSettings());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
@@ -366,6 +367,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
+		entity.setUiSettings(vo.getUiSettings());
 
 		var oldLicense = entity.getLicense();
 		var oldLocation = entity.getLocation();
