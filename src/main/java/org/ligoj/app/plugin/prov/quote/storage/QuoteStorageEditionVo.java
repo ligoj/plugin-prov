@@ -59,7 +59,7 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 
 	/**
 	 * The maximal used size. When <code>null</code>, the requested size is used.
-	 * 
+	 *
 	 * @see #sizeMax
 	 */
 	@Positive

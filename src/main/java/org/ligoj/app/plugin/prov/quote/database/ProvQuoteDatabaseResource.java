@@ -132,7 +132,7 @@ public class ProvQuoteDatabaseResource extends
 
 	/**
 	 * Return the database prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best database price matching to the criteria.

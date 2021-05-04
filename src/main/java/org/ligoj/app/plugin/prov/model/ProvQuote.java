@@ -66,7 +66,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 
 	/**
 	 * Maximal initial cost. Does not includes support cost.
-	 * 
+	 *
 	 * @see #maxCost
 	 */
 	@PositiveOrZero

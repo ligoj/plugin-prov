@@ -350,7 +350,7 @@
 										</button>
 										<ul class="dropdown-menu">
 											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:constant-null}}</a></li>
-											<li data-value="false"><a><i class="fas fa-wave fa-fw"></i> {{service:prov:constant-false}}</a></li>
+											<li data-value="false"><a><i class="fas fa-wave-square fa-fw"></i> {{service:prov:constant-false}}</a></li>
 											<li data-value="true"><a><i class="fas fa-minus fa-fw"></i> {{service:prov:constant-true}}</a></li>
 										</ul>
 									</div>
@@ -463,6 +463,10 @@
 					</div>
 				</div>
 				<div class="modal-footer">
+					<label class="checkbox-inline" for="create-another">
+						<input type="checkbox" id="create-another">
+						<span>Create another &emsp; </span>
+					</label>
 					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>

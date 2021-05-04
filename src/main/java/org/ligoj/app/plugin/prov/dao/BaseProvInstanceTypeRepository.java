@@ -14,7 +14,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link AbstractInstanceType} base repository.
- * 
+ *
  * @param <T> The instance type type.
  */
 @NoRepositoryBean
@@ -22,7 +22,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 
 	/**
 	 * Return all distinct processors.
-	 * 
+	 *
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return All distinct processors.
 	 */
@@ -37,8 +37,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
 	 * @param cpu         The minimum CPU.
 	 * @param ram         The minimum RAM in MB.
-	 * @param limitCpu      The maximum CPU. Used only to reduce initial lookup potential result.
-	 * @param limitRam      The maximum RAM in MB. Used only to reduce initial lookup potential result.
+	 * @param limitCpu    The maximum CPU. Used only to reduce initial lookup potential result.
+	 * @param limitRam    The maximum RAM in MB. Used only to reduce initial lookup potential result.
 	 * @param constant    The optional constant CPU behavior constraint.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.
@@ -64,9 +64,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)     "
 			+ "  AND (:processor IS NULL                                       "
 			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
-	List<Integer> findValidTypes(String node, double cpu, double ram, double limitCpu, double limitRam, Boolean constant,
-			Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate, Rate ramRate,
-			Rate networkRate, Rate storageRate);
+	List<Integer> findValidTypes(String node, double cpu, double ram, double limitCpu, double limitRam,
+			Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate,
+			Rate ramRate, Rate networkRate, Rate storageRate);
 
 	/**
 	 * Return the valid instance types matching the requirements.
@@ -102,7 +102,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.
-	 * 
+	 *
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return <code>true</code> when there is at least one dynamic type in this repository.
 	 */

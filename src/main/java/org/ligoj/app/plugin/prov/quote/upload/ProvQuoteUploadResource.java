@@ -89,7 +89,7 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
 			"ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
@@ -414,7 +414,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
-		final String failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		final var failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
 		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
@@ -499,7 +499,7 @@ public class ProvQuoteUploadResource {
 					// Find the nicest storage
 					svo.setType(storageResource.lookup(context.quote, svo).stream().findFirst()
 							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
-							.getName());
+							.getCode());
 
 					// Default the storage name to the instance name
 					svo.setSubscription(subscription);

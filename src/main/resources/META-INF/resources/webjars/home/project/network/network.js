@@ -77,8 +77,7 @@ define(['jquery', 'cascade'], function ($, $cascade) {
 		$in.find('tbody').empty();
 		$out.find('tbody').empty();
 		var networks = conf.networks;
-		for (var i = 0; i < networks.length; i++) {
-			var link = networks[i];
+		for (let link of networks) {
 			if (link.sourceType === resourceType && link.source === resourceId) {
 				// Outgoing
 				addRow($out, false, link);

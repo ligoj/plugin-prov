@@ -83,7 +83,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		entity.setPrice(cpRepository.findBy("code", "LINUX1"));
 		entity.setConfiguration(getQuote());
 		entity.setCost(entity.getPrice().getCost());
-		entity.setMaxCost(entity.getCost()*2);
+		entity.setMaxCost(entity.getCost() * 2);
 		entity.setOs(VmOs.LINUX);
 		return qcRepository.saveAndFlush(entity).getId();
 	}
@@ -854,7 +854,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		type.setNotContainerType("%tainerX");
 		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
 		type.setNotContainerType("%tainer1");
-		Assertions.assertEquals(0,  qsResource.lookup(subscription, query).size());
+		Assertions.assertEquals(0, qsResource.lookup(subscription, query).size());
 	}
 
 	/**

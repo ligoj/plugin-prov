@@ -106,10 +106,8 @@ define(['jquery'], function ($) {
 		var propertyMatchers = ['filterName', 'data'];
 
 		function newCustomFilter(settings, property, operator, value) {
-			for (var j = 0; j < propertyMatchers.length; j++) {
-				var propertyMatcher = propertyMatchers[j];
-				for (var i = 0; i < settings.aoColumns.length; i++) {
-					var column = settings.aoColumns[i];
+			for (let propertyMatcher of propertyMatchers) {
+				for (let column of settings.aoColumns) {
 					if (column[propertyMatcher] === property) {
 						// Column matching to the property has been found
 						var type = column.type || 'string';
@@ -131,26 +129,25 @@ define(['jquery'], function ($) {
 
 		function buildJoin(join) {
 			var specificKeys = [];
-			for (var i = 0; i < (join.filters || []).length; i++) {
-				var filter = join.filters[i];
+			(join.filters || []).forEach(filter => {
 				var property = filter.property;
 				if (filter.table) {
 					// There is a provide table, use ' IN ' condition
 					var collection = filter.table.api().rows({ filter: 'applied' }).data();
 					var collectionById = {};
-					for (var j = 0; j < collection.length; j++) {
-						collectionById[collection[j].id] = true;
+					for (let index = collection.length; index-- > 0;) {
+						collectionById[collection[index].id] = true;
 					}
 					specificKeys.push({ property: property, filter: propertyNewCustomFilter(property, operators['string'][filter.op](collectionById)) });
 				}
-			}
+			});
 			return specificKeys;
 		}
 
 		function buildKeys(settings, global, filters) {
 			var specificKeys = [];
-			for (var i = 0; i < filters.length; i++) {
-				var filter = filters[i].trim();
+			for (let filter0 of filters) {
+				let filter = filter0.trim();
 				if (filter.length === 0) {
 					continue;
 				}
@@ -205,49 +202,20 @@ define(['jquery'], function ($) {
 
 		function accept(settings, type, dataFilter, data, search, join) {
 			var filter = build(settings, type, search, join);
-			if (filter.specificAndKeys.length === 0 && filter.specificOrKeys.length === 0 && filter.global.length === 0) {
-				// No filter
-				return true;
-			}
-			var found = false;
-			var i;
-			if (filter.specificOrKeys.length) {
-				for (i = 0; i < filter.specificOrKeys.length; i++) {
-					if (filter.specificOrKeys[i].filter(dataFilter, data)) {
-						found = true;
-						break;
-					}
-				}
-				// Expect at least one match among the OR conditions
-				if (!found) {
-					return false;
-				}
-			}
-			if (filter.specificAndKeys.length) {
-				// All filters must match
-				for (i = 0; i < filter.specificAndKeys.length; i++) {
-					if (!filter.specificAndKeys[i].filter(dataFilter, data)) {
-						return false;
-					}
-				}
-			}
-			if (filter.global.length) {
-				// All globals must match
-				for (i = 0; i < filter.global.length; i++) {
-					found = false;
-					for (var j = 0; j < settings.aoColumns.length; j++) {
-						if (filter.global[i](dataFilter[j], data)) {
-							found = true;
-							break;
+			// Expect at least one match among the OR conditions 
+			// and all AND conditions
+			// and all globals must match
+			return (filter.specificOrKeys.length === 0 || !filter.specificOrKeys.some(s => s.filter(dataFilter, data)))
+				&& (filter.specificAndKeys.length === 0 || filter.specificAndKeys.every(s => !s.filter(dataFilter, data)))
+				&& (filter.global.length === 0 || filter.global.every(global => {
+					for (let j = settings.aoColumns.length; j-- > 0;) {
+						if (global(dataFilter[j], data)) {
+							return true;
 						}
 					}
 					// Expect at least one match among the columns
-					if (!found) {
-						return false;
-					}
-				}
-			}
-			return true;
+					return false;
+				}));
 		}
 
 		// Exports

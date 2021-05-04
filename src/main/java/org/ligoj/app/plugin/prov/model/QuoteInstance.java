@@ -19,6 +19,7 @@ public interface QuoteInstance extends QuoteVmOs {
 
 	/**
 	 * Return the requested tenancy, default is "SHARED".
+	 *
 	 * @return The requested tenancy, default is "SHARED".
 	 */
 	ProvTenancy getTenancy();

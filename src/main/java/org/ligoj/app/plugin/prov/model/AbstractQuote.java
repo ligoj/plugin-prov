@@ -60,7 +60,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 
 	/**
 	 * Maximal initial cost. Does not includes support cost.
-	 * 
+	 *
 	 * @see #maxCost
 	 */
 	@NotNull
