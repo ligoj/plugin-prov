@@ -20,8 +20,7 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	/**
 	 * Return all {@link ProvLocation} related to given node identifier.
 	 *
-	 * @param node
-	 *            The node identifier to match.
+	 * @param node The node identifier to match.
 	 * @return All locations linked to this node.
 	 */
 	@Query("SELECT pl FROM ProvLocation pl INNER JOIN pl.node n WHERE"
@@ -32,10 +31,8 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	/**
 	 * Return the {@link ProvLocation} by it's name, ignoring the case.
 	 *
-	 * @param node
-	 *            The node identifier to match.
-	 * @param name
-	 *            The name to match.
+	 * @param node The node identifier to match.
+	 * @param name The name to match.
 	 *
 	 * @return The entity or <code>null</code>.
 	 */
@@ -46,10 +43,8 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	/**
 	 * Return the {@link ProvLocation} identifier by it's name, ignoring the case.
 	 *
-	 * @param node
-	 *            The node identifier to match.
-	 * @param name
-	 *            The name to match.
+	 * @param node The node identifier to match.
+	 * @param name The name to match.
 	 *
 	 * @return The entity identifier or <code>null</code>.
 	 */

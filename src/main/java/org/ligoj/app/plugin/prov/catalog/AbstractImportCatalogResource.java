@@ -354,7 +354,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Install a new region.
-	 * 
+	 *
 	 * @param context The update context.
 	 * @param region  The region API name to install.
 	 * @return The region, created or existing one.
@@ -395,53 +395,43 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Update the statistics
-	 * 
-	 * @param context  The update context.
-	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
-	 */
-	protected void nextStep(final AbstractUpdateContext context, final String location, final int step) {
-		nextStep(context.getNode(), location, step);
-	}
-
-	/**
 	 * Update the current phase for statistics and add 1 to the processed workload.
 	 *
 	 * @param context The current import context.
 	 * @param phase   The new import phase.
 	 */
 	protected void nextStep(final AbstractUpdateContext context, final String phase) {
-		nextStep(context.getNode(), phase);
+		nextStep(context, phase, null, 1);
 	}
 
 	/**
-	 * Update the current phase for statistics and add 1 to the processed workload.
+	 * Update the statistics
 	 *
-	 * @param node  The current import node.
-	 * @param phase The new import phase.
+	 * @param context  The update context.
+	 * @param phase    The new import phase.
+	 * @param location The current region API name.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String phase) {
-		importCatalogResource.nextStep(node.getId(), t -> {
-			importCatalogResource.updateStats(t);
-			t.setWorkload(getWorkload(t));
-			t.setDone(t.getDone() + 1);
-			t.setPhase(phase);
-		});
+	protected void nextStep(final AbstractUpdateContext context, final String phase, final String location,
+			final int step) {
+		nextStep(context.getNode(), phase, location, step);
 	}
 
 	/**
 	 * Update the statistics.
-	 * 
+	 *
 	 * @param node     The node provider.
+	 * @param phase    The new import phase.
 	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String location, final int step) {
+	private void nextStep(final Node node, final String phase, final String location, final int step) {
+		log.info("Next step node={}, phase={}, region={}, step={}", node.getId(), phase, location, step);
 		importCatalogResource.nextStep(node.getId(), t -> {
 			importCatalogResource.updateStats(t);
 			t.setWorkload(getWorkload(t));
 			t.setDone(t.getDone() + step);
+			t.setPhase(phase);
 			t.setLocation(location);
 		});
 	}
@@ -458,7 +448,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <T>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
@@ -483,7 +473,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set. The cost of the period is also updated accordingly to the attached term.
-	 * 
+	 *
 	 * @param <T>         The price's type.
 	 * @param <P>         The instance type's type.
 	 * @param context     The context to initialize.
@@ -505,7 +495,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set.
-	 * 
+	 *
 	 * @param <T>         The price's type.
 	 * @param <P>         The instance type's type.
 	 * @param context     The context to initialize.
@@ -538,7 +528,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <K>     The price type's type.
 	 * @param <P>     The price type.
 	 * @param context The context to initialize.
@@ -553,7 +543,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a type when the corresponding code has not yet been updated in this context.
-	 * 
+	 *
 	 * @param <T>        The type's specification.
 	 * @param context    The context to initialize.
 	 * @param entity     The target entity to update.
@@ -574,7 +564,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save the given private term if not yet updated.
-	 * 
+	 *
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
 	 * @param updater The consumer used to update the replacement.
@@ -591,7 +581,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save the given private location if not yet updated.
-	 * 
+	 *
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
 	 * @param updater The consumer used to update the replacement.
@@ -608,7 +598,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <K>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
@@ -635,7 +625,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Remove the prices that were present in the catalog and not seen in the new catalog with this update.
-	 * 
+	 *
 	 * @param context      The update context.
 	 * @param storedPrices The whole price context in the database. Some of them have not been seen in the new catalog.
 	 * @param pRepository  The price repository used to clean the deprecated and unused prices.

@@ -17,7 +17,8 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvContainerPrice} repository.
  */
-public interface ProvContainerPriceRepository extends BaseProvTermPriceOsRepository<ProvContainerType, ProvContainerPrice> {
+public interface ProvContainerPriceRepository
+		extends BaseProvTermPriceOsRepository<ProvContainerType, ProvContainerPrice> {
 
 	@Override
 	@CacheResult(cacheName = "prov-container-license")
@@ -57,8 +58,8 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
 			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
-			int location, double rate, double globalRate, double duration, String license, 
-			double initialCost, Pageable pageable);
+			int location, double rate, double globalRate, double duration, String license, double initialCost,
+			Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -91,4 +92,5 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, double initialCost, Pageable pageable);
+
 }

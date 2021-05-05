@@ -40,7 +40,7 @@ public class VmUpload {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
@@ -54,7 +54,7 @@ public class VmUpload {
 
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero

@@ -38,7 +38,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 
 	/**
 	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
-	 * 
+	 *
 	 * @param entity The instance to check.
 	 */
 	protected void checkOs(final AbstractQuoteVmOs<P> entity) {
@@ -53,7 +53,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 
 	/**
 	 * Return <code>true</code> if the current OS accept BYOL.
-	 * 
+	 *
 	 * @param os The OS to evaluate.
 	 * @return <code>true</code> if the current OS accept BYOL.
 	 */

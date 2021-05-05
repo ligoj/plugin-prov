@@ -13,7 +13,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link AbstractTermPriceVmOs} repository.
- * 
+ *
  * @param <T> The instance type type.
  * @param <P> The price type.
  */

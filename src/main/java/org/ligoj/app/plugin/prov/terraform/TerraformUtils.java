@@ -115,8 +115,7 @@ public class TerraformUtils {
 	/**
 	 * A new {@link ProcessBuilder} with the given arguments
 	 *
-	 * @param args
-	 *            The process arguments.
+	 * @param args The process arguments.
 	 * @return The new {@link ProcessBuilder} instance.
 	 */
 	public ProcessBuilder newBuilder(final String... args) {
@@ -134,8 +133,7 @@ public class TerraformUtils {
 	 * <code>Windows 10</code>, the match with use <code>windows 10</code>, then <code>windows</code>, then
 	 * <code>default</code>, then <code>null</code>.
 	 *
-	 * @param map
-	 *            The OS mapping.
+	 * @param map The OS mapping.
 	 * @return The map value associated to the closest key of given OS. <code>null</code> when not found.
 	 */
 	private <T> T getOsValue(final Map<String, T> map) {
@@ -147,13 +145,10 @@ public class TerraformUtils {
 	 * <code>Windows 10</code>, the match with use <code>windows 10</code>, then <code>windows</code>, then
 	 * <code>default</code>, then <code>null</code>.
 	 *
-	 * @param map
-	 *            The OS mapping.
-	 * @param os
-	 *            The OS to search.
+	 * @param map The OS mapping.
+	 * @param os  The OS to search.
 	 * @return The map value associated to the closest key of given OS. <code>null</code> when not found.
-	 * @param <T>
-	 *            The mapped type of the given <code>os</code>.
+	 * @param <T> The mapped type of the given <code>os</code>.
 	 */
 	protected <T> T getOsValue(final Map<String, T> map, final String os) {
 		final var osParts = StringUtils.trimToEmpty(os).toLowerCase(Locale.ENGLISH).split(" ");
@@ -165,8 +160,7 @@ public class TerraformUtils {
 	/**
 	 * Return the Terraform commands.
 	 *
-	 * @param type
-	 *            The Terraform sequence type (list of commands)
+	 * @param type The Terraform sequence type (list of commands)
 	 * @return The Terraform commands. Each command correspond to a list of Terraform arguments. The first argument
 	 *         corresponds to the Terraform command name.
 	 * @see <a href="https://www.terraform.io/docs/commands/init.html">plan</a>
@@ -183,8 +177,7 @@ public class TerraformUtils {
 	/**
 	 * Return the Terraform arguments used for the given command
 	 *
-	 * @param command
-	 *            The Terraform command such as <code>init,plan</code>.
+	 * @param command The Terraform command such as <code>init,plan</code>.
 	 * @return The argument list for this command such as <code>init -no-color</code> for the command <code>init</code>.
 	 */
 	private String[] getTerraformArguments(final String command) {
@@ -194,8 +187,7 @@ public class TerraformUtils {
 	/**
 	 * Return the Terraform command names such as <code>generate,init,plan</code>.
 	 *
-	 * @param type
-	 *            The Terraform sequence type (list of commands)
+	 * @param type The Terraform sequence type (list of commands)
 	 * @return The Terraform command names such as <code>init,plan</code>.
 	 */
 	public String[] getTerraformSequence(final TerraformSequence type) {
@@ -278,8 +270,7 @@ public class TerraformUtils {
 	 * <li>Check the version</li>
 	 * </ul>
 	 *
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
+	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	public void install() throws IOException {
 		install(getLatestVersion());
@@ -295,10 +286,8 @@ public class TerraformUtils {
 	 * <li>Check the version</li>
 	 * </ul>
 	 *
-	 * @param version
-	 *            The target version to install.
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
+	 * @param version The target version to install.
+	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	public void install(final String version) throws IOException {
 		install(getHome().toFile(), configuration.get(CONF_REPO, BASE_REPO), version);
@@ -313,14 +302,10 @@ public class TerraformUtils {
 	 * <li>Check the version</li>
 	 * </ul>
 	 *
-	 * @param toDir
-	 *            The target directory where Terraform will be installed.
-	 * @param repository
-	 *            The target binary repository.
-	 * @param version
-	 *            The target version to install.
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
+	 * @param toDir      The target directory where Terraform will be installed.
+	 * @param repository The target binary repository.
+	 * @param version    The target version to install.
+	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String repository, final String version) throws IOException {
 		install(toDir, StringUtils.appendIfMissing(repository, "/") + version + "/terraform_" + version + "_"
@@ -335,12 +320,9 @@ public class TerraformUtils {
 	 * <li>Check the version</li>
 	 * </ul>
 	 *
-	 * @param toDir
-	 *            The target directory where Terraform will be installed.
-	 * @param url
-	 *            The URL to download.
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
+	 * @param toDir The target directory where Terraform will be installed.
+	 * @param url   The URL to download.
+	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String url) throws IOException {
 		try (var openStream = new URL(url).openStream()) {
@@ -352,13 +334,10 @@ public class TerraformUtils {
 	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
 	 * <code>.terraform</code>.
 	 *
-	 * @param subscription
-	 *            The source subscription.
-	 * @param out
-	 *            The target ZIP file stream.
+	 * @param subscription The source subscription.
+	 * @param out          The target ZIP file stream.
 	 * @return The compressed files.
-	 * @throws IOException
-	 *             When zip fails : download, unzip, write file,...
+	 * @throws IOException When zip fails : download, unzip, write file,...
 	 */
 	public List<File> zip(final Subscription subscription, final OutputStream out) throws IOException {
 		return zip(toFile(subscription).toPath(), out);
@@ -368,13 +347,10 @@ public class TerraformUtils {
 	 * Zip all files from the given path to the given outputStream. Includes all files but secret variable files and
 	 * <code>.terraform</code>.
 	 *
-	 * @param fromDir
-	 *            The source directory containing the files.
-	 * @param out
-	 *            The target ZIP file stream.
+	 * @param fromDir The source directory containing the files.
+	 * @param out     The target ZIP file stream.
 	 * @return The compressed files.
-	 * @throws IOException
-	 *             When zip fails : download, unzip, write file,...
+	 * @throws IOException When zip fails : download, unzip, write file,...
 	 */
 	public List<File> zip(final Path fromDir, final OutputStream out) throws IOException {
 		try (var zs = new ZipOutputStream(out); var stream = Files.walk(fromDir)) {
@@ -389,12 +365,9 @@ public class TerraformUtils {
 	/**
 	 * Add a Zip entry to given Zip.
 	 *
-	 * @param fromDir
-	 *            The root directory of the source file. Used to compute the internal path inside the Zip.
-	 * @param path
-	 *            the entry to add.
-	 * @param zs
-	 *            The target Zip.
+	 * @param fromDir The root directory of the source file. Used to compute the internal path inside the Zip.
+	 * @param path    the entry to add.
+	 * @param zs      The target Zip.
 	 * @return The added file.
 	 */
 	protected File addEntry(final Path fromDir, Path path, ZipOutputStream zs) {
@@ -411,19 +384,16 @@ public class TerraformUtils {
 	/**
 	 * Unzip all files from the given ZIP stream to target directory and return the unziped files.
 	 *
-	 * @param source
-	 *            The source ZIP file stream.
-	 * @param toDir
-	 *            The target directory where uncompressed files will be placed.
+	 * @param source The source ZIP file stream.
+	 * @param toDir  The target directory where uncompressed files will be placed.
 	 * @return The uncompressed files.
-	 * @throws IOException
-	 *             When unzip fails : download, unzip, write file,...
+	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	public List<File> unzip(final InputStream source, final File toDir) throws IOException {
 		final var files = new ArrayList<File>();
 		try (var zis = new ZipInputStream(source)) {
 			FileUtils.forceMkdir(toDir);
-            var zipEntry = zis.getNextEntry();
+			var zipEntry = zis.getNextEntry();
 			while (zipEntry != null) {
 				final var file = new File(toDir, zipEntry.getName());
 				files.add(file);
@@ -440,13 +410,10 @@ public class TerraformUtils {
 	/**
 	 * Return the file reference from the given subscription. The file will relative to the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 * @param fragments
-	 *            The requested sub path fragments.
+	 * @param subscription The subscription related to this operation.
+	 * @param fragments    The requested sub path fragments.
 	 * @return The Terraform resource file scoped by the given subscription.
-	 * @throws IOException
-	 *             When the parent directories creation failed.
+	 * @throws IOException When the parent directories creation failed.
 	 */
 	public File toFile(final Subscription subscription, final String... fragments) throws IOException {
 		return LigojPluginsClassLoader.getInstance().toPath(subscription, fragments).toFile();
