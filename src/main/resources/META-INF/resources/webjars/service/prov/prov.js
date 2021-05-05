@@ -727,7 +727,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
