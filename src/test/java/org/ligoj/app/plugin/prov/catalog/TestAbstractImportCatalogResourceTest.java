@@ -234,7 +234,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 		purgePrices(newContext, previous, pRepository, qRepository);
-		Mockito.verify(pRepository, Mockito.never()).delete(Mockito.any());
+		Mockito.verify(pRepository, Mockito.never()).delete(ArgumentMatchers.any());
 	}
 
 	@Test
@@ -442,7 +442,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	@Test
 	void nextStepIgnore() {
 		final var context = newContext();
-		nextStep(context, "location", 1);
+		nextStep(context, "phase", "location", 1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -455,7 +455,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
-		nextStep(context, "location", 1);
+		nextStep(context, "phase", "location", 1);
 		Assertions.assertEquals("location", status.getLocation());
 	}
 
@@ -469,7 +469,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
-		nextStep(context, "phase");
+		nextStep(context, "phase", null, 1);
 		Assertions.assertEquals("phase", status.getPhase());
 	}
 

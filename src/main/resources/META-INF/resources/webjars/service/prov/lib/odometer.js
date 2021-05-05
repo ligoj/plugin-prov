@@ -68,8 +68,10 @@ define(['jquery'], function () {
     };
 
     now = function () {
-      var _ref, _ref1;
-      return (_ref = (_ref1 = window.performance) != null ? typeof _ref1.now === "function" ? _ref1.now() : void 0 : void 0) != null ? _ref : +(new Date);
+      if (window.performance && typeof window.performance.now === 'function') {
+        return _ref1.now();
+      }
+      return +(new Date);
     };
 
     round = function (val, precision) {
@@ -158,11 +160,11 @@ define(['jquery'], function () {
           for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
             property = _ref2[_i];
             if (this.el[property] != null) {
-              (function (property) {
-                return Object.defineProperty(_this.el, property, {
+              (function (p) {
+                return Object.defineProperty(_this.el, p, {
                   get: function () {
                     var _ref3;
-                    if (property === 'innerHTML') {
+                    if (p === 'innerHTML') {
                       return _this.inside.outerHTML;
                     } else {
                       return (_ref3 = _this.inside.innerText) != null ? _ref3 : _this.inside.textContent;

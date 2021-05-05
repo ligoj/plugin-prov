@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 
+ *
  * Network object for edition with source and destination peers.
  */
 @Getter

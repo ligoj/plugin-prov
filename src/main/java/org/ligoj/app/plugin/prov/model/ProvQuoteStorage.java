@@ -62,7 +62,7 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 
 	/**
 	 * The maximal used size. When <code>null</code>, the requested size is used.
-	 * 
+	 *
 	 * @see #sizeMax
 	 */
 	@Positive

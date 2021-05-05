@@ -47,5 +47,4 @@ public abstract class AbstractCodedEntity extends AbstractDescribedEntity<Intege
 	@NotNull
 	private String code;
 
-
 }

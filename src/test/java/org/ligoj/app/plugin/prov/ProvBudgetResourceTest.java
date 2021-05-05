@@ -54,6 +54,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	@Autowired
 	private ProvBudgetRepository budgetRepository;
 
+	@Override
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		// Only with Spring context

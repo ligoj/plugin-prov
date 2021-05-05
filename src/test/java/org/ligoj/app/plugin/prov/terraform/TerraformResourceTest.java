@@ -348,7 +348,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		Mockito.doAnswer(i -> {
 			FileUtils.touch(tf);
 			return null;
-		}).when(terraforming).generate(Mockito.any());
+		}).when(terraforming).generate(ArgumentMatchers.any());
 		return terraforming;
 	}
 
@@ -581,7 +581,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		resource.runner.utils = Mockito.mock(TerraformUtils.class);
-		Mockito.doThrow(new IOException()).when(resource.runner.utils).toFile(Mockito.any(), Mockito.any());
+		Mockito.doThrow(new IOException()).when(resource.runner.utils).toFile(ArgumentMatchers.any(),
+				ArgumentMatchers.any());
 		final var task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(0, task.getCompleted());

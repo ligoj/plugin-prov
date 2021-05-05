@@ -17,8 +17,7 @@ public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPr
 	/**
 	 * Return the cheapest support configuration from the minimal requirements.
 	 *
-	 * @param node
-	 *            The node linked to the subscription. Is a node identifier within a provider.
+	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return The cheapest support or <code>null</code>.
 	 */
 	@Query("SELECT sp FROM #{#entityName} AS sp INNER JOIN sp.type st "
@@ -28,10 +27,8 @@ public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPr
 	/**
 	 * Return the {@link ProvSupportPrice} by it's name and related to given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier to match.
-	 * @param type
-	 *            The type name to match. Case insensitive.
+	 * @param subscription The subscription identifier to match.
+	 * @param type         The type name to match. Case insensitive.
 	 *
 	 * @return The entity or <code>null</code>.
 	 */

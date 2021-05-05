@@ -36,7 +36,6 @@ class RoundSerializerTest {
 		Assertions.assertEquals("{\"nullable\":1.0,\"primary\":2.0}", new ObjectMapper().writeValueAsString(bean));
 	}
 
-
 	@Test
 	void serializeNull() throws JsonProcessingException {
 		final var bean = new Bean();

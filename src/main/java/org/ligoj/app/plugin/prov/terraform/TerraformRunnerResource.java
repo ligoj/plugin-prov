@@ -86,8 +86,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Return the Terraform status from the given subscription identifier.
 	 *
-	 * @param subscription
-	 *            The subscription identifier.
+	 * @param subscription The subscription identifier.
 	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
 	 *         associated to this subscription.
 	 */
@@ -101,8 +100,7 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Return the Terraform status from the given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription entity.
+	 * @param subscription The subscription entity.
 	 * @return The Terraform status from the given subscription identifier. <code>null</code> when the is no task
 	 *         associated to this subscription.
 	 */
@@ -128,10 +126,8 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Update the given status with the actual progress of appliance. Is based on the given log file when present.
 	 *
-	 * @param subscription
-	 *            subscription requesting the task.
-	 * @param status
-	 *            The status to update.
+	 * @param subscription subscription requesting the task.
+	 * @param status       The status to update.
 	 */
 	private void completeProgress(final Subscription subscription, final TerraformStatus status, final String file,
 			BiConsumer<TerraformStatus, Stream<String>> apply) {
@@ -149,10 +145,8 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Parse the given apply log stream and update the completing and completed cursors in the given status.
 	 *
-	 * @param status
-	 *            The status to update.
-	 * @param stream
-	 *            The line stream.
+	 * @param status The status to update.
+	 * @param stream The line stream.
 	 */
 	protected void parseApplyLogLine(final TerraformStatus status, final Stream<String> stream) {
 		parseLogLine(status, stream, PATTERN_APPLY);
@@ -161,10 +155,8 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Parse the given state log stream and update the completing and completed cursors in the given status.
 	 *
-	 * @param status
-	 *            The status to update.
-	 * @param stream
-	 *            The line stream.
+	 * @param status The status to update.
+	 * @param stream The line stream.
 	 */
 	protected void parseDestroyLogLine(final TerraformStatus status, final Stream<String> stream) {
 		parseLogLine(status, stream, PATTERN_DESTROY);
@@ -173,17 +165,14 @@ public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStat
 	/**
 	 * Parse the given log stream and update the completing and completed cursors in the given status.
 	 *
-	 * @param status
-	 *            The status to update.
-	 * @param stream
-	 *            The line stream.
-	 * @param pattern
-	 *            The {@link Pattern} mating each line with capture groups.
-	 *            <ul>
-	 *            <li>Group 2 corresponds to a pending action</li>
-	 *            <li>Group 3 corresponds to a completed action associated to a pending action</li>
-	 *            <li>Group 4 corresponds to a completed action</li>
-	 *            </ul>
+	 * @param status  The status to update.
+	 * @param stream  The line stream.
+	 * @param pattern The {@link Pattern} mating each line with capture groups.
+	 *                <ul>
+	 *                <li>Group 2 corresponds to a pending action</li>
+	 *                <li>Group 3 corresponds to a completed action associated to a pending action</li>
+	 *                <li>Group 4 corresponds to a completed action</li>
+	 *                </ul>
 	 */
 	private void parseLogLine(final TerraformStatus status, final Stream<String> stream, final Pattern pattern) {
 		stream.map(pattern::matcher).filter(Matcher::find).forEach(matcher -> {
