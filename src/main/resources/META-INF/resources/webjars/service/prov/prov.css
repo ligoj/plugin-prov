@@ -483,3 +483,7 @@ img.flag-icon.prov-location-flag {
 #instance-ram-unit {
   width: 93px;
 }
+
+#subscribe-configuration-prov .advanced{
+  display: none;
+}
