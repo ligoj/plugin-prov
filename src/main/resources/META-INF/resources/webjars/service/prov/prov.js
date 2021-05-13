@@ -739,7 +739,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="fas ${resource.resourceType === 'instance' ? "fa-server" : resource.resourceType === 'database' ? "fa-database" : "fa-docker"}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
