@@ -21,7 +21,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 
 	/**
 	 * Return all {@link ProvInstancePriceTerm} related to given subscription identifier.
-	 * 
+	 *
 	 * @param subscription The subscription identifier to match.
 	 * @param criteria     The optional criteria to match for the name.
 	 * @param pageRequest  The page request for ordering.

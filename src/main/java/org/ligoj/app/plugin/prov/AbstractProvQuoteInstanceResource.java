@@ -674,7 +674,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Return the new cost corresponding to the given criteria. No change are made to then entity.
-	 * 
+	 *
 	 * @param qi The entity to validate.
 	 * @return The new cost corresponding to the given criteria. No change are made to then entity.
 	 */
@@ -714,7 +714,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Return the tool provisioning node from the configuration entity.
-	 * 
+	 *
 	 * @param configuration The configuration entity attached to a node.
 	 * @return The Spring component handling the tool provisioning node.
 	 */

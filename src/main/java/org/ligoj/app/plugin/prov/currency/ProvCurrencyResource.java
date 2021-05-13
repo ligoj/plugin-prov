@@ -59,8 +59,7 @@ public class ProvCurrencyResource {
 	/**
 	 * Delete the given currency. It must not be used.
 	 *
-	 * @param id
-	 *            The currency identifier.
+	 * @param id The currency identifier.
 	 */
 	@DELETE
 	@Path("{id:\\d+}")
@@ -72,8 +71,7 @@ public class ProvCurrencyResource {
 	/**
 	 * Create the entity.
 	 *
-	 * @param entity
-	 *            The entity to save.
+	 * @param entity The entity to save.
 	 * @return The created entity's identifier.
 	 */
 	@POST
@@ -85,8 +83,7 @@ public class ProvCurrencyResource {
 	/**
 	 * Update the entity.
 	 *
-	 * @param entity
-	 *            The entity to save.
+	 * @param entity The entity to save.
 	 */
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -97,8 +94,7 @@ public class ProvCurrencyResource {
 	/**
 	 * Return the currency configurations.
 	 *
-	 * @param uriInfo
-	 *            filter data.
+	 * @param uriInfo filter data.
 	 * @return The filtered currency configurations.
 	 */
 	@GET

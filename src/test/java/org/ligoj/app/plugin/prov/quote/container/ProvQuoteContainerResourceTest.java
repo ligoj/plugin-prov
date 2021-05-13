@@ -310,7 +310,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final var updatedCost2 = qcResource.update(vo);
-		checkCost(updatedCost2.getTotal(),5274.328, 9678.378, false);
+		checkCost(updatedCost2.getTotal(), 5274.328, 9678.378, false);
 		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
 
 		// Change the region of this instance, storage is also

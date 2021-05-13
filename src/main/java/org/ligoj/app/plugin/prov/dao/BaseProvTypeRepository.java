@@ -14,7 +14,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link ProvType} base repository.
- * 
+ *
  * @param <T> The instance type type.
  */
 @NoRepositoryBean

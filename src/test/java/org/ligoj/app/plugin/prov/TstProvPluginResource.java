@@ -29,5 +29,4 @@ class TstProvPluginResource extends AbstractProvResource {
 		return KEY;
 	}
 
-
 }

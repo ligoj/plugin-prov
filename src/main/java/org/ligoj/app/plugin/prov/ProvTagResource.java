@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Tag part of provisioning.
- * 
+ *
  * @since 1.8.5
  */
 @Service
@@ -105,7 +105,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	/**
 	 * Save or update the tag entity from the given {@link ProvTag}. The related subscription, the related resource and
 	 * the related resource type must match and be visible for the principal user.
-	 * 
+	 *
 	 * @param subscription The subscription identifier, will be used to filter the tags from the associated provider.
 	 * @param entity       The target entity to update/persist
 	 * @param vo           The new quote tag data.
@@ -138,7 +138,7 @@ public class ProvTagResource extends AbstractLazyResource {
 	/**
 	 * Replace the tags of a resource when the given tags are not <code>null</code>. Empty tags collection will remove
 	 * all tags of this resource. Only work with persisted resources.
-	 * 
+	 *
 	 * @param tags     The optional collection of tags. When <code>null</code>, nothing is done.
 	 * @param resource The related resource.
 	 */

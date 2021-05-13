@@ -15,7 +15,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * {@link AbstractQuote} repository.
- * 
+ *
  * @param <C> Quote resource type.
  */
 @NoRepositoryBean

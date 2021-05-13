@@ -105,7 +105,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Refresh the whole quote budgets.
-	 * 
+	 *
 	 * @param quote The quote owning the related budget.
 	 * @param costs The updated costs and resources.
 	 */
@@ -113,6 +113,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var instances = qiRepository.findAll(quote);
 		final var databases = qbRepository.findAll(quote);
 		final var containers = qcRepository.findAll(quote);
+		Hibernate.initialize(quote.getUsages());
+		Hibernate.initialize(quote.getBudgets());
 		lean(quote, instances, databases, containers, costs);
 
 		// Reset the orphan budgets
@@ -127,7 +129,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * Detect the related budgets having an initial cost and involved in the given instances/databases collections, lean
 	 * them. A refresh is also applied to all resources related to these budgets. This means that some resources not
 	 * included in the initial set may be refreshed.
-	 * 
+	 *
 	 * @param quote      The quote owning the related budget.
 	 * @param instances  The instances implied in the current change.
 	 * @param databases  The databases implied in the current change.
@@ -137,14 +139,19 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
 			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		// Lean all relevant budgets
-		Stream.concat(instances.stream(), databases.stream()).map(AbstractQuoteVm::getResolvedBudget)
-				.filter(Objects::nonNull).filter(b -> b.getInitialCost() > 0).distinct().forEach(b -> lean(b, costs));
+		synchronized (quote) {
+			// Lean all relevant budgets
+			final var budgets = Stream
+					.concat(instances.stream(), Stream.concat(databases.stream(), containers.stream()))
+					.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull)
+					.filter(b -> b.getInitialCost() > 0).distinct().collect(Collectors.toList());
+			budgets.forEach(b -> lean(b, costs));
 
-		// Refresh also all remaining resources unrelated to the updated budgets
-		refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
-		refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
-		refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
+			// Refresh also all remaining resources unrelated to the updated budgets
+			refreshNoBudget(instances, ResourceType.INSTANCE, costs, qiResource);
+			refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
+			refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
+		}
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
@@ -158,7 +165,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Detect the related resources to the given budget and refresh them according to the budget constraints.
-	 * 
+	 *
 	 * @param budget The budget to lean.
 	 * @param costs  The updated costs and resources.
 	 */
@@ -302,7 +309,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	/**
 	 * Log packing statistics.
-	 * 
+	 *
 	 * @param packStart Starting timestamp.
 	 * @param packToQr  The packed resources.
 	 * @param budget    The related budget.
@@ -331,7 +338,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final AbstractProvQuoteInstanceResource<T, P, C, ?, ?, ?> resource) {
 		nodes.forEach(i -> {
 			@SuppressWarnings("unchecked")
-			final FloatingPrice<P> price = (FloatingPrice<P>) prices.get(i);
+			final var price = (FloatingPrice<P>) prices.get(i);
 			costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, qi -> {
 				qi.setPrice(price.getPrice());
 				return resource.updateCost(qi);

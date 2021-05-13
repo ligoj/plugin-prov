@@ -212,6 +212,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
+	@Override
 	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		return checkCost(resource.updateCost(subscription));
@@ -241,7 +242,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void deleteUsedInInstance() {
 		attachUsageToQuote();
-		final ProvUsage usage = usageRepository.findByName(subscription, "Dev");
+		final var usage = usageRepository.findByName(subscription, "Dev");
 		Assertions.assertNotNull(usage);
 		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
 
