@@ -747,9 +747,9 @@ define(function () {
 	/**
 	 * Return the HTML markup from the quote name.
 	 */
-	function formatName(resource){
-		if(resource){
-			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">'+resource+'</a>');
+	function formatName(resource) {
+		if (resource) {
+			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">' + resource + '</a>');
 		}
 	}
 
@@ -1036,36 +1036,7 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2({
-			formatSelection: formatOs,
-			formatResult: formatOs,
-			escapeMarkup: m => m,
-			data: [{
-				id: 'LINUX',
-				text: 'LINUX'
-			}, {
-				id: 'WINDOWS',
-				text: 'WINDOWS'
-			}, {
-				id: 'SUSE',
-				text: 'SUSE'
-			}, {
-				id: 'RHEL',
-				text: 'RHEL'
-			}, {
-				id: 'CENTOS',
-				text: 'CENTOS'
-			}, {
-				id: 'DEBIAN',
-				text: 'DEBIAN'
-			}, {
-				id: 'UBUNTU',
-				text: 'UBUNTU'
-			}, {
-				id: 'FEDORA',
-				text: 'FEDORA'
-			}]
-		});
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
@@ -1904,7 +1875,7 @@ define(function () {
 				data: 'name',
 				className: 'truncate',
 				type: 'string',
-				render:formatName
+				render: formatName
 			});
 			oSettings.columns.push(
 				{
@@ -2077,7 +2048,7 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
+			$('.prov-project .icon').attr('class', `fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {

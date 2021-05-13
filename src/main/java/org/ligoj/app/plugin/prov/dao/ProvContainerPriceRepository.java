@@ -24,6 +24,10 @@ public interface ProvContainerPriceRepository
 	@CacheResult(cacheName = "prov-container-license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
+	@Override
+	@CacheResult(cacheName = "prov-container-os")
+	List<String> findAllOs(@CacheKey String node);
+
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *

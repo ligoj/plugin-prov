@@ -22,7 +22,7 @@ public interface ProvInstancePriceRepository
 		extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
 
 	@Override
-	@CacheResult(cacheName = "prov-license")
+	@CacheResult(cacheName = "prov-instance-license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
@@ -32,7 +32,7 @@ public interface ProvInstancePriceRepository
 	 * @param os   The filtered OS.
 	 * @return The filtered softwares.
 	 */
-	@CacheResult(cacheName = "prov-software")
+	@CacheResult(cacheName = "prov-instance-software")
 	@Query("""
 			SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i
 			WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
@@ -125,17 +125,6 @@ public interface ProvInstancePriceRepository
 			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
 			Pageable pageable);
 
-	/**
-	 * Return all OS related to given node identifier.
-	 *
-	 * @param node The node linked to the subscription. Is a node identifier within a provider.
-	 * @return The filtered OS.
-	 */
 	@CacheResult(cacheName = "prov-instance-os")
-	@Query("""
-			SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i
-			  WHERE ip.os IS NOT NULL AND (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
-			  ORDER BY ip.os
-			  """)
 	List<String> findAllOs(@CacheKey String node);
 }

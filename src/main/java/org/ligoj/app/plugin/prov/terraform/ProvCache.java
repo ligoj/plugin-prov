@@ -33,30 +33,32 @@ public class ProvCache implements CacheManagerAware {
 				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
 						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
 		cacheManager.createCache("prov-location", cfgPL);
-		createCache(cacheManager, provider, "prov-license");
-		createCache(cacheManager, provider, "prov-software");
 		createCache(cacheManager, provider, "prov-processor");
 
 		// Instance cache configurations
-		newCacheConfig(cacheManager, provider, "prov-instance-type");
-		newCacheConfig(cacheManager, provider, "prov-instance-type-dyn");
-		newCacheConfig(cacheManager, provider, "prov-instance-type-has-dyn");
+		createCacheEvict(cacheManager, provider, "prov-instance-type");
+		createCacheEvict(cacheManager, provider, "prov-instance-type-dyn");
+		createCacheEvict(cacheManager, provider, "prov-instance-type-has-dyn");
+		createCacheEvict(cacheManager, provider, "prov-instance-term");
+		createCache(cacheManager, provider, "prov-instance-software");
+		createCache(cacheManager, provider, "prov-instance-license");
+		createCache(cacheManager, provider, "prov-instance-os");
 
 		// Database cache configurations
-		newCacheConfig(cacheManager, provider, "prov-database-type");
-		newCacheConfig(cacheManager, provider, "prov-database-type-dyn");
-		newCacheConfig(cacheManager, provider, "prov-database-type-has-dyn");
+		createCacheEvict(cacheManager, provider, "prov-database-type");
+		createCacheEvict(cacheManager, provider, "prov-database-type-dyn");
+		createCacheEvict(cacheManager, provider, "prov-database-type-has-dyn");
 		createCache(cacheManager, provider, "prov-database-engine");
 		createCache(cacheManager, provider, "prov-database-edition");
 		createCache(cacheManager, provider, "prov-database-license");
 
 		// Container cache configurations
-		newCacheConfig(cacheManager, provider, "prov-container-type");
-		newCacheConfig(cacheManager, provider, "prov-container-type-dyn");
-		newCacheConfig(cacheManager, provider, "prov-container-type-has-dyn");
+		createCacheEvict(cacheManager, provider, "prov-container-type");
+		createCacheEvict(cacheManager, provider, "prov-container-type-dyn");
+		createCacheEvict(cacheManager, provider, "prov-container-type-has-dyn");
 		createCache(cacheManager, provider, "prov-container-license");
+		createCache(cacheManager, provider, "prov-container-os");
 
-		newCacheConfig(cacheManager, provider, "prov-instance-term");
 	}
 
 	private void createCache(final HazelcastCacheManager cacheManager,
@@ -64,7 +66,7 @@ public class ProvCache implements CacheManagerAware {
 		cacheManager.createCache(name, provider.apply(name));
 	}
 
-	private void newCacheConfig(final HazelcastCacheManager cacheManager,
+	private void createCacheEvict(final HazelcastCacheManager cacheManager,
 			final Function<String, CacheConfig<?, ?>> provider, final String name) {
 		final var cfgPIT = provider.apply(name)
 				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)

@@ -85,4 +85,14 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 		return result;
 	}
 
+	/**
+	 * Return the available instance OS names for a subscription.
+	 *
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @return The available OS names for the given subscription.
+	 */
+	public List<String> findOs(final int subscription) {
+		return getIpRepository().findAllOs(subscriptionResource.checkVisible(subscription).getNode().getId());
+	}
 }
