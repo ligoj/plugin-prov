@@ -745,6 +745,15 @@ define(function () {
 	}
 
 	/**
+	 * Return the HTML markup from the quote name.
+	 */
+	function formatName(resource){
+		if(resource){
+			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">'+resource+'</a>');
+		}
+	}
+
+	/**
 	 * Return the HTML markup from the support level.
 	 */
 	function formatSupportLevel(level, mode, clazz) {
@@ -1893,7 +1902,9 @@ define(function () {
 			});
 			oSettings.columns.splice(0, 0, {
 				data: 'name',
-				className: 'truncate'
+				className: 'truncate',
+				type: 'string',
+				render:formatName
 			});
 			oSettings.columns.push(
 				{
