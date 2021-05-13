@@ -102,14 +102,13 @@ define(['jquery'], function () {
     _jQueryWrapped = false;
 
     (wrapJQuery = function () {
-      var _i, _len, _results;
       if (_jQueryWrapped) {
         return;
       }
       if (window.jQuery != null) {
         _jQueryWrapped = true;
         let properties = ['html', 'text'];
-        _results = properties.map(property => {
+        return properties.map(property => {
           var old = window.jQuery.fn[property];
           let fn = function (val) {
             if ((val == null) || ((this[0] != null ? this[0].odometer : void 0) == null)) {
@@ -120,7 +119,6 @@ define(['jquery'], function () {
           window.jQuery.fn[property] = fn;
           return fn;
         });
-        return _results;
       }
     })();
 

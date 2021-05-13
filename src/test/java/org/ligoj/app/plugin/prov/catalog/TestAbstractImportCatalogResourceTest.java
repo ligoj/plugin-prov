@@ -440,9 +440,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	}
 
 	@Test
+	void nextStePhase() {
+		nextStep(newContext(), "phase");
+	}
+
+	@Test
 	void nextStepIgnore() {
-		final var context = newContext();
-		nextStep(context, "phase", "location", 1);
+		nextStep(newContext(), "phase", "location", 0);
 	}
 
 	@SuppressWarnings("unchecked")
