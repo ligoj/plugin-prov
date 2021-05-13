@@ -17,7 +17,7 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 
 	/**
 	 * Return all {@link ProvNetwork} related to given subscription identifier.
-	 * 
+	 *
 	 * @param subscription The subscription identifier to match.
 	 * @return All {@link ProvNetwork} related to given subscription identifier.
 	 */
@@ -26,7 +26,7 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 
 	/**
 	 * Delete all network data related to given configuration having the given identifier.
-	 * 
+	 *
 	 * @param configuration The configuration identifier.
 	 */
 	@Modifying

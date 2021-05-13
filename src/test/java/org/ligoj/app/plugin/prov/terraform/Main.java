@@ -10,10 +10,9 @@ class Main {
 
 	/**
 	 * Only the Java process bootstrap.
-	 * 
-	 * @param strings The options. The first parameter, when defined and with the
-	 *                form like <code>error=$code</code> will be used to generate an
-	 *                exit code <code>System.exit($code)</code>.
+	 *
+	 * @param strings The options. The first parameter, when defined and with the form like <code>error=$code</code>
+	 *                will be used to generate an exit code <code>System.exit($code)</code>.
 	 */
 	public static void main(final String... strings) {
 		// Basic log to check the I/O
@@ -23,7 +22,7 @@ class Main {
 		// Exit code handling
 		if (strings.length >= 1 && strings[0].startsWith("error=")) {
 			// Custom error code
-			System.exit(Integer.valueOf(strings[0].split("=")[1]));
+			System.exit(Integer.parseInt(strings[0].split("=")[1]));
 		}
 
 		// No error code

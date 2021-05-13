@@ -19,7 +19,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * Multi scoped resource repository.
- * 
+ *
  * @param <S> The scoped resource type.
  */
 @NoRepositoryBean
@@ -27,7 +27,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return all resources related to given subscription identifier.
-	 * 
+	 *
 	 * @param subscription The subscription identifier to match.
 	 * @param criteria     The optional criteria to match for the name.
 	 * @param pageRequest  The page request for ordering.
@@ -39,7 +39,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return all resources related to given quote identifier.
-	 * 
+	 *
 	 * @param quote The quote identifier to match.
 	 * @return The resources ordered by its name.
 	 */
@@ -48,7 +48,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return all instances related to given entity.
-	 * 
+	 *
 	 * @param scoped The related entity to match.
 	 * @return The resources.
 	 */
@@ -56,7 +56,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return all databases related to given entity.
-	 * 
+	 *
 	 * @param scoped The related entity to match.
 	 * @return The resources.
 	 */
@@ -64,7 +64,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return all containers related to given entity.
-	 * 
+	 *
 	 * @param scoped The related entity to match.
 	 * @return The resources.
 	 */
@@ -72,10 +72,10 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 
 	/**
 	 * Return the resource by it's name, ignoring the case.
-	 * 
+	 *
 	 * @param subscription The subscription identifier to match.
 	 * @param name         The name to match.
-	 * 
+	 *
 	 * @return The entity or <code>null</code>.
 	 */
 	@Query("SELECT pu FROM #{#entityName} pu WHERE pu.configuration.subscription.id = :subscription AND UPPER(pu.name) = UPPER(:name)")

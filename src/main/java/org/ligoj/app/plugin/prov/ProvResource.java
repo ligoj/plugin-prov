@@ -296,6 +296,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
+		vo.setUiSettings(quote.getUiSettings());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
@@ -366,6 +367,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
+		entity.setUiSettings(vo.getUiSettings());
 
 		var oldLicense = entity.getLicense();
 		var oldLocation = entity.getLocation();
@@ -415,7 +417,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Return a parallel stream if allowed.
-	 * 
+	 *
 	 * @param <T>        The stream item type.
 	 * @param collection The collection to stream.
 	 * @return The parallel or sequential stream.
@@ -497,7 +499,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Refresh the cost of the support for the whole whole quote.
-	 * 
+	 *
 	 * @param cost  The target cost object to update.
 	 * @param quote The source quote.
 	 * @return The same target cost parameter.
@@ -511,7 +513,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Refresh the cost of the support for the whole whole quote related to a resource.
-	 * 
+	 *
 	 * @param cost   The target cost object to update.
 	 * @param entity A recently updated resource.
 	 * @param <Q>    The entity type to refresh.

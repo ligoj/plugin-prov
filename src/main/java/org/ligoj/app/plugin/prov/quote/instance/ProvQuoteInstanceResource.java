@@ -113,7 +113,7 @@ public class ProvQuoteInstanceResource extends
 
 	/**
 	 * Return the instance prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best instance price matching to the criteria.
@@ -205,5 +205,4 @@ public class ProvQuoteInstanceResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
 }

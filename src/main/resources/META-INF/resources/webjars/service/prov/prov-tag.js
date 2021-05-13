@@ -22,7 +22,10 @@ define(['jquery'], function ($) {
 		}
 
 		function format(tag) {
-			return tag.name ? (tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value))) : tag.text;
+			if (typeof tag.name === 'string') {
+				return tag.name + (typeof tag.value === 'undefined' ? '' : (':' + tag.value));
+			}
+			return tag.text;
 		}
 		function toTagsString(resource) {
 			return toTags(resource).map(format);
@@ -50,7 +53,6 @@ define(['jquery'], function ($) {
 			var suggests = [];
 			if (value === null) {
 				// Key mode
-
 				// First add the term itself
 				if (tags.indexOf(term) === -1) {
 					suggests.push({ text: term, id: term });
@@ -69,24 +71,22 @@ define(['jquery'], function ($) {
 				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 			} else {
 				// Value mode
+				// First add the values starting with the term
+				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 
-				// First add the term itself
+				// Then add the values containing with the term
+				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
+				// Then add the term itself
 				if (tags.indexOf(term) === -1) {
 					if (term.endsWith(':')) {
 						// Itself but withot the trailing (useless) ':'
 						var part = term.substring(0, term.indexOf(':'));
 						suggests.push({ text: part, id: part });
-					} else {
+					} else if (!keyValues.includes(term)){
 						// Itself, a well formed 'key:value'
 						suggests.push({ text: term, id: term });
 					}
 				}
-
-				// Then add the values starting with the term
-				keyValues.filter(v => v.startsWith(term) && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
-
-				// Then add the values containing with the term
-				keyValues.filter(v => v.indexOf(term) > 1 && tags.indexOf(v) === -1).sort().forEach(v => suggests.push({ text: v, id: v }))
 			}
 			return suggests;
 		}

@@ -4,8 +4,8 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.Transient;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -44,7 +44,7 @@ public class ProvBudget extends AbstractMultiScoped {
 	@PositiveOrZero
 	@JsonProperty(access = Access.READ_ONLY)
 	private double requiredInitialCost = 0;
-	
+
 	/**
 	 * Remaining initial budget in the current transaction.
 	 */

@@ -46,8 +46,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Compute the workload from the plan's log and update the status related to the given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
+	 * @param subscription The subscription related to this operation.
 	 */
 	protected void computeWorkload(final Subscription subscription) {
 		runner.nextStep(subscription.getNode().getId(), t -> computeWorkload(subscription, t));
@@ -56,10 +55,8 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Compute the workload from the plan's log.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 * @param status
-	 *            The target status to update.
+	 * @param subscription The subscription related to this operation.
+	 * @param status       The target status to update.
 	 */
 	protected void computeWorkload(final Subscription subscription, final TerraformStatus status) {
 		final var added = new AtomicInteger();
@@ -96,8 +93,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Compute the workload from the state list's log and update the status related to the given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
+	 * @param subscription The subscription related to this operation.
 	 */
 	protected void computeWorkloadState(final Subscription subscription) {
 		runner.nextStep(subscription.getNode().getId(), t -> computeWorkloadState(subscription, t));
@@ -106,10 +102,8 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Compute the workload from the state list's log.
 	 *
-	 * @param subscription
-	 *            The subscription related to this operation.
-	 * @param status
-	 *            The target status to update.
+	 * @param subscription The subscription related to this operation.
+	 * @param status       The target status to update.
 	 */
 	protected void computeWorkloadState(final Subscription subscription, final TerraformStatus status) {
 		try (var stream = Files.lines(utils.toFile(subscription, "state.log").toPath())) {
@@ -136,18 +130,13 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Execute the given Terraform command arguments
 	 *
-	 * @param directory
-	 *            The working directory of Terraform user.
-	 * @param out
-	 *            The target log outputs.
-	 * @param arguments
-	 *            The Terraform arguments passed to the executable.
+	 * @param directory The working directory of Terraform user.
+	 * @param out       The target log outputs.
+	 * @param arguments The Terraform arguments passed to the executable.
 	 * @return the exit value of the process represented by this {@code Process} object. By convention, the value
 	 *         {@code 0} indicates normal termination.
-	 * @throws InterruptedException
-	 *             When the execution is interrupted.
-	 * @throws IOException
-	 *             When logs cannot be written.
+	 * @throws InterruptedException When the execution is interrupted.
+	 * @throws IOException          When logs cannot be written.
 	 */
 	public int execute(final File directory, final OutputStream out, final String... arguments)
 			throws InterruptedException, IOException {

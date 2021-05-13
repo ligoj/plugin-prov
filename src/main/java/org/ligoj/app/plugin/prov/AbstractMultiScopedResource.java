@@ -98,7 +98,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	/**
 	 * Constructor for data access properties.
-	 * 
+	 *
 	 * @param quoteGetter Quote data getter.
 	 * @param quoteSetter Quote data setter.
 	 * @param newEntity   Resource creator.
@@ -170,10 +170,12 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	/**
 	 * Return a stream of the filtered resources related to the given budget/usage.
-	 * 
-	 * @param <P> The price type of the resource.
-	 * @param <T> The price term of the resource.
-	 * @param <C> The related resource type.
+	 *
+	 * @param fetcher The function returning the related resources to a given budget/usage.
+	 * @param entity  The budget/usage to evaluate.
+	 * @param <P>     The price type of the resource.
+	 * @param <T>     The price term of the resource.
+	 * @param <C>     The related resource type.
 	 * @return The filtered resources related to the given budget.
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> Stream<C> getRelatedStream(
@@ -183,7 +185,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	/**
 	 * Return the filtered resources related to the given budget.
-	 * 
+	 *
 	 * @param <P> The price type of the resource.
 	 * @param <T> The price term of the resource.
 	 * @param <C> The related resource type.
@@ -235,7 +237,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 * The cost of all instances related to this resource will be updated to get the new term and related price.<br>
 	 * An instance related to this resource is either an instance explicitly linked to this resource, either an instance
 	 * linked to a quote having this resource as default.
-	 * 
+	 *
 	 * @param entity The target entity to update.
 	 * @param vo     The new quote resource data.
 	 * @return The updated cost data.
