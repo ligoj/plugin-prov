@@ -109,6 +109,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
+		Assertions.assertEquals("{}", vo.getUiSettings());
+
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
@@ -896,7 +898,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("""
 				{"tagColors":{"prod":"#FF0000"}}""", quote2.getUiSettings());
 
-		// Performe another identical update
+		// Perform another identical update
 		final var cost2 = resource.update(subscription, quote);
 		checkCost(cost2, 3165.4, 5615.0, false);
 	}

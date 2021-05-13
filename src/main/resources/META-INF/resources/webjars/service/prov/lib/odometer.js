@@ -128,7 +128,7 @@ define(['jquery'], function () {
 
     var exportOdometer = (function () {
       function OdometerPriv(options) {
-        var k, property, v, _base, _i, _len, _ref2,
+        var k, v, _base,
           _this = this;
         this.options = options;
         this.el = this.options.el;
@@ -153,27 +153,22 @@ define(['jquery'], function () {
         this.renderInside();
         this.render();
         try {
-          _ref2 = ['innerHTML', 'innerText', 'textContent'];
-          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-            property = _ref2[_i];
+          ['innerHTML', 'innerText', 'textContent'].forEach(property => {
             if (this.el[property] != null) {
               (function (p) {
                 return Object.defineProperty(_this.el, p, {
-                  get: function () {
-                    var _ref3;
+                  get: () => {
                     if (p === 'innerHTML') {
                       return _this.inside.outerHTML;
-                    } else {
-                      return (_ref3 = _this.inside.innerText) != null ? _ref3 : _this.inside.textContent;
                     }
+                    let _ref3 = _this.inside.innerText;
+                    return _ref3 == null ? _this.inside.textContent : _ref3;
                   },
-                  set: function (val) {
-                    return _this.update(val);
-                  }
+                  set: val => _this.update(val)
                 });
               })(property);
             }
-          }
+          });
         } catch (_error) {
           // Ignore
           this.watchForMutations();
