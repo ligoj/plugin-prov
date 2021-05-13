@@ -33,9 +33,12 @@ public interface ProvInstancePriceRepository
 	 * @return The filtered softwares.
 	 */
 	@CacheResult(cacheName = "prov-software")
-	@Query("SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "   AND ip.os=:os AND ip.software IS NOT NULL ORDER BY ip.software")
+	@Query("""
+			SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i
+			WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
+			   AND ip.os=:os AND ip.software IS NOT NULL
+			ORDER BY ip.software
+			 """)
 	List<String> findAllSoftwares(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
@@ -122,8 +125,17 @@ public interface ProvInstancePriceRepository
 			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
 			Pageable pageable);
 
+	/**
+	 * Return all OS related to given node identifier.
+	 *
+	 * @param node The node linked to the subscription. Is a node identifier within a provider.
+	 * @return The filtered OS.
+	 */
 	@CacheResult(cacheName = "prov-instance-os")
-	@Query("SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))" + "  ORDER BY ip.os")
-	List<String> findOs(@CacheKey String node);
+	@Query("""
+			SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i
+			  WHERE ip.os IS NOT NULL AND (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
+			  ORDER BY ip.os
+			  """)
+	List<String> findAllOs(@CacheKey String node);
 }
