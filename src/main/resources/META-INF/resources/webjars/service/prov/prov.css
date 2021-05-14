@@ -484,6 +484,6 @@ img.flag-icon.prov-location-flag {
   width: 93px;
 }
 
-#subscribe-configuration-prov .advanced{
-  display: none;
+#subscribe-configuration-prov .modal .element-advanced:not(.advanced) {
+  display:none
 }
