@@ -440,11 +440,6 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	}
 
 	@Test
-	void nextStePhase() {
-		nextStep(newContext(), "phase");
-	}
-
-	@Test
 	void nextStepIgnore() {
 		nextStep(newContext(), "phase", "location", 0);
 	}
@@ -473,7 +468,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
-		nextStep(context, "phase", null, 1);
+		nextStep(context, "phase");
 		Assertions.assertEquals("phase", status.getPhase());
 	}
 
