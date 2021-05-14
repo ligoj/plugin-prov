@@ -1128,9 +1128,9 @@ define(function () {
 			current.save($(this).provType());
 		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
 			if($popup.find('.mode-advanced input[type=checkbox]:checked').is(':checked')){
-				$popup.find('div .element-advanced').addClass('advanced')
-			}else{
 				$popup.find('div .element-advanced').removeClass('advanced')
+			}else{
+				$popup.find('div .element-advanced').addClass('advanced')
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
@@ -1146,6 +1146,7 @@ define(function () {
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
+			$popup.find('div .element-advanced').addClass('advanced')
 
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
