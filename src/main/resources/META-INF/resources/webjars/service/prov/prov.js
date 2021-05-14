@@ -3265,12 +3265,9 @@ define(function () {
 		},
 
 		getFilteredData: function (type, filterDate) {
-			var result = [];
+			var result = null;
 			if (current[type + 'Table']) {
-				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
-				for (var index = 0; index < data.length; index++) {
-					result.push(data[index]);
-				}
+				result.push(..._('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data());
 			} else {
 				result = current.model.configuration[type + 's'] || {};
 			}
