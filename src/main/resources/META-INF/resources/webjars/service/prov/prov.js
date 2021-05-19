@@ -7,6 +7,7 @@ define(function () {
 	var initializedPopupEvents = false;
 	var initializedPopupUsage = false;
 	var initializedPopupBudget = false;
+	var colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
 
 	/**
 	 * Enable resource type.
@@ -2992,7 +2993,7 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
@@ -3137,7 +3138,7 @@ define(function () {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
 						return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-					}, current.sunburstTooltip);
+					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
 					_('prov-sunburst').addClass('hidden');
@@ -3160,12 +3161,12 @@ define(function () {
 			}
 		},
 
-		sunburstTooltip: function (data, d) {
+		sunburstTooltip: function (data) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ current.recursivePercent(data, true, 100)
+				+ (data.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
 
 		title: function (key, icon) {

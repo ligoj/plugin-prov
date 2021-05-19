@@ -56,10 +56,10 @@ define(['d3'], function (d3) {
 
 		d3.liquidfillgauge = function (g, value, settings) {
 			// Handle configuration
-			var config = d3.map(defaultConfig);
-			d3.map(settings).each(function (val, key) {
+			var config = new Map(Object.entries(defaultConfig));
+			for (const [key, val] of Object.entries(settings)) {
 				config.set(key, val);
-			});
+			};
 
 			g.each(function () {
 				var gauge = d3.select(this);
