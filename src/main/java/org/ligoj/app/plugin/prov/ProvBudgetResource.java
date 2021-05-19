@@ -145,7 +145,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		synchronized (quote) {
 			// Lean all relevant budgets
 			final var budgets = Stream
-					.concat(instances.stream(), Stream.concat(databases.stream(), containers.stream()))
+					.concat(instances.stream(),
+							Stream.concat(databases.stream(), Stream.concat(containers.stream(), functions.stream())))
 					.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull)
 					.filter(b -> b.getInitialCost() > 0).distinct().collect(Collectors.toList());
 			budgets.forEach(b -> lean(b, costs));
