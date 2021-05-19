@@ -3265,11 +3265,14 @@ define(function () {
 		},
 
 		getFilteredData: function (type, filterDate) {
-			var result = null;
+			var result = [];
 			if (current[type + 'Table']) {
-				result.push(..._('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data());
+				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
+				for (let index = 0; index < data.length; index++) {
+					result.push(data[index]);
+				}
 			} else {
-				result = current.model.configuration[type + 's'] || {};
+				result = current.model.configuration[type + 's'] || [];
 			}
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
