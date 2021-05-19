@@ -412,6 +412,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch internal resources) to refresh
 		final var quote = repository.getCompute(subscription);
+		return updateCost(quote);
+	}
+
+	/**
+	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
+	 * updated.
+	 *
+	 * @param quote The quote to compute
+	 * @return The updated computed cost.
+	 */
+	protected FloatingCost updateCost(final ProvQuote quote) {
 		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
 
