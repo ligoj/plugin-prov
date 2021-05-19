@@ -13,6 +13,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
+import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
@@ -66,6 +67,10 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Quoted containers.
 	 */
 	private List<ProvQuoteContainer> containers;
+	/**
+	 * Quoted functions.
+	 */
+	private List<ProvQuoteFunction> functions;
 
 	/**
 	 * Quoted databases.

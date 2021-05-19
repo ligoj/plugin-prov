@@ -90,6 +90,13 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	private ProvQuoteDatabase quoteDatabase;
 
 	/**
+	 * Optional linked quoted function.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonSerialize(using = ToIdSerializer.class)
+	private ProvQuoteFunction quoteFunction;
+
+	/**
 	 * Resolved price configuration.
 	 */
 	@NotNull
@@ -114,7 +121,7 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	 */
 	@JsonIgnore
 	public AbstractQuoteVm<?> getQuoteResource() {
-		return ObjectUtils.firstNonNull(quoteDatabase, quoteInstance, quoteContainer);
+		return ObjectUtils.firstNonNull(quoteDatabase, quoteInstance, quoteContainer,quoteFunction);
 	}
 
 	@Override
@@ -133,6 +140,12 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	@JsonIgnore
 	public Integer getContainer() {
 		return Optional.ofNullable(getQuoteContainer()).map(Persistable::getId).orElse(null);
+	}
+
+	@Override
+	@JsonIgnore
+	public Integer getFunction() {
+		return Optional.ofNullable(getQuoteFunction()).map(Persistable::getId).orElse(null);
 	}
 
 	@Override

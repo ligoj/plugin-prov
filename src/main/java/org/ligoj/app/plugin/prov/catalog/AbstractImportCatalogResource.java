@@ -20,6 +20,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
@@ -32,6 +33,8 @@ import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -48,6 +51,7 @@ import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
@@ -143,12 +147,18 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvSupportPriceRepository sp2Repository;
 
 	// Container utilities
-
 	@Autowired
 	protected ProvContainerPriceRepository cpRepository;
 
 	@Autowired
 	protected ProvContainerTypeRepository ctRepository;
+
+	// Function utilities
+	@Autowired
+	protected ProvFunctionPriceRepository fpRepository;
+
+	@Autowired
+	protected ProvFunctionTypeRepository ftRepository;
 
 	@Autowired
 	protected ProvQuoteContainerRepository qcRepository;
@@ -355,12 +365,14 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Install a new region.
 	 *
-	 * @param context The update context.
-	 * @param region  The region API name to install.
+	 * @param context     The update context.
+	 * @param name        The region API name to install.
+	 * @param description The optional description. If <code>null</code>, the name provided in the static definition is
+	 *                    used.
 	 * @return The region, created or existing one.
 	 */
-	protected ProvLocation installRegion(final AbstractUpdateContext context, final String region) {
-		final var entity = context.getRegions().computeIfAbsent(region, r -> {
+	protected ProvLocation installRegion(final AbstractUpdateContext context, final String name, String description) {
+		final var entity = context.getRegions().computeIfAbsent(name, r -> {
 			final var newRegion = new ProvLocation();
 			newRegion.setNode(context.getNode());
 			newRegion.setName(r);
@@ -369,7 +381,7 @@ public abstract class AbstractImportCatalogResource {
 
 		// Update the location details as needed
 		return copyAsNeeded(context, entity, r -> {
-			final var regionStats = context.getMapRegionToName().getOrDefault(region, new ProvLocation());
+			final var regionStats = context.getMapRegionById().getOrDefault(name, new ProvLocation());
 			r.setContinentM49(regionStats.getContinentM49());
 			r.setCountryA2(regionStats.getCountryA2());
 			r.setCountryM49(regionStats.getCountryM49());
@@ -378,8 +390,19 @@ public abstract class AbstractImportCatalogResource {
 			r.setSubRegion(regionStats.getSubRegion());
 			r.setLatitude(regionStats.getLatitude());
 			r.setLongitude(regionStats.getLongitude());
-			r.setDescription(regionStats.getName());
+			r.setDescription(ObjectUtils.defaultIfNull(description, regionStats.getName()));
 		});
+	}
+
+	/**
+	 * Install a new region.
+	 *
+	 * @param context The update context.
+	 * @param name    The region API name to install.
+	 * @return The region, created or existing one.
+	 */
+	protected ProvLocation installRegion(final AbstractUpdateContext context, final String name) {
+		return installRegion(context, name, null);
 	}
 
 	/**
@@ -634,7 +657,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <P>          The price type.
 	 * @param <Q>          The quote type.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, Q extends AbstractQuoteVm<P>> void purgePrices(
+	protected <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, Q extends AbstractQuoteVm<P>> void purgePrices(
 			final AbstractUpdateContext context, final Map<String, P> storedPrices,
 			final CrudRepository<P, Integer> pRepository, final BaseProvQuoteRepository<Q> qRepository) {
 		final var retiredCodes = new HashSet<>(storedPrices.keySet());

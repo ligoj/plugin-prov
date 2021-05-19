@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInstanceType, P extends AbstractTermPriceVmOs<T>, C extends AbstractQuoteVmOs<P>, E extends AbstractQuoteInstanceOsEditionVo, L extends AbstractLookup<P>, Q extends QuoteVmOs>
-		extends AbstractProvQuoteInstanceResource<T, P, C, E, L, Q> {
+		extends AbstractProvQuoteVmResource<T, P, C, E, L, Q> {
 
 	@Override
 	protected abstract BaseProvTermPriceOsRepository<T, P> getIpRepository();

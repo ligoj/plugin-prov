@@ -59,6 +59,10 @@ public class ProvCache implements CacheManagerAware {
 		createCache(cacheManager, provider, "prov-container-license");
 		createCache(cacheManager, provider, "prov-container-os");
 
+		// Function cache configurations
+		createCacheEvict(cacheManager, provider, "prov-function-type");
+		createCacheEvict(cacheManager, provider, "prov-function-type-dyn");
+		createCacheEvict(cacheManager, provider, "prov-function-type-has-dyn");
 	}
 
 	private void createCache(final HazelcastCacheManager cacheManager,

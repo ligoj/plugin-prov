@@ -47,20 +47,40 @@ public interface ProvContainerPriceRepository
 	 */
 	@Query("""
 			SELECT ip,
-			 (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
-			 +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)
+			 ((ip.cost
+			  +(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
+			  +(CEIL(
+			    CASE WHEN (ip.minRamRatio IS NULL)
+			  	THEN (CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END)
+			  	ELSE (CASE WHEN ((CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)  > :ram)
+			  	 	  THEN (CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
+			  	 	  ELSE :ram 
+			  	 	  END)
+			  	END /ip.incrementRam) * ip.incrementRam * ip.costRam)
+			 )
 			 * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,
-			 (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
-			 + (:ram * ip.costRam) + ip.cost)
+			 ((ip.cost
+			  +(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
+			  +(CEIL(
+			    CASE WHEN (ip.minRamRatio IS NULL)
+			  	THEN (CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END)
+			  	ELSE (CASE WHEN ((CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)  > :ram)
+			  	 	  THEN (CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
+			  	 	  ELSE :ram 
+			  	 	  END)
+			  	END /ip.incrementRam) * ip.incrementRam * ip.costRam)
+			 )
 			 * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost
 			 FROM #{#entityName} ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NOT NULL
 			  AND ip.os=:os
 			  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)
+			  AND (ip.maxRam IS NULL OR ip.maxRam >=:ram)
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxRamRatio IS NULL OR (CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.maxRamRatio) <= :ram))
 			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,

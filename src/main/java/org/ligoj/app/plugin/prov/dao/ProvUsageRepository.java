@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
+import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.springframework.data.jpa.repository.Query;
@@ -30,4 +31,9 @@ public interface ProvUsageRepository extends BaseMultiScopedRepository<ProvUsage
 	@Query("SELECT pu FROM ProvQuoteContainer pu WHERE pu.usage = :scoped"
 			+ " OR (pu.usage IS NULL AND  pu.configuration.usage = :scoped)")
 	Stream<ProvQuoteContainer> findRelatedContainers(ProvUsage scoped);
+
+	@Override
+	@Query("SELECT pu FROM ProvQuoteFunction pu WHERE pu.usage = :scoped"
+			+ " OR (pu.usage IS NULL AND  pu.configuration.usage = :scoped)")
+	Stream<ProvQuoteFunction> findRelatedFunctions(ProvUsage scoped);
 }
