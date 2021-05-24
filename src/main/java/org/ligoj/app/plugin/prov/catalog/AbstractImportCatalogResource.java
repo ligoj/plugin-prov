@@ -41,6 +41,7 @@ import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
@@ -153,6 +154,9 @@ public abstract class AbstractImportCatalogResource {
 	@Autowired
 	protected ProvContainerTypeRepository ctRepository;
 
+	@Autowired
+	protected ProvQuoteContainerRepository qcRepository;
+
 	// Function utilities
 	@Autowired
 	protected ProvFunctionPriceRepository fpRepository;
@@ -161,7 +165,7 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvFunctionTypeRepository ftRepository;
 
 	@Autowired
-	protected ProvQuoteContainerRepository qcRepository;
+	protected ProvQuoteFunctionRepository qfRepository;
 
 	// Instance utilities
 
@@ -406,15 +410,15 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Return the {@link ProvLocation} matching the human name.
+	 * Return the {@link ProvLocation} matching the human name if enabled.
 	 *
 	 * @param context   The update context.
 	 * @param humanName The required human name.
 	 * @return The corresponding {@link ProvLocation} or <code>null</code>.
 	 */
 	protected ProvLocation getRegionByHumanName(final AbstractUpdateContext context, final String humanName) {
-		return context.getRegions().values().stream().filter(r -> isEnabledRegion(context, r))
-				.filter(r -> humanName.equals(r.getDescription())).findAny().orElse(null);
+		return context.getRegions().values().stream().filter(r -> humanName.equals(r.getDescription()))
+				.filter(r -> isEnabledRegion(context, r)).findAny().orElse(null);
 	}
 
 	/**
@@ -485,6 +489,26 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
+		context.getPrices().add(price.getCode());
+		return saveAsNeededInternal(context, price, oldCost, newCost, updateCost, persister);
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 *
+	 * @param <T>        The price type's type.
+	 * @param <P>        The price type.
+	 * @param context    The context to initialize.
+	 * @param price      The target entity to update.
+	 * @param oldCost    The old cost.
+	 * @param newCost    The new cost.
+	 * @param updateCost The consumer used to handle the price replacement operation if needed.
+	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
+	 * @return The given entity.
+	 */
+	private <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
+			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
+			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
 		if (context.isForce() || (price.isNew() && !em.contains(price)) || oldCost != newCostR) {
 			updateCost.accept(newCostR, newCost);
@@ -508,7 +532,6 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repositorty) {
-		context.getPrices().add(entity.getCode());
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
@@ -529,7 +552,6 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
-		context.getPrices().add(entity.getCode());
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
 				repositorty::save);
 	}
@@ -545,7 +567,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvStoragePrice saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
 			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
-		return saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
+		return saveAsNeededInternal(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
 				repositorty::save);
 	}
 
