@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
 import org.ligoj.app.plugin.prov.model.ProvContainerType;
@@ -181,7 +182,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvStorageType> storageTypes = new HashMap<>();
+	private Map<String, ProvStorageType> storageTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * Valid OS pattern.
@@ -226,6 +227,13 @@ public abstract class AbstractUpdateContext {
 	private Pattern validRegion;
 
 	/**
+	 * Base URL of catalog.
+	 */
+	@Getter
+	@Setter
+	private String baseUrl;
+
+	/**
 	 * Hours per month.
 	 */
 	@Getter
@@ -237,6 +245,8 @@ public abstract class AbstractUpdateContext {
 		setForce(parent.isForce());
 		setHoursMonth(parent.getHoursMonth());
 		setNode(parent.getNode());
+		this.regions = parent.regions;
+		this.baseUrl = parent.baseUrl;
 		this.mergedTypes = parent.mergedTypes;
 		this.mergedTerms = parent.mergedTerms;
 		this.mergedLocations = parent.mergedLocations;
@@ -304,6 +314,15 @@ public abstract class AbstractUpdateContext {
 		this.previousFunction.clear();
 		this.previousSupport.clear();
 		this.priceTerms.clear();
-		this.regions.clear();
+	}
+
+	/**
+	 * Return the full URL based on the base URL of this context.
+	 * 
+	 * @param relative URL. <code>/</code> is prepended if missing.
+	 * @return The full URL based on the base URL of this context.
+	 */
+	public String getUrl(final String relative) {
+		return baseUrl + StringUtils.prependIfMissing(relative, "/");
 	}
 }
