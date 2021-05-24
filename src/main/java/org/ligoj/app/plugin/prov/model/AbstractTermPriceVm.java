@@ -44,7 +44,7 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	private Double incrementCpu;
 
 	/**
-	 * Increment RAM step. Default is <code>1</code>.
+	 * Increment RAM step. Required for dynamic instance type.
 	 */
 	private Double incrementRam;
 
