@@ -46,6 +46,7 @@ import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -184,6 +185,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteContainerRepository qcRepository;
 
 	@Autowired
+	private ProvQuoteFunctionRepository qfRepository;
+
+	@Autowired
 	private ProvQuoteSupportRepository qs2Repository;
 
 	// Billing part
@@ -292,6 +296,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setInstances(quote.getInstances());
 		vo.setDatabases(qbRepository.findAll(quote));
 		vo.setContainers(qcRepository.findAll(quote));
+		vo.setFunctions(qfRepository.findAll(quote));
 		vo.setStorages(qsRepository.findAll(quote));
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
