@@ -1127,7 +1127,7 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
-			if($popup.find('.mode-advanced input[type=checkbox]:checked').is(':checked')){
+			if(e.currentTarget.checked){
 				$popup.find('div .element-advanced').removeClass('advanced')
 			}else{
 				$popup.find('div .element-advanced').addClass('advanced')
