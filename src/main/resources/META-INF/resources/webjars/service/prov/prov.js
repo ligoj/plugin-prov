@@ -562,6 +562,7 @@ define(function () {
 	 */
 	function formatStorageOptimized(optimized, withText, clazz) {
 		if (optimized) {
+			//debugger;
 			var id = (optimized.id || optimized).toLowerCase();
 			var text = current.$messages['service:prov:storage-optimized-' + id];
 			clazz = storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
@@ -577,10 +578,11 @@ define(function () {
 	 */
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
-		return (showName === true ? type.name + ' ' : '') + formatStorageLatency(type.latency) +
-			(type.optimized ? ' ' + formatStorageOptimized(type.optimized) : '') +
-			' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
-			((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
+		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
+		${formatStorageLatency(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
+		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		</span>`;
 	}
 
 	/**
@@ -589,6 +591,7 @@ define(function () {
 	 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
 	 */
 	function formatStoragePriceHtml(qs) {
+		//debugger;
 		return formatStorageHtml(qs, false) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
 	}
 
@@ -1129,6 +1132,7 @@ define(function () {
 	 * Initialize data tables and popup event : delete and details
 	 */
 	function initializePopupEvents(type) {
+		//debugger;
 		// Resource edition pop-up
 		var popupType = typesStorage.includes(type) ? 'generic' : type;
 		var $popup = _('popup-prov-' + popupType);
@@ -1146,7 +1150,11 @@ define(function () {
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
 			if (dynaType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub ressource
+				if ($source.attr('data-id')) {
+				quote = current.model.configuration[dynaType + 'sById'][$source.attr('data-id')];
+				} else {
 				quote = quote['quote' + dynaType.capitalize()];
+				}
 			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
@@ -1269,6 +1277,7 @@ define(function () {
 	 * Configure multiscoped resource type.
 	 */
 	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
+		//debugger;
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
 			onShowModal();
@@ -2066,6 +2075,11 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
+
+			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
+				$('#popup-prov-storage').modal('show', $(this))
+			});
+
 			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
@@ -3704,6 +3718,7 @@ define(function () {
 		 * @param {string} resourcesByName The namespace where key is the unique name.
 		 */
 		findNewName: function (resources, prefix, increment, resourcesByName) {
+			debugger;
 			if (typeof resourcesByName === 'undefined') {
 				// Build the name based index
 				resourcesByName = {};
@@ -3862,6 +3877,7 @@ define(function () {
 
 									// Keep the focus on this UI after the redraw of the row
 									$(function () {
+										//debugger;
 										_('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storage-tags .select2-input').trigger('focus');
 									});
 								}
