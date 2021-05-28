@@ -484,3 +484,6 @@ img.flag-icon.prov-location-flag {
 #instance-ram-unit {
   width: 93px;
 }
+#subscribe-configuration-prov .select2-search-choice [data-prov-type] {
+  cursor: pointer;
+}

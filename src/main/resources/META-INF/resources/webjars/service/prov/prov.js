@@ -747,6 +747,13 @@ define(function () {
 		return '';
 	}
 
+	function formatName(name,mode,obj){
+		if (mode !== 'display'){
+			return name
+		}
+		return `<a data-toggle="modal" data-target="#popup-prov-${obj.resourceType ==="storage"? "storage": "generic"}">${name}</a>`;		
+	}
+
 	/**
 	 * Return the HTML markup from the support level.
 	 */
@@ -1902,7 +1909,9 @@ define(function () {
 			});
 			oSettings.columns.splice(0, 0, {
 				data: 'name',
-				className: 'truncate'
+				className: 'truncate',
+				type: 'string',
+				render:formatName
 			});
 			oSettings.columns.push(
 				{
