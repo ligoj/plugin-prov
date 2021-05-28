@@ -50,20 +50,22 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param storageRate Optional minimal storage rate.
 	 * @return The matching database instance types.
 	 */
-	@Query("SELECT id FROM #{#entityName} WHERE                                "
-			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))      "
-			+ "  AND (:type IS NULL OR id = :type)                             "
-			+ "  AND (cpu BETWEEN :cpu AND :limitCpu)                            "
-			+ "  AND (ram BETWEEN :ram AND :limitRam)                            "
-			+ "  AND (:constant IS NULL OR constant = :constant)               "
-			+ "  AND (:physical IS NULL OR physical = :physical)               "
-			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)            "
-			+ "  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)                 "
-			+ "  AND (:ramRate IS NULL OR ramRate >= :ramRate)                 "
-			+ "  AND (:networkRate IS NULL OR networkRate >= :networkRate)     "
-			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)     "
-			+ "  AND (:processor IS NULL                                       "
-			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
+	@Query("""
+			SELECT id FROM #{#entityName} WHERE
+			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			  AND (:type IS NULL OR id = :type)
+			  AND (cpu BETWEEN :cpu AND :limitCpu)
+			  AND (ram BETWEEN :ram AND :limitRam)
+			  AND (:constant IS NULL OR constant = :constant)
+			  AND (:physical IS NULL OR physical = :physical)
+			  AND (:autoScale = FALSE OR autoScale = :autoScale)
+			  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)
+			  AND (:ramRate IS NULL OR ramRate >= :ramRate)
+			  AND (:networkRate IS NULL OR networkRate >= :networkRate)
+			  AND (:storageRate IS NULL OR storageRate >= :storageRate)
+			  AND (:processor IS NULL
+			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
+			""")
 	List<Integer> findValidTypes(String node, double cpu, double ram, double limitCpu, double limitRam,
 			Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate,
 			Rate ramRate, Rate networkRate, Rate storageRate);
@@ -83,19 +85,21 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param storageRate Optional minimal storage rate.
 	 * @return The matching dynamic instance types.
 	 */
-	@Query("SELECT id FROM #{#entityName} WHERE                          "
-			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))"
-			+ "  AND (:type IS NULL OR id = :type)                       "
-			+ "  AND cpu = 0                                             "
-			+ "  AND (:constant IS NULL OR constant = :constant)         "
-			+ "  AND (:physical IS NULL OR physical = :physical)         "
-			+ "  AND (:autoScale = FALSE OR autoScale = :autoScale)      "
-			+ "  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)           "
-			+ "  AND (:ramRate IS NULL OR ramRate >= :ramRate)           "
-			+ "  AND (:networkRate IS NULL OR networkRate >= :networkRate)  "
-			+ "  AND (:storageRate IS NULL OR storageRate >= :storageRate)  "
-			+ "  AND (:processor IS NULL                                 "
-			+ "   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))")
+	@Query("""
+			SELECT id FROM #{#entityName} WHERE
+			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			  AND (:type IS NULL OR id = :type)
+			  AND cpu = 0
+			  AND (:constant IS NULL OR constant = :constant)
+			  AND (:physical IS NULL OR physical = :physical)
+			  AND (:autoScale = FALSE OR autoScale = :autoScale)
+			  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)
+			  AND (:ramRate IS NULL OR ramRate >= :ramRate)
+			  AND (:networkRate IS NULL OR networkRate >= :networkRate)
+			  AND (:storageRate IS NULL OR storageRate >= :storageRate)
+			  AND (:processor IS NULL
+			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
+			""")
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
 			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
 			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
@@ -106,8 +110,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return <code>true</code> when there is at least one dynamic type in this repository.
 	 */
-	@Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM #{#entityName} WHERE                        "
-			+ "  (:node = node.id OR :node LIKE CONCAT(node.id,':%'))    "
-			+ "  AND cpu = 0                                             ")
+	@Query("""
+			SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM #{#entityName} WHERE
+			  (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			  AND cpu = 0""")
 	boolean hasDynamicalTypes(String node);
 }

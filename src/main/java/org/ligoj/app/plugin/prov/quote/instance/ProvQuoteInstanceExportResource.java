@@ -71,9 +71,11 @@ public class ProvQuoteInstanceExportResource {
 				final var qsByQi = new HashMap<Integer, List<ProvQuoteStorage>>();
 				final var qsByQb = new HashMap<Integer, List<ProvQuoteStorage>>();
 				final var qsByQc = new HashMap<Integer, List<ProvQuoteStorage>>();
+				final var qsByQf = new HashMap<Integer, List<ProvQuoteStorage>>();
 				final var itags = vo.getTags().get(ResourceType.INSTANCE);
 				final var dtags = vo.getTags().get(ResourceType.DATABASE);
 				final var ctags = vo.getTags().get(ResourceType.CONTAINER);
+				final var ftags = vo.getTags().get(ResourceType.FUNCTION);
 				final var stags = vo.getTags().get(ResourceType.STORAGE);
 				vo.getStorages().stream().filter(qs -> qs.getInstance() != null)
 						.forEach(qs -> qsByQi.computeIfAbsent(qs.getInstance(), ArrayList::new).add(qs));
@@ -81,6 +83,8 @@ public class ProvQuoteInstanceExportResource {
 						.forEach(qs -> qsByQb.computeIfAbsent(qs.getDatabase(), ArrayList::new).add(qs));
 				vo.getStorages().stream().filter(qs -> qs.getContainer() != null)
 						.forEach(qs -> qsByQc.computeIfAbsent(qs.getContainer(), ArrayList::new).add(qs));
+				vo.getStorages().stream().filter(qs -> qs.getFunction() != null)
+						.forEach(qs -> qsByQf.computeIfAbsent(qs.getFunction(), ArrayList::new).add(qs));
 				final var max = Stream.of(qsByQi, qsByQb, qsByQc)
 						.mapToInt(qsBy -> qsBy.values().stream().mapToInt(List::size).max().orElse(0)).max().orElse(0);
 
@@ -130,6 +134,17 @@ public class ProvQuoteInstanceExportResource {
 							qc.isEphemeral(), toType(qc), "", "", qc.getInternet(), toString(qc.getLicense()),
 							toString(qc.getCost()), toString(qc, ctags));
 					writeStorage(writer, qsByQc, stags, qc.getId());
+				});
+
+				vo.getFunctions().forEach(qf -> {
+					// Write quote function
+					writer.format("\n%s" + ";%s".repeat(23), ResourceType.FUNCTION, toString(qf), toString(qf.getCpu()),
+							toString(qf.getCpuMax()), toString(qf.getRam()), toString(qf.getRamMax()), qf.getRuntime(),
+							toString(qf.getUsage()), toString(qf.getPrice().getTerm()), toString(qf.getLocation()),
+							qf.getNbRequests(), "", "", toString(qf.getConstant()), toString(qf.getProcessor()),
+							toString(qf.getPhysical()), qf.isEphemeral(), toType(qf), "", "", qf.getInternet(), "",
+							toString(qf.getCost()), toString(qf, ftags));
+					writeStorage(writer, qsByQf, stags, qf.getId());
 				});
 				writer.flush();
 			}
@@ -189,6 +204,15 @@ public class ProvQuoteInstanceExportResource {
 								toString(qc.getConstant()), toString(qc.getProcessor()), toString(qc.getPhysical()),
 								qc.isEphemeral(), toType(qc), qc.getInternet(), toString(qc.getLicense()),
 								toString(qc.getCost()), toString(qc, ctags)));
+				// Write quote functions
+				final var ftags = vo.getTags().get(ResourceType.FUNCTION);
+				vo.getFunctions()
+						.forEach(qf -> writer.format("\n%s" + ";%s".repeat(20), toString(qf), toString(qf.getCpu()),
+								toString(qf.getCpuMax()), toString(qf.getRam()), toString(qf.getRamMax()),
+								qf.getRuntime(), toString(qf.getUsage()), toString(qf.getPrice().getTerm()),
+								toString(qf.getLocation()), qf.getNbRequests(), "", "", toString(qf.getConstant()),
+								toString(qf.getProcessor()), toString(qf.getPhysical()), qf.isEphemeral(), toType(qf),
+								qf.getInternet(), "", toString(qf.getCost()), toString(qf, ftags)));
 
 				// Write quote databases
 				final var dtags = vo.getTags().get(ResourceType.DATABASE);

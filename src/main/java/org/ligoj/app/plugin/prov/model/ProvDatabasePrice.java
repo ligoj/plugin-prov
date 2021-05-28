@@ -25,7 +25,7 @@ import lombok.ToString;
 @Table(name = "LIGOJ_PROV_DATABASE_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "location", "engine", "edition", "license", "term", "type" }),
 		@UniqueConstraint(columnNames = "code") })
-public class ProvDatabasePrice extends AbstractTermPrice<ProvDatabaseType> {
+public class ProvDatabasePrice extends AbstractTermPriceVm<ProvDatabaseType> {
 
 	/**
 	 * SID

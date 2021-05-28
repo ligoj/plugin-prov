@@ -13,7 +13,7 @@ define(['d3', 'jquery'], function (d3, $) {
 		};
 	};
 
-	sunburst.init = function ($element, data, sort, tooltipFunction) {
+	sunburst.init = function ($element, data, sort, tooltipFunction, colorScheme) {
 		var width = 200;
 		var height = 200;
 		var radius = (Math.min(width, height) / 2) - 10;
@@ -45,7 +45,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				// [0, ... 9] to ensure that
 				// we can predictably generate
 				// correct individual colors.
-				colors = d3.scaleOrdinal(d3.schemeCategory10)
+				colors = d3.scaleOrdinal(colorScheme)
 					.domain(d3.range(0, 10));
 
 				// White for the root node
@@ -114,7 +114,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			.append('g')
 			.attr('transform', 'translate(' + width / 2 + ',' + (height / 2) + ')');
 
-		function click(d) {
+		function click(e, d) {
 			// depth => d.depth + 1
 			svg.transition()
 				.duration(750)
@@ -153,7 +153,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			svg.selectAll('path').style('opacity', 1);
 		}
 
-		function mouseover(d) {
+		function mouseover(e, d) {
 			var sequenceArray = getAncestors(d);
 
 			// Fade all the segments.
@@ -222,13 +222,11 @@ define(['d3', 'jquery'], function (d3, $) {
 			.attr('class', 'sunburst-part')
 			.style('fill', color)
 			.on('click', click)
-			.on('mouseover', function (d) {
-				mouseover(d);
+			.on('mouseover', function (e, d) {
+				mouseover(e, d);
 				tooltip().html(tooltipFunction(d.data, d)).style('visibility', 'visible');
 			})
-			.on('mousemove', function () {
-				return tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px');
-			})
+			.on('mousemove', e => tooltip().style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px'))
 			.on('mouseout', function () {
 				mouseout();
 				return tooltip().style('visibility', 'hidden');

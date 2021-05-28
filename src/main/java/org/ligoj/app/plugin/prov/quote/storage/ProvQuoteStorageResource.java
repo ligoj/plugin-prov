@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.FloatingCost;
 import org.ligoj.app.plugin.prov.ProvResource;
@@ -339,7 +339,7 @@ public class ProvQuoteStorageResource
 	protected FloatingCost getCost(final ProvQuoteStorage qs) {
 		final var base = getCost(qs.getPrice(), qs.getSize());
 		return Optional.ofNullable(qs.getQuoteResource())
-				.map(qr -> AbstractProvQuoteInstanceResource.computeFloat(base, 0d, qr))
+				.map(qr -> AbstractProvQuoteVmResource.computeFloat(base, 0d, qr))
 				.orElseGet(() -> new FloatingCost(base));
 	}
 
