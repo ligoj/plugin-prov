@@ -2941,7 +2941,7 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					if ($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')) {
+					if ($popup.find('.checkbox-inline input#create-another[type=checkbox]').is(':checked')) {
 						current.enableCreate($popup);
 						$(_(inputType + '-name')).focus();
 					} else {
