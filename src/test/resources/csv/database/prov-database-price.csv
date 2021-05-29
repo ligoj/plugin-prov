@@ -1,4 +1,4 @@
-location.name;term.name;period;code;cost;costPeriod;initialCost;type.name;engine;edition;license;storageEngine;costCpu;costRam;minCpu;incrementCpu
+location.name;term.name;period;code;cost;costPeriod;initialCost;type.name;engine;edition;license;storageEngine;costCpu;costRam;minCpu;incrementCpu;incrementRam
 region-1;on-demand1;0;MYSQL1;116.3;116.2;;database1;MYSQL;;;;;;;
 region-1;1y;12;MYSQL2;89.5;1017.4;1017.4;database1;MYSQL;;;;;;;
 region-1;on-demand1;0;ORACLE1;146.4;146.4;;database1;ORACLE;STANDARD ONE;;ORACLE;;;;
@@ -9,5 +9,5 @@ region-1;on-demand1;0;ORACLE4;135.42;135.42;;database2;ORACLE;STANDARD ONE;BYOL;
 region-1;1y;12;ORACLE5;102.48;1229.76;1229.76;database2;ORACLE;STANDARD ONE;BYOL;ORACLE;;;;
 region-1;on-demand1;0;ORACLE6;1600;180;;database1;ORACLE;ENTERPRISE;BYOL;ORACLE;;;;
 region-1;on-demand1;0;MYSQL3;168;2034;;database2;MYSQL;;;;;;;
-region-1;on-demand1;0;MYSQL0;0;0;;databaseD0;MYSQL;;;;1000;100;1;1
+region-1;on-demand1;0;MYSQL0;0;0;;databaseD0;MYSQL;;;;1000;100;1;1;1
 region-5;on-demandE5;0;MYSQLE5;190;190;;database2;MYSQL;;;;;;;

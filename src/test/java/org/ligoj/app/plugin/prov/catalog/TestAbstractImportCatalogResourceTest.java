@@ -366,7 +366,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 		final var oldRegion = new ProvLocation();
 		oldRegion.setContinentM49(250);
-		context.getMapRegionToName().put("newRegion", oldRegion);
+		context.getMapRegionById().put("newRegion", oldRegion);
 		locationRepository = Mockito.mock(ProvLocationRepository.class);
 		final var installRegion = installRegion(context, "newRegion");
 		Assertions.assertEquals("newRegion", installRegion.getName());
@@ -441,8 +441,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void nextStepIgnore() {
-		final var context = newContext();
-		nextStep(context, "phase", "location", 1);
+		nextStep(newContext(), "phase", "location", 0);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -469,7 +468,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
-		nextStep(context, "phase", null, 1);
+		nextStep(context, "phase");
 		Assertions.assertEquals("phase", status.getPhase());
 	}
 

@@ -33,7 +33,12 @@ public enum ResourceType {
 	/**
 	 * Container resource
 	 */
-	CONTAINER(true);
+	CONTAINER(true),
+
+	/**
+	 * Function resource
+	 */
+	FUNCTION(true);
 
 	@Getter
 	private boolean network;

@@ -7,6 +7,7 @@ define(function () {
 	var initializedPopupEvents = false;
 	var initializedPopupUsage = false;
 	var initializedPopupBudget = false;
+	var colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
 
 	/**
 	 * Enable resource type.
@@ -740,7 +741,7 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="fas ${resource.resourceType === 'instance' ? "fa-server" : resource.resourceType === 'database' ? "fa-database" : "fa-docker"}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -750,6 +751,15 @@ define(function () {
 			return name
 		}
 		return `<a data-toggle="modal" data-target="#popup-prov-${obj.resourceType ==="storage"? "storage": "generic"}">${name}</a>`;		
+	}
+
+	/**
+	 * Return the HTML markup from the quote name.
+	 */
+	function formatName(resource) {
+		if (resource) {
+			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">' + resource + '</a>');
+		}
 	}
 
 	/**
@@ -1035,36 +1045,7 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2({
-			formatSelection: formatOs,
-			formatResult: formatOs,
-			escapeMarkup: m => m,
-			data: [{
-				id: 'LINUX',
-				text: 'LINUX'
-			}, {
-				id: 'WINDOWS',
-				text: 'WINDOWS'
-			}, {
-				id: 'SUSE',
-				text: 'SUSE'
-			}, {
-				id: 'RHEL',
-				text: 'RHEL'
-			}, {
-				id: 'CENTOS',
-				text: 'CENTOS'
-			}, {
-				id: 'DEBIAN',
-				text: 'DEBIAN'
-			}, {
-				id: 'UBUNTU',
-				text: 'UBUNTU'
-			}, {
-				id: 'FEDORA',
-				text: 'FEDORA'
-			}]
-		});
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
@@ -1907,7 +1888,7 @@ define(function () {
 				data: 'name',
 				className: 'truncate',
 				type: 'string',
-				render:formatName
+				render: formatName
 			});
 			oSettings.columns.push(
 				{
@@ -2080,11 +2061,9 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-
 			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
-				$('#popup-prov-storage').modal('show', $(this))
+				 $('#popup-prov-storage').modal('show', $(this))
 			});
-
 			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
@@ -3029,7 +3008,7 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
@@ -3174,7 +3153,7 @@ define(function () {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
 						return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-					}, current.sunburstTooltip);
+					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
 					_('prov-sunburst').addClass('hidden');
@@ -3197,12 +3176,12 @@ define(function () {
 			}
 		},
 
-		sunburstTooltip: function (data, d) {
+		sunburstTooltip: function (data) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ current.recursivePercent(data, true, 100)
+				+ (data.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
 
 		title: function (key, icon) {
@@ -3305,11 +3284,11 @@ define(function () {
 			var result = [];
 			if (current[type + 'Table']) {
 				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
-				for (var index = 0; index < data.length; index++) {
+				for (let index = 0; index < data.length; index++) {
 					result.push(data[index]);
 				}
 			} else {
-				result = current.model.configuration[type + 's'] || {};
+				result = current.model.configuration[type + 's'] || [];
 			}
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};

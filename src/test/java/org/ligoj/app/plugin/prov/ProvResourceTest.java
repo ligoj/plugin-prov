@@ -109,6 +109,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
+		Assertions.assertEquals("{}", vo.getUiSettings());
+
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
@@ -882,6 +884,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void update() {
 		final var quote = newQuoteEdition();
 		quote.setName("name1");
+		quote.setUiSettings("""
+				{"tagColors":{"prod":"#FF0000"}}""");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		quote.setBudget("Dept1");
@@ -891,8 +895,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
+		Assertions.assertEquals("""
+				{"tagColors":{"prod":"#FF0000"}}""", quote2.getUiSettings());
 
-		// Performe another identical update
+		// Perform another identical update
 		final var cost2 = resource.update(subscription, quote);
 		checkCost(cost2, 3165.4, 5615.0, false);
 	}
