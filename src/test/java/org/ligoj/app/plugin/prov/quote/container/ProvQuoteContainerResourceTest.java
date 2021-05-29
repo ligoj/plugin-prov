@@ -472,4 +472,17 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(104, status.getTotalStorage());
 		Assertions.assertEquals("region-1", status.getLocation().getName());
 	}
+
+	@Test
+	void findCointainerOs() {
+		final var tableItem = qcResource.findOs(subscription);
+		Assertions.assertEquals(2, tableItem.size());
+		Assertions.assertEquals("LINUX", tableItem.get(0));
+	}
+
+	@Test
+	void findContainerOsNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qcResource.findOs(subscription));
+	}
 }

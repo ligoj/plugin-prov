@@ -64,7 +64,8 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 			final var instances = getRelated(getRepository()::findRelatedInstances, entity);
 			final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
 			final var containers = getRelated(getRepository()::findRelatedContainers, entity);
-			bRessource.lean(quote, instances, databases, containers, relatedCosts);
+			final var functions = getRelated(getRepository()::findRelatedFunctions, entity);
+			bRessource.lean(quote, instances, databases, containers, functions, relatedCosts);
 		}
 
 		repository.saveAndFlush(entity);

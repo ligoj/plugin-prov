@@ -45,7 +45,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
@@ -173,7 +173,7 @@ public class ProvQuoteUploadResource {
 		return qb.getId();
 	}
 
-	private <Q extends AbstractQuoteInstanceEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
+	private <Q extends AbstractQuoteVmEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
 		var name = vo.getName();
 		var counter = 0;
 		while (previous.containsKey(name)) {
@@ -387,7 +387,7 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning : flushing");
 	}
 
-	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,
 			final String usage, final Integer ramMultiplier, final V vo) {
 		// Validate the upload object
 		vo.setName(upload.getName());
@@ -469,7 +469,7 @@ public class ProvQuoteUploadResource {
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> void persist(final VmUpload upload, final int subscription,
 			final BiFunction<V, UploadContext, Integer> merger, final UploadContext context, final V vo,
 			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 
