@@ -14,7 +14,7 @@ public interface ProvisioningService {
 
 	/**
 	 * Return the OS to lookup from the queried OS.
-	 * 
+	 *
 	 * @param os The required OS.
 	 * @return The OS used in the database lookup.
 	 */

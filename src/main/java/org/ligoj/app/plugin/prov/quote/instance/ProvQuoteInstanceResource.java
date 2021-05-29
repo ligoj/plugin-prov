@@ -113,7 +113,7 @@ public class ProvQuoteInstanceResource extends
 
 	/**
 	 * Return the instance prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best instance price matching to the criteria.
@@ -187,6 +187,13 @@ public class ProvQuoteInstanceResource extends
 	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
 		return ipRepository.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+	}
+
+	@Override
+	@GET
+	@Path("{subscription:\\d+}/instance-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return super.findOs(subscription);
 	}
 
 	@Override

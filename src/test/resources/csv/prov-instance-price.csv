@@ -1,4 +1,4 @@
-term.name;period;code;cost;costPeriod;type.name;os;costCpu;costRam;location.name;license;software;tenancy;initialCost;minCpu;incrementCpu
+term.name;period;code;cost;costPeriod;type.name;os;costCpu;costRam;location.name;license;software;tenancy;initialCost;minCpu;incrementCpu;incrementRam
 on-demand1;0;C1;146.4;146.4;instance1;LINUX;;;region-1;;;;;
 on-demand1;0;C2;256.2;256.2;instance1;WINDOWS;;;region-1;;;;;
 on-demand2;0;C3;128.1;0.175;instance1;LINUX;;;region-1;;;;;
@@ -74,7 +74,7 @@ on-demand2;0;C70;6675.84;9.12;instance12;WINDOWS;;;region-1;;;;;
 1y;12;C71;3279.36;39352.32;instance12;LINUX;;;region-1;;;;39352.32;;
 1y;12;C72;5621.76;67461.12;instance12;WINDOWS;;;region-1;;;;39352.32;;
 1y;12;C73;5621.76;67461.12;instanceX;WINDOWS;;;region-1;;;;17568;;
-on-demand1;0;C74;0;0;dynamic;LINUX;242.83368;3.254472;region-1;;;;;1;1
+on-demand1;0;C74;0;0;dynamic;LINUX;242.83368;3.254472;region-1;;;;;1;1;1
 on-demand2;0;C75;6690.48;9.14;instance12;SUSE;;;region-1;;;;;
 
 on-demand1;0;C77;878.4;1.2;instance1;LINUX;;;region-1;;;;;
@@ -90,7 +90,7 @@ on-demand2;0;C86;849.12;1.16;instance2;LINUX;;;region-1;;;;;
 on-demand2;0;C87;940.62;1.285;instance2;WINDOWS;;;region-1;;;;;
 on-demand1;0;C88;1317.6;1.8;instance5;LINUX;;;region-1;;;;;
 on-demand2;0;C89;1244.4;1.7;instance5;LINUX;;;region-1;;;;;
-on-demand1;0;C90;0;0;dynamic;LINUX;316.03368;3.986472;region-1;;;;;1;1
+on-demand1;0;C90;0;0;dynamic;LINUX;316.03368;3.986472;region-1;;;;;1;1;1
 
 on-demand1;0;C92;1610.4;2.2;instance1;LINUX;;;region-2;;;;;
 on-demand1;0;C93;1720.2;2.35;instance1;WINDOWS;;;region-2;;;;;

@@ -13,6 +13,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
+import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
@@ -66,6 +67,10 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * Quoted containers.
 	 */
 	private List<ProvQuoteContainer> containers;
+	/**
+	 * Quoted functions.
+	 */
+	private List<ProvQuoteFunction> functions;
 
 	/**
 	 * Quoted databases.
@@ -161,4 +166,15 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All valid processors for this subscription.
 	 */
 	private Map<String, List<String>> processors;
+
+	/**
+	 * UI settings. Properties are: 
+	 * <ul>
+	 * <li>
+	 * Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
+	 * accepted. Sample: <code>#e4560f</code> or <code>rgb(255, 0, 0)</code>, <code>hsl(0, 100%, 50%)</code>.</li>
+	 * </ul>
+	 */
+	private String uiSettings;
+
 }

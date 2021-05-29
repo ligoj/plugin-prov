@@ -45,7 +45,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
@@ -89,7 +89,7 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
 			"ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
@@ -173,7 +173,7 @@ public class ProvQuoteUploadResource {
 		return qb.getId();
 	}
 
-	private <Q extends AbstractQuoteInstanceEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
+	private <Q extends AbstractQuoteVmEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
 		var name = vo.getName();
 		var counter = 0;
 		while (previous.containsKey(name)) {
@@ -387,7 +387,7 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning : flushing");
 	}
 
-	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,
 			final String usage, final Integer ramMultiplier, final V vo) {
 		// Validate the upload object
 		vo.setName(upload.getName());
@@ -414,7 +414,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
-		final String failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		final var failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
 		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
@@ -469,7 +469,7 @@ public class ProvQuoteUploadResource {
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> void persist(final VmUpload upload, final int subscription,
 			final BiFunction<V, UploadContext, Integer> merger, final UploadContext context, final V vo,
 			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 
@@ -499,7 +499,7 @@ public class ProvQuoteUploadResource {
 					// Find the nicest storage
 					svo.setType(storageResource.lookup(context.quote, svo).stream().findFirst()
 							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
-							.getName());
+							.getCode());
 
 					// Default the storage name to the instance name
 					svo.setSubscription(subscription);

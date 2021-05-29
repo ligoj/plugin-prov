@@ -7,6 +7,7 @@ define(function () {
 	var initializedPopupEvents = false;
 	var initializedPopupUsage = false;
 	var initializedPopupBudget = false;
+	var colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
 
 	/**
 	 * Enable resource type.
@@ -200,7 +201,13 @@ define(function () {
 	 */
 	function toQueryValue3States($element) {
 		let value = ($element.is('li.active') ? $element : $element.find('li.active')).data('value');
-		return (value === 'true' || value === true) ? true : ((value === 'false' || value === false) ? false : null);
+		if (value === 'true' || value === true) {
+			return true;
+		}
+		if (value === 'false' || value === false) {
+			return fzlse;
+		}
+		return null;
 	}
 
 	/**
@@ -263,8 +270,17 @@ define(function () {
 			fullClass = 'fas fa-circle text-success';
 		}
 		var rate = Math.round(value * 100 / max);
-		return (formatter ? formatter(value) : value) + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
-			Handlebars.compile(current.$messages['service:prov:usage-partial'])((formatter ? [formatter(value), formatter(max), rate] : [value, max, rate])) + '"></i></span>' : '');
+		let formatValue;
+		let formatParams;
+		if (formatter) {
+			formatValue = formatter(value);
+			formatParams = [formatter(value), formatter(max), rate];
+		} else {
+			formatValue = value;
+			formatParams = [value, max, rate];
+		}
+		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
+			Handlebars.compile(current.$messages['service:prov:usage-partial'])(formatParams) + '"></i></span>' : '');
 	}
 
 	/**
@@ -310,7 +326,7 @@ define(function () {
 	}
 
 	function formatLicense(license) {
-		return license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license;
+		return license ? license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license : null;
 	}
 
 	function formatReservationMode(mode) {
@@ -350,13 +366,11 @@ define(function () {
 		if (type.storageRate) {
 			details += '<br><i class=\'far fa-hdd fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.storageRate] + '\'></i>' : '';
-			// TODO Add instance storage
 		}
 
 		if (type.networkRate) {
 			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
-			// TODO Add memory type
 		}
 		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
 	}
@@ -501,12 +515,13 @@ define(function () {
 		var min = obj.cost || obj.min || 0;
 		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		if ((typeof max !== 'number') || max === min) {
+		var formatMin = formatManager.formatCost(min)
+		var formatMax = formatManager.formatCost(max)
+		if ((typeof max !== 'number') || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
 		}
-
 		// Max cost, is different, display a range
 		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
 	}
@@ -563,10 +578,11 @@ define(function () {
 	 */
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
-		return (showName === true ? type.name + ' ' : '') + formatStorageLatency(type.latency) +
-			(type.optimized ? ' ' + formatStorageOptimized(type.optimized) : '') +
-			' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
-			((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
+		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
+		${formatStorageLatency(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
+		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		</span>`;
 	}
 
 	/**
@@ -588,15 +604,10 @@ define(function () {
 
 		if (mode === 'sort') {
 			// Compute the sum
-			var storages = instance.storages;
-			var sum = 0;
-			if (storages) {
-				storages.forEach(storage => sum += storage.size);
-			}
-			return sum;
+			return (instance.storages || []).reduce((acc, s) => acc + storage.size, 0);
 		}
 		// Need to build a Select2 tags markup
-		return '<input type="text" class="storage-tags" data-instance="' + instance.id + '" autocomplete="off" name="storage-tags">';
+		return `<input type="text" class="storage-tags" data-instance="${instance.id}" autocomplete="off" name="storage-tags">`;
 	}
 
 	/**
@@ -625,6 +636,9 @@ define(function () {
 
 	function formatBudget(budget, mode, qi) {
 		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', (entity) => (typeof entity.initialCost === 'number' && entity.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(entity.initialCost)}` : '');
+	}
+	function filterMultiScoped(name) {
+		return opFunction => (value, data) => opFunction(data[name] ? data.budget.name : current.model.configuration[name] ? current.model.configuration[name].name : 'default');
 	}
 
 	function formatUsageTemplate(usage, mode) {
@@ -727,9 +741,25 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return (resource.resourceType === 'instance' ? '<i class="fas fa-server"></i>' : resource.resourceType === 'database' ? '<i class="fas fa-database"></i>' : '<i class="fab fa-docker"></i>') + ' ' + resource.name;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
+	}
+
+	function formatName(name,mode,obj){
+		if (mode !== 'display'){
+			return name
+		}
+		return `<a data-toggle="modal" data-target="#popup-prov-${obj.resourceType ==="storage"? "storage": "generic"}">${name}</a>`;		
+	}
+
+	/**
+	 * Return the HTML markup from the quote name.
+	 */
+	function formatName(resource) {
+		if (resource) {
+			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">' + resource + '</a>');
+		}
 	}
 
 	/**
@@ -744,7 +774,7 @@ define(function () {
 				return text;
 			}
 
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+			return `<i class="${clazz}" data-toggle="tooltip" title="${text}"></i>${mode ? ' ' + text : ''}`;
 		}
 		return '';
 	}
@@ -972,7 +1002,7 @@ define(function () {
 			},
 			data: function () {
 				return {
-					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => { // TODO FDA
+					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => {
 						r.text = r.name;
 						return r;
 					})
@@ -1015,36 +1045,7 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2({
-			formatSelection: formatOs,
-			formatResult: formatOs,
-			escapeMarkup: m => m,
-			data: [{
-				id: 'LINUX',
-				text: 'LINUX'
-			}, {
-				id: 'WINDOWS',
-				text: 'WINDOWS'
-			}, {
-				id: 'SUSE',
-				text: 'SUSE'
-			}, {
-				id: 'RHEL',
-				text: 'RHEL'
-			}, {
-				id: 'CENTOS',
-				text: 'CENTOS'
-			}, {
-				id: 'DEBIAN',
-				text: 'DEBIAN'
-			}, {
-				id: 'UBUNTU',
-				text: 'UBUNTU'
-			}, {
-				id: 'FEDORA',
-				text: 'FEDORA'
-			}]
-		});
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
@@ -1136,8 +1137,16 @@ define(function () {
 			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
 			var $tr = $source.closest('tr');
-			var $table = _('prov-' + dynaType + 's');
+			var $table = $tr.closest('table');
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			if (dynaType !== quote.resourceType && quote.resourceType !== undefined) {
+				// Display sub ressource
+				if ($source.attr('data-id')) {
+				quote = current.model.configuration[dynaType + 'sById'][$source.attr('data-id')];
+				} else {
+				quote = quote['quote' + dynaType.capitalize()];
+				}
+			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
@@ -1147,12 +1156,10 @@ define(function () {
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
-
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
 			}
-
 			if (quote.id) {
 				current.enableCreate($popup);
 			} else {
@@ -1160,6 +1167,12 @@ define(function () {
 			}
 			current.model.quote = quote;
 			current.toUi(dynaType, quote);
+			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
+			_('instance-budget').select2Placeholder(current.budgetToText(current.model.configuration.budget) || current.$messages['service:prov:budget-null']);
+			_('instance-usage').select2Placeholder(current.usageToText(current.model.configuration.usage) || current.$messages['service:prov:usage-null']);
+			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
+			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
+
 		});
 	}
 
@@ -1814,9 +1827,7 @@ define(function () {
 					// Single price
 					suggests = [quote];
 				}
-				for (var i = 0; i < suggests.length; i++) {
-					suggests[i].id = suggests[i].id || suggests[i].price.id;
-				}
+				suggests.forEach(s => s.id = s.id || s.price.id);
 				return suggests;
 			}
 			return null;
@@ -1881,7 +1892,9 @@ define(function () {
 			});
 			oSettings.columns.splice(0, 0, {
 				data: 'name',
-				className: 'truncate'
+				className: 'truncate',
+				type: 'string',
+				render: formatName
 			});
 			oSettings.columns.push(
 				{
@@ -1984,8 +1997,8 @@ define(function () {
 						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container can be displayed
 							// There are 2 operators: 
-							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)'
-							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)'
+							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
+							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
 								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
 								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
@@ -2054,7 +2067,10 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-
+			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
+				 $('#popup-prov-storage').modal('show', $(this))
+			});
+			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
@@ -2485,8 +2501,8 @@ define(function () {
 					conf.name = jsonData.name;
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
-					conf.usage = data.usage || conf.usage;
-					conf.budget = data.budget || conf.budget;
+					conf.usage = data.usage === null ? null : (data.usage || conf.usage);
+					conf.budget = data.budget === null ? null : (data.budget || conf.budget);
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
 					conf.physical = jsonData.physical;
@@ -2507,7 +2523,7 @@ define(function () {
 				error: function () {
 					if (context) {
 						var eMsg = current.$messages['service:prov:' + context.name + '-failed'];
-						var value = data[context.name].name || data[context.name].text || data[context.name].id || data[context.name];
+						var value = data[context.name] ? data[context.name].name || data[context.name].text || data[context.name].id || data[context.name] : null;
 						if (eMsg) {
 							notifyManager.notifyDanger(Handlebars.compile(eMsg)(value));
 						} else {
@@ -2616,13 +2632,13 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>');
+			return usage ? usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>') : null;
 		},
 		/**
 		 * Budget text renderer.
 		 */
 		budgetToText: function (budget) {
-			return budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>');
+			return budget ? budget.text || (budget.name + '<span class="pull-right">(' + formatCost(budget.initialCost) + ')<span>') : null;
 		},
 
 		/**
@@ -2650,7 +2666,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[sType]));
+			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2860,7 +2876,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null); // TODO FDA
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null);
 			current.storageSetUiPrice(quote);
 		},
 
@@ -2931,9 +2947,9 @@ define(function () {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
 					if($popup.find('.create-another input[type=checkbox]:checked').is(':checked')){
 						current.enableCreate($popup);
-						$(_(inputType + '-name')).focus();		
-					}else {
-						$popup.modal('hide');					
+						$(_(inputType + '-name')).focus();
+					} else {
+						$popup.modal('hide');
 					}
 				},
 				error: () => current.enableCreate($popup)
@@ -2998,7 +3014,7 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
 							// Tooltip of barchart
 							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
@@ -3143,7 +3159,7 @@ define(function () {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
 						return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-					}, current.sunburstTooltip);
+					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
 					_('prov-sunburst').addClass('hidden');
@@ -3166,12 +3182,12 @@ define(function () {
 			}
 		},
 
-		sunburstTooltip: function (data, d) {
+		sunburstTooltip: function (data) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ current.recursivePercent(data, true, 100)
+				+ (data.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
 		},
 
 		title: function (key, icon) {
@@ -3274,11 +3290,11 @@ define(function () {
 			var result = [];
 			if (current[type + 'Table']) {
 				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
-				for (var index = 0; index < data.length; index++) {
+				for (let index = 0; index < data.length; index++) {
 					result.push(data[index]);
 				}
 			} else {
-				result = current.model.configuration[type + 's'] || {};
+				result = current.model.configuration[type + 's'] || [];
 			}
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
@@ -3307,8 +3323,7 @@ define(function () {
 			if (typeof callback === 'function') {
 				callback(resultType);
 			}
-			for (let i = 0; i < instances.length; i++) {
-				let qi = instances[i];
+			instances.forEach(qi => {
 				let cost = qi.cost.min || qi.cost || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
@@ -3327,7 +3342,7 @@ define(function () {
 					timeline[t][type] += cost;
 					timeline[t].cost += cost;
 				}
-			}
+			});
 			result[type] = Object.assign(resultType, {
 				nb: instances.length,
 				min: minInstances,
@@ -3383,16 +3398,13 @@ define(function () {
 			var storageCost = 0;
 			var storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
-			for (i = 0; i < storages.length; i++) {
-				var qs = storages[i];
-
-				// TODO FDA
-				if (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id]) {
-					nb = qs.quoteInstance.minQuantity || 1;
-				} else if (qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id]) {
-					nb = qs.quoteDatabase.minQuantity || 1;
-				} else if (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id]) {
-					nb = qs.quoteContainer.minQuantity || 1;
+			storages.forEach(qs => {
+				if (qs.quoteInstance) {
+					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
+				} else if (qs.quoteDatabase) {
+					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
+				} else if (qs.quoteContainer) {
+					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
 				} else {
 					nb = 1;
 				}
@@ -3401,7 +3413,7 @@ define(function () {
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer; // TODO
+				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer;
 				if (quoteVm) {
 					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
 						timeline[t].storage += qs.cost;
@@ -3412,14 +3424,12 @@ define(function () {
 						timeline[t].cost += qs.cost;
 					}
 				}
-			}
+			});
 
 			// Support statistics
 			var supportCost = 0;
 			var supports = current.getFilteredData('support', filterDate);
-			for (i = 0; i < supports.length; i++) {
-				supportCost += supports[i].cost;
-			}
+			supports.forEach(s => supportCost += s.cost);
 			for (t = 0; t < duration; t++) {
 				timeline[t].support = supportCost;
 				timeline[t].cost += supportCost;
@@ -3520,9 +3530,7 @@ define(function () {
 		},
 		computeToD3: function (data, stats, type) {
 			var allOss = {};
-			var instances = stats[type].filtered;
-			for (var i = 0; i < instances.length; i++) {
-				var qi = instances[i];
+			stats[type].filtered.forEach(qi => {
 				var oss = allOss[qi.os];
 				if (typeof oss === 'undefined') {
 					// First OS
@@ -3542,7 +3550,7 @@ define(function () {
 					type: type,
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		instanceToD3: function (data, stats) {
@@ -3551,11 +3559,9 @@ define(function () {
 		containerToD3: function (data, stats) {
 			current.computeToD3(data, stats, 'container');
 		},
-		databaseToD3: function (data, stats) { // TODO FDA
+		databaseToD3: function (data, stats) {
 			var allEngines = {};
-			var databases = stats.database.filtered;
-			for (var i = 0; i < databases.length; i++) {
-				var qi = databases[i];
+			stats.database.filtered.forEach(qi => {
 				var engines = allEngines[qi.engine];
 				if (typeof engines === 'undefined') {
 					// First Engine
@@ -3575,15 +3581,13 @@ define(function () {
 					type: 'database',
 					size: qi.cost
 				});
-			}
+			});
 		},
 
 		storageToD3: function (data, stats) {
-			var storages = stats.storage.filtered;
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
-			for (var i = 0; i < storages.length; i++) {
-				var qs = storages[i];
+			stats.storage.filtered.forEach(qs => {
 				var optimizations = allOptimizations[qs.price.type.latency];
 				if (typeof optimizations === 'undefined') {
 					// First optimization
@@ -3603,21 +3607,19 @@ define(function () {
 					type: 'storage',
 					size: qs.cost
 				});
-			}
+			});
 		},
 
 		supportToD3: function (data, stats) {
-			var supports = stats.support.filtered;
 			data.name = current.$messages['service:prov:support-block'];
-			for (var i = 0; i < supports.length; i++) {
-				var support = supports[i];
+			stats.support.filtered.forEach(support => {
 				data.value += support.cost;
 				data.children.push({
 					name: support.id,
 					type: 'support',
 					size: support.cost
 				});
-			}
+			});
 		},
 
 		/**
@@ -3733,7 +3735,7 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer)) // TODO FDA
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer))
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3759,7 +3761,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer) // TODO FDA
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer)
 				}]
 			};
 		},
@@ -3904,13 +3906,13 @@ define(function () {
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
 					render: formatUsageTemplate,
-					filter: opFunction => (value, data) => opFunction(data.usage ? data.usage.name : current.model.configuration.usage ? current.model.configuration.usage.name : 'default')
+					filter: filterMultiScoped('usage')
 				}, {
 					data: 'budget',
 					className: 'hidden-xs hidden-sm budget',
 					type: 'string',
 					render: formatBudget,
-					filter: opFunction => (value, data) => opFunction(data.budget ? data.budget.name : current.model.configuration.budget ? current.model.configuration.budget.name : 'default')
+					filter: filterMultiScoped('budget')
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
@@ -4052,10 +4054,10 @@ define(function () {
 					delete conf[type + 'sById'][resource.id];
 					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
-						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer; // TODO FDA
+						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer;
 						if (qr) {
 							// Also redraw the instance
-							var attachedType = resource.quoteInstance ? 'instance' : resource.quoteDatabase ? 'database' : 'container';
+							var attachedType = qr.resourceType;
 							current.detachStorage(resource, 'quote' + attachedType.capitalize());
 							current.redrawResource(attachedType, qr.id);
 						}

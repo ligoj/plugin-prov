@@ -45,22 +45,32 @@ public class QuoteStorageQuery implements QuoteStorage {
 	private Rate latency;
 
 	/**
-	 * The optional requested quote instance to be associated. Cannot be not <code>null</code> with {@link #database} or {@link #container}.
+	 * The optional requested quote instance to be associated. Cannot be not <code>null</code> with {@link #database} or
+	 * {@link #container} or {@link #function}.
 	 */
 	@QueryParam("instance")
 	private Integer instance;
 
 	/**
-	 * The optional requested quote database to be associated. Cannot be not <code>null</code> with {@link #instance} or {@link #container}.
+	 * The optional requested quote database to be associated. Cannot be not <code>null</code> with {@link #instance} or
+	 * {@link #container} or {@link #function}.
 	 */
 	@QueryParam("database")
 	private Integer database;
 
 	/**
-	 * The optional requested quote container to be associated. Cannot be not <code>null</code> with {@link #instance} or {@link #database}.
+	 * The optional requested quote container to be associated. Cannot be not <code>null</code> with {@link #instance}
+	 * or {@link #database} or {@link #function}.
 	 */
 	@QueryParam("container")
 	private Integer container;
+
+	/**
+	 * The optional requested quote function to be associated. Cannot be not <code>null</code> with {@link #instance} or
+	 * {@link #database} or {@link #container}.
+	 */
+	@QueryParam("container")
+	private Integer function;
 
 	/**
 	 * The optional requested {@link ProvStorageOptimized}.

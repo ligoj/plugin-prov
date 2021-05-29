@@ -102,7 +102,7 @@ public class ProvQuoteContainerResource extends
 
 	/**
 	 * Return the container prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best container price matching to the criteria.
@@ -157,6 +157,13 @@ public class ProvQuoteContainerResource extends
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
 		return super.findLicenses(subscription, os);
+	}
+
+	@Override
+	@GET
+	@Path("{subscription:\\d+}/container-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return super.findOs(subscription);
 	}
 
 	@Override

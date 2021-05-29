@@ -46,6 +46,7 @@ import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -184,6 +185,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteContainerRepository qcRepository;
 
 	@Autowired
+	private ProvQuoteFunctionRepository qfRepository;
+
+	@Autowired
 	private ProvQuoteSupportRepository qs2Repository;
 
 	// Billing part
@@ -292,10 +296,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setInstances(quote.getInstances());
 		vo.setDatabases(qbRepository.findAll(quote));
 		vo.setContainers(qcRepository.findAll(quote));
+		vo.setFunctions(qfRepository.findAll(quote));
 		vo.setStorages(qsRepository.findAll(quote));
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
+		vo.setUiSettings(quote.getUiSettings());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
@@ -366,6 +372,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
+		entity.setUiSettings(vo.getUiSettings());
 
 		var oldLicense = entity.getLicense();
 		var oldLocation = entity.getLocation();
@@ -410,12 +417,23 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch internal resources) to refresh
 		final var quote = repository.getCompute(subscription);
+		return updateCost(quote);
+	}
+
+	/**
+	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
+	 * updated.
+	 *
+	 * @param quote The quote to compute
+	 * @return The updated computed cost.
+	 */
+	protected FloatingCost updateCost(final ProvQuote quote) {
 		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
 
 	/**
 	 * Return a parallel stream if allowed.
-	 * 
+	 *
 	 * @param <T>        The stream item type.
 	 * @param collection The collection to stream.
 	 * @return The parallel or sequential stream.
@@ -497,7 +515,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Refresh the cost of the support for the whole whole quote.
-	 * 
+	 *
 	 * @param cost  The target cost object to update.
 	 * @param quote The source quote.
 	 * @return The same target cost parameter.
@@ -511,7 +529,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	/**
 	 * Refresh the cost of the support for the whole whole quote related to a resource.
-	 * 
+	 *
 	 * @param cost   The target cost object to update.
 	 * @param entity A recently updated resource.
 	 * @param <Q>    The entity type to refresh.

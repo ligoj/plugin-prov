@@ -236,6 +236,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
 						.getType().getName());
 	}
+
 	/**
 	 * Search instance type within a non existing region
 	 */
@@ -1149,5 +1150,18 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		initSpringSecurityContext("any");
 		final var uri = newUriInfo();
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAllTypes(subscription, uri));
+	}
+
+	@Test
+	void findOs() {
+		final var tableItem = qiResource.findOs(subscription);
+		Assertions.assertEquals(3, tableItem.size());
+		Assertions.assertEquals("LINUX", tableItem.get(0));
+	}
+
+	@Test
+	void findOsNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findOs(subscription));
 	}
 }

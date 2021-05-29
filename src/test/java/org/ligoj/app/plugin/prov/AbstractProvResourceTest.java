@@ -142,7 +142,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Prepare test data.
-	 * 
+	 *
 	 * @throws IOException When CSV cannot be read.
 	 */
 	@BeforeEach
@@ -177,7 +177,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Flush the current JPA context and return the configuration of current subscription.
-	 * 
+	 *
 	 * @return The configuration of current subscription.
 	 */
 	protected QuoteVo getConfiguration() {
@@ -186,7 +186,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Flush the current JPA context and return the configuration of given subscription.
-	 * 
+	 *
 	 * @param subscription The subscription to get.
 	 * @return The configuration of given subscription.
 	 */
@@ -198,7 +198,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Add two basic tags to the given object.
-	 * 
+	 *
 	 * @param vo The object to complete with the new tags.
 	 */
 	protected void newTags(final QuoteTagSupport vo) {
@@ -215,7 +215,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	/**
 	 * Check the basics tags are associated to the given resource.
-	 * 
+	 *
 	 * @param resource The resource to test.
 	 */
 	protected void assertTags(final AbstractQuote<?> resource) {

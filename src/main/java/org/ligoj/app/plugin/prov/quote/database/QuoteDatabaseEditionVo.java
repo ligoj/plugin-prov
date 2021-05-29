@@ -5,7 +5,7 @@ package org.ligoj.app.plugin.prov.quote.database;
 
 import javax.validation.constraints.NotNull;
 
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
 
 import lombok.Getter;
@@ -16,7 +16,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QuoteDatabaseEditionVo extends AbstractQuoteInstanceEditionVo implements QuoteDatabase {
+public class QuoteDatabaseEditionVo extends AbstractQuoteVmEditionVo implements QuoteDatabase {
 
 	/**
 	 * SID

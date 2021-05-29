@@ -17,7 +17,7 @@ public interface ProvCurrencyRepository extends RestRepository<ProvCurrency, Int
 
 	/**
 	 * Return the currencies matching the criteria.
-	 * 
+	 *
 	 * @param search      The criteria.
 	 * @param pageRequest The page request.
 	 * @return The page.

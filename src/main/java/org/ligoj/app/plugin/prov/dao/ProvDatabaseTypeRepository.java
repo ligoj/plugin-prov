@@ -19,9 +19,9 @@ public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeReposito
 	@CacheResult(cacheName = "prov-database-type")
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey double ram,
-			@CacheKey double limitCpu, @CacheKey double limitRam, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+			@CacheKey double limitCpu, @CacheKey double limitRam, @CacheKey Boolean constant,
+			@CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale,
+			@CacheKey Rate cpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-database-type-dyn")
 	@Override
