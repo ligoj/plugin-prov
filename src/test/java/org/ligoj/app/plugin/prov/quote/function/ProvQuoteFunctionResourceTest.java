@@ -104,9 +104,23 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(43.8d, pi.getCostRamRequest());
 		Assertions.assertEquals(25.55d, pi.getCostRamRequestConcurrency());
 		Assertions.assertEquals(1, pi.getMinDuration());
+		Assertions.assertEquals(900000d, pi.getMaxDuration());
 		Assertions.assertEquals(1, pi.getIncrementDuration());
 		Assertions.assertEquals(1d / 1024d, pi.getIncrementRam(), DELTA);
 		Assertions.assertEquals(124.558, lookup.getCost(), DELTA);
+	}
+
+	/**
+	 * Lookup for function supporting 20+ minutes execution duration.
+	 */
+	@Test
+	void lookupDynamicalOverDuration() {
+		// Check with optimized concurrency discovery: failed, keep 1
+		var lookup = qfResource.lookup(subscription,
+				builder().usage("Dev").nbRequests(20).duration(2000000).ram(128).build());
+		var pi = lookup.getPrice();
+		Assertions.assertEquals("FUNCTION3", pi.getCode());
+		Assertions.assertEquals(84.0, lookup.getCost(), DELTA);
 	}
 
 	/**

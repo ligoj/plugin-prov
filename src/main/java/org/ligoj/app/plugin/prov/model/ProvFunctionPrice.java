@@ -74,6 +74,11 @@ public class ProvFunctionPrice extends AbstractTermPriceVm<ProvFunctionType> imp
 	 * Minimal billed duration of a single request. In milliseconds.
 	 */
 	private double minDuration;
+	
+	/**
+	 * Maximal duration of a single request. In milliseconds.
+	 */
+	private Double maxDuration;
 
 
 }

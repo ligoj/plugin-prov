@@ -148,12 +148,13 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NOT NULL
 			  AND ip.incrementRam IS NOT NULL
-			  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)
-			  AND (ip.maxRam IS NULL OR ip.maxRam >=:ram)
+			  AND (ip.maxCpu IS NULL or ip.maxCpu >= :cpu)
+			  AND (ip.maxRam IS NULL OR ip.maxRam >= :ram)
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
+			  AND (ip.maxRamRatio IS NULL OR (CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.maxRamRatio) <= :ram))
 			  AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  AND (ip.maxRamRatio IS NULL OR (CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.maxRamRatio) <= :ram))
 			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
@@ -164,13 +165,14 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types       The valid instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
+	 * @param types           The valid instance type identifiers.
+	 * @param terms           The valid instance terms identifiers.
+	 * @param location        The requested location identifier.
+	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration        The duration in month. Minimum is 1.
+	 * @param initialCost     The maximal initial cost.
+	 * @param requestDuration Average duration of a single request in milliseconds.
+	 * @param pageable        The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
 	@Query("""
@@ -187,9 +189,10 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  AND ip.incrementCpu IS NULL
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
 			  ORDER BY totalCost ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, Pageable pageable);
+			double initialCost, double requestDuration, Pageable pageable);
 
 }

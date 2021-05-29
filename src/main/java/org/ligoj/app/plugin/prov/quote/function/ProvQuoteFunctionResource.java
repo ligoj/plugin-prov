@@ -118,7 +118,8 @@ public class ProvQuoteFunctionResource extends
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
-		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost, PageRequest.of(0, 1));
+		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost,
+				(double) query.getDuration(), PageRequest.of(0, 1));
 	}
 
 	private double MS_PER_MONTH = 1000d /* Milliseconds to Seconds */
