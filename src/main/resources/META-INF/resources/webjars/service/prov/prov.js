@@ -1127,6 +1127,12 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
+		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
+			if(e.currentTarget.checked){
+				$popup.find('div .element-advanced').removeClass('advanced')
+			}else{
+				$popup.find('div .element-advanced').addClass('advanced')
+			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
 			let dynaType = $source.provType();
@@ -1148,8 +1154,8 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			$popup.find('.checkbox-inline input[type=checkbox]:checked').prop("checked", false);
-			$('.checkbox-inline').removeClass('hidden');
+			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
+			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
@@ -2939,7 +2945,7 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					if ($popup.find('.checkbox-inline input[type=checkbox]:checked').is(':checked')) {
+					if($popup.find('.create-another input[type=checkbox]:checked').is(':checked')){
 						current.enableCreate($popup);
 						$(_(inputType + '-name')).focus();
 					} else {
