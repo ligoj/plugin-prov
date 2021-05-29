@@ -578,10 +578,11 @@ define(function () {
 	 */
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
-		return (showName === true ? type.name + ' ' : '') + formatStorageLatency(type.latency) +
-			(type.optimized ? ' ' + formatStorageOptimized(type.optimized) : '') +
-			' ' + formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3) +
-			((qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : '');
+		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
+		${formatStorageLatency(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
+		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		</span>`;
 	}
 
 	/**
@@ -743,6 +744,13 @@ define(function () {
 			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
 		}
 		return '';
+	}
+
+	function formatName(name,mode,obj){
+		if (mode !== 'display'){
+			return name
+		}
+		return `<a data-toggle="modal" data-target="#popup-prov-${obj.resourceType ==="storage"? "storage": "generic"}">${name}</a>`;		
 	}
 
 	/**
@@ -1127,7 +1135,11 @@ define(function () {
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
 			if (dynaType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub ressource
+				if ($source.attr('data-id')) {
+				quote = current.model.configuration[dynaType + 'sById'][$source.attr('data-id')];
+				} else {
 				quote = quote['quote' + dynaType.capitalize()];
+				}
 			}
 			$(this).attr('data-prov-type', dynaType)
 				.find('input[type="submit"]')
@@ -2049,7 +2061,10 @@ define(function () {
 					success: updatedCost => current.defaultCallback(type, updatedCost)
 				});
 			});
-			$('.prov-project .icon').attr('class', `fa-fw ${current.model.node.tool.uiClasses}`);
+			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
+				 $('#popup-prov-storage').modal('show', $(this))
+			});
+			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
