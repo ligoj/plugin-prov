@@ -14,6 +14,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -41,25 +42,26 @@ public class ProvQuoteFunction extends AbstractQuoteVm<ProvFunctionPrice> implem
 	 */
 	@NotNull
 	@NotBlank
-	private String runtime;
+	private String runtime = "Python";
 
 	/**
 	 * The average duration execution in milliseconds.
 	 */
 	@Positive
-	private int duration;
+	private int duration = 100;
 
 	/**
-	 * The monthly amount of executions of this function.
+	 * The monthly amount of million of executions of this function.
 	 */
 	@Positive
-	private long nbRequests;
+	private double nbRequests = 1;
 
 	/**
 	 * The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99
-	 * value and not the actual average.
+	 * value and not the actual average. Can be lesser than 0.
 	 */
-	private int concurrency;
+	@PositiveOrZero
+	private double concurrency = 0;
 
 	@JsonIgnore
 	@OneToMany(mappedBy = "quoteFunction", cascade = CascadeType.REMOVE)

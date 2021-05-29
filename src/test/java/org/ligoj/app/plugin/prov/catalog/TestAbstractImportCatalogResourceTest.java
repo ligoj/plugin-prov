@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -74,9 +75,23 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.setStorageTypes(new HashMap<>());
 		context.getPriceTerms();
 		context.setPriceTerms(new HashMap<>());
+		context.getFunctionTypes();
+		context.setFunctionTypes(new HashMap<>());
+		context.getPreviousFunction();
+		context.setPreviousFunction(new HashMap<>());
 
 		new AbstractUpdateContext(context) {
 		}.cleanup();
+
+	}
+	/**
+	 * Only there for coverage and API contracts.
+	 */
+	@Test
+	void baseUrl() {
+		final var context = newContext();
+		Assertions.assertEquals("https://sample", context.getBaseUrl());
+		Assertions.assertEquals("https://sample/path", context.getUrl("/path"));
 
 	}
 
@@ -344,7 +359,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		nodeRepository = Mockito.mock(NodeRepository.class);
 		configuration = Mockito.mock(ConfigurationResource.class);
 		Mockito.when(nodeRepository.findOneExpected("service:prov:test")).thenReturn(new Node());
-		Mockito.when(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH)).thenReturn(1);
+		Mockito.when(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH)).thenReturn(1);
 		final AbstractUpdateContext context = new AbstractUpdateContext() {
 			// Nothing
 		};
@@ -436,6 +451,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var context = new AbstractUpdateContext() {
 		};
 		context.setNode(node);
+		context.setBaseUrl("https://sample");
 		return context;
 	}
 

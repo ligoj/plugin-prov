@@ -25,29 +25,28 @@ public class QuoteFunctionEditionVo extends AbstractQuoteVmEditionVo implements 
 	 */
 	private static final long serialVersionUID = 1L;
 
-
 	/**
 	 * Return the requested runtime name. No version included.
 	 */
 	@NotBlank
-	private String runtime;
+	private String runtime = "Python";
 
 	/**
 	 * The average duration execution in milliseconds.
 	 */
 	@Positive
-	private int duration;
+	private int duration = 100;
 
 	/**
-	 * The monthly amount of executions of this function.
+	 * The monthly amount of million executions of this function.
 	 */
 	@Positive
-	private long nbRequests;
+	private double nbRequests = 1;
 
 	/**
 	 * The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99
-	 * value and not the actual average.
+	 * value and not the actual average. Can be lesser than 0.
 	 */
 	@PositiveOrZero
-	private int concurrency;
+	private double concurrency = 0;
 }

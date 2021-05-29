@@ -1,0 +1,4 @@
+configuration.name;price.code;name;description;cpu;ram;cost;maxCost;constant;minQuantity;maxQuantity;nbRequest
+quote1;FUNCTION1;function1;functionD1;0.5;2000;100;200;true;1;2
+quote1;FUNCTION2;function2;functionD2;0.25;1000;0;0
+quote3;FUNCTION3;functionX;functionDX;1;2000;;0;0

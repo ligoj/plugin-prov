@@ -22,12 +22,15 @@ import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -52,6 +55,7 @@ import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.function.ProvQuoteFunctionResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
@@ -96,6 +100,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	@Autowired
 	protected ProvLocationRepository locationRepository;
 
+	// Storage
 	@Autowired
 	protected ProvQuoteStorageRepository qsRepository;
 	@Autowired
@@ -105,6 +110,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	@Autowired
 	protected ProvStoragePriceRepository spRepository;
 
+	// Instance
 	@Autowired
 	protected ProvQuoteInstanceResource qiResource;
 	@Autowired
@@ -116,23 +122,37 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	@Autowired
 	protected ProvInstancePriceTermRepository iptRepository;
 
+	// Database
 	@Autowired
 	protected ProvQuoteDatabaseResource qbResource;
 	@Autowired
-	protected ProvQuoteContainerResource qcResource;
-	@Autowired
 	protected ProvQuoteDatabaseRepository qbRepository;
-	@Autowired
-	protected ProvQuoteContainerRepository qcRepository;
 	@Autowired
 	protected ProvDatabasePriceRepository bpRepository;
 	@Autowired
-	protected ProvContainerPriceRepository cpRepository;
-	@Autowired
 	protected ProvDatabaseTypeRepository btRepository;
+
+	// Container
+	@Autowired
+	protected ProvQuoteContainerResource qcResource;
+	@Autowired
+	protected ProvQuoteContainerRepository qcRepository;
+	@Autowired
+	protected ProvContainerPriceRepository cpRepository;
 	@Autowired
 	protected ProvContainerTypeRepository ctRepository;
 
+	// Function
+	@Autowired
+	protected ProvQuoteFunctionResource qfResource;
+	@Autowired
+	protected ProvQuoteFunctionRepository qfRepository;
+	@Autowired
+	protected ProvFunctionPriceRepository fpRepository;
+	@Autowired
+	protected ProvFunctionTypeRepository ftRepository;
+
+	// Support
 	@Autowired
 	protected ProvQuoteSupportResource qs2Resource;
 	@Autowired
@@ -235,8 +255,9 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected FloatingCost checkCost(final FloatingCost cost, final double min, final double max,
 			final boolean unbound) {
-		Assertions.assertEquals(min, cost.getMin(), DELTA);
-		Assertions.assertEquals(max, cost.getMax(), DELTA);
+
+		Assertions.assertEquals(FloatingCost.round(min) + ", " + FloatingCost.round(max),
+				FloatingCost.round(cost.getMin()) + ", " + FloatingCost.round(cost.getMax()));
 		Assertions.assertEquals(unbound, cost.isUnbound());
 		return cost;
 	}

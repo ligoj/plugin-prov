@@ -27,14 +27,14 @@ public interface QuoteFunction extends QuoteVm {
 	 *
 	 * @return The amount of requests per month.
 	 */
-	long getNbRequests();
+	double getNbRequests();
 
 	/**
 	 * The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99
-	 * value and not the actual average.
+	 * value and not the actual average. Can be lesser than 0.
 	 *
 	 * @return The average concurrency of this function.
 	 */
-	int getConcurrency();
+	double getConcurrency();
 
 }

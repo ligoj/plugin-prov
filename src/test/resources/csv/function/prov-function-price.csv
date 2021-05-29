@@ -1,0 +1,9 @@
+location.name;term.name;period;code;cost;costPeriod;initialCost;type.name;costRequests;incrementDuration;minDuration;costRam;costRamRequestConcurrency;costRamRequest;costCpu;minCpu;maxCpu;minRam;maxRam;minRamRatio;maxRamRatio;incrementCpu;incrementRam
+region-1;on-demand1;0;FUNCTION1;116.3;116.3;;function1;1.1;1;0;;;;;;;;;;;;
+region-1;1y;12;FUNCTION2;89.5;1017.4;1017.4;function1;1.2;1;0;;;;;;;;;;;;
+region-1;on-demand1;0;FUNCTION3;168;2034;;function2;1.5;1;0;;;;;;;;;;;;
+region-1;on-demand1;0;FUNCTIOND0;0;0;;functionD0;0.2;1;1;0;0;43.8;0;0;4;0.125;10;0;;1;0.000976563
+region-1;on-demand1;0;FUNCTIOND1;0;0;;functionD1;0.2;1;1;10.95;25.55;43.8;0;0;4;0.125;10;0;;1;0.000976563
+region-1;on-demand1;0;FUNCTIOND2;0;0;;functionD2;0.2;75;100;10.95;25.55;43.8;0;0;4;0.125;10;0;;1;0.125
+region-1;on-demand1;0;FUNCTIOND3;0;0;;functionD3;0.2;75;100;;;43.8;20;0.25;8;0.125;10;0.5;8;2;0.125
+region-5;on-demandE5;0;FUNCTION5;190;190;;function2;1.7;1;0;;;;;;;;;;;;

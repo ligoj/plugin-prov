@@ -121,13 +121,37 @@ public class ProvQuoteFunctionResource extends
 		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost, PageRequest.of(0, 1));
 	}
 
+	private double MS_PER_MONTH = 1000d /* Milliseconds to Seconds */
+			* 3600d /* Seconds to Hours */
+			* ProvResource.DEFAULT_HOURS_MONTH /* Hours to month */;
+
+	private double CONCURRENCY_PER_MONTH = MS_PER_MONTH / 1000000d /* Million requests */;
+
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),
-				Math.ceil(round(ram / 1024)), location, rate, round(rate * duration), duration, initialCost,
-				PageRequest.of(0, 1));
+		var result1 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate, duration, initialCost,
+				Math.floor(query.getConcurrency()), Math.floor(query.getConcurrency()));
+		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
+			// Try the greater concurrency level and keeping the original concurrency assumption
+			var result2 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate, duration, initialCost,
+					query.getConcurrency(), Math.ceil(query.getConcurrency()));
+			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
+				// The second concurrency configuration is cheaper
+				return result2;
+			}
+		}
+		return result1;
+	}
+
+	private List<Object[]> findLowestDynamicPrice(final QuoteFunction query, final List<Integer> types,
+			final List<Integer> terms, final double cpu, final double ram, final int location, final double rate,
+			final int duration, final double initialCost, final double realConcurrency,
+			final double reservedConcurrency) {
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), Math.max(1, ram) / 1024d,
+				location, rate, round(rate * duration), duration, initialCost, query.getNbRequests(), realConcurrency,
+				reservedConcurrency, (double) query.getDuration(), CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
 	}
 
 	@Override

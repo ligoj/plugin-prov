@@ -48,6 +48,16 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	List<Object[]> getContainerSummary(int subscription);
 
 	/**
+	 * Return the function quote summary from the related subscription.
+	 *
+	 * @param subscription The subscription identifier linking the quote.
+	 * @return The quote with aggregated details : Quote, amount of function, total RAM and total CPU.
+	 */
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.nbRequests),0) FROM ProvQuote q LEFT JOIN q.functions AS qi"
+			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
+	List<Object[]> getFunctionSummary(int subscription);
+
+	/**
 	 * Return the storage quote summary from the related subscription.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
