@@ -96,14 +96,7 @@ public abstract class AbstractImportCatalogResource {
 	protected static final String BY_NODE = "node";
 
 	/**
-	 * Default hours per month.
-	 *
-	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
-	 */
-	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
-
-	/**
-	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link #DEFAULT_HOURS_MONTH}.
+	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link ProvResource#DEFAULT_HOURS_MONTH}.
 	 */
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
@@ -205,7 +198,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node, final boolean force) {
 		context.setNode(nodeRepository.findOneExpected(node));
-		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH));
+		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH));
 		context.setForce(force);
 		return context;
 	}
