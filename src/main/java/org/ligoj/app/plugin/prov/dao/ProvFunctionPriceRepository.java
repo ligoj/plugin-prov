@@ -39,17 +39,14 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			SELECT  ip,
 			     (  CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
 			      * (  ip.cost
-			         + (  CEIL(CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END / ip.incrementCpu)
+			         + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			            * ip.incrementCpu
 			            * ip.costCpu
 			            * :reservedConcurrency
 			           )
 			        )
 			     )
-			   + (  CEIL(CASE WHEN (CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END * COALESCE(ip.minRamRatio, 0.0)) > :ram
-			     	     THEN (CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
-			     	     ELSE :ram
-			     	     END / ip.incrementRam)
+			   + (  CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio, 0.0), :ram) / ip.incrementRam)
 			      * ip.incrementRam
 			      * (
 			          (  ip.costRam
@@ -58,29 +55,23 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			          )
 			        + (  CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			           * (
-			               (  CASE
-			                  WHEN ((CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
+			               (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
 			                     * ip.incrementDuration
-			                     * :nbRequests / :concurrencyMonth) < (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  THEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration
-			                     * :nbRequests
-			                     / :concurrencyMonth)
-			                  ELSE (:realConcurrency
-			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END)
-			                  END
+			                     * :nbRequests 
+			                     / :concurrencyMonth, 
+			                       :realConcurrency 
+			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                  )
 				            * ip.costRamRequestConcurrency
 				           )
-				         + (  CASE
-			                  WHEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration * :nbRequests / :concurrencyMonth > (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  THEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration
-			                     * :nbRequests
+				         + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                     * ip.incrementDuration 
+			                     * :nbRequests 
 			                     / :concurrencyMonth
-			                     - (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  ELSE 0.0
-			                  END
+			                   -   :realConcurrency 
+			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                     0.0
+			                  )
 				            * ip.costRamRequest
 				           )
 				         )
@@ -94,17 +85,14 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 
 			     (  CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
 			      * (  ip.cost
-			         + (  CEIL(CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END / ip.incrementCpu)
+			         + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			            * ip.incrementCpu
 			            * ip.costCpu
 			            * :reservedConcurrency
 			           )
 			        )
 			     )
-			   + (  CEIL(CASE WHEN (CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END * COALESCE(ip.minRamRatio, 0.0)) > :ram
-			     	     THEN (CASE WHEN ip.minCpu > :cpu THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
-			     	     ELSE :ram
-			     	     END / ip.incrementRam)
+			   + (  CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio, 0.0), :ram) / ip.incrementRam)
 			      * ip.incrementRam
 			      * (
 			          (  ip.costRam
@@ -112,34 +100,25 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			           * :reservedConcurrency
 			          )
 			        + (
-			             (
-			               (  CASE
-			                  WHEN ((CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration
-			                     * :nbRequests / :concurrencyMonth) < (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  THEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration
-			                     * :nbRequests
-			                     / :concurrencyMonth
-			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END)
-			                  ELSE (:realConcurrency
-			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END)
-			                  END
-				            * ip.costRamRequestConcurrency
-				           )
-				         + (  CASE
-			                  WHEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration * :nbRequests / :concurrencyMonth > (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  THEN (CEIL(CASE WHEN (ip.minDuration > :requestDuration) THEN ip.minDuration ELSE :requestDuration END / ip.incrementDuration)
-			                     * ip.incrementDuration
-			                     * :nbRequests
-			                     / :concurrencyMonth
-			                     - (:realConcurrency * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END))
-			                  ELSE 0.0
-			                  END
-				            * ip.costRamRequest
-				           )
-				         )
+			            (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                  * ip.incrementDuration
+			                  * :nbRequests 
+			                  / :concurrencyMonth,
+			                    :realConcurrency 
+			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			               )
+				         * ip.costRamRequestConcurrency
+				        )
+				      + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                  * ip.incrementDuration 
+			                  * :nbRequests 
+			                  / :concurrencyMonth 
+			                -   :realConcurrency 
+			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                  0.0
+			                )
+				         * ip.costRamRequest
+				        )
 				      )
 				    )
 			     )
@@ -151,7 +130,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  AND (ip.maxCpu IS NULL or ip.maxCpu >= :cpu)
 			  AND (ip.maxRam IS NULL OR ip.maxRam >= :ram)
 			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
-			  AND (ip.maxRamRatio IS NULL OR (CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.maxRamRatio) <= :ram))
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
 			  AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
