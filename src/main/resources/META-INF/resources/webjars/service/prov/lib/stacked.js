@@ -131,7 +131,15 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('y', getLegendY)
                 .attr('height', 18)
                 .attr('width', 18)
-                .attr('fill', d => color(d));
+                .attr('fill', d => color(d))
+
+            legend.append("svg:foreignObject")
+                .attr('x', margin.left - 63)
+                .attr('y', getLegendY)
+                .attr('height', 18)
+                .attr('width', 18)
+                .style('color','white')
+                .html(d => `<i class="${d === 'instance' ? "fas fa-server" : d === 'database' ? "fa fa-database" : d === 'container' ? "fab fa-docker" : d === 'storage' ? "far fa-hdd" :"fas fa-ambulance"}" data-toggle="tooltip" title="${d}"></i>`);
 
             legend.append('text')
                 .attr('x', margin.left - 70)
@@ -239,8 +247,21 @@ define(['d3', 'jquery'], function (d3) {
             legend.selectAll('rect')
                 .transition()
                 .duration(transDuration)
-                .attr('height', d => choice(chosen.cluster, d, 18, 18, 0))
+                .attr('height', d => choice(chosen.cluster, d, 20, 20, 0))
                 .attr('y', getLegendY)
+
+            legend.selectAll('foreignObject')
+                .transition()
+                .duration(transDuration)
+                .attr('y', getLegendY)
+                .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
+                .attr('x', function (d) {
+                    return choice(chosen.cluster, d,
+                        margin.left - 63,
+                        margin.left - 63,
+                        margin.left - 63 -30);
+                });
+
             legend.selectAll('text')
                 .transition()
                 .duration(transDuration)
