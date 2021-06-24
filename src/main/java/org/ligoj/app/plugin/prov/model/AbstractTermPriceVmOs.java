@@ -3,8 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.io.Serializable;
-
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
@@ -26,7 +24,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = { "os" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPriceVmOs<T extends ProvType> extends AbstractTermPrice<T> implements Serializable {
+public abstract class AbstractTermPriceVmOs<T extends ProvType> extends AbstractTermPriceVm<T> {
 
 	/**
 	 * SID

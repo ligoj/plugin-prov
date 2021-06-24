@@ -89,6 +89,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("physical")
 	private Boolean physical;
 
+	/**
+	 * When <code>true</code> ephemeral instances are accepted.
+	 */
 	@QueryParam("ephemeral")
 	private boolean ephemeral;
 

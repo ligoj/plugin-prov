@@ -109,6 +109,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
+		Assertions.assertEquals("{}", vo.getUiSettings());
+
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
@@ -127,10 +129,11 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("region-5", vo.getLocations().get(2).getName());
 
 		// Processor
-		Assertions.assertEquals(3, vo.getProcessors().size());
+		Assertions.assertEquals(4, vo.getProcessors().size());
 		Assertions.assertEquals(3, vo.getProcessors().get("instance").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("database").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("container").size());
+		Assertions.assertEquals(0, vo.getProcessors().get("function").size());
 
 		// Check compute
 		final var instances = vo.getInstances();
@@ -696,12 +699,14 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().getDatabases();
 		new ProvQuote().getContainers();
+		new ProvQuote().getFunctions();
 		new ProvQuote().getTags();
 		new ProvQuote().setTags(null);
 		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
 		new ProvQuote().setDatabases(null);
 		new ProvQuote().setContainers(null);
+		new ProvQuote().setFunctions(null);
 		new ProvQuoteInstance().setStorages(null);
 		new ProvQuoteContainer().setStorages(null);
 		new UpdatedCost(0).setDeleted(null);
@@ -882,6 +887,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void update() {
 		final var quote = newQuoteEdition();
 		quote.setName("name1");
+		quote.setUiSettings("""
+				{"tagColors":{"prod":"#FF0000"}}""");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		quote.setBudget("Dept1");
@@ -891,8 +898,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
+		Assertions.assertEquals("""
+				{"tagColors":{"prod":"#FF0000"}}""", quote2.getUiSettings());
 
-		// Performe another identical update
+		// Perform another identical update
 		final var cost2 = resource.update(subscription, quote);
 		checkCost(cost2, 3165.4, 5615.0, false);
 	}

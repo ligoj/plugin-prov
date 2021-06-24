@@ -1,8 +1,8 @@
-node.id;code;name;latency;optimized;description;minimal;maximal;instanceType;iops;throughput;availability;durability9;databaseType;notDatabaseType;containerType;notContainerType;engine;network
-service:prov:test;storage1;storage1;GOOD;IOPS;storageD1;;;%;200;60;99.99;11;;;;;;443/tcp
-service:prov:test;storage2;storage2;MEDIUM;THROUGHPUT;storageD2;512;512;%;;;;;;;%;none;
-service:prov:test;storage3;storage3;LOW;DURABILITY;storageD3;;;;;;;;;;;;
-service:prov:test;storage4;storage4;BEST;;storageD4;;;%;;;;;;;;;
-service:prov:test;storage5-database;storage5-database;BEST;IOPS;storageD5;;;;;;;;%;;;;
-service:prov:test;storage7-database;storage7-database;BEST;IOPS;storageD7;;;;;;;;%;;;;ORACLE
-service:prov:x;storagex;storageX;BEST;;storageD1;;;%;;;;;;;;
+node.id;code;name;latency;optimized;description;minimal;maximal;instanceType;iops;throughput;availability;durability9;databaseType;notDatabaseType;containerType;notContainerType;functionType;notFunctionType;engine;network
+service:prov:test;storage1;storage1;GOOD;IOPS;storageD1;;;%;200;60;99.99;11;;;;;;;;443/tcp
+service:prov:test;storage2;storage2;MEDIUM;THROUGHPUT;storageD2;512;512;%;;;;;;;%;;%;;none;
+service:prov:test;storage3;storage3;LOW;DURABILITY;storageD3;;;;;;;;;;;;;;;
+service:prov:test;storage4;storage4;BEST;;storageD4;;;%;;;;;;;;;;;;
+service:prov:test;storage5-database;storage5-database;BEST;IOPS;storageD5;;;;;;;;%;;;;;;;
+service:prov:test;storage7-database;storage7-database;BEST;IOPS;storageD7;;;;;;;;%;;;;;;ORACLE;
+service:prov:x;storagex;storageX;BEST;;storageD1;;;%;;;;;;;;;;;;

@@ -33,7 +33,7 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends AbstractQuote<P>
+public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends AbstractQuote<P>
 		implements QuoteVm, ResourceScope {
 
 	/**

@@ -14,8 +14,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * An priced database instance with billing configuration. <br>
- * The cost attribute is the corresponding effective monthly cost of this instance. Includes the initial cost to allow
+ * An priced term based resource with billing configuration. <br>
+ * The cost attribute is the corresponding effective monthly cost of this resource. Includes the initial cost to allow
  * quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
  * <code>cost - (initialCost / 24 / 365)</code>.
  *
@@ -23,7 +23,7 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString(of = { "term", "license" }, callSuper = true)
+@ToString(of = { "term" }, callSuper = true)
 @MappedSuperclass
 public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPrice<T> implements Serializable {
 
@@ -49,49 +49,8 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	 */
 	private double period = 0;
 
-	/**
-	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
-	 */
-	private Double costCpu;
-
-	/**
-	 * The optional monthly cost of one requested GB memory. Required for dynamic instance type.
-	 */
-	private Double costRam;
-
-	/**
-	 * Increment CPU step. Required for dynamic instance type.
-	 */
-	private Double incrementCpu;
-
-	/**
-	 * Minimal CPU. Required for dynamic instance type.
-	 */
-	private Double minCpu;
-
-	/**
-	 * Maximal CPU. Only valid for dynamic instance type.
-	 */
-	private Double maxCpu;
-
-	/**
-	 * Minimal memory in "GiB" = "Gigi Bytes". Required for dynamic instance type.
-	 */
-	private Double minRam;
-
-	/**
-	 * Maximal memory in "GiB" = "Gigi Bytes". Only valid for dynamic instance type.
-	 */
-	private Double maxRam;
-
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;
-
-	/**
-	 * Optional built-in license model. Special license term is <code>BYOL</code>. When <code>null</code>, license is
-	 * included in the price or not applicable.
-	 */
-	private String license;
 
 }
