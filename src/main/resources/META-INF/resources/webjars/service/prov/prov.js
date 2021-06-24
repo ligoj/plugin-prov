@@ -2070,7 +2070,7 @@ define(function () {
 			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
 				 $('#popup-prov-storage').modal('show', $(this))
 			});
-			$('.prov-project .icon').attr('class',`fa-fw ${current.model.node.tool.uiClasses}`);
+			$('.service-icon').addClass(`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
 
 			_('popup-prov-update').on('shown.bs.modal', function () {
