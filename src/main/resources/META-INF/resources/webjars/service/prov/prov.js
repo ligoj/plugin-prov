@@ -13,11 +13,12 @@ define(function () {
 	/**
 	 * Enable resource type.
 	 */
-	const types = ['instance', 'database', 'container', 'storage', 'support'];
+	const types = ['instance', 'database', 'container', 'function', 'storage', 'support'];
 	const typeIcons = {
 		instance: 'fas fa-server',
 		database: 'fas fa-database',
 		container: 'fab fa-docker',
+		function: 'fas fa-code',
 		storage: 'far fa-hdd',
 		support: 'fas fa-ambulance'
 	};
@@ -25,7 +26,7 @@ define(function () {
 	/**
 	 * Enable resource type to relatable to storages.
 	 */
-	const typesStorage = ['instance', 'database', 'container'];
+	const typesStorage = ['instance', 'database', 'container', 'function'];
 
 	/**
 	 * OS key to markup/label mapping.
@@ -737,6 +738,8 @@ define(function () {
 			obj = conf.locationsById[data.quoteContainer.price.location];
 		} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
 			obj = conf.locationsById[data.quoteDatabase.price.location];
+		} else if (data.quoteFunction && data.quoteFunction.price.location) {
+			obj = conf.locationsById[data.quoteFunction.price.location];
 		} else {
 			obj = current.model.configuration.location;
 		}
@@ -1007,7 +1010,7 @@ define(function () {
 			},
 			data: function () {
 				return {
-					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).map(r => {
+					results: current.model.configuration.instances.concat(current.model.configuration.databases).concat(current.model.configuration.containers).concat(current.model.configuration.functions).map(r => {
 						r.text = r.name;
 						return r;
 					})
@@ -1567,10 +1570,13 @@ define(function () {
 			if (quote.nbDatabases) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
 			}
+			if (quote.nbFunctions) {
+				resources.push('<span class="sub-item">' + current.$super('icon')('function', 'service:prov:nb-functions') + quote.nbFunctions + ' Function</span>');
+			}
 			if (quote.nbContainers) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containers') + quote.nbContainers + ' Containers</span>');
 			}
-			if (quote.nbInstances || quote.nbDatabases || quote.nbContainers) {
+			if (quote.nbInstances || quote.nbDatabases || quote.nbContainers || quote.nbFunctions) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
 				resources.push('<span class="sub-item">' + current.$super('icon')('memory', 'service:prov:total-ram') + formatRam(quote.totalRam) + '</span>');
 			}
@@ -1617,7 +1623,7 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			['usage', 'budget', 'instance', 'database', 'container', 'storage'].forEach(type => toIds(conf, type));
+			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
@@ -1708,7 +1714,7 @@ define(function () {
 				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queriesArray.join('&'),
 				type: 'GET',
 				success: function (suggest) {
-					current[type + 'SetUiPrice'](suggest);
+					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						// The resource is valid, enable the create
 						current.enableCreate($popup);
@@ -1760,7 +1766,7 @@ define(function () {
 		},
 
 		/**
-		 * Set the current instance/database/container price.
+		 * Set the current instance/database/container/function price.
 		 */
 		genericSetUiPrice: function (quote) {
 			if (quote && quote.price) {
@@ -1778,27 +1784,6 @@ define(function () {
 			} else {
 				_('instance-price').select2('data', null);
 			}
-		},
-
-		/**
-		 * Set the current instance price.
-		 */
-		instanceSetUiPrice: function (quote) {
-			current.genericSetUiPrice(quote);
-		},
-
-		/**
-		 * Set the current database price.
-		 */
-		databaseSetUiPrice: function (quote) {
-			current.genericSetUiPrice(quote);
-		},
-
-		/**
-		 * Set the current container price.
-		 */
-		containerSetUiPrice: function (quote) {
-			current.genericSetUiPrice(quote);
 		},
 
 		/**
@@ -2002,7 +1987,7 @@ define(function () {
 
 						var filter = settings.oPreviousSearch.sSearchAlt || '';
 						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
-							// Only storage rows unrelated to filtered instance/database/container can be displayed
+							// Only storage rows unrelated to filtered instance/database/container/function can be displayed
 							// There are 2 operators: 
 							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
 							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
@@ -2051,7 +2036,7 @@ define(function () {
 			types.forEach(type => current[type + 'TableFilter'] = '');
 			types.forEach(type => {
 				current.initializeDataTableEvents(type);
-				if (type !== 'database' && type !== 'container') {
+				if (type !== 'database' && type !== 'container' && type !== 'function') {
 					initializePopupEvents(type);
 				}
 			});
@@ -2710,6 +2695,14 @@ define(function () {
 			current.computeCommitToModel(data, model);
 		},
 
+		functionCommitToModel: function (data, model) {
+			current.computeCommitToModel(data, model);
+			model.nbRequests = data.nbRequests;
+			model.concurrency = data.concurrency;
+			model.duration = data.duration;
+
+		},
+
 		databaseCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
 			model.engine = data.engine;
@@ -2767,6 +2760,13 @@ define(function () {
 
 		containerUiToData: function (data) {
 			current.computeUiToData(data);
+		},
+
+		functionUiToData: function (data) {
+			current.computeUiToData(data);
+			data.nbRequests = cleanInt(_('function-nbRequests').val()) || 0;
+			data.concurrency = cleanInt(_('function-concurrency').val()) || 0;
+			data.duration = cleanInt(_('function-duration').val()) || 0;
 		},
 
 		databaseUiToData: function (data) {
@@ -2828,7 +2828,7 @@ define(function () {
 			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
 			current.updateAutoScale();
-			current.instanceSetUiPrice(quote);
+			current.genericSetUiPrice(quote);
 		},
 
 		/**
@@ -2848,6 +2848,17 @@ define(function () {
 		},
 
 		/**
+		 * Fill the function popup with given entity or default values.
+		 * @param {Object} quote, the entity corresponding to the quote.
+		 */
+		functionToUi: function (quote) {
+			current.computeToUi(quote);
+			_('function-nbRequests').val(quote.nbRequests || 1);
+			_('function-concurrency').val(quote.concurrency || 0);
+			_('function-duration').val(quote.duration || 100);
+		},
+
+		/**
 		 * Fill the database popup with given entity or default values.
 		 * @param {Object} quote, the entity corresponding to the quote.
 		 */
@@ -2856,7 +2867,7 @@ define(function () {
 			_('database-engine').select2('data', current.select2IdentityData(quote.engine || 'MYSQL'));
 			_('database-edition').select2('data', current.select2IdentityData(quote.edition || null));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PRIVATE'));
-			current.instanceSetUiPrice(quote);
+			current.genericSetUiPrice(quote);
 		},
 
 		/**
@@ -2883,7 +2894,7 @@ define(function () {
 			_('storage-size').val((quote && quote.size) || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
-			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || null);
+			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || quote.quoteFunction || null);
 			current.storageSetUiPrice(quote);
 		},
 
@@ -2913,7 +2924,7 @@ define(function () {
 		},
 
 		/**
-		 * Save a storage or an instance in the database from the corresponding popup. Handle the cost delta,  update the model, then the UI.
+		 * Save a storage or an instance/database/.. from the corresponding popup. Handle the cost delta,  update the model, then the UI.
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
@@ -3064,6 +3075,16 @@ define(function () {
 			}
 		},
 
+		updateFunctionUiConst: function (stats) {
+			let $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
+			if (stats.function.nbRequests) {
+				current.updateSummary($summary, stats.nbRequests);
+				$summary.find('.requests').find('span').text(stats.function.nbRequests);
+			} else {
+				$summary.addClass('hidden');
+			}
+		},
+
 		/**
 		 * Update the total cost of the quote.
 		 */
@@ -3108,6 +3129,9 @@ define(function () {
 
 			// Container summary
 			current.updateComputeUiConst(stats, 'container');
+
+			// Function summary
+			current.updateFunctionUiConst(stats);
 
 			// Database summary
 			let $summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
@@ -3300,7 +3324,7 @@ define(function () {
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
-					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi).usage || usage;
+					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer|| qi.quoteFunction || qi).usage || usage;
 					let start = rUsage.start || 0;
 					return start <= filterDate;
 				});
@@ -3388,6 +3412,9 @@ define(function () {
 			// Instance statistics
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => {
+				r.nbRequests += qi.nbRequests;
+			});
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
 				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
 				r.engines[engine] = (r.engines[engine] || 0) + 1;
@@ -3404,6 +3431,8 @@ define(function () {
 					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
 				} else if (qs.quoteDatabase) {
 					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
+				} else if (qs.quoteFunction) {
+					nb = 1;
 				} else if (qs.quoteContainer) {
 					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
 				} else {
@@ -3414,7 +3443,7 @@ define(function () {
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer;
+				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
 					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
 						timeline[t].storage += qs.cost;
@@ -3584,7 +3613,11 @@ define(function () {
 				});
 			});
 		},
-
+		functionToD3: function (data, stats) {
+			stats.function.filtered.forEach(qi => {
+				data.value += qi.cost;
+			});
+		},
 		storageToD3: function (data, stats) {
 			data.name = current.$messages['service:prov:storages-block'];
 			var allOptimizations = {};
@@ -3654,6 +3687,24 @@ define(function () {
 			return current.computeNewTable('container');
 		},
 
+		/**
+		 * Initialize the function data tables from the whole quote
+		 */
+		 functionNewTable: function () {
+			return current.computeNewTable('function', [{
+				data: 'nbRequests',
+				type: 'num',
+				className: 'truncate'
+			},{
+				data: 'duration',
+				type: 'num',
+				className: 'truncate'
+			},{
+				data: 'concurrency',
+				type: 'num',
+				className: 'truncate'
+			}]);
+		},
 		/**
 		 * Initialize the support data tables from the whole quote
 		 */
@@ -3736,7 +3787,7 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer))
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer|| data.quoteFunction))
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3762,7 +3813,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer)
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer|| data.quoteFunction)
 				}]
 			};
 		},
@@ -3802,12 +3853,13 @@ define(function () {
 			}]);
 		},
 
+
 		rowCallback: function ($row, data) {
 			current.tagManager.select2($row, data);
 		},
 
 		/**
-		 * Initialize the database/instance/container data tables from the whole quote
+		 * Initialize the database/... data tables from the whole quote
 		 */
 		genericInstanceNewTable: function (type, columns) {
 			return {
@@ -3850,6 +3902,7 @@ define(function () {
 								size: suggest.size,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
+								function: type === 'function' && qi.id,
 								container: type === 'container' && qi.id,
 								subscription: current.model.subscription,
 								optimized: suggest.price.type.optimized,
@@ -4055,7 +4108,7 @@ define(function () {
 					delete conf[type + 'sById'][resource.id];
 					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
-						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer;
+						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer || resource.quoteFunction;
 						if (qr) {
 							// Also redraw the instance
 							var attachedType = qr.resourceType;
