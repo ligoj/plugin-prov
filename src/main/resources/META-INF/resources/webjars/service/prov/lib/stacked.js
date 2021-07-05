@@ -139,7 +139,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('height', 18)
                 .attr('width', 18)
                 .style('color','white')
-                .html(d => `<i class="${d === 'instance' ? "fas fa-server" : d === 'database' ? "fa fa-database" : d === 'container' ? "fab fa-docker" : d === 'storage' ? "far fa-hdd" :"fas fa-ambulance"}" data-toggle="tooltip" title="${d}"></i>`);
+                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" title="${d}"></i>`);
 
             legend.append('text')
                 .attr('x', margin.left - 70)
