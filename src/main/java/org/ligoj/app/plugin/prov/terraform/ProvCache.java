@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov.terraform;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.cache.expiry.Duration;
 import javax.cache.expiry.ModifiedExpiryPolicy;
@@ -33,48 +34,31 @@ public class ProvCache implements CacheManagerAware {
 				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
 						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
 		cacheManager.createCache("prov-location", cfgPL);
-		createCache(cacheManager, provider, "prov-processor");
 
 		// Instance cache configurations
-		createCacheEvict(cacheManager, provider, "prov-instance-type");
-		createCacheEvict(cacheManager, provider, "prov-instance-type-dyn");
-		createCacheEvict(cacheManager, provider, "prov-instance-type-has-dyn");
-		createCacheEvict(cacheManager, provider, "prov-instance-term");
-		createCache(cacheManager, provider, "prov-instance-software");
-		createCache(cacheManager, provider, "prov-instance-license");
-		createCache(cacheManager, provider, "prov-instance-os");
+		createCacheEvict(cacheManager, provider, "prov-instance-type", "prov-instance-type-dyn",
+				"prov-instance-type-has-dyn", "prov-instance-term", "prov-database-type", "prov-database-type-dyn",
+				"prov-database-type-has-dyn", "prov-container-type", "prov-container-type-dyn",
+				"prov-container-type-has-dyn", "prov-function-type", "prov-function-type-dyn",
+				"prov-function-type-has-dyn");
+		createCache(cacheManager, provider, "prov-processor", "prov-instance-software", "prov-instance-license",
+				"prov-instance-os", "prov-database-engine", "prov-database-edition", "prov-database-license",
+				"prov-container-license", "prov-container-os");
 
-		// Database cache configurations
-		createCacheEvict(cacheManager, provider, "prov-database-type");
-		createCacheEvict(cacheManager, provider, "prov-database-type-dyn");
-		createCacheEvict(cacheManager, provider, "prov-database-type-has-dyn");
-		createCache(cacheManager, provider, "prov-database-engine");
-		createCache(cacheManager, provider, "prov-database-edition");
-		createCache(cacheManager, provider, "prov-database-license");
-
-		// Container cache configurations
-		createCacheEvict(cacheManager, provider, "prov-container-type");
-		createCacheEvict(cacheManager, provider, "prov-container-type-dyn");
-		createCacheEvict(cacheManager, provider, "prov-container-type-has-dyn");
-		createCache(cacheManager, provider, "prov-container-license");
-		createCache(cacheManager, provider, "prov-container-os");
-
-		// Function cache configurations
-		createCacheEvict(cacheManager, provider, "prov-function-type");
-		createCacheEvict(cacheManager, provider, "prov-function-type-dyn");
-		createCacheEvict(cacheManager, provider, "prov-function-type-has-dyn");
 	}
 
 	private void createCache(final HazelcastCacheManager cacheManager,
-			final Function<String, CacheConfig<?, ?>> provider, final String name) {
-		cacheManager.createCache(name, provider.apply(name));
+			final Function<String, CacheConfig<?, ?>> provider, final String... names) {
+		Stream.of(names).forEach(name -> cacheManager.createCache(name, provider.apply(name)));
 	}
 
 	private void createCacheEvict(final HazelcastCacheManager cacheManager,
-			final Function<String, CacheConfig<?, ?>> provider, final String name) {
-		final var cfgPIT = provider.apply(name)
-				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
-						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
-		cacheManager.createCache(name, cfgPIT);
+			final Function<String, CacheConfig<?, ?>> provider, final String... names) {
+		Stream.of(names).forEach(name -> {
+			final var cfgPIT = provider.apply(name)
+					.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
+							.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
+			cacheManager.createCache(name, cfgPIT);
+		});
 	}
 }

@@ -31,9 +31,9 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param realConcurrency     The actual concurrency.
 	 * @param reservedConcurrency The concurrency to reserve.
 	 * @param requestDuration     Average duration of a single request in milliseconds.
+	 * @param concurrencyMonth    Constant value. Milliseconds per month per million requests.
 	 * @param ramMonth            Amount of GiB RAM used for one month whatever the time window.
 	 * @param pageable            The page control to return few item.
-	 * @return The minimum instance price or empty result. TODO Use "GREATEST" function
 	 */
 	@Query("""
 			SELECT  ip,
@@ -57,18 +57,18 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			           * (
 			               (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
 			                     * ip.incrementDuration
-			                     * :nbRequests 
-			                     / :concurrencyMonth, 
-			                       :realConcurrency 
+			                     * :nbRequests
+			                     / :concurrencyMonth,
+			                       :realConcurrency
 			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
 			                  )
 				            * ip.costRamRequestConcurrency
 				           )
 				         + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
-			                     * ip.incrementDuration 
-			                     * :nbRequests 
+			                     * ip.incrementDuration
+			                     * :nbRequests
 			                     / :concurrencyMonth
-			                   -   :realConcurrency 
+			                   -   :realConcurrency
 			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
 			                     0.0
 			                  )
@@ -102,18 +102,18 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			        + (
 			            (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
 			                  * ip.incrementDuration
-			                  * :nbRequests 
+			                  * :nbRequests
 			                  / :concurrencyMonth,
-			                    :realConcurrency 
+			                    :realConcurrency
 			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
 			               )
 				         * ip.costRamRequestConcurrency
 				        )
 				      + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
-			                  * ip.incrementDuration 
-			                  * :nbRequests 
-			                  / :concurrencyMonth 
-			                -   :realConcurrency 
+			                  * ip.incrementDuration
+			                  * :nbRequests
+			                  / :concurrencyMonth
+			                -   :realConcurrency
 			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
 			                  0.0
 			                )
