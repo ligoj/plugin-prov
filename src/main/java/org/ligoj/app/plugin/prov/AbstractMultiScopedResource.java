@@ -165,10 +165,8 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 			// Update cost of all instances without explicit resource
 			quoteSetter.accept(quote, null);
 		}
-		instances.forEach(i -> quoteSetter.accept(i, null));
-		databases.forEach(i -> quoteSetter.accept(i, null));
-		containers.forEach(i -> quoteSetter.accept(i, null));
-		functions.forEach(i -> quoteSetter.accept(i, null));
+		Stream.of(instances, databases, containers, functions)
+				.forEach(l -> l.forEach(i -> quoteSetter.accept(i, null)));
 		bRessource.lean(quote, instances, databases, containers, functions, cost.getRelated());
 
 		// All references are deleted, delete the parent entity

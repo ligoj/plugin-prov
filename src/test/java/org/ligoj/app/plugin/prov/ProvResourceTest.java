@@ -129,10 +129,11 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("region-5", vo.getLocations().get(2).getName());
 
 		// Processor
-		Assertions.assertEquals(3, vo.getProcessors().size());
+		Assertions.assertEquals(4, vo.getProcessors().size());
 		Assertions.assertEquals(3, vo.getProcessors().get("instance").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("database").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("container").size());
+		Assertions.assertEquals(0, vo.getProcessors().get("function").size());
 
 		// Check compute
 		final var instances = vo.getInstances();
@@ -698,12 +699,14 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().getDatabases();
 		new ProvQuote().getContainers();
+		new ProvQuote().getFunctions();
 		new ProvQuote().getTags();
 		new ProvQuote().setTags(null);
 		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
 		new ProvQuote().setDatabases(null);
 		new ProvQuote().setContainers(null);
+		new ProvQuote().setFunctions(null);
 		new ProvQuoteInstance().setStorages(null);
 		new ProvQuoteContainer().setStorages(null);
 		new UpdatedCost(0).setDeleted(null);

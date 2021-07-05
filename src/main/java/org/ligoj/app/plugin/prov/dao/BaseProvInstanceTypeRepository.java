@@ -32,7 +32,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	List<String> findProcessors(String node);
 
 	/**
-	 * Return the valid database types matching the requirements.
+	 * Return the valid instance types matching the requirements.
 	 *
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
 	 * @param cpu         The minimum CPU.
@@ -48,7 +48,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param ramRate     Optional minimal RAM rate.
 	 * @param networkRate Optional minimal network rate.
 	 * @param storageRate Optional minimal storage rate.
-	 * @return The matching database instance types.
+	 * @return The matching instance types.
 	 */
 	@Query("""
 			SELECT id FROM #{#entityName} WHERE

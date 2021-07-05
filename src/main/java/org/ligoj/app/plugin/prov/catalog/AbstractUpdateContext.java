@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
 import org.ligoj.app.plugin.prov.model.ProvContainerType;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
@@ -56,15 +57,6 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	private final Map<String, ProvLocation> mapRegionById = new HashMap<>();
-
-	/**
-	 * Mapping from API region identifier to region definition.
-	 * 
-	 * @deprecated
-	 */
-	@Getter
-	@Deprecated
-	private final Map<String, ProvLocation> mapRegionToName = mapRegionById;
 
 	/**
 	 * The previously installed instance types. Key is the instance code.
@@ -238,7 +230,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private double hoursMonth = AbstractImportCatalogResource.DEFAULT_HOURS_MONTH;
+	private double hoursMonth = (double) ProvResource.DEFAULT_HOURS_MONTH;
 
 	protected AbstractUpdateContext(AbstractUpdateContext parent) {
 		this();

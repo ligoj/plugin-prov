@@ -39,6 +39,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 *                  in the same provider. When <code>null</code>, only database storage compatible is excluded.
 	 * @param container The optional requested quote container identifier to be associated. The related container must
 	 *                  be in the same provider.
+	 * @param function  The optional requested quote function identifier to be associated. The related function must be
+	 *                  in the same provider.
 	 * @param optimized The optional requested optimized. May be <code>null</code>.
 	 * @param location  The expected location identifier.
 	 * @param qLocation The default location identifier.
@@ -82,6 +84,18 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			     WHERE qc.id = :container
 			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
 			      AND (type.code LIKE st.containerType))))
+			 AND (:function IS NULL OR st.notFunctionType IS NULL
+			   OR EXISTS(SELECT 1 FROM ProvQuoteFunction qc
+			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
+			     WHERE qc.id = :function
+			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
+			      AND (type.code NOT LIKE st.notFunctionType)))
+			 AND (:function IS NULL OR (st.functionType IS NOT NULL
+			   AND EXISTS(SELECT 1 FROM ProvQuoteFunction qc
+			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
+			     WHERE qc.id = :function
+			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
+			      AND (type.code LIKE st.functionType))))
 			 AND (:database IS NULL OR st.notDatabaseType IS NULL
 			    OR EXISTS(SELECT 1 FROM ProvQuoteDatabase qb
 			        LEFT JOIN qb.price price
@@ -101,7 +115,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))
 			 ORDER BY cost ASC, latency DESC""")
 	List<Object[]> findLowestPrice(String node, double size, Rate latency, Integer instance, Integer database,
-			Integer container, ProvStorageOptimized optimized, int location, int qLocation, Pageable pageable);
+			Integer container, Integer function, ProvStorageOptimized optimized, int location, int qLocation,
+			Pageable pageable);
 
 	/**
 	 * Return the {@link ProvStoragePrice} by it's name and the location and related to given subscription.

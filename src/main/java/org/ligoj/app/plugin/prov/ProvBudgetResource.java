@@ -195,16 +195,17 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			log.info("Monthly costs:{}", c.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
 			log.info("Monthly cost: {}", c.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Initial cost: {}", c.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-		}, instances, databases);
+		}, instances, databases, containers, functions);
 	}
 
 	/**
 	 * Logger as needed.
 	 */
 	private void logLean(final Consumer<List<? extends AbstractQuoteVm<?>>> logger,
-			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases) {
+			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases,
+			final List<ProvQuoteContainer> containers, final List<ProvQuoteFunction> functions) {
 		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
-			List.of(instances, databases).stream().forEach(logger::accept);
+			List.of(instances, databases, containers, functions).stream().forEach(logger::accept);
 		}
 	}
 
@@ -237,7 +238,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		logLean(c -> log.info("Start lean: {}",
 				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").collect(Collectors.toList())),
-				instances, databases);
+				instances, databases, containers, functions);
 
 		// Lookup the best prices
 		// And build the pack candidates
@@ -253,7 +254,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 						+ " -> " + e.getValue().getPrice().getCode() + ")").collect(Collectors.toList()));
 
 		// Pack the prices having an initial cost
-		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, costs);
+		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
 		// Commit this pack
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
@@ -265,7 +266,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			log.info("Lean monthly costs:{}", t.stream().map(i -> i.getPrice().getCost()).collect(Collectors.toList()));
 			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
-		}, validatedQi, validatedQb);
+		}, validatedQi, validatedQb, validatedQc, validatedQf);
 		logLean(c -> log.info("Total intitialCost:{}", c), init);
 		return FloatingCost.round(init);
 	}
@@ -273,7 +274,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
 			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
 			final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
-			final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		if (packToQr.isEmpty()) {
 			return 0d;
 		}
@@ -290,8 +291,10 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 				validatedQi.add((ProvQuoteInstance) i);
 			} else if (i.getResourceType() == ResourceType.DATABASE) {
 				validatedQb.add((ProvQuoteDatabase) i);
-			} else {
+			} else if (i.getResourceType() == ResourceType.CONTAINER) {
 				validatedQc.add((ProvQuoteContainer) i);
+			} else {
+				validatedQf.add((ProvQuoteFunction) i);
 			}
 		});
 		logLean(b -> {

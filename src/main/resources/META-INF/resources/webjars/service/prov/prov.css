@@ -356,6 +356,12 @@ img.flag-icon.prov-location-flag {
   display: none;
 }
 
+@media (max-width: 993px) {
+  .retracted #service-prov-menu a{
+    display:none;
+  }
+}
+
 .retracted #prov-defaults legend {
   font-size: 16px;
 }
@@ -483,4 +489,10 @@ img.flag-icon.prov-location-flag {
 #instance-constant,
 #instance-ram-unit {
   width: 93px;
+}
+#subscribe-configuration-prov .modal .element-advanced:not(.advanced) {
+  display: none
+}
+#subscribe-configuration-prov .select2-search-choice [data-prov-type] {
+  cursor: pointer;
 }

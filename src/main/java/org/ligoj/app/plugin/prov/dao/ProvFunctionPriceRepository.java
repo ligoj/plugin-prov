@@ -18,75 +18,149 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types       The valid instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param cpu         The required CPU.
-	 * @param ram         The required RAM in GiB.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param types               The valid instance type identifiers.
+	 * @param terms               The valid instance terms identifiers.
+	 * @param cpu                 The required CPU.
+	 * @param ram                 The consumed average RAM (GiB) during a month.
+	 * @param location            The requested location identifier.
+	 * @param rate                Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param globalRate          Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
+	 * @param duration            The duration in month. Minimum is 1.
+	 * @param initialCost         The maximal initial cost.
+	 * @param nbRequests          The monthly amount of executions of this function.
+	 * @param realConcurrency     The actual concurrency.
+	 * @param reservedConcurrency The concurrency to reserve.
+	 * @param requestDuration     Average duration of a single request in milliseconds.
+	 * @param ramMonth            Amount of GiB RAM used for one month whatever the time window.
+	 * @param pageable            The page control to return few item.
+	 * @return The minimum instance price or empty result. TODO Use "GREATEST" function
 	 */
 	@Query("""
-			SELECT ip,
-			 ((ip.cost
-			  +(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
-			  +(CEIL(
-			    CASE WHEN (ip.minRamRatio IS NULL)
-			  	THEN (CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END)
-			  	ELSE (CASE WHEN ((CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)  > :ram)
-			  	 	  THEN (CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
-			  	 	  ELSE :ram
-			  	 	  END)
-			  	END /ip.incrementRam) * ip.incrementRam * ip.costRam)
-			 )
-			 * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,
-			 ((ip.cost
-			  +(CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)
-			  +(CEIL(
-			    CASE WHEN (ip.minRamRatio IS NULL)
-			  	THEN (CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END)
-			  	ELSE (CASE WHEN ((CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)  > :ram)
-			  	 	  THEN (CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.minRamRatio)
-			  	 	  ELSE :ram
-			  	 	  END)
-			  	END /ip.incrementRam) * ip.incrementRam * ip.costRam)
-			 )
-			 * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost
-			 FROM #{#entityName} ip WHERE
+			SELECT  ip,
+			     (  CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
+			      * (  ip.cost
+			         + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
+			            * ip.incrementCpu
+			            * ip.costCpu
+			            * :reservedConcurrency
+			           )
+			        )
+			     )
+			   + (  CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio, 0.0), :ram) / ip.incrementRam)
+			      * ip.incrementRam
+			      * (
+			          (  ip.costRam
+			           * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
+			           * :reservedConcurrency
+			          )
+			        + (  CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
+			           * (
+			               (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                     * ip.incrementDuration
+			                     * :nbRequests 
+			                     / :concurrencyMonth, 
+			                       :realConcurrency 
+			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                  )
+				            * ip.costRamRequestConcurrency
+				           )
+				         + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                     * ip.incrementDuration 
+			                     * :nbRequests 
+			                     / :concurrencyMonth
+			                   -   :realConcurrency 
+			                     * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                     0.0
+			                  )
+				            * ip.costRamRequest
+				           )
+				         )
+				      )
+				    )
+			     )
+			   + (  :nbRequests
+			      * ip.costRequests
+			   	  * CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
+				 ) AS totalCost,
+
+			     (  CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			      * (  ip.cost
+			         + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
+			            * ip.incrementCpu
+			            * ip.costCpu
+			            * :reservedConcurrency
+			           )
+			        )
+			     )
+			   + (  CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio, 0.0), :ram) / ip.incrementRam)
+			      * ip.incrementRam
+			      * (
+			          (  ip.costRam
+			           * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			           * :reservedConcurrency
+			          )
+			        + (
+			            (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                  * ip.incrementDuration
+			                  * :nbRequests 
+			                  / :concurrencyMonth,
+			                    :realConcurrency 
+			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			               )
+				         * ip.costRamRequestConcurrency
+				        )
+				      + (  GREATEST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
+			                  * ip.incrementDuration 
+			                  * :nbRequests 
+			                  / :concurrencyMonth 
+			                -   :realConcurrency 
+			                  * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                  0.0
+			                )
+				         * ip.costRamRequest
+				        )
+				      )
+				    )
+			     )
+			   + ( :nbRequests * ip.costRequests ) AS monthlyCost
+			 FROM ProvFunctionPrice ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NOT NULL
-			  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)
-			  AND (ip.maxRam IS NULL OR ip.maxRam >=:ram)
+			  AND ip.incrementRam IS NOT NULL
+			  AND (ip.maxCpu IS NULL or ip.maxCpu >= :cpu)
+			  AND (ip.maxRam IS NULL OR ip.maxRam >= :ram)
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
+			  AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  AND (ip.maxRamRatio IS NULL OR (CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END * ip.maxRamRatio) <= :ram))
 			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
-			int location, double rate, double globalRate, double duration, double initialCost, Pageable pageable);
+			int location, double rate, double globalRate, double duration, double initialCost, double nbRequests,
+			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
+			double rateFull, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
-	 * @param types       The valid instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
+	 * @param types           The valid instance type identifiers.
+	 * @param terms           The valid instance terms identifiers.
+	 * @param location        The requested location identifier.
+	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration        The duration in month. Minimum is 1.
+	 * @param initialCost     The maximal initial cost.
+	 * @param requestDuration Average duration of a single request in milliseconds.
+	 * @param pageable        The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
 	@Query("""
-			SELECT ip,
-			 CASE
+			SELECT
+			 ip,
+			  CASE
 			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
 			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
-			 CASE
+			  CASE
 			  WHEN ip.period = 0 THEN (ip.cost * :rate)
 			  ELSE ip.cost END AS monthlyCost
 			 FROM #{#entityName} ip  WHERE
@@ -94,9 +168,10 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  AND ip.incrementCpu IS NULL
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
 			  ORDER BY totalCost ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, Pageable pageable);
+			double initialCost, double requestDuration, Pageable pageable);
 
 }
