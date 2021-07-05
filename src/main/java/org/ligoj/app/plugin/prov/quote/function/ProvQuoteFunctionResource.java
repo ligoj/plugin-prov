@@ -20,6 +20,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
@@ -49,6 +50,17 @@ import lombok.Getter;
 @Transactional
 public class ProvQuoteFunctionResource extends
 		AbstractProvQuoteVmResource<ProvFunctionType, ProvFunctionPrice, ProvQuoteFunction, QuoteFunctionEditionVo, QuoteFunctionLookup, QuoteFunction> {
+
+	/**
+	 * Milliseconds per month.
+	 */
+	private static final double MILLIS_PER_MONTH = DateUtils.MILLIS_PER_HOUR
+			* ProvResource.DEFAULT_HOURS_MONTH /* Hours to month */;
+
+	/**
+	 * Milliseconds per month per million requests.
+	 */
+	private static final double CONCURRENCY_PER_MONTH = MILLIS_PER_MONTH / 1000000d /* Million requests */;
 
 	@Getter
 	@Autowired
@@ -121,12 +133,6 @@ public class ProvQuoteFunctionResource extends
 		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost,
 				(double) query.getDuration(), PageRequest.of(0, 1));
 	}
-
-	private double MS_PER_MONTH = 1000d /* Milliseconds to Seconds */
-			* 3600d /* Seconds to Hours */
-			* ProvResource.DEFAULT_HOURS_MONTH /* Hours to month */;
-
-	private double CONCURRENCY_PER_MONTH = MS_PER_MONTH / 1000000d /* Million requests */;
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,

@@ -4,25 +4,33 @@
 /*jshint esversion: 6*/
 define(function () {
 
-	var initializedPopupEvents = false;
-	var initializedPopupUsage = false;
-	var initializedPopupBudget = false;
-	var colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
+	let initializedPopupEvents = false;
+	let initializedPopupUsage = false;
+	let initializedPopupBudget = false;
+	const colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
+	const ROOT_PREFIX = 'root-';
 
 	/**
 	 * Enable resource type.
 	 */
-	var types = ['instance', 'database', 'container', 'storage', 'support'];
+	const types = ['instance', 'database', 'container', 'storage', 'support'];
+	const typeIcons = {
+		instance: 'fas fa-server',
+		database: 'fas fa-database',
+		container: 'fab fa-docker',
+		storage: 'far fa-hdd',
+		support: 'fas fa-ambulance'
+	};
 
 	/**
 	 * Enable resource type to relatable to storages.
 	 */
-	var typesStorage = ['instance', 'database', 'container'];
+	const typesStorage = ['instance', 'database', 'container'];
 
 	/**
 	 * OS key to markup/label mapping.
 	 */
-	var os = {
+	const os = {
 		'linux': ['Linux', 'fab fa-linux'],
 		'windows': ['Windows', 'fab fa-windows'],
 		'suse': ['SUSE', 'fab fa-suse'],
@@ -38,7 +46,7 @@ define(function () {
 	/**
 	 * Engine key to markup/label mapping.
 	 */
-	var databaseEngines = {
+	const databaseEngines = {
 		'MYSQL': ['MySQL', 'icon-mysql'],
 		'ORACLE': ['Oracle', 'icon-oracle'],
 		'MARIADB': ['MariaDB', 'icon-mariadb'],
@@ -51,7 +59,7 @@ define(function () {
 	/**
 	 * Internet Access key to markup/label mapping.
 	 */
-	var internet = {
+	const internet = {
 		'public': ['Public', 'fas fa-globe fa-fw'],
 		'private': ['Private', 'fas fa-lock fa-fw'],
 		'private_nat': ['NAT', 'fas fa-low-vision fa-fw']
@@ -60,7 +68,7 @@ define(function () {
 	/**
 	 * Rate name (identifier) to class mapping. Classes are distributed across 5 values.
 	 */
-	var rates = {
+	const rates = {
 		'worst': 'far fa-star text-danger fa-fw',
 		'low': 'fas fa-star-half text-danger fa-fw',
 		'medium': 'fas fa-star-half fa-fw',
@@ -70,9 +78,9 @@ define(function () {
 	};
 
 	/**
-	 * Rate name (identifier) to class mapping. Classes are ditributed across 3 values.
+	 * Rate name (identifier) to class mapping. Classes are distributed across 3 values.
 	*/
-	var rates3 = {
+	const rates3 = {
 		'low': 'far fa-star-half fa-fw',
 		'medium': 'far fa-star text-success fa-fw',
 		'good': 'fas fa-star text-success fa-fw',
@@ -82,7 +90,7 @@ define(function () {
 	/**
 	 * Storage optimized key to markup/label mapping.
 	 */
-	var storageOptimized = {
+	const storageOptimized = {
 		'throughput': 'fas fa-angle-double-right fa-fw',
 		'durability': 'fas fa-archive fa-fw',
 		'iops': 'fas fa-bolt fa-fw'
@@ -91,13 +99,13 @@ define(function () {
 	/**
 	 * Support access type key to markup/label mapping.
 	 */
-	var supportAccessType = {
+	const supportAccessType = {
 		'technical': 'fas fa-wrench fa-fw',
 		'billing': 'fas fa-dollar-sign fa-fw',
 		'all': 'fas fa-users fa-fw'
 	};
 
-	var maxOpts = {
+	const maxOpts = {
 		width: 250,
 		labels: ['max', 'reserved'],
 		values: [false, false],
@@ -205,7 +213,7 @@ define(function () {
 			return true;
 		}
 		if (value === 'false' || value === false) {
-			return fzlse;
+			return false;
 		}
 		return null;
 	}
@@ -223,7 +231,7 @@ define(function () {
 	/**
 	 * Register a 3 states component.
 	 * @param {jquery} $element UI component.
-	 * @param {booelan} value  TRUE, FALSE or NULL value.
+	 * @param {boolean} value  TRUE, FALSE or NULL value.
 	 */
 	function update3States($element, value) {
 		$element.find('li.active').removeClass('active');
@@ -236,14 +244,14 @@ define(function () {
 		}
 	}
 
-	function formatDatabaseEngine(engine, mode, clazz) {
+	function formatDatabaseEngine(engine, mode, className) {
 		let engineId = (engine.id || engine || '').toUpperCase();
 		var cfg = databaseEngines[engineId] || [engineId, 'far fa-question-circle'];
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
 		}
-		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
+		className = cfg[1] + (typeof className === 'string' ? className : '');
+		return '<i class="' + className + '" data-toggle="tooltip" title="' + cfg[0] + '"></i> ' + cfg[0];
 	}
 
 	/**
@@ -529,15 +537,15 @@ define(function () {
 	/**
 	 * Return the HTML markup from the storage latency.
 	 */
-	function formatStorageLatency(latency, mode, clazz) {
+	function formatStorageLatency(latency, mode, className) {
 		var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
 		var text = id && current.$messages['service:prov:storage-latency-' + id];
 		if (mode === 'sort' || mode === 'filter') {
 			return text;
 		}
 
-		clazz = rates[id] + (typeof clazz === 'string' ? clazz : '');
-		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+		className = rates[id] + (typeof className === 'string' ? className : '');
+		return '<i class="' + className + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
 	}
 
 	/**
@@ -561,12 +569,12 @@ define(function () {
 	/**
 	 * Return the HTML markup from the storage optimized.
 	 */
-	function formatStorageOptimized(optimized, withText, clazz) {
+	function formatStorageOptimized(optimized, withText, className) {
 		if (optimized) {
-			var id = (optimized.id || optimized).toLowerCase();
-			var text = current.$messages['service:prov:storage-optimized-' + id];
-			clazz = storageOptimized[id] + (typeof clazz === 'string' ? clazz : '');
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
+			const id = (optimized.id || optimized).toLowerCase();
+			const text = current.$messages['service:prov:storage-optimized-' + id];
+			className = storageOptimized[id] + (typeof className === 'string' ? className : '');
+			return '<i class="' + className + '" data-toggle="tooltip" title="' + text + '"></i>' + (withText ? ' ' + text : '');
 		}
 	}
 
@@ -613,51 +621,38 @@ define(function () {
 	/**
 	 * Return the HTML markup from the OS key name.
 	 */
-	function formatOs(value, mode, clazz) {
+	function formatOs(value, mode, className) {
 		if (mode === 'sort' || mode === 'filter') {
 			return value.id || value || 'linux';
 		}
-		var cfg = os[(value.id || value || 'linux').toLowerCase()] || os.linux;
-		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-		return '<i class="' + clazz + ' fa-fw" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+		const cfg = os[(value.id || value || 'linux').toLowerCase()] || os.linux;
+		className = cfg[1] + (typeof className === 'string' ? className : '');
+		return '<i class="' + className + ' fa-fw" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 	}
 
 	/**
 	 * Return the HTML markup from the Internet privacy key name.
 	 */
-	function formatInternet(value, mode, clazz) {
-		var cfg = (value && internet[(value.id || value).toLowerCase()]) || current.value.public || 'public';
+	function formatInternet(value, mode, className) {
+		const cfg = (value && internet[(value.id || value).toLowerCase()]) || current.value.public || 'public';
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
 		}
-		clazz = cfg[1] + (typeof clazz === 'string' ? clazz : '');
-		return '<i class="' + clazz + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
+		className = cfg[1] + (typeof className === 'string' ? className : '');
+		return '<i class="' + className + '" data-toggle="tooltip" title="' + cfg[0] + '"></i>' + (mode === 'display' ? '' : ' ' + cfg[0]);
 	}
 
-	function formatBudget(budget, mode, qi) {
-		return formatMutiScoped(budget, current.model.configuration.budget, mode, 'fa-wallet', (entity) => (typeof entity.initialCost === 'number' && entity.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(entity.initialCost)}` : '');
-	}
 	function filterMultiScoped(name) {
-		return opFunction => (value, data) => opFunction(data[name] ? data.budget.name : current.model.configuration[name] ? current.model.configuration[name].name : 'default');
+		return opFunction => (value, data) => opFunction((data[name] || current.model.configuration[name] || { name: 'default' }).name);
 	}
-
-	function formatUsageTemplate(usage, mode) {
-		return formatMutiScoped(usage, current.model.configuration.usage, mode, 'fa-clock', (entity) => {
-			let tooltip = '';
-			if (typeof entity.start === 'number' && entity.duration > 1) {
-				tooltip += `<br>${current.title('usage-duration')}${entity.duration} month(s)`;
-			}
-			if (typeof entity.start === 'number' && entity.start > 0) {
-				tooltip += `<br>${current.title('usage-start')}${entity.start} month(s)`;
-			}
-			return tooltip;
-		});
-	}
-
-	function formatMutiScoped(entity, confEntity, mode, icon, tooltip) {
-		if (mode === 'sort' || mode === 'filter') {
+	function formatMultiScoped(type, entity, confEntity, mode, icon, tooltip) {
+		if (mode === 'sort' || mode === 'filter' || mode === 'tooltip') {
 			entity = (typeof entity === 'undefined' || entity === null) ? confEntity : entity;
-			return entity ? entity.text || entity.name : '';
+			const text = entity ? entity.text || entity.name : '';
+			if (mode === 'tooltip') {
+				return text || select2Placeholder(type);
+			}
+			return text;
 		}
 		if (entity) {
 			entity = {
@@ -669,6 +664,22 @@ define(function () {
 			entity = confEntity || { rate: 100, duration: 1, name: '<i>default</i>' };
 		}
 		return `<span data-toggle="tooltip" title="${current.title('name', icon)}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}">${entity.name}</span>`;
+	}
+
+	function formatBudget(budget, mode, qi) {
+		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+	}
+	function formatUsage(usage, mode) {
+		return formatMultiScoped('usage', usage, current.model.configuration.usage, mode, 'fa-clock', e => {
+			let tooltip = '';
+			if (typeof e.start === 'number' && e.duration > 1) {
+				tooltip += `<br>${current.title('usage-duration')}${e.duration} month(s)`;
+			}
+			if (typeof e.start === 'number' && e.start > 0) {
+				tooltip += `<br>${current.title('usage-start')}${e.start} month(s)`;
+			}
+			return tooltip;
+		});
 	}
 
 	function locationMap(location) {
@@ -741,40 +752,34 @@ define(function () {
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${resource.resourceType === 'instance' ? "fas fa-server" : resource.resourceType === 'database' ? "fas fa-database" : "fab fa-docker"}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
 
-	function formatName(name,mode,obj){
-		if (mode !== 'display'){
+	/**
+	 * Return the HTML markup from the quote resource.
+	 */
+	function formatName(name, mode, obj) {
+		if (mode !== 'display') {
 			return name
 		}
-		return `<a data-toggle="modal" data-target="#popup-prov-${obj.resourceType ==="storage"? "storage": "generic"}">${name}</a>`;		
-	}
-
-	/**
-	 * Return the HTML markup from the quote name.
-	 */
-	function formatName(resource) {
-		if (resource) {
-			return ('<a class="update" data-toggle="modal" data-target="#popup-prov-generic">' + resource + '</a>');
-		}
+		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${obj.resourceType === "storage" ? "storage" : "generic"}">${name}</a>`;
 	}
 
 	/**
 	 * Return the HTML markup from the support level.
 	 */
-	function formatSupportLevel(level, mode, clazz) {
-		var id = level ? (level.id || level).toLowerCase() : '';
+	function formatSupportLevel(level, mode, className) {
+		const id = level ? (level.id || level).toLowerCase() : '';
 		if (id) {
 			var text = current.$messages['service:prov:support-level-' + id];
-			clazz = rates3[id] + (typeof clazz === 'string' ? clazz : '');
+			className = rates3[id] + (typeof className === 'string' ? className : '');
 			if (mode === 'sort' || mode === 'filter') {
 				return text;
 			}
 
-			return `<i class="${clazz}" data-toggle="tooltip" title="${text}"></i>${mode ? ' ' + text : ''}`;
+			return `<i class="${className}" data-toggle="tooltip" title="${text}"></i>${mode ? ' ' + text : ''}`;
 		}
 		return '';
 	}
@@ -794,13 +799,13 @@ define(function () {
 	 */
 	function formatSupportAccess(type, mode) {
 		if (type) {
-			var id = (type.id || type).toLowerCase();
-			var text = current.$messages['service:prov:support-access-' + id];
+			const id = (type.id || type).toLowerCase();
+			const text = current.$messages['service:prov:support-access-' + id];
 			if (mode === 'sort' || mode === 'filter') {
 				return text;
 			}
-			var clazz = supportAccessType[id];
-			return '<i class="' + clazz + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
+			const className = supportAccessType[id];
+			return '<i class="' + className + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode === 'display' ? '' : (' ' + text));
 		}
 	}
 
@@ -915,7 +920,7 @@ define(function () {
 						let success = options.success;
 						options.success = function (data) {
 							$this.cachedData = data
-							// Restore the original success funtion
+							// Restore the original success function
 							options.success = success;
 							filterSelect2Result(data, options, customComparator, matcherFn);
 						}
@@ -1127,34 +1132,34 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
-			if(e.currentTarget.checked){
+		}).on('change', ('.mode-advanced input[type=checkbox]'), function (e) {
+			if (e.currentTarget.checked) {
 				$popup.find('div .element-advanced').removeClass('advanced')
-			}else{
+			} else {
 				$popup.find('div .element-advanced').addClass('advanced')
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
-			let dynaType = $source.provType();
+			const dType = $source.provType();
 			var $tr = $source.closest('tr');
 			var $table = $tr.closest('table');
 			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
-			if (dynaType !== quote.resourceType && quote.resourceType !== undefined) {
-				// Display sub ressource
+			if (dType !== quote.resourceType && quote.resourceType !== undefined) {
+				// Display sub resource
 				if ($source.attr('data-id')) {
-				quote = current.model.configuration[dynaType + 'sById'][$source.attr('data-id')];
+					quote = current.model.configuration[dType + 'sById'][$source.attr('data-id')];
 				} else {
-				quote = quote['quote' + dynaType.capitalize()];
+					quote = quote['quote' + dType.capitalize()];
 				}
 			}
-			$(this).attr('data-prov-type', dynaType)
+			$(this).attr('data-prov-type', dType)
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
-			_('generic-modal-title').html(current.$messages['service:prov:' + dynaType]);
+			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
@@ -1166,16 +1171,18 @@ define(function () {
 				current.disableCreate($popup);
 			}
 			current.model.quote = quote;
-			current.toUi(dynaType, quote);
+			current.toUi(dType, quote);
 			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
-			_('instance-budget').select2Placeholder(current.budgetToText(current.model.configuration.budget) || current.$messages['service:prov:budget-null']);
-			_('instance-usage').select2Placeholder(current.usageToText(current.model.configuration.usage) || current.$messages['service:prov:usage-null']);
+			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
+			_('instance-usage').select2Placeholder(select2Placeholder('usage'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
-
 		});
 	}
 
+	function select2Placeholder(name) {
+		return current[name + 'ToText'](current.model.configuration[name]) || current.$messages[`service:prov:${name}-null`];
+	}
 
 	function copyToData($form, prefix, data) {
 		$form.find('input[id^=' + prefix + ']:not(.ui-only)').each(function () {
@@ -1257,15 +1264,15 @@ define(function () {
 		_('usage-template').select2({
 			placeholder: current.$messages['service:prov:template'],
 			allowClear: true,
-			formatSelection: formatUsageTemplate,
-			formatResult: formatUsageTemplate,
+			formatSelection: formatUsage,
+			formatResult: formatUsage,
 			escapeMarkup: m => m,
 			data: usageTemplates
 		});
 	}
 
 	/**
-	 * Configure multiscoped resource type.
+	 * Configure multi-scoped resource type.
 	 */
 	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
 		let $popup = _(`popup-prov-${type}`);
@@ -1561,7 +1568,7 @@ define(function () {
 				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
 			}
 			if (quote.nbContainers) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containerss') + quote.nbContainers + ' Containers</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containers') + quote.nbContainers + ' Containers</span>');
 			}
 			if (quote.nbInstances || quote.nbDatabases || quote.nbContainers) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
@@ -1983,7 +1990,7 @@ define(function () {
 		},
 
 		initializeForm: function () {
-			// Global datatables filter
+			// Global data tables filter
 			if ($.fn.dataTable.ext.search.length === 0) {
 				$.fn.dataTable.ext.search.push(
 					function (settings, dataFilter, dataIndex, data) {
@@ -2068,7 +2075,7 @@ define(function () {
 				});
 			});
 			$('#subscribe-configuration-prov').on('mouseup', '.select2-search-choice [data-prov-type]', function () {
-				 $('#popup-prov-storage').modal('show', $(this))
+				$('#popup-prov-storage').modal('show', $(this))
 			});
 			$('.service-icon').addClass(`fa-fw ${current.model.node.tool.uiClasses}`);
 			$('.quote-name').text(current.model.configuration.name);
@@ -2550,7 +2557,7 @@ define(function () {
 
 		/**
 		 * Delete a multi-scoped entity by its name.
-		 * @param {string} type The multiscoped resource type (usage, budget,...) of resource to delete.
+		 * @param {string} type The multi-scoped resource type (usage, budget,...) of resource to delete.
 		 * @param {string} id The resource identifier to delete.
 		 */
 		deleteMultiScoped: function (type, id) {
@@ -2586,8 +2593,8 @@ define(function () {
 
 		/**
 		 * Update a multi scoped resource.
-		 * @param {string} type The multiscoped resource type (usage, budget,...) of resource to delete.
-		 * @param {string} data The multiscoped data to persist.
+		 * @param {string} type The multi-scoped resource type (usage, budget,...) of resource to delete.
+		 * @param {string} data The multi-scoped data to persist.
 		 */
 		saveOrUpdateMultiScoped: function (type, data) {
 			var conf = current.model.configuration;
@@ -2914,7 +2921,7 @@ define(function () {
 			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			var $popup = _('popup-prov-' + popupType);
 
-			// Build the playload for API service
+			// Build the play load for API service
 			var suggest = {
 				price: _(inputType + '-price').select2('data'),
 				usage: _(inputType + '-usage').select2('data'),
@@ -3138,7 +3145,7 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/gauge'], function (d3) {
 				if (typeof current.d3Gauge === 'undefined' && stats.cost) {
 					current.d3Gauge = d3;
-					d3.select('#prov-gauge').call(d3.liquidfillgauge, 1, {
+					d3.select('#prov-gauge').call(d3.liquidFillGauge, 1, {
 						textColor: '#FF4444',
 						textVertPosition: 0.5,
 						waveAnimateTime: 600,
@@ -3194,14 +3201,19 @@ define(function () {
 			return (typeof icon === 'string' ? `<i class="fas ${icon} fa-fw"></i> ` : '') + (current.$messages['service:prov:' + key] || current.$messages[key]) + ': ';
 		},
 
+		sunburstVmTooltip: function (entity) {
+			debugger;
+			return '<br>' + current.title('term') + entity.price.term.name
+				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
+				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
+		},
+
 		sunburstComputeTooltip: function (conf, data, type) {
-			let entity = conf[type + 'sById'][data.name];
+			const entity = conf[type + 'sById'][data.name];
 			return current.title('name') + entity.name
 				+ '<br>' + current.title(type + '-type') + entity.price.type.name
 				+ '<br>' + current.title('os') + formatOs(entity.price.os, true)
-				+ '<br>' + current.title('term') + entity.price.term.name
-				+ '<br>' + current.title('usage') + (entity.usage ? entity.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
-				+ '<br>' + current.title('budget') + (entity.budget ? entity.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
+				+ current.sunburstVmTooltip(entity);
 		},
 
 		sunburstBaseTooltip: function (data) {
@@ -3228,25 +3240,14 @@ define(function () {
 					return current.title('name') + support.name
 						+ '<br>' + current.title('support-type') + support.price.type.name;
 				case 'database':
-					var database = conf.databasesById[data.name];
+					const database = conf.databasesById[data.name];
 					return current.title('name') + database.name
 						+ '<br>' + current.title('database-type') + database.price.type.name
 						+ '<br>' + current.title('database-engine') + formatDatabaseEngine(database.price.engine, true) + (database.price.edition ? '/' + database.price.edition : '')
-						+ '<br>' + current.title('term') + database.price.term.name
-						+ '<br>' + current.title('usage') + (database.usage ? database.usage.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.usage ? conf.usage.name : '100%')))
-						+ '<br>' + current.title('budget') + (database.budget ? database.budget.name : ('(' + current.$messages['service:prov:default'] + ') ' + (conf.budget ? conf.budget.name : formatCost(0))));
-				case 'root-storage':
-					return '<i class="far fa-hdd fa-2x"></i> ' + data.name;
-				case 'root-instance':
-					return '<i class="fas fa-server fa-2x"></i> ' + data.name;
-				case 'root-container':
-					return '<i class="fab fa-docker fa-2x"></i> ' + data.name;
-				case 'root-database':
-					return '<i class="fas fa-database fa-2x"></i> ' + data.name;
-				case 'root-support':
-					return '<i class="fas fa-ambulance fa-2x"></i> ' + data.name;
+						+ current.sunburstVmTooltip(database);
+				default:
+					return (data.type && data.type.startsWith(ROOT_PREFIX)) ? `<i class="${typeIcons[data.type.substring(ROOT_PREFIX.length)]} fa-2x"></i> ${data.name}` : data.name;
 			}
-			return data.name;
 		},
 
 		recursivePercent: function (d, first, rate) {
@@ -3516,7 +3517,7 @@ define(function () {
 			types.forEach(type => {
 				var data = {
 					value: 0,
-					type: 'root-' + type,
+					type: ROOT_PREFIX + type,
 					children: [],
 					nb: stats[type].nb,
 					min: stats[type].min,
@@ -3623,7 +3624,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the instance like datatables from the whole quote
+		 * Initialize the instance like data tables from the whole quote
 		 */
 		computeNewTable: function (type) {
 			return current.genericInstanceNewTable(type, [{
@@ -3640,21 +3641,21 @@ define(function () {
 			}]);
 		},
 		/**
-		 * Initialize the instance datatables from the whole quote
+		 * Initialize the instance data tables from the whole quote
 		 */
 		instanceNewTable: function () {
 			return current.computeNewTable('instance');
 		},
 
 		/**
-		 * Initialize the container datatables from the whole quote
+		 * Initialize the container data tables from the whole quote
 		 */
 		containerNewTable: function () {
 			return current.computeNewTable('container');
 		},
 
 		/**
-		 * Initialize the support datatables from the whole quote
+		 * Initialize the support data tables from the whole quote
 		 */
 		supportNewTable: function () {
 			return {
@@ -3724,7 +3725,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the storage datatables from the whole quote
+		 * Initialize the storage data tables from the whole quote
 		 */
 		storageNewTable: function () {
 			return {
@@ -3781,7 +3782,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the database datatables from the whole quote
+		 * Initialize the database data tables from the whole quote
 		 */
 		databaseNewTable: function () {
 			return current.genericInstanceNewTable('database', [{
@@ -3806,7 +3807,7 @@ define(function () {
 		},
 
 		/**
-		 * Initialize the database/instance/container datatables from the whole quote
+		 * Initialize the database/instance/container data tables from the whole quote
 		 */
 		genericInstanceNewTable: function (type, columns) {
 			return {
@@ -3905,7 +3906,7 @@ define(function () {
 					data: 'usage',
 					className: 'hidden-xs hidden-sm usage',
 					type: 'string',
-					render: formatUsageTemplate,
+					render: formatUsage,
 					filter: filterMultiScoped('usage')
 				}, {
 					data: 'budget',
@@ -3934,7 +3935,7 @@ define(function () {
 			conf.cost.min -= resource.cost - newCost.min;
 			conf.cost.max -= (resource.maxCost || resource.cost) - (newCost.max || 0);
 
-			// Upate the resource cost
+			// Update the resource cost
 			resource.cost = newCost.min;
 			resource.maxCost = newCost.max || 0;
 		},
@@ -4015,7 +4016,7 @@ define(function () {
 			}
 
 			if (conf.cost.min !== updatedCost.total.min || conf.cost.max !== updatedCost.total.max || conf.cost.unbound !== updatedCost.total.unbound) {
-				console.log('Need to reajust the compted cost: min=' + (updatedCost.total.min - conf.cost.min)
+				console.log('Need to readjust the computed cost: min=' + (updatedCost.total.min - conf.cost.min)
 					+ ' max=' + (updatedCost.total.max - conf.cost.max) + ' unbound=' + (updatedCost.total.unbound && !conf.cost.unbound || !updatedCost.total.unbound && conf.cost.unbound));
 				conf.cost = updatedCost.total;
 			}

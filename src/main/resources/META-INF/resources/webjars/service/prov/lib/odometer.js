@@ -50,12 +50,14 @@ define(['jquery'], function () {
     };
 
     removeClass = function (el, name) {
-      return el.className = el.className.replace(new RegExp("(^| )" + (name.split(' ').join('|')) + "( |$)", 'gi'), ' ');
+      el.className = el.className.replace(new RegExp("(^| )" + (name.split(' ').join('|')) + "( |$)", 'gi'), ' ');
+      return el.className;
     };
 
     addClass = function (el, name) {
       removeClass(el, name);
-      return el.className += " " + name;
+      el.className += " " + name;
+      return el.className;
     };
 
     trigger = function (el, name) {
@@ -101,7 +103,7 @@ define(['jquery'], function () {
 
     _jQueryWrapped = false;
 
-    (wrapJQuery = function () {
+    wrapJQuery = function () {
       if (_jQueryWrapped) {
         return;
       }
@@ -120,33 +122,34 @@ define(['jquery'], function () {
           return fn;
         });
       }
-    })();
+    };
+    wrapJQuery();
 
     setTimeout(wrapJQuery, 0);
 
     var exportOdometer = (function () {
       function OdometerPriv(options) {
-        var k, v, _base,
-          _this = this;
+        const _this = this;
         this.options = options;
         this.el = this.options.el;
         if (this.el.odometer != null) {
           return this.el.odometer;
         }
         this.el.odometer = this;
-        let options2 = OdometerPriv.options;
-        for (k in options2) {
-          v = options2[k];
+        const options2 = OdometerPriv.options;
+        for (let k in options2) {
+          let v = options2[k];
           if (this.options[k] == null) {
             this.options[k] = v;
           }
         }
-        if ((_base = this.options).duration == null) {
+        const _base = this.options;
+        if (_base.duration == null) {
           _base.duration = DURATION;
         }
         this.MAX_VALUES = ((this.options.duration / MS_PER_FRAME) / FRAMES_PER_VALUE) | 0;
         this.resetFormat();
-        let cleanValue = this.options.value;
+        const cleanValue = this.options.value;
         this.value = this.cleanValue(cleanValue == null ? '' : _ref1);
         this.renderInside();
         this.render();
@@ -162,7 +165,7 @@ define(['jquery'], function () {
                     let _ref3 = _this.inside.innerText;
                     return _ref3 == null ? _this.inside.textContent : _ref3;
                   },
-                  set: val => _this.update(val)
+                  set: val => { _this.update(val); }
                 });
               })(property);
             }
@@ -263,30 +266,32 @@ define(['jquery'], function () {
         radix = digits[1];
         fractional = digits[2];
         precision = (fractional === null ? void 0 : fractional.length) || 0;
-        return this.format = {
+        this.format = {
           repeating: repeating,
           radix: radix,
           precision: precision
         };
+        return this.format;
       };
 
       OdometerPriv.prototype.render = function (value) {
-        var classes, cls, match, newClasses, theme, _i, _len;
+        var _i, _len;
         if (value == null) {
           value = this.value;
         }
         this.stopWatchingMutations();
         this.resetFormat();
         this.inside.innerHTML = '';
-        theme = this.options.theme;
-        classes = this.el.className.split(' ');
-        newClasses = [];
+        let theme = this.options.theme;
+        let classes = this.el.className.split(' ');
+        let newClasses = [];
         for (_i = 0, _len = classes.length; _i < _len; _i++) {
-          cls = classes[_i];
+          let cls = classes[_i];
           if (!cls.length) {
             continue;
           }
-          if (match = /^odometer-theme-(.+)$/.exec(cls)) {
+          let match = /^odometer-theme-(.+)$/.exec(cls)
+          if (match) {
             theme = match[1];
             continue;
           }
@@ -341,10 +346,10 @@ define(['jquery'], function () {
       };
 
       OdometerPriv.prototype.update = function (newValue) {
-        var diff,
-          _this = this;
+        let _this = this;
         newValue = this.cleanValue(newValue);
-        if (!(diff = newValue - this.value)) {
+        let diff = newValue - this.value
+        if (!diff) {
           return;
         }
         removeClass(this.el, 'odometer-animating-up odometer-animating-down odometer-animating');
@@ -359,7 +364,8 @@ define(['jquery'], function () {
         setTimeout(function () {
           return addClass(_this.el, 'odometer-animating');
         }, 0);
-        return this.value = newValue;
+        this.value = newValue;
+        return this.value;
       };
 
       OdometerPriv.prototype.renderDigit = function () {
@@ -597,13 +603,13 @@ define(['jquery'], function () {
     Odometer.options = window.odometerOptions || {};
 
     setTimeout(function () {
-      var k, v, _base, _results;
       if (window.odometerOptions) {
-        _results = [];
+        let _results = [];
         let options = window.odometerOptions;
-        for (k in options) {
-          v = options[k];
-          _results.push((_base = Odometer.options)[k] != null ? (_base = Odometer.options)[k] : _base[k] = v);
+        for (let k in options) {
+          let v = options[k];
+          let _base = Odometer.options[k];
+          _results.push(_base === null ? v : _base);
         }
         return _results;
       }
@@ -619,10 +625,11 @@ define(['jquery'], function () {
       for (_i = 0, _len = elements.length; _i < _len; _i++) {
         el = elements[_i];
         let innerText = el.innerText;
-        _results.push(el.odometer = new Odometer({
+        el.odometer = new Odometer({
           el: el,
           value: innerText !== null ? innerText : el.textContent
-        }));
+        });
+        _results.push(el.odometer);
       }
       return _results;
     };
