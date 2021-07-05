@@ -9,3 +9,4 @@
 **/node_modules
 **/*.iml
 /package-lock.json
+*.log
