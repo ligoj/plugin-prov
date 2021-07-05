@@ -1,6 +1,6 @@
 # :link: Ligoj Provisioning plugin [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-prov/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-prov)
 
-[![Build Status](https://travis-ci.org/ligoj/plugin-prov.svg?branch=master)](https://travis-ci.org/ligoj/plugin-prov)
+[![Build Status](https://travis-ci.com/ligoj/plugin-prov.svg?branch=master)](https://travis-ci.com/ligoj/plugin-prov)
 [![Build Status](https://circleci.com/gh/ligoj/plugin-prov.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-prov)
 [![Build Status](https://ci.appveyor.com/api/projects/status/u6i3563iv6f0omm7/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-prov&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-prov)
