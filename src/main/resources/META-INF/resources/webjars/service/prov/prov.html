@@ -316,7 +316,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:database-edition-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group element-advanced">
 							<label class="control-label col-sm-3" for="instance-license">{{service:prov:license}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-license" class="resource-query form-control" />
@@ -330,7 +330,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:software-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group required">
+						<div class="form-group required element-advanced">
 							<label class="control-label col-sm-3" for="instance-internet">{{service:prov:internet}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-internet" class="form-control" required />
@@ -376,7 +376,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:ram-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group element-advanced">
 							<label class="control-label col-sm-3" for="instance-processor">{{service:prov:processor}}</label>
 							<div class="col-sm-9">
 								<div class="input-group">
@@ -396,7 +396,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:processor-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group element-advanced">
 							<label class="control-label col-sm-3" for="instance-usage">{{service:prov:usage}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-usage" class="resource-query form-control named" />
@@ -410,7 +410,7 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group element-advanced">
 							<label class="control-label col-sm-3" for="instance-location">{{service:prov:location}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-location" class="resource-query form-control named" />
@@ -462,6 +462,14 @@
 					</div>
 				</div>
 				<div class="modal-footer">
+					<label class="mode-advanced checkbox-inline" for="mode-advanced">
+						<input type="checkbox" id="mode-advanced">
+						<span>Mode advanced &emsp; </span>
+					</label>
+					<label class="create-another checkbox-inline" for="create-another">
+						<input type="checkbox" id="create-another">
+						<span>Create another &emsp; </span>
+					</label>
 					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
 				</div>
