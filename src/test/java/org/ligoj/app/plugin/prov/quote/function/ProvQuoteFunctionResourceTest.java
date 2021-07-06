@@ -155,11 +155,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamicalConcurrency() {
 		// Check the instance with over provisioned concurrency
-		var lookup = qfResource.lookup(subscription,
-				builder().usage("Full Time").nbRequests(20).duration(200).ram(2048).concurrency(2).build());
-		var pi = lookup.getPrice();
-		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
-		Assertions.assertEquals(125.578, lookup.getCost(), DELTA);
+		testConcurrency("Full Time", 125.578d, 2);
 	}
 
 	/**
@@ -168,11 +164,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamicalConcurrencyLow() {
 		// Check the instance with lower provisioned concurrency
-		var lookup = qfResource.lookup(subscription,
-				builder().usage("Full Time").nbRequests(20).duration(200).ram(2048).concurrency(1).build());
-		var pi = lookup.getPrice();
-		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
-		Assertions.assertEquals(122.733, lookup.getCost(), DELTA);
+		testConcurrency("Full Time", 122.733d, 1);
 	}
 
 	/**
@@ -181,11 +173,15 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamicalConcurrencyDev() {
 		// Check the instance with partial up and lower provisioned concurrency
+		testConcurrency("Dev", 130.033d, 1);
+	}
+
+	private void testConcurrency(final String usage, final double cost, final int concurrency) {
 		var lookup = qfResource.lookup(subscription,
-				builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1).build());
+				builder().usage(usage).nbRequests(20).duration(200).ram(2048).concurrency(concurrency).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
-		Assertions.assertEquals(130.033, lookup.getCost(), DELTA);
+		Assertions.assertEquals(cost, lookup.getCost(), DELTA);
 	}
 
 	/**
@@ -240,7 +236,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 				"{\"cpu\":2,\"ram\":3000,\"nbRequests\":20,\"runtime\":\"Java\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\",\"concurrency\":10,\"duration\":200}",
 				QuoteFunctionQuery.class);
-		builder().toString();
+		Assertions.assertTrue(builder().toString().contains("nbRequests"));
 	}
 
 	private void checkFunction(final QuoteFunctionLookup lookup) {

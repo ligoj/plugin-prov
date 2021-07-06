@@ -34,7 +34,7 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	private Double costCpu;
 
 	/**
-	 * The optional monthly cost of one requested GB memory. Required for dynamic instance type.
+	 * The optional monthly cost of one requested GiB memory. Required for dynamic instance type.
 	 */
 	private Double costRam;
 
@@ -44,7 +44,7 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	private Double incrementCpu;
 
 	/**
-	 * Increment RAM step. Required for dynamic instance type.
+	 * Increment RAM step (GiB). Required for dynamic instance type.
 	 */
 	private Double incrementRam;
 

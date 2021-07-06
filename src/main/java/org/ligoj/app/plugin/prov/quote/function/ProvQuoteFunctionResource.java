@@ -55,7 +55,7 @@ public class ProvQuoteFunctionResource extends
 	 * Milliseconds per month.
 	 */
 	private static final double MILLIS_PER_MONTH = DateUtils.MILLIS_PER_HOUR
-			* ProvResource.DEFAULT_HOURS_MONTH /* Hours to month */;
+			* (double) ProvResource.DEFAULT_HOURS_MONTH /* Hours to month */;
 
 	/**
 	 * Milliseconds per month per million requests.
@@ -130,8 +130,8 @@ public class ProvQuoteFunctionResource extends
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
-		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost,
-				(double) query.getDuration(), PageRequest.of(0, 1));
+		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost, query.getDuration(),
+				PageRequest.of(0, 1));
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public class ProvQuoteFunctionResource extends
 			final double reservedConcurrency) {
 		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), Math.max(1, ram) / 1024d,
 				location, rate, round(rate * duration), duration, initialCost, query.getNbRequests(), realConcurrency,
-				reservedConcurrency, (double) query.getDuration(), CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
+				reservedConcurrency, query.getDuration(), CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
 	}
 
 	@Override

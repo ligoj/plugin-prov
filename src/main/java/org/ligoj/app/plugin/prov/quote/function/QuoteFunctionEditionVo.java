@@ -45,7 +45,7 @@ public class QuoteFunctionEditionVo extends AbstractQuoteVmEditionVo implements 
 
 	/**
 	 * The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99
-	 * value and not the actual average. Can be lesser than 0.
+	 * value and not the actual average. Can be lesser than 1.
 	 */
 	@PositiveOrZero
 	private double concurrency = 0;

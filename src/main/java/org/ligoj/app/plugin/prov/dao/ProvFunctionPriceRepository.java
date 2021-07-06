@@ -32,8 +32,9 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param reservedConcurrency The concurrency to reserve.
 	 * @param requestDuration     Average duration of a single request in milliseconds.
 	 * @param concurrencyMonth    Constant value. Milliseconds per month per million requests.
-	 * @param ramMonth            Amount of GiB RAM used for one month whatever the time window.
+	 * @param rateFull            Rate corresponding to full usage. Usually <code>1.0</code>.
 	 * @param pageable            The page control to return few item.
+	 * @return The cheapest price or empty result.
 	 */
 	@Query("""
 			SELECT  ip,

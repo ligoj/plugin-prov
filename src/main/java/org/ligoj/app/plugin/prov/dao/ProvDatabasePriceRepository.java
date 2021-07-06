@@ -71,7 +71,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
 	 * @param pageable    The page control to return few item.
-	 * @return The minimum database price or empty result.
+	 * @return The cheapest database price or empty result.
 	 */
 	@Query("""
 			SELECT ip,
