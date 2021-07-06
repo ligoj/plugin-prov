@@ -138,14 +138,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('height', 18)
                 .attr('width', 18)
                 .style('color','white')
-                .html(d => `<i class="${d === 'instance' ? "fas fa-server" : d === 'database' ? "fa fa-database" : d === 'container' ? "fab fa-docker" : d === 'storage' ? "far fa-hdd" :"fas fa-ambulance"}" data-toggle="tooltip" title="${d}"></i>`);
-
-            legend.append('text')
-                .attr('x', margin.left - 70)
-                .attr('y', getLegendY)
-                .text(d => d)
-                .attr('dy', '.95em')
-                .style('text-anchor', 'end');
+                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" title="${d}"></i>`);
 
             // initialize checkbox options
             if (params.percentCB) {
@@ -254,23 +247,12 @@ define(['d3', 'jquery'], function (d3) {
                 .duration(transDuration)
                 .attr('y', getLegendY)
                 .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
+                .style('visibility', d => choice(chosen.cluster, d,"" ,"","hidden"))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,
                         margin.left - 63,
                         margin.left - 63,
                         margin.left - 63 -30);
-                });
-
-            legend.selectAll('text')
-                .transition()
-                .duration(transDuration)
-                .attr('y', getLegendY)
-                .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
-                .attr('x', function (d) {
-                    return choice(chosen.cluster, d,
-                        margin.left - 70,
-                        margin.left - 70,
-                        margin.left - 70 - this.getComputedTextLength() / 2);
                 });
 
             // Update bars
