@@ -3078,7 +3078,9 @@ define(function () {
 		updateFunctionUiConst: function (stats) {
 			let $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
 			if (stats.function.nbRequests) {
-				current.updateSummary($summary, stats.nbRequests);
+				stats.cpu = {available:0};
+				stats.ram = {available:0};
+				current.updateSummary($summary, stats);
 				$summary.find('.requests').find('span').text(stats.function.nbRequests);
 			} else {
 				$summary.addClass('hidden');
@@ -3226,7 +3228,6 @@ define(function () {
 		},
 
 		sunburstVmTooltip: function (entity) {
-			debugger;
 			return '<br>' + current.title('term') + entity.price.term.name
 				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
 				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
