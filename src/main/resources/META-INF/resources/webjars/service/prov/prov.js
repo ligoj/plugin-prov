@@ -664,7 +664,7 @@ define(function () {
 		} else {
 			entity = confEntity || { rate: 100, duration: 1, name: '<i>default</i>' };
 		}
-		return `<span data-toggle="tooltip" title="${current.title('name', icon)}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}">${entity.name}</span>`;
+		return `<span data-toggle="tooltip" title='${current.title('name', icon)}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}'>${entity.name}</span>`;
 	}
 
 	function formatBudget(budget, mode, qi) {
