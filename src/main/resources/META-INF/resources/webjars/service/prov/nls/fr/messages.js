@@ -103,6 +103,8 @@ define({
 	'service:prov:function-duration-help': 'Durée maximale (en milli secondes) de cette fonction',
 	'service:prov:function-concurrency-help': 'Concurence moyenne de cette fonction. Difficile à renseigner, et devrait correspondre au percentile p99 et non pas à une réelle moyenne. Peut être inférieure à 1',
 	'service:prov:function-requests' : 'Requêtes',
+	'service:prov:function-millions' : 'Millions',
+	'service:prov:function-milliseconds' : 'Millisecondes',
 	'service:prov:function-duration': 'Durée',
 	'service:prov:function-concurrency': 'Concurence',
 	'service:prov:functions-block': 'Fonctions',

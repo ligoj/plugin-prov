@@ -104,6 +104,8 @@ define({
         'service:prov:function-duration-help': 'Maximal execution duration (in ms) of this function',
         'service:prov:function-concurrency-help': 'The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99 value and not the actual average. Can be lesser than 1',
         'service:prov:function-requests' : 'Requests',
+        'service:prov:function-millions' : 'Millions',
+        'service:prov:function-milliseconds' : 'Milliseconds',
         'service:prov:function-duration': 'Duration',
         'service:prov:function-concurrency': 'Concurrency',
         'service:prov:functions-block': 'Functions',
