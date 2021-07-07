@@ -3692,7 +3692,7 @@ define(function () {
 		 * Initialize the function data tables from the whole quote
 		 */
 		 functionNewTable: function () {
-			return current.computeNewTable('function', [{
+			return current.genericInstanceNewTable('function', [{
 				data: 'nbRequests',
 				type: 'num',
 				className: 'truncate'
