@@ -325,7 +325,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the instance type identifier.
+	 * Return the instance type identifier from its code.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
