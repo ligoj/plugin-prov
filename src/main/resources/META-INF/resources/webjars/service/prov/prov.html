@@ -108,6 +108,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
@@ -119,7 +120,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="13">{{loading}}</td>
+									<td class="dataTables_empty" colspan="14">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -150,6 +151,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:budget-help}}" class="noVisDefault"><i class="fas fa-wallet"></i> {{service:prov:budget}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:location-help}}" class="icon noVisDefault"><i class="fas fa-map-marker-alt"></i><span class="hidden-table"> {{service:prov:location}}</span></th>
@@ -161,7 +163,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+									<td class="dataTables_empty" colspan="15">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -346,6 +348,33 @@
 							<div class="col-sm-9">
 								<input type="text" id="instance-os" class="resource-query form-control" required />
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:os-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required" data-exclusive="function">
+							<label class="control-label col-sm-3" for="function-nbRequests">{{service:prov:function-requests}}</label>
+							<div class="col-sm-9">
+								<div class="input-group">
+									<input type="number" min="1" max="10000" id="function-nbRequests" class="resource-query form-control input-mini" required />
+									<span class="input-group-addon">{{service:prov:function-millions}}</span>
+								</div>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:function-requests-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required" data-exclusive="function">
+							<label class="control-label col-sm-3" for="function-duration">{{service:prov:function-duration}}</label>
+							<div class="col-sm-9">
+								<div class="input-group">
+									<input type="number" min="1" max="7200000" id="function-duration" class="resource-query form-control input-mini" required />
+									<span class="input-group-addon">{{service:prov:function-milliseconds}}</span>
+								</div>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:function-duration-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required" data-exclusive="function">
+							<label class="control-label col-sm-3" for="function-concurrency">{{service:prov:function-concurrency}}</label>
+							<div class="col-sm-9">
+								<input type="number" min="0" max="10000" id="function-concurrency" class="resource-query form-control input-mini" required />
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:function-concurrency-help}}"></i></span>
 							</div>
 						</div>
 						<div class="form-group required" data-exclusive="database">
