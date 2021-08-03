@@ -1623,7 +1623,7 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage'].forEach(type => toIds(conf, type));
+			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage','support'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
