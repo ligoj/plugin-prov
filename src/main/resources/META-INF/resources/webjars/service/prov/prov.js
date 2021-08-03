@@ -1053,8 +1053,8 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
@@ -1117,7 +1117,8 @@ define(function () {
 				id: 'WORST',
 				text: 'WORST'
 			}]
-		});
+		}
+		);
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
 
@@ -3226,7 +3227,6 @@ define(function () {
 		},
 
 		sunburstVmTooltip: function (entity) {
-			debugger;
 			return '<br>' + current.title('term') + entity.price.term.name
 				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
 				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
