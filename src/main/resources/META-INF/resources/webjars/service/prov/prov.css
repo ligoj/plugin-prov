@@ -484,7 +484,7 @@ img.flag-icon.prov-location-flag {
 #instance-ram-unit {
   width: 93px;
 }
-foreignObject i {
+foreignObject i#inner_icone{
   font-size: 13px;
   margin-left: 1px;
   opacity: 0.5;
