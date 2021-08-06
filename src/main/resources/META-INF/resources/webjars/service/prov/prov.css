@@ -489,3 +489,7 @@ foreignObject i#inner_icone{
   margin-left: 1px;
   opacity: 0.5;
 }
+div .select2-results .select2-result-label {
+	padding: 17px 14px;
+	font-size: 15px;
+}
