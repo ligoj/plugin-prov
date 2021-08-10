@@ -1129,10 +1129,10 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change', ('.mode-advanced input[type=checkbox]'), function (e) {
-			if (e.currentTarget.checked) {
+		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
+			if(e.currentTarget.checked){
 				$popup.find('div .element-advanced').removeClass('advanced')
-			} else {
+			}else{
 				$popup.find('div .element-advanced').addClass('advanced')
 			}
 		}).on('show.bs.modal', function (event) {
@@ -1155,8 +1155,8 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
@@ -2969,11 +2969,11 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					if ($popup.find('.checkbox-inline input#create-another[type=checkbox]').is(':checked')) {
+					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')){
 						current.enableCreate($popup);
-						$(_(inputType + '-name')).focus();
+						$(_(inputType + '-name')).focus();		
 					} else {
-						$popup.modal('hide');
+						$popup.modal('hide');					
 					}
 				},
 				error: () => current.enableCreate($popup)
