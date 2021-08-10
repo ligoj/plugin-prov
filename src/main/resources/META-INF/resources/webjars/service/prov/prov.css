@@ -488,11 +488,27 @@ img.flag-icon.prov-location-flag {
 }
 #instance-constant,
 #instance-ram-unit {
-  width: 93px;
+  width: 52px;
+}
+#instance-constant .dropdown-toggle,
+#instance-ram-unit .dropdown-toggle {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 #subscribe-configuration-prov .modal .element-advanced:not(.advanced) {
   display: none
 }
 #subscribe-configuration-prov .select2-search-choice [data-prov-type] {
   cursor: pointer;
+}
+.input-group.with-select2 {
+  display: flex;
+}
+
+#s2id_database-engine {
+  width: 200px;
+  min-width: 200px;
+}
+#instance-cpu, #instance-ram {
+  width: 3em;
 }

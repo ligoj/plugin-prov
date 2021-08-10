@@ -96,6 +96,7 @@ public class ProvQuoteUploadResource {
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
 			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
+			"ramRate:ramRate", "cpuRate:cpuRate", "networkRate:networkRate", "storageRate:storageRate",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
@@ -399,6 +400,10 @@ public class ProvQuoteUploadResource {
 		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
+		vo.setCpuRate(upload.getCpuRate());
+		vo.setRamRate(upload.getRamRate());
+		vo.setNetworkRate(upload.getNetworkRate());
+		vo.setStorageRate(upload.getStorageRate());
 		vo.setConstant(upload.getConstant());
 		vo.setPhysical(upload.getPhysical());
 		vo.setUsage(Optional.ofNullable(upload.getUsage())

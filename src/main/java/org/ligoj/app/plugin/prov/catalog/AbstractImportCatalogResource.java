@@ -43,6 +43,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
@@ -50,9 +51,8 @@ import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
 import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
-import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
@@ -96,7 +96,8 @@ public abstract class AbstractImportCatalogResource {
 	protected static final String BY_NODE = "node";
 
 	/**
-	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link ProvResource#DEFAULT_HOURS_MONTH}.
+	 * Configuration key used for hours per month. When value is <code>null</code>, use
+	 * {@link ProvResource#DEFAULT_HOURS_MONTH}.
 	 */
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
@@ -129,6 +130,9 @@ public abstract class AbstractImportCatalogResource {
 	// Storage utilities
 	@Autowired
 	protected ProvStoragePriceRepository spRepository;
+
+	@Autowired
+	protected ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
 	protected ProvStorageTypeRepository stRepository;
@@ -666,13 +670,14 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context      The update context.
 	 * @param storedPrices The whole price context in the database. Some of them have not been seen in the new catalog.
+	 *                     Key is the price code.
 	 * @param pRepository  The price repository used to clean the deprecated and unused prices.
 	 * @param qRepository  The quote repository to check for unused prices.
 	 * @param <T>          The instance type.
 	 * @param <P>          The price type.
 	 * @param <Q>          The quote type.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, Q extends AbstractQuoteVm<P>> void purgePrices(
+	protected <T extends ProvType, P extends AbstractPrice<T>, Q extends AbstractQuote<P>> void purgePrices(
 			final AbstractUpdateContext context, final Map<String, P> storedPrices,
 			final CrudRepository<P, Integer> pRepository, final BaseProvQuoteRepository<Q> qRepository) {
 		final var retiredCodes = new HashSet<>(storedPrices.keySet());

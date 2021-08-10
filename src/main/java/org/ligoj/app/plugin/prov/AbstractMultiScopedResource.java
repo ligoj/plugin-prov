@@ -150,7 +150,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	@DELETE
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("{id:\\d+}")
-	public UpdatedCost delete(final int subscription, final int id) {
+	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
 		final var entity = resource.findConfigured(getRepository(), id, subscription);
 		final var quote = entity.getConfiguration();
 		final var cost = new UpdatedCost(entity.getId());

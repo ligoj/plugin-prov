@@ -71,10 +71,10 @@ define(function () {
 	 */
 	const rates = {
 		'worst': 'far fa-star text-danger fa-fw',
-		'low': 'fas fa-star-half text-danger fa-fw',
+		'low': 'far fa-star-half text-danger fa-fw',
 		'medium': 'fas fa-star-half fa-fw',
 		'good': 'fas fa-star text-primary fa-fw',
-		'best': 'fas fa-star text-success fa-fw',
+		'best': 'fas fa-certificate text-success fa-fw',
 		'invalid': 'fas fa-ban fa-fw'
 	};
 
@@ -536,17 +536,18 @@ define(function () {
 	}
 
 	/**
-	 * Return the HTML markup from the storage latency.
+	 * Return the HTML markup from the rating.
 	 */
-	function formatStorageLatency(latency, mode, className) {
-		var id = latency ? (latency.id || latency).toLowerCase() : 'invalid';
-		var text = id && current.$messages['service:prov:storage-latency-' + id];
+	function formatRate(rate, mode, className) {
+		var id = ((rate && rate.id) || rate || 'invalid').toLowerCase();
+		var text = id && current.$messages['service:prov:rate-' + id];
 		if (mode === 'sort' || mode === 'filter') {
 			return text;
 		}
 
+		const showText = mode && (!(mode instanceof jQuery) || !mode.is('.select2-chosen') || mode.closest('.prov-rate').is('.prov-rate-full'));
 		className = rates[id] + (typeof className === 'string' ? className : '');
-		return '<i class="' + className + '" data-toggle="tooltip" title="' + text + '"></i>' + (mode ? ' ' + text : '');
+		return `<i class="${className}" data-toggle="tooltip" title="${text}"></i>${showText ? ' ' + text : ''}`;
 	}
 
 	/**
@@ -588,7 +589,7 @@ define(function () {
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
-		${formatStorageLatency(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
+		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -894,6 +895,7 @@ define(function () {
 			formatSelection: formatSelection,
 			formatResult: formatResult || formatSelection,
 			escapeMarkup: m => m,
+			dropdownAutoWidth: true,
 			allowClear: placeholder !== false,
 			placeholder: placeholder ? placeholder : null,
 			formatSearching: () => current.$messages.loading,
@@ -1095,29 +1097,21 @@ define(function () {
 				text: 'DURABILITY'
 			}]
 		});
-		_('storage-latency').select2({
-			placeholder: current.$messages['service:prov:no-requirement'],
-			allowClear: true,
-			formatSelection: formatStorageLatency,
-			formatResult: formatStorageLatency,
-			escapeMarkup: m => m,
-			data: [{
-				id: 'BEST',
-				text: 'BEST'
-			}, {
-				id: 'GOOD',
-				text: 'GOOD'
-			}, {
-				id: 'MEDIUM',
-				text: 'MEDIUM'
-			}, {
-				id: 'LOW',
-				text: 'LOW'
-			}, {
-				id: 'WORST',
-				text: 'WORST'
-			}]
-		});
+		$('.prov-rate').each(function () {
+			$(this).select2({
+				placeholder: $(this).is('.prov-rate-full') ? current.$messages['service:prov:no-requirement']: '',
+				allowClear: true,
+				formatSelection: formatRate,
+				formatResult: formatRate,
+				width: '48px',
+				dropdownAutoWidth: true,
+				escapeMarkup: m => m,
+				data: Object.keys(rates).filter(r => r !== 'invalid' && r !== 'worst').map(r => ({
+					id: r.toUpperCase(),
+					text: r.toUpperCase()
+				}))
+			});
+		}).closest('.input-group').addClass('with-select2');
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
 
@@ -1623,7 +1617,7 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage'].forEach(type => toIds(conf, type));
+			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage', 'support'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
@@ -2673,6 +2667,10 @@ define(function () {
 		genericCommitToModel: function (data, model) {
 			model.cpu = parseFloat(data.cpu, 10);
 			model.ram = parseInt(data.ram, 10);
+			model.cpuRate = data.cpuRate;
+			model.ramRate = data.ramRate;
+			model.networkRate = data.networkRate;
+			model.storageRate = data.storageRate;
 			model.internet = data.internet;
 			model.minQuantity = parseInt(data.minQuantity, 10);
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
@@ -2736,6 +2734,10 @@ define(function () {
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ram = cleanRam('reserved');
 			data.ramMax = cleanRam('max');
+			data.cpuRate = _('instance-cpuRate').val();
+			data.ramRate = _('instance-ramRate').val();
+			data.networkRate = _('instance-networkRate').val();
+			data.storageRate = _('instance-storageRate').val();
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.processor = _('instance-processor').val().toLowerCase();
 			data.minQuantity = cleanInt(_('instance-min-quantity').val()) || 0;
@@ -2804,6 +2806,10 @@ define(function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
+			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
+			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
+			_('instance-networkRate').select2('data', current.select2IdentityData((quote.networkRate) || null));
+			_('instance-storageRate').select2('data', current.select2IdentityData((quote.storageRate) || null));
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
 			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
 			var license = (quote.id && (quote.license || quote.price.license)) || null;
@@ -3078,8 +3084,8 @@ define(function () {
 		updateFunctionUiConst: function (stats) {
 			let $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
 			if (stats.function.nbRequests) {
-				stats.cpu = {available:0};
-				stats.ram = {available:0};
+				stats.cpu = { available: 0 };
+				stats.ram = { available: 0 };
 				current.updateSummary($summary, stats);
 				$summary.find('.requests').find('span').text(stats.function.nbRequests);
 			} else {
@@ -3325,7 +3331,7 @@ define(function () {
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
-					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer|| qi.quoteFunction || qi).usage || usage;
+					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
 					let start = rUsage.start || 0;
 					return start <= filterDate;
 				});
@@ -3691,16 +3697,16 @@ define(function () {
 		/**
 		 * Initialize the function data tables from the whole quote
 		 */
-		 functionNewTable: function () {
+		functionNewTable: function () {
 			return current.genericInstanceNewTable('function', [{
 				data: 'nbRequests',
 				type: 'num',
 				className: 'truncate'
-			},{
+			}, {
 				data: 'duration',
 				type: 'num',
 				className: 'truncate'
-			},{
+			}, {
 				data: 'concurrency',
 				type: 'num',
 				className: 'truncate'
@@ -3788,7 +3794,7 @@ define(function () {
 					data: null,
 					type: 'num',
 					className: 'hidden-xs',
-					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer|| data.quoteFunction))
+					render: (_i, mode, data) => formatQuantity(null, mode, (data.quoteInstance || data.quoteDatabase || data.quoteContainer || data.quoteFunction))
 				}, {
 					data: 'size',
 					width: '36px',
@@ -3799,7 +3805,7 @@ define(function () {
 					data: 'price.type.latency',
 					type: 'string',
 					className: 'truncate hidden-xs',
-					render: formatStorageLatency
+					render: formatRate
 				}, {
 					data: 'price.type.optimized',
 					type: 'string',
@@ -3814,7 +3820,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer|| data.quoteFunction)
+					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer || data.quoteFunction)
 				}]
 			};
 		},
