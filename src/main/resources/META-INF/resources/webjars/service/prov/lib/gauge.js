@@ -54,12 +54,12 @@ define(['d3'], function (d3) {
 			waveTextColor: "#A4DBf8", // The color of the value text when the wave overlaps it.
 		};
 
-		d3.liquidfillgauge = function (g, value, settings) {
+		d3.liquidFillGauge = function (g, value, settings) {
 			// Handle configuration
-			var config = d3.map(defaultConfig);
-			d3.map(settings).each(function (val, key) {
+			var config = new Map(Object.entries(defaultConfig));
+			for (const [key, val] of Object.entries(settings)) {
 				config.set(key, val);
-			});
+			}
 
 			g.each(function () {
 				var gauge = d3.select(this);
@@ -319,7 +319,7 @@ define(['d3'], function (d3) {
 					waveGroup.interrupt().transition();
 					wave.interrupt().transition();
 
-					// Unattach events
+					// Detach events
 					gauge.on("valueChanged", null);
 					gauge.on("destroy", null);
 				});

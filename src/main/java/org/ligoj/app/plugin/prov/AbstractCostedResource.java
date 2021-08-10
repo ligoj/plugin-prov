@@ -66,8 +66,8 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 	 * @return deleted quote resource.
 	 * @param <Q> The quote resource type.
 	 */
-	protected <Q extends AbstractQuote<?>> Q deleteAndUpdateCost(
-			final RestRepository<Q, Integer> repository, final Integer id, final Consumer<Q> callback) {
+	protected <Q extends AbstractQuote<?>> Q deleteAndUpdateCost(final RestRepository<Q, Integer> repository,
+			final Integer id, final Consumer<Q> callback) {
 		// Check the entity exists and is visible
 		final var entity = resource.findConfigured(repository, id);
 

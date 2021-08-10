@@ -24,7 +24,7 @@ public interface QuoteVm {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @return The maximal used CPU. When <code>null</code>, the requested CPU is used.
 	 * @see #getCpu()
 	 */
@@ -32,7 +32,7 @@ public interface QuoteVm {
 
 	/**
 	 * The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @return The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
 	 * @see #getRam()
 	 */
@@ -117,28 +117,28 @@ public interface QuoteVm {
 
 	/**
 	 * Minimal required CPU rate
-	 * 
+	 *
 	 * @return CPU rate
 	 */
 	Rate getCpuRate();
 
 	/**
 	 * Minimal required network rate
-	 * 
+	 *
 	 * @return network rate
 	 */
 	Rate getNetworkRate();
 
 	/**
 	 * Minimal required storage rate
-	 * 
+	 *
 	 * @return storage rate
 	 */
 	Rate getStorageRate();
 
 	/**
 	 * Minimal required RAM rate
-	 * 
+	 *
 	 * @return RAM rate
 	 */
 	Rate getRamRate();

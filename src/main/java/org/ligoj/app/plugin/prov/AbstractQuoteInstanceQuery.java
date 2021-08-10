@@ -40,16 +40,16 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
 	@QueryParam("cpuMax")
 	private Double cpuMax;
-	
+
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -89,6 +89,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("physical")
 	private Boolean physical;
 
+	/**
+	 * When <code>true</code> ephemeral instances are accepted.
+	 */
 	@QueryParam("ephemeral")
 	private boolean ephemeral;
 

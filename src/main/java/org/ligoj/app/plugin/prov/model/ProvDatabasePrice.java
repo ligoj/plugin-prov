@@ -25,7 +25,7 @@ import lombok.ToString;
 @Table(name = "LIGOJ_PROV_DATABASE_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "location", "engine", "edition", "license", "term", "type" }),
 		@UniqueConstraint(columnNames = "code") })
-public class ProvDatabasePrice extends AbstractTermPrice<ProvDatabaseType> {
+public class ProvDatabasePrice extends AbstractTermPriceVm<ProvDatabaseType> {
 
 	/**
 	 * SID
@@ -47,7 +47,7 @@ public class ProvDatabasePrice extends AbstractTermPrice<ProvDatabaseType> {
 	 * Required storage engine. When not <code>null</code>, this type requires a storage only compatible to this engine.
 	 * When <code>null</code>, this type requires a storage having no engine constraint.
 	 *
-	 * @see {@link org.ligoj.app.plugin.prov.model.ProvStorageType} <code>engine</code>
+	 * @see org.ligoj.app.plugin.prov.model.ProvStorageType#getEngine()
 	 */
 	private String storageEngine;
 }

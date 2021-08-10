@@ -15,7 +15,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AbstractQuoteInstanceOsEditionVo extends AbstractQuoteInstanceEditionVo {
+public abstract class AbstractQuoteInstanceOsEditionVo extends AbstractQuoteVmEditionVo {
 
 	/**
 	 * SID

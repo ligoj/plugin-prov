@@ -1,0 +1,5 @@
+quoteFunction.name;price.code;size;configuration.name;name;description;cost;maxCost;latency;optimized;sizeMax
+function1;S1;20;quote1;function1-root;function1-rootD;0;0;GOOD;IOPS
+function1;S2;51;quote1;function1-temp;function1-tempD;0;0;MEDIUM;THROUGHPUT
+;S1;13;quote1;function1-shared-data;function-shared-dataD1;0;0;GOOD;IOPS
+function1;S5;20;quote1;function1-root2;function1-rootD;0;0;GOOD;IOPS;19

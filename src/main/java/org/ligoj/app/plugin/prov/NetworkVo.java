@@ -11,12 +11,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 
+ *
  * Network object for edition.
  */
 @Getter
 @Setter
-public class NetworkVo extends AbstractNetworkVo{
+public class NetworkVo extends AbstractNetworkVo {
 
 	/**
 	 * The related peer resource identifier.

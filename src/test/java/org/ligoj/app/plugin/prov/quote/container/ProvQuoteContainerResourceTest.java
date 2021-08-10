@@ -310,7 +310,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final var updatedCost2 = qcResource.update(vo);
-		checkCost(updatedCost2.getTotal(),5274.328, 9678.378, false);
+		checkCost(updatedCost2.getTotal(), 5274.328, 9678.378, false);
 		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
 
 		// Change the region of this instance, storage is also
@@ -471,5 +471,18 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(4, status.getNbStorages());
 		Assertions.assertEquals(104, status.getTotalStorage());
 		Assertions.assertEquals("region-1", status.getLocation().getName());
+	}
+
+	@Test
+	void findCointainerOs() {
+		final var tableItem = qcResource.findOs(subscription);
+		Assertions.assertEquals(2, tableItem.size());
+		Assertions.assertEquals("LINUX", tableItem.get(0));
+	}
+
+	@Test
+	void findContainerOsNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qcResource.findOs(subscription));
 	}
 }

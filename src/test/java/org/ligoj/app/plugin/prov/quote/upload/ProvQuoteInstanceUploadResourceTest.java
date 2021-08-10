@@ -22,6 +22,7 @@ import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -312,6 +313,22 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
 		checkCost(configuration.getCost(), 4840.178, 7289.778, false);
+	}
+
+	@Test
+	void uploadRate() throws IOException {
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;500;LINUX;LOW;BEST;MEDIUM;WORST", "UTF-8"),
+				new String[] { "name", "cpu", "ram", "os", "cpuRate", "ramRate", "networkrate", "storageRate" }, false,
+				null, 1, "UTF-8");
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		final var qi = configuration.getInstances().get(7);
+		Assertions.assertEquals("instance4", qi.getPrice().getType().getName());
+		Assertions.assertEquals(Rate.LOW, qi.getCpuRate());
+		Assertions.assertEquals(Rate.BEST, qi.getRamRate());
+		Assertions.assertEquals(Rate.MEDIUM, qi.getNetworkRate());
+		Assertions.assertEquals(Rate.WORST, qi.getStorageRate());
+		checkCost(configuration.getCost(), 4975.598, 7425.198, false);
 	}
 
 	@Test

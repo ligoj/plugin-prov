@@ -71,28 +71,36 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
 	 * @param pageable    The page control to return few item.
-	 * @return The minimum database price or empty result.
+	 * @return The cheapest database price or empty result.
 	 */
-	@Query("SELECT ip,                                                                                    "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu * ip.incrementCpu) * ip.costCpu)"
-			+ " +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)      "
-			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu * ip.incrementCpu) * ip.costCpu)"
-			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost                       "
-			+ " FROM #{#entityName} ip WHERE                                                              "
-			+ "      ip.location.id = :location                                                           "
-			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
-			+ "  AND :engine = ip.engine                                                                  "
-			+ "  AND (:edition IS NULL OR ip.edition=:edition)                                            "
-			+ "  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)                                              "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
+	@Query("""
+			SELECT ip,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END AS monthlyCost
+			 FROM #{#entityName} ip WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NOT NULL
+			  AND :engine = ip.engine
+			  AND (:edition   IS NULL OR ip.edition=:edition)
+			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
+			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
+			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
+			""")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
-			String engine, String edition, int location, double rate, double globalRate, double duration, String license,
-			double initialCost, Pageable pageable);
+			String engine, String edition, int location, double rate, double globalRate, double duration,
+			String license, double initialCost, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.
@@ -110,22 +118,24 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
-	@Query("SELECT ip,                                                "
-			+ " CASE                                                  "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)"
-			+ "  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,"
-			+ " CASE                                                  "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)            "
-			+ "  ELSE ip.cost END AS monthlyCost                      "
-			+ " FROM #{#entityName} ip WHERE                                                              "
-			+ "      ip.location.id = :location                                                           "
-			+ "  AND ip.incrementCpu IS NULL                                                              "
-			+ "  AND :engine = ip.engine                                                                  "
-			+ "  AND (:edition IS NULL OR ip.edition=:edition)                                            "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC                                                  ")
+	@Query("""
+			SELECT ip,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
+			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate)
+			  ELSE ip.cost END AS monthlyCost
+			 FROM #{#entityName} ip WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NULL
+			  AND :engine = ip.engine
+			  AND (:edition IS NULL OR ip.edition=:edition)
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  ORDER BY totalCost ASC, ip.type.id DESC
+			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
 			String license, String engine, String edition, double initialCost, Pageable pageable);
 

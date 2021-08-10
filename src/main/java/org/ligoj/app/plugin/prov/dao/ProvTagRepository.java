@@ -17,7 +17,7 @@ public interface ProvTagRepository extends RestRepository<ProvTag, Integer> {
 
 	/**
 	 * Return all {@link ProvTag} related to given quote identifier.
-	 * 
+	 *
 	 * @param quote The quote identifier to match.
 	 * @return All {@link ProvTag} related to given quote identifier.
 	 */

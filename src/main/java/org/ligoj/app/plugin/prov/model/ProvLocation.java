@@ -20,7 +20,7 @@ import lombok.Setter;
 
 /**
  * Location for a VM provider. The name attribute is an unique location API name within the VM provider.
- * 
+ *
  * @see <a href="https://unstats.un.org/unsd/methodology/m49/">unstats.un.org</a>
  * @see <a href="https://en.wikipedia.org/wiki/UN_M.49">UN_M.49</a>
  */
@@ -70,7 +70,7 @@ public class ProvLocation extends AbstractDescribedEntity<Integer> {
 	private Integer countryM49;
 
 	/**
-	 * ISO 3166-1-alpha-2  country code: US (USA), FR (France), ...
+	 * ISO 3166-1-alpha-2 country code: US (USA), FR (France), ...
 	 */
 	private String countryA2;
 

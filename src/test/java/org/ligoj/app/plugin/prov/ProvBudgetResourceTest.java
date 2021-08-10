@@ -25,6 +25,8 @@ import org.ligoj.app.plugin.prov.model.ProvContainerType;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
+import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
+import org.ligoj.app.plugin.prov.model.ProvFunctionType;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
@@ -32,6 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
+import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
@@ -54,6 +57,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	@Autowired
 	private ProvBudgetRepository budgetRepository;
 
+	@Override
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		// Only with Spring context
@@ -67,6 +71,8 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
 				StandardCharsets.UTF_8.name());
 		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
+				StandardCharsets.UTF_8.name());
+		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
 				StandardCharsets.UTF_8.name());
 
 		preparePostData();
@@ -134,7 +140,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void updateWithDatabasesAndContainers() throws IOException {
+	void updateWithResources() throws IOException {
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
 		checkCost(subscription, 2982.4, 5139.2, false);
 		assertTermCount("1y", 4); // Instances only
@@ -142,6 +148,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Add databases and containers, associated to another limited budget
 		addDatabases();
 		addContainers();
+		addFunctions();
 		final var budget2 = budgetRepository.findByName(subscription, "Dept2");
 		budget2.setInitialCost(3000);
 		budgetRepository.save(budget2);
@@ -153,9 +160,13 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 			qc.setBudget(budget2);
 			qcRepository.save(qc);
 		});
+		getQuote().getFunctions().forEach(qc -> {
+			qc.setBudget(budget2);
+			qfRepository.save(qc);
+		});
 
 		configuration.put("service:prov:log", "true");
-		checkCost(resource.refresh(subscription), 6073.42, 7296.42, false);
+		checkCost(resource.refresh(subscription), 6189.72, 7529.02, false);
 		assertTermCount("1y", 6); // 4 Instances +0 Databases +2 Containers
 		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 		Assertions.assertEquals(2635.2, budgetRepository.findByName(subscription, "Dept2").getRequiredInitialCost());
@@ -163,24 +174,24 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Increase the budget
 		budget2.setInitialCost(5000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6010.02, 7206.22, false);
+		checkCost(resource.refresh(subscription), 6126.32, 7438.82, false);
 		assertTermCount("1y", 8); // 4 Instances +0 Databases +4 Containers
 
 		// Increase the budget to enable databases
 		budget2.setInitialCost(8000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 5927.02, 7150.02, false);
+		checkCost(resource.refresh(subscription), 6043.32, 7382.62, false);
 		assertTermCount("1y", 10); // 4 Instances +2 Databases +4 Containers
 
 		// Reduce the budget
 		budget2.setInitialCost(2000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6110.02, 7333.02, false);
+		checkCost(resource.refresh(subscription), 6226.32, 7565.62, false);
 		assertTermCount("1y", 5); // Only one Database and containers fits to the budget with 1y term
 
 		bResource.delete(subscription, budget2.getId()); // Fallback the default budget
-		assertTermCount("1y", 17); // 4 Instances +6 Databases +7 Containers
-		Assertions.assertEquals(22164.64, getBudget().getRequiredInitialCost());
+		assertTermCount("1y", 18); // 4 Instances +6 Databases +7 Containers + 1Functions
+		Assertions.assertEquals(23182.04, getBudget().getRequiredInitialCost());
 	}
 
 	private void addDatabases() throws IOException {
@@ -193,6 +204,11 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 				StandardCharsets.UTF_8.name());
 	}
 
+	private void addFunctions() throws IOException {
+		persistEntities("csv/function", new Class[] { ProvQuoteFunction.class, ProvQuoteStorage.class },
+				StandardCharsets.UTF_8.name());
+	}
+
 	private void assertTermCount(final String name, final int count) {
 		final var iC = resource.getConfiguration(subscription).getInstances().stream()
 				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
@@ -200,7 +216,9 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
 		final var cC = resource.getConfiguration(subscription).getContainers().stream()
 				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
-		Assertions.assertEquals(count, iC + bC + cC);
+		final var fC = resource.getConfiguration(subscription).getFunctions().stream()
+				.filter(i -> name.equals(i.getPrice().getTerm().getName())).count();
+		Assertions.assertEquals(count, iC + bC + cC + fC);
 	}
 
 	private ProvBudget getBudget() {

@@ -1,4 +1,4 @@
-subscription.id!;name;description;cost;maxCost;location.name;currency.name
-1;quote1;quoteD1;0.128;0.129;region-1;USD
+subscription.id!;name;description;cost;maxCost;location.name;currency.name;uiSettings
+1;quote1;quoteD1;0.128;0.129;region-1;USD;{}
 2;quote2;quoteD2;0;0;region-1
 3;quote3;quoteD3;0;0;region-1

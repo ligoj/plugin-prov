@@ -78,7 +78,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		repository.flush();
 
 		// Update the cost. Note the effort could be reduced to a simple subtract of deleted resource costs.
-		resource.updateCost(subscription);
+		resource.updateCost(quote);
 		return resource.refreshSupportCost(cost, quote);
 	}
 

@@ -102,7 +102,7 @@ public class ProvQuoteContainerResource extends
 
 	/**
 	 * Return the container prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best container price matching to the criteria.
@@ -161,6 +161,13 @@ public class ProvQuoteContainerResource extends
 
 	@Override
 	@GET
+	@Path("{subscription:\\d+}/container-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return super.findOs(subscription);
+	}
+
+	@Override
+	@GET
 	@Path("{subscription:\\d+}/container-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvContainerType> findAllTypes(@PathParam("subscription") final int subscription,
@@ -175,5 +182,4 @@ public class ProvQuoteContainerResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
 }

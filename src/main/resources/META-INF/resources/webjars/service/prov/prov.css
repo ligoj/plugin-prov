@@ -356,6 +356,12 @@ img.flag-icon.prov-location-flag {
   display: none;
 }
 
+@media (max-width: 993px) {
+  .retracted #service-prov-menu a{
+    display:none;
+  }
+}
+
 .retracted #prov-defaults legend {
   font-size: 16px;
 }
@@ -449,8 +455,9 @@ img.flag-icon.prov-location-flag {
 .configuration-wrapper-service-prov .dt-buttons .buttons-collection {
   padding: 8px 14px;
 }
-.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive="instance"]),
-.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive="database"]) {
+.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive*="instance"]),
+.modal[data-prov-type="container"] [data-exclusive]:not([data-exclusive*="container"]),
+.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive*="database"]) {
   display: none;
 }
 #database-edition {
@@ -481,9 +488,31 @@ img.flag-icon.prov-location-flag {
 }
 #instance-constant,
 #instance-ram-unit {
-  width: 93px;
+  width: 52px;
 }
 
 #subscribe-configuration-prov .modal .element-advanced:is(.advanced) {
-   display:none
+   display:none;
+}
+#instance-constant .dropdown-toggle,
+#instance-ram-unit .dropdown-toggle {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+#subscribe-configuration-prov .modal .element-advanced:not(.advanced) {
+  display: none
+}
+#subscribe-configuration-prov .select2-search-choice [data-prov-type] {
+  cursor: pointer;
+}
+.input-group.with-select2 {
+  display: flex;
+}
+
+#s2id_database-engine {
+  width: 200px;
+  min-width: 200px;
+}
+#instance-cpu, #instance-ram {
+  width: 3em;
 }

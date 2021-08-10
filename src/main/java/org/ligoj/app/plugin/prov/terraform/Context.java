@@ -40,7 +40,7 @@ public class Context {
 
 	/**
 	 * Add a value to the context.
-	 * 
+	 *
 	 * @param key   Key of the context.
 	 * @param value Value of the context.
 	 * @return This object.
@@ -51,9 +51,8 @@ public class Context {
 	}
 
 	/**
-	 * Return the context value. Is a shorthand of
-	 * <code> getContext().get(key)</code>
-	 * 
+	 * Return the context value. Is a shorthand of <code> getContext().get(key)</code>
+	 *
 	 * @param key The context key.
 	 * @return The context value.
 	 */

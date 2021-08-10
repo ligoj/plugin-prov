@@ -13,7 +13,7 @@ public interface ProvType extends NodeScoped, IDescribableBean<Integer> {
 
 	/**
 	 * Return the code of the type.
-	 * 
+	 *
 	 * @return The code of the type.
 	 */
 	String getCode();

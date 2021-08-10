@@ -113,7 +113,7 @@ public class ProvQuoteInstanceResource extends
 
 	/**
 	 * Return the instance prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best instance price matching to the criteria.
@@ -191,6 +191,13 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	@GET
+	@Path("{subscription:\\d+}/instance-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return super.findOs(subscription);
+	}
+
+	@Override
+	@GET
 	@Path("{subscription:\\d+}/instance-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstanceType> findAllTypes(@PathParam("subscription") final int subscription,
@@ -205,5 +212,4 @@ public class ProvQuoteInstanceResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
 }
