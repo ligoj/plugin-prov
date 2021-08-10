@@ -33,6 +33,11 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	private int nbDatabases;
 
 	/**
+	 * The amount (minimum quantity) of functions.
+	 */
+	private int nbFunctions;
+
+	/**
 	 * The amount (minimum quantity) of containers.
 	 */
 	private int nbContainers;

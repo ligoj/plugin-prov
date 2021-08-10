@@ -190,7 +190,7 @@ define(['sparkline'], function () {
 		},
 
 		toProgress: function (status) {
-			return status.workload ? Math.round(status.done / status.workload * 100) : '0';
+			return status.workload ? Math.round(status.done / status.workload * 100) : 0;
 		},
 
 		/**

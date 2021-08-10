@@ -42,10 +42,12 @@ import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -58,6 +60,7 @@ import org.ligoj.app.plugin.prov.model.ReservationMode;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.function.ProvQuoteFunctionResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
@@ -112,6 +115,13 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	public static final String USE_PARALLEL = SERVICE_KEY + ":use-parallel";
 
+	/**
+	 * Default hours per month.
+	 *
+	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
+	 */
+	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
+
 	@Autowired
 	@Getter
 	protected SubscriptionResource subscriptionResource;
@@ -153,6 +163,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	private ProvQuoteContainerResource qcResource;
 
 	@Autowired
+	private ProvQuoteFunctionResource qfResource;
+
+	@Autowired
 	private ProvQuoteSupportResource qspResource;
 
 	@Autowired
@@ -169,6 +182,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Autowired
 	private ProvContainerTypeRepository ctRepository;
 
+	@Autowired
+	private ProvFunctionTypeRepository ftRepository;
+
 	// Quote block
 
 	@Autowired
@@ -182,6 +198,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvQuoteContainerRepository qcRepository;
+
+	@Autowired
+	private ProvQuoteFunctionRepository qfRepository;
 
 	@Autowired
 	private ProvQuoteSupportRepository qs2Repository;
@@ -247,6 +266,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		listC.put("instance", itRepository.findProcessors(node));
 		listC.put("database", btRepository.findProcessors(node));
 		listC.put("container", ctRepository.findProcessors(node));
+		listC.put("function", ftRepository.findProcessors(node));
 		return listC;
 	}
 
@@ -292,10 +312,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setInstances(quote.getInstances());
 		vo.setDatabases(qbRepository.findAll(quote));
 		vo.setContainers(qcRepository.findAll(quote));
+		vo.setFunctions(qfRepository.findAll(quote));
 		vo.setStorages(qsRepository.findAll(quote));
 		vo.setUsage(quote.getUsage());
 		vo.setBudget(quote.getBudget());
 		vo.setLicense(quote.getLicense());
+		vo.setUiSettings(quote.getUiSettings());
 		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
@@ -330,6 +352,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var compute = repository.getComputeSummary(subscription).get(0);
 		final var database = repository.getDatabaseSummary(subscription).get(0);
 		final var container = repository.getContainerSummary(subscription).get(0);
+		final var function = repository.getFunctionSummary(subscription).get(0);
 		final var storage = repository.getStorageSummary(subscription).get(0);
 		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
@@ -341,6 +364,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setNbInstances(((Long) compute[1]).intValue());
 		vo.setNbDatabases(((Long) database[1]).intValue());
 		vo.setNbContainers(((Long) container[1]).intValue());
+		vo.setNbFunctions(((Long) function[1]).intValue());
 		vo.setNbStorages(((Long) storage[1]).intValue());
 
 		// Sum up resources
@@ -366,6 +390,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
+		entity.setUiSettings(vo.getUiSettings());
 
 		var oldLicense = entity.getLicense();
 		var oldLocation = entity.getLocation();
@@ -410,6 +435,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch internal resources) to refresh
 		final var quote = repository.getCompute(subscription);
+		return updateCost(quote);
+	}
+
+	/**
+	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
+	 * updated.
+	 *
+	 * @param quote The quote to compute
+	 * @return The updated computed cost.
+	 */
+	protected FloatingCost updateCost(final ProvQuote quote) {
 		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
 
@@ -472,6 +508,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		// Add the container cost
 		log.info("Refresh cost started for subscription {} / containers ... ", entity.getSubscription().getId());
 		newStream(qcRepository.findAll(entity)).map(qcResource::updateCost).forEach(fc -> addCost(entity, fc));
+
+		// Add the function cost
+		log.info("Refresh cost started for subscription {} / functions ... ", entity.getSubscription().getId());
+		newStream(qfRepository.findAll(entity)).map(qfResource::updateCost).forEach(fc -> addCost(entity, fc));
 
 		// Add the storage cost
 		log.info("Refresh cost started for subscription {} / storages ... ", entity.getSubscription().getId());

@@ -10,17 +10,16 @@ define(['d3', 'jquery'], function (d3) {
         // formatting Data to a more d3-friendly format
         // extracting binNames and clusterNames
         function formatData(data, sort) {
-            var clusterNames = d3.keys(data[0]).filter(k => k !== 'date').sort(sort);
+            var clusterNames = Object.keys(data[0]).filter(k => k !== 'date').sort(sort);
             var binNames = [];
             var blockData = [];
             let ranges = {};
             clusterNames.forEach(k => ranges[k] = { min: Number.MAX_VALUE, max: -1 });
-            for (var i = 0; i < data.length; i++) {
+            data.forEach((bar, i) => {
                 var y = 0;
-                binNames.push(data[i].date);
-                for (var j = 0; j < clusterNames.length; j++) {
-                    let key = clusterNames[j];
-                    let value = parseFloat(data[i][key]);
+                binNames.push(bar.date);
+                clusterNames.forEach((key, j) => {
+                    let value = parseFloat(bar[key]);
                     ranges[key].min = Math.min(ranges[key].min, value);
                     ranges[key].max = Math.max(ranges[key].max, value);
                     y += value;
@@ -29,13 +28,13 @@ define(['d3', 'jquery'], function (d3) {
                         'y': y,
                         'height0': value,
                         'height': value,
-                        'x': data[i].date,
+                        'x': bar.date,
                         'x-index': i,
                         'cluster-index': j,
                         'cluster': key
                     });
-                }
-            }
+                });
+            });
             return {
                 blockData: blockData,
                 binNames: binNames,
@@ -121,7 +120,7 @@ define(['d3', 'jquery'], function (d3) {
                 .data(params.filteredClusterNames)
                 .enter().append('g')
                 .attr('class', 'legend')
-                .on('click', function (d) {
+                .on('click', function (e, d) {
                     chosen.cluster = chosen.cluster === d ? null : d;
                     refresh();
                 });
@@ -258,12 +257,12 @@ define(['d3', 'jquery'], function (d3) {
 
             // Update bars
             bar.selectAll('rect')
-                .on('contextmenu', d => {
+                .on('contextmenu', (e, d) => {
                     chosen.cluster = chosen.cluster === d.cluster ? null : d.cluster;
-                    d3.event.preventDefault();
+                    e.preventDefault();
                     refresh();
                 })
-                .on('click', d => {
+                .on('click', (e, d) => {
                     if (params.click) {
                         var isClicked = d.clicked;
                         if (params.clicked) {
@@ -289,11 +288,11 @@ define(['d3', 'jquery'], function (d3) {
                         params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
                     }
                 })
-                .on('mouseleave', function (d) {
+                .on('mouseleave', function (e,d) {
                     var sameCost = false;
-                    if (d3.event.relatedTarget && d3.event.target && d3.event.relatedTarget.__data__ && d3.event.target.__data__) {
-                        var data1 = d3.event.target.__data__;
-                        var data2 = d3.event.relatedTarget.__data__;
+                    if (e.relatedTarget && e.relatedTarget.__data__) {
+                        var data1 = d;
+                        var data2 = e.relatedTarget.__data__;
                         if (data1.x === data2.x) {
                             return;
                         }
@@ -321,7 +320,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover();
                     }
                 })
-                .on('mouseenter', d => {
+                .on('mouseenter', (e,d) => {
                     var bars = bar.selectAll('rect')
                         .filter(f => f.x === d.x)
                         .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
@@ -342,12 +341,12 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover(d, bars);
                     }
                 })
-                .on('mouseover', d => {
-                    if (params.tooltip) {
-                        tooltip().html(params.tooltip(d, blockData.filter(f => f.x === d.x))).style('visibility', 'visible');
+                .on('mouseover', (e, d) => {
+                    if (typeof params.tooltip === 'function') {
+                        tooltip().html(params.tooltip(e, blockData.filter(f => f.x === d.x), d)).style('visibility', 'visible');
                     }
                 })
-                .on('mousemove', () => tooltip().style('top', (d3.event.pageY - 10) + 'px').style('left', (d3.event.pageX + 10) + 'px'))
+                .on('mousemove', e => tooltip().style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px'))
                 .on('mouseout', () => tooltip().style('visibility', 'hidden'))
                 .transition()
                 .duration(transDuration)
@@ -466,10 +465,11 @@ define(['d3', 'jquery'], function (d3) {
             };
         }
 
-        const setUpColors = () => d3.scaleOrdinal(d3.schemeCategory10);
-        function create(selector, selectorPercentCB, width, height, data, tooltipCB, hover, click, axisY, sort) {
+        let setUpColors = () => d3.scaleOrdinal(params.colors);
+        function create(selector, selectorPercentCB, colors, width, height, data, tooltipCB, hover, click, axisY, sort) {
             var input = { 'data': data, 'width': width, 'height': height };
             params.input = input;
+            params.colors = colors;
             params.selector = selector;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
@@ -485,7 +485,7 @@ define(['d3', 'jquery'], function (d3) {
 
         function resize(width) {
             params.canvas.svg.html(null);
-            create(params.selector, params.percentCB, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
+            create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
         }
 
         // Exports

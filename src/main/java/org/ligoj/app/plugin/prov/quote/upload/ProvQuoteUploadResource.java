@@ -45,7 +45,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
@@ -96,6 +96,7 @@ public class ProvQuoteUploadResource {
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
 			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
+			"ramRate:ramRate", "cpuRate:cpuRate", "networkRate:networkRate", "storageRate:storageRate",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
@@ -173,7 +174,7 @@ public class ProvQuoteUploadResource {
 		return qb.getId();
 	}
 
-	private <Q extends AbstractQuoteInstanceEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
+	private <Q extends AbstractQuoteVmEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
 		var name = vo.getName();
 		var counter = 0;
 		while (previous.containsKey(name)) {
@@ -387,7 +388,7 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning : flushing");
 	}
 
-	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,
 			final String usage, final Integer ramMultiplier, final V vo) {
 		// Validate the upload object
 		vo.setName(upload.getName());
@@ -399,6 +400,10 @@ public class ProvQuoteUploadResource {
 		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
+		vo.setCpuRate(upload.getCpuRate());
+		vo.setRamRate(upload.getRamRate());
+		vo.setNetworkRate(upload.getNetworkRate());
+		vo.setStorageRate(upload.getStorageRate());
 		vo.setConstant(upload.getConstant());
 		vo.setPhysical(upload.getPhysical());
 		vo.setUsage(Optional.ofNullable(upload.getUsage())
@@ -469,7 +474,7 @@ public class ProvQuoteUploadResource {
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> void persist(final VmUpload upload, final int subscription,
 			final BiFunction<V, UploadContext, Integer> merger, final UploadContext context, final V vo,
 			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 

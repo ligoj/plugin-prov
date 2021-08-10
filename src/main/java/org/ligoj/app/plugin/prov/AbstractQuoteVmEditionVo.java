@@ -24,7 +24,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
+public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
 
 	/**
 	 * SID

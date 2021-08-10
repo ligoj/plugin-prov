@@ -25,14 +25,16 @@ import javax.ws.rs.core.UriInfo;
 import org.ligoj.app.plugin.prov.dao.BaseMultiScopedRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
-import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
 import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
+import org.ligoj.app.plugin.prov.quote.function.ProvQuoteFunctionResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.NamedBean;
@@ -70,6 +72,9 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	protected ProvQuoteContainerResource qcResource;
 
 	@Autowired
+	protected ProvQuoteFunctionResource qfResource;
+
+	@Autowired
 	protected ProvQuoteInstanceRepository qiRepository;
 
 	@Autowired
@@ -77,6 +82,9 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	@Autowired
 	protected ProvQuoteContainerRepository qcRepository;
+
+	@Autowired
+	protected ProvQuoteFunctionRepository qfRepository;
 
 	@Autowired
 	protected ProvBudgetResource bRessource;
@@ -142,7 +150,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	@DELETE
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("{id:\\d+}")
-	public UpdatedCost delete(final int subscription, final int id) {
+	public UpdatedCost delete(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
 		final var entity = resource.findConfigured(getRepository(), id, subscription);
 		final var quote = entity.getConfiguration();
 		final var cost = new UpdatedCost(entity.getId());
@@ -151,15 +159,15 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 		final var instances = getRelated(getRepository()::findRelatedInstances, entity);
 		final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
 		final var containers = getRelated(getRepository()::findRelatedContainers, entity);
+		final var functions = getRelated(getRepository()::findRelatedFunctions, entity);
 
 		if (entity.equals(quoteGetter.apply(quote))) {
 			// Update cost of all instances without explicit resource
 			quoteSetter.accept(quote, null);
 		}
-		instances.forEach(i -> quoteSetter.accept(i, null));
-		databases.forEach(i -> quoteSetter.accept(i, null));
-		containers.forEach(i -> quoteSetter.accept(i, null));
-		bRessource.lean(quote, instances, databases, containers, cost.getRelated());
+		Stream.of(instances, databases, containers, functions)
+				.forEach(l -> l.forEach(i -> quoteSetter.accept(i, null)));
+		bRessource.lean(quote, instances, databases, containers, functions, cost.getRelated());
 
 		// All references are deleted, delete the parent entity
 		getRepository().delete(entity);
@@ -178,7 +186,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 * @param <C>     The related resource type.
 	 * @return The filtered resources related to the given budget.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> Stream<C> getRelatedStream(
+	protected <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> Stream<C> getRelatedStream(
 			final Function<S, Stream<C>> fetcher, final S entity) {
 		return fetcher.apply(entity);
 	}
@@ -191,7 +199,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 * @param <C> The related resource type.
 	 * @return The filtered resources related to the given budget.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>> List<C> getRelated(
+	protected <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> getRelated(
 			final Function<S, Stream<C>> fetcher, final S entity) {
 		return getRelatedStream(fetcher, entity).collect(Collectors.toList());
 	}

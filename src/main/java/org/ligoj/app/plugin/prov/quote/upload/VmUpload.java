@@ -120,6 +120,26 @@ public class VmUpload {
 	private InternetAccess internet = InternetAccess.PRIVATE;
 
 	/**
+	 * Minimal CPU rate
+	 */
+	private Rate cpuRate = Rate.MEDIUM;
+
+	/**
+	 * Minimal RAM rate
+	 */
+	private Rate ramRate = Rate.MEDIUM;
+
+	/**
+	 * Minimal storage rate
+	 */
+	private Rate storageRate = Rate.MEDIUM;
+
+	/**
+	 * Minimal network rate
+	 */
+	private Rate networkRate = Rate.MEDIUM;
+
+	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
 	 * {@link #maxQuantity} or {@link #minQuantity}. When <code>null</code>, there is no limit. Only relevant for
 	 * variable instance price type such as AWS Spot.

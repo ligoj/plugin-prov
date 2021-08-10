@@ -31,7 +31,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
-import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -50,7 +50,7 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The resource part of the provisioning.
+ * The resource part of the provisioning of a VM like type.
  *
  * @param <T> The instance resource type.
  * @param <P> Quoted resource price type.
@@ -59,7 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <L> Quoted resource lookup result type.
  * @param <Q> Quoted resource details type.
  */
-public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
+public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteVmEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
 		extends AbstractProvQuoteResource<T, P, C, E> {
 
 	/**
@@ -325,7 +325,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the instance type identifier.
+	 * Return the instance type identifier from its code.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
@@ -588,7 +588,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(),
 				query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node,
-				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER) && convOs,
+				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
+						|| getType() == ResourceType.FUNCTION) && convOs,
 				getType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation, reservation,
 				maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
