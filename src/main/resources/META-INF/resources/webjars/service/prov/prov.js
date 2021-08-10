@@ -3874,6 +3874,7 @@ define(function () {
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
+						dropdownAutoWidth: true,
 						minimumInputLength: 1,
 						createSearchChoice: () => null,
 						formatInputTooShort: current.$messages['service:prov:storage-select'],
