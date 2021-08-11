@@ -587,11 +587,9 @@ define(function () {
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
 	function formatStorageHtml(qs, showName,test1,test2) {
-		debugger;
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		${qs.quoteInstance ? (qs.quoteInstance.maxQuantity+ 'x'):'' }
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -3873,7 +3871,6 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3886,14 +3883,11 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								debugger;
 								return {
-									nbQuantity: qi.maxQuantity,
 									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
 							},
 							results: function (data) {
-								debugger;
 								// Completed the requested identifier
 								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
