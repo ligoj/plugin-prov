@@ -404,28 +404,31 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("server1-root-terD");
 		vo.setType("storage1");
 		vo.setSize(256);
+		vo.setQuantity(10);
 		newTags(vo);
 
 		final var cost = qsResource.create(vo);
-		checkCost(cost.getTotal(), 7158.958, 9754.858, false);
-		checkCost(cost.getCost(), 53.76, 53.76, false);
+		checkCost(cost.getTotal(), 7642.798, 10238.698, false);
+		checkCost(cost.getCost(), 537.6, 537.6, false);
 		Assertions.assertEquals(0, cost.getRelated().size());
 		final int id = cost.getId();
 		em.flush();
 		em.clear();
 
 		// Check the exact new cost
-		checkCost(subscription, 7158.958, 9754.858, false);
+		checkCost(subscription, 7642.798, 10238.698, false);
 		final var storage = qsRepository.findOneExpected(id);
 		Assertions.assertEquals("server1-root-ter", storage.getName());
 		Assertions.assertEquals("server1-root-terD", storage.getDescription());
 		Assertions.assertEquals(ResourceType.STORAGE, storage.getResourceType());
 		Assertions.assertEquals(256, storage.getSize());
 		Assertions.assertEquals(vo.getType(), storage.getPrice().getType().getName());
-		Assertions.assertEquals(53.76, storage.getCost(), DELTA);
+		Assertions.assertEquals(537.6, storage.getCost(), DELTA);
+		Assertions.assertEquals(10, storage.getQuantity());
 		Assertions.assertFalse(storage.isUnboundCost());
 		assertTags(storage);
 	}
+
 
 	@Test
 	void refresh() {

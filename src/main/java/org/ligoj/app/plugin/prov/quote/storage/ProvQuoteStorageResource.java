@@ -156,6 +156,7 @@ public class ProvQuoteStorageResource
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
+		entity.setQuantity(ObjectUtils.defaultIfNull(vo.getQuantity(), 1));
 		entity.setSizeMax(vo.getSizeMax());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getInstance()));
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getDatabase()));
@@ -357,7 +358,11 @@ public class ProvQuoteStorageResource
 
 	@Override
 	protected FloatingCost getCost(final ProvQuoteStorage qs) {
-		final var base = getCost(qs.getPrice(), qs.getSize());
+		// Sample Instance1, minQuantity=1, maxQuantity=5
+		// qs1: quantity=4, price=5$ -> displayed quantity=[4,20], price=[20$-100$]
+		// qs2: quantity=3, price=10$ -> displayed quantity=[3,15], price=[30$-150$]
+		final var base = getCost(qs.getPrice(), qs.getSize())
+				* ((double) ObjectUtils.defaultIfNull(qs.getQuantity(), 1));
 		return Optional.ofNullable(qs.getQuoteResource())
 				.map(qr -> AbstractProvQuoteVmResource.computeFloat(base, 0d, qr))
 				.orElseGet(() -> new FloatingCost(base));
