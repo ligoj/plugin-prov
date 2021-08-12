@@ -66,6 +66,12 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	private Integer sizeMax;
 
 	/**
+	 * The quantity of this instance. When <code>null</code>, is considered as <code>1</code>.
+	 */
+	@Positive
+	private Integer quantity = 1;
+
+	/**
 	 * The tags to override when not <code>null</code>.
 	 */
 	private List<TagVo> tags;
