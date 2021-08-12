@@ -84,15 +84,6 @@ public class QuoteStorageQuery implements QuoteStorage {
 	@QueryParam("location")
 	private String location;
 
-	/**
-	 * The quantity of this instance. When <code>null</code>, is considered as <code>1</code>.
-	 */
-	@Builder.Default
-	@DefaultValue(value = "1")
-	@QueryParam("quantity")
-	@Positive
-	private Integer quantity = 1;
-
 	@Override
 	@JsonIgnore
 	public String getLocationName() {
