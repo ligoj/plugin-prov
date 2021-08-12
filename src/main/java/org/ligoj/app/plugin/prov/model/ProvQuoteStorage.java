@@ -97,6 +97,13 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	private ProvQuoteFunction quoteFunction;
 
 	/**
+	 * The quantity of this instance. When <code>null</code>, is considered as <code>1</code>.
+	 */
+	@NotNull
+	@Positive
+	private Integer quantity = 1;
+
+	/**
 	 * Resolved price configuration.
 	 */
 	@NotNull
@@ -121,7 +128,7 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	 */
 	@JsonIgnore
 	public AbstractQuoteVm<?> getQuoteResource() {
-		return ObjectUtils.firstNonNull(quoteDatabase, quoteInstance, quoteContainer,quoteFunction);
+		return ObjectUtils.firstNonNull(quoteDatabase, quoteInstance, quoteContainer, quoteFunction);
 	}
 
 	@Override

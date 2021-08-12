@@ -122,22 +122,22 @@ public class VmUpload {
 	/**
 	 * Minimal CPU rate
 	 */
-	private Rate cpuRate = Rate.MEDIUM;
+	private Rate cpuRate = Rate.WORST;
 
 	/**
 	 * Minimal RAM rate
 	 */
-	private Rate ramRate = Rate.MEDIUM;
+	private Rate ramRate = Rate.WORST;
 
 	/**
 	 * Minimal storage rate
 	 */
-	private Rate storageRate = Rate.MEDIUM;
+	private Rate storageRate = Rate.WORST;
 
 	/**
 	 * Minimal network rate
 	 */
-	private Rate networkRate = Rate.MEDIUM;
+	private Rate networkRate = Rate.WORST;
 
 	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
