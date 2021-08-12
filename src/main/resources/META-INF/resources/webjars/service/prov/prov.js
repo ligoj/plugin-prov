@@ -587,11 +587,10 @@ define(function () {
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
 	function formatStorageHtml(qs, showName) {
-		//debugger;
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }
+		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -603,7 +602,6 @@ define(function () {
 	 * @return {string} The HTML markup representing the quote storage : cost, type and flags.
 	 */
 	function formatStoragePriceHtml(qs) {
-		debugger;
 		return formatStorageHtml(qs, false) + ' ' + qs.price.type.name + '<span class="pull-right text-small">' + formatCost(qs.cost) + '<span class="cost-unit">/m</span></span>';
 	}
 
@@ -3011,6 +3009,7 @@ define(function () {
 			qx.usage = usage;
 			qx.budget = budget;
 			qx.resourceType = type;
+			qx.quantity=data.quantity;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3874,7 +3873,6 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3888,9 +3886,6 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								//debugger;
-								//1*40
-								//(\d]+\s*[*x]\s*)?(\d+)/
 								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
 								term =term.match(regex)
 								return {
@@ -3917,14 +3912,13 @@ define(function () {
 						}
 					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
-							debugger;
 							// New storage
 							var suggest = event.added;
 							var data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.code,
 								size: suggest.size,
-								//quantity: suggest.quantity,
+								quantity: suggest.quantity,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
 								function: type === 'function' && qi.id,
@@ -3941,7 +3935,6 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (updatedCost) {
-									debugger;
 									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, null, qi.location);
 
 									// Keep the focus on this UI after the redraw of the row
