@@ -99,7 +99,4 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
-	<description>org.ligoj.plugin
-plugin-prov
-2.3.2-SNAPSHOT</description>
 </project>
