@@ -491,16 +491,14 @@ img.flag-icon.prov-location-flag {
   width: 52px;
 }
 
-#subscribe-configuration-prov .modal .element-advanced:is(.advanced) {
-   display:none;
-}
 #instance-constant .dropdown-toggle,
 #instance-ram-unit .dropdown-toggle {
   padding-left: 10px;
   padding-right: 10px;
 }
-#subscribe-configuration-prov .modal .element-advanced:not(.advanced) {
-  display: none
+
+#subscribe-configuration-prov .modal:not(.advanced) .element-advanced {
+  display: none;
 }
 #subscribe-configuration-prov .select2-search-choice [data-prov-type] {
   cursor: pointer;

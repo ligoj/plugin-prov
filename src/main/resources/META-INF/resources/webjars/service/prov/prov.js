@@ -1131,11 +1131,12 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
+		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+			debugger;
 			if(e.currentTarget.checked){
-				$popup.find('div .element-advanced').removeClass('advanced')
+				$popup.addClass('advanced');	
 			}else{
-				$popup.find('div .element-advanced').addClass('advanced')
+				$popup.removeClass('advanced');
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
@@ -1157,7 +1158,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
