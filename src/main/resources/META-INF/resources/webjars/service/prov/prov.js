@@ -586,7 +586,7 @@ define(function () {
 	 * @param {boolean} showName When true, the type name is displayed. Default is false.
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
-	function formatStorageHtml(qs, showName,test1,test2) {
+	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
