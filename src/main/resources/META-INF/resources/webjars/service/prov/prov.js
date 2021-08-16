@@ -592,7 +592,7 @@ define(function () {
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
 		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
-		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
 	}
 
@@ -1157,7 +1157,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
@@ -3902,8 +3902,7 @@ define(function () {
 										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
 										quote.text = quote.price.type.name;	
 										quote.quantity= parseInt(RexExp[2])								
-								})
-
+								});
 								return {
 									more: false,
 									results: data
