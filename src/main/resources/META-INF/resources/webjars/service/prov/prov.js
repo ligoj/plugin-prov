@@ -589,7 +589,7 @@ define(function () {
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
-		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
+		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -3885,7 +3885,6 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								debugger;
 								return {
 									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
@@ -3895,7 +3894,7 @@ define(function () {
 								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
 									quote.text = quote.price.type.name;
-								})
+								});
 								return {
 									more: false,
 									results: data
