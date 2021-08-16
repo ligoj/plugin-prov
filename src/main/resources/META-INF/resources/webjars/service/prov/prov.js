@@ -590,6 +590,7 @@ define(function () {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
+		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -3008,6 +3009,7 @@ define(function () {
 			qx.usage = usage;
 			qx.budget = budget;
 			qx.resourceType = type;
+			qx.quantity=data.quantity;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3884,16 +3886,23 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
+								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
+								const RexExp =term.match(regex)
 								return {
-									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
+									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
-							results: function (data) {
+							results: function (data,query_page,query) {
+								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/;
+								const RexExp =query.term.match(regex);
+
 								// Completed the requested identifier
 								data.forEach(quote => {
-									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-									quote.text = quote.price.type.name;
-								});
+										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+										quote.text = quote.price.type.name;	
+										quote.quantity= parseInt(RexExp[2])								
+								})
+
 								return {
 									more: false,
 									results: data
@@ -3908,6 +3917,7 @@ define(function () {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.code,
 								size: suggest.size,
+								quantity: suggest.quantity,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
 								function: type === 'function' && qi.id,
