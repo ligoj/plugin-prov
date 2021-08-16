@@ -2910,10 +2910,15 @@ define(function () {
 		 * @param {int} ram, the RAM value in MB.
 		 */
 		adaptRamUnit: function (ram) {
+			debugger;
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+			if (ram && ram >=1048576 && (ram / 1048576) % 1 === 0) {
 				// Auto select GB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
+				ram = ram / 1048576
+			} else if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+				// Keep TB
+				_('instance-ram-unit').find('li:nth-child(2)').addClass('active');
 				ram = ram / 1024
 			} else {
 				// Keep MB
