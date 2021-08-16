@@ -589,10 +589,9 @@ define(function () {
 	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
-		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		${qs.quoteInstance ? (qs.quoteInstance.maxQuantity+ 'x'):'' }
+		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''} 
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
-		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
 	}
 
@@ -3886,7 +3885,6 @@ define(function () {
 							dataType: 'json',
 							data: function (term) {
 								return {
-									nbQuantity: qi.maxQuantity,
 									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
 							},
@@ -3898,7 +3896,7 @@ define(function () {
 								})
 								return {
 									more: false,
-									results: data,
+									results: data
 								};
 							}
 						}
