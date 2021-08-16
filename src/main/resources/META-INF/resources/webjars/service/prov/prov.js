@@ -3893,7 +3893,7 @@ define(function () {
 								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
 									quote.text = quote.price.type.name;
-								})
+								});
 								return {
 									more: false,
 									results: data
