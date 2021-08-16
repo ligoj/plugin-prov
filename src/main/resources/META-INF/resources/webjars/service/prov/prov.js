@@ -1130,11 +1130,12 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
+		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+			debugger;
 			if(e.currentTarget.checked){
-				$popup.find('div .element-advanced').removeClass('advanced')
+				$popup.addClass('advanced');	
 			}else{
-				$popup.find('div .element-advanced').addClass('advanced')
+				$popup.removeClass('advanced');
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
