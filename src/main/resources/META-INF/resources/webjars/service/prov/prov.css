@@ -516,3 +516,8 @@ img.flag-icon.prov-location-flag {
 #instance-cpu, #instance-ram {
   width: 3em;
 }
+#subscribe-configuration-prov foreignObject i {
+  font-size: 13px;
+  margin-left: 1px;
+  opacity: 0.5;
+}
