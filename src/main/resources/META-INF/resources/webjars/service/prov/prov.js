@@ -3887,26 +3887,25 @@ define(function () {
 							dataType: 'json',
 							data: function (term) {
 								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
-								term =term.match(regex)
+								const RexExp =term.match(regex)
 								return {
-									size: $.isNumeric(term[3]) ? parseInt(term[3], 10) : 1, // search term
+									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
 							results: function (data,query_page,query) {
-								const i=0;
 								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/;
-								const term =query.term.match(regex);
+								const RexExp =query.term.match(regex);
 
 								// Completed the requested identifier
 								data.forEach(quote => {
 										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
 										quote.text = quote.price.type.name;	
-										quote.quantity= parseInt(term[2])								
+										quote.quantity= parseInt(RexExp[2])								
 								})
 
 								return {
 									more: false,
-									results: data ,
+									results: data
 								};
 							}
 						}
