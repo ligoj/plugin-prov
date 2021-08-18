@@ -670,7 +670,7 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(e.initialCost)}` : '');
 	}
 	function formatUsage(usage, mode) {
 		return formatMultiScoped('usage', usage, current.model.configuration.usage, mode, 'fa-clock', e => {
