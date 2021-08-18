@@ -586,11 +586,12 @@ define(function () {
 	 * @param {boolean} showName When true, the type name is displayed. Default is false.
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
-	function formatStorageHtml(qs, showName) {
+	function formatStorageHtml(qs, showName,test1,test2) {
+		debugger;
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
+		${qs.quoteInstance ? (qs.quoteInstance.maxQuantity+ 'x'):'' }
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -1131,7 +1132,6 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
-			debugger;
 			if(e.currentTarget.checked){
 				$popup.find('div .element-advanced').removeClass('advanced')
 			}else{
