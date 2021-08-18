@@ -2912,9 +2912,13 @@ define(function () {
 		 */
 		adaptRamUnit: function (ram) {
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
-				// Auto select GB
+			if (ram && ram >=1048576 && (ram / 1048576) % 1 === 0) {
+				// Auto select TB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
+				ram = ram / 1048576
+			} else if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+				// Keep GB
+				_('instance-ram-unit').find('li:nth-child(2)').addClass('active');
 				ram = ram / 1024
 			} else {
 				// Keep MB
