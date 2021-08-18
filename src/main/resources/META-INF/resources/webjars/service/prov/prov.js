@@ -1056,8 +1056,8 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
