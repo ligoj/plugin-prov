@@ -56,6 +56,7 @@ define({
 	'service:prov:ram': 'RAM',
 	'service:prov:ram-mega': 'Mo',
 	'service:prov:ram-giga': 'Go',
+	'service:prov:ram-tera': 'To',
 	'service:prov:ram-help': 'La mémoire demandée. La meilleure instance correspondante à cette exigence peut inclure plus que cette quantité. Il est alors important de bien équilibrer la ressource (CPU/RAM) pour limiter cette perte',
 	'service:prov:instance-quantity': 'Quantité',
 	'service:prov:instance-quantity-to': 'à',
