@@ -1117,8 +1117,7 @@ define(function () {
 				id: 'WORST',
 				text: 'WORST'
 			}]
-		}
-		);
+		});
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
 
@@ -3227,6 +3226,7 @@ define(function () {
 		},
 
 		sunburstVmTooltip: function (entity) {
+			debugger;
 			return '<br>' + current.title('term') + entity.price.term.name
 				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
 				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
