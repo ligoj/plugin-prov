@@ -1131,9 +1131,9 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
 			if(e.currentTarget.checked){
-				$popup.find('div .element-advanced').removeClass('advanced')	
+				$popup.find('div .element-advanced').removeClass('advanced')
 			}else{
 				$popup.find('div .element-advanced').addClass('advanced')
 			}
@@ -3899,7 +3899,6 @@ define(function () {
 							},
 							results: function (data) {
 								debugger;
-
 								// Completed the requested identifier
 								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
