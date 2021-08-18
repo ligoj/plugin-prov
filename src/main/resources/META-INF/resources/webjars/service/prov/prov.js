@@ -2619,8 +2619,8 @@ define(function () {
 		/**
 		 * Usage text renderer.
 		 */
-		usageToText: function (usage) {
-			return usage ? usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>') : null;
+		usageToText: function (usage) {												
+			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+usage.duration+' mois</small>': usage.text|| (usage.name +'<small class="pull-right">'+usage.duration+' mois <small>' + '<span class="pull-right"> (' + usage.rate + '%)<span>') : null;
 		},
 		/**
 		 * Budget text renderer.
