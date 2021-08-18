@@ -593,7 +593,7 @@ define(function () {
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
 		${qs.quoteInstance ? (qs.quoteInstance.maxQuantity+ 'x'):'' }
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
-		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
 	}
 
