@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -145,9 +146,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
 		synchronized (quote) {
 			// Lean all relevant budgets
-			final var budgets = Stream
-					.concat(instances.stream(),
-							Stream.concat(databases.stream(), Stream.concat(containers.stream(), functions.stream())))
+			final var budgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
 					.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull)
 					.filter(b -> b.getInitialCost() > 0).distinct().collect(Collectors.toList());
 			budgets.forEach(b -> lean(b, costs));
@@ -161,11 +160,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
-			final List<C> instances, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final List<C> entities, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource) {
-		this.resource.newStream(instances)
+		this.resource.newStream(entities)
 				.filter(i -> Optional.ofNullable(i.getResolvedBudget()).map(ProvBudget::getInitialCost).orElse(0d) == 0)
-				.forEach(i -> costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(),
+				.forEach(i -> costs.computeIfAbsent(type, k -> new ConcurrentHashMap<>()).put(i.getId(),
 						resource.addCost(i, resource::refresh)));
 	}
 
