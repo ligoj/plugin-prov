@@ -3877,7 +3877,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					debugger;
+					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3893,17 +3893,18 @@ define(function () {
 							data: function (term) {
 								debugger;
 								return {
-									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
+									nbQuantity: qi.maxQuantity,
+									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
 							},
-							esults: function (data) {
+							results: function (data) {
 								debugger;
 
 								// Completed the requested identifier
 								data.forEach(quote => {
 									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-									quote.text = quote.price.type.name;							
-								});
+									quote.text = quote.price.type.name;
+								})
 								return {
 									more: false,
 									results: data,
