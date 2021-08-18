@@ -1130,12 +1130,12 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
 			debugger;
 			if(e.currentTarget.checked){
-				$popup.addClass('advanced');	
+				$popup.find('div .element-advanced').removeClass('advanced')	
 			}else{
-				$popup.removeClass('advanced');
+				$popup.find('div .element-advanced').addClass('advanced')
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
@@ -1157,7 +1157,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
@@ -3010,7 +3010,6 @@ define(function () {
 			qx.usage = usage;
 			qx.budget = budget;
 			qx.resourceType = type;
-			qx.quantity=data.quantity;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3874,6 +3873,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
+					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3887,25 +3887,22 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
-								const RexExp =term.match(regex)
+								debugger;
 								return {
-									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
+									nbQuantity: qi.maxQuantity,
+									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
 								};
 							},
-							results: function (data,query_page,query) {
-								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/;
-								const RexExp =query.term.match(regex);
-
+							results: function (data) {
+								debugger;
 								// Completed the requested identifier
 								data.forEach(quote => {
-										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-										quote.text = quote.price.type.name;	
-										quote.quantity= parseInt(RexExp[2])								
-								});
+									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+									quote.text = quote.price.type.name;
+								})
 								return {
 									more: false,
-									results: data
+									results: data,
 								};
 							}
 						}
@@ -3917,7 +3914,6 @@ define(function () {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.code,
 								size: suggest.size,
-								quantity: suggest.quantity,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
 								function: type === 'function' && qi.id,
