@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -120,7 +121,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		lean(quote, instances, databases, containers, functions, costs);
 
 		// Reset the orphan budgets
-		final var usedBudgets = Stream.concat(instances.stream(), databases.stream())
+		final var usedBudgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
 				.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull).distinct().map(ProvBudget::getId)
 				.collect(Collectors.toSet());
 		repository.findAll(quote).stream().filter(b -> !usedBudgets.contains(b.getId()))

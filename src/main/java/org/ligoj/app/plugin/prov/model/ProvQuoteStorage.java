@@ -99,8 +99,6 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	/**
 	 * The quantity of this instance. When <code>null</code>, is considered as <code>1</code>.
 	 */
-	@NotNull
-	@Positive
 	private Integer quantity = 1;
 
 	/**
