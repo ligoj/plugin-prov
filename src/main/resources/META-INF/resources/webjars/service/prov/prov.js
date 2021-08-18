@@ -1133,7 +1133,7 @@ define(function () {
 		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
 			debugger;
 			if(e.currentTarget.checked){
-				$popup.find('div .element-advanced').removeClass('advanced')	
+				$popup.find('div .element-advanced').removeClass('advanced')
 			}else{
 				$popup.find('div .element-advanced').addClass('advanced')
 			}
@@ -2619,7 +2619,7 @@ define(function () {
 		/**
 		 * Usage text renderer.
 		 */
-		usageToText: function (usage) {												
+		usageToText: function (usage) {
 			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+usage.duration+' mois</small>': usage.text|| (usage.name +'<small class="pull-right">'+usage.duration+' mois <small>' + '<span class="pull-right"> (' + usage.rate + '%)<span>') : null;
 		},
 		/**
