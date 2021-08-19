@@ -670,7 +670,7 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(e.initialCost)}` : '');
 	}
 	function formatUsage(usage, mode) {
 		return formatMultiScoped('usage', usage, current.model.configuration.usage, mode, 'fa-clock', e => {
@@ -1056,8 +1056,8 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
@@ -2912,9 +2912,13 @@ define(function () {
 		 */
 		adaptRamUnit: function (ram) {
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
-				// Auto select GB
+			if (ram && ram >=1048576 && (ram / 1048576) % 1 === 0) {
+				// Auto select TB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
+				ram = ram / 1048576
+			} else if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+				// Keep GB
+				_('instance-ram-unit').find('li:nth-child(2)').addClass('active');
 				ram = ram / 1024
 			} else {
 				// Keep MB
