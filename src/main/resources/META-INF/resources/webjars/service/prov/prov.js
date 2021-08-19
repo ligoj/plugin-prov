@@ -1157,7 +1157,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
@@ -2620,7 +2620,7 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage ? usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>') : null;
+			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+(usage.duration === 1 ? '': usage.duration+'M')+'</small>': (usage.name +'<small class="pull-right">'+ (usage.duration === 1 ? '': usage.duration+'M') + '<span class="pull-right"> (' + usage.rate + '%)<span> <small>') : null;
 		},
 		/**
 		 * Budget text renderer.
@@ -3878,6 +3878,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
+					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
