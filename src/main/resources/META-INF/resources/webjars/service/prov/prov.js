@@ -2620,7 +2620,7 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+usage.duration+' mois</small>': usage.text|| (usage.name +'<small class="pull-right">'+usage.duration+' mois <small>' + '<span class="pull-right"> (' + usage.rate + '%)<span>') : null;
+			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+(usage.duration === 1 ? '': usage.duration+'M')+'</small>': (usage.name +'<small class="pull-right">'+ (usage.duration === 1 ? '': usage.duration+'M') + '<span class="pull-right"> (' + usage.rate + '%)<span> <small>') : null;
 		},
 		/**
 		 * Budget text renderer.
