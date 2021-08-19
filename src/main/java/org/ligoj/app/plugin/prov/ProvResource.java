@@ -38,6 +38,7 @@ import org.ligoj.app.iam.UserOrg;
 import org.ligoj.app.model.Configurable;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
@@ -54,6 +55,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
+import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
@@ -497,21 +499,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		Hibernate.initialize(entity.getBudgets());
 
 		// Add the compute cost, and update the unbound cost
-		log.info("Refresh cost started for subscription {} / instances ... ", entity.getSubscription().getId());
-		entity.setUnboundCostCounter((int) newStream(qiRepository.findAll(entity)).map(qiResource::updateCost)
-				.map(fc -> addCost(entity, fc)).filter(FloatingCost::isUnbound).count());
-
-		// Add the database cost
-		log.info("Refresh cost started for subscription {} / databases ... ", entity.getSubscription().getId());
-		newStream(qbRepository.findAll(entity)).map(qbResource::updateCost).forEach(fc -> addCost(entity, fc));
-
-		// Add the container cost
-		log.info("Refresh cost started for subscription {} / containers ... ", entity.getSubscription().getId());
-		newStream(qcRepository.findAll(entity)).map(qcResource::updateCost).forEach(fc -> addCost(entity, fc));
-
-		// Add the function cost
-		log.info("Refresh cost started for subscription {} / functions ... ", entity.getSubscription().getId());
-		newStream(qfRepository.findAll(entity)).map(qfResource::updateCost).forEach(fc -> addCost(entity, fc));
+		long unbound = 0;
+		unbound += addCost(entity, qiRepository, qiResource, "instances");
+		unbound += addCost(entity, qbRepository, qbResource, "databases");
+		unbound += addCost(entity, qcRepository, qcResource, "containers");
+		unbound += addCost(entity, qfRepository, qfResource, "functions");
+		entity.setUnboundCostCounter((int) unbound);
 
 		// Add the storage cost
 		log.info("Refresh cost started for subscription {} / storages ... ", entity.getSubscription().getId());
@@ -523,6 +516,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		log.info("Refresh cost finished for subscription {}", entity.getSubscription().getId());
 		cost.setRelated(relatedCosts);
 		return refreshSupportCost(cost, entity);
+	}
+
+	private <P extends AbstractTermPrice<?>, C extends AbstractQuote<P>> long addCost(final ProvQuote entity,
+			final BaseProvQuoteRepository<C> repository, final AbstractProvQuoteResource<?, P, C, ?> resource,
+			final String type) {
+		log.info("Refresh cost started for subscription {} / {} ... ", entity.getSubscription().getId(), type);
+		return newStream(repository.findAll(entity)).map(resource::updateCost).map(fc -> addCost(entity, fc))
+				.filter(FloatingCost::isUnbound).count();
 	}
 
 	private FloatingCost refreshSupportCost(final ProvQuote entity) {

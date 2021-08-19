@@ -586,14 +586,13 @@ define(function () {
 	 * @param {boolean} showName When true, the type name is displayed. Default is false.
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
-	function formatStorageHtml(qs, showName,test1,test2) {
-		debugger;
+	function formatStorageHtml(qs, showName) {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		${qs.quoteInstance ? (qs.quoteInstance.maxQuantity+ 'x'):'' }
+		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
-		${(qs.size < type.minimal) ? '(' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
+		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
 	}
 
@@ -671,7 +670,7 @@ define(function () {
 	}
 
 	function formatBudget(budget, mode, qi) {
-		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(budget.initialCost)}` : '');
+		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(e.initialCost)}` : '');
 	}
 	function formatUsage(usage, mode) {
 		return formatMultiScoped('usage', usage, current.model.configuration.usage, mode, 'fa-clock', e => {
@@ -1057,8 +1056,8 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os'));
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val()));
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
@@ -1131,11 +1130,12 @@ define(function () {
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change',('.mode-advanced input[type=checkbox]'), function (e) {
+		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+			debugger;
 			if(e.currentTarget.checked){
-				$popup.find('div .element-advanced').removeClass('advanced')
+				$popup.addClass('advanced');	
 			}else{
-				$popup.find('div .element-advanced').addClass('advanced')
+				$popup.removeClass('advanced');
 			}
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
@@ -2912,9 +2912,13 @@ define(function () {
 		 */
 		adaptRamUnit: function (ram) {
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
-				// Auto select GB
+			if (ram && ram >=1048576 && (ram / 1048576) % 1 === 0) {
+				// Auto select TB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
+				ram = ram / 1048576
+			} else if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+				// Keep GB
+				_('instance-ram-unit').find('li:nth-child(2)').addClass('active');
 				ram = ram / 1024
 			} else {
 				// Keep MB
@@ -3010,6 +3014,7 @@ define(function () {
 			qx.usage = usage;
 			qx.budget = budget;
 			qx.resourceType = type;
+			qx.quantity=data.quantity;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3887,22 +3892,25 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								debugger;
+								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
+								const RexExp =term.match(regex)
 								return {
-									nbQuantity: qi.maxQuantity,
-									size: $.isNumeric(term) ? parseInt(term, 10) : 1, // search term
+									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
-							results: function (data) {
-								debugger;
+							results: function (data,query_page,query) {
+								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/;
+								const RexExp =query.term.match(regex);
+
 								// Completed the requested identifier
 								data.forEach(quote => {
-									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-									quote.text = quote.price.type.name;
-								})
+										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+										quote.text = quote.price.type.name;	
+										quote.quantity= parseInt(RexExp[2])								
+								});
 								return {
 									more: false,
-									results: data,
+									results: data
 								};
 							}
 						}
@@ -3914,6 +3922,7 @@ define(function () {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.code,
 								size: suggest.size,
+								quantity: suggest.quantity,
 								instance: type === 'instance' && qi.id,
 								database: type === 'database' && qi.id,
 								function: type === 'function' && qi.id,
