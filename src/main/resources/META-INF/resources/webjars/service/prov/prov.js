@@ -984,7 +984,7 @@ define(function () {
 				$.proxy(current.checkResource, $(this))();
 			}
 		}, 50));
-		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
+		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
@@ -2245,6 +2245,15 @@ define(function () {
 		usageSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span><a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
+			});
+		},
+
+		/**
+		 * Usage Modale Select2 configuration.
+		 */
+		usageModalSelect2: function (placeholder) {
+			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
+				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span>`;
 			});
 		},
 
