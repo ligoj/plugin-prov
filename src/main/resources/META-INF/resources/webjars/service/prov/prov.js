@@ -1056,6 +1056,22 @@ define(function () {
 			}]
 		});
 
+		_('support-level').select2({
+			allowClear: true,
+			placeholder: 'None',
+			escapeMarkup: m => m,
+			data: [{
+				id: 'LOW',
+				text: 'LOW'
+			}, {
+				id: 'MEDIUM',
+				text: 'MEDIUM'
+			}, {
+				id: 'GOOD',
+				text: 'GOOD'
+			}]
+		});
+
 		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
@@ -1931,9 +1947,30 @@ define(function () {
 				_('csv-file').trigger('focus');
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
+				_('csv-upload-encoding').select2({
+					placeholder: "UTF-8",
+					allowClear: true,
+					escapeMarkup: m => m,
+					data: [{
+						id: 'UTF-8',
+						text: 'UTF-8'
+					}, {
+						id: 'ISO-8859',
+						text: 'ISO-8859'
+					}, {
+						id: 'ISO-8859-1',
+						text: 'ISO-8859-1'
+					},{
+						id: 'windows 1252',
+						text: 'windows 1252'
+					}]
+				});
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
-				_('csv-upload-encoding-name').val((_('csv-upload-encoding').select2('data') || {}).name || null);
+				_('csv-upload-encoding').select2('data') || { 
+					id: 'UTF-8', 
+					text: 'UTF-8'
+				};
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
