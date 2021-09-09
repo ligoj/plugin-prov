@@ -294,12 +294,13 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param separator        CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final String separator)
 			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding, separator);
 	}
 
 	/**
@@ -316,6 +317,7 @@ public class ProvQuoteUploadResource {
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	  @param separator        CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
@@ -328,7 +330,8 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
+			@Multipart(value = "encoding", required = false) final String encoding,
+			@Multipart(value = "separator", required = false) final String separator) throws IOException {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
@@ -340,7 +343,7 @@ public class ProvQuoteUploadResource {
 		if (headersIncluded) {
 			// Header at first line
 			final var br = new BufferedReader(new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
-			headersArray = StringUtils.defaultString(br.readLine(), "").replace(',', ';').split(";");
+			headersArray = StringUtils.defaultString(br.readLine()).split(separator);
 			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
 
 		} else {
@@ -350,7 +353,7 @@ public class ProvQuoteUploadResource {
 		}
 
 		final var headersArray2 = checkHeaders(headersArray);
-		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(',', ';')
+		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(",",separator)
 				+ "\n";
 		final var reader = new InputStreamReader(
 				new SequenceInputStream(new ByteArrayInputStream(headersString.getBytes(safeEncoding)), fileNoHeader),
@@ -512,7 +515,7 @@ public class ProvQuoteUploadResource {
 				}).collect(Collectors.toList());
 
 		// Tags part
-		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;"))
+		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ","))
 				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
 					// Instance tags
 					final var tag = new TagEditionVo();

@@ -1935,6 +1935,7 @@ define(function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
+				_('csv-upload-separator').val() || _('csv-upload-separator').val(";") ;
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
