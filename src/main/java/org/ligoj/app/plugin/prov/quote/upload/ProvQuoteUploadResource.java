@@ -515,7 +515,7 @@ public class ProvQuoteUploadResource {
 				}).collect(Collectors.toList());
 
 		// Tags part
-		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ","))
+		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;"))
 				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
 					// Instance tags
 					final var tag = new TagEditionVo();
