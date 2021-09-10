@@ -379,8 +379,10 @@ public class ProvQuoteUploadResource {
 		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
 				persist(subscription, usage, mode, ramMultiplier, list, cursor, context, i);
-			} catch (final ValidationJsonException e) {
-				throw handleValidationError(i, e);
+			} catch (final ValidationJsonException e ){
+				if (errors != true) {
+					throw handleValidationError(i, e);
+				}	
 			} catch (final ConstraintViolationException e) {
 				throw handleValidationError(i, new ValidationJsonException(e));
 			} catch (final Throwable e) {
