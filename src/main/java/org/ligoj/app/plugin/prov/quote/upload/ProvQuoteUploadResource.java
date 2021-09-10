@@ -294,12 +294,13 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param errors          
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final boolean errors)
 			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding,errors);
 	}
 
 	/**
@@ -316,6 +317,7 @@ public class ProvQuoteUploadResource {
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param errors          
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
@@ -328,7 +330,8 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
+			@Multipart(value = "encoding", required = false) final String encoding,
+			@Multipart(value = "errors", required = false) final boolean errors) throws IOException {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
