@@ -81,6 +81,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProvQuoteUploadResource {
 	private static final String CSV_FILE = "csv-file";
+
+	/**
+	 * Default CSV separator.
+	 */
+	public static final String DEFAULT_SEPARATOR = ";";
+	/**
+	 * Default CSV encoding.
+	 */
+	public static final String DEFAULT_ENCODING = StandardCharsets.UTF_8.name();
 	private static final List<String> MINIMAL_HEADERS_INSTANCE = List.of("name", "cpu", "ram", "os");
 	private static final List<String> MINIMAL_HEADERS_DATABASE = List.of("name", "cpu", "ram", "engine");
 	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized",
@@ -294,13 +303,36 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param separator        CSV separator. Default is ";".
+	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final String separator)
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
 			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding, separator);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, ramMultiplier, encoding, DEFAULT_SEPARATOR);
+	}
+
+	/**
+	 * Upload a file of quote in add mode.
+	 *
+	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
+	 *                        provider.
+	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
+	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
+	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
+	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
+	 *                        associated to this usage.
+	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
+	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param separator       CSV separator. Default is ";".
+	 * @throws IOException When the CSV stream cannot be written.
+	 */
+	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,
+			final String separator) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding,
+				separator);
 	}
 
 	/**
@@ -317,7 +349,7 @@ public class ProvQuoteUploadResource {
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
-	  @param separator        CSV separator. Default is ";".
+	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
@@ -335,7 +367,7 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
-		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
+		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, DEFAULT_ENCODING);
 
 		// Check headers validity
 		final String[] headersArray;
@@ -353,8 +385,8 @@ public class ProvQuoteUploadResource {
 		}
 
 		final var headersArray2 = checkHeaders(headersArray);
-		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(",",separator)
-				+ "\n";
+		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(",",
+				separator) + "\n";
 		final var reader = new InputStreamReader(
 				new SequenceInputStream(new ByteArrayInputStream(headersString.getBytes(safeEncoding)), fileNoHeader),
 				safeEncoding);
