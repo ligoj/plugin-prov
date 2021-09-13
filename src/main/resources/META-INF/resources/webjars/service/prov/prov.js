@@ -976,6 +976,9 @@ define(function () {
 			// Also trigger the change of the value
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
+		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', function(e){
+			_('database-edition').select2('data', null);
+		});
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 		$('input.resource-query[type="number"]').on('keyup', delay(function (event) {
@@ -984,7 +987,7 @@ define(function () {
 				$.proxy(current.checkResource, $(this))();
 			}
 		}, 50));
-		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
+		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
@@ -1056,9 +1059,24 @@ define(function () {
 			}]
 		});
 
+		_('support-level').select2({
+			allowClear: true,
+			placeholder: 'None',
+			escapeMarkup: m => m,
+			data: [{
+				id: 'LOW',
+				text: 'LOW'
+			}, {
+				id: 'MEDIUM',
+				text: 'MEDIUM'
+			}, {
+				id: 'GOOD',
+				text: 'GOOD'
+			}]
+		});
+
 		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
-		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
 			formatSelection: formatInternet,
@@ -1931,8 +1949,31 @@ define(function () {
 				_('csv-file').trigger('focus');
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
+				_('csv-upload-encoding').select2({
+					placeholder: "UTF-8",
+					allowClear: true,
+					escapeMarkup: m => m,
+					data: [{
+						id: 'UTF-8',
+						text: 'UTF-8'
+					}, {
+						id: 'ISO-8859',
+						text: 'ISO-8859'
+					}, {
+						id: 'ISO-8859-1',
+						text: 'ISO-8859-1'
+					},{
+						id: 'windows 1252',
+						text: 'windows 1252'
+					}]
+				});
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
+				_('csv-upload-separator').val() || _('csv-upload-separator').val(";") ;
+				_('csv-upload-encoding').select2('data') || { 
+					id: 'UTF-8', 
+					text: 'UTF-8'
+				};
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
@@ -2245,6 +2286,15 @@ define(function () {
 		usageSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span><a class="update prov-usage-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
+			});
+		},
+
+		/**
+		 * Usage Modale Select2 configuration.
+		 */
+		usageModalSelect2: function (placeholder) {
+			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
+				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span>`;
 			});
 		},
 
@@ -2620,7 +2670,7 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage ? usage.text || (usage.name + '<span class="pull-right">(' + usage.rate + '%)<span>') : null;
+			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+(usage.duration === 1 ? '': usage.duration+'M')+'</small>': (usage.name +'<small class="pull-right">'+ (usage.duration === 1 ? '': usage.duration+'M') + '<span class="pull-right"> (' + usage.rate + '%)<span> <small>') : null;
 		},
 		/**
 		 * Budget text renderer.
@@ -3878,6 +3928,7 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
+					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,

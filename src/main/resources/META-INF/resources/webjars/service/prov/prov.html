@@ -771,9 +771,15 @@
 							</div>
 						</div>
 						<div class="form-group">
+							<label class="control-label col-sm-3" for="csv-upload-separator">Separator</label>
+							<div class="col-xs-1">
+								<input type="text" id="csv-upload-separator" name="separator"  class="form-control" placeholder=";" maxlength="1">
+							</div>
+						</div>
+						<div class="form-group">
 							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
 							<div class="col-sm-9">
-								<input type="text" id="csv-upload-encoding" name="encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
+								<input type="text" id="csv-upload-encoding" class="form-control" placeholder="{{default}}"/>
 							</div>
 						</div>
 						<div class="form-group">
