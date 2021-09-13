@@ -770,17 +770,19 @@
 								</div>
 							</div>
 						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="csv-upload-separator">Separator</label>
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="csv-upload-separator">{{csv-separator}}</label>
 							<div class="col-xs-1">
-								<input type="text" id="csv-upload-separator" name="separator"  class="form-control" placeholder=";" maxlength="1">
+								<input type="text" id="csv-upload-separator" name="separator" required class="form-control" placeholder=";" maxlength="1" value=";">
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{csv-separator-help}}"></i></span>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group required">
 							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
 							<div class="col-sm-9">
-								<input type="text" id="csv-upload-encoding" class="form-control" placeholder="{{default}}"/>
+								<input type="text" id="csv-upload-encoding" required class="form-control" placeholder="{{default}}"/>
 							</div>
+							<input type="text" id="instance-encoding-upload" class="hidden" name="encoding">
 						</div>
 						<div class="form-group">
 							<div class="col-sm-9 col-sm-offset-3">

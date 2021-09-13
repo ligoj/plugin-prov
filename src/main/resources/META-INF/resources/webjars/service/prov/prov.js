@@ -1945,35 +1945,32 @@ define(function () {
 					_('csv-headers').closest('.form-group').removeClass('hidden');
 				}
 			});
+			_('csv-upload-encoding').select2({
+				escapeMarkup: m => m,
+				data: [{
+					id: 'UTF-8',
+					text: 'UTF-8'
+				}, {
+					id: 'ISO-8859',
+					text: 'ISO-8859'
+				}, {
+					id: 'ISO-8859-1',
+					text: 'ISO-8859-1'
+				},{
+					id: 'windows 1252',
+					text: 'windows 1252'
+				}]
+			}).select2('data', { 
+				id: 'UTF-8', 
+				text: 'UTF-8'
+			});
 			$popup.on('shown.bs.modal', function () {
 				_('csv-file').trigger('focus');
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
-				_('csv-upload-encoding').select2({
-					placeholder: "UTF-8",
-					allowClear: true,
-					escapeMarkup: m => m,
-					data: [{
-						id: 'UTF-8',
-						text: 'UTF-8'
-					}, {
-						id: 'ISO-8859',
-						text: 'ISO-8859'
-					}, {
-						id: 'ISO-8859-1',
-						text: 'ISO-8859-1'
-					},{
-						id: 'windows 1252',
-						text: 'windows 1252'
-					}]
-				});
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
-				_('csv-upload-separator').val() || _('csv-upload-separator').val(";") ;
-				_('csv-upload-encoding').select2('data') || { 
-					id: 'UTF-8', 
-					text: 'UTF-8'
-				};
+				_('instance-encoding-upload').val((_('csv-upload-encoding').select2('data') || {}).id || null);
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
