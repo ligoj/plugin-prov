@@ -1969,6 +1969,7 @@ define(function () {
 				});
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
+				_('csv-upload-separator').val() || _('csv-upload-separator').val(";") ;
 				_('csv-upload-encoding').select2('data') || { 
 					id: 'UTF-8', 
 					text: 'UTF-8'
