@@ -239,6 +239,8 @@ define({
 	'csv-headers-included': 'CSV contient les entêtes',
 	'csv-headers': 'Entêtes',
 	'csv-headers-included-help': 'Lorsque les entêtes sont en première ligne du fichier',
+	'csv-separator': 'Séparateur',
+	'csv-separator-help': 'Caractère de séparation des champs du CSV',
 	'error': {
 		'service:prov-no-catalog': 'Il n\'y a pas encore de catalogue pour le provider "{{[0]}}" ({{[1]}}). il peut être importé. <a class="btn btn-success btn-raised" href="#/prov/catalog">Importer ...</button>',
 		'no-match-instance': 'Mise à jour échouées, au moins la resource ({{resource}}) ne supporte pas toutes les exigences',

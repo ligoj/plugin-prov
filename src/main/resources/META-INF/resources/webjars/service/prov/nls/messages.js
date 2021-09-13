@@ -241,6 +241,8 @@ define({
         'csv-headers-included': 'CSV file has headers',
         'csv-headers': 'Headers',
         'csv-headers-included-help': 'When headers are in the first line of CSV file',
+        'csv-separator': 'Separator',
+        'csv-separator-help': 'Separator character of CSV fields',
         'error': {
             'service:prov-no-catalog': 'There is not yet any catalog for the provider "{{[0]}}" ({{[1]}}). It could be imported. <a class="btn btn-success btn-raised" href="#/prov/catalog">Import ...</button>',
             'no-match-instance': 'Update failed, at least the resource ({{resource}}) does not support all your requirements',
