@@ -1059,6 +1059,22 @@ define(function () {
 			}]
 		});
 
+		_('support-level').select2({
+			allowClear: true,
+			placeholder: 'None',
+			escapeMarkup: m => m,
+			data: [{
+				id: 'LOW',
+				text: 'LOW'
+			}, {
+				id: 'MEDIUM',
+				text: 'MEDIUM'
+			}, {
+				id: 'GOOD',
+				text: 'GOOD'
+			}]
+		});
+
 		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
 		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
@@ -1159,7 +1175,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
@@ -1933,8 +1949,30 @@ define(function () {
 				_('csv-file').trigger('focus');
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
+				_('csv-upload-encoding').select2({
+					placeholder: "UTF-8",
+					allowClear: true,
+					escapeMarkup: m => m,
+					data: [{
+						id: 'UTF-8',
+						text: 'UTF-8'
+					}, {
+						id: 'ISO-8859',
+						text: 'ISO-8859'
+					}, {
+						id: 'ISO-8859-1',
+						text: 'ISO-8859-1'
+					},{
+						id: 'windows 1252',
+						text: 'windows 1252'
+					}]
+				});
 			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
+				_('csv-upload-encoding').select2('data') || { 
+					id: 'UTF-8', 
+					text: 'UTF-8'
+				};
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
