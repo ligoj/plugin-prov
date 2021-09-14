@@ -294,13 +294,13 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param errors          
+	 * @param errorContinue         
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final boolean errors)
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final boolean errorContinue)
 			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding,errors);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding,errorContinue);
 	}
 
 	/**
@@ -317,7 +317,7 @@ public class ProvQuoteUploadResource {
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param errors          
+	 * @param errorContinue          
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
@@ -330,8 +330,7 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "usage", required = false) final String usage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "encoding", required = false) final String encoding,
-			@Multipart(value = "errors", required = false) final boolean errors) throws IOException {
+			@Multipart(value = "errorContinue", required = false) final boolean errorContinue) throws IOException {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
@@ -380,17 +379,20 @@ public class ProvQuoteUploadResource {
 			try {
 				persist(subscription, usage, mode, ramMultiplier, list, cursor, context, i);
 			} catch (final ValidationJsonException e ){
-				if (errors != true) {
-					throw handleValidationError(i, e);
-				}	
+				handleUploadError(errorContinue,handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
-				throw handleValidationError(i, new ValidationJsonException(e));
-			} catch (final Throwable e) {
+				handleUploadError(errorContinue,handleValidationError(i, new ValidationJsonException(e)));
+			} catch (final RuntimeException e) {
 				log.error("Unmanaged error during import of " + i.getName(), e);
-				throw e;
-			}
+				handleUploadError(errorContinue,e);			}
 		});
 		log.info("Upload provisioning : flushing");
+	}
+	
+	public void handleUploadError(boolean onErrorContinue ,RuntimeException e ) { 
+		if (!onErrorContinue ) {
+			throw e;
+		}
 	}
 
 	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,
