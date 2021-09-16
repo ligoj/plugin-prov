@@ -59,6 +59,21 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * The requested GPU
+	 */
+	@NotNull
+	@Positive
+	private double gpu;
+
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * The requested memory in MiB.
@@ -154,6 +169,11 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	 * Optional CPU rate requirement.
 	 */
 	private Rate cpuRate;
+	
+	/**
+	 * Optional GPU rate requirement.
+	 */
+	private Rate gpuRate;
 
 	/**
 	 * Optional network rate requirement.

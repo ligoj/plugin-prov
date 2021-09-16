@@ -9,7 +9,8 @@ import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Query
+	;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**

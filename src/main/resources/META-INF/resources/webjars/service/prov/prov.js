@@ -334,6 +334,25 @@ define(function () {
 		return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 	}
 
+
+		/**
+	 * Format the memory size.
+	 */
+	function formatGpu(value, mode, instance) {
+		if (instance) {
+			if (instance.gpu) {
+				value = instance.gpu;
+			} 
+		}
+		if (mode === 'sort' || mode === 'filter') {
+			return value;
+		}
+		if (instance) {
+			return formatEfficiency(value, instance.price.type.gpu);
+		}
+		return value;
+	}
+
 	function formatLicense(license) {
 		return license ? license.text || current.$messages['service:prov:license-' + license.toLowerCase()] || license : null;
 	}
@@ -1159,7 +1178,7 @@ define(function () {
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
-			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dynaType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
+			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
@@ -2747,8 +2766,10 @@ define(function () {
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ram = cleanRam('reserved');
 			data.ramMax = cleanRam('max');
+			data.gpu = cleanFloat(_('instance-gpu').provSlider('value', 'reserved'));
 			data.cpuRate = _('instance-cpuRate').val();
 			data.ramRate = _('instance-ramRate').val();
+			data.gpuRate = _('instance-gpuRate').val();
 			data.networkRate = _('instance-networkRate').val();
 			data.storageRate = _('instance-storageRate').val();
 			data.internet = _('instance-internet').val().toLowerCase();
@@ -2819,8 +2840,10 @@ define(function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
+			_('instance-gpu').provSlider($.extend(maxOpts, { format: formatGpu})).provSlider('value', [quote.gpu || false, quote.gpu || 1]); // change 
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
+			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
 			_('instance-networkRate').select2('data', current.select2IdentityData((quote.networkRate) || null));
 			_('instance-storageRate').select2('data', current.select2IdentityData((quote.storageRate) || null));
 			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
@@ -3979,7 +4002,14 @@ define(function () {
 					width: '64px',
 					type: 'num',
 					render: formatRam
-				}, {
+				 },
+				 {
+					className: 'truncate',
+					width: '48px',
+					type: 'num',
+					render: formatGpu
+				}, 
+				{
 					data: 'price.term',
 					className: 'hidden-xs hidden-sm price-term',
 					type: 'string',
@@ -4160,6 +4190,7 @@ define(function () {
 		formatCost: formatCost,
 		formatCpu: formatCpu,
 		formatRam: formatRam,
+		formatGpu: formatGpu,
 		formatOs: formatOs,
 		formatDatabaseEngine: formatDatabaseEngine,
 		formatStorage: formatStorage

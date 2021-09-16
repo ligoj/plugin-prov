@@ -18,16 +18,16 @@ public interface ProvDatabaseTypeRepository extends BaseProvInstanceTypeReposito
 
 	@CacheResult(cacheName = "prov-database-type")
 	@Override
-	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey double ram,
-			@CacheKey double limitCpu, @CacheKey double limitRam, @CacheKey Boolean constant,
+	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu,@CacheKey double gpu, @CacheKey double ram,
+			@CacheKey double limitCpu,@CacheKey double limitGpu,@CacheKey double limitRam, @CacheKey Boolean constant,
 			@CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale,
-			@CacheKey Rate cpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+			@CacheKey Rate cpuRate,@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-database-type-dyn")
 	@Override
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
 			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+			@CacheKey Rate gpuRate,@CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
 
 	@CacheResult(cacheName = "prov-database-type-has-dyn")
 	@Override

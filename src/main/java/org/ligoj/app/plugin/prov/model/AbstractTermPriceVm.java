@@ -32,6 +32,11 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
 	 */
 	private Double costCpu;
+	
+	/**
+	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
+	 */
+	private Double costGpu;
 
 	/**
 	 * The optional monthly cost of one requested GiB memory. Required for dynamic instance type.
@@ -42,6 +47,12 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * Increment CPU step. Required for dynamic instance type.
 	 */
 	private Double incrementCpu;
+	
+	/**
+	 * Increment CPU step. Required for dynamic instance type.
+	 */
+	private Double incrementGpu;
+
 
 	/**
 	 * Increment RAM step (GiB). Required for dynamic instance type.
@@ -57,6 +68,16 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * Maximal CPU. Only valid for dynamic instance type.
 	 */
 	private Double maxCpu;
+	
+	/**
+	 * Minimal GPU. Required for dynamic instance type.
+	 */
+	private Double minGpu;
+
+	/**
+	 * Maximal GPU. Only valid for dynamic instance type.
+	 */
+	private Double maxGpu;
 
 	/**
 	 * Optional minimal CPU to RAM (GiB) ratio.
@@ -83,5 +104,6 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * included in the price or not applicable.
 	 */
 	private String license;
+
 
 }

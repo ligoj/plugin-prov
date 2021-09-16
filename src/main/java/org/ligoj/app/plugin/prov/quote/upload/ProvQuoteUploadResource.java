@@ -81,23 +81,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProvQuoteUploadResource {
 	private static final String CSV_FILE = "csv-file";
-	private static final List<String> MINIMAL_HEADERS_INSTANCE = List.of("name", "cpu", "ram", "os");
-	private static final List<String> MINIMAL_HEADERS_DATABASE = List.of("name", "cpu", "ram", "engine");
-	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized",
+	private static final List<String> MINIMAL_HEADERS_INSTANCE = List.of("name", "cpu","gpu", "ram", "os");
+	private static final List<String> MINIMAL_HEADERS_DATABASE = List.of("name", "cpu","gpu", "ram", "engine");
+	private static final String[] DEFAULT_HEADERS = { "name", "cpu","gpu", "ram", "os", "disk", "latency", "optimized",
 			"tags" };
 
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
-			"ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
+			"gpu:gpu","ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
-			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
-			"ramRate:ramRate", "cpuRate:cpuRate", "networkRate:networkRate", "storageRate:storageRate",
-			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
+			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", 
+			"gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)", "ramRate:ramRate", "cpuRate:cpuRate","gpuRate:gpuRate", "networkRate:networkRate", 
+			"storageRate:storageRate","ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
 
@@ -394,6 +394,7 @@ public class ProvQuoteUploadResource {
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
 		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		//vo.setGpu() 
 		vo.setProcessor(upload.getProcessor());
 		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(upload.getInternet());
@@ -401,6 +402,7 @@ public class ProvQuoteUploadResource {
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
 		vo.setCpuRate(upload.getCpuRate());
+		//vo.setGpuRate(upload.getGpuRate());
 		vo.setRamRate(upload.getRamRate());
 		vo.setNetworkRate(upload.getNetworkRate());
 		vo.setStorageRate(upload.getStorageRate());

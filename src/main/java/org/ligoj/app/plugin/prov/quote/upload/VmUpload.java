@@ -45,6 +45,20 @@ public class VmUpload {
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * Optional requested GPU.
+	 */
+	@PositiveOrZero
+	private double gpu = 0;
+	
+	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * Optional request RAM.
@@ -123,6 +137,11 @@ public class VmUpload {
 	 * Minimal CPU rate
 	 */
 	private Rate cpuRate = Rate.WORST;
+	
+	/**
+	 * Minimal GPU rate
+	 */
+	private Rate gpuRate = Rate.WORST;
 
 	/**
 	 * Minimal RAM rate
