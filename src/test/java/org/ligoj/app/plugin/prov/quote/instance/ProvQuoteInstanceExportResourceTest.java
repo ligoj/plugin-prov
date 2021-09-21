@@ -117,7 +117,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(24, lines.size());
 
 		// Header
-		Assertions.assertEquals("resource-type;name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max"
+		Assertions.assertEquals("resource-type;name;cpu;cpuMax;ram;ramMax;gpu;os;usage;term;location;min;max"
 				+ ";maxvariablecost;constant;processor;physical;ephemeral;type;engine;edition;internet;"
 				+ "license;cost;tags" + ";disk;diskMax;diskType;diskLatency;diskOptimized;diskCost;diskTags"
 				+ ";disk1;disk1Max;disk1Type;disk1Latency;disk1Optimized;disk1Cost;disk1Tags"
@@ -188,7 +188,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		final var lines = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
-				"INSTANCE;JIRA;4;;6000;;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;;false;false;dynamic;;;"
+				"INSTANCE;JIRA;4;;0;6000;;LINUX;Full Time 12 month;on-demand1;;1;1;10,1;true;;false;false;dynamic;;;"
 						+ "PRIVATE;;990,862;;270;;storage1;GOOD;;56,7;",
 				lines.get(1));
 		configuration = getConfiguration();
@@ -227,7 +227,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(38, lines.size());
 
 		// Header
-		Assertions.assertEquals("name;cpu;cpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
+		Assertions.assertEquals("name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
 				+ "processor;physical;ephemeral;type;internet;license;cost;tags;disk;diskMax;instance;database;"
 				+ "latency;optimized;engine;edition;seats", lines.get(0));
 

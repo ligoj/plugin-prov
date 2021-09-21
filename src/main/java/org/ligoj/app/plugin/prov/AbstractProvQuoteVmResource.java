@@ -370,7 +370,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The adjusted required GPU depending on the configuration.
 	 */
 	protected double getGpu(final ProvQuote configuration, final QuoteVm qi) {
-		return Math.max(0.5d, getReserved(configuration, qi.getGpu(), 1d));
+		return Math.max(0d, getReserved(configuration, qi.getGpu(), qi.getGpuMax()));
 	}
 
 	/**

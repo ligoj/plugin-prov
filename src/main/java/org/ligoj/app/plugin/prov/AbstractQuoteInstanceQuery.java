@@ -30,10 +30,10 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@Builder.Default
 	private double cpu = 1;
 	
-	@DefaultValue(value = "1")
+	@DefaultValue(value = "0")
 	@QueryParam("gpu")
 	@Builder.Default
-	private double gpu = 1;
+	private double gpu =0;
 
 	/**
 	 * Required memory in MiB.

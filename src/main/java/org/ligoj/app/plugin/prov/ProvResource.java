@@ -371,8 +371,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Sum up resources
 		vo.setTotalCpu(Stream.of(compute, database, container).mapToDouble(r -> ((Double) r[2])).sum());
-		vo.setTotalGpu(Stream.of(compute, database, container).mapToDouble(r -> ((Double) r[4])).sum());
-		vo.setTotalRam(Stream.of(compute, database, container).mapToInt(r -> ((Long) r[3]).intValue()).sum());
+		vo.setTotalGpu(Stream.of(compute, database, container).mapToDouble(r -> ((Double) r[3])).sum());
+		vo.setTotalRam(Stream.of(compute, database, container).mapToInt(r -> ((Long) r[4]).intValue()).sum());
 		vo.setNbPublicAccess(Stream.of(compute, database, container).mapToInt(r -> ((Long) r[5]).intValue()).sum());
 		vo.setTotalStorage(((Long) storage[2]).intValue());
 

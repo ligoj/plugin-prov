@@ -36,6 +36,14 @@ public interface QuoteVm {
 	 * @see #getCpu()
 	 */
 	Double getCpuMax();
+	
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @return The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 * @see #getGpu()
+	 */
+	Double getGpuMax();
 
 	/**
 	 * The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.

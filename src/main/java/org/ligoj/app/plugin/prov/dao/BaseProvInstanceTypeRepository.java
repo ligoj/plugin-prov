@@ -58,7 +58,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
 			  AND (:type IS NULL OR id = :type)
 			  AND (cpu BETWEEN :cpu AND :limitCpu)
-			  AND gpu >= :gpu 
+			  AND ((gpu IS NULL AND :gpu = 0.0) OR gpu BETWEEN :gpu AND :limitGpu) 
 			  AND (ram BETWEEN :ram AND :limitRam)
 			  AND (:constant IS NULL OR constant = :constant)
 			  AND (:physical IS NULL OR physical = :physical)
