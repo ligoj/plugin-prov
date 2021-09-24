@@ -263,8 +263,13 @@ define(function () {
 	 * @returns {string} The value to display containing the rate.
 	 */
 	function formatEfficiency(value, max, formatter) {
-		var fullClass = null;
-		max = max || value || 1;
+		debugger;
+		var fullClass = null
+		if (typeof max === 'undefined'){
+			max = value ;
+		}else if (typeof value === 'undefined'){
+			max = 1;
+		}
 		if (value === 0) {
 			value = max;
 		} else if (max / 2.0 > value) {
@@ -339,16 +344,18 @@ define(function () {
 	 * Format the memory size.
 	 */
 	function formatGpu(value, mode, instance) {
+		debugger;
 		if (instance) {
 			if (instance.gpu) {
-				value = instance.gpu;
+				value = instance.gpu ;
 			} 
 		}
+		value = value || 0
 		if (mode === 'sort' || mode === 'filter') {
-			return value;
+			return value ;
 		}
 		if (instance) {
-			return formatEfficiency(value, instance.price.type.gpu);
+			return formatEfficiency(value, instance.price.type.gpu||0);
 		}
 		return value;
 	}
@@ -2698,8 +2705,10 @@ define(function () {
 
 		genericCommitToModel: function (data, model) {
 			model.cpu = parseFloat(data.cpu, 10);
+			model.gpu = parseFloat(data.gpu, 10);
 			model.ram = parseInt(data.ram, 10);
 			model.cpuRate = data.cpuRate;
+			model.gpuRate = data.gpuRate
 			model.ramRate = data.ramRate;
 			model.networkRate = data.networkRate;
 			model.storageRate = data.storageRate;
@@ -2766,7 +2775,7 @@ define(function () {
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ram = cleanRam('reserved');
 			data.ramMax = cleanRam('max');
-			data.gpu = cleanFloat(_('instance-gpu').provSlider('value', 'reserved'));
+			data.gpu = cleanFloat(_('instance-gpu').val());
 			data.cpuRate = _('instance-cpuRate').val();
 			data.ramRate = _('instance-ramRate').val();
 			data.gpuRate = _('instance-gpuRate').val();
@@ -2840,7 +2849,7 @@ define(function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
-			_('instance-gpu').provSlider($.extend(maxOpts, { format: formatGpu})).provSlider('value', [quote.gpu || false, quote.gpu || 1]); // change 
+			_('instance-gpu').val();
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
@@ -4005,7 +4014,7 @@ define(function () {
 				 },
 				 {
 					className: 'truncate',
-					width: '48px',
+					width: '60px',
 					type: 'num',
 					render: formatGpu
 				}, 

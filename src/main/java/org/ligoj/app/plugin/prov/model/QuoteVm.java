@@ -23,9 +23,9 @@ public interface QuoteVm {
 	int getRam();
 	
 	/**
-	 * Return the amount of required GPU. Default is 1.
+	 * Return the amount of required GPU. Default is 0.
 	 *
-	 * @return The amount of required GPU. Default is 1.
+	 * @return The amount of required GPU. Default is 0.
 	 */
 	double getGpu();
 

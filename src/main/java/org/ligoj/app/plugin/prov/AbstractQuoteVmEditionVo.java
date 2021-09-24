@@ -63,8 +63,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	/**
 	 * The requested GPU
 	 */
-	@NotNull
-	@Positive
+	@PositiveOrZero
 	private double gpu;
 
 	/**

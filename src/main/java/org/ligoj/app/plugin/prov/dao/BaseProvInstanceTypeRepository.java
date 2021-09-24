@@ -57,8 +57,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			SELECT id FROM #{#entityName} WHERE
 			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
 			  AND (:type IS NULL OR id = :type)
-			  AND (cpu BETWEEN :cpu AND :limitCpu)
-			  AND ((gpu IS NULL AND :gpu = 0.0) OR gpu BETWEEN :gpu AND :limitGpu) 
+			  AND (cpu BETWEEN :cpu AND :limitCpu)	
+			  AND ((gpu IS NULL AND :gpu=0.0) OR gpu BETWEEN :gpu AND :limitGpu)
 			  AND (ram BETWEEN :ram AND :limitRam)
 			  AND (:constant IS NULL OR constant = :constant)
 			  AND (:physical IS NULL OR physical = :physical)
@@ -71,9 +71,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			  AND (:processor IS NULL
 			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
-	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu,double limitGpu, double limitRam,
-			Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale, Rate cpuRate,
-			Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate);
+	List<Integer> findValidTypes(String node, double cpu,double gpu, double ram, double limitCpu, double limitRam,
+			double limitGpu,Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale, 
+			Rate cpuRate,Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate);
 
 	/**
 	 * Return the valid instance types matching the requirements.

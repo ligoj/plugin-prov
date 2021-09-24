@@ -599,7 +599,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		final var types = getItRepository().findValidTypes(node, cpuR,gpuR, ramR, cpuR * maxFactor,gpuR * maxFactor, ramR * maxFactor,
+		final var types = getItRepository().findValidTypes(node, cpuR,gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor, ramR * maxFactor,
 				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(),
 				query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node,

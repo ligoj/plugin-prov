@@ -19,7 +19,7 @@ public interface ProvContainerTypeRepository extends BaseProvInstanceTypeReposit
 
 	@CacheResult(cacheName = "prov-container-type")
 	@Override
-	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey double gpu,@CacheKey double ram,
+	List<Integer> findValidTypes(@CacheKey String node,  @CacheKey double cpu,@CacheKey double gpu,@CacheKey double ram,
 			@CacheKey double limitCpu,@CacheKey double limitGpu, @CacheKey double limitRam, @CacheKey Boolean constant,
 			@CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale,
 			@CacheKey Rate cpuRate,@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
