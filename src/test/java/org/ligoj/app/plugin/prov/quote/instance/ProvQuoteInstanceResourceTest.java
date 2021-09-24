@@ -453,6 +453,46 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				"instance2", 102.48, "1y");
 
 	}
+	
+	@Test
+	void lookupGpu() {
+		final var lookup = qiResource.lookup(subscription,
+				builder().gpu(0.0).build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(1, pi.getType().getCpu());
+		Assertions.assertEquals(0.0, pi.getType().getGpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
+		Assertions.assertEquals("C7", pi.getCode());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(135.42, pi.getCost(), DELTA);
+		Assertions.assertEquals(135.42, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);;
+		//checkInstance(lookup);
+	}
+	
+	@Test
+	void lookupGpuFalse() {
+		final var lookup = qiResource.lookup(subscription,
+				builder().gpu(0.0).build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(1, pi.getType().getCpu());
+		Assertions.assertEquals(50.0, pi.getType().getGpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
+		Assertions.assertEquals("C7", pi.getCode());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(135.42, pi.getCost(), DELTA);
+		Assertions.assertEquals(135.42, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);;
+		//checkInstance(lookup);
+	}
 
 	private void assertPrice(final QuoteInstanceLookup lookup, final String code, final String instance,
 			final double cost, final String term) {
@@ -891,6 +931,68 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		vo.setRamRate(Rate.LOW);
 		vo.setCpuRate(Rate.MEDIUM);
+		vo.setNetworkRate(Rate.WORST);
+		vo.setStorageRate(Rate.MEDIUM);
+
+		newTags(vo);
+		final var updatedCost = qiResource.create(vo);
+
+		// Check the exact new cost
+		checkCost(updatedCost.getTotal(), 6790.958, 10283.658, false);
+		checkCost(updatedCost.getCost(), 2086.2, 3129.3, false);
+		Assertions.assertEquals(1, updatedCost.getRelated().size());
+		Assertions.assertTrue(updatedCost.getRelated().get(ResourceType.STORAGE).isEmpty());
+		checkCost(subscription, 6790.958, 10283.658, false);
+		final var instance = qiRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("serverZ", instance.getName());
+		Assertions.assertTrue(instance.isEphemeral());
+		Assertions.assertEquals("serverZD", instance.getDescription());
+		Assertions.assertEquals(1024, instance.getRam());
+		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
+		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);
+		Assertions.assertEquals(3129.3, instance.getMaxCost(), DELTA);
+		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
+		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
+		Assertions.assertEquals(10, instance.getMinQuantity());
+		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
+		Assertions.assertFalse(instance.isUnboundCost());
+
+		Assertions.assertEquals(Rate.LOW, instance.getRamRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getCpuRate());
+		Assertions.assertEquals(Rate.WORST, instance.getNetworkRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getStorageRate());
+
+		assertTags(instance);
+	}
+	
+	@Test
+	void createInstanceGpu() {
+		final var vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
+		vo.setName("serverZ");
+		vo.setDescription("serverZD");
+		vo.setRam(1024);
+		vo.setRamMax(10800);
+		vo.setCpu(0.5);
+		vo.setCpuMax(0.5);
+		vo.setGpu(1);
+		vo.setConstant(true);
+		vo.setPhysical(false);
+		vo.setInternet(InternetAccess.PUBLIC);
+		vo.setTenancy(ProvTenancy.SHARED);
+		vo.setMaxVariableCost(210.9);
+		vo.setEphemeral(true);
+		vo.setMinQuantity(10);
+		vo.setMaxQuantity(15);
+
+		vo.setAutoScale(true);
+
+		vo.setRamRate(Rate.LOW);
+		vo.setCpuRate(Rate.MEDIUM);
+		vo.setGpuRate(Rate.MEDIUM);
 		vo.setNetworkRate(Rate.WORST);
 		vo.setStorageRate(Rate.MEDIUM);
 
