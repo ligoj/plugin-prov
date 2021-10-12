@@ -394,7 +394,7 @@ public class ProvQuoteUploadResource {
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
 		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
-		//vo.setGpu() 
+		vo.setGpu(upload.getGpu());
 		vo.setProcessor(upload.getProcessor());
 		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(upload.getInternet());
@@ -402,7 +402,7 @@ public class ProvQuoteUploadResource {
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
 		vo.setCpuRate(upload.getCpuRate());
-		//vo.setGpuRate(upload.getGpuRate());
+		vo.setGpuRate(upload.getGpuRate());
 		vo.setRamRate(upload.getRamRate());
 		vo.setNetworkRate(upload.getNetworkRate());
 		vo.setStorageRate(upload.getStorageRate());
@@ -415,6 +415,7 @@ public class ProvQuoteUploadResource {
 		vo.setSubscription(subscription);
 		vo.setType(upload.getType());
 		vo.setCpuMax(upload.getCpuMax());
+		vo.setGpuMax(upload.getGpuMax());
 		vo.setRamMax(upload.getRamMax() == null ? null
 				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
 		return vo;

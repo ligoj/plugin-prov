@@ -175,6 +175,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
+		entity.setGpuMax(vo.getGpuMax());
 		entity.setAutoScale(vo.isAutoScale());
 		entity.setRamRate(vo.getRamRate());
 		entity.setCpuRate(vo.getCpuRate());
@@ -615,7 +616,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		}
 
 		// Dynamic type test
-		if (getItRepository().hasDynamicalTypes(node)) {
+		if (getItRepository().hasDynamicalTypes(node)&& gpuR==0) {
 			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR,
 					query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(), query.getNetworkRate(),
 					query.getStorageRate());

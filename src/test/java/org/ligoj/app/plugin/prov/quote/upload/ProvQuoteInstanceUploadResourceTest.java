@@ -139,19 +139,20 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadMax() throws IOException {
-		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0.2;1;2;500;300;LINUX;100;80", "UTF-8"),
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0.2;2;4;500;300;LINUX;100;80", "UTF-8"),
 				new String[] { "name", "cpu", "cpu_max","gpu", "gpu_max", "ram", "ram-MAX", "os", "disk", "disk_Max" }, false,
 				"Full Time 12 month", 1, "UTF-8");
 		var configuration = getConfiguration();
-		checkCost(configuration.getCost(), 4828.238, 7277.838, false);
+		checkCost(configuration.getCost(), 4945.358, 7394.958, false);
+		//checkCost(configuration.getCost(), 4828.238, 7277.838, false);
 		configuration = getConfiguration();
 		final var qi = configuration.getInstances().get(7);
 		Assertions.assertEquals("ANY", qi.getName());
-		Assertions.assertEquals("instance2", qi.getPrice().getType().getName());
+		Assertions.assertEquals("instance3", qi.getPrice().getType().getName());
 		Assertions.assertEquals(0.5, qi.getCpu());
 		Assertions.assertEquals(0.2, qi.getCpuMax());
-		Assertions.assertEquals(1, qi.getGpu());
-		Assertions.assertEquals(2, qi.getGpuMax());
+		Assertions.assertEquals(2, qi.getGpu());
+		Assertions.assertEquals(4, qi.getGpuMax());
 		Assertions.assertEquals(500, qi.getRam());
 		Assertions.assertEquals(300, qi.getRamMax());
 		final var qs = configuration.getStorages().get(4);
@@ -322,7 +323,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadRate() throws IOException {
-		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;1;500;LINUX;LOW;LOW;BEST;MEDIUM;WORST", "UTF-8"),
+		qiuResource.upload(subscription, IOUtils.toInputStream("ANY;0.5;0;500;LINUX;LOW;LOW;BEST;MEDIUM;WORST", "UTF-8"),
 				new String[] { "name", "cpu","gpu", "ram", "os", "cpuRate","gpuRate", "ramRate", "networkrate", "storageRate" }, false,
 				null, 1, "UTF-8");
 		final var configuration = getConfiguration();
@@ -382,7 +383,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadUpdate() throws IOException {
 		qiuResource.upload(subscription,
-				IOUtils.toInputStream("ANY;0.5;0;500;LINUX\nANY 1;0;1;2000;LINUX\nANY;2;0;1000;LINUX", "UTF-8"),
+				IOUtils.toInputStream("ANY;0.5;0;500;LINUX\nANY 1;1;0;2000;LINUX\nANY;2;0;1000;LINUX", "UTF-8"),
 				new String[] { "name", "cpu","gpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, "UTF-8");
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(9, configuration.getInstances().size());
@@ -391,6 +392,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("ANY", configuration.getInstances().get(8).getName());
 		Assertions.assertEquals(2D, configuration.getInstances().get(8).getCpu());
 	}
+	
+	//IOUtils.toInputStream("ANY;0.5;0;500;LINUX\nANY 1;0;1;2000;LINUX\nANY;2;0;1000;LINUX", "UTF-8"),
+	//new String[] { "name", "cpu","gpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, "UTF-8");
 
 	@Test
 	void uploadNoConflictName() throws IOException {
@@ -409,7 +413,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadConflictName() throws IOException {
-		final var input = IOUtils.toInputStream("ANY;0.5;0;500;LINUX\nANY;2;1000;LINUX", "UTF-8");
+		final var input = IOUtils.toInputStream("ANY;0.5;0;500;LINUX\nANY;2;0;1000;LINUX", "UTF-8");
 		Assertions.assertThrows(DataIntegrityViolationException.class, () -> qiuResource.upload(subscription, input,
 				new String[] { "name", "cpu","gpu", "ram", "os" }, false, null, MergeMode.INSERT, 1, "UTF-8"));
 	}

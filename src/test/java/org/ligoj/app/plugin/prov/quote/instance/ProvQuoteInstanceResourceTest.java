@@ -457,6 +457,26 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupGpu() {
 		final var lookup = qiResource.lookup(subscription,
+				builder().gpu(2).build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals(2.0, pi.getType().getGpu());
+		Assertions.assertEquals("instance3", pi.getType().getName());
+		Assertions.assertEquals(2, pi.getType().getCpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
+		Assertions.assertEquals("C13", pi.getCode());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(292.8, pi.getCost(), DELTA);
+		Assertions.assertEquals(292.8, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(292.8, lookup.getCost(), DELTA);
+		
+	}
+	
+	@Test
+	void lookupGpu0() {
+		final var lookup = qiResource.lookup(subscription,
 				builder().gpu(0.0).build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
@@ -471,28 +491,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);;
-		//checkInstance(lookup);
 	}
-	
-	@Test
-	void lookupGpuFalse() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().gpu(0.0).build());
-		final var pi = lookup.getPrice();
-		Assertions.assertNotNull(pi.getId());
-		Assertions.assertEquals("instance2", pi.getType().getName());
-		Assertions.assertEquals(1, pi.getType().getCpu());
-		Assertions.assertEquals(50.0, pi.getType().getGpu());
-		Assertions.assertEquals(2000, pi.getType().getRam());
-		Assertions.assertEquals("C7", pi.getCode());
-		Assertions.assertFalse(pi.getTerm().isEphemeral());
-		Assertions.assertEquals(135.42, pi.getCost(), DELTA);
-		Assertions.assertEquals(135.42, pi.getCostPeriod(), DELTA);
-		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
-		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
-		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);;
-		//checkInstance(lookup);
-	}
+
 
 	private void assertPrice(final QuoteInstanceLookup lookup, final String code, final String instance,
 			final double cost, final String term) {

@@ -1,15 +1,15 @@
-node.id;code;name;cpu;ram;constant;description;location.name;processor;physical;autoScale;cpuRate;ramRate;networkRate;storageRate
-service:prov:test;instance1;instance1;0.5;2000;true;instanceD1;;;false
-service:prov:test;instance2;instance2;1;2000;false;instanceD2;;Intel Other;;true;BEST;GOOD;MEDIUM;LOW
-service:prov:test;instance3;instance3;2;2000;true;instanceD3;;;false
-service:prov:test;instance4;instance4;2;2000;false;instanceD4;;;false;false;LOW;BEST;MEDIUM;LOW
-service:prov:test;instance5;instance5;1;4000;true;instanceD5;;;false
-service:prov:test;instance6;instance6;1;4000;false;instanceD6;;;false
-service:prov:test;instance7;instance7;2;4000;true;instanceD7;;;true
-service:prov:test;instance8;instance8;2;4000;false;instanceD8;;;false
-service:prov:test;instance9;instance9;4;16000;true;instanceD9;;;false
-service:prov:test;instance10;instance10;4;8000;false;instanceD10;;;false
-service:prov:test;instance11;instance11;8;16000;true;instanceD11;;Intel Xeon Platinum 8175 (Skylake);false
-service:prov:test;instance12;instance12;8;8000;false;instanceD12;;;false
-service:prov:test;dynamic;dynamic;0;0;true;dynamicD;;AMD EPYC 7571;false
-service:prov:x;instancex;instanceX;8;8000;false;instanceDX;;;false
+node.id;code;name;cpu;gpu;ram;constant;description;location.name;processor;physical;autoScale;cpuRate;ramRate;networkRate;storageRate
+service:prov:test;instance1;instance1;0.5;0;2000;true;instanceD1;;;false
+service:prov:test;instance2;instance2;1;0;2000;false;instanceD2;;Intel Other;;true;BEST;GOOD;MEDIUM;LOW
+service:prov:test;instance3;instance3;2;2;2000;true;instanceD3;;;false
+service:prov:test;instance4;instance4;2;0;2000;false;instanceD4;;;false;false;LOW;BEST;MEDIUM;LOW
+service:prov:test;instance5;instance5;1;0;4000;true;instanceD5;;;false
+service:prov:test;instance6;instance6;1;0;4000;false;instanceD6;;;false
+service:prov:test;instance7;instance7;2;0;4000;true;instanceD7;;;true
+service:prov:test;instance8;instance8;2;0;4000;false;instanceD8;;;false
+service:prov:test;instance9;instance9;4;0;16000;true;instanceD9;;;false
+service:prov:test;instance10;instance10;4;0;8000;false;instanceD10;;;false
+service:prov:test;instance11;instance11;8;0;16000;true;instanceD11;;Intel Xeon Platinum 8175 (Skylake);false
+service:prov:test;instance12;instance12;8;0;8000;false;instanceD12;;;false
+service:prov:test;dynamic;dynamic;0;0;0;true;dynamicD;;AMD EPYC 7571;false
+service:prov:x;instancex;instanceX;8;0;8000;false;instanceDX;;;false
