@@ -1,8 +1,8 @@
-node.id;code;name;cpu;gpu;ram;constant;description;location.name;processor;physical;autoScale;cpuRate;ramRate;networkRate;storageRate
+node.id;code;name;cpu;gpu;ram;constant;description;location.name;processor;physical;autoScale;cpuRate;gpuRate;ramRate;networkRate;storageRate
 service:prov:test;instance1;instance1;0.5;0;2000;true;instanceD1;;;false
-service:prov:test;instance2;instance2;1;0;2000;false;instanceD2;;Intel Other;;true;BEST;GOOD;MEDIUM;LOW
+service:prov:test;instance2;instance2;1;0;2000;false;instanceD2;;Intel Other;;true;BEST;BEST;GOOD;MEDIUM;LOW
 service:prov:test;instance3;instance3;2;2;2000;true;instanceD3;;;false
-service:prov:test;instance4;instance4;2;0;2000;false;instanceD4;;;false;false;LOW;BEST;MEDIUM;LOW
+service:prov:test;instance4;instance4;2;0;2000;false;instanceD4;;;false;false;LOW;LOW;BEST;MEDIUM;LOW
 service:prov:test;instance5;instance5;1;0;4000;true;instanceD5;;;false
 service:prov:test;instance6;instance6;1;0;4000;false;instanceD6;;;false
 service:prov:test;instance7;instance7;2;0;4000;true;instanceD7;;;true

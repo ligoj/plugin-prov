@@ -263,7 +263,6 @@ define(function () {
 	 * @returns {string} The value to display containing the rate.
 	 */
 	function formatEfficiency(value, max, formatter) {
-		debugger;
 		var fullClass = null
 		if (typeof max === 'undefined'){
 			max = value ;
@@ -344,7 +343,6 @@ define(function () {
 	 * Format the memory size.
 	 */
 	function formatGpu(value, mode, instance) {
-		debugger;
 		if (instance) {
 			if (instance.gpu) {
 				value = instance.gpu ;
@@ -1159,7 +1157,6 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
-			debugger;
 			if(e.currentTarget.checked){
 				$popup.addClass('advanced');	
 			}else{
@@ -3921,7 +3918,6 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,

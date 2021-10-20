@@ -384,6 +384,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setName("database1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setEngine("MYSQL");
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(2);
@@ -411,6 +412,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setRam(1024);
 		vo.setEngine("ORACLE");
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qbResource.update(vo)),
@@ -430,6 +432,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setName("database1-bis");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
@@ -450,6 +453,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("database1-bis", instance.getName());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
 		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
@@ -490,6 +494,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setName("database1");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
 		vo.setEngine("MYSQL");
@@ -512,6 +517,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setConstant(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
@@ -530,6 +536,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("serverZD", instance.getDescription());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals("ORACLE", instance.getEngine());
 		Assertions.assertEquals("STANDARD ONE", instance.getEdition());
 		Assertions.assertEquals(1464.0, instance.getCost(), DELTA);
@@ -566,6 +573,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setEngine("ANY");
 		vo.setConstant(true);
 		vo.setMinQuantity(10);
@@ -583,6 +591,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setEngine("MYSQL");
 		vo.setEdition("ANY");
 		vo.setConstant(true);

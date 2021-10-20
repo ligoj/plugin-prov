@@ -80,6 +80,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(7, status.getNbInstances());
 		Assertions.assertEquals(0, status.getNbDatabases());
 		Assertions.assertEquals(10.75, status.getTotalCpu(), 0.0001);
+		Assertions.assertEquals(0, status.getTotalGpu());
 		Assertions.assertEquals(45576, status.getTotalRam());
 		Assertions.assertEquals(6, status.getNbPublicAccess());
 		Assertions.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
@@ -98,6 +99,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(0, status.getNbInstances());
 		Assertions.assertEquals(0, status.getNbDatabases());
 		Assertions.assertEquals(0, status.getTotalCpu(), 0.0001);
+		Assertions.assertEquals(0, status.getTotalGpu());
 		Assertions.assertEquals(0, status.getTotalRam());
 		Assertions.assertEquals(0, status.getNbStorages());
 		Assertions.assertEquals(0, status.getTotalStorage());
@@ -382,8 +384,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var instance = new ProvQuoteInstance();
 		instance.setConfiguration(configuration);
 		instance.setCpu(1D);
+		instance.setGpu(0D);
 		instance.setRam(2000);
 		instance.setCpuMax(0.5D);
+		instance.setGpuMax(1D);
 		instance.setRamMax(1000);
 		instance.setName("instance");
 		instance.setOs(VmOs.WINDOWS);
@@ -469,6 +473,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var subscription = configuration.getSubscription();
 		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet.setCpu(2);
+		instanceGet.setGpu(0D);
 		instanceGet.setRam(4000);
 		em.flush();
 		em.clear();
@@ -489,14 +494,17 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		quote.setRefresh(false);
 		quote.setReservationMode(ReservationMode.MAX);
-		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		//checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		checkCost(resource.update(subscription.getId(), quote), 366.0, 366.0, false);
 		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
 		final var instanceGet3 = quoteVo.getInstances().get(0);
-		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+		//Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+		Assertions.assertEquals("C18", instanceGet3.getPrice().getCode());
 
 		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet.setCpuMax(null);
+		instanceGet.setGpuMax(null);
 		instanceGet.setRamMax(null);
 		em.flush();
 		em.clear();
