@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -83,5 +84,10 @@ public class ProvLocation extends AbstractDescribedEntity<Integer> {
 	 * M49 continent code: 142 (Asia), 150 (Europe), 019 (Americas),...
 	 */
 	private Integer continentM49;
+	
+	/**
+	 * When true, this location is the default one for new quotes
+	 */
+	private  boolean preferred;
 
 }

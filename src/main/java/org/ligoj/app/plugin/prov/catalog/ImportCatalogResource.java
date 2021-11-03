@@ -16,12 +16,14 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.ligoj.app.plugin.prov.catalog.CatalogEditionVo;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
@@ -35,6 +37,7 @@ import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
 import org.ligoj.app.resource.node.NodeResource;
@@ -231,7 +234,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		// Complete with nodes without populated catalog
 		final var providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "", ProvResource.SERVICE_KEY,
 				null, 1, PageRequest.of(0, 100));
-
+		
 		return providers.getContent().stream().sorted().map(NodeResource::toVo)
 				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
 					// Create a mock catalog status
@@ -239,10 +242,26 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 					updateStats(status, n.getId());
 					return status;
 				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null,
-						(int) repository.countByNode(n.getId())))
+						(int) repository.countByNode(n.getId()),null))
 				.collect(Collectors.toList());
-	}
 
+		/*return providers.getContent().stream().sorted().map(NodeResource::toVo)
+				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
+					// Create a mock catalog status
+					final var status = new ImportCatalogStatus();
+					updateStats(status, n.getId());
+					return status;
+				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null,
+						(int) repository.countByNode(n.getId()),null))
+				.collect(Collectors.toList());*/
+	}
+	
+	@PUT
+	public void update(CatalogEditionVo catalogEdition) {
+		
+	}
+	
+	
 	@Override
 	public Supplier<ImportCatalogStatus> newTask() {
 		return ImportCatalogStatus::new;
