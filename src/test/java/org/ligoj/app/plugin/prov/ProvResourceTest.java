@@ -16,12 +16,15 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Parameter;
 import org.ligoj.app.model.ParameterValue;
 import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.prov.catalog.CatalogEditionVo;
+import org.ligoj.app.plugin.prov.catalog.CatalogVo;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -38,6 +41,7 @@ import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageLookup;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.ligoj.app.plugin.prov.catalog.ImportCatalogResource;
 
 /**
  * Test class of {@link ProvResource}
@@ -46,6 +50,9 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ImportCatalogStatusRepository icsRepository;
+
+	@Autowired
+	private ImportCatalogResource icResource;
 
 	/**
 	 * Prepare test data.
@@ -316,7 +323,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
+	 * Update the location of the quote, impact all instances, but no one use the
+	 * default location. Cost still updated.
 	 */
 	@Test
 	void updateLocation() {
@@ -494,12 +502,13 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		quote.setRefresh(false);
 		quote.setReservationMode(ReservationMode.MAX);
-		//checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		// checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68,
+		// false);
 		checkCost(resource.update(subscription.getId(), quote), 366.0, 366.0, false);
 		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
 		final var instanceGet3 = quoteVo.getInstances().get(0);
-		//Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+		// Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 		Assertions.assertEquals("C18", instanceGet3.getPrice().getCode());
 
 		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
@@ -606,7 +615,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the default license model of the quote, impact all instances using the default license model.
+	 * Update the default license model of the quote, impact all instances using the
+	 * default license model.
 	 */
 	@Test
 	void updateLicense() {
@@ -640,7 +650,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances using the default location. Cost still updated.
+	 * Update the location of the quote, impact all instances using the default
+	 * location. Cost still updated.
 	 */
 	@Test
 	void updateLocationDifferentQILocation() {
@@ -823,6 +834,22 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(configuration.getName());
 		Assertions.assertNotNull(configuration.getDescription());
 		Assertions.assertNull(configuration.getCurrency());
+		Assertions.assertEquals("region-1", configuration.getLocation().getName());
+
+		final var node = configuration.getLocation().getNode().getId();
+		final var location = locationRepository.findByName(node, "region-2").getId();
+		final var catalogsVo = new CatalogEditionVo(location, node);
+		icResource.update(catalogsVo);
+
+		final var subscriptionPreferred = new Subscription();
+		subscriptionPreferred.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscriptionPreferred.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscriptionPreferred);
+		em.flush();
+		em.clear();
+		resource.create(subscriptionPreferred.getId());
+		final var configurationPreferred = resource.getConfiguration(subscriptionPreferred.getId());
+		Assertions.assertEquals("region-2", configurationPreferred.getLocation().getName());
 	}
 
 	@Test

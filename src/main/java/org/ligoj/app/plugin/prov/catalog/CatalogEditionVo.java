@@ -4,14 +4,18 @@ import org.ligoj.app.api.NodeVo;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 
+import com.sun.istack.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 public class CatalogEditionVo {
-	
+
+	@NotNull
 	private Integer preferredLocation;
-	
-	private Integer node;
+
+	@NotNull
+	private String node;
 }

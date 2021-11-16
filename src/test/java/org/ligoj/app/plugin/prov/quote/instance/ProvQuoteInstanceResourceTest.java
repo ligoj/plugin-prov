@@ -400,6 +400,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("dynamic", pi.getType().getName());
 		Assertions.assertEquals(0, pi.getType().getCpu());
+		Assertions.assertEquals(0, pi.getType().getGpu());
 		Assertions.assertEquals(0, pi.getType().getRam());
 		Assertions.assertTrue(pi.getType().getConstant());
 		Assertions.assertEquals(0, pi.getCost(), DELTA);

@@ -1,7 +1,7 @@
-name;node.id;countryM49;countryA2;regionM49;continentM49;placement;subRegion;longitude;latitude
-region-1;service:prov:x
-region-3;service:prov:x
-region-1;service:prov:test;840;US;021;019;west;Virginia;37.3521231;-79.0490432
-region-2;service:prov:test;840;US;021;019;north
-region-4;service:prov:test;250;FR;155;150
-region-5;service:prov:test;000;UK;000;000
+name;node.id;countryM49;countryA2;regionM49;continentM49;placement;subRegion;longitude;latitude;preferred
+region-1;service:prov:x;;;;;;;;;
+region-3;service:prov:x;;;;;;;;;
+region-1;service:prov:test;840;US;21;19;west;Virginia;37.3521231;-79.0490432;
+region-2;service:prov:test;840;US;21;19;north;;;;
+region-4;service:prov:test;250;FR;155;150;;;;;
+region-5;service:prov:test;0;UK;0;0;;;;;

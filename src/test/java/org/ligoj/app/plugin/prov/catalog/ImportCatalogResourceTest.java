@@ -20,6 +20,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
+import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
@@ -36,6 +37,7 @@ import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.resource.BusinessException;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -55,6 +57,8 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	private ImportCatalogStatusRepository repository;
 	@Autowired
 	private NodeRepository nodeRepository;
+	@Autowired
+	private ProvLocationRepository locationRepository;
 
 	@BeforeEach
 	void prepareData() throws IOException {
@@ -258,6 +262,23 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	void findAllError() {
+		final var resource = newResource();
+
+		// Add not updatable provider node
+		final var node = new Node();
+		node.setId("service:prov:any");
+		node.setName("Cannot import");
+		node.setRefined(nodeRepository.findOneExpected("service:prov"));
+		nodeRepository.saveAndFlush(node);
+
+		var catalogs = resource.findAll();
+		var location = locationRepository.findByName(catalogs.get(2).getNode().getId(), "region-1").getId();
+		var catalogsVoError = new CatalogEditionVo(location, node.getId());
+		Assertions.assertThrows(ValidationJsonException.class, () -> resource.update(catalogsVoError));
+	}
+
+	@Test
 	void findAll() {
 		final var resource = newResource();
 
@@ -273,8 +294,18 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		notImportNode.setRefined(nodeRepository.findOneExpected("service:prov"));
 		nodeRepository.saveAndFlush(notImportNode);
 
-		final var catalogs = resource.findAll();
+		// Initialize and update catalog
+		var catalogs = resource.findAll();
 		Assertions.assertEquals(3, catalogs.size());
+		Assertions.assertNull(catalogs.get(0).getPreferredLocation());
+		Assertions.assertNull(catalogs.get(1).getPreferredLocation());
+		Assertions.assertNull(catalogs.get(2).getPreferredLocation());
+		var node = catalogs.get(2).getNode().getId();
+		var location = locationRepository.findByName(node, "region-1").getId();
+		var catalogsVo = new CatalogEditionVo(location, node);
+		resource.update(catalogsVo);
+		catalogs = resource.findAll();
+		Assertions.assertEquals(location, catalogs.get(2).getPreferredLocation().getId());
 
 		// This provider does not support catalog update
 		Assertions.assertEquals(0, catalogs.get(0).getStatus().getNbInstancePrices().intValue());
@@ -283,12 +314,14 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());
 		Assertions.assertFalse(catalogs.get(0).isCanImport());
 		Assertions.assertEquals(0, catalogs.get(0).getNbQuotes());
+		Assertions.assertEquals(null, catalogs.get(0).getPreferredLocation());
 
 		// This provider supports catalog update
 		Assertions.assertNotNull(catalogs.get(1).getStatus());
 		Assertions.assertEquals("service:prov:test", catalogs.get(1).getNode().getId());
 		Assertions.assertTrue(catalogs.get(1).isCanImport());
 		Assertions.assertEquals(2, catalogs.get(1).getNbQuotes());
+		Assertions.assertEquals(null, catalogs.get(1).getPreferredLocation());
 
 		// This provider does not support catalog update
 		Assertions.assertEquals("service:prov:x", catalogs.get(2).getNode().getId());
@@ -296,6 +329,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertNull(catalogs.get(2).getStatus().getEnd());
 		Assertions.assertNull(catalogs.get(2).getStatus().getStart());
 		Assertions.assertEquals(1, catalogs.get(2).getNbQuotes());
+		Assertions.assertEquals("region-1", catalogs.get(2).getPreferredLocation().getName());
 
 		final var status = catalogs.get(1).getStatus();
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
