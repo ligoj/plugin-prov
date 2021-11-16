@@ -107,14 +107,6 @@ define(['sparkline'], function () {
 						// No update support
 						return '';
 					}
-				},{
-					data: null,
-					width: '16px',
-					render: function(){
-						return `<span class="btn prov-project-edit" data-toggle="modal" data-target="#popup-prov-update"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages['update']}"></i></span>`
-					}
-						
-					
 				}]
 			});
 		},
