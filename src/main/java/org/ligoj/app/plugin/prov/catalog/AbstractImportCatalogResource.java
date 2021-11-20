@@ -12,7 +12,9 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 
 import javax.persistence.EntityManager;
@@ -66,6 +68,7 @@ import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -595,13 +598,38 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
 			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
-		if (context.getMergedTypes().add(entity.getCode())) {
+		return syncAdd(context.getMergedTypes(), entity.getCode(), updater, entity, repository);
+	}
+
+	protected <Y, I> I syncAdd(final Set<Y> collection, final Y item, Consumer<I> updater, I entity,
+			final JpaRepository<I, ?> repository) {
+		syncAdd(collection, item, i -> {
 			updater.accept(entity);
 			if (repository != null) {
 				repository.saveAndFlush(entity);
 			}
-		}
+		});
 		return entity;
+	}
+
+	protected <Y> Y syncAdd(final Set<Y> collection, final Y item, final Consumer<Y> whenAbsent) {
+		if (!collection.contains(item)) {
+			synchronized (collection) {
+				if (collection.add(item)) {
+					whenAbsent.accept(item);
+				}
+			}
+		}
+		return item;
+	}
+
+	protected <K, V> V syncAdd(Map<K, V> map, K key, Function<K, V> whenAbsent, Function<V, V> onCompute) {
+		return map.compute(key, (code, previous) -> {
+			if (previous == null) {
+				previous = whenAbsent.apply(key);
+			}
+			return onCompute.apply(previous);
+		});
 	}
 
 	/**
@@ -614,11 +642,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvInstancePriceTerm copyAsNeeded(final AbstractUpdateContext context,
 			final ProvInstancePriceTerm entity, final Consumer<ProvInstancePriceTerm> updater) {
-		if (context.getMergedTerms().add(entity.getCode())) {
-			updater.accept(entity);
-			iptRepository.saveAndFlush(entity);
-		}
-		return entity;
+		return syncAdd(context.getMergedTerms(), entity.getCode(), updater, entity, iptRepository);
 	}
 
 	/**
@@ -631,11 +655,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context, final ProvLocation entity,
 			final Consumer<ProvLocation> updater) {
-		if (context.getMergedLocations().add(entity.getName())) {
-			updater.accept(entity);
-			locationRepository.saveAndFlush(entity);
-		}
-		return entity;
+		return syncAdd(context.getMergedLocations(), entity.getName(), updater, entity, locationRepository);
 	}
 
 	/**
