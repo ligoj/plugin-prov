@@ -283,6 +283,7 @@ img.flag-icon.prov-location-flag {
   padding-right: 8px;
   margin: 0;
   top: -8px;
+  left: 5px;
 }
 
 #prov-terraform-status .progress {
