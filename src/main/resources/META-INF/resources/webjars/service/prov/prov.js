@@ -264,9 +264,9 @@ define(function () {
 	 */
 	function formatEfficiency(value, max, formatter) {
 		var fullClass = null
-		if (typeof max === 'undefined'){
-			max = value ;
-		}else if (typeof value === 'undefined'){
+		if (typeof max === 'undefined') {
+			max = value;
+		} else if (typeof value === 'undefined') {
 			max = 1;
 		}
 		if (value === 0) {
@@ -339,21 +339,21 @@ define(function () {
 	}
 
 
-		/**
-	 * Format the memory size.
-	 */
+	/**
+ * Format the memory size.
+ */
 	function formatGpu(value, mode, instance) {
 		if (instance) {
 			if (instance.gpu) {
-				value = instance.gpu ;
-			} 
+				value = instance.gpu;
+			}
 		}
 		value = value || 0
 		if (mode === 'sort' || mode === 'filter') {
-			return value ;
+			return value;
 		}
 		if (instance) {
-			return formatEfficiency(value, instance.price.type.gpu||0);
+			return formatEfficiency(value, instance.price.type.gpu || 0);
 		}
 		return value;
 	}
@@ -1384,11 +1384,11 @@ define(function () {
 	}
 
 	function getResourceValue($item) {
-		var value = '';
+		let value = '';
 		if ($item.is('.input-group-btn')) {
 			value = $item.find('li.active').data('value');
 		} else if ($item.prev().is('.select2-container')) {
-			var data = ($item.select2('data') || {});
+			const data = ($item.select2('data') || {});
 			value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
 		} else if ($item.data('ligojProvSlider')) {
 			value = $item.provSlider('value', 'reserved');
@@ -1725,11 +1725,11 @@ define(function () {
 		 * Uses the current "this" jQuery context to get the UI context.
 		 */
 		checkResource: function () {
-			var $form = $(this).prov();
-			var queries = {};
-			var type = $form.provType();
-			var popupType = typesStorage.includes(type) ? 'generic' : type;
-			var $popup = _('popup-prov-' + popupType);
+			const $form = $(this).prov();
+			const queries = {};
+			const type = $form.provType();
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const $popup = _('popup-prov-' + popupType);
 
 			// Build the query
 			$form.find('.resource-query').filter(function () {
@@ -1775,11 +1775,11 @@ define(function () {
 		toQueryValueRam: (value) => (cleanInt(value) || 0) * getRamUnitWeight(),
 
 		addQuery(type, $item, queries) {
-			var value = getResourceValue($item);
-			var queryParam = value && toQueryName(type, $item);
+			let value = getResourceValue($item);
+			const queryParam = (value !== null && value !== '' && typeof value !== 'undefined') && toQueryName(type, $item);
 			if (queryParam) {
 				value = $item.is('[type="checkbox"]') ? $item.is(':checked') : value;
-				var toValue = current['toQueryValue' + queryParam.capitalize()];
+				const toValue = current['toQueryValue' + queryParam.capitalize()];
 				value = toValue ? toValue(value, $item) : value;
 				if (value || value === false) {
 					// Add as query
@@ -4036,13 +4036,13 @@ define(function () {
 					width: '64px',
 					type: 'num',
 					render: formatRam
-				 },
-				 {
+				},
+				{
 					className: 'truncate',
 					width: '60px',
 					type: 'num',
 					render: formatGpu
-				}, 
+				},
 				{
 					data: 'price.term',
 					className: 'hidden-xs hidden-sm price-term',
