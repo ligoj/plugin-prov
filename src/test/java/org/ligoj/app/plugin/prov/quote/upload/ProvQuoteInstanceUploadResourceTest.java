@@ -196,7 +196,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 				IOUtils.toInputStream("database4;0.5;1000;oracle;standard two\ndatabaseNEW;0.4;800;mysql;",
 						DEFAULT_ENCODING),
 				new String[] { "name", "cpu", "ram", "engine", "edition" }, false, "Full Time 12 month",
-				MergeMode.UPDATE, 1, DEFAULT_ENCODING, DEFAULT_SEPARATOR);
+				MergeMode.UPDATE, 1, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4905.058, 7354.658, false);
 		configuration = getConfiguration();
@@ -383,7 +383,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	void uploadUpdate() throws IOException {
 		qiuResource.upload(subscription,
 				IOUtils.toInputStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX", DEFAULT_ENCODING),
-				new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, DEFAULT_ENCODING,
+				new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, DEFAULT_ENCODING, false,
 				ProvQuoteUploadResource.DEFAULT_SEPARATOR);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(9, configuration.getInstances().size());
@@ -413,7 +413,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		final var input = IOUtils.toInputStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX", DEFAULT_ENCODING);
 		Assertions.assertThrows(DataIntegrityViolationException.class,
 				() -> qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os" }, false, null,
-						MergeMode.INSERT, 1, DEFAULT_ENCODING, ProvQuoteUploadResource.DEFAULT_SEPARATOR));
+						MergeMode.INSERT, 1, DEFAULT_ENCODING, false, ProvQuoteUploadResource.DEFAULT_SEPARATOR));
 	}
 
 	@Test

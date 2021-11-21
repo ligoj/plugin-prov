@@ -825,6 +825,16 @@
 							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
 						</div>
 						<div class="form-group">
+							<div class="col-sm-9 col-sm-offset-3">
+								<div class="checkbox">
+									<label for="csv-create-missing-usage">
+										<input type="checkbox" checked id="csv-create-missing-usage" name="createMissingUsage"> {{csv-create-missing-usage}}
+									</label>
+								</div>
+								<p class="help-block">{{csv-create-missing-usage-help}}</p>
+							</div>
+						</div>
+						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-budget-upload" data-toggle="tooltip" title="{{service:prov:budget-help}}">{{service:prov:budget}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-budget-upload" class="form-control" placeholder="{{default}}" />
