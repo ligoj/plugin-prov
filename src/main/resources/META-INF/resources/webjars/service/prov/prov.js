@@ -3333,7 +3333,7 @@ define(function () {
 			var conf = current.model.configuration;
 			switch (data.type) {
 				case 'latency':
-					return current.title('storage-latency') + formatStorageLatency(data.name, true);
+					return current.title('storage-latency') + formatRate(data.name, true);
 				case 'os':
 					return formatOs(data.name, true, ' fa-2x');
 				case 'engine':
@@ -3346,7 +3346,7 @@ define(function () {
 					var storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
 						+ '<br>' + current.title('storage-type') + storage.price.type.name
-						+ '<br>' + current.title('storage-latency') + formatStorageLatency(storage.price.type.latency, true)
+						+ '<br>' + current.title('storage-latency') + formatRate(storage.price.type.latency, true)
 						+ '<br>' + current.title('storage-optimized') + storage.price.type.optimized;
 				case 'support':
 					var support = conf.supportsById[data.name];
