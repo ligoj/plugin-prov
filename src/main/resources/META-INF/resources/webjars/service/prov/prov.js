@@ -1146,7 +1146,7 @@ define(function () {
 				allowClear: true,
 				formatSelection: formatRate,
 				formatResult: formatRate,
-				width: '48px',
+				width: $(this).is('.prov-rate-full') ? null : '48px',
 				dropdownAutoWidth: true,
 				escapeMarkup: m => m,
 				data: Object.keys(rates).filter(r => r !== 'invalid' && r !== 'worst').map(r => ({
