@@ -65,7 +65,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:os-help}}">{{service:prov:os}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:gpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}" class="noVisDefault"><i class="fas fa-bolt"></i> {{service:prov:gpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
@@ -79,7 +79,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+									<td class="dataTables_empty" colspan="15">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -108,7 +108,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:os-help}}">{{service:prov:os}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}"><i class="fas fa-memory"></i> {{service:prov:gpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}" class="noVisDefault"><i class="fas fa-memory"></i> {{service:prov:gpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
@@ -122,7 +122,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="14">{{loading}}</td>
+									<td class="dataTables_empty" colspan="15">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -152,7 +152,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:function-concurrency-help}}"><i class="fas fa-stream"></i> {{service:prov:function-concurrency}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}"><i class="fas fa-memory"></i> {{service:prov:gpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}" class="noVisDefault"><i class="fas fa-bolt"></i> {{service:prov:gpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:instance-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:instance-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
@@ -166,7 +166,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="15">{{loading}}</td>
+									<td class="dataTables_empty" colspan="16">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -234,7 +234,7 @@
 									<th data-toggle="tooltip" title="{{service:prov:database-edition-help}}"> {{service:prov:database-edition}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:cpu-help}}"><i class="fas fa-bolt"></i> {{service:prov:cpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:ram-help}}"><i class="fas fa-memory"></i> {{service:prov:ram}}</th>
-									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}"><i class="fas fa-memory"></i> {{service:prov:gpu}}</th>
+									<th data-toggle="tooltip" title="{{service:prov:gpu-help}}" class="noVisDefault"><i class="fas fa-bolt"></i> {{service:prov:gpu}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:term-help}}" class="hidden-xs hidden-sm term"><i class="far fa-handshake"></i> {{service:prov:term}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:database-type-help}}" class="hidden-xs hidden-sm hidden-md type">{{service:prov:database-type}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:usage-help}}" class="noVisDefault"><i class="fas fa-clock"></i> {{service:prov:usage}}</th>
@@ -248,7 +248,7 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="15">{{loading}}</td>
+									<td class="dataTables_empty" colspan="16">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -811,7 +811,7 @@
 						<div class="form-group hidden">
 							<label class="control-label col-sm-3" for="csv-headers">{{csv-headers}}</label>
 							<div class="col-sm-9">
-								<input type="text" id="csv-headers" name="headers" value="" class="form-control" placeholder="name;cpu;gpu;ram;os;disk;latency;optimized">
+								<input type="text" id="csv-headers" name="headers" value="" class="form-control" placeholder="name;cpu;ram;os;disk;latency;optimized">
 							</div>
 						</div>
 						<div class="form-group">
