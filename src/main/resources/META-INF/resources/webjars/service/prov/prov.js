@@ -2805,13 +2805,13 @@ define(function () {
 
 		genericUiToData: function (data) {
 			data.cpu = cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
-			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
-			data.ram = cleanRam('reserved');
-			data.ramMax = cleanRam('max');
 			data.gpu = cleanFloat(_('instance-gpu').val());
+			data.ram = cleanRam('reserved');
+			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
+			data.ramMax = cleanRam('max');
 			data.cpuRate = _('instance-cpuRate').val();
-			data.ramRate = _('instance-ramRate').val();
 			data.gpuRate = _('instance-gpuRate').val();
+			data.ramRate = _('instance-ramRate').val();
 			data.networkRate = _('instance-networkRate').val();
 			data.storageRate = _('instance-storageRate').val();
 			data.internet = _('instance-internet').val().toLowerCase();
