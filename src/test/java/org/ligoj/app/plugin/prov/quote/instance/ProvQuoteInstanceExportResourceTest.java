@@ -177,7 +177,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Import
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(),
-				null, true, "Full Time 12 month", 1, "UTF-8");
+				null, true, "Full Time 12 month", 1);
 		em.flush();
 		em.clear();
 		resource.refresh(subscription);
@@ -205,7 +205,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Import
 		qiuResource.upload(subscription, IOUtils.toInputStream(String.join("\n", lines), "UTF-8"), null, true,
-				"Full Time 12 month", 1, "UTF-8");
+				"Full Time 12 month", 1);
 		configuration = getConfiguration();
 
 		// Check backup restore succeed
@@ -227,9 +227,11 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(38, lines.size());
 
 		// Header
-		Assertions.assertEquals("name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
-				+ "processor;physical;ephemeral;type;internet;license;cost;tags;disk;diskMax;instance;database;"
-				+ "latency;optimized;engine;edition;seats", lines.get(0));
+		Assertions.assertEquals(
+				"name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;term;location;min;max;maxvariablecost;constant;"
+						+ "processor;physical;ephemeral;type;internet;license;cost;tags;disk;diskMax;instance;database;"
+						+ "latency;optimized;engine;edition;seats",
+				lines.get(0));
 
 		// Instance data
 		Assertions.assertEquals(
@@ -237,7 +239,8 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				lines.get(1));
 
 		// Container data
-		Assertions.assertEquals("container1;0,5;;0;;2000;;LINUX;;on-demand1;;1;2;;true;;;false;container1;PUBLIC;;116,3;",
+		Assertions.assertEquals(
+				"container1;0,5;;0;;2000;;LINUX;;on-demand1;;1;2;;true;;;false;container1;PUBLIC;;116,3;",
 				lines.get(8));
 
 		// Function data

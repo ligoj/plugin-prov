@@ -101,14 +101,15 @@ public class ProvQuoteUploadResource {
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
-			"gpu:gpu","ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
+			"gpu:gpu", "ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
-			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", 
-			"gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)", "ramRate:ramRate", "cpuRate:cpuRate","gpuRate:gpuRate", "networkRate:networkRate", 
-			"storageRate:storageRate","ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
+			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
+			"gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)", "ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate",
+			"networkRate:networkRate", "storageRate:storageRate",
+			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
 
@@ -310,13 +311,36 @@ public class ProvQuoteUploadResource {
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final boolean errorContinue)
-			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding, errorContinue);
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,
+			final boolean errorContinue) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
+				encoding, errorContinue, DEFAULT_SEPARATOR);
+	}
+	
+	/**
+	 * Upload a file of quote in keep mode.
+	 *
+	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
+	 *                        provider.
+	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
+	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
+	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
+	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
+	 *                        associated to this usage.
+	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
+	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param separator       CSV separator. Default is ";".
+	 * @throws IOException When the CSV stream cannot be written.
+	 */
+	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
+				DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
 	}
 
 	/**
-	 * Upload a file of quote in add mode.
+	 * Upload a file of quote in keep mode.
 	 *
 	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
 	 *                        provider.
@@ -334,12 +358,12 @@ public class ProvQuoteUploadResource {
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
 			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,
 			final String separator) throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding,
-				false, separator);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
+				encoding, false, separator);
 	}
 
 	/**
-	 * Upload a file of quote in add mode.
+	 * Upload a file of quote.
 	 *
 	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
 	 *                        provider.
@@ -367,7 +391,7 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "usage", required = false) final String defaultUsage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "errorContinue", required = false) final boolean errorContinue) throws IOException {
+			@Multipart(value = "errorContinue", required = false) final boolean errorContinue,
 			@Multipart(value = "encoding", required = false) final String encoding,
 			@Multipart(value = "createMissingUsage", required = false) final boolean createUsage,
 			@Multipart(value = "separator", required = false) final String separator) throws IOException {
@@ -419,18 +443,19 @@ public class ProvQuoteUploadResource {
 			try {
 				persist(subscription, defaultUsage, mode, ramMultiplier, list.size(), cursor, context, createUsage, i);
 			} catch (final ValidationJsonException e) {
-				handleUploadError(errorContinue,handleValidationError(i, e));
+				handleUploadError(errorContinue, handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
-				handleUploadError(errorContinue,handleValidationError(i, new ValidationJsonException(e)));
+				handleUploadError(errorContinue, handleValidationError(i, new ValidationJsonException(e)));
 			} catch (final RuntimeException e) {
 				log.error("Unmanaged error during import of " + i.getName(), e);
-				handleUploadError(errorContinue,e);			}
+				handleUploadError(errorContinue, e);
+			}
 		});
 		log.info("Upload provisioning : flushing");
 	}
-	
-	public void handleUploadError(boolean onErrorContinue ,RuntimeException e ) { 
-		if (!onErrorContinue ) {
+
+	private void handleUploadError(boolean onErrorContinue, RuntimeException e) {
+		if (!onErrorContinue) {
 			throw e;
 		}
 	}
