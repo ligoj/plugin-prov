@@ -65,7 +65,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	/**
 	 * The default usage : 100% for 1 month.
 	 */
-	protected static final ProvUsage USAGE_DEFAULT = new ProvUsage();
+	public static final ProvUsage USAGE_DEFAULT = new ProvUsage();
 
 	/**
 	 * The default budget : no initial cost.
@@ -276,9 +276,9 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	/**
 	 * Return the resolved usage entity from it's name.
 	 *
-	 * @param configuration Configuration containing the default values.
-	 * @param name          The usage name.
-	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's usage or else
+	 * @param configuration Configuration containing the default values and defined usages.
+	 * @param name          The usage name to resolve.
+	 * @return The resolved usage entity. Never <code>null</code> since the configuration's usage or else
 	 *         {@link #USAGE_DEFAULT} is used as default value.
 	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
@@ -293,8 +293,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * Return the resolved budget entity from it's name.
 	 *
 	 * @param configuration Configuration containing the default values.
-	 * @param name          The usage name.
-	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's budget or else
+	 * @param name          The budget name to resolve.
+	 * @return The resolved b entity. Never <code>null</code> since the configuration's budget or else
 	 *         {@link #BUDGET_DEFAULT} is used as default value.
 	 */
 	protected ProvBudget getBudget(final ProvQuote configuration, final String name) {

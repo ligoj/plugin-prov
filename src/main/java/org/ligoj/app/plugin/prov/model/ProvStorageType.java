@@ -51,7 +51,7 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	private double minimal = 1;
 
 	/**
-	 * The maximum supported size in "GiB". May be <code>null</code>.
+	 * The maximum supported size in "GiB". May be <code>null</code> for unlimited size.
 	 */
 	private Double maximal;
 

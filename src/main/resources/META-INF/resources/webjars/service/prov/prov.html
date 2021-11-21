@@ -784,11 +784,19 @@
 								</div>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group required">
+							<label class="control-label col-sm-3" for="csv-upload-separator">{{csv-separator}}</label>
+							<div class="col-xs-1">
+								<input type="text" id="csv-upload-separator" name="separator" required class="form-control" placeholder=";" maxlength="1" value=";">
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{csv-separator-help}}"></i></span>
+							</div>
+						</div>
+						<div class="form-group required">
 							<label class="control-label col-sm-3" for="csv-upload-encoding">{{encoding}}</label>
 							<div class="col-sm-9">
-								<input type="text" id="csv-upload-encoding" name="encoding" maxlength="10" value="UTF-8" class="form-control" placeholder="UTF-8">
+								<input type="text" id="csv-upload-encoding" required class="form-control" placeholder="{{default}}"/>
 							</div>
+							<input type="text" id="instance-encoding-upload" class="hidden" name="encoding">
 						</div>
 						<div class="form-group">
 							<div class="col-sm-9 col-sm-offset-3">
@@ -831,6 +839,16 @@
 							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
 						</div>
 						<div class="form-group">
+							<div class="col-sm-9 col-sm-offset-3">
+								<div class="checkbox">
+									<label for="csv-create-missing-usage">
+										<input type="checkbox" checked id="csv-create-missing-usage" name="createMissingUsage"> {{csv-create-missing-usage}}
+									</label>
+								</div>
+								<p class="help-block">{{csv-create-missing-usage-help}}</p>
+							</div>
+						</div>
+						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-budget-upload" data-toggle="tooltip" title="{{service:prov:budget-help}}">{{service:prov:budget}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-budget-upload" class="form-control" placeholder="{{default}}" />
@@ -852,7 +870,16 @@
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:memory-unit-upload-help}}"></i></span>
 							</div>
 						</div>
-						<div class="alert alert-info hide import-summary"></div>
+						<div class="form-group">
+							<div class="col-sm-9 col-sm-offset-3">
+								<div class="checkbox">
+									<label for="csv-errorContinue">
+										<input type="checkbox" checked id="csv-errorContinue" name="errorContinue"> erreurs continue 
+									</label>
+								</div>
+							</div>
+						</div>
+					<div class="alert alert-info hide import-summary"></div>
 					</div>
 				</div>
 				<div class="modal-footer">
