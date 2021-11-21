@@ -305,13 +305,14 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param errorContinue   When <code>true</code> errors do not block the upload.
 	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,final boolean errorContinue)
 			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, ramMultiplier, encoding, DEFAULT_SEPARATOR);
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding, errorContinue);
 	}
 
 	/**
@@ -351,6 +352,7 @@ public class ProvQuoteUploadResource {
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param errorContinue   When <code>true</code> errors do not block the upload.
 	 * @param createUsage     When <code>true</code>, missing usage are automatically created.
 	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
@@ -365,6 +367,7 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "usage", required = false) final String defaultUsage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
+			@Multipart(value = "errorContinue", required = false) final boolean errorContinue) throws IOException {
 			@Multipart(value = "encoding", required = false) final String encoding,
 			@Multipart(value = "createMissingUsage", required = false) final boolean createUsage,
 			@Multipart(value = "separator", required = false) final String separator) throws IOException {
@@ -416,15 +419,20 @@ public class ProvQuoteUploadResource {
 			try {
 				persist(subscription, defaultUsage, mode, ramMultiplier, list.size(), cursor, context, createUsage, i);
 			} catch (final ValidationJsonException e) {
-				throw handleValidationError(i, e);
+				handleUploadError(errorContinue,handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
-				throw handleValidationError(i, new ValidationJsonException(e));
-			} catch (final Throwable e) {
+				handleUploadError(errorContinue,handleValidationError(i, new ValidationJsonException(e)));
+			} catch (final RuntimeException e) {
 				log.error("Unmanaged error during import of " + i.getName(), e);
-				throw e;
-			}
+				handleUploadError(errorContinue,e);			}
 		});
 		log.info("Upload provisioning : flushing");
+	}
+	
+	public void handleUploadError(boolean onErrorContinue ,RuntimeException e ) { 
+		if (!onErrorContinue ) {
+			throw e;
+		}
 	}
 
 	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,

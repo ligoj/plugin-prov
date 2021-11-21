@@ -1976,6 +1976,7 @@ define(function () {
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
+				_('csv-errorContinue').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-usage').val(_('csv-create-missing-usage').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
