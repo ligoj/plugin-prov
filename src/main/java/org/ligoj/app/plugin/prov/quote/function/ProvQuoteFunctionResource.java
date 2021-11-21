@@ -136,13 +136,13 @@ public class ProvQuoteFunctionResource extends
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
-			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
-		var result1 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate, duration, initialCost,
+		var result1 = findLowestDynamicPrice(query, types, terms, cpu, gpu, ram, location, rate, duration, initialCost,
 				Math.floor(query.getConcurrency()), Math.floor(query.getConcurrency()));
 		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
 			// Try the greater concurrency level and keeping the original concurrency assumption
-			var result2 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate, duration, initialCost,
+			var result2 = findLowestDynamicPrice(query, types, terms, cpu, gpu, ram, location, rate, duration, initialCost,
 					query.getConcurrency(), Math.ceil(query.getConcurrency()));
 			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
 				// The second concurrency configuration is cheaper
@@ -153,7 +153,7 @@ public class ProvQuoteFunctionResource extends
 	}
 
 	private List<Object[]> findLowestDynamicPrice(final QuoteFunction query, final List<Integer> types,
-			final List<Integer> terms, final double cpu, final double ram, final int location, final double rate,
+			final List<Integer> terms, final double cpu,final double gpu, final double ram, final int location, final double rate,
 			final int duration, final double initialCost, final double realConcurrency,
 			final double reservedConcurrency) {
 		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), Math.max(1, ram) / 1024d,

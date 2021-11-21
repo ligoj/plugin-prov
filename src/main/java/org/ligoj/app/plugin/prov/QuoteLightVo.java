@@ -61,6 +61,11 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	 * The amount of CPU
 	 */
 	private double totalCpu;
+	
+	/**
+	 * The amount of CPU
+	 */
+	private double totalGpu;
 
 	/**
 	 * The amount of memory (MB)

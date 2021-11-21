@@ -354,6 +354,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		vo.setName("function1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(2);
 		vo.setNbRequests(10);
@@ -394,6 +395,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		vo.setName("function1-bis");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
@@ -414,6 +416,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("function1-bis", instance.getName());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
 		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
@@ -440,6 +443,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		vo.setDuration(100);
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setConstant(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
@@ -460,6 +464,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(100, instance.getDuration());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(10, instance.getNbRequests());
 		Assertions.assertEquals(1163.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(1744.5, instance.getMaxCost(), DELTA);

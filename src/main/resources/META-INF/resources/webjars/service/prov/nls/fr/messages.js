@@ -46,6 +46,8 @@ define({
 	'service:prov:os-help': 'Système d\'exploitation préinstallé pour cette instance. Le prix de l\'instance inclue la licence correspondante, et est souvent en relation avec la quantité de CPU',
 	'service:prov:cpu': 'CPU',
 	'service:prov:cpu-help': 'Le CPU demandé. La meilleure instance correspondante à cette exigence peut inclure plus que cette quantité. Il est alors important de bien équilibrer la ressource (CPU/RAM) pour limiter cette perte.<div class=\'text-left\'><i class=\'fas fa-bolt fa-fw\'></i> CPU variable, dispose de crédit turbo.<br><i class=\'fas fa-minus fa-fw\'></i> CPU constant délivre une puissance continue.</div>',
+	'service:prov:gpu': 'GPU',
+    'service:prov:gpu-help':'Le GPU demandé.',
 	'service:prov:constant-null': 'Importe',
 	'service:prov:constant-false': 'Variable',
 	'service:prov:constant-true': 'Constant',

@@ -172,6 +172,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 		final var db = new ProvQuoteDatabase();
 		db.setPrice(bpRepository.findBy("code", "MYSQL2"));
 		db.setCpu(0.5);
+		db.setGpu(0D);
 		db.setRam(2000);
 		db.setEngine("MYSQL");
 		db.setName("qbMYSQL1");

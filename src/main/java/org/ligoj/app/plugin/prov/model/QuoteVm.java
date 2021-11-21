@@ -21,6 +21,13 @@ public interface QuoteVm {
 	 * @return The amount of required RAM, in MiB. Default is 1.
 	 */
 	int getRam();
+	
+	/**
+	 * Return the amount of required GPU. Default is 0.
+	 *
+	 * @return The amount of required GPU. Default is 0.
+	 */
+	double getGpu();
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
@@ -29,6 +36,14 @@ public interface QuoteVm {
 	 * @see #getCpu()
 	 */
 	Double getCpuMax();
+	
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @return The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 * @see #getGpu()
+	 */
+	Double getGpuMax();
 
 	/**
 	 * The maximal used RAM, in MiB. When <code>null</code>, the requested RAM is used.
@@ -121,6 +136,13 @@ public interface QuoteVm {
 	 * @return CPU rate
 	 */
 	Rate getCpuRate();
+	
+	/**
+	 * Minimal required GPU rate
+	 *
+	 * @return GPU rate
+	 */
+	Rate getGpuRate();
 
 	/**
 	 * Minimal required network rate

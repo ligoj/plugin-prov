@@ -130,14 +130,14 @@ public class ProvQuoteContainerResource extends
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteContainer query,
-			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
 		final var service = getService(configuration);
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),gpu,
 				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
 				initialCost, PageRequest.of(0, 1));
 	}

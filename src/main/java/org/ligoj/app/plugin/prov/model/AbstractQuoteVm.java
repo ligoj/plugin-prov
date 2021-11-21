@@ -59,6 +59,20 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * The requested GPU.
+	 */
+	@PositiveOrZero
+	private double gpu;
+	
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * The requested RAM in "MiB". 1MiB = 1024 MiB.
@@ -144,6 +158,12 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 */
 	@Enumerated(EnumType.ORDINAL)
 	private Rate cpuRate;
+	
+	/**
+	 * Optional GPU rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate gpuRate;
 
 	/**
 	 * Optional network rate requirement.

@@ -34,6 +34,7 @@ public interface ProvContainerPriceRepository
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param cpu         The required CPU.
+	 * @param gpu         The required CPU.
 	 * @param ram         The required RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
@@ -49,11 +50,13 @@ public interface ProvContainerPriceRepository
 			SELECT ip,
 			 (  ip.cost
 			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
 			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
 			 )
 			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
 			 (  ip.cost
 			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
 			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
 			 )
 			 * CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END AS monthlyCost
@@ -62,6 +65,7 @@ public interface ProvContainerPriceRepository
 			  AND ip.incrementCpu IS NOT NULL
 			  AND ip.os=:os
 			  AND (ip.maxCpu IS NULL OR ip.maxCpu >=:cpu)
+			  AND (ip.maxGpu IS NULL OR ip.maxGpu >=:gpu)
 			  AND (ip.maxRam IS NULL OR ip.maxRam >=:ram)
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
@@ -69,7 +73,7 @@ public interface ProvContainerPriceRepository
 			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
 			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram, VmOs os,
 			int location, double rate, double globalRate, double duration, String license, double initialCost,
 			Pageable pageable);
 

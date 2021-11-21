@@ -30,6 +30,11 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	 * Amount of CPU. <code>0</code> for custom instance type.
 	 */
 	private double cpu;
+	
+	/**
+	 * Amount of GPU. <code>0</code> for custom instance type.
+	 */
+	private double gpu;
 
 	/**
 	 * RAM (Memory) in "MiB" = "Mega Bytes".
@@ -52,6 +57,13 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	@NotNull
 	@Enumerated(EnumType.ORDINAL)
 	private Rate cpuRate = Rate.MEDIUM;
+	
+	/**
+	 * GPU performance.
+	 */
+	@NotNull
+	@Enumerated(EnumType.ORDINAL)
+	private Rate gpuRate = Rate.MEDIUM;
 
 	/**
 	 * RAM performance.

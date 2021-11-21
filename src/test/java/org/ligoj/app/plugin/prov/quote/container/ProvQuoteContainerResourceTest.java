@@ -253,6 +253,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setName("container1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setOs(VmOs.LINUX);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(2);
@@ -283,6 +284,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setName("container1-bis");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
@@ -303,6 +305,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("container1-bis", instance.getName());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
 		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
@@ -326,6 +329,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setConstant(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
@@ -343,6 +347,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("serverZD", instance.getDescription());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(1464.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(2196.0, instance.getMaxCost(), DELTA);
