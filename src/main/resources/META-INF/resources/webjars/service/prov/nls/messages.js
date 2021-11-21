@@ -240,6 +240,7 @@ define({
         'service:prov:created': '{{#if more}}{{count}} created: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} created{{/if}}',
         'service:prov:deleted': '{{#if more}}{{count}} deleted: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} deleted{{/if}}',
         'service:prov:updated': '{{#if more}}{{count}} updated: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} updated{{/if}}',
+        'csv-error-continue': 'Continue the import when errors are encountered',
         'csv-headers-included': 'CSV file has headers',
         'csv-headers': 'Headers',
         'csv-headers-included-help': 'When headers are in the first line of CSV file',

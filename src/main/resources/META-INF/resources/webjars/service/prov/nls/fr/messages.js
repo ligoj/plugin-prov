@@ -238,6 +238,7 @@ define({
 	'service:prov:created': '{{#if more}}{{count}} créés: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} créé{{/if}}',
 	'service:prov:deleted': '{{#if more}}{{count}} supprimés: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} supprimé{{/if}}',
 	'service:prov:updated': '{{#if more}}{{count}} mis à jours: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} mis à jours{{/if}}',
+	'csv-error-continue': 'Continuer l\'import lorsque des erreurs sont rencontrées',
 	'csv-headers-included': 'CSV contient les entêtes',
 	'csv-headers': 'Entêtes',
 	'csv-headers-included-help': 'Lorsque les entêtes sont en première ligne du fichier',
