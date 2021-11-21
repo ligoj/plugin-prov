@@ -590,7 +590,7 @@ define(function () {
 		var type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
-		<small>${qs.quantity && qs.quantity!==1 ? (qs.quantity+ 'x'):'' }</small>
+		<small>${qs.quantity && qs.quantity !== 1 ? (qs.quantity + 'x') : ''}</small>
 		${formatManager.formatSize(qs.size * 1024 * 1024 * 1024, 3)}
 		${(qs.size < type.minimal) ? ' (' + formatManager.formatSize(type.minimal * 1024 * 1024 * 1024, 3) + ')' : ''}
 		</span>`;
@@ -976,7 +976,7 @@ define(function () {
 			// Also trigger the change of the value
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
-		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', function(e){
+		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', function (e) {
 			_('database-edition').select2('data', null);
 		});
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
@@ -1075,8 +1075,8 @@ define(function () {
 			}]
 		});
 
-		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os',null,ascendingComparator));
-		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(),null,ascendingComparator));
+		_('instance-os').select2(genericSelect2(null, formatOs, () => _('instance-os').provType() + '-os', null, ascendingComparator));
+		_('instance-software').select2(genericSelect2(current.$messages['service:prov:software-none'], current.defaultToText, () => 'instance-software/' + _('instance-os').val(), null, ascendingComparator));
 		_('database-edition').select2(genericSelect2(current.$messages['service:prov:database-edition'], current.defaultToText, () => 'database-edition/' + _('database-engine').val()));
 		_('instance-internet').select2({
 			formatSelection: formatInternet,
@@ -1118,7 +1118,7 @@ define(function () {
 		});
 		$('.prov-rate').each(function () {
 			$(this).select2({
-				placeholder: $(this).is('.prov-rate-full') ? current.$messages['service:prov:no-requirement']: '',
+				placeholder: $(this).is('.prov-rate-full') ? current.$messages['service:prov:no-requirement'] : '',
 				allowClear: true,
 				formatSelection: formatRate,
 				formatResult: formatRate,
@@ -1140,27 +1140,27 @@ define(function () {
 	 */
 	function initializePopupEvents(type) {
 		// Resource edition pop-up
-		var popupType = typesStorage.includes(type) ? 'generic' : type;
-		var $popup = _('popup-prov-' + popupType);
+		const popupType = typesStorage.includes(type) ? 'generic' : type;
+		const $popup = _('popup-prov-' + popupType);
 		$popup.on('shown.bs.modal', function () {
-			var inputType = typesStorage.includes(type) ? 'instance' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this).provType());
-		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
+		}).on('change', '.mode-advanced input[type=checkbox]', function (e) {
 			debugger;
-			if(e.currentTarget.checked){
-				$popup.addClass('advanced');	
-			}else{
+			if (e.currentTarget.checked) {
+				$popup.addClass('advanced');
+			} else {
 				$popup.removeClass('advanced');
 			}
 		}).on('show.bs.modal', function (event) {
-			let $source = $(event.relatedTarget);
+			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
-			var $tr = $source.closest('tr');
-			var $table = $tr.closest('table');
-			var quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			const $tr = $source.closest('tr');
+			const $table = $tr.closest('table');
+			let quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
 			if (dType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub resource
 				if ($source.attr('data-id')) {
@@ -1176,7 +1176,7 @@ define(function () {
 			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
-			$popup.find('.create-another input[type=checkbox]:checked').prop( "checked", false );
+			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
 			$popup.find('div .element-advanced').addClass('advanced')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
@@ -1392,8 +1392,16 @@ define(function () {
 		}
 		return cData;
 	}
+	function toQuantity(quote, quantity, defaultNew, defaultExisting) {
+		if (typeof quantity === 'number') {
+			return quantity;
+		}
+		return quote.id ? defaultExisting : defaultNew;
+	}
 
 	var current = {
+
+		$messages = {},
 
 		/**
 		 * Current quote.
@@ -1734,18 +1742,14 @@ define(function () {
 						current.enableCreate($popup);
 					}
 				},
-				error: function () {
-					current.enableCreate($popup);
-				}
+				error: () => current.enableCreate($popup)
 			});
 		},
 
 		/**
 		 * Return the memory query parameter value to use to filter some other inputs.
 		 */
-		toQueryValueRam: function (value) {
-			return (cleanInt(value) || 0) * getRamUnitWeight();
-		},
+		toQueryValueRam: (value) => (cleanInt(value) || 0) * getRamUnitWeight(),
 
 		addQuery(type, $item, queries) {
 			var value = getResourceValue($item);
@@ -1956,19 +1960,17 @@ define(function () {
 				}, {
 					id: 'ISO-8859-1',
 					text: 'ISO-8859-1'
-				},{
+				}, {
 					id: 'windows 1252',
 					text: 'windows 1252'
 				}]
-			}).select2('data', { 
-				id: 'UTF-8', 
+			}).select2('data', {
+				id: 'UTF-8',
 				text: 'UTF-8'
 			});
-			$popup.on('shown.bs.modal', function () {
-				_('csv-file').trigger('focus');
-			}).on('show.bs.modal', function () {
-				$('.import-summary').addClass('hidden');
-			}).on('submit', function (e) {
+			$popup.on('shown.bs.modal', () => _('csv-file').trigger('focus')
+			).on('show.bs.modal', () => $('.import-summary').addClass('hidden')
+			).on('submit', function (e) {
 				// Avoid useless empty optional inputs
 				_('instance-encoding-upload').val((_('csv-upload-encoding').select2('data') || {}).id || null);
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
@@ -2076,9 +2078,9 @@ define(function () {
 			});
 			$('#subscribe-configuration-prov table').on('click', '.delete', function () {
 				// Delete a single row/item
-				var type = $(this).provType();
-				var dataTable = current[type + 'Table'];
-				var resource = dataTable.fnGetData($(this).closest('tr')[0]);
+				const type = $(this).provType();
+				const dataTable = current[type + 'Table'];
+				const resource = dataTable.fnGetData($(this).closest('tr')[0]);
 				$.ajax({
 					type: 'DELETE',
 					url: `${REST_PATH}service/prov/${type}/${resource.id}`,
@@ -2086,7 +2088,7 @@ define(function () {
 				});
 			}).on('click', '.delete-all', function () {
 				// Delete all items
-				var type = $(this).provType();
+				const type = $(this).provType();
 				$.ajax({
 					type: 'DELETE',
 					url: `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
@@ -2159,7 +2161,7 @@ define(function () {
 			});
 
 			require(['jquery-ui'], function () {
-				var handle = $('#quote-ram-adjust-handle');
+				const handle = $('#quote-ram-adjust-handle');
 				$('#quote-ram-adjust').slider({
 					min: 50,
 					max: 150,
@@ -2221,7 +2223,7 @@ define(function () {
 
 			// render the dashboard
 			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
-				var $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
+				const $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
 				if ($tool && $tool.dashboardLink) {
 					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
 				} else {
@@ -2231,10 +2233,10 @@ define(function () {
 		},
 
 		synchronizeUsage: function () {
-			var $input = $(this);
-			var id = $input.attr('id');
-			var val = $input.val();
-			var percent; // [1-100]
+			const $input = $(this);
+			const id = $input.attr('id');
+			let val = $input.val();
+			let percent; // [1-100]
 			if (val) {
 				val = parseInt(val, 10);
 				if (id === 'usage-month') {
@@ -2307,9 +2309,7 @@ define(function () {
 		/**
 		 * Price term Select2 configuration.
 		 */
-		instanceTermSelect2: function () {
-			return genericSelect2(current.$messages['service:prov:default'], current.defaultToText, 'instance-price-term');
-		},
+		instanceTermSelect2: () => genericSelect2(current.$messages['service:prov:default'], current.defaultToText, 'instance-price-term'),
 
 		/**
 		 * Interval identifiers for polling
@@ -2371,18 +2371,14 @@ define(function () {
 			});
 		},
 
-		enableTerraform: function () {
-			_('prov-terraform-execute').enable();
-		},
-		disableTerraform: function () {
-			_('prov-terraform-execute').disable();
-		},
+		enableTerraform: () => _('prov-terraform-execute').enable(),
+		disableTerraform: () => _('prov-terraform-execute').disable(),
 
 		/**
 		 * Update the Terraform target data.
 		 */
 		updateTerraformTarget: function () {
-			var target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
+			const target = ['<strong>' + current.$messages.node + '</strong>&nbsp;' + current.$super('toIcon')(current.model.node, null, null, true) + ' ' + current.$super('getNodeName')(current.model.node)];
 			target.push('<strong>' + current.$messages.project + '</strong>&nbsp;' + current.$parent.model.pkey);
 			$.each(current.model.parameters, function (parameter, value) {
 				target.push('<strong>' + current.$messages[parameter] + '</strong>&nbsp;' + value);
@@ -2393,9 +2389,7 @@ define(function () {
 		/**
 		 * Execute the terraform destroy
 		 */
-		terraformDestroy: function () {
-			current.terraformAction(_('popup-prov-terraform-destroy'), {}, 'DELETE');
-		},
+		terraformDestroy: () => current.terraformAction(_('popup-prov-terraform-destroy'), {}, 'DELETE'),
 
 		/**
 		 * Execute the terraform action.
@@ -2404,11 +2398,11 @@ define(function () {
 		 * @param {Number} method The REST method.
 		 */
 		terraformAction: function ($popup, context, method) {
-			var subscription = current.model.subscription;
+			const subscription = current.model.subscription;
 			current.disableTerraform();
 
 			// Complete the Terraform inputs
-			var data = {
+			const data = {
 				context: context
 			}
 			$.ajax({
@@ -2447,9 +2441,9 @@ define(function () {
 		 * Update the auto-scale  flag from the provided quantities.
 		 */
 		updateAutoScale: function () {
-			var min = _('instance-min-quantity').val();
+			let min = _('instance-min-quantity').val();
 			min = min && parseInt(min, 10);
-			var max = _('instance-max-quantity').val();
+			let max = _('instance-max-quantity').val();
 			max = max && parseInt(max, 10);
 			if (min && max !== '' && min > max) {
 				max = min;
@@ -2465,11 +2459,11 @@ define(function () {
 		 * @param {function } forceUpdateUi When true, the UI is always refreshed, even when the cost has not been updated.
 		 */
 		updateQuote: function (data, context, forceUpdateUi) {
-			var conf = current.model.configuration;
-			var $popup = _('popup-prov-update');
+			const conf = current.model.configuration;
+			const $popup = _('popup-prov-update');
 
 			// Build the new data
-			var jsonData = $.extend({
+			const jsonData = $.extend({
 				name: conf.name,
 				description: conf.description,
 				location: conf.location,
@@ -2589,10 +2583,10 @@ define(function () {
 		 * @param {string} id The resource identifier to delete.
 		 */
 		deleteMultiScoped: function (type, id) {
-			var conf = current.model.configuration;
-			let ids = conf[type + 'sById'];
-			var name = ids[id].name;
-			var $popup = _(`popup-prov-${type}`);
+			const conf = current.model.configuration;
+			const ids = conf[type + 'sById'];
+			const name = ids[id].name;
+			const $popup = _(`popup-prov-${type}`);
 			current.disableCreate($popup);
 			$.ajax({
 				type: 'DELETE',
@@ -2622,14 +2616,14 @@ define(function () {
 		/**
 		 * Update a multi scoped resource.
 		 * @param {string} type The multi-scoped resource type (usage, budget,...) of resource to delete.
-		 * @param {string} data The multi-scoped data to persist.
+		 * @param {object} data The multi-scoped data to persist.
 		 */
 		saveOrUpdateMultiScoped: function (type, data) {
-			var conf = current.model.configuration;
-			var $popup = _(`popup-prov-${type}`);
-			let ids = conf[`${type}sById`];
+			const conf = current.model.configuration;
+			const $popup = _(`popup-prov-${type}`);
+			const ids = conf[`${type}sById`];
 			current.disableCreate($popup);
-			var method = data.id ? 'PUT' : 'POST'
+			const method = data.id ? 'PUT' : 'POST'
 			$.ajax({
 				type: method,
 				url: `${REST_PATH}service/prov/${current.model.subscription}/${type}`,
@@ -2667,7 +2661,11 @@ define(function () {
 		 * Usage text renderer.
 		 */
 		usageToText: function (usage) {
-			return usage ? usage.rate === 100 ? usage.name +'<small class="pull-right">'+(usage.duration === 1 ? '': usage.duration+'M')+'</small>': (usage.name +'<small class="pull-right">'+ (usage.duration === 1 ? '': usage.duration+'M') + '<span class="pull-right"> (' + usage.rate + '%)<span> <small>') : null;
+			if (usage) {
+				const duration = usage.duration === 1 ? '' : usage.duration + 'M';
+				return `${usage.name}<small class="pull-right">${duration}${usage.rate === 100 ? '' : (' <span>(' + usage.rate + '%)<span>')}</small>`;
+			}
+			return null;
 		},
 		/**
 		 * Budget text renderer.
@@ -2859,8 +2857,8 @@ define(function () {
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-networkRate').select2('data', current.select2IdentityData((quote.networkRate) || null));
 			_('instance-storageRate').select2('data', current.select2IdentityData((quote.storageRate) || null));
-			_('instance-min-quantity').val((typeof quote.minQuantity === 'number') ? quote.minQuantity : (quote.id ? 0 : 1));
-			_('instance-max-quantity').val((typeof quote.maxQuantity === 'number') ? quote.maxQuantity : (quote.id ? '' : 1));
+			_('instance-min-quantity').val(toQuantity(quote, quote.minQuantity, 1, 0));
+			_('instance-max-quantity').val(toQuantity(quote, quote.maxQuantity, 1, ''));
 			var license = (quote.id && (quote.license || quote.price.license)) || null;
 			_('instance-license').select2('data', license ? {
 				id: license,
@@ -2959,7 +2957,7 @@ define(function () {
 		 */
 		adaptRamUnit: function (ram) {
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >=1048576 && (ram / 1048576) % 1 === 0) {
+			if (ram && ram >= 1048576 && (ram / 1048576) % 1 === 0) {
 				// Auto select TB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
 				ram = ram / 1048576
@@ -3022,11 +3020,11 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
-					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')){
+					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')) {
 						current.enableCreate($popup);
-						$(_(inputType + '-name')).focus();		
+						$(_(inputType + '-name')).focus();
 					} else {
-						$popup.modal('hide');					
+						$popup.modal('hide');
 					}
 				},
 				error: () => current.enableCreate($popup)
@@ -3061,7 +3059,7 @@ define(function () {
 			qx.usage = usage;
 			qx.budget = budget;
 			qx.resourceType = type;
-			qx.quantity=data.quantity;
+			qx.quantity = data.quantity;
 
 			// Specific data
 			current[type + 'CommitToModel'](data, qx);
@@ -3239,9 +3237,7 @@ define(function () {
 						textSize: 1.5,
 						backgroundColor: '#e0e0e0'
 					});
-					$(function () {
-						current.updateGauge(d3, stats);
-					});
+					$(() => current.updateGauge(d3, stats));
 				} else {
 					current.updateGauge(d3, stats);
 				}
@@ -3737,16 +3733,12 @@ define(function () {
 		/**
 		 * Initialize the instance data tables from the whole quote
 		 */
-		instanceNewTable: function () {
-			return current.computeNewTable('instance');
-		},
+		instanceNewTable: () => current.computeNewTable('instance'),
 
 		/**
 		 * Initialize the container data tables from the whole quote
 		 */
-		containerNewTable: function () {
-			return current.computeNewTable('container');
-		},
+		containerNewTable: () => current.computeNewTable('container'),
 
 		/**
 		 * Initialize the function data tables from the whole quote
@@ -3925,7 +3917,6 @@ define(function () {
 		genericInstanceNewTable: function (type, columns) {
 			return {
 				rowCallback: function (nRow, qi) {
-					//debugger;
 					current.rowCallback($(nRow), qi);
 					$(nRow).find('.storage-tags').select2('destroy').select2({
 						multiple: true,
@@ -3939,21 +3930,21 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/
-								const RexExp =term.match(regex)
+								const regex = /(([\d]+)\s*[*x]\s*)?(\d+)/
+								const RexExp = term.match(regex)
 								return {
 									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
-							results: function (data,query_page,query) {
-								const regex=/(([\d]+)\s*[*x]\s*)?(\d+)/;
-								const RexExp =query.term.match(regex);
+							results: function (data, query_page, query) {
+								const regex = /(([\d]+)\s*[*x]\s*)?(\d+)/;
+								const RexExp = query.term.match(regex);
 
 								// Completed the requested identifier
 								data.forEach(quote => {
-										quote.id = quote.price.id + '-' + new Date().getMilliseconds();
-										quote.text = quote.price.type.name;	
-										quote.quantity= parseInt(RexExp[2])								
+									quote.id = quote.price.id + '-' + new Date().getMilliseconds();
+									quote.text = quote.price.type.name;
+									quote.quantity = parseInt(RexExp[2])
 								});
 								return {
 									more: false,
@@ -3989,9 +3980,7 @@ define(function () {
 									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, null, qi.location);
 
 									// Keep the focus on this UI after the redraw of the row
-									$(function () {
-										_('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storage-tags .select2-input').trigger('focus');
-									});
+									$(() => _('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storage-tags .select2-input').trigger('focus'));
 								}
 							});
 						} else if (event.removed) {
