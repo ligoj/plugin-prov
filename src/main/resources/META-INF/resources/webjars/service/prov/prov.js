@@ -2911,6 +2911,7 @@ define(function () {
 			_('instance-ephemeral').prop('checked', quote.ephemeral);
 			_('instance-os').select2('data', current.select2IdentityData((quote.id && (quote.os || quote.price.os)) || 'LINUX'));
 			_('instance-internet').select2('data', current.select2IdentityData(quote.internet || 'PUBLIC'));
+			_('instance-software').select2('data', current.select2IdentityData(quote.software || null));
 			current.updateAutoScale();
 			current.genericSetUiPrice(quote);
 		},
