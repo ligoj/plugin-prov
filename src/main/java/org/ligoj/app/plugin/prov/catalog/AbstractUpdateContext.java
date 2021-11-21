@@ -66,21 +66,21 @@ public abstract class AbstractUpdateContext {
 	protected Map<String, ProvInstanceType> instanceTypes = new ConcurrentHashMap<>();
 
 	/**
-	 * The previously installed container types. Key is the instance code.
+	 * The previously installed container types. Key is the container code.
 	 */
 	@Getter
 	@Setter
 	protected Map<String, ProvContainerType> containerTypes = new ConcurrentHashMap<>();
 
 	/**
-	 * The previously installed function types. Key is the instance code.
+	 * The previously installed function types. Key is the function code.
 	 */
 	@Getter
 	@Setter
 	protected Map<String, ProvFunctionType> functionTypes = new ConcurrentHashMap<>();
 
 	/**
-	 * The previously installed support types. Key is the instance name.
+	 * The previously installed support types. Key is the support name.
 	 */
 	@Getter
 	@Setter
