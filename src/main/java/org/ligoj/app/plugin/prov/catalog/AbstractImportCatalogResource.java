@@ -601,10 +601,22 @@ public abstract class AbstractImportCatalogResource {
 		return syncAdd(context.getMergedTypes(), entity.getCode(), updater, entity, repository);
 	}
 
-	protected <Y, I> I syncAdd(final Set<Y> collection, final Y item, Consumer<I> updater, I entity,
+	/**
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
+	 * 
+	 * @param <Y>        Collection item type.
+	 * @param <I>        Persistable entity type.
+	 * @param collection Target collection of synchronized item.
+	 * @param item       Item to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection.
+	 * @param entity     The entity to persist when the item was not present.
+	 * @param repository The repository managing the entity.
+	 * @return The given entity after it's possible persist.
+	 */
+	protected <Y, I> I syncAdd(final Set<Y> collection, final Y item, Consumer<I> whenAbsent, I entity,
 			final JpaRepository<I, ?> repository) {
 		syncAdd(collection, item, i -> {
-			updater.accept(entity);
+			whenAbsent.accept(entity);
 			if (repository != null) {
 				repository.saveAndFlush(entity);
 			}
@@ -612,6 +624,15 @@ public abstract class AbstractImportCatalogResource {
 		return entity;
 	}
 
+	/**
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
+	 * 
+	 * @param <Y>        Collection item type.
+	 * @param collection Target collection of synchronized item.
+	 * @param item       Item to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection.
+	 * @return The given entity after the callback call.
+	 */
 	protected <Y> Y syncAdd(final Set<Y> collection, final Y item, final Consumer<Y> whenAbsent) {
 		if (!collection.contains(item)) {
 			synchronized (collection) {
@@ -623,7 +644,20 @@ public abstract class AbstractImportCatalogResource {
 		return item;
 	}
 
-	protected <K, V> V syncAdd(Map<K, V> map, K key, Function<K, V> whenAbsent, Function<V, V> onCompute) {
+	/**
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
+	 * 
+	 * @param <Y>        Map key type.
+	 * @param <V>        Map value type.
+	 * @param map        Target map of synchronized item.
+	 * @param key        Item's ley to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection, adn return the value
+	 *                   to put in the map.
+	 * @param onCompute  The callback called whatever the item base present or not.
+	 * @return The value previously stored in the map, or the new one returned by the <code>whenAbsent</code> callback..
+	 */
+	protected <K, V> V syncAdd(final Map<K, V> map, final K key, final Function<K, V> whenAbsent,
+			final Function<V, V> onCompute) {
 		return map.compute(key, (code, previous) -> {
 			if (previous == null) {
 				previous = whenAbsent.apply(key);
