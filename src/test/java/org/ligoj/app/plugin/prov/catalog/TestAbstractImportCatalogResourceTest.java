@@ -6,7 +6,11 @@ package org.ligoj.app.plugin.prov.catalog;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -84,6 +88,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		}.cleanup();
 
 	}
+
 	/**
 	 * Only there for coverage and API contracts.
 	 */
@@ -620,9 +625,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = newPrice();
 		entity.setCost(1d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
-		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> {
-			entity.setCost(cRound);
-		}, consumer);
+		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> entity.setCost(cRound), consumer);
 		Assertions.assertEquals("old", entity.getCode());
 		Assertions.assertEquals(1d, entity.getCost());
 	}
@@ -646,4 +649,69 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void toVmOs() {
 		Assertions.assertEquals(VmOs.WINDOWS, toVmOs("windows"));
 	}
+
+	@Test
+	void syncAddExists() {
+		final var collection = new HashSet<>(Set.of("entry"));
+		super.syncAdd(collection, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		});
+		Assertions.assertTrue(collection.contains("entry"));
+	}
+
+	@Test
+	void syncAdd() {
+		final var collection = new HashSet<>(Set.of("entry1"));
+		final var flag = new AtomicBoolean();
+		super.syncAdd(collection, "entry2", c -> {
+			flag.set(true);
+		});
+		Assertions.assertTrue(collection.contains("entry2"));
+		Assertions.assertTrue(flag.get());
+	}
+
+	@Test
+	void syncAddMapExists() {
+		final var map = new HashMap<>(Map.of("entry", "value"));
+		final var onCompute = new AtomicBoolean();
+		Assertions.assertEquals("value3", super.syncAdd(map, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		}, c -> {
+			onCompute.set(true);
+			return "value3";
+		}));
+		Assertions.assertTrue(onCompute.get());
+		Assertions.assertEquals("value3", map.get("entry"));
+	}
+
+	@Test
+	void syncAddMap() {
+		final var map = new HashMap<>(Map.of("entry", "value"));
+		final var whenAbsent = new AtomicBoolean();
+		final var onCompute = new AtomicBoolean();
+		Assertions.assertEquals("value3", super.syncAdd(map, "entry2", c -> {
+			whenAbsent.set(true);
+			return "value2";
+		}, c -> {
+			Assertions.assertEquals("value2", c);
+			onCompute.set(true);
+			return "value3";
+		}));
+		Assertions.assertEquals("value", map.get("entry"));
+		Assertions.assertEquals("value3", map.get("entry2"));
+		Assertions.assertTrue(whenAbsent.get());
+		Assertions.assertTrue(onCompute.get());
+	}
+
+	@Test
+	void syncAddSynchronized() {
+		@SuppressWarnings("unchecked")
+		final Set<String> collection = Mockito.mock(Set.class);
+		Mockito.when(collection.contains("entry2")).thenReturn(false);
+		Mockito.when(collection.add("entry2")).thenReturn(false);
+		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		}));
+	}
+
 }

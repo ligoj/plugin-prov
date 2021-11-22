@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.Consumes;
@@ -294,30 +295,6 @@ public class ProvQuoteUploadResource {
 	}
 
 	/**
-	 * Upload a file of quote in add mode.
-	 *
-	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
-	 *                        provider.
-	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
-	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
-	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
-	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
-	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this usage.
-	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
-	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param errorContinue   When <code>true</code> errors do not block the upload.
-	 * @param separator       CSV separator. Default is ";".
-	 * @throws IOException When the CSV stream cannot be written.
-	 */
-	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,
-			final boolean errorContinue) throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
-				encoding, errorContinue, DEFAULT_SEPARATOR);
-	}
-	
-	/**
 	 * Upload a file of quote in keep mode.
 	 *
 	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
@@ -337,29 +314,6 @@ public class ProvQuoteUploadResource {
 			final boolean headersIncluded, final String usage, final Integer ramMultiplier) throws IOException {
 		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
 				DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
-	}
-
-	/**
-	 * Upload a file of quote in keep mode.
-	 *
-	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
-	 *                        provider.
-	 * @param uploadedFile    Instance entries files to import. Currently support only CSV format.
-	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
-	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
-	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
-	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this usage.
-	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
-	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param separator       CSV separator. Default is ";".
-	 * @throws IOException When the CSV stream cannot be written.
-	 */
-	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding,
-			final String separator) throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
-				encoding, false, separator);
 	}
 
 	/**
@@ -460,8 +414,9 @@ public class ProvQuoteUploadResource {
 		}
 	}
 
-	private <V extends AbstractQuoteVmEditionVo> V copy(final VmUpload upload, final int subscription,
-			final String defaultUsage, final Integer ramMultiplier, final V vo) {
+	private <V extends AbstractQuoteVmEditionVo> V copy(final int subscription, final UploadContext context,
+			final String defaultUsage, final Integer ramMultiplier, final boolean createUsage, final VmUpload upload,
+			final V vo) {
 		// Validate the upload object
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
@@ -480,9 +435,6 @@ public class ProvQuoteUploadResource {
 		vo.setStorageRate(upload.getStorageRate());
 		vo.setConstant(upload.getConstant());
 		vo.setPhysical(upload.getPhysical());
-		vo.setUsage(Optional.ofNullable(upload.getUsage())
-				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName())
-				.orElse(defaultUsage));
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
@@ -491,6 +443,7 @@ public class ProvQuoteUploadResource {
 		vo.setGpuMax(upload.getGpuMax());
 		vo.setRamMax(upload.getRamMax() == null ? null
 				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
+		completeUsage(subscription, context, defaultUsage, createUsage, upload, vo);
 		return vo;
 	}
 
@@ -526,35 +479,18 @@ public class ProvQuoteUploadResource {
 	private void persist(final int subscription, final String defaultUsage, final MergeMode mode,
 			final Integer ramMultiplier, final int size, final AtomicInteger cursor, final UploadContext context,
 			final boolean createUsage, final VmUpload i) {
-		// Normalize the usage
-		if (i.getUsage() != null) {
-			var usage = context.quote.getUsages().stream().filter(u -> u.getName().equalsIgnoreCase(i.getUsage()))
-					.findFirst().orElse(null);
-			if (usage != null && createUsage) {
-				// Normalize the name as needed
-				i.setUsage(usage.getName());
-			} else if (createUsage) {
-				// Create the missing usage
-				usage = new ProvUsage();
-				usage.setName(i.getUsage());
-				usage.setRate(AbstractProvQuoteVmResource.USAGE_DEFAULT.getRate());
-				usage.setConfiguration(context.quote);
-				usageRepository.saveAndFlush(usage);
-				context.quote.getUsages().add(usage);
-			}
-		}
 
 		if (StringUtils.isNotEmpty(i.getEngine())) {
 			// Database case
 			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, defaultUsage, ramMultiplier, newDatabaseVo(i));
+			final var vo = copy(subscription, context, defaultUsage, ramMultiplier, createUsage, i, newDatabaseVo(i));
 			vo.setPrice(
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
 			// Instance/Container case
 			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, defaultUsage, ramMultiplier, newInstanceVo(i));
+			final var vo = copy(subscription, context, defaultUsage, ramMultiplier, createUsage, i, newInstanceVo(i));
 			vo.setPrice(
 					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
@@ -562,6 +498,32 @@ public class ProvQuoteUploadResource {
 
 		// Update the cursor
 		increment(cursor, size);
+	}
+
+	private <V extends AbstractQuoteVmEditionVo> void completeUsage(final int subscription, final UploadContext context,
+			final String defaultUsage, final boolean createUsage, final VmUpload i, final V vo) {
+		final var usageName = Optional.ofNullable(i.getUsage()).orElse(defaultUsage);
+		if (usageName != null) {
+			var usage = context.quote.getUsages().stream().filter(u -> u.getName().equalsIgnoreCase(usageName))
+					.findFirst().orElse(null);
+
+			// Normalize the usage
+			if (usage == null) {
+				if (createUsage) {
+					// Create the missing usage
+					usage = new ProvUsage();
+					usage.setName(usageName);
+					usage.setRate(AbstractProvQuoteVmResource.USAGE_DEFAULT.getRate());
+					usage.setConfiguration(context.quote);
+					usageRepository.saveAndFlush(usage);
+					context.quote.getUsages().add(usage);
+				} else {
+					throw new EntityNotFoundException(usageName);
+				}
+			}
+			// Normalize the name as needed
+			vo.setUsage(usage.getName());
+		}
 	}
 
 	/**
