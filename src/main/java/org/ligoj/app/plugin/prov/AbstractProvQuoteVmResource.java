@@ -179,7 +179,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setAutoScale(vo.isAutoScale());
 		entity.setRamRate(vo.getRamRate());
 		entity.setCpuRate(vo.getCpuRate());
-		entity.setGpuRate(vo.getCpuRate());
+		entity.setGpuRate(vo.getGpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
 		checkMinMax(entity);
