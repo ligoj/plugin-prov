@@ -49,7 +49,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
-				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
+				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
 		QuoteInstanceQuery.builder().toString();
 	}
@@ -90,7 +90,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				qiResource.lookup(subscription, builder().gpuRate(Rate.BEST).build()).getPrice().getType().getCode());
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
-		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST).gpuRate(Rate.BEST).build();
+		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST)
+				.gpuRate(Rate.BEST).build();
 		build.setCpuRate(Rate.BEST); // Coverage only
 		build.setGpuRate(Rate.BEST); // Coverage only
 		build.setRamRate(Rate.BEST); // Coverage only
@@ -457,11 +458,10 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				"instance2", 102.48, "1y");
 
 	}
-	
+
 	@Test
 	void lookupGpu() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().gpu(2).build());
+		final var lookup = qiResource.lookup(subscription, builder().gpu(2).build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals(2.0, pi.getType().getGpu());
@@ -475,13 +475,12 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertEquals(292.8, lookup.getCost(), DELTA);
-		
+
 	}
-	
+
 	@Test
 	void lookupGpu0() {
-		final var lookup = qiResource.lookup(subscription,
-				builder().gpu(0.0).build());
+		final var lookup = qiResource.lookup(subscription, builder().gpu(0.0).build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -494,9 +493,9 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(135.42, pi.getCostPeriod(), DELTA);
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
-		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);;
+		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);
+		;
 	}
-
 
 	private void assertPrice(final QuoteInstanceLookup lookup, final String code, final String instance,
 			final double cost, final String term) {
@@ -985,7 +984,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		assertTags(instance);
 	}
-	
+
 	@Test
 	void createInstanceGpu() {
 		final var vo = new QuoteInstanceEditionVo();
