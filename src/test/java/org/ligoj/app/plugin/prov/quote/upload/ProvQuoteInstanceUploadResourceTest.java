@@ -70,7 +70,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 				false, "Will be created", MergeMode.INSERT, 1, false, DEFAULT_ENCODING, true, DEFAULT_SEPARATOR);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(18, configuration.getInstances().size());
-		checkCost(configuration.getCost(),14649.926, 17099.526, false);
+		checkCost(configuration.getCost(), 14649.926, 17099.526, false);
 	}
 
 	@Test
@@ -397,6 +397,13 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	void uploadTagsInvalidTagNameContinue() throws IOException {
+		final var input = newStream("ANY;0.5;500;LINUX;app:!!;8");
+		qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false,
+				null, MergeMode.UPDATE, 1, true, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
+	}
+
+	@Test
 	void uploadUpdate() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX"),
 				new String[] { "name", "cpu", "ram", "os" }, false, null, MergeMode.UPDATE, 1, false, DEFAULT_ENCODING,
@@ -429,6 +436,13 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertThrows(DataIntegrityViolationException.class,
 				() -> qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os" }, false, null,
 						MergeMode.INSERT, 1, false, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR));
+	}
+
+	@Test
+	void uploadConflictNameContinue() throws IOException {
+		final var input = newStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX");
+		qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os" }, false, null,
+				MergeMode.INSERT, 1, true, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
 	}
 
 	@Test
@@ -521,6 +535,13 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 				Assertions.assertThrows(ValidationJsonException.class,
 						() -> qiuResource.upload(subscription, input, null, false, "Full Time 12 month", 1024)),
 				"csv-file.instance", "no-match-instance");
+	}
+
+	@Test
+	void uploadInstanceNotFoundContinue() throws IOException {
+		final var input = newStream("ANY;999;6;WINDOWS");
+		qiuResource.upload(subscription, input, null, false, null,
+				MergeMode.INSERT, 1, true, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
 	}
 
 	@Test
