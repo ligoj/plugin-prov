@@ -851,6 +851,20 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var configurationPreferred = resource.getConfiguration(subscriptionPreferred.getId());
 		Assertions.assertEquals("region-2", configurationPreferred.getLocation().getName());
 	}
+	
+	@Test
+	void findLocation() {
+		final var subscription = new Subscription();
+		subscription.setNode(em.find(Subscription.class, this.subscription).getNode());
+		subscription.setProject(em.find(Subscription.class, this.subscription).getProject());
+		em.persist(subscription);
+		em.flush();
+		em.clear();
+		resource.create(subscription.getId());
+		final var configuration = resource.getConfiguration(subscription.getId());
+		final var locations = resource.findLocations(configuration.getLocation().getNode().getId());
+		Assertions.assertNotNull(locations);
+	}
 
 	@Test
 	void createCurrency() {

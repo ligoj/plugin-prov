@@ -68,6 +68,7 @@ import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
+import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -225,6 +226,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvResource self;
+	
+	@Autowired
+	protected NodeResource nodeResource;
 
 	static {
 		ORM_COLUMNS.put("name", "name");
@@ -655,4 +659,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public List<Class<?>> getInstalledEntities() {
 		return Arrays.asList(Node.class, SystemConfiguration.class);
 	}
+
+	/**
+	 * Return all available locations for a node.
+	 *
+	 * @param node The node identifier, will be used to filter the locations from
+	 *             the associated provider.
+	 * @return The all available locations for the given node.
+	 */
+	@GET
+	@Path("location/{node:service:prov:.*}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public List<ProvLocation> findLocations(@PathParam("node") final String node) {
+		nodeResource.checkVisible(node);
+		return locationRepository.findAll(node);
+	}
+
 }

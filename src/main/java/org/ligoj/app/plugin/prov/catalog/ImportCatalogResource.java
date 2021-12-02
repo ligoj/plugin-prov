@@ -271,6 +271,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		locationRepository.setPreferredLocation(node, catalogEdition.getPreferredLocation());
 
 	}
+	//locationRepository.findBy("id",catalogEdition.getPreferredLocation());
 
 	@Override
 	public Supplier<ImportCatalogStatus> newTask() {

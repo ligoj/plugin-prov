@@ -1154,6 +1154,7 @@ define(function () {
 			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
+			debugger;
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change','.mode-advanced input[type=checkbox]', function (e) {
@@ -1163,6 +1164,7 @@ define(function () {
 				$popup.removeClass('advanced');
 			}
 		}).on('show.bs.modal', function (event) {
+			debugger;
 			let $source = $(event.relatedTarget);
 			const dType = $source.provType();
 			var $tr = $source.closest('tr');
@@ -1481,12 +1483,14 @@ define(function () {
 		 */
 		reload: function () {
 			// Clear the tables
+			debugger;
 			current.redrawAll();
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'subscription/' + current.model.subscription + '/configuration',
 				type: 'GET',
 				success: function (data) {
+					debugger;
 					current.model = data;
 					current.optimizeModel();
 					var configuration = data.configuration;
@@ -1957,6 +1961,7 @@ define(function () {
 			}).on('show.bs.modal', function () {
 				$('.import-summary').addClass('hidden');
 			}).on('submit', function (e) {
+				debugger;
 				// Avoid useless empty optional inputs
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
@@ -2980,6 +2985,7 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
+			debugger;
 			var popupType = typesStorage.includes(type) ? 'generic' : type;
 			var inputType = typesStorage.includes(type) ? 'instance' : type;
 			var $popup = _('popup-prov-' + popupType);
@@ -3038,6 +3044,7 @@ define(function () {
 		 * @return {object} The updated or created model.
 		 */
 		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, budget, location) {
+			debugger;
 			var conf = current.model.configuration;
 
 			// Update the model
@@ -4069,6 +4076,7 @@ define(function () {
 		 * @param {object} resource Optional resource to update or create. When null, its a deletion.
 		 */
 		defaultCallback: function (type, updatedCost, resource) {
+			debugger;
 			var related = updatedCost.related || {};
 			var deleted = updatedCost.deleted || {};
 			var conf = current.model.configuration;
