@@ -26,7 +26,8 @@ define({
 		'update-standard-help': 'Update the prices from the provider pricing list',
 		'update-standard': 'Standard update',
 		'update-force': 'Full update',
-		'update-force-help': 'Update the prices and the type configurations from the provider pricing list. Slower than standard mode.',
+        'update-force-help': 'Update the prices and the type configurations from the provider pricing list. Slower than standard mode.',
+        'service:prov:default': 'Default',
 		'm49': {
             '2': 'Africa',
             '5': 'South America',

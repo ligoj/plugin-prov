@@ -148,7 +148,7 @@ define(['sparkline'], function () {
 	}
 
 	function initializePopupInnerEvents(node) {
-		_('instance-location').select2(current.locationSelect2('Défault', node));
+		_('instance-location').select2(current.locationSelect2(current.$messages['service:prov:default'], node));
 	}
 
 	function initializePopupEvents() {

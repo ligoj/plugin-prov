@@ -26,6 +26,7 @@ define({
 	'update-standard': 'Mise à jour des prix depuis le catalogue du fournisseur',
 	'update-force': 'Mise à jour des prix ainsi que les types depuis le catalogue du fournisseur. Plus lent que le mode standard.',
 	'update-force-help': 'Mise à jour des prix et des types de configuration depuis le catalogue fournisseur.',
+	'service:prov:default': 'Défaut',
 	'm49': {
 		'2': 'Africa',
 		'5': 'South America',
