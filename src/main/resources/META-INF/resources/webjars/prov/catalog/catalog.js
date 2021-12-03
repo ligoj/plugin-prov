@@ -52,7 +52,6 @@ define(['sparkline'], function () {
 				} : $.fn.select2.ajaxDefaults.transport,
 				results: function (data, page) {
 					let result = ((typeof data.data === 'undefined') ? (data.results || data) : data.data).map(item => {
-						//debugger;
 						if (typeof item === 'string') {
 							item = {
 								id: item,
@@ -63,7 +62,6 @@ define(['sparkline'], function () {
 						}
 						return item;
 					});
-					debugger;
 					return {
 						more: typeof data.more === 'undefined' ? data.recordsFiltered > page * pageSize : data.more,
 						results: result
@@ -195,13 +193,11 @@ define(['sparkline'], function () {
 		 * @param {string} node Resource node.
 		 */
 	     save: function (_,node) {
-			 debugger;
 			var $popup = _('popup-location');
 			var data={
 				node : node,
 				preferredLocation : _('instance-location').select2('data').id
 			}
-			debugger;
 			$.ajax({
 				type:'PUT',
 				url: REST_PATH + 'service/prov/catalog',
@@ -209,7 +205,6 @@ define(['sparkline'], function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function () {
-					debugger;
 					current.table.api().ajax.reload()
 					$popup.modal('hide');	
 										
@@ -230,7 +225,6 @@ define(['sparkline'], function () {
 		 * Initialize the search UI components
 		 */
 		initializeDataTable: function () {
-			debugger;
 			current.$table = _('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog).on('click','.udpate',current.locationSelect2);
 			current.table = current.$table.dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
