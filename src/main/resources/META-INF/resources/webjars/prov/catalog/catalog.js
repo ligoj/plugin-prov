@@ -91,32 +91,32 @@ define(['sparkline'], function () {
 		});
 	}
 
-		/**
-	 * Location html renderer.
-	 */
+	/**
+ * Location html renderer.
+ */
 	function locationToHtml(location, map, short) {
-			var id = location.name;
-			var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
-			var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
-			var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-			var html = map === true ? locationMap(location) : '';
-			if (location.countryA2) {
-				var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-				var tooltip = m49 || id;
-				var img = '<img class="flag-icon prov-location-flag" src="main/service/prov/flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
-				if (short === true) {
-					// Only flag
-					tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
-					tooltip += '<br>Id: ' + id;
-					return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
-				}
-				html += img + ' title="' + location.name + '">';
+		var id = location.name;
+		var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
+		var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
+		var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
+		var html = map === true ? locationMap(location) : '';
+		if (location.countryA2) {
+			var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
+			var tooltip = m49 || id;
+			var img = '<img class="flag-icon prov-location-flag" src="main/service/prov/flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			if (short === true) {
+				// Only flag
+				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
+				tooltip += '<br>Id: ' + id;
+				return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
 			}
-			html += m49 || id;
-			html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-			html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
-			return html;
+			html += img + ' title="' + location.name + '">';
 		}
+		html += m49 || id;
+		html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
+		html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
+		return html;
+	}
 
 	function locationComparator(l1, l2) {
 		return locationToStringCompare(l1).localeCompare(l2);
@@ -145,31 +145,30 @@ define(['sparkline'], function () {
 	 */
 	function matcher(term, text) {
 		return window.Select2.util.stripDiacritics('' + text).toUpperCase().includes(window.Select2.util.stripDiacritics('' + term).toUpperCase());
-	}    
-
-	function initializePopupInnerEvents(node){
-		_('instance-location').select2(current.locationSelect2('Défault',node));
 	}
 
+	function initializePopupInnerEvents(node) {
+		_('instance-location').select2(current.locationSelect2('Défault', node));
+	}
 
-	function initializePopupEvents(){
+	function initializePopupEvents() {
 		// Resource edition pop-up
 		var $popup = _('popup-location');
-		var $node ;
+		var $node;
 		$popup.on('shown.bs.modal', function () {
 			_('instance-location').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
-			current.save($(this),$node);
+			current.save($(this), $node);
 		}).on('show.bs.modal', function (event) {
 			let $source = $(event.relatedTarget);
 			var $tr = $source.closest('tr')[0];
-			_('generic-modal-title').text($tr.children[1].textContent)
-			$node=$tr.dataset.node
+			$node = $tr.dataset.node;
+			_('generic-modal-title').text(current.table.dataTable().fnGetData($tr).node.name);
 			initializePopupInnerEvents($node);
+			_('instance-location').select2('data',current.table.dataTable().fnGetData($tr).preferredLocation)
 		});
 	}
-
 
 	var current = {
 
@@ -184,30 +183,29 @@ define(['sparkline'], function () {
 		/**
 		 * Location Select2 configuration.
 		 */
-		locationSelect2: function (placeholder,node) {
-			return genericSelect2(placeholder, locationToHtml,node, null, locationComparator, locationMatcher);
+		locationSelect2: function (placeholder, node) {
+			return genericSelect2(placeholder, locationToHtml, node, null, locationComparator, locationMatcher);
 		},
 
 		/**
 		 * Save a preferred location from the corresponding popup. And update the database.
 		 * @param {string} node Resource node.
 		 */
-	     save: function (_,node) {
+		save: function (i, node) {
 			var $popup = _('popup-location');
-			var data={
-				node : node,
-				preferredLocation : _('instance-location').select2('data').id
+			var data = {
+				node: node,
+				preferredLocation: _('instance-location').select2('data').id
 			}
 			$.ajax({
-				type:'PUT',
+				type: 'PUT',
 				url: REST_PATH + 'service/prov/catalog',
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function () {
 					current.table.api().ajax.reload()
-					$popup.modal('hide');	
-										
+					$popup.modal('hide');
 				},
 				error: () => console.log('error')
 			});
@@ -218,14 +216,14 @@ define(['sparkline'], function () {
 		 * @param {String} node Resource node.
 		 */
 		redrawResource: function (node) {
-				_('table').DataTable().rows((_, data) => data.node.id === node).invalidate().draw(false);
+			_('table').DataTable().rows((_, data) => data.node.id === node).invalidate().draw(false);
 		},
 
 		/**
 		 * Initialize the search UI components
 		 */
 		initializeDataTable: function () {
-			current.$table = _('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog).on('click','.udpate',current.locationSelect2);
+			current.$table = _('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog).on('click', '.udpate', current.locationSelect2);
 			current.table = current.$table.dataTable({
 				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
 				serverSide: false,
@@ -266,19 +264,19 @@ define(['sparkline'], function () {
 					data: 'nbQuotes',
 					type: 'num',
 					width: '16px',
-				},{
+				}, {
 					data: 'status.nbLocations',
 					type: 'num',
 					width: '16px',
-				},{
+				}, {
 					data: 'preferredLocation' || null,
 					className: 'hidden-xs hidden-sm preferredLocation',
 					width: '16px',
 					type: 'string',
-					render: function(data){ 
-						if(!data){
+					render: function (data) {
+						if (!data) {
 							return ""
-						}else return locationToHtml(data,false,true) 
+						} else return locationToHtml(data, false, true)
 					}
 				}, {
 					data: 'status.nbStorageTypes',
@@ -327,11 +325,11 @@ define(['sparkline'], function () {
 						// No update support
 						return '';
 					}
-				},{
+				}, {
 					width: '17px',
-					render: function(){
+					render: function () {
 						return `<a class="update" data-toggle="modal" data-target="#popup-location"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="" data-original-title="Modifier"></i></a>`
-						
+
 					}
 				}]
 			});
