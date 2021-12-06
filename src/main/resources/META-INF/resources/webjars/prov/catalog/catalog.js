@@ -157,6 +157,13 @@ define(['sparkline'], function () {
 		var $node;
 		$popup.on('shown.bs.modal', function () {
 			_('instance-location').trigger('focus');
+			if ($('.select2-chosen').text()=="Défaut"){
+				current.disableCreate($popup)
+			}else current.enableCreate($popup)
+		}).on('change',_('instance-location') , function (e) {
+			if ($('.select2-chosen').text()=="Défaut"){
+				current.disableCreate($popup)
+			}else current.enableCreate($popup)
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this), $node);
@@ -183,7 +190,7 @@ define(['sparkline'], function () {
 		/**
 		 * Location Select2 configuration.
 		 */
-		locationSelect2: function (placeholder, node) {
+		locationSelect2: function (placeholder,node) {
 			return genericSelect2(placeholder, locationToHtml, node, null, locationComparator, locationMatcher);
 		},
 
@@ -193,9 +200,10 @@ define(['sparkline'], function () {
 		 */
 		save: function (i, node) {
 			var $popup = _('popup-location');
+			const location = _('instance-location').select2('data')
 			var data = {
 				node: node,
-				preferredLocation: _('instance-location').select2('data').id
+				preferredLocation: location.id || null
 			}
 			$.ajax({
 				type: 'PUT',
@@ -217,6 +225,22 @@ define(['sparkline'], function () {
 		 */
 		redrawResource: function (node) {
 			_('table').DataTable().rows((_, data) => data.node.id === node).invalidate().draw(false);
+		},
+
+		/**
+		 * Disable the create/update button
+		 * @return the related button.
+		 */
+		disableCreate: function ($popup) {
+			return $popup.find('input[type="submit"]').attr('disabled', 'disabled').addClass('disabled');
+		},
+
+		/**
+		 * Enable the create/update button
+		 * @return the related button.
+		 */
+		enableCreate: function ($popup) {
+			return $popup.find('input[type="submit"]').removeAttr('disabled').removeClass('disabled');
 		},
 
 		/**

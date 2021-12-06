@@ -274,7 +274,9 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 
 		var catalogs = resource.findAll();
 		var location = locationRepository.findByName(catalogs.get(2).getNode().getId(), "region-1").getId();
-		var catalogsVoError = new CatalogEditionVo(location, node.getId());
+		var catalogsVoError = new CatalogEditionVo();
+		catalogsVoError.setPreferredLocation(location);
+		catalogsVoError.setNode(node.getId());
 		Assertions.assertThrows(ValidationJsonException.class, () -> resource.update(catalogsVoError));
 	}
 
