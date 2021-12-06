@@ -583,7 +583,7 @@ public class ProvQuoteUploadResource {
 					// Instance tags
 					final var tag = new TagEditionVo();
 					final var parts = StringUtils.splitPreserveAllTokens(t + ":", ':');
-					tag.setName(parts[0]);
+					tag.setName(parts[0].trim());
 					tag.setValue(StringUtils.trimToNull(parts[1]));
 					tag.setResource(id);
 					tag.setType(resourceType);
