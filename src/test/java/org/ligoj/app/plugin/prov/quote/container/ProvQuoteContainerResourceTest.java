@@ -253,6 +253,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setName("container1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setOs(VmOs.LINUX);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(2);
@@ -283,6 +284,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setName("container1-bis");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
@@ -303,6 +305,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("container1-bis", instance.getName());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
 		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
@@ -310,7 +313,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final var updatedCost2 = qcResource.update(vo);
-		checkCost(updatedCost2.getTotal(),5274.328, 9678.378, false);
+		checkCost(updatedCost2.getTotal(), 5274.328, 9678.378, false);
 		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
 
 		// Change the region of this instance, storage is also
@@ -326,6 +329,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setConstant(true);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
@@ -343,6 +347,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("serverZD", instance.getDescription());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(1464.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(2196.0, instance.getMaxCost(), DELTA);
@@ -471,5 +476,18 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(4, status.getNbStorages());
 		Assertions.assertEquals(104, status.getTotalStorage());
 		Assertions.assertEquals("region-1", status.getLocation().getName());
+	}
+
+	@Test
+	void findCointainerOs() {
+		final var tableItem = qcResource.findOs(subscription);
+		Assertions.assertEquals(2, tableItem.size());
+		Assertions.assertEquals("LINUX", tableItem.get(0));
+	}
+
+	@Test
+	void findContainerOsNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qcResource.findOs(subscription));
 	}
 }

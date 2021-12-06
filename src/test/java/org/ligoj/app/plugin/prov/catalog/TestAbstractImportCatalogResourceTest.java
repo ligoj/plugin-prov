@@ -6,7 +6,11 @@ package org.ligoj.app.plugin.prov.catalog;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
@@ -74,9 +79,24 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.setStorageTypes(new HashMap<>());
 		context.getPriceTerms();
 		context.setPriceTerms(new HashMap<>());
+		context.getFunctionTypes();
+		context.setFunctionTypes(new HashMap<>());
+		context.getPreviousFunction();
+		context.setPreviousFunction(new HashMap<>());
 
 		new AbstractUpdateContext(context) {
 		}.cleanup();
+
+	}
+
+	/**
+	 * Only there for coverage and API contracts.
+	 */
+	@Test
+	void baseUrl() {
+		final var context = newContext();
+		Assertions.assertEquals("https://sample", context.getBaseUrl());
+		Assertions.assertEquals("https://sample/path", context.getUrl("/path"));
 
 	}
 
@@ -234,7 +254,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 		purgePrices(newContext, previous, pRepository, qRepository);
-		Mockito.verify(pRepository, Mockito.never()).delete(Mockito.any());
+		Mockito.verify(pRepository, Mockito.never()).delete(ArgumentMatchers.any());
 	}
 
 	@Test
@@ -344,7 +364,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		nodeRepository = Mockito.mock(NodeRepository.class);
 		configuration = Mockito.mock(ConfigurationResource.class);
 		Mockito.when(nodeRepository.findOneExpected("service:prov:test")).thenReturn(new Node());
-		Mockito.when(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH)).thenReturn(1);
+		Mockito.when(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH)).thenReturn(1);
 		final AbstractUpdateContext context = new AbstractUpdateContext() {
 			// Nothing
 		};
@@ -366,7 +386,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 		final var oldRegion = new ProvLocation();
 		oldRegion.setContinentM49(250);
-		context.getMapRegionToName().put("newRegion", oldRegion);
+		context.getMapRegionById().put("newRegion", oldRegion);
 		locationRepository = Mockito.mock(ProvLocationRepository.class);
 		final var installRegion = installRegion(context, "newRegion");
 		Assertions.assertEquals("newRegion", installRegion.getName());
@@ -436,13 +456,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var context = new AbstractUpdateContext() {
 		};
 		context.setNode(node);
+		context.setBaseUrl("https://sample");
 		return context;
 	}
 
 	@Test
 	void nextStepIgnore() {
-		final var context = newContext();
-		nextStep(context, "location", 1);
+		nextStep(newContext(), "phase", "location", 0);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -455,7 +475,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
-		nextStep(context, "location", 1);
+		nextStep(context, "phase", "location", 1);
 		Assertions.assertEquals("location", status.getLocation());
 	}
 
@@ -605,9 +625,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = newPrice();
 		entity.setCost(1d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
-		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> {
-			entity.setCost(cRound);
-		}, consumer);
+		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> entity.setCost(cRound), consumer);
 		Assertions.assertEquals("old", entity.getCode());
 		Assertions.assertEquals(1d, entity.getCost());
 	}
@@ -631,4 +649,69 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void toVmOs() {
 		Assertions.assertEquals(VmOs.WINDOWS, toVmOs("windows"));
 	}
+
+	@Test
+	void syncAddExists() {
+		final var collection = new HashSet<>(Set.of("entry"));
+		super.syncAdd(collection, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		});
+		Assertions.assertTrue(collection.contains("entry"));
+	}
+
+	@Test
+	void syncAdd() {
+		final var collection = new HashSet<>(Set.of("entry1"));
+		final var flag = new AtomicBoolean();
+		super.syncAdd(collection, "entry2", c -> {
+			flag.set(true);
+		});
+		Assertions.assertTrue(collection.contains("entry2"));
+		Assertions.assertTrue(flag.get());
+	}
+
+	@Test
+	void syncAddMapExists() {
+		final var map = new HashMap<>(Map.of("entry", "value"));
+		final var onCompute = new AtomicBoolean();
+		Assertions.assertEquals("value3", super.syncAdd(map, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		}, c -> {
+			onCompute.set(true);
+			return "value3";
+		}));
+		Assertions.assertTrue(onCompute.get());
+		Assertions.assertEquals("value3", map.get("entry"));
+	}
+
+	@Test
+	void syncAddMap() {
+		final var map = new HashMap<>(Map.of("entry", "value"));
+		final var whenAbsent = new AtomicBoolean();
+		final var onCompute = new AtomicBoolean();
+		Assertions.assertEquals("value3", super.syncAdd(map, "entry2", c -> {
+			whenAbsent.set(true);
+			return "value2";
+		}, c -> {
+			Assertions.assertEquals("value2", c);
+			onCompute.set(true);
+			return "value3";
+		}));
+		Assertions.assertEquals("value", map.get("entry"));
+		Assertions.assertEquals("value3", map.get("entry2"));
+		Assertions.assertTrue(whenAbsent.get());
+		Assertions.assertTrue(onCompute.get());
+	}
+
+	@Test
+	void syncAddSynchronized() {
+		@SuppressWarnings("unchecked")
+		final Set<String> collection = Mockito.mock(Set.class);
+		Mockito.when(collection.contains("entry2")).thenReturn(false);
+		Mockito.when(collection.add("entry2")).thenReturn(false);
+		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {
+			throw new AssertionError("Should not be called");
+		}));
+	}
+
 }

@@ -49,9 +49,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 	/**
 	 * Prepare test data.
-	 * 
+	 *
 	 * @throws IOException When CSV cannot be read.
 	 */
+	@Override
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		super.prepareData();
@@ -79,6 +80,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(7, status.getNbInstances());
 		Assertions.assertEquals(0, status.getNbDatabases());
 		Assertions.assertEquals(10.75, status.getTotalCpu(), 0.0001);
+		Assertions.assertEquals(0, status.getTotalGpu());
 		Assertions.assertEquals(45576, status.getTotalRam());
 		Assertions.assertEquals(6, status.getNbPublicAccess());
 		Assertions.assertEquals(7, status.getNbStorages()); // 3*2 (server1) + 1
@@ -97,6 +99,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(0, status.getNbInstances());
 		Assertions.assertEquals(0, status.getNbDatabases());
 		Assertions.assertEquals(0, status.getTotalCpu(), 0.0001);
+		Assertions.assertEquals(0, status.getTotalGpu());
 		Assertions.assertEquals(0, status.getTotalRam());
 		Assertions.assertEquals(0, status.getNbStorages());
 		Assertions.assertEquals(0, status.getTotalStorage());
@@ -108,6 +111,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", vo.getName());
 		Assertions.assertEquals("quoteD1", vo.getDescription());
 		Assertions.assertEquals("USD", vo.getCurrency().getName());
+		Assertions.assertEquals("{}", vo.getUiSettings());
+
 		checkCost(vo.getCost(), 4704.758, 7154.358, false);
 		checkCost(resource.updateCost(subscription), 4704.758, 7154.358, false);
 		vo = resource.getConfiguration(subscription);
@@ -126,10 +131,11 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("region-5", vo.getLocations().get(2).getName());
 
 		// Processor
-		Assertions.assertEquals(3, vo.getProcessors().size());
+		Assertions.assertEquals(4, vo.getProcessors().size());
 		Assertions.assertEquals(3, vo.getProcessors().get("instance").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("database").size());
 		Assertions.assertEquals(0, vo.getProcessors().get("container").size());
+		Assertions.assertEquals(0, vo.getProcessors().get("function").size());
 
 		// Check compute
 		final var instances = vo.getInstances();
@@ -299,6 +305,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(cost, 0, 0, false);
 	}
 
+	@Override
 	protected QuoteLightVo checkCost(final int subscription, final double min, final double max,
 			final boolean unbound) {
 		final var status = super.checkCost(subscription, min, max, unbound);
@@ -377,8 +384,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var instance = new ProvQuoteInstance();
 		instance.setConfiguration(configuration);
 		instance.setCpu(1D);
+		instance.setGpu(0D);
 		instance.setRam(2000);
 		instance.setCpuMax(0.5D);
+		instance.setGpuMax(1D);
 		instance.setRamMax(1000);
 		instance.setName("instance");
 		instance.setOs(VmOs.WINDOWS);
@@ -464,6 +473,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var subscription = configuration.getSubscription();
 		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet.setCpu(2);
+		instanceGet.setGpu(0D);
 		instanceGet.setRam(4000);
 		em.flush();
 		em.clear();
@@ -484,14 +494,17 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		quote.setRefresh(false);
 		quote.setReservationMode(ReservationMode.MAX);
-		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		//checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
+		checkCost(resource.update(subscription.getId(), quote), 366.0, 366.0, false);
 		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
 		final var instanceGet3 = quoteVo.getInstances().get(0);
-		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+		//Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
+		Assertions.assertEquals("C18", instanceGet3.getPrice().getCode());
 
 		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
 		instanceGet.setCpuMax(null);
+		instanceGet.setGpuMax(null);
 		instanceGet.setRamMax(null);
 		em.flush();
 		em.clear();
@@ -694,12 +707,14 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		new ProvQuote().getStorages();
 		new ProvQuote().getDatabases();
 		new ProvQuote().getContainers();
+		new ProvQuote().getFunctions();
 		new ProvQuote().getTags();
 		new ProvQuote().setTags(null);
 		new ProvQuote().setSupports(null);
 		new ProvQuote().setInstances(null);
 		new ProvQuote().setDatabases(null);
 		new ProvQuote().setContainers(null);
+		new ProvQuote().setFunctions(null);
 		new ProvQuoteInstance().setStorages(null);
 		new ProvQuoteContainer().setStorages(null);
 		new UpdatedCost(0).setDeleted(null);
@@ -880,6 +895,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void update() {
 		final var quote = newQuoteEdition();
 		quote.setName("name1");
+		quote.setUiSettings("""
+				{"tagColors":{"prod":"#FF0000"}}""");
 		quote.setDescription("description1");
 		quote.setLocation("region-1");
 		quote.setBudget("Dept1");
@@ -889,8 +906,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		var quote2 = repository.findByNameExpected("name1");
 		Assertions.assertEquals("description1", quote2.getDescription());
 		Assertions.assertEquals("region-1", quote2.getLocation().getName());
+		Assertions.assertEquals("""
+				{"tagColors":{"prod":"#FF0000"}}""", quote2.getUiSettings());
 
-		// Performe another identical update
+		// Perform another identical update
 		final var cost2 = resource.update(subscription, quote);
 		checkCost(cost2, 3165.4, 5615.0, false);
 	}

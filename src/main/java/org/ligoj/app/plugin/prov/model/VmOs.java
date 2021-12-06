@@ -76,7 +76,7 @@ public enum VmOs {
 
 	/**
 	 * Return the related pricing OS.
-	 * 
+	 *
 	 * @return the related pricing OS.
 	 */
 	public VmOs toPricingOs() {

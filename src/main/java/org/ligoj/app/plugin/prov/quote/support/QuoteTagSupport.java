@@ -11,14 +11,14 @@ public interface QuoteTagSupport {
 
 	/**
 	 * Return the tags to override.
-	 * 
+	 *
 	 * @return The tags to override when not <code>null</code>. May be <code>null</code>
 	 */
 	List<TagVo> getTags();
 
 	/**
 	 * Set the tags to override.
-	 * 
+	 *
 	 * @param newTags The tags to override when not <code>null</code>. May be <code>null</code>
 	 */
 	void setTags(List<TagVo> newTags);

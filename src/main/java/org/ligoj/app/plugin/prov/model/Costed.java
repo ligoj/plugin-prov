@@ -35,14 +35,14 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 
 	/**
 	 * Minimal initial cost.
-	 * 
+	 *
 	 * @return The computed initial cost of this quoted element.
 	 */
 	double getInitialCost();
 
 	/**
 	 * Maximal initial cost.
-	 * 
+	 *
 	 * @return The computed maximal initial cost of this quoted element.
 	 */
 	double getMaxInitialCost();

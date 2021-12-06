@@ -31,7 +31,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
-import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -50,7 +50,7 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The resource part of the provisioning.
+ * The resource part of the provisioning of a VM like type.
  *
  * @param <T> The instance resource type.
  * @param <P> Quoted resource price type.
@@ -59,13 +59,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <L> Quoted resource lookup result type.
  * @param <Q> Quoted resource details type.
  */
-public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstanceType, P extends AbstractTermPrice<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteInstanceEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
+public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteVmEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
 		extends AbstractProvQuoteResource<T, P, C, E> {
 
 	/**
 	 * The default usage : 100% for 1 month.
 	 */
-	protected static final ProvUsage USAGE_DEFAULT = new ProvUsage();
+	public static final ProvUsage USAGE_DEFAULT = new ProvUsage();
 
 	/**
 	 * The default budget : no initial cost.
@@ -166,6 +166,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setBudget(Optional.ofNullable(vo.getBudget()).map(u -> getBudget(quote, u)).orElse(null));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
+		entity.setGpu(vo.getGpu());
 		entity.setProcessor(vo.getProcessor());
 		entity.setConstant(vo.getConstant());
 		entity.setPhysical(vo.getPhysical());
@@ -174,9 +175,11 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		entity.setLicense(Optional.ofNullable(vo.getLicense()).map(StringUtils::upperCase).orElse(null));
 		entity.setRamMax(vo.getRamMax());
 		entity.setCpuMax(vo.getCpuMax());
+		entity.setGpuMax(vo.getGpuMax());
 		entity.setAutoScale(vo.isAutoScale());
 		entity.setRamRate(vo.getRamRate());
 		entity.setCpuRate(vo.getCpuRate());
+		entity.setGpuRate(vo.getGpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
 		checkMinMax(entity);
@@ -273,9 +276,9 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	/**
 	 * Return the resolved usage entity from it's name.
 	 *
-	 * @param configuration Configuration containing the default values.
-	 * @param name          The usage name.
-	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's usage or else
+	 * @param configuration Configuration containing the default values and defined usages.
+	 * @param name          The usage name to resolve.
+	 * @return The resolved usage entity. Never <code>null</code> since the configuration's usage or else
 	 *         {@link #USAGE_DEFAULT} is used as default value.
 	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
@@ -290,8 +293,8 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Return the resolved budget entity from it's name.
 	 *
 	 * @param configuration Configuration containing the default values.
-	 * @param name          The usage name.
-	 * @return The resolved usage entity. Never <code>null</code> since the configurtion's budget or else
+	 * @param name          The budget name to resolve.
+	 * @return The resolved b entity. Never <code>null</code> since the configuration's budget or else
 	 *         {@link #BUDGET_DEFAULT} is used as default value.
 	 */
 	protected ProvBudget getBudget(final ProvQuote configuration, final String name) {
@@ -325,7 +328,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	}
 
 	/**
-	 * Return the instance type identifier.
+	 * Return the instance type identifier from its code.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
@@ -358,6 +361,17 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
 		return Math.max(128, Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100))
 				* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
+	}
+
+	/**
+	 * Return the adjusted required GPU depending on the configuration.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param qi            The query context.
+	 * @return The adjusted required GPU depending on the configuration.
+	 */
+	protected double getGpu(final ProvQuote configuration, final QuoteVm qi) {
+		return Math.max(0d, getReserved(configuration, qi.getGpu(), qi.getGpuMax()));
 	}
 
 	/**
@@ -421,7 +435,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 			rate = 1d;
 		}
 		return computeFloat(
-				rate * (ip.getCost() + (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getRam(), ip) : 0)),
+				rate * (ip.getCost() + (ip.getType().isCustom() ? getCustomCost(qi.getCpu(),qi.getGpu(), qi.getRam(), ip) : 0)),
 				ip.getInitialCost(), qi);
 	}
 
@@ -433,15 +447,16 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * Compute the monthly cost of a custom requested resource.
 	 *
 	 * @param cpu The requested CPU.
+	 * @param gpu The requested CPU.
 	 * @param ram The requested RAM in MB.
 	 * @param ip  The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
-	protected double getCustomCost(final Double cpu, final Integer ram, final P ip) {
+	protected double getCustomCost(final Double cpu,final Double gpu, final Integer ram, final P ip) {
 		// Compute the count of the requested resources
 		return getCustomCost(
 				Math.round(Math.ceil(Math.max(cpu, ip.getMinCpu()) / ip.getIncrementCpu()) * ip.getIncrementCpu()),
-				ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024);
+				ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024); // +getCustomCost(gpu,ip.getCostGpu())
 	}
 
 	/**
@@ -563,6 +578,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
+		final var gpuR = getGpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
 		final var physR = getBoolean(configuration.getPhysical(), query.getPhysical());
 
@@ -584,11 +600,12 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		final var types = getItRepository().findValidTypes(node, cpuR, ramR, cpuR * maxFactor, ramR * maxFactor,
-				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(), query.getRamRate(),
+		final var types = getItRepository().findValidTypes(node, cpuR,gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor, ramR * maxFactor,
+				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(),
 				query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node,
-				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER) && convOs,
+				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
+						|| getType() == ResourceType.FUNCTION) && convOs,
 				getType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation, reservation,
 				maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
@@ -599,13 +616,13 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 		}
 
 		// Dynamic type test
-		if (getItRepository().hasDynamicalTypes(node)) {
+		if (getItRepository().hasDynamicalTypes(node)&& gpuR==0) {
 			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR,
-					query.isAutoScale(), query.getCpuRate(), query.getRamRate(), query.getNetworkRate(),
+					query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(), query.getNetworkRate(),
 					query.getStorageRate());
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
-				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, ramR, locationR, rate,
+				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR, rate,
 						duration, initialCost).stream().findFirst().orElse(null);
 				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 					// Keep the best one
@@ -655,6 +672,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @param types         The valid dynamic types matching to the requirements.
 	 * @param terms         The valid terms matching to the requirements.
 	 * @param cpu           The required CPU.
+	 * @param gpu           The required GPU.
 	 * @param ram           The required RAM.
 	 * @param location      The required location.
 	 * @param rate          The usage rate.
@@ -663,7 +681,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, double cpu, double ram, int location, double rate, int duration, double initialCost);
+			List<Integer> terms, double cpu,double gpu, double ram, int location, double rate, int duration, double initialCost);
 
 	@Override
 	public FloatingCost refresh(final C qi) {
@@ -674,7 +692,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Return the new cost corresponding to the given criteria. No change are made to then entity.
-	 * 
+	 *
 	 * @param qi The entity to validate.
 	 * @return The new cost corresponding to the given criteria. No change are made to then entity.
 	 */
@@ -714,7 +732,7 @@ public abstract class AbstractProvQuoteInstanceResource<T extends AbstractInstan
 
 	/**
 	 * Return the tool provisioning node from the configuration entity.
-	 * 
+	 *
 	 * @param configuration The configuration entity attached to a node.
 	 * @return The Spring component handling the tool provisioning node.
 	 */

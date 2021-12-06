@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.Consumes;
@@ -45,7 +46,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.AbstractQuoteInstanceEditionVo;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
+import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
@@ -56,6 +58,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
+import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseEditionVo;
@@ -81,6 +84,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProvQuoteUploadResource {
 	private static final String CSV_FILE = "csv-file";
+
+	/**
+	 * Default CSV separator.
+	 */
+	public static final String DEFAULT_SEPARATOR = ";";
+	/**
+	 * Default CSV encoding.
+	 */
+	public static final String DEFAULT_ENCODING = StandardCharsets.UTF_8.name();
 	private static final List<String> MINIMAL_HEADERS_INSTANCE = List.of("name", "cpu", "ram", "os");
 	private static final List<String> MINIMAL_HEADERS_DATABASE = List.of("name", "cpu", "ram", "engine");
 	private static final String[] DEFAULT_HEADERS = { "name", "cpu", "ram", "os", "disk", "latency", "optimized",
@@ -89,13 +101,15 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name:hostname", "cpu:(vcpu|core|processor)s?",
-			"ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
+			"gpu:gpu", "ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
 			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
+			"gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)", "ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate",
+			"networkRate:networkRate", "storageRate:storageRate",
 			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
@@ -173,7 +187,7 @@ public class ProvQuoteUploadResource {
 		return qb.getId();
 	}
 
-	private <Q extends AbstractQuoteInstanceEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
+	private <Q extends AbstractQuoteVmEditionVo> void nextName(final Q vo, final Map<String, ?> previous) {
 		var name = vo.getName();
 		var counter = 0;
 		while (previous.containsKey(name)) {
@@ -281,7 +295,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	/**
-	 * Upload a file of quote in add mode.
+	 * Upload a file of quote in keep mode.
 	 *
 	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
 	 *                        provider.
@@ -293,16 +307,17 @@ public class ProvQuoteUploadResource {
 	 *                        associated to this usage.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final Integer ramMultiplier, final String encoding)
-			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, encoding);
+			final boolean headersIncluded, final String usage, final Integer ramMultiplier) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, MergeMode.KEEP, ramMultiplier, false,
+				DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
 	}
 
 	/**
-	 * Upload a file of quote in add mode.
+	 * Upload a file of quote.
 	 *
 	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
 	 *                        provider.
@@ -310,11 +325,14 @@ public class ProvQuoteUploadResource {
 	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
 	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
 	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
-	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this usage.
+	 * @param defaultUsage    The optional usage name. When not <code>null</code>, each quote instance without defined
+	 *                        usage will be associated to this usage.
 	 * @param mode            The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
 	 * @param encoding        CSV encoding. Default is UTF-8.
+	 * @param errorContinue   When <code>true</code> errors do not block the upload.
+	 * @param createUsage     When <code>true</code>, missing usage are automatically created.
+	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	@POST
@@ -324,14 +342,17 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = CSV_FILE) final InputStream uploadedFile,
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
-			@Multipart(value = "usage", required = false) final String usage,
+			@Multipart(value = "usage", required = false) final String defaultUsage,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "encoding", required = false) final String encoding) throws IOException {
+			@Multipart(value = "errorContinue", required = false) final boolean errorContinue,
+			@Multipart(value = "encoding", required = false) final String encoding,
+			@Multipart(value = "createMissingUsage", required = false) final boolean createUsage,
+			@Multipart(value = "separator", required = false) final String separator) throws IOException {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
-		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, StandardCharsets.UTF_8.name());
+		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, DEFAULT_ENCODING);
 
 		// Check headers validity
 		final String[] headersArray;
@@ -339,7 +360,7 @@ public class ProvQuoteUploadResource {
 		if (headersIncluded) {
 			// Header at first line
 			final var br = new BufferedReader(new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
-			headersArray = StringUtils.defaultString(br.readLine(), "").replace(',', ';').split(";");
+			headersArray = StringUtils.defaultString(br.readLine()).split(separator);
 			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
 
 		} else {
@@ -349,8 +370,8 @@ public class ProvQuoteUploadResource {
 		}
 
 		final var headersArray2 = checkHeaders(headersArray);
-		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(',', ';')
-				+ "\n";
+		final var headersString = StringUtils.chop(ArrayUtils.toString(headersArray2)).substring(1).replace(",",
+				separator) + "\n";
 		final var reader = new InputStreamReader(
 				new SequenceInputStream(new ByteArrayInputStream(headersString.getBytes(safeEncoding)), fileNoHeader),
 				safeEncoding);
@@ -374,47 +395,60 @@ public class ProvQuoteUploadResource {
 		context.previousQb = previousQb;
 		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
-				persist(subscription, usage, mode, ramMultiplier, list, cursor, context, i);
+				persist(subscription, defaultUsage, mode, ramMultiplier, list.size(), cursor, context, createUsage, i);
 			} catch (final ValidationJsonException e) {
-				throw handleValidationError(i, e);
+				handleUploadError(errorContinue, handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
-				throw handleValidationError(i, new ValidationJsonException(e));
-			} catch (final Throwable e) {
+				handleUploadError(errorContinue, handleValidationError(i, new ValidationJsonException(e)));
+			} catch (final RuntimeException e) {
 				log.error("Unmanaged error during import of " + i.getName(), e);
-				throw e;
+				handleUploadError(errorContinue, e);
 			}
 		});
 		log.info("Upload provisioning : flushing");
 	}
 
-	private <V extends AbstractQuoteInstanceEditionVo> V copy(final VmUpload upload, final int subscription,
-			final String usage, final Integer ramMultiplier, final V vo) {
+	private void handleUploadError(boolean onErrorContinue, RuntimeException e) {
+		if (!onErrorContinue) {
+			throw e;
+		}
+	}
+
+	private <V extends AbstractQuoteVmEditionVo> V copy(final int subscription, final UploadContext context,
+			final String defaultUsage, final Integer ramMultiplier, final boolean createUsage, final VmUpload upload,
+			final V vo) {
 		// Validate the upload object
 		vo.setName(upload.getName());
 		vo.setDescription(upload.getDescription());
 		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
+		vo.setGpu(upload.getGpu());
 		vo.setProcessor(upload.getProcessor());
 		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(upload.getInternet());
 		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(upload.getMinQuantity());
 		vo.setLocation(upload.getLocation());
+		vo.setCpuRate(upload.getCpuRate());
+		vo.setGpuRate(upload.getGpuRate());
+		vo.setRamRate(upload.getRamRate());
+		vo.setNetworkRate(upload.getNetworkRate());
+		vo.setStorageRate(upload.getStorageRate());
 		vo.setConstant(upload.getConstant());
 		vo.setPhysical(upload.getPhysical());
-		vo.setUsage(Optional.ofNullable(upload.getUsage())
-				.map(u -> resource.findConfiguredByName(usageRepository, u, subscription).getName()).orElse(usage));
 		vo.setRam(
 				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
 		vo.setType(upload.getType());
 		vo.setCpuMax(upload.getCpuMax());
+		vo.setGpuMax(upload.getGpuMax());
 		vo.setRamMax(upload.getRamMax() == null ? null
 				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
+		completeUsage(subscription, context, defaultUsage, createUsage, upload, vo);
 		return vo;
 	}
 
 	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
-		final String failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		final var failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
 		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
@@ -442,26 +476,63 @@ public class ProvQuoteUploadResource {
 		return vo;
 	}
 
-	private void persist(final int subscription, final String usage, final MergeMode mode, final Integer ramMultiplier,
-			final List<VmUpload> list, final AtomicInteger cursor, final UploadContext context, VmUpload i) {
+	private void persist(final int subscription, final String defaultUsage, final MergeMode mode,
+			final Integer ramMultiplier, final int size, final AtomicInteger cursor, final UploadContext context,
+			final boolean createUsage, final VmUpload i) {
+
 		if (StringUtils.isNotEmpty(i.getEngine())) {
 			// Database case
 			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, usage, ramMultiplier, newDatabaseVo(i));
+			final var vo = copy(subscription, context, defaultUsage, ramMultiplier, createUsage, i, newDatabaseVo(i));
 			vo.setPrice(
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
 			// Instance/Container case
 			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(i, subscription, usage, ramMultiplier, newInstanceVo(i));
+			final var vo = copy(subscription, context, defaultUsage, ramMultiplier, createUsage, i, newInstanceVo(i));
 			vo.setPrice(
 					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
 		}
-		final var percent = ((int) (cursor.incrementAndGet() * 100D / list.size()));
-		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / list.size())) / 10) {
-			log.info("Upload provisioning : importing {} entries, {}%", list.size(), percent);
+
+		// Update the cursor
+		increment(cursor, size);
+	}
+
+	private <V extends AbstractQuoteVmEditionVo> void completeUsage(final int subscription, final UploadContext context,
+			final String defaultUsage, final boolean createUsage, final VmUpload i, final V vo) {
+		final var usageName = Optional.ofNullable(i.getUsage()).orElse(defaultUsage);
+		if (usageName != null) {
+			var usage = context.quote.getUsages().stream().filter(u -> u.getName().equalsIgnoreCase(usageName))
+					.findFirst().orElse(null);
+
+			// Normalize the usage
+			if (usage == null) {
+				if (createUsage) {
+					// Create the missing usage
+					usage = new ProvUsage();
+					usage.setName(usageName);
+					usage.setRate(AbstractProvQuoteVmResource.USAGE_DEFAULT.getRate());
+					usage.setConfiguration(context.quote);
+					usageRepository.saveAndFlush(usage);
+					context.quote.getUsages().add(usage);
+				} else {
+					throw new EntityNotFoundException(usageName);
+				}
+			}
+			// Normalize the name as needed
+			vo.setUsage(usage.getName());
+		}
+	}
+
+	/**
+	 * Handle cursor and progress display.
+	 */
+	private void increment(final AtomicInteger cursor, final int size) {
+		final var percent = ((int) (cursor.incrementAndGet() * 100D / size));
+		if (cursor.get() > 1 && percent / 10 > ((int) ((cursor.get() - 1) * 100D / size)) / 10) {
+			log.info("Upload provisioning : importing {} entries, {}%", size, percent);
 		}
 	}
 
@@ -469,7 +540,7 @@ public class ProvQuoteUploadResource {
 	 * Validate the input object, do a lookup, then create the {@link ProvQuoteInstance} and the
 	 * {@link ProvQuoteStorage} entities.
 	 */
-	private <V extends AbstractQuoteInstanceEditionVo> void persist(final VmUpload upload, final int subscription,
+	private <V extends AbstractQuoteVmEditionVo> void persist(final VmUpload upload, final int subscription,
 			final BiFunction<V, UploadContext, Integer> merger, final UploadContext context, final V vo,
 			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 
@@ -499,7 +570,7 @@ public class ProvQuoteUploadResource {
 					// Find the nicest storage
 					svo.setType(storageResource.lookup(context.quote, svo).stream().findFirst()
 							.orElseThrow(() -> new ValidationJsonException("storage", "NotNull")).getPrice().getType()
-							.getName());
+							.getCode());
 
 					// Default the storage name to the instance name
 					svo.setSubscription(subscription);

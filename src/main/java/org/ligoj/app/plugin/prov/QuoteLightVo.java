@@ -33,6 +33,11 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	private int nbDatabases;
 
 	/**
+	 * The amount (minimum quantity) of functions.
+	 */
+	private int nbFunctions;
+
+	/**
 	 * The amount (minimum quantity) of containers.
 	 */
 	private int nbContainers;
@@ -56,6 +61,11 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	 * The amount of CPU
 	 */
 	private double totalCpu;
+	
+	/**
+	 * The amount of CPU
+	 */
+	private double totalGpu;
 
 	/**
 	 * The amount of memory (MB)

@@ -83,4 +83,14 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	 */
 	@JsonIgnore
 	private boolean refresh;
+
+	/**
+	 * UI settings. Properties are:
+	 * <ul>
+	 * <li>Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
+	 * accepted. Sample: <code>#e4560f</code> or <code>rgb(255, 0, 0)</code>, <code>hsl(0, 100%, 50%)</code>.</li>
+	 * </ul>
+	 */
+	private String uiSettings;
+
 }

@@ -59,11 +59,17 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 
 	/**
 	 * The maximal used size. When <code>null</code>, the requested size is used.
-	 * 
+	 *
 	 * @see #sizeMax
 	 */
 	@Positive
 	private Integer sizeMax;
+
+	/**
+	 * The quantity of this instance. When <code>null</code>, is considered as <code>1</code>.
+	 */
+	@Positive
+	private Integer quantity = 1;
 
 	/**
 	 * The tags to override when not <code>null</code>.

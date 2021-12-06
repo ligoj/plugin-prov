@@ -31,14 +31,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInstanceType, P extends AbstractTermPriceVmOs<T>, C extends AbstractQuoteVmOs<P>, E extends AbstractQuoteInstanceOsEditionVo, L extends AbstractLookup<P>, Q extends QuoteVmOs>
-		extends AbstractProvQuoteInstanceResource<T, P, C, E, L, Q> {
+		extends AbstractProvQuoteVmResource<T, P, C, E, L, Q> {
 
 	@Override
 	protected abstract BaseProvTermPriceOsRepository<T, P> getIpRepository();
 
 	/**
 	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
-	 * 
+	 *
 	 * @param entity The instance to check.
 	 */
 	protected void checkOs(final AbstractQuoteVmOs<P> entity) {
@@ -53,7 +53,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 
 	/**
 	 * Return <code>true</code> if the current OS accept BYOL.
-	 * 
+	 *
 	 * @param os The OS to evaluate.
 	 * @return <code>true</code> if the current OS accept BYOL.
 	 */
@@ -85,4 +85,14 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 		return result;
 	}
 
+	/**
+	 * Return the available instance OS names for a subscription.
+	 *
+	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 *                     provider.
+	 * @return The available OS names for the given subscription.
+	 */
+	public List<String> findOs(final int subscription) {
+		return getIpRepository().findAllOs(subscriptionResource.checkVisible(subscription).getNode().getId());
+	}
 }

@@ -172,6 +172,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 		final var db = new ProvQuoteDatabase();
 		db.setPrice(bpRepository.findBy("code", "MYSQL2"));
 		db.setCpu(0.5);
+		db.setGpu(0D);
 		db.setRam(2000);
 		db.setEngine("MYSQL");
 		db.setName("qbMYSQL1");
@@ -212,6 +213,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(75, entity.getRate().intValue());
 	}
 
+	@Override
 	protected FloatingCost updateCost() {
 		// Check the cost fully updated and exact actual cost
 		return checkCost(resource.updateCost(subscription));
@@ -241,7 +243,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void deleteUsedInInstance() {
 		attachUsageToQuote();
-		final ProvUsage usage = usageRepository.findByName(subscription, "Dev");
+		final var usage = usageRepository.findByName(subscription, "Dev");
 		Assertions.assertNotNull(usage);
 		Assertions.assertEquals(2, usageRepository.findAllBy("name", "Dev").size());
 

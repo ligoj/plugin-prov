@@ -49,7 +49,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
-				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
+				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
 		QuoteInstanceQuery.builder().toString();
 	}
@@ -87,9 +87,13 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().cpuRate(Rate.BEST).build()).getPrice().getType().getCode());
 		Assertions.assertEquals("instance2",
+				qiResource.lookup(subscription, builder().gpuRate(Rate.BEST).build()).getPrice().getType().getCode());
+		Assertions.assertEquals("instance2",
 				qiResource.lookup(subscription, builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
-		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST).build();
+		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST)
+				.gpuRate(Rate.BEST).build();
 		build.setCpuRate(Rate.BEST); // Coverage only
+		build.setGpuRate(Rate.BEST); // Coverage only
 		build.setRamRate(Rate.BEST); // Coverage only
 		build.setNetworkRate(Rate.BEST); // Coverage only
 		build.setStorageRate(Rate.BEST); // Coverage only
@@ -145,8 +149,9 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupMax() {
 		repository.findByName("quote1").setReservationMode(ReservationMode.MAX);
-		final var build = builder().ramMax(2000).cpuMax(2d).build();
+		final var build = builder().ramMax(2000).cpuMax(2d).gpuMax(0d).build();
 		build.setCpuMax(2d); // Only for coverage
+		build.setGpuMax(0d); // Only for coverage
 		build.setRamMax(2000); // Only for coverage
 		final var lookup = qiResource.lookup(subscription, build);
 
@@ -454,6 +459,44 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	}
 
+	@Test
+	void lookupGpu() {
+		final var lookup = qiResource.lookup(subscription, builder().gpu(2).build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals(2.0, pi.getType().getGpu());
+		Assertions.assertEquals("instance3", pi.getType().getName());
+		Assertions.assertEquals(2, pi.getType().getCpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
+		Assertions.assertEquals("C13", pi.getCode());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(292.8, pi.getCost(), DELTA);
+		Assertions.assertEquals(292.8, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(292.8, lookup.getCost(), DELTA);
+
+	}
+
+	@Test
+	void lookupGpu0() {
+		final var lookup = qiResource.lookup(subscription, builder().gpu(0.0).build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("instance2", pi.getType().getName());
+		Assertions.assertEquals(1, pi.getType().getCpu());
+		Assertions.assertEquals(0.0, pi.getType().getGpu());
+		Assertions.assertEquals(2000, pi.getType().getRam());
+		Assertions.assertEquals("C7", pi.getCode());
+		Assertions.assertFalse(pi.getTerm().isEphemeral());
+		Assertions.assertEquals(135.42, pi.getCost(), DELTA);
+		Assertions.assertEquals(135.42, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);
+		;
+	}
+
 	private void assertPrice(final QuoteInstanceLookup lookup, final String code, final String instance,
 			final double cost, final String term) {
 		// Check the custom instance
@@ -474,6 +517,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-bis");
 		vo.setRam(1);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.update(vo));
 	}
 
@@ -581,6 +625,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("serverZ");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMaxQuantity(null);
 		final int id = qiResource.create(vo).getId();
 
@@ -617,6 +662,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
 		var updatedCost = qiResource.update(vo);
@@ -659,6 +705,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-bis");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(null);
 		var updatedCost = qiResource.update(vo);
@@ -698,6 +745,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setRam(1024);
 		vo.setOs(VmOs.CENTOS);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.update(vo)),
@@ -717,6 +765,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1-bis");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(1);
 		vo.setMaxQuantity(20);
 		vo.setLocation("region-1");
@@ -738,6 +787,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("server1-bis", instance.getName());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(208.62, instance.getCost(), DELTA);
 		Assertions.assertEquals(4172.4, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
@@ -783,6 +833,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
 		vo.setLocation("region-1");
@@ -820,6 +871,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("server1");
 		vo.setRam(2000);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(2);
 		vo.setMaxQuantity(10);
 
@@ -862,6 +914,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setOs(VmOs.CENTOS);
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		qiResource.update(vo);
 		final var instance = qiRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals(VmOs.CENTOS, instance.getOs());
@@ -878,6 +931,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setRamMax(10800);
 		vo.setCpu(0.5);
 		vo.setCpuMax(0.5);
+		vo.setGpu(0D);
+		vo.setGpuMax(0D);
 		vo.setConstant(true);
 		vo.setPhysical(false);
 		vo.setInternet(InternetAccess.PUBLIC);
@@ -891,6 +946,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		vo.setRamRate(Rate.LOW);
 		vo.setCpuRate(Rate.MEDIUM);
+		vo.setGpuRate(Rate.MEDIUM);
 		vo.setNetworkRate(Rate.WORST);
 		vo.setStorageRate(Rate.MEDIUM);
 
@@ -909,6 +965,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("serverZD", instance.getDescription());
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);
 		Assertions.assertEquals(3129.3, instance.getMaxCost(), DELTA);
@@ -921,6 +978,73 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		Assertions.assertEquals(Rate.LOW, instance.getRamRate());
 		Assertions.assertEquals(Rate.MEDIUM, instance.getCpuRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getGpuRate());
+		Assertions.assertEquals(Rate.WORST, instance.getNetworkRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getStorageRate());
+
+		assertTags(instance);
+	}
+
+	@Test
+	void createInstanceGpu() {
+		final var vo = new QuoteInstanceEditionVo();
+		vo.setSubscription(subscription);
+		vo.setPrice(ipRepository.findByExpected("code", "C10").getId());
+		vo.setName("serverZ");
+		vo.setDescription("serverZD");
+		vo.setRam(1024);
+		vo.setRamMax(10800);
+		vo.setCpu(0.5);
+		vo.setCpuMax(0.5);
+		vo.setGpu(1D);
+		vo.setGpuMax(2D);
+		vo.setConstant(true);
+		vo.setPhysical(false);
+		vo.setInternet(InternetAccess.PUBLIC);
+		vo.setTenancy(ProvTenancy.SHARED);
+		vo.setMaxVariableCost(210.9);
+		vo.setEphemeral(true);
+		vo.setMinQuantity(10);
+		vo.setMaxQuantity(15);
+
+		vo.setAutoScale(true);
+
+		vo.setRamRate(Rate.LOW);
+		vo.setCpuRate(Rate.MEDIUM);
+		vo.setGpuRate(Rate.MEDIUM);
+		vo.setGpuRate(Rate.MEDIUM);
+		vo.setNetworkRate(Rate.WORST);
+		vo.setStorageRate(Rate.MEDIUM);
+
+		newTags(vo);
+		final var updatedCost = qiResource.create(vo);
+
+		// Check the exact new cost
+		checkCost(updatedCost.getTotal(), 6790.958, 10283.658, false);
+		checkCost(updatedCost.getCost(), 2086.2, 3129.3, false);
+		Assertions.assertEquals(1, updatedCost.getRelated().size());
+		Assertions.assertTrue(updatedCost.getRelated().get(ResourceType.STORAGE).isEmpty());
+		checkCost(subscription, 6790.958, 10283.658, false);
+		final var instance = qiRepository.findOneExpected(updatedCost.getId());
+		Assertions.assertEquals("serverZ", instance.getName());
+		Assertions.assertTrue(instance.isEphemeral());
+		Assertions.assertEquals("serverZD", instance.getDescription());
+		Assertions.assertEquals(1024, instance.getRam());
+		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
+		Assertions.assertEquals(1, instance.getGpu(), DELTA);
+		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
+		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);
+		Assertions.assertEquals(3129.3, instance.getMaxCost(), DELTA);
+		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
+		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
+		Assertions.assertEquals(10, instance.getMinQuantity());
+		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
+		Assertions.assertFalse(instance.isUnboundCost());
+
+		Assertions.assertEquals(Rate.LOW, instance.getRamRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getCpuRate());
+		Assertions.assertEquals(Rate.MEDIUM, instance.getGpuRate());
 		Assertions.assertEquals(Rate.WORST, instance.getNetworkRate());
 		Assertions.assertEquals(Rate.MEDIUM, instance.getStorageRate());
 
@@ -942,8 +1066,10 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setMaxQuantity(1);
 		vo.setRamMax(10800);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setOs(VmOs.WINDOWS);
 		vo.setCpuMax(0.5);
+		vo.setGpuMax(0d);
 		vo.setUsage(FULL); // Important for the price select -> C12
 		vo.setBudget("Dept2");
 		var updatedCost = qiResource.create(vo);
@@ -992,6 +1118,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setDescription("serverZD");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setOs(VmOs.SUSE);
 		vo.setConstant(true);
 		vo.setInternet(InternetAccess.PUBLIC);
@@ -1010,6 +1137,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("serverZ");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(null);
 		final var updatedCost = qiResource.create(vo);
@@ -1050,6 +1178,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setName("serverZ");
 		vo.setRam(1024);
 		vo.setCpu(0.5);
+		vo.setGpu(0D);
 		vo.setMinQuantity(100);
 		vo.setMaxQuantity(10);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qiResource.create(vo)),
@@ -1150,5 +1279,18 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		initSpringSecurityContext("any");
 		final var uri = newUriInfo();
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findAllTypes(subscription, uri));
+	}
+
+	@Test
+	void findOs() {
+		final var tableItem = qiResource.findOs(subscription);
+		Assertions.assertEquals(3, tableItem.size());
+		Assertions.assertEquals("LINUX", tableItem.get(0));
+	}
+
+	@Test
+	void findOsNotVisibleSubscription() {
+		initSpringSecurityContext("any");
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findOs(subscription));
 	}
 }

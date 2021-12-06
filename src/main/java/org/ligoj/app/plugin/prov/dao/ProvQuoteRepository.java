@@ -17,11 +17,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	/**
 	 * Return the compute quote summary from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
-	 * @return The quote with aggregated details : Quote, amount of instances, total RAM and total CPU.
+	 * @param subscription The subscription identifier linking the quote.
+	 * @return The quote with aggregated details : Quote, amount of instances, total RAM and total CPU and total GPU.
 	 */
-	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.gpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
 			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.instances AS qi"
 			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getComputeSummary(int subscription);
@@ -29,11 +28,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	/**
 	 * Return the database quote summary from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
+	 * @param subscription The subscription identifier linking the quote.
 	 * @return The quote with aggregated details : Quote, amount of databases, total RAM and total CPU.
 	 */
-	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0),COALESCE(SUM(qi.gpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
 			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.databases AS qi"
 			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getDatabaseSummary(int subscription);
@@ -41,20 +39,28 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	/**
 	 * Return the container quote summary from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
+	 * @param subscription The subscription identifier linking the quote.
 	 * @return The quote with aggregated details : Quote, amount of containers, total RAM and total CPU.
 	 */
-	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.cpu*qi.minQuantity),0),COALESCE(SUM(qi.gpu*qi.minQuantity),0), COALESCE(SUM(qi.ram*qi.minQuantity),0),"
 			+ " COALESCE(SUM(CASE qi.internet WHEN 0 THEN qi.minQuantity ELSE 0 END),0) FROM ProvQuote q LEFT JOIN q.containers AS qi"
 			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
 	List<Object[]> getContainerSummary(int subscription);
 
 	/**
+	 * Return the function quote summary from the related subscription.
+	 *
+	 * @param subscription The subscription identifier linking the quote.
+	 * @return The quote with aggregated details : Quote, amount of function, total RAM and total CPU.
+	 */
+	@Query("SELECT q, COALESCE(COUNT(qi.id),0), COALESCE(SUM(qi.nbRequests),0) FROM ProvQuote q LEFT JOIN q.functions AS qi"
+			+ " LEFT JOIN qi.price AS ip LEFT JOIN ip.type AS i WHERE q.subscription.id = :subscription GROUP BY q")
+	List<Object[]> getFunctionSummary(int subscription);
+
+	/**
 	 * Return the storage quote summary from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
+	 * @param subscription The subscription identifier linking the quote.
 	 * @return The quote with aggregated details : Quote, amount of storages and total storage.
 	 */
 	@Query("SELECT q, COALESCE(SUM(CASE WHEN qs.id IS NULL THEN 0 ELSE COALESCE(qi.minQuantity,1) END),0),"
@@ -65,8 +71,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	/**
 	 * Return the compute quote details from the related subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier linking the quote.
+	 * @param subscription The subscription identifier linking the quote.
 	 * @return The compute quote details : Quote, instance details and price details.
 	 */
 	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
@@ -76,8 +81,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	/**
 	 * Return the amount of quotes based on the related node.
 	 *
-	 * @param node
-	 *            The node identifier. Sub nodes are also involved.
+	 * @param node The node identifier. Sub nodes are also involved.
 	 * @return The amount of quotes based on the related node.
 	 */
 	@Query("SELECT COUNT (q) FROM #{#entityName} AS q INNER JOIN q.subscription AS s WHERE s.node.id = :node OR s.node.id LIKE CONCAT(:node, ':%')")

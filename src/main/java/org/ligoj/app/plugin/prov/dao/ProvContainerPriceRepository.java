@@ -17,11 +17,16 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvContainerPrice} repository.
  */
-public interface ProvContainerPriceRepository extends BaseProvTermPriceOsRepository<ProvContainerType, ProvContainerPrice> {
+public interface ProvContainerPriceRepository
+		extends BaseProvTermPriceOsRepository<ProvContainerType, ProvContainerPrice> {
 
 	@Override
 	@CacheResult(cacheName = "prov-container-license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
+
+	@Override
+	@CacheResult(cacheName = "prov-container-os")
+	List<String> findAllOs(@CacheKey String node);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -29,6 +34,7 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param cpu         The required CPU.
+	 * @param gpu         The required CPU.
 	 * @param ram         The required RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
@@ -38,27 +44,38 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
 	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @return The cheapest container price or empty result.
 	 */
-	@Query("SELECT ip,                                                                                    "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)      "
-			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,     "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost                       "
-			+ " FROM #{#entityName} ip WHERE                                                              "
-			+ "      ip.location.id = :location                                                           "
-			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
-			+ "  AND ip.os=:os                                                                            "
-			+ "  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)                                              "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
-	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
-			int location, double rate, double globalRate, double duration, String license, 
-			double initialCost, Pageable pageable);
+	@Query("""
+			SELECT ip,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END AS monthlyCost
+			 FROM #{#entityName} ip WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NOT NULL
+			  AND ip.os=:os
+			  AND (ip.maxCpu IS NULL OR ip.maxCpu >=:cpu)
+			  AND (ip.maxGpu IS NULL OR ip.maxGpu >=:gpu)
+			  AND (ip.maxRam IS NULL OR ip.maxRam >=:ram)
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
+			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
+			""")
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram, VmOs os,
+			int location, double rate, double globalRate, double duration, String license, double initialCost,
+			Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -74,21 +91,24 @@ public interface ProvContainerPriceRepository extends BaseProvTermPriceOsReposit
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
-	@Query("SELECT ip,                                                   "
-			+ " CASE                                                     "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)   "
-			+ "  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,"
-			+ " CASE                                                     "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)               "
-			+ "  ELSE ip.cost END AS monthlyCost                         "
-			+ " FROM #{#entityName} ip  WHERE                            "
-			+ "      ip.location.id = :location                          "
-			+ "  AND ip.incrementCpu IS NULL                             "
-			+ "  AND ip.os=:os                                           "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)       "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)"
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)   "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
+	@Query("""
+			SELECT ip,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
+			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate)
+			  ELSE ip.cost END AS monthlyCost
+			 FROM #{#entityName} ip  WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NULL
+			  AND ip.os=:os
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  ORDER BY totalCost ASC, ip.type.id DESC
+			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, double initialCost, Pageable pageable);
+
 }

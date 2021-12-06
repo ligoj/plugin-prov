@@ -18,10 +18,11 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvInstancePrice} repository.
  */
-public interface ProvInstancePriceRepository extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
+public interface ProvInstancePriceRepository
+		extends BaseProvTermPriceOsRepository<ProvInstanceType, ProvInstancePrice> {
 
 	@Override
-	@CacheResult(cacheName = "prov-license")
+	@CacheResult(cacheName = "prov-instance-license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
@@ -31,10 +32,13 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceOsReposito
 	 * @param os   The filtered OS.
 	 * @return The filtered softwares.
 	 */
-	@CacheResult(cacheName = "prov-software")
-	@Query("SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i "
-			+ "  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))"
-			+ "   AND ip.os=:os AND ip.software IS NOT NULL ORDER BY ip.software")
+	@CacheResult(cacheName = "prov-instance-software")
+	@Query("""
+			SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i
+			WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
+			   AND ip.os=:os AND ip.software IS NOT NULL
+			ORDER BY ip.software
+			 """)
 	List<String> findAllSoftwares(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
@@ -43,6 +47,7 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceOsReposito
 	 * @param types       The valid instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param cpu         The minimum CPU.
+	 * @param gpu         The minimum GPU.
 	 * @param ram         The minimum RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
@@ -57,25 +62,36 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceOsReposito
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
-	@Query("SELECT ip,                                                                                    "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " +(CASE WHEN (ip.minRam > :ram) THEN ip.minRam ELSE :ram END * ip.costRam) + ip.cost)      "
-			+ " * (CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END)) AS totalCost,       "
-			+ " (((CEIL(CASE WHEN (ip.minCpu > :cpu) THEN ip.minCpu ELSE :cpu END /ip.incrementCpu) * ip.incrementCpu * ip.costCpu)"
-			+ " + (:ram * ip.costRam) + ip.cost)                                                          "
-			+ " * (CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END)) AS monthlyCost                       "
-			+ " FROM #{#entityName} ip WHERE                                                              "
-			+ "      ip.location.id = :location                                                           "
-			+ "  AND ip.incrementCpu IS NOT NULL                                                          "
-			+ "  AND ip.os=:os                                                                            "
-			+ "  AND ip.tenancy=:tenancy                                                                  "
-			+ "  AND (:software IS NULL OR :software = ip.software)                                       "
-			+ "  AND (ip.maxCpu IS NULL or ip.maxCpu >=:cpu)                                              "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)                                        "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)                           "
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)                                    "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC                                   ")
-	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram, VmOs os,
+	@Query("""
+			SELECT ip,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
+			 (  ip.cost
+			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
+			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
+			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
+			 )
+			 * CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END AS monthlyCost
+			 FROM #{#entityName} ip WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NOT NULL
+			  AND ip.os=:os
+			  AND ip.tenancy=:tenancy
+			  AND (:software  IS NULL OR :software = ip.software)
+			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
+			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
+			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
+			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
+			""")
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu,double gpu, double ram, VmOs os,
 			int location, double rate, double globalRate, double duration, String license, String software,
 			double initialCost, ProvTenancy tenancy, Pageable pageable);
 
@@ -96,24 +112,29 @@ public interface ProvInstancePriceRepository extends BaseProvTermPriceOsReposito
 	 * @param pageable    The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
-	@Query("SELECT ip,                                                   "
-			+ " CASE                                                     "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)   "
-			+ "  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,"
-			+ " CASE                                                     "
-			+ "  WHEN ip.period = 0 THEN (ip.cost * :rate)               "
-			+ "  ELSE ip.cost END AS monthlyCost                         "
-			+ " FROM #{#entityName} ip  WHERE                            "
-			+ "      ip.location.id = :location                          "
-			+ "  AND ip.incrementCpu IS NULL                             "
-			+ "  AND ip.os=:os                                           "
-			+ "  AND ip.tenancy=:tenancy                                 "
-			+ "  AND (:software IS NULL OR :software = ip.software)      "
-			+ "  AND (ip.license IS NULL OR :license = ip.license)       "
-			+ "  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)"
-			+ "  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)   "
-			+ "  ORDER BY totalCost ASC, ip.type.id DESC")
+	@Query("""
+			SELECT ip,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
+			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.cost * :rate)
+			  ELSE ip.cost END AS monthlyCost
+			 FROM #{#entityName} ip  WHERE
+			      ip.location.id = :location
+			  AND ip.incrementCpu IS NULL
+			  AND ip.os=:os
+			  AND ip.tenancy=:tenancy
+			  AND (:software IS NULL OR :software = ip.software)
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			  ORDER BY totalCost ASC, ip.type.id DESC
+			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
 			Pageable pageable);
+
+	@CacheResult(cacheName = "prov-instance-os")
+	List<String> findAllOs(@CacheKey String node);
 }

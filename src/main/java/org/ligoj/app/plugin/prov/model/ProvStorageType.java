@@ -51,7 +51,7 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	private double minimal = 1;
 
 	/**
-	 * The maximum supported size in "GiB". May be <code>null</code>.
+	 * The maximum supported size in "GiB". May be <code>null</code> for unlimited size.
 	 */
 	private Double maximal;
 
@@ -92,6 +92,17 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	 * expression.
 	 */
 	private String notContainerType = null;
+	/**
+	 * When not <code>null</code>, this storage can only be attached to an function whose type's code is matching the
+	 * expression.
+	 */
+	private String functionType = null;
+
+	/**
+	 * When not <code>null</code>, this storage can not be attached to an function whose type's code is matching the
+	 * expression.
+	 */
+	private String notFunctionType = null;
 
 	/**
 	 * When not <code>null</code>, this storage can only attached to an database whose type is matching the expression.
@@ -107,7 +118,7 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
 	 * <code>null</code>, this storage can only be attached to a database type not requiring a specific storage engine.
 	 *
-	 * @see {@link org.ligoj.app.plugin.prov.model.ProvDatabasePrice} <code>storageEngine</code>
+	 * @see org.ligoj.app.plugin.prov.model.ProvDatabasePrice#getStorageEngine()
 	 */
 	private String engine;
 

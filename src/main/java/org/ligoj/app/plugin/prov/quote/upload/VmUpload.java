@@ -40,11 +40,25 @@ public class VmUpload {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * Optional requested GPU.
+	 */
+	@PositiveOrZero
+	private double gpu = 0;
+	
+	/**
+	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * Optional request RAM.
@@ -54,7 +68,7 @@ public class VmUpload {
 
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -118,6 +132,31 @@ public class VmUpload {
 	 * Internet access of this VM. By default, private.
 	 */
 	private InternetAccess internet = InternetAccess.PRIVATE;
+
+	/**
+	 * Minimal CPU rate
+	 */
+	private Rate cpuRate = Rate.WORST;
+	
+	/**
+	 * Minimal GPU rate
+	 */
+	private Rate gpuRate = Rate.WORST;
+
+	/**
+	 * Minimal RAM rate
+	 */
+	private Rate ramRate = Rate.WORST;
+
+	/**
+	 * Minimal storage rate
+	 */
+	private Rate storageRate = Rate.WORST;
+
+	/**
+	 * Minimal network rate
+	 */
+	private Rate networkRate = Rate.WORST;
 
 	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the

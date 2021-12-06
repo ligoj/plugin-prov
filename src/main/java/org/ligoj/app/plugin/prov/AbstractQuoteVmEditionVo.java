@@ -24,7 +24,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
+public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> implements QuoteTagSupport {
 
 	/**
 	 * SID
@@ -54,11 +54,25 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * The requested GPU
+	 */
+	@PositiveOrZero
+	private double gpu;
+
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * The requested memory in MiB.
@@ -69,7 +83,7 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 
 	/**
 	 * The maximal used RAM in MiB. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -154,6 +168,11 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * Optional CPU rate requirement.
 	 */
 	private Rate cpuRate;
+	
+	/**
+	 * Optional GPU rate requirement.
+	 */
+	private Rate gpuRate;
 
 	/**
 	 * Optional network rate requirement.
@@ -169,7 +188,6 @@ public abstract class AbstractQuoteInstanceEditionVo extends DescribedBean<Integ
 	 * Optional RAM rate requirement.
 	 */
 	private Rate ramRate;
-
 
 	@JsonIgnore
 	public String getLocationName() {

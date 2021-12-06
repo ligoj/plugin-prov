@@ -66,7 +66,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 
 	/**
 	 * Maximal initial cost. Does not includes support cost.
-	 * 
+	 *
 	 * @see #maxCost
 	 */
 	@PositiveOrZero
@@ -137,6 +137,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private List<ProvQuoteContainer> containers;
 
 	/**
+	 * Quoted functions.
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvQuoteFunction> functions;
+
+	/**
 	 * Usages associated to this quote..
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
@@ -170,6 +177,16 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvTag> tags;
+	
+	/**
+	 * UI settings. Properties are: 
+	 * <ul>
+	 * <li>
+	 * Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
+	 * accepted. Sample: <code>#e4560f</code> or <code>rgb(255, 0, 0)</code>, <code>hsl(0, 100%, 50%)</code>.</li>
+	 * </ul>
+	 */
+	private String uiSettings;
 
 	/**
 	 * Default location constraint.

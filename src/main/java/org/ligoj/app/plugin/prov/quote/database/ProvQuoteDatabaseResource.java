@@ -21,7 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class ProvQuoteDatabaseResource extends
-		AbstractProvQuoteInstanceResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase> {
+		AbstractProvQuoteVmResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase> {
 
 	private static final String ENGINE_ORACLE = "ORACLE";
 
@@ -132,7 +132,7 @@ public class ProvQuoteDatabaseResource extends
 
 	/**
 	 * Return the database prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best database price matching to the criteria.
@@ -159,12 +159,12 @@ public class ProvQuoteDatabaseResource extends
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteDatabase query,
-			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(cpu), Math.ceil(round(ram / 1024)), engineR,
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(cpu),gpu, Math.ceil(round(ram / 1024)), engineR,
 				editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
 				PageRequest.of(0, 1));
 	}

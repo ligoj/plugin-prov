@@ -29,6 +29,11 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("cpu")
 	@Builder.Default
 	private double cpu = 1;
+	
+	@DefaultValue(value = "0")
+	@QueryParam("gpu")
+	@Builder.Default
+	private double gpu =0;
 
 	/**
 	 * Required memory in MiB.
@@ -40,7 +45,7 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
@@ -48,8 +53,17 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	private Double cpuMax;
 	
 	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	@QueryParam("gpuMax")
+	private Double gpuMax;
+
+	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -89,6 +103,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("physical")
 	private Boolean physical;
 
+	/**
+	 * When <code>true</code> ephemeral instances are accepted.
+	 */
 	@QueryParam("ephemeral")
 	private boolean ephemeral;
 
@@ -100,6 +117,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 
 	@QueryParam("cpuRate")
 	private Rate cpuRate;
+	
+	@QueryParam("gpuRate")
+	private Rate gpuRate;
 
 	@QueryParam("networkRate")
 	private Rate networkRate;

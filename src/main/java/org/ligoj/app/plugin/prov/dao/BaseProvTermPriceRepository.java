@@ -7,15 +7,14 @@ import java.util.List;
 
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * {@link ProvDatabasePrice} repository.
- * 
+ * {@link AbstractTermPrice} repository.
+ *
  * @param <T> The instance type type.
  * @param <P> The price type.
  */

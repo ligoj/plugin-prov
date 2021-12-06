@@ -33,7 +33,8 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends AbstractQuote<P> implements QuoteVm, ResourceScope {
+public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends AbstractQuote<P>
+		implements QuoteVm, ResourceScope {
 
 	/**
 	 * SID
@@ -53,11 +54,25 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
-	 * 
+	 *
 	 * @see #cpu
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
+	
+	/**
+	 * The requested GPU.
+	 */
+	@PositiveOrZero
+	private double gpu;
+	
+	/**
+	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
+	 *
+	 * @see #gpu
+	 */
+	@PositiveOrZero
+	private Double gpuMax;
 
 	/**
 	 * The requested RAM in "MiB". 1MiB = 1024 MiB.
@@ -67,7 +82,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 
 	/**
 	 * The maximal used RAM. When <code>null</code>, the requested RAM is used.
-	 * 
+	 *
 	 * @see #ram
 	 */
 	@PositiveOrZero
@@ -143,6 +158,12 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 	 */
 	@Enumerated(EnumType.ORDINAL)
 	private Rate cpuRate;
+	
+	/**
+	 * Optional GPU rate requirement.
+	 */
+	@Enumerated(EnumType.ORDINAL)
+	private Rate gpuRate;
 
 	/**
 	 * Optional network rate requirement.
@@ -226,7 +247,6 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPrice<?>> extends Ab
 	public String getLocationName() {
 		return getResolvedLocation().getName();
 	}
-
 
 	@Override
 	public abstract P getPrice();

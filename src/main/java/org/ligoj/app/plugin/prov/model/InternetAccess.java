@@ -11,13 +11,13 @@ public enum InternetAccess {
 	/**
 	 * Internet facing
 	 */
-	PUBLIC, 
-	
+	PUBLIC,
+
 	/**
 	 * Private network without Internet access.
 	 */
-	PRIVATE, 
-	
+	PRIVATE,
+
 	/**
 	 * Private network with Internet access with NAT.
 	 */

@@ -113,7 +113,7 @@ public class ProvQuoteInstanceResource extends
 
 	/**
 	 * Return the instance prices matching to the criteria.
-	 * 
+	 *
 	 * @param subscription The subscription identifier.
 	 * @param query        The criteria.
 	 * @return The best instance price matching to the criteria.
@@ -143,7 +143,7 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteInstance query,
-			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
 		final var service = getService(configuration);
 		// Resolve the right OS
@@ -152,7 +152,7 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
 		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),gpu,
 				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR, softwareR,
 				initialCost, tenancyR, PageRequest.of(0, 1));
 	}
@@ -191,6 +191,13 @@ public class ProvQuoteInstanceResource extends
 
 	@Override
 	@GET
+	@Path("{subscription:\\d+}/instance-os")
+	public List<String> findOs(@PathParam("subscription") final int subscription) {
+		return super.findOs(subscription);
+	}
+
+	@Override
+	@GET
 	@Path("{subscription:\\d+}/instance-type")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public TableItem<ProvInstanceType> findAllTypes(@PathParam("subscription") final int subscription,
@@ -205,5 +212,4 @@ public class ProvQuoteInstanceResource extends
 		result.setCost(round((double) rs[2]));
 		return result;
 	}
-
 }

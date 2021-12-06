@@ -283,6 +283,7 @@ img.flag-icon.prov-location-flag {
   padding-right: 8px;
   margin: 0;
   top: -8px;
+  left: 5px;
 }
 
 #prov-terraform-status .progress {
@@ -354,6 +355,12 @@ img.flag-icon.prov-location-flag {
 .retracted #service-prov-menu span,
 .retracted #service-prov-menu .form-group div {
   display: none;
+}
+
+@media (max-width: 993px) {
+  .retracted #service-prov-menu a{
+    display:none;
+  }
 }
 
 .retracted #prov-defaults legend {
@@ -449,8 +456,9 @@ img.flag-icon.prov-location-flag {
 .configuration-wrapper-service-prov .dt-buttons .buttons-collection {
   padding: 8px 14px;
 }
-.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive="instance"]),
-.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive="database"]) {
+.modal[data-prov-type="instance"] [data-exclusive]:not([data-exclusive*="instance"]),
+.modal[data-prov-type="container"] [data-exclusive]:not([data-exclusive*="container"]),
+.modal[data-prov-type="database"] [data-exclusive]:not([data-exclusive*="database"]) {
   display: none;
 }
 #database-edition {
@@ -481,5 +489,37 @@ img.flag-icon.prov-location-flag {
 }
 #instance-constant,
 #instance-ram-unit {
-  width: 93px;
+  width: 52px;
+}
+
+#instance-constant .dropdown-toggle,
+#instance-ram-unit .dropdown-toggle {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#subscribe-configuration-prov .modal:not(.advanced) .element-advanced {
+  display: none;
+}
+#subscribe-configuration-prov .select2-search-choice [data-prov-type] {
+  cursor: pointer;
+}
+.input-group.with-select2 {
+  display: flex;
+}
+
+#s2id_database-engine {
+  width: 200px;
+  min-width: 200px;
+}
+#instance-cpu, #instance-ram {
+  width: 3em;
+}
+#instance-gpu{
+  width: 6em;
+}
+#subscribe-configuration-prov foreignObject i {
+  font-size: 13px;
+  margin-left: 1px;
+  opacity: 0.5;
 }

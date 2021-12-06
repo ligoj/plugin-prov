@@ -12,7 +12,9 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 
 import javax.persistence.EntityManager;
@@ -20,6 +22,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
@@ -32,13 +35,17 @@ import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
@@ -46,7 +53,7 @@ import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
 import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
+import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
@@ -61,6 +68,7 @@ import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -91,14 +99,8 @@ public abstract class AbstractImportCatalogResource {
 	protected static final String BY_NODE = "node";
 
 	/**
-	 * Default hours per month.
-	 *
-	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
-	 */
-	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
-
-	/**
-	 * Configuration key used for hours per month. When value is <code>null</code>, use {@link #DEFAULT_HOURS_MONTH}.
+	 * Configuration key used for hours per month. When value is <code>null</code>, use
+	 * {@link ProvResource#DEFAULT_HOURS_MONTH}.
 	 */
 	public static final String CONF_HOURS_MONTH = ProvResource.SERVICE_KEY + ":hours-month";
 
@@ -133,6 +135,9 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvStoragePriceRepository spRepository;
 
 	@Autowired
+	protected ProvQuoteStorageRepository qsRepository;
+
+	@Autowired
 	protected ProvStorageTypeRepository stRepository;
 
 	// Support utilities
@@ -143,7 +148,6 @@ public abstract class AbstractImportCatalogResource {
 	protected ProvSupportPriceRepository sp2Repository;
 
 	// Container utilities
-
 	@Autowired
 	protected ProvContainerPriceRepository cpRepository;
 
@@ -152,6 +156,16 @@ public abstract class AbstractImportCatalogResource {
 
 	@Autowired
 	protected ProvQuoteContainerRepository qcRepository;
+
+	// Function utilities
+	@Autowired
+	protected ProvFunctionPriceRepository fpRepository;
+
+	@Autowired
+	protected ProvFunctionTypeRepository ftRepository;
+
+	@Autowired
+	protected ProvQuoteFunctionRepository qfRepository;
 
 	// Instance utilities
 
@@ -191,7 +205,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <U extends AbstractUpdateContext> U initContext(final U context, final String node, final boolean force) {
 		context.setNode(nodeRepository.findOneExpected(node));
-		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, DEFAULT_HOURS_MONTH));
+		context.setHoursMonth(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH));
 		context.setForce(force);
 		return context;
 	}
@@ -354,13 +368,15 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Install a new region.
-	 * 
-	 * @param context The update context.
-	 * @param region  The region API name to install.
+	 *
+	 * @param context     The update context.
+	 * @param name        The region API name to install.
+	 * @param description The optional description. If <code>null</code>, the name provided in the static definition is
+	 *                    used.
 	 * @return The region, created or existing one.
 	 */
-	protected ProvLocation installRegion(final AbstractUpdateContext context, final String region) {
-		final var entity = context.getRegions().computeIfAbsent(region, r -> {
+	protected ProvLocation installRegion(final AbstractUpdateContext context, final String name, String description) {
+		final var entity = context.getRegions().computeIfAbsent(name, r -> {
 			final var newRegion = new ProvLocation();
 			newRegion.setNode(context.getNode());
 			newRegion.setName(r);
@@ -369,7 +385,7 @@ public abstract class AbstractImportCatalogResource {
 
 		// Update the location details as needed
 		return copyAsNeeded(context, entity, r -> {
-			final var regionStats = context.getMapRegionToName().getOrDefault(region, new ProvLocation());
+			final var regionStats = context.getMapRegionById().getOrDefault(name, new ProvLocation());
 			r.setContinentM49(regionStats.getContinentM49());
 			r.setCountryA2(regionStats.getCountryA2());
 			r.setCountryM49(regionStats.getCountryM49());
@@ -378,31 +394,31 @@ public abstract class AbstractImportCatalogResource {
 			r.setSubRegion(regionStats.getSubRegion());
 			r.setLatitude(regionStats.getLatitude());
 			r.setLongitude(regionStats.getLongitude());
-			r.setDescription(regionStats.getName());
+			r.setDescription(ObjectUtils.defaultIfNull(description, regionStats.getName()));
 		});
 	}
 
 	/**
-	 * Return the {@link ProvLocation} matching the human name.
+	 * Install a new region.
+	 *
+	 * @param context The update context.
+	 * @param name    The region API name to install.
+	 * @return The region, created or existing one.
+	 */
+	protected ProvLocation installRegion(final AbstractUpdateContext context, final String name) {
+		return installRegion(context, name, null);
+	}
+
+	/**
+	 * Return the {@link ProvLocation} matching the human name if enabled.
 	 *
 	 * @param context   The update context.
 	 * @param humanName The required human name.
 	 * @return The corresponding {@link ProvLocation} or <code>null</code>.
 	 */
 	protected ProvLocation getRegionByHumanName(final AbstractUpdateContext context, final String humanName) {
-		return context.getRegions().values().stream().filter(r -> isEnabledRegion(context, r))
-				.filter(r -> humanName.equals(r.getDescription())).findAny().orElse(null);
-	}
-
-	/**
-	 * Update the statistics
-	 * 
-	 * @param context  The update context.
-	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
-	 */
-	protected void nextStep(final AbstractUpdateContext context, final String location, final int step) {
-		nextStep(context.getNode(), location, step);
+		return context.getRegions().values().stream().filter(r -> humanName.equals(r.getDescription()))
+				.filter(r -> isEnabledRegion(context, r)).findAny().orElse(null);
 	}
 
 	/**
@@ -412,36 +428,37 @@ public abstract class AbstractImportCatalogResource {
 	 * @param phase   The new import phase.
 	 */
 	protected void nextStep(final AbstractUpdateContext context, final String phase) {
-		nextStep(context.getNode(), phase);
+		nextStep(context, phase, null, 1);
 	}
 
 	/**
-	 * Update the current phase for statistics and add 1 to the processed workload.
+	 * Update the statistics
 	 *
-	 * @param node  The current import node.
-	 * @param phase The new import phase.
+	 * @param context  The update context.
+	 * @param phase    The new import phase.
+	 * @param location The current region API name.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String phase) {
-		importCatalogResource.nextStep(node.getId(), t -> {
-			importCatalogResource.updateStats(t);
-			t.setWorkload(getWorkload(t));
-			t.setDone(t.getDone() + 1);
-			t.setPhase(phase);
-		});
+	protected void nextStep(final AbstractUpdateContext context, final String phase, final String location,
+			final int step) {
+		nextStep(context.getNode(), phase, location, step);
 	}
 
 	/**
 	 * Update the statistics.
-	 * 
+	 *
 	 * @param node     The node provider.
+	 * @param phase    The new import phase.
 	 * @param location The current region API name.
-	 * @param step     The step counter to move forward. May be <code>0</code>.
+	 * @param step     The step counter increment. May be <code>0</code>.
 	 */
-	protected void nextStep(final Node node, final String location, final int step) {
+	private void nextStep(final Node node, final String phase, final String location, final int step) {
+		log.info("Next step node={}, phase={}, region={}, step={}", node.getId(), phase, location, step);
 		importCatalogResource.nextStep(node.getId(), t -> {
 			importCatalogResource.updateStats(t);
 			t.setWorkload(getWorkload(t));
 			t.setDone(t.getDone() + step);
+			t.setPhase(phase);
 			t.setLocation(location);
 		});
 	}
@@ -458,7 +475,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <T>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
@@ -472,6 +489,26 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
+		context.getPrices().add(price.getCode());
+		return saveAsNeededInternal(context, price, oldCost, newCost, updateCost, persister);
+	}
+
+	/**
+	 * Save a price when the attached cost is different from the old one.
+	 *
+	 * @param <T>        The price type's type.
+	 * @param <P>        The price type.
+	 * @param context    The context to initialize.
+	 * @param price      The target entity to update.
+	 * @param oldCost    The old cost.
+	 * @param newCost    The new cost.
+	 * @param updateCost The consumer used to handle the price replacement operation if needed.
+	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
+	 * @return The given entity.
+	 */
+	private <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
+			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
+			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
 		if (context.isForce() || (price.isNew() && !em.contains(price)) || oldCost != newCostR) {
 			updateCost.accept(newCostR, newCost);
@@ -483,7 +520,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set. The cost of the period is also updated accordingly to the attached term.
-	 * 
+	 *
 	 * @param <T>         The price's type.
 	 * @param <P>         The instance type's type.
 	 * @param context     The context to initialize.
@@ -495,7 +532,6 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repositorty) {
-		context.getPrices().add(entity.getCode());
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
@@ -505,7 +541,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set.
-	 * 
+	 *
 	 * @param <T>         The price's type.
 	 * @param <P>         The instance type's type.
 	 * @param context     The context to initialize.
@@ -516,7 +552,6 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
-		context.getPrices().add(entity.getCode());
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
 				repositorty::save);
 	}
@@ -532,13 +567,13 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvStoragePrice saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
 			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
-		return saveAsNeeded(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
+		return saveAsNeededInternal(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
 				repositorty::save);
 	}
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <K>     The price type's type.
 	 * @param <P>     The price type.
 	 * @param context The context to initialize.
@@ -553,7 +588,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Save a type when the corresponding code has not yet been updated in this context.
-	 * 
+	 *
 	 * @param <T>        The type's specification.
 	 * @param context    The context to initialize.
 	 * @param entity     The target entity to update.
@@ -563,18 +598,77 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
 			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
-		if (context.getMergedTypes().add(entity.getCode())) {
-			updater.accept(entity);
+		return syncAdd(context.getMergedTypes(), entity.getCode(), updater, entity, repository);
+	}
+
+	/**
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
+	 * 
+	 * @param <Y>        Collection item type.
+	 * @param <I>        Persistable entity type.
+	 * @param collection Target collection of synchronized item.
+	 * @param item       Item to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection.
+	 * @param entity     The entity to persist when the item was not present.
+	 * @param repository The repository managing the entity.
+	 * @return The given entity after it's possible persist.
+	 */
+	protected <Y, I> I syncAdd(final Set<Y> collection, final Y item, Consumer<I> whenAbsent, I entity,
+			final JpaRepository<I, ?> repository) {
+		syncAdd(collection, item, i -> {
+			whenAbsent.accept(entity);
 			if (repository != null) {
 				repository.saveAndFlush(entity);
 			}
-		}
+		});
 		return entity;
 	}
 
 	/**
-	 * Save the given private term if not yet updated.
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
 	 * 
+	 * @param <Y>        Collection item type.
+	 * @param collection Target collection of synchronized item.
+	 * @param item       Item to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection.
+	 * @return The given entity after the callback call.
+	 */
+	protected <Y> Y syncAdd(final Set<Y> collection, final Y item, final Consumer<Y> whenAbsent) {
+		if (!collection.contains(item)) {
+			synchronized (collection) {
+				if (collection.add(item)) {
+					whenAbsent.accept(item);
+				}
+			}
+		}
+		return item;
+	}
+
+	/**
+	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
+	 * 
+	 * @param <Y>        Map key type.
+	 * @param <V>        Map value type.
+	 * @param map        Target map of synchronized item.
+	 * @param key        Item's ley to add.
+	 * @param whenAbsent The callback to notify when the item was not present into the collection, adn return the value
+	 *                   to put in the map.
+	 * @param onCompute  The callback called whatever the item base present or not.
+	 * @return The value previously stored in the map, or the new one returned by the <code>whenAbsent</code> callback..
+	 */
+	protected <K, V> V syncAdd(final Map<K, V> map, final K key, final Function<K, V> whenAbsent,
+			final Function<V, V> onCompute) {
+		return map.compute(key, (code, previous) -> {
+			if (previous == null) {
+				previous = whenAbsent.apply(key);
+			}
+			return onCompute.apply(previous);
+		});
+	}
+
+	/**
+	 * Save the given private term if not yet updated.
+	 *
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
 	 * @param updater The consumer used to update the replacement.
@@ -582,16 +676,12 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvInstancePriceTerm copyAsNeeded(final AbstractUpdateContext context,
 			final ProvInstancePriceTerm entity, final Consumer<ProvInstancePriceTerm> updater) {
-		if (context.getMergedTerms().add(entity.getCode())) {
-			updater.accept(entity);
-			iptRepository.saveAndFlush(entity);
-		}
-		return entity;
+		return syncAdd(context.getMergedTerms(), entity.getCode(), updater, entity, iptRepository);
 	}
 
 	/**
 	 * Save the given private location if not yet updated.
-	 * 
+	 *
 	 * @param context The context to initialize.
 	 * @param entity  The target entity to update.
 	 * @param updater The consumer used to update the replacement.
@@ -599,16 +689,12 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvLocation copyAsNeeded(final AbstractUpdateContext context, final ProvLocation entity,
 			final Consumer<ProvLocation> updater) {
-		if (context.getMergedLocations().add(entity.getName())) {
-			updater.accept(entity);
-			locationRepository.saveAndFlush(entity);
-		}
-		return entity;
+		return syncAdd(context.getMergedLocations(), entity.getName(), updater, entity, locationRepository);
 	}
 
 	/**
 	 * Save a price when the attached cost is different from the old one.
-	 * 
+	 *
 	 * @param <K>        The price type's type.
 	 * @param <P>        The price type.
 	 * @param context    The context to initialize.
@@ -635,16 +721,17 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Remove the prices that were present in the catalog and not seen in the new catalog with this update.
-	 * 
+	 *
 	 * @param context      The update context.
 	 * @param storedPrices The whole price context in the database. Some of them have not been seen in the new catalog.
+	 *                     Key is the price code.
 	 * @param pRepository  The price repository used to clean the deprecated and unused prices.
 	 * @param qRepository  The quote repository to check for unused prices.
 	 * @param <T>          The instance type.
 	 * @param <P>          The price type.
 	 * @param <Q>          The quote type.
 	 */
-	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>, Q extends AbstractQuoteVm<P>> void purgePrices(
+	protected <T extends ProvType, P extends AbstractPrice<T>, Q extends AbstractQuote<P>> void purgePrices(
 			final AbstractUpdateContext context, final Map<String, P> storedPrices,
 			final CrudRepository<P, Integer> pRepository, final BaseProvQuoteRepository<Q> qRepository) {
 		final var retiredCodes = new HashSet<>(storedPrices.keySet());
