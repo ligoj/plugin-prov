@@ -56,7 +56,7 @@ public abstract class AbstractUpdateContext {
 	 * Mapping from API region identifier to region definition.
 	 */
 	@Getter
-	private final Map<String, ProvLocation> mapRegionById = new HashMap<>();
+	private Map<String, ProvLocation> mapRegionById = new HashMap<>();
 
 	/**
 	 * The previously installed instance types. Key is the instance code.
@@ -250,6 +250,7 @@ public abstract class AbstractUpdateContext {
 		this.validInstanceType = parent.validInstanceType;
 		this.validRegion = parent.validRegion;
 		this.validOs = parent.validOs;
+		this.mapRegionById = parent.getMapRegionById();
 	}
 
 	public void setPrevious(final Map<String, ProvInstancePrice> previous) {
