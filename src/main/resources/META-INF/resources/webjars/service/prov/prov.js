@@ -3303,12 +3303,12 @@ define(function () {
 			}
 		},
 
-		sunburstTooltip: function (data) {
+		sunburstTooltip: function (data, d) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(data, true, 100)
-				+ (data.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ current.recursivePercent(d, true, 100)
+				+ (d.depth && d.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || d.children.length) : '') + '</span>';
 		},
 
 		title: function (key, icon) {
