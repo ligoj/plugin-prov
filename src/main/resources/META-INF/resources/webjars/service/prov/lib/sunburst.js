@@ -14,6 +14,24 @@ define(['d3', 'jquery'], function (d3, $) {
 	};
 
 	sunburst.init = function ($element, data, sort, tooltipFunction, colorScheme) {
+		// short the data by weight and short the color with ressource(instance/database...)
+		var i=0;
+		data.children.forEach(element => {	
+			element.color= colorScheme[i];
+			i++;
+		});
+		data.children.sort(function compare(a, b) {
+			if (a.value < b.value)
+			   return -1;
+			if (a.value > b.value )
+			   return 1;
+			return 0;
+		});
+		i=0;
+		data.children.forEach(element => {	
+			colorScheme[i]=element.color;
+			i++;
+		});
 		var width = 200;
 		var height = 200;
 		var radius = (Math.min(width, height) / 2) - 10;
