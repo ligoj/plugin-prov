@@ -13,3 +13,21 @@
 .catalog-import .dropdown-toggle {
 	padding: 0;
 }
+.flag-icon {
+    background-size: contain;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    line-height: 1em;
+    margin-top: 4px;
+    margin-left: -5px;
+	margin-right: 4px;
+}
+
+img.flag-icon.prov-location-flag {
+    margin-top: -3px;
+    margin-left: 1px;
+    display: inline;
+}

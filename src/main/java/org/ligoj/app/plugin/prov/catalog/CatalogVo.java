@@ -5,15 +5,16 @@ package org.ligoj.app.plugin.prov.catalog;
 
 import org.ligoj.app.api.NodeVo;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The catalog with optional status
  */
 @Getter
-@AllArgsConstructor
+@Setter
 public class CatalogVo {
 
 	/**
@@ -35,4 +36,9 @@ public class CatalogVo {
 	 * The amount of quotes using this catalog.
 	 */
 	private int nbQuotes;
+
+	/**
+	 * The preferred location
+	 */
+	private ProvLocation preferredLocation;
 }

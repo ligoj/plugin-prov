@@ -16,12 +16,14 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.ligoj.app.plugin.prov.catalog.CatalogEditionVo;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
@@ -35,11 +37,14 @@ import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
 import org.ligoj.app.resource.node.NodeResource;
+import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -232,16 +237,41 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		final var providers = nodeRepository.findAllVisible(securityHelper.getLogin(), "", ProvResource.SERVICE_KEY,
 				null, 1, PageRequest.of(0, 100));
 
-		return providers.getContent().stream().sorted().map(NodeResource::toVo)
-				.map(n -> new CatalogVo(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
-					// Create a mock catalog status
-					final var status = new ImportCatalogStatus();
-					updateStats(status, n.getId());
-					return status;
-				}), n, locator.getResource(n.getId(), ImportCatalogService.class) != null,
-						(int) repository.countByNode(n.getId())))
-				.collect(Collectors.toList());
+		return providers.getContent().stream().sorted().map(n -> {
+			final var vo = new CatalogVo();
+			vo.setStatus(Optional.ofNullable(statuses.get(n.getId())).orElseGet(() -> {
+
+				// Create a mock catalog status
+				final var status = new ImportCatalogStatus();
+				updateStats(status, n.getId());
+				return status;
+			}));
+			vo.setNode(NodeResource.toVo(n));
+			vo.setCanImport(locator.getResource(n.getId(), ImportCatalogService.class) != null);
+			vo.setNbQuotes((int) repository.countByNode(n.getId()));
+			vo.setPreferredLocation(
+					locationRepository.findBy("node", n, new String[] { "preferred" }, new Object[] { true }));
+			return vo;
+		}).collect(Collectors.toList());
+
 	}
+
+	/**
+	 * Update catalog .
+	 *
+	 * @param vo New catalog settings.
+	 */
+	@PUT
+	public void update(CatalogEditionVo catalogEdition) {
+		final var node = nodeResource.checkWritableNode(catalogEdition.getNode()).getTool().getId();
+		if (locationRepository.findBy("id",catalogEdition.getPreferredLocation()).getNode().getId() != node) {
+			throw new ValidationJsonException(node,"node-not-same");
+		}
+		locationRepository.unsetPreferredLocation(node);
+		locationRepository.setPreferredLocation(node, catalogEdition.getPreferredLocation());
+
+	}
+	//locationRepository.findBy("id",catalogEdition.getPreferredLocation());
 
 	@Override
 	public Supplier<ImportCatalogStatus> newTask() {
