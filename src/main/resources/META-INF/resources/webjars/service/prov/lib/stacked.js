@@ -138,7 +138,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('height', 18)
                 .attr('width', 18)
                 .style('color','white')
-                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" title="${d}"></i>`);
+                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
 
             // initialize checkbox options
             if (params.percentCB) {

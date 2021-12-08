@@ -394,6 +394,7 @@ public abstract class AbstractImportCatalogResource {
 			r.setSubRegion(regionStats.getSubRegion());
 			r.setLatitude(regionStats.getLatitude());
 			r.setLongitude(regionStats.getLongitude());
+			r.setPreferred(regionStats.isPreferred());
 			r.setDescription(ObjectUtils.defaultIfNull(description, regionStats.getName()));
 		});
 	}

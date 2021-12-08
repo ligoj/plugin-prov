@@ -3054,6 +3054,7 @@ define(function () {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
 					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')) {
 						current.enableCreate($popup);
+						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
 						$(_(inputType + '-name')).focus();
 					} else {
 						$popup.modal('hide');
@@ -3303,12 +3304,12 @@ define(function () {
 			}
 		},
 
-		sunburstTooltip: function (data) {
+		sunburstTooltip: function (data, d) {
 			var tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(data, true, 100)
-				+ (data.depth && data.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || data.children.length) : '') + '</span>';
+				+ current.recursivePercent(d, true, 100)
+				+ (d.depth && d.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || d.children.length) : '') + '</span>';
 		},
 
 		title: function (key, icon) {

@@ -68,6 +68,7 @@ import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.terraform.TerraformRunnerResource;
 import org.ligoj.app.resource.ServicePluginLocator;
+import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.plugin.AbstractConfiguredServicePlugin;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
@@ -82,7 +83,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * The provisioning service. There is complete quote configuration along the subscription.
+ * The provisioning service. There is complete quote configuration along the
+ * subscription.
  */
 @Service
 @Path(ProvResource.SERVICE_URL)
@@ -112,15 +114,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public static final Map<String, String> ORM_COLUMNS = new HashMap<>();
 
 	/**
-	 * Parallel configuration. When value is <code>1</code>, parallel stream will be used as often as possible.
-	 * Otherwise, sequential will be used.
+	 * Parallel configuration. When value is <code>1</code>, parallel stream will be
+	 * used as often as possible. Otherwise, sequential will be used.
 	 */
 	public static final String USE_PARALLEL = SERVICE_KEY + ":use-parallel";
 
 	/**
 	 * Default hours per month.
 	 *
-	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
+	 * @see <a href=
+	 *      "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
 	 */
 	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
 
@@ -223,6 +226,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvResource self;
+	
+	@Autowired
+	protected NodeResource nodeResource;
 
 	static {
 		ORM_COLUMNS.put("name", "name");
@@ -244,8 +250,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return all available locations for a subscription.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the locations from the associated
-	 *                     provider.
+	 * @param subscription The subscription identifier, will be used to filter the
+	 *                     locations from the associated provider.
 	 * @return The all available locations for the given subscription.
 	 */
 	@GET
@@ -259,7 +265,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Return the available processors for a subscription.
 	 *
-	 * @param node The node identifier, will be used to filter the processors from the associated provider.
+	 * @param node The node identifier, will be used to filter the processors from
+	 *             the associated provider.
 	 * @return The available processors for the given subscription.
 	 */
 	@CacheResult(cacheName = "prov-processor")
@@ -273,13 +280,15 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
-	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
+	 * Check and return the expected location within the given subscription. The
+	 * subscription is used to determinate the related node (provider). Return
+	 * <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the the name must be found.
 	 *
 	 * @param node The provider node.
 	 * @param name The location name. Case is insensitive.
-	 * @return The visible location for the related subscription or <code>null</code>.
+	 * @return The visible location for the related subscription or
+	 *         <code>null</code>.
 	 */
 	public ProvLocation findLocation(final String node, final String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -299,8 +308,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the quote configuration from a validated subscription. The subscription's visibility must have been
-	 * previously checked.
+	 * Return the quote configuration from a validated subscription. The
+	 * subscription's visibility must have been previously checked.
 	 *
 	 * @param subscription A visible subscription for the current principal.
 	 * @return The configuration with computed data.
@@ -380,7 +389,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Update the configuration details. The costs and the related resources are refreshed with lookup.
+	 * Update the configuration details. The costs and the related resources are
+	 * refreshed with lookup.
 	 *
 	 * @param subscription The subscription to update
 	 * @param vo           The new quote.
@@ -426,8 +436,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
-	 * updated.
+	 * Compute the total cost and save it into the related quote. All separated
+	 * compute and storage costs are also updated.
 	 *
 	 * @param subscription The subscription to compute
 	 * @return The updated computed cost.
@@ -442,8 +452,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Compute the total cost and save it into the related quote. All separated compute and storage costs are also
-	 * updated.
+	 * Compute the total cost and save it into the related quote. All separated
+	 * compute and storage costs are also updated.
 	 *
 	 * @param quote The quote to compute
 	 * @return The updated computed cost.
@@ -552,7 +562,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Refresh the cost of the support for the whole whole quote related to a resource.
+	 * Refresh the cost of the support for the whole whole quote related to a
+	 * resource.
 	 *
 	 * @param cost   The target cost object to update.
 	 * @param entity A recently updated resource.
@@ -605,15 +616,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			// No available location, need a catalog to continue
 			throw new BusinessException(SERVICE_KEY + "-no-catalog", provider.getId(), provider.getName());
 		}
-
-		quote.setLocation(locations.get(0));
+		final var location = locationRepository.findBy("node.id", provider.getId(), new String[] { "preferred" }, true);
+		if (location == null) {
+			quote.setLocation(locations.get(0));
+		} else {
+			quote.setLocation(location);
+		}
 		quote.setDescription(quote.getSubscription().getProject().getPkey() + "-> " + provider.getName());
 		updateCurrency(quote);
 		repository.saveAndFlush(quote);
 	}
 
 	/**
-	 * Check the visibility of a configured entity and check the ownership by the given subscription.
+	 * Check the visibility of a configured entity and check the ownership by the
+	 * given subscription.
 	 *
 	 * @param repository   The repository managing the entity to find.
 	 * @param id           The requested configured identifier.
@@ -643,4 +659,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public List<Class<?>> getInstalledEntities() {
 		return Arrays.asList(Node.class, SystemConfiguration.class);
 	}
+
+	/**
+	 * Return all available locations for a node.
+	 *
+	 * @param node The node identifier, will be used to filter the locations from
+	 *             the associated provider.
+	 * @return The all available locations for the given node.
+	 */
+	@GET
+	@Path("location/{node:service:prov:.*}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public List<ProvLocation> findLocations(@PathParam("node") final String node) {
+		nodeResource.checkVisible(node);
+		return locationRepository.findAll(node);
+	}
+
 }

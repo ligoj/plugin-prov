@@ -10,6 +10,7 @@ import javax.cache.annotation.CacheResult;
 
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.bootstrap.core.dao.RestRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 /**
@@ -52,4 +53,23 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	@Query("SELECT pl.id FROM ProvLocation pl INNER JOIN pl.node n WHERE"
 			+ " (:node = n.id OR :node LIKE CONCAT(n.id, ':%')) AND UPPER(pl.name) = UPPER(:name)")
 	Integer toId(@CacheKey String node, @CacheKey String name);
+	
+	/**
+	 * * Set all {@link ProvLocation} preferred on <code>false</code>.
+	 *
+	 * @param node The node identifier to match.
+	 */
+	@Modifying
+	@Query("UPDATE ProvLocation SET preferred = false WHERE node.id = :node AND preferred = true ")
+	void unsetPreferredLocation(String node);
+	
+	/**
+	 * Set the {@link ProvLocation} preferred on <code>true</code>. to match with node and preferred location identifier
+	 *
+	 * @param node The node identifier to match.
+	 * @param preferredId The preferred location identifier to match .
+	 */
+	@Modifying
+	@Query("UPDATE ProvLocation SET preferred = true WHERE node.id = :node AND id = :preferredId ")
+	void setPreferredLocation(String node , int preferredId );
 }
