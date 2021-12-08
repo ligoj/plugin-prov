@@ -3280,7 +3280,12 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
-						return types.indexOf(a.data.type) - types.indexOf(b.data.type);
+						if (a.depth==1 && b.depth==1 ){
+							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
+						}else if (a.data.value > b.data.value){
+							return -1 ;
+						}else return 1; 
+						
 					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
 				} else {
