@@ -3054,6 +3054,7 @@ define(function () {
 					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
 					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')) {
 						current.enableCreate($popup);
+						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
 						$(_(inputType + '-name')).focus();
 					} else {
 						$popup.modal('hide');
