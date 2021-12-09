@@ -2327,7 +2327,7 @@ define(function () {
 		 */
 		budgetSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.budgetToText, 'budget', function (budget) {
-				return `${budget.name}<span class="select2-budget-summary pull-right"><span class="x-small">(${formatCost(budget.initialCost)}) </span><a class="update prov-budget-select2-action"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i><a></span>`;
+				return `<a class="update prov-usage-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a>` + usage.text ;
 			});
 		},
 
