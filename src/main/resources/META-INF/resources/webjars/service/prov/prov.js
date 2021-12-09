@@ -3282,7 +3282,7 @@ define(function () {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
 						if (a.depth==1 && b.depth==1 ){
 							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-						}else if (a.data.value > b.data.value){
+						}else if (a.data.value > b.data.value || a.value > b.value){
 							return -1 ;
 						}else return 1; 
 						
