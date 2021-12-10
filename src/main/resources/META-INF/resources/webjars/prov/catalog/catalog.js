@@ -157,13 +157,13 @@ define(['sparkline'], function () {
 		var $node;
 		$popup.on('shown.bs.modal', function () {
 			_('instance-location').trigger('focus');
-			if ($('.select2-chosen').text()=="Défaut"){
-				current.disableCreate($popup)
-			}else current.enableCreate($popup)
+			if ($('.select2-chosen').text()!==' '){
+				current.enableCreate($popup)
+			}else current.disableCreate($popup)
 		}).on('change',_('instance-location') , function (e) {
-			if ($('.select2-chosen').text()=="Défaut"){
-				current.disableCreate($popup)
-			}else current.enableCreate($popup)
+			if ($('.select2-chosen').text()!==' '){
+				current.enableCreate($popup)
+			}else current.disableCreate($popup)
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this), $node);
@@ -190,8 +190,8 @@ define(['sparkline'], function () {
 		/**
 		 * Location Select2 configuration.
 		 */
-		locationSelect2: function (placeholder,node) {
-			return genericSelect2(placeholder, locationToHtml, node, null, locationComparator, locationMatcher);
+		locationSelect2: function (_,node) {
+			return genericSelect2(false, locationToHtml, node, null, locationComparator, locationMatcher);
 		},
 
 		/**
