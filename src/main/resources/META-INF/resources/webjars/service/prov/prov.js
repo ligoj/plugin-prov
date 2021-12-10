@@ -2318,7 +2318,7 @@ define(function () {
 		 */
 		usageModalSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return `${usage.name}<span class="select2-usage-summary pull-right"><span class="x-small">(${usage.rate}%) </span>`+ush;
+				return usage.text;
 			});
 		},
 
@@ -2688,7 +2688,7 @@ define(function () {
 		usageToText: function (usage) {
 			if (usage) {
 				const duration = usage.duration === 1 ? '' : usage.duration + 'M';
-				return `${usage.name}<small class="pull-right">${duration}${usage.rate === 100 ? '' : (' <span>(' + usage.rate + '%)<span>')}</small>`;
+				return `${usage.name}<small class="pull-right">${duration}${usage.rate === 100 ? '' : (' <span class="small">@' + usage.rate + '%<span>')}</small>`;
 			}
 			return null;
 		},
