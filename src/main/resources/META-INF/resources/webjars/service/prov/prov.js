@@ -1761,15 +1761,15 @@ define(function () {
                 success: function (suggest) {
                     current[popupType + 'SetUiPrice'](suggest);
                     if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+						if (!suggest.price || !suggest.price.edition){
+							$("#s2id_database-edition").addClass("hidden")
+							$(".input-group-addon").addClass("hidden")
+						}else {
+							$("#s2id_database-edition").removeClass("hidden")
+							$(".input-group-addon").removeClass("hidden")
+						}
                         // The resource is valid, enable the create
-                        current.enableCreate($popup);
-                    }
-                    if (suggest === undefined ||  suggest.price.edition === undefined){
-                        $("#s2id_database-edition").addClass("hidden")
-                        $(".input-group-addon").addClass("hidden")
-                    }else {
-                        $("#s2id_database-edition").removeClass("hidden")
-                        $(".input-group-addon").removeClass("hidden")
+						current.enableCreate($popup);
                     }
                 },
                 error: () => current.enableCreate($popup)
