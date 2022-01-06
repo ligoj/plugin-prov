@@ -1755,26 +1755,26 @@ define(function () {
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
 			$.ajax({
-                dataType: 'json',
-                url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queriesArray.join('&'),
-                type: 'GET',
-                success: function (suggest) {
-                    current[popupType + 'SetUiPrice'](suggest);
-                    if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
-						if (!suggest.price || !suggest.price.edition){
+				dataType: 'json',
+				url: REST_PATH + 'service/prov/' + current.model.subscription + '/' + type + '-lookup/?' + queriesArray.join('&'),
+				type: 'GET',
+				success: function (suggest) {
+					current[popupType + 'SetUiPrice'](suggest);
+					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+						if (!suggest.price || !suggest.price.edition) {
 							$("#s2id_database-edition").addClass("hidden")
 							$(".input-group-addon").addClass("hidden")
-						}else {
+						} else {
 							$("#s2id_database-edition").removeClass("hidden")
 							$(".input-group-addon").removeClass("hidden")
 						}
-                        // The resource is valid, enable the create
+						// The resource is valid, enable the create
 						current.enableCreate($popup);
-                    }
-                },
-                error: () => current.enableCreate($popup)
-            });
-        },
+					}
+				},
+				error: () => current.enableCreate($popup)
+			});
+		},
 
 		/**
 		 * Return the memory query parameter value to use to filter some other inputs.
