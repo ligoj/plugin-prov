@@ -214,9 +214,7 @@ define(['d3', 'jquery'], function (d3) {
                 .call(axisY);
 
             // Update legend
-            debugger;
             svg.selectAll('.legend').remove()
-
             initializeLegend(svg,margin);
 
             legend.selectAll('rect')
