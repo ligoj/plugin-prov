@@ -116,29 +116,7 @@ define(['d3', 'jquery'], function (d3) {
             };
 
             // initialize legend
-            var legend = params.legend = svg.selectAll('.legend')
-                .data(params.filteredClusterNames)
-                .enter().append('g')
-                .attr('class', 'legend')
-                .on('click', function (e, d) {
-                    chosen.cluster = chosen.cluster === d ? null : d;
-                    refresh();
-                });
-
-            legend.append('rect')
-                .attr('x', margin.left - 63)
-                .attr('y', getLegendY)
-                .attr('height', 18)
-                .attr('width', 18)
-                .attr('fill', d => color(d))
-
-            legend.append("svg:foreignObject")
-                .attr('x', margin.left - 63)
-                .attr('y', getLegendY)
-                .attr('height', 18)
-                .attr('width', 18)
-                .style('color','white')
-                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
+            initializeLegend(svg,margin)
 
             // initialize checkbox options
             if (params.percentCB) {
@@ -236,6 +214,11 @@ define(['d3', 'jquery'], function (d3) {
                 .call(axisY);
 
             // Update legend
+            debugger;
+            svg.selectAll('.legend').remove()
+
+            initializeLegend(svg,margin);
+
             legend.selectAll('rect')
                 .transition()
                 .duration(transDuration)
@@ -486,6 +469,34 @@ define(['d3', 'jquery'], function (d3) {
         function resize(width) {
             params.canvas.svg.html(null);
             create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
+        }
+
+        function initializeLegend(svg,margin){
+
+            // initialize legend
+             var legend = params.legend = svg.selectAll('.legend')
+             .data(params.filteredClusterNames)
+             .enter().append('g')
+             .attr('class', 'legend')
+             .on('click', function (e, d) {
+                 chosen.cluster = chosen.cluster === d ? null : d;
+                 refresh();
+             });
+
+         legend.append('rect')
+             .attr('x', margin.left - 63)
+             .attr('y', getLegendY)
+             .attr('height', 18)
+             .attr('width', 18)
+             .attr('fill', d => params.color(d))
+
+         legend.append("svg:foreignObject")
+             .attr('x', margin.left - 63)
+             .attr('y', getLegendY)
+             .attr('height', 18)
+             .attr('width', 18)
+             .style('color','white')
+             .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
         }
 
         // Exports
