@@ -1761,20 +1761,20 @@ define(function () {
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
-						if (!suggest.price || !suggest.price.edition) {
-							$("#s2id_database-edition").addClass("hidden")
-							$(".input-group-addon").addClass("hidden")
-							// The resource is valid, enable the create
-							current.enableCreate($popup);
-						} else {
+						if (suggest.price && suggest.price.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$(".input-group-addon").removeClass("hidden")
-							if ($("#s2id_database-edition .select2-chosen").text() !== 'Édition') {
+							if ($("#s2id_database-edition .select2-chosen").text() !== current.$messages['service:prov:database-edition']) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
 							} else {
 								$("#s2id_instance-price .select2-chosen").text('');
 							}
+						} else {
+							$("#s2id_database-edition").addClass("hidden")
+							$(".input-group-addon").addClass("hidden")
+							// The resource is valid, enable the create
+							current.enableCreate($popup);
 						}
 					}
 				},
@@ -3293,11 +3293,10 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
-						if (a.depth == 1 && b.depth == 1) {
+						if (a.depth === 1 && b.depth === 1) {
 							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-						} else if (a.data.value > b.data.value || a.value > b.value) {
-							return -1;
-						} else return 1;
+						}
+						return (a.data.value > b.data.value || a.value > b.value) ? -1 : 1 ;
 
 					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
