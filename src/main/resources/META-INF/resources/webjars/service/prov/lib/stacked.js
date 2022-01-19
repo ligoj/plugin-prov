@@ -116,7 +116,7 @@ define(['d3', 'jquery'], function (d3) {
             };
 
             // initialize legend
-            initializeLegend(svg,margin)
+            initializeLegend(svg, margin, chosen)
 
             // initialize checkbox options
             if (params.percentCB) {
@@ -171,6 +171,12 @@ define(['d3', 'jquery'], function (d3) {
 
             var transDuration = 700;
 
+            if (params.legend._groups[0].length != params.filteredClusterNames.length) {
+                svg.selectAll('.legend').remove()
+                initializeLegend(svg, margin, chosen);
+                refresh();
+            }
+
             // re-scaling data if view is changed to percentage
             // and re-scaling back if normal view is selected
             var percentView = params.percentCB ? d3.select(params.percentCB).property("checked") : false;
@@ -214,9 +220,6 @@ define(['d3', 'jquery'], function (d3) {
                 .call(axisY);
 
             // Update legend
-            svg.selectAll('.legend').remove()
-            initializeLegend(svg,margin);
-
             legend.selectAll('rect')
                 .transition()
                 .duration(transDuration)
@@ -228,12 +231,12 @@ define(['d3', 'jquery'], function (d3) {
                 .duration(transDuration)
                 .attr('y', getLegendY)
                 .style('font-size', d => choice(chosen.cluster, d, '16px', '16px', '0px'))
-                .style('visibility', d => choice(chosen.cluster, d,"" ,"","hidden"))
+                .style('visibility', d => choice(chosen.cluster, d, "", "", "hidden"))
                 .attr('x', function (d) {
                     return choice(chosen.cluster, d,
                         margin.left - 63,
                         margin.left - 63,
-                        margin.left - 63 -30);
+                        margin.left - 63 - 30);
                 });
 
             // Update bars
@@ -269,7 +272,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
                     }
                 })
-                .on('mouseleave', function (e,d) {
+                .on('mouseleave', function (e, d) {
                     var sameCost = false;
                     if (e.relatedTarget && e.relatedTarget.__data__) {
                         var data1 = d;
@@ -301,7 +304,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover();
                     }
                 })
-                .on('mouseenter', (e,d) => {
+                .on('mouseenter', (e, d) => {
                     var bars = bar.selectAll('rect')
                         .filter(f => f.x === d.x)
                         .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
@@ -469,32 +472,32 @@ define(['d3', 'jquery'], function (d3) {
             create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
         }
 
-        function initializeLegend(svg,margin){
-
+        function initializeLegend(svg, margin, chosen) {
             // initialize legend
-             var legend = params.legend = svg.selectAll('.legend')
-             .data(params.filteredClusterNames)
-             .enter().append('g')
-             .attr('class', 'legend')
-             .on('click', function (e, d) {
-                 chosen.cluster = chosen.cluster === d ? null : d;
-                 refresh();
-             });
+            chosen.cluster = null;
+            var legend = params.legend = svg.selectAll('.legend')
+                .data(params.filteredClusterNames)
+                .enter().append('g')
+                .attr('class', 'legend')
+                .on('click', function (e, d) {
+                    chosen.cluster = chosen.cluster === d ? null : d;
+                    refresh();
+                });
 
-         legend.append('rect')
-             .attr('x', margin.left - 63)
-             .attr('y', getLegendY)
-             .attr('height', 18)
-             .attr('width', 18)
-             .attr('fill', d => params.color(d))
+            legend.append('rect')
+                .attr('x', margin.left - 63)
+                .attr('y', getLegendY)
+                .attr('height', 18)
+                .attr('width', 18)
+                .attr('fill', d => params.color(d))
 
-         legend.append("svg:foreignObject")
-             .attr('x', margin.left - 63)
-             .attr('y', getLegendY)
-             .attr('height', 18)
-             .attr('width', 18)
-             .style('color','white')
-             .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" :"fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
+            legend.append("svg:foreignObject")
+                .attr('x', margin.left - 63)
+                .attr('y', getLegendY)
+                .attr('height', 18)
+                .attr('width', 18)
+                .style('color', 'white')
+                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" : "fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
         }
 
         // Exports
