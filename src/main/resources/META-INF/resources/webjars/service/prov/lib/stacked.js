@@ -175,6 +175,7 @@ define(['d3', 'jquery'], function (d3) {
                 svg.selectAll('.legend').remove()
                 initializeLegend(svg, margin, chosen);
                 refresh();
+                return
             }
 
             // re-scaling data if view is changed to percentage
