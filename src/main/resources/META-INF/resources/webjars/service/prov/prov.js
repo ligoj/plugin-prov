@@ -1764,11 +1764,11 @@ define(function () {
 						if (suggest.price && suggest.price.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$(".input-group-addon").removeClass("hidden")
-							if ($("#s2id_database-edition .select2-chosen").text() !== current.$messages['service:prov:database-edition']) {
+							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
 							} else {
-								$("#s2id_instance-price .select2-chosen").text('');
+								$("#s2id_instance-price").select2('data',null)
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
