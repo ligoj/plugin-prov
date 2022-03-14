@@ -8,7 +8,7 @@ define({
 		'quotes': 'Number of quotes using this catalog',
 		'lastSuccess': 'Date',
 		'nbLocations': 'Number of available locations for this provider',
-		'locationPreferred': 'Location preferred ',
+		'locationPreferred': 'Preferred location',
 		'nbStorageTypes': 'Number of available storage types for this provider',
 		'nbInstanceTypes': 'Number of available instance types for this provider',
 		'nbInstancePrices': 'Number of available price combinations for this provider',
