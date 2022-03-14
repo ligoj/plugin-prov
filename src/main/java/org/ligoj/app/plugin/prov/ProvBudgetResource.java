@@ -144,7 +144,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
 			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
-		synchronized (quote) {
+		synchronized (quote.getLeanLock()) {
 			// Lean all relevant budgets
 			final var budgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
 					.map(AbstractQuoteVm::getResolvedBudget).filter(Objects::nonNull)
@@ -179,6 +179,9 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			// Ignore, no lean to do
 			return;
 		}
+		Hibernate.initialize(budget.getConfiguration().getUsages());
+		Hibernate.initialize(budget.getConfiguration().getBudgets());
+
 		// Get all related resources
 		log.info("Lean budget {} in subscription {}", budget.getName(),
 				budget.getConfiguration().getSubscription().getId());
