@@ -76,6 +76,11 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	void getName() {
+		Assertions.assertEquals("Provisioning", resource.getName());
+	}
+
+	@Test
 	void getSubscriptionStatus() {
 		final var status = resource.getSubscriptionStatus(subscription);
 		Assertions.assertEquals("quote1", status.getName());
@@ -321,8 +326,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances, but no one use the
-	 * default location. Cost still updated.
+	 * Update the location of the quote, impact all instances, but no one use the default location. Cost still updated.
 	 */
 	@Test
 	void updateLocation() {
@@ -613,8 +617,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the default license model of the quote, impact all instances using the
-	 * default license model.
+	 * Update the default license model of the quote, impact all instances using the default license model.
 	 */
 	@Test
 	void updateLicense() {
@@ -648,8 +651,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Update the location of the quote, impact all instances using the default
-	 * location. Cost still updated.
+	 * Update the location of the quote, impact all instances using the default location. Cost still updated.
 	 */
 	@Test
 	void updateLocationDifferentQILocation() {
@@ -849,7 +851,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		final var configurationPreferred = resource.getConfiguration(subscriptionPreferred.getId());
 		Assertions.assertEquals("region-2", configurationPreferred.getLocation().getName());
 	}
-	
+
 	@Test
 	void findLocation() {
 		final var subscription = new Subscription();
