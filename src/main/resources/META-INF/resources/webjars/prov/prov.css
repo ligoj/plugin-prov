@@ -7,3 +7,17 @@
  .nav-pills li:hover i.terraform, .nav-pills li.active .nav-icon.terraform {
  	background-image: url(terraform/img/terraformw.png);
  }
+ .prov-location-api {
+  white-space: nowrap;
+  float: right;
+}
+
+.select2-chosen .prov-location-api,
+.select2-result .prov-location-api {
+  float: right;
+  font-size: x-small;
+  position: absolute;
+  margin-top: -10px;
+  margin-right: 2px;
+  right: 0;
+}
