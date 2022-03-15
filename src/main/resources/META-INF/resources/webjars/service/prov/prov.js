@@ -1005,11 +1005,8 @@ define(function () {
 		});
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('keyup', delay(function (event) {
-			if (event.which !== 16 && event.which !== 91 && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-				$(this).trigger('change');
-				$.proxy(current.checkResource, $(this))();
-			}
+		$('input.resource-query[type="number"]').on('change input', delay(function () {
+			$.proxy(current.checkResource, $(this))();
 		}, 50));
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
@@ -2316,7 +2313,7 @@ define(function () {
 		 */
 		usageSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return  `<a class="update prov-usage-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a>` + usage.text ;
+				return `<a class="update prov-usage-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a>` + usage.text;
 			});
 		},
 
@@ -3283,23 +3280,23 @@ define(function () {
 				}
 			});
 
-			 // Update the sunburst total resource capacity
-			 require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
-                if (stats.cost) {
-                    sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
-                        if (a.depth==1 && b.depth==1 ){
-                            return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-                        }else if (a.data.value > b.data.value || a.value > b.value){
-                            return -1 ;
-                        }else return 1; 
-                        
-                    }, current.sunburstTooltip, d3[colorScheme]);
-                    _('prov-sunburst').removeClass('hidden');
-                } else {
-                    _('prov-sunburst').addClass('hidden');
-                }
-            });
-        },
+			// Update the sunburst total resource capacity
+			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
+				if (stats.cost) {
+					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
+						if (a.depth == 1 && b.depth == 1) {
+							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
+						} else if (a.data.value > b.data.value || a.value > b.value) {
+							return -1;
+						} else return 1;
+
+					}, current.sunburstTooltip, d3[colorScheme]);
+					_('prov-sunburst').removeClass('hidden');
+				} else {
+					_('prov-sunburst').addClass('hidden');
+				}
+			});
+		},
 
 		updateSummary($summary, resource) {
 			$summary.removeClass('hidden');
