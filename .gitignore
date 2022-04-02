@@ -10,3 +10,4 @@
 **/*.iml
 /package-lock.json
 *.log
+/bin/
