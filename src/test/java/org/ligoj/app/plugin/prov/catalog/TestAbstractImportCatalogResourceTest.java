@@ -564,7 +564,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	}
 
 	@Test
-	void saveAsNeedeNew() {
+	void saveAsNeededNew() {
 		final var entity = new ProvSupportPrice();
 		entity.setCost(2d);
 		entity.setCode("code");
@@ -580,7 +580,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	 * New (without identifier) but already in the entity manager.
 	 */
 	@Test
-	void saveAsNeedeNewInEm() {
+	void saveAsNeededNewInEm() {
 		final var entity = new ProvSupportPrice();
 		entity.setCost(2d);
 		entity.setCode("code");
@@ -615,7 +615,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	@Test
 	void saveAsNeededSame() {
 		final var entity = newPrice();
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-nerver-called-");
+		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
 		saveAsNeeded(newContext(), entity, 1, 1, null, consumer);
 		Assertions.assertEquals("old", entity.getCode());
 	}
