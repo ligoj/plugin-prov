@@ -8,7 +8,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.ligoj.app.api.NodeScoped;
 import org.ligoj.bootstrap.core.model.ToNameSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -24,7 +23,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_INSTANCE_PRICE_TERM", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "name", "node" }), @UniqueConstraint(columnNames = { "code", "node" }) })
-public class ProvInstancePriceTerm extends AbstractCodedEntity implements NodeScoped {
+public class ProvInstancePriceTerm extends AbstractCodedEntity {
 
 	/**
 	 * SID

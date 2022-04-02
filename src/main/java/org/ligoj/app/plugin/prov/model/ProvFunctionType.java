@@ -18,7 +18,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_FUNCTION_TYPE", uniqueConstraints = { @UniqueConstraint(columnNames = { "name", "node" }),
 		@UniqueConstraint(columnNames = { "code", "node" }) })
-public class ProvFunctionType  extends AbstractInstanceType implements ProvType {
+public class ProvFunctionType  extends AbstractInstanceType {
 
 	/**
 	 * SID
