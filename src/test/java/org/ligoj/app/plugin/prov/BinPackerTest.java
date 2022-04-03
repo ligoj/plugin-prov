@@ -23,13 +23,13 @@ class BinPackerTest {
 
 	@Test
 	void test() {
-		final var values = new ArrayList<Double>(List.of(2d, 5d, 10d, 1d, 7d, 1d, 17d, 21d, 9d, 18d, 5d, 12d));
+		final var values = new ArrayList<>(List.of(2d, 5d, 10d, 1d, 7d, 1d, 17d, 21d, 9d, 18d, 5d, 12d));
 		final var piecesToItems = new IdentityHashMap<Double, Piece>();
 		final var index = new AtomicInteger(0);
 		values.forEach(v -> piecesToItems.put(v, new Piece(v, "name" + index.incrementAndGet())));
 		final var packer = new LinearBinPacker();
-		final var existingBins = new ArrayList<LinearBin>(List.of(new LinearBin(1600d)));
-		final var bins = packer.packAll(values, existingBins, new ArrayList<Double>(List.of(Double.MAX_VALUE)));
+		final var existingBins = new ArrayList<>(List.of(new LinearBin(1600d)));
+		final var bins = packer.packAll(values, existingBins, new ArrayList<>(List.of(Double.MAX_VALUE)));
 		System.out.println(bins);
 		bins.get(0).getPieces().forEach(p -> System.out.println(piecesToItems.get(p)));
 	}

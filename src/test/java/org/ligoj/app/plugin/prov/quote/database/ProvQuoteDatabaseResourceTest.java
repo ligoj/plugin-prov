@@ -216,7 +216,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	void lookupConvertibleEngine() throws IOException {
+	void lookupConvertibleEngine() {
 		final var lookup = qbResource.lookup(subscription,
 				builder().cpu(1).location("region-5").engine("MYSQL").usage("Full Time Convertible").build());
 		final var pi = lookup.getPrice();
