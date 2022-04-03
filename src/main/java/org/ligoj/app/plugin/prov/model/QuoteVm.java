@@ -21,7 +21,7 @@ public interface QuoteVm {
 	 * @return The amount of required RAM, in MiB. Default is 1.
 	 */
 	int getRam();
-	
+
 	/**
 	 * Return the amount of required GPU. Default is 0.
 	 *
@@ -36,7 +36,7 @@ public interface QuoteVm {
 	 * @see #getCpu()
 	 */
 	Double getCpuMax();
-	
+
 	/**
 	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
 	 *
@@ -70,12 +70,18 @@ public interface QuoteVm {
 	String getProcessor();
 
 	/**
-	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual. Return
-	 * Optional physical processor.
+	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual.
 	 *
 	 * @return Optional physical processor.
 	 */
 	Boolean getPhysical();
+
+	/**
+	 * Optional edge constraint. When <code>true</code>, this instance type must be executed at edge location.
+	 *
+	 * @return Optional edge constraint.
+	 */
+	Boolean getEdge();
 
 	/**
 	 * Return optional instance type name. May be <code>null</code>.
@@ -136,7 +142,7 @@ public interface QuoteVm {
 	 * @return CPU rate
 	 */
 	Rate getCpuRate();
-	
+
 	/**
 	 * Minimal required GPU rate
 	 *

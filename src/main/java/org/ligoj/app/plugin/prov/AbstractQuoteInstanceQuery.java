@@ -104,6 +104,12 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	private Boolean physical;
 
 	/**
+	 * When <code>true</code>, this instance type must be executed at edge location.
+	 */
+	@QueryParam("edge")
+	private Boolean edge;
+
+	/**
 	 * When <code>true</code> ephemeral instances are accepted.
 	 */
 	@QueryParam("ephemeral")

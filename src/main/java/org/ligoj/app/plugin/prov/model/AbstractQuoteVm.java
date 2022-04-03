@@ -104,6 +104,11 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private Boolean physical;
 
 	/**
+	 * When <code>true</code>, this instance type must be executed at edge location.
+	 */
+	private Boolean edge;
+	
+	/**
 	 * The Internet access : Internet facing, etc.
 	 */
 	@NotNull
