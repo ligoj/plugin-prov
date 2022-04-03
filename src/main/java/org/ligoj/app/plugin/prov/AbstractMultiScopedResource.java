@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
@@ -201,7 +200,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> getRelated(
 			final Function<S, Stream<C>> fetcher, final S entity) {
-		return getRelatedStream(fetcher, entity).collect(Collectors.toList());
+		return getRelatedStream(fetcher, entity).toList();
 	}
 
 	/**

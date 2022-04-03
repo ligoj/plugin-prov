@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -240,7 +239,7 @@ public class ProvQuoteSupportResource
 				.filter(sp -> filter(accessEmail, sp.getType().getAccessEmail()))
 				.filter(sp -> filter(accessPhone, sp.getType().getAccessPhone()))
 				.filter(sp -> filter(level, sp.getType().getLevel())).map(sp -> newPrice(quote, sp, seats))
-				.sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost())).collect(Collectors.toList());
+				.sorted((p1, p2) -> (int) (p1.getCost() - p2.getCost())).toList();
 	}
 
 	/**
