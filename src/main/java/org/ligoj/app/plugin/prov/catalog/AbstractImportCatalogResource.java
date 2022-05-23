@@ -254,6 +254,15 @@ public abstract class AbstractImportCatalogResource {
 		return FloatingCost.round(value);
 	}
 
+	/**
+	 * Read a JSON file and convert it to map.
+	 * 
+	 * @param <T>  Target reference type.
+	 * @param path JSON file location.
+	 * @param type Target type class.
+	 * @return Unmodifiable map object.
+	 * @throws IOException When the JSON cannot be read or parsed.
+	 */
 	protected <T> Map<String, T> toMap(final String path, final TypeReference<Map<String, T>> type) throws IOException {
 		return objectMapper.readValue(
 				IOUtils.toString(new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8), type);
