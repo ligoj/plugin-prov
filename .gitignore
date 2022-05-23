@@ -11,3 +11,4 @@
 /package-lock.json
 *.log
 /bin/
+/.apt_generated_tests/
