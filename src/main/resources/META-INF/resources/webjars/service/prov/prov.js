@@ -494,11 +494,11 @@ define(function () {
 		return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
 	}
 
-	function formatCostText(cost, isMax, _i, noRichText, unbound, currency) {
+	function formatCostText(cost, _isMax, _i, noRichText, unbound, currency) {
 		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, (currency && currency.unit) || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
 
-	function formatCostOdometer(cost, isMax, $cost, noRichTest, unbound) {
+	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound) {
 		if (isMax) {
 			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
 				var $wrapper = $cost.find('.cost-max');
@@ -639,7 +639,7 @@ define(function () {
 
 		if (mode === 'sort') {
 			// Compute the sum
-			return (instance.storages || []).reduce((acc, s) => acc + storage.size, 0);
+			return (instance.storages || []).reduce((acc, s) => acc + s.size, 0);
 		}
 		// Need to build a Select2 tags markup
 		return `<input type="text" class="storage-tags" data-instance="${instance.id}" autocomplete="off" name="storage-tags">`;
@@ -670,7 +670,7 @@ define(function () {
 	}
 
 	function filterMultiScoped(name) {
-		return opFunction => (value, data) => opFunction((data[name] || current.model.configuration[name] || { name: 'default' }).name);
+		return opFunction => (_value, data) => opFunction((data[name] || current.model.configuration[name] || { name: 'default' }).name);
 	}
 	function formatMultiScoped(type, entity, confEntity, mode, icon, tooltip) {
 		if (mode === 'sort' || mode === 'filter' || mode === 'tooltip') {
@@ -693,7 +693,7 @@ define(function () {
 		return `<span data-toggle="tooltip" title='${current.title('name', icon)}${entity.name}${(typeof tooltip === 'function' && tooltip(entity)) || ''}'>${entity.name}</span>`;
 	}
 
-	function formatBudget(budget, mode, qi) {
+	function formatBudget(budget, mode) {
 		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(e.initialCost)}` : '');
 	}
 	function formatUsage(usage, mode) {
@@ -1000,9 +1000,7 @@ define(function () {
 			// Also trigger the change of the value
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
-		_('database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', function (e) {
-			_('database-edition').select2('data', null);
-		});
+		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', ()=>_('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 		$('input.resource-query[type="number"]').on('change input', delay(function () {
@@ -1958,7 +1956,7 @@ define(function () {
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
 			});
-			$table.on('column-visibility.dt', function (e, settings, idCOl, visibility) {
+			$table.on('column-visibility.dt', function (_e, _settings, _idCOl, visibility) {
 				if (visibility) {
 					$(this).DataTable().draw('page');
 				}
@@ -2043,7 +2041,7 @@ define(function () {
 			// Global data tables filter
 			if ($.fn.dataTable.ext.search.length === 0) {
 				$.fn.dataTable.ext.search.push(
-					function (settings, dataFilter, dataIndex, data) {
+					function (settings, dataFilter, _dataIndex, data) {
 						var type = settings.oInit.provType;
 						// Save the last used filter
 						if (typeof type === 'undefined') {
@@ -3141,7 +3139,7 @@ define(function () {
 						}, d => {
 							// Hover of barchart -> update sunburst and global cost
 							current.updateUiCost(d && d['x-index']);
-						}, (d, bars, clicked) => {
+						}, (d, _bars, clicked) => {
 							// Hover of barchart -> update sunburst and global cost
 							current.updateUiCost(clicked && d && d['x-index']);
 						}, d => formatCost(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
@@ -3908,7 +3906,7 @@ define(function () {
 					data: null,
 					type: 'string',
 					className: 'truncate hidden-xs hidden-sm',
-					render: (_i, mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer || data.quoteFunction)
+					render: (_i, _mode, data) => formatQuoteResource(data.quoteInstance || data.quoteDatabase || data.quoteContainer || data.quoteFunction)
 				}]
 			};
 		},
@@ -3918,7 +3916,7 @@ define(function () {
 		 * @param {integer} rate The rate percentage 1-100%
 		 */
 		updateD3StatsRate: function (rate) {
-			require(['d3', '../main/service/prov/lib/donut'], function (d3, donut) {
+			require(['d3', '../main/service/prov/lib/donut'], function (_d3, donut) {
 				if (current.contextDonut) {
 					donut.update(current.contextDonut, rate);
 				} else {
@@ -3978,7 +3976,7 @@ define(function () {
 									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
-							results: function (data, query_page, query) {
+							results: function (data, _query_page, query) {
 								const regex = /(([\d]+)\s*[*x]\s*)?(\d+)/;
 								const RexExp = query.term.match(regex);
 
