@@ -71,7 +71,7 @@ public class TerraformUtils {
 	/**
 	 * Pattern to detect the version inside the release index file.
 	 */
-	private static final Pattern VERSION_PATTERN = Pattern.compile("<a href=\"/terraform/([^/]+)/\">terraform_");
+	private static final Pattern VERSION_PATTERN = Pattern.compile("<a\\s+href\\s*=\\s*\"/terraform/([^/\"]+)/?\"\\s*>terraform_");
 
 	/**
 	 * Terraform base command with argument. The Terraform binary must be in the PATH.
