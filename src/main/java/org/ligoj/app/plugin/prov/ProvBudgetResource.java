@@ -285,7 +285,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var packStart = System.currentTimeMillis();
 		final var packer = new LinearBinPacker();
 		final var bins = packer.packAll(
-				packToQr.entrySet().stream().sorted(priceOrder(prices)).map(Entry::getKey).toList(),
+				new ArrayList<>(packToQr.entrySet().stream().sorted(priceOrder(prices)).map(Entry::getKey).toList()),
 				new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
 				new ArrayList<>(List.of(Double.MAX_VALUE)));
 		final var bin = bins.get(0);
