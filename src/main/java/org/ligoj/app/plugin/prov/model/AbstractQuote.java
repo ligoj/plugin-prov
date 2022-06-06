@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Column;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -111,5 +112,22 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 * @return The resource type.
 	 */
 	public abstract ResourceType getResourceType();
+
+	/**
+	 * The minimal computed monthly CO2 consumption of the resource.
+	 */
+	@NotNull
+	@PositiveOrZero
+	@Column(columnDefinition = "int(11) default 0")
+	private double co2;
+
+	/**
+	 * Maximal determined monthly CO2 consumption of the resource. When there is an unbound maximal (<code>null</code>)
+	 * quantity, the minimal co2 is used.
+	 */
+	@NotNull
+	@PositiveOrZero
+	@Column(columnDefinition = "int(11) default 0")
+	private double maxCo2;
 
 }

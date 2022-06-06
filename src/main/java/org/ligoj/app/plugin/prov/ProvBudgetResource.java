@@ -87,7 +87,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 		// Prepare the updated cost of updated instances
 		final var relatedCosts = Collections
-				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class));
 		// Prevent useless computation, check the relations
 		if (entity.getId() != null) {
 			// This is an update, update the cost of all related instances
@@ -112,7 +112,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param quote The quote owning the related budget.
 	 * @param costs The updated costs and resources.
 	 */
-	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		final var instances = qiRepository.findAll(quote);
 		final var databases = qbRepository.findAll(quote);
 		final var containers = qcRepository.findAll(quote);
@@ -143,7 +143,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 */
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
-			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		synchronized (quote.getLeanLock()) {
 			// Lean all relevant budgets
 			final var budgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
@@ -160,7 +160,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> void refreshNoBudget(
-			final List<C> entities, final ResourceType type, final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final List<C> entities, final ResourceType type, final Map<ResourceType, Map<Integer, Floating>> costs,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource) {
 		this.resource.newStream(entities)
 				.filter(i -> Optional.ofNullable(i.getResolvedBudget()).map(ProvBudget::getInitialCost).orElse(0d) == 0)
@@ -174,7 +174,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param budget The budget to lean.
 	 * @param costs  The updated costs and resources.
 	 */
-	public void lean(final ProvBudget budget, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+	public void lean(final ProvBudget budget, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		if (budget == null) {
 			// Ignore, no lean to do
 			return;
@@ -238,7 +238,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	private double leanRecursive(final ProvBudget budget, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
-			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		logLean(c -> log.info("Start lean: {}",
 				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList()),
 				instances, databases, containers, functions);
@@ -271,13 +271,13 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
 		}, validatedQi, validatedQb, validatedQc, validatedQf);
 		logLean(c -> log.info("Total intitialCost:{}", c), init);
-		return FloatingCost.round(init);
+		return Floating.round(init);
 	}
 
 	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
 			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
 			final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
-			final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, FloatingCost>> costs) {
+			final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		if (packToQr.isEmpty()) {
 			return 0d;
 		}
@@ -310,7 +310,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		var init = bin.getTotal();
 		if (bins.size() > 1) {
 			// Extra bin needs to make a new pass
-			budget.setRemainingBudget(FloatingCost.round(budget.getRemainingBudget() - bin.getTotal()));
+			budget.setRemainingBudget(Floating.round(budget.getRemainingBudget() - bin.getTotal()));
 			final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
 			final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
 			final List<ProvQuoteContainer> subQc = newSubPack(packToQr, bins, ResourceType.CONTAINER);
@@ -348,7 +348,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> void commitPrices(
 			final List<C> nodes, final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final ResourceType type,
-			final Map<ResourceType, Map<Integer, FloatingCost>> costs,
+			final Map<ResourceType, Map<Integer, Floating>> costs,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource) {
 		nodes.forEach(i -> {
 			@SuppressWarnings("unchecked")

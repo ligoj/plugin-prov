@@ -26,7 +26,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
@@ -92,7 +92,7 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteSupport qs) {
+	public Floating refresh(final ProvQuoteSupport qs) {
 		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
@@ -278,13 +278,13 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	public FloatingCost getCost(final ProvQuoteSupport entity) {
+	public Floating getCost(final ProvQuoteSupport entity) {
 		final var quote = entity.getConfiguration();
 		final var price = entity.getPrice();
 		final var rates = toIntArray(price.getRate());
 		final var limits = toIntArray(price.getLimit());
 		final var seats = entity.getSeats();
-		return new FloatingCost(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
+		return new Floating(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.getInitialCost(),
 				quote.getMaxInitialCost(), quote.isUnboundCost()).round();
 	}

@@ -339,10 +339,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();
-		vo.setCostNoSupport(new FloatingCost(quote.getCostNoSupport(), quote.getMaxCostNoSupport(),
+		vo.setCostNoSupport(new Floating(quote.getCostNoSupport(), quote.getMaxCostNoSupport(),
 				quote.getInitialCost(), quote.getMaxInitialCost(), unbound));
-		vo.setCostSupport(new FloatingCost(quote.getCostSupport(), quote.getMaxCostSupport(), 0, 0, unbound));
-		vo.setCost(quote.toFloatingCost());
+		vo.setCostSupport(new Floating(quote.getCostSupport(), quote.getMaxCostSupport(), 0, 0, unbound));
+		vo.setCost(quote.toFloating());
 		vo.setCurrency(quote.getCurrency());
 		return vo;
 	}
@@ -362,7 +362,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		final var storage = repository.getStorageSummary(subscription).get(0);
 		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
-		vo.setCost(entity.toFloatingCost());
+		vo.setCost(entity.toFloating());
 		vo.setLocation(entity.getLocation());
 		vo.setCurrency(entity.getCurrency());
 
@@ -393,7 +393,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@PUT
 	@Path("{subscription:\\d+}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost update(@PathParam("subscription") final int subscription, final QuoteEditionVo vo) {
+	public Floating update(@PathParam("subscription") final int subscription, final QuoteEditionVo vo) {
 		final var entity = getQuoteFromSubscription(subscription);
 		entity.setName(vo.getName());
 		entity.setDescription(vo.getDescription());
@@ -426,7 +426,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		}
 
 		// No refresh needed
-		return entity.toFloatingCost();
+		return entity.toFloating();
 	}
 
 	/**
@@ -439,7 +439,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@PUT
 	@Path("{subscription:\\d+}/refresh-cost")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost updateCost(@PathParam("subscription") final int subscription) {
+	public Floating updateCost(@PathParam("subscription") final int subscription) {
 		// Get the quote (and fetch internal resources) to refresh
 		final var quote = repository.getCompute(subscription);
 		return updateCost(quote);
@@ -452,7 +452,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @param quote The quote to compute
 	 * @return The updated computed cost.
 	 */
-	protected FloatingCost updateCost(final ProvQuote quote) {
+	protected Floating updateCost(final ProvQuote quote) {
 		return processCost(quote, BooleanUtils.isTrue(quote.getLeanOnChange())).getTotal();
 	}
 
@@ -476,7 +476,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	private UpdatedCost processCost(final ProvQuote entity, boolean lean) {
 		final var relatedCosts = Collections
-				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class));
 		return processCost(entity, lean, relatedCosts);
 	}
 
@@ -484,7 +484,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * For each resources, execute the given cost function.
 	 */
 	private UpdatedCost processCost(final ProvQuote entity, final boolean lean,
-			Map<ResourceType, Map<Integer, FloatingCost>> relatedCosts) {
+			Map<ResourceType, Map<Integer, Floating>> relatedCosts) {
 		if (lean) {
 			budgetResource.lean(entity, relatedCosts);
 			return processCost(entity, false, relatedCosts);
@@ -528,17 +528,17 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			final String type) {
 		log.info("Refresh cost started for subscription {} / {} ... ", entity.getSubscription().getId(), type);
 		return newStream(repository.findAll(entity)).map(resource::updateCost).map(fc -> addCost(entity, fc))
-				.filter(FloatingCost::isUnbound).count();
+				.filter(Floating::isUnbound).count();
 	}
 
-	private FloatingCost refreshSupportCost(final ProvQuote entity) {
+	private Floating refreshSupportCost(final ProvQuote entity) {
 		final var support = qs2Repository.findAll(entity).stream().map(qspResource::refresh)
-				.reduce(new FloatingCost(0, 0, 0, 0, entity.isUnboundCost()), FloatingCost::add);
+				.reduce(new Floating(0, 0, 0, 0, entity.isUnboundCost()), Floating::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
 		entity.setCost(round(entity.getCostSupport() + entity.getCostNoSupport()));
 		entity.setMaxCost(round(entity.getMaxCostSupport() + entity.getMaxCostNoSupport()));
-		return entity.toFloatingCost();
+		return entity.toFloating();
 	}
 
 	/**
@@ -551,7 +551,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	public UpdatedCost refreshSupportCost(final UpdatedCost cost, final ProvQuote quote) {
 		cost.setTotal(refreshSupportCost(quote).round());
 		quote.getSupports().forEach(s -> cost.getRelated().computeIfAbsent(ResourceType.SUPPORT, k -> new HashMap<>())
-				.put(s.getId(), s.toFloatingCost()));
+				.put(s.getId(), s.toFloating()));
 		return cost;
 	}
 
@@ -576,12 +576,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@PUT
 	@Path("{subscription:\\d+}/refresh")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public FloatingCost refresh(@PathParam("subscription") final int subscription) {
+	public Floating refresh(@PathParam("subscription") final int subscription) {
 		return refresh(getQuoteFromSubscription(subscription));
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuote entity) {
+	public Floating refresh(final ProvQuote entity) {
 		updateCurrency(entity);
 		return processCost(entity, true).getTotal();
 	}

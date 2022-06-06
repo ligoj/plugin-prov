@@ -33,6 +33,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param requestDuration     Average duration of a single request in milliseconds.
 	 * @param concurrencyMonth    Constant value. Milliseconds per month per million requests.
 	 * @param rateFull            Rate corresponding to full usage. Usually <code>1.0</code>.
+	 * @param orderPrimary        Primary ascending order property name of the lookup result.
+	 * @param orderSecondary      Secondary ascending order property name of the lookup result.
 	 * @param pageable            The page control to return few item.
 	 * @return The cheapest price or empty result.
 	 */
@@ -135,12 +137,12 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
+			  ORDER BY :orderPrimary ASC, :orderSecondary ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double ram,
 			int location, double rate, double globalRate, double duration, double initialCost, double nbRequests,
 			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
-			double rateFull, Pageable pageable);
+			double rateFull, String orderPrimary, String orderSecondary, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -152,6 +154,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
+	 * @param orderPrimary    Primary ascending order property name of the lookup result.
+	 * @param orderSecondary  Secondary ascending order property name of the lookup result.
 	 * @param pageable        The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -159,46 +163,14 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			SELECT
 			 ip,
 			  CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
-			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
+			   WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
+			   ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
 			  CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate)
-			  ELSE ip.cost END AS monthlyCost
-			 FROM #{#entityName} ip  WHERE
-			      ip.location.id = :location
-			  AND ip.incrementCpu IS NULL
-			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
-			  ORDER BY totalCost ASC, ip.type.id DESC
-			""")
-	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable);
-	
-	/**
-	 * Return the lowest instance co2 configuration from the minimal requirements.
-	 *
-	 * @param types           The valid instance type identifiers.
-	 * @param terms           The valid instance terms identifiers.
-	 * @param location        The requested location identifier.
-	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration        The duration in month. Minimum is 1.
-	 * @param initialCost     The maximal initial cost.
-	 * @param requestDuration Average duration of a single request in milliseconds.
-	 * @param pageable        The page control to return few item.
-	 * @return The minimum instance co2 or empty result.
-	 */
-	@Query("""
-			SELECT ip,
-			CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
-			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate)
-			  ELSE ip.cost END AS monthlyCost,
+			   WHEN ip.period = 0 THEN (ip.cost * :rate)
+			   ELSE ip.cost END AS monthlyCost,
 			 CASE
 			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
-			  ELSE (ip.co2Period * CEIL(:duration/ip.period)) END AS totalCo2,
+			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCo2,
 			 CASE
 			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
 			  ELSE ip.co2 END AS monthlyCo2
@@ -208,9 +180,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
-			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC
+			  ORDER BY :orderPrimary ASC, :orderSecondary ASC, ip.type.id DESC
 			""")
-	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable,double co2);
-
+	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
+			double initialCost, double requestDuration, String orderPrimary, String orderSecondary, Pageable pageable);
 }

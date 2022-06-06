@@ -57,7 +57,7 @@ public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, Pr
 
 		// Prepare the updated cost of updated instances
 		final var relatedCosts = Collections
-				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class));
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class));
 		// Prevent useless computation, check the relations
 		if (entity.getId() != null) {
 			// This is an update, update the cost of all related instances

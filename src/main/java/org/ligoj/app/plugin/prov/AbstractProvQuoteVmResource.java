@@ -191,7 +191,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		quote.setUnboundCostCounter(quote.getUnboundCostCounter() + deltaUnbound);
 
 		// Save and update the costs
-		final var storagesCosts = new HashMap<Integer, FloatingCost>();
+		final var storagesCosts = new HashMap<Integer, Floating>();
 		final var dirtyPrice = !oldLocation.equals(entity.getResolvedLocation());
 		CollectionUtils.emptyIfNull(entity.getStorages()).stream().peek(s -> {
 			if (dirtyPrice) {
@@ -419,14 +419,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	@Override
-	protected FloatingCost getCost(final C qi) {
+	protected Floating getCost(final C qi) {
 		return getCost(qi, qi.getPrice());
 	}
 
 	/**
 	 * Return the computed cost from a resolved price.
 	 */
-	private FloatingCost getCost(final C qi, final P ip) {
+	private Floating getCost(final C qi, final P ip) {
 		// Fixed price + custom price
 		final double rate;
 		if (ip.getTerm().getPeriod() == 0) {
@@ -436,7 +436,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			rate = 1d;
 		}
 		return computeFloat(
-				rate * (ip.getCost() + (ip.getType().isCustom() ? getCustomCost(qi.getCpu(),qi.getGpu(), qi.getRam(), ip) : 0)),
+				rate * (ip.getCost()
+						+ (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getGpu(), qi.getRam(), ip) : 0)),
 				ip.getInitialCost(), qi);
 	}
 
@@ -453,7 +454,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param ip  The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
-	protected double getCustomCost(final Double cpu,final Double gpu, final Integer ram, final P ip) {
+	protected double getCustomCost(final Double cpu, final Double gpu, final Integer ram, final P ip) {
 		// Compute the count of the requested resources
 		return getCustomCost(
 				Math.round(Math.ceil(Math.max(cpu, ip.getMinCpu()) / ip.getIncrementCpu()) * ip.getIncrementCpu()),
@@ -481,10 +482,10 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param qi      The quote resource to compute.
 	 * @return The updated cost of this resource.
 	 */
-	public static FloatingCost computeFloat(final double base, final Double initial, final AbstractQuoteVm<?> qi) {
+	public static Floating computeFloat(final double base, final Double initial, final AbstractQuoteVm<?> qi) {
 		final var initialR = Objects.requireNonNullElse(initial, 0d);
 		final var maxQuantity = Objects.requireNonNullElse(qi.getMaxQuantity(), qi.getMinQuantity());
-		return new FloatingCost(base * qi.getMinQuantity(), base * maxQuantity, initialR * qi.getMinQuantity(),
+		return new Floating(base * qi.getMinQuantity(), base * maxQuantity, initialR * qi.getMinQuantity(),
 				initialR * maxQuantity, qi.isUnboundCost());
 	}
 
@@ -601,9 +602,9 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
-		final var types = getItRepository().findValidTypes(node, cpuR,gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor, ramR * maxFactor,
-				query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(),
-				query.getNetworkRate(), query.getStorageRate());
+		final var types = getItRepository().findValidTypes(node, cpuR, gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor,
+				ramR * maxFactor, query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),
+				query.getGpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate());
 		final var terms = iptRepository.findValidTerms(node,
 				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
 						|| getType() == ResourceType.FUNCTION) && convOs,
@@ -617,14 +618,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		}
 
 		// Dynamic type test
-		if (getItRepository().hasDynamicalTypes(node)&& gpuR==0) {
+		if (getItRepository().hasDynamicalTypes(node) && gpuR == 0) {
 			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR,
-					query.isAutoScale(), query.getCpuRate(),query.getGpuRate(), query.getRamRate(), query.getNetworkRate(),
-					query.getStorageRate());
+					query.isAutoScale(), query.getCpuRate(), query.getGpuRate(), query.getRamRate(),
+					query.getNetworkRate(), query.getStorageRate());
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
-				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR, rate,
-						duration, initialCost).stream().findFirst().orElse(null);
+				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
+						rate, duration, initialCost).stream().findFirst().orElse(null);
 				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 					// Keep the best one
 					lookup = dlookup;
@@ -682,7 +683,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, double cpu,double gpu, double ram, int location, double rate, int duration, double initialCost);
+			List<Integer> terms, double cpu, double gpu, double ram, int location, double rate, int duration,
+			double initialCost);
 
 	/**
 	 * Return the lowest CO2 matching all requirements.
@@ -701,7 +703,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			List<Integer> terms, int location, double rate, int duration, final double initialCost,double co2 );
 	
 	@Override
-	public FloatingCost refresh(final C qi) {
+	public Floating refresh(final C qi) {
 		// Find the lowest price
 		qi.setPrice(validateLookup(qi));
 		return updateCost(qi);

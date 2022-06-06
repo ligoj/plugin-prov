@@ -15,7 +15,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
@@ -1017,7 +1017,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Override
-	protected FloatingCost updateCost() {
+	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(7105.198, cost.getMin(), DELTA);

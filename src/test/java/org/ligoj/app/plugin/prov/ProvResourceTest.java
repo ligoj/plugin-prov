@@ -311,7 +311,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		return subscription;
 	}
 
-	private void checkCost0(final FloatingCost cost) {
+	private void checkCost0(final Floating cost) {
 		checkCost(cost, 0, 0, false);
 	}
 

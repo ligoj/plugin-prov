@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -20,6 +23,7 @@ import javax.validation.constraints.PositiveOrZero;
 import org.ligoj.app.model.PluginConfiguration;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvisioningService;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -274,4 +278,30 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 * when there are budgets with associated initial cost.
 	 */
 	private Boolean leanOnChange = false;
+
+	/**
+	 * Minimal monthly CO2 consumption, computed during the creation and kept synchronized with the updates.
+	 */
+	@NotNull
+	@PositiveOrZero
+	@Column(columnDefinition = "int(11) default 0")
+	private double co2 = 0d;
+
+	/**
+	 * Maximal determined monthly CO2 consumption, computed during the creation and kept synchronized with the updates.
+	 * When there are unbound maximal quantities (<code>unboundCostCounter &gt; 0</code>), the
+	 * {@link #unboundCostCounter} is incremented. Otherwise, this value is equals to {@link #co2}
+	 */
+	@NotNull
+	@PositiveOrZero
+	@Column(columnDefinition = "int(11) default 0")
+	private double maxCo2 = 0d;
+
+	/**
+	 * Optimization mode for this quote.
+	 */
+	@Column(columnDefinition = "varchar(255) default 'COST'")
+	@Enumerated(EnumType.STRING)
+	private Optimizer optimizer = Optimizer.COST;
+	
 }

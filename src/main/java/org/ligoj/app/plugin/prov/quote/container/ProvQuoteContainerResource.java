@@ -120,26 +120,28 @@ public class ProvQuoteContainerResource extends
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
 		final var service = getService(configuration);
+		final var optimizer = configuration.getOptimizer();
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		return ipRepository.findLowestPrice(types, terms, os, location, rate, duration, licenseR, initialCost,
-				PageRequest.of(0, 1));
+				optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteContainer query,
-			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
 		final var service = getService(configuration);
+		final var optimizer = configuration.getOptimizer();
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)),gpu,
+		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
 				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
-				initialCost, PageRequest.of(0, 1));
+				initialCost, optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
 	}
 	
 	@Override

@@ -75,7 +75,7 @@ public class QuoteLightVo extends DescribedBean<Integer> {
 	/**
 	 * The computed monthly cost.
 	 */
-	private FloatingCost cost;
+	private Floating cost;
 
 	/**
 	 * The optional currency

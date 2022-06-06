@@ -7,15 +7,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test class of {@link FloatingCost}
+ * Test class of {@link Floating}
  */
-class FloatingCostTest {
+class FloatingTest {
 
 	private static final double DELTA = 0.001;
 
 	@Test
 	void build() {
-		final var cost = new FloatingCost(1.1, 2.2, 0.4, 0.5, true);
+		final var cost = new Floating(1.1, 2.2, 0.4, 0.5, true);
 		Assertions.assertEquals(1.1, cost.getMin());
 		Assertions.assertEquals(2.2, cost.getMax());
 		Assertions.assertEquals(0.4, cost.getInitial());
@@ -37,9 +37,9 @@ class FloatingCostTest {
 
 	@Test
 	void add() {
-		final var cost1 = new FloatingCost(1.1, 2.2, 0.1, 0.2, false);
-		final var cost2 = new FloatingCost(4.4, 5.5, 0.3, 0.4, false);
-		final var cost3 = new FloatingCost(6.6, 7.7, 0.5, 0.6, true);
+		final var cost1 = new Floating(1.1, 2.2, 0.1, 0.2, false);
+		final var cost2 = new Floating(4.4, 5.5, 0.3, 0.4, false);
+		final var cost3 = new Floating(6.6, 7.7, 0.5, 0.6, true);
 
 		cost1.add(cost2);
 		Assertions.assertEquals(5.5, cost1.getMin(), DELTA);

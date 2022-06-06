@@ -17,7 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
@@ -41,9 +41,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Autowired
 	private ProvQuoteUploadResource qiuResource;
 
-	private Map<String, FloatingCost> toStoragesFloatingCost(final String instanceName) {
+	private Map<String, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream()
-				.collect(Collectors.toMap(ProvQuoteStorage::getName, qs -> new FloatingCost(qs.getCost(),
+				.collect(Collectors.toMap(ProvQuoteStorage::getName, qs -> new Floating(qs.getCost(),
 						qs.getMaxCost(), 0, 0, qs.getQuoteInstance().getMaxQuantity() == null)));
 	}
 
@@ -257,9 +257,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1000, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 117164.358, false);
-		final var storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assertions.assertEquals(1, storagesFloatingCost.size());
-		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 210, false);
+		final var storagesFloating = toStoragesFloating("ANY");
+		Assertions.assertEquals(1, storagesFloating.size());
+		checkCost(storagesFloating.values().iterator().next(), 0.21, 210, false);
 	}
 
 	@Test
@@ -275,9 +275,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 7264.368, false);
-		final var storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assertions.assertEquals(1, storagesFloatingCost.size());
-		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, false);
+		final var storagesFloating = toStoragesFloating("ANY");
+		Assertions.assertEquals(1, storagesFloating.size());
+		checkCost(storagesFloating.values().iterator().next(), 0.21, 0.21, false);
 	}
 
 	@Test
@@ -292,11 +292,11 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, qi.getMaxQuantity().intValue());
 		Assertions.assertEquals(6, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4816.868, 7266.468, false);
-		final var storagesFloatingCost = toStoragesFloatingCost("MYINSTANCE");
-		Assertions.assertEquals(2, storagesFloatingCost.size()); // 1GB and 10GB disks
-		checkCost(storagesFloatingCost.get("MYINSTANCE"), 0.21, 0.21, false);
+		final var storagesFloating = toStoragesFloating("MYINSTANCE");
+		Assertions.assertEquals(2, storagesFloating.size()); // 1GB and 10GB disks
+		checkCost(storagesFloating.get("MYINSTANCE"), 0.21, 0.21, false);
 		Assertions.assertEquals("MYINSTANCE", qsRepository.findAllBy("cost", .21d).get(0).getName());
-		checkCost(storagesFloatingCost.get("MYINSTANCE2"), 2.1, 2.1, false);
+		checkCost(storagesFloating.get("MYINSTANCE2"), 2.1, 2.1, false);
 		Assertions.assertEquals("MYINSTANCE2", qsRepository.findAllBy("cost", 2.1d).get(0).getName());
 	}
 
@@ -313,9 +313,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNull(qi.getMaxQuantity());
 		Assertions.assertEquals(5, configuration.getStorages().size());
 		checkCost(configuration.getCost(), 4814.768, 7264.368, true);
-		final var storagesFloatingCost = toStoragesFloatingCost("ANY");
-		Assertions.assertEquals(1, storagesFloatingCost.size());
-		checkCost(storagesFloatingCost.values().iterator().next(), 0.21, 0.21, true);
+		final var storagesFloating = toStoragesFloating("ANY");
+		Assertions.assertEquals(1, storagesFloating.size());
+		checkCost(storagesFloating.values().iterator().next(), 0.21, 0.21, true);
 	}
 
 	@Test

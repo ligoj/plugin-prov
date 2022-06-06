@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Column;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
@@ -56,4 +57,9 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	@ManyToOne
 	private T type;
 
+	/**
+	 * Indicates the consumption of carbon(co2) for this instance.
+	 */
+	@Column(columnDefinition = "int(11) default 0")
+	private double co2 = 0;
 }

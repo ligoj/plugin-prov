@@ -214,12 +214,12 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Override
-	protected FloatingCost updateCost() {
+	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		return checkCost(resource.updateCost(subscription));
 	}
 
-	private FloatingCost checkCost(final FloatingCost cost) {
+	private Floating checkCost(final Floating cost) {
 		// Check the cost fully updated and exact actual cost
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);
 		Assertions.assertEquals(7154.358, cost.getMax(), DELTA);

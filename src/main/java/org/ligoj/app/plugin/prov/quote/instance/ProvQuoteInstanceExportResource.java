@@ -26,7 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
@@ -279,6 +279,6 @@ public class ProvQuoteInstanceExportResource {
 	 */
 	private String toString(final Double optional) {
 		return optional == null ? ""
-				: String.valueOf(FloatingCost.round(optional)).replace('.', ',').replaceFirst(",0$", "");
+				: String.valueOf(Floating.round(optional)).replace('.', ',').replaceFirst(",0$", "");
 	}
 }

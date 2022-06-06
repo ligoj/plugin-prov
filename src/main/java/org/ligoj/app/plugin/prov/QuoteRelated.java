@@ -64,7 +64,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @return The new computed cost.
 	 */
 	default <T extends Costed> UpdatedCost newUpdateCost(final RestRepository<T, Integer> repository, final T entity,
-			final Function<T, FloatingCost> costUpdater) {
+			final Function<T, Floating> costUpdater) {
 
 		// Update the total cost, applying the delta cost
 		final var floatingCost = addCost(entity, costUpdater);
@@ -72,7 +72,7 @@ public interface QuoteRelated<C extends Costed> {
 
 		final var cost = new UpdatedCost(entity.getId());
 		cost.setCost(floatingCost);
-		cost.setTotal(entity.getConfiguration().toFloatingCost());
+		cost.setTotal(entity.getConfiguration().toFloating());
 		return cost;
 	}
 
@@ -85,7 +85,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param <T>         The entity type holding the cost.
 	 * @return The new computed cost.
 	 */
-	default <T extends Costed> FloatingCost addCost(final T entity, final Function<T, FloatingCost> costUpdater) {
+	default <T extends Costed> Floating addCost(final T entity, final Function<T, Floating> costUpdater) {
 		// Save the previous costs
 		final double oldCost = ObjectUtils.defaultIfNull(entity.getCost(), 0d);
 		final double oldMaxCost = ObjectUtils.defaultIfNull(entity.getMaxCost(), 0d);
@@ -140,7 +140,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param fc    The cost to add. May be a negative value.
 	 * @return The formal {@code fc} parameter.
 	 */
-	default FloatingCost addCost(final ProvQuote quote, final FloatingCost fc) {
+	default Floating addCost(final ProvQuote quote, final Floating fc) {
 		synchronized (quote) {
 			// Recurring part
 			quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
@@ -160,7 +160,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * @return The rounded value with 4 decimals.
 	 */
 	default double round(final double value) {
-		return FloatingCost.round(value);
+		return Floating.round(value);
 	}
 
 	/**
@@ -171,14 +171,14 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param <T>          The entity type holding the cost.
 	 * @return The new (min/max) cost.
 	 */
-	default <T extends AbstractQuote<?>> FloatingCost updateCost(final T qr,
-			final Function<T, FloatingCost> costProvider) {
+	default <T extends AbstractQuote<?>> Floating updateCost(final T qr,
+			final Function<T, Floating> costProvider) {
 		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));
 		qr.setMaxCost(round(cost.getMax()));
 		qr.setInitialCost(round(cost.getInitial()));
 		qr.setMaxInitialCost(round(cost.getMaxInitial()));
-		return new FloatingCost(qr.getCost(), qr.getMaxCost(), qr.getInitialCost(), qr.getMaxInitialCost(),
+		return new Floating(qr.getCost(), qr.getMaxCost(), qr.getInitialCost(), qr.getMaxInitialCost(),
 				qr.isUnboundCost());
 	}
 
@@ -202,5 +202,5 @@ public interface QuoteRelated<C extends Costed> {
 	 * @param costed The entity to refresh.
 	 * @return The new computed price.
 	 */
-	FloatingCost refresh(final C costed);
+	Floating refresh(final C costed);
 }

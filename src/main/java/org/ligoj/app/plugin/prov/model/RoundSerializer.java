@@ -5,7 +5,7 @@ package org.ligoj.app.plugin.prov.model;
 
 import java.io.IOException;
 
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -33,7 +33,7 @@ public class RoundSerializer extends StdSerializer<Double> {
 	@Override
 	public void serialize(final Double bean, final JsonGenerator generator, final SerializerProvider provider)
 			throws IOException {
-		generator.writeNumber(FloatingCost.round(bean));
+		generator.writeNumber(Floating.round(bean));
 	}
 
 }
