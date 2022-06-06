@@ -52,6 +52,11 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	private Boolean physical = false;
 
 	/**
+	 * Edge capability.
+	 */
+	private Boolean edge = false;
+
+	/**
 	 * CPU performance.
 	 */
 	@NotNull

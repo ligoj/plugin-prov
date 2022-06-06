@@ -773,7 +773,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Lookup with increment enable
 	 */
 	@Test
-	void lookupStorageIncrement() throws IOException {
+	void lookupStorageIncrement() {
 		var lookups = qsResource.lookup(subscription, QuoteStorageQuery.builder().size(1024).build());
 		var lookup = lookups.get(0);
 		var price = lookup.getPrice();

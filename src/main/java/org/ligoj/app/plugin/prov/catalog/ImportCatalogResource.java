@@ -249,7 +249,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			vo.setPreferredLocation(
 					locationRepository.findBy("node", n, new String[] { "preferred" }, new Object[] { true }));
 			return vo;
-		}).collect(Collectors.toList());
+		}).toList();
 
 	}
 

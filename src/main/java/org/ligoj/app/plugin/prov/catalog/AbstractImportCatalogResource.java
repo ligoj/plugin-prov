@@ -254,6 +254,15 @@ public abstract class AbstractImportCatalogResource {
 		return FloatingCost.round(value);
 	}
 
+	/**
+	 * Read a JSON file and convert it to map.
+	 * 
+	 * @param <T>  Target reference type.
+	 * @param path JSON file location.
+	 * @param type Target type class.
+	 * @return Unmodifiable map object.
+	 * @throws IOException When the JSON cannot be read or parsed.
+	 */
 	protected <T> Map<String, T> toMap(final String path, final TypeReference<Map<String, T>> type) throws IOException {
 		return objectMapper.readValue(
 				IOUtils.toString(new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8), type);
@@ -522,54 +531,54 @@ public abstract class AbstractImportCatalogResource {
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set. The cost of the period is also updated accordingly to the attached term.
 	 *
-	 * @param <T>         The price's type.
-	 * @param <P>         The instance type's type.
-	 * @param context     The context to initialize.
-	 * @param entity      The target entity to update.
-	 * @param newCost     The new cost.
-	 * @param repositorty The repository for persist.
+	 * @param <T>        The price's type.
+	 * @param <P>        The instance type's type.
+	 * @param context    The context to initialize.
+	 * @param entity     The target entity to update.
+	 * @param newCost    The new cost.
+	 * @param repository The repository for persist.
 	 * @return The saved price.
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
 			final AbstractUpdateContext context, final P entity, final double newCost,
-			final BaseProvTermPriceRepository<T, P> repositorty) {
+			final BaseProvTermPriceRepository<T, P> repository) {
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
-		}, repositorty::save);
+		}, repository::save);
 	}
 
 	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set.
 	 *
-	 * @param <T>         The price's type.
-	 * @param <P>         The instance type's type.
-	 * @param context     The context to initialize.
-	 * @param entity      The target entity to update.
-	 * @param newCost     The new cost.
-	 * @param repositorty The repository used for persist.
+	 * @param <T>        The price's type.
+	 * @param <P>        The instance type's type.
+	 * @param context    The context to initialize.
+	 * @param entity     The target entity to update.
+	 * @param newCost    The new cost.
+	 * @param repository The repository used for persist.
 	 * @return The saved price.
 	 */
 	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
-			final P entity, final double newCost, final RestRepository<P, Integer> repositorty) {
+			final P entity, final double newCost, final RestRepository<P, Integer> repository) {
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
-				repositorty::save);
+				repository::save);
 	}
 
 	/**
 	 * Save a storage price when the attached cost is different from the old one.
 	 *
-	 * @param context     The context to initialize.
-	 * @param entity      The price entity.
-	 * @param newCostGb   The new GiB cost.
-	 * @param repositorty The repository used for persist.
+	 * @param context    The context to initialize.
+	 * @param entity     The price entity.
+	 * @param newCostGb  The new GiB cost.
+	 * @param repository The repository used for persist.
 	 * @return The saved price.
 	 */
 	protected ProvStoragePrice saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
-			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repositorty) {
+			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repository) {
 		return saveAsNeededInternal(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
-				repositorty::save);
+				repository::save);
 	}
 
 	/**
@@ -659,12 +668,8 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <K, V> V syncAdd(final Map<K, V> map, final K key, final Function<K, V> whenAbsent,
 			final Function<V, V> onCompute) {
-		return map.compute(key, (code, previous) -> {
-			if (previous == null) {
-				previous = whenAbsent.apply(key);
-			}
-			return onCompute.apply(previous);
-		});
+		return map.compute(key,
+				(code, previous) -> onCompute.apply(previous == null ? whenAbsent.apply(key) : previous));
 	}
 
 	/**

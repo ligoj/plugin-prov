@@ -269,7 +269,8 @@ define(['sparkline'], function () {
 				columns: [{
 					data: 'node.id',
 					width: '100px',
-					type: 'string'
+					type: 'string',
+					class: 'truncate',
 				}, {
 					data: 'node.name',
 					type: 'string',

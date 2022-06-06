@@ -22,7 +22,7 @@ import lombok.Setter;
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQuoteVmOs<P extends AbstractTermPriceVmOs<?>> extends AbstractQuoteVm<P>
-		implements QuoteVmOs, ResourceScope {
+		implements QuoteVmOs {
 
 	/**
 	 * SID

@@ -523,3 +523,9 @@ img.flag-icon.prov-location-flag {
   margin-left: 1px;
   opacity: 0.5;
 }
+
+i.icon.mdi-expansion-card {
+  content: url('./img/expansion-card.svg');
+  top: 2px;
+  position: relative;
+}

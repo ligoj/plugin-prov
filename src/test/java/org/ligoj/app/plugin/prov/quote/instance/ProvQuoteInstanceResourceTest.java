@@ -300,7 +300,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, term's location constraints.
 	 */
 	@Test
-	void lookupConvertibleKo() throws IOException {
+	void lookupConvertibleKo() {
 		Assertions.assertNull(qiResource.lookup(subscription,
 				builder().cpu(1).usage("Full Time Global").location("region-1").build()));
 	}
@@ -309,7 +309,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Convertible location
 	 */
 	@Test
-	void lookupConvertibleLocation() throws IOException {
+	void lookupConvertibleLocation() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().cpu(1).usage("Full Time Global").location("region-5").build());
 		final var pi = lookup.getPrice();
@@ -330,7 +330,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Convertible OS
 	 */
 	@Test
-	void lookupConvertibleOs() throws IOException {
+	void lookupConvertibleOs() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().cpu(1).os(VmOs.LINUX).usage("Full Time Convertible").build());
 		final var pi = lookup.getPrice();
@@ -345,7 +345,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	void lookupConvertibleLocationOnGlobal() throws IOException {
+	void lookupConvertibleLocationOnGlobal() {
 		final var lookup = qiResource.lookup(subscription,
 				builder().cpu(1).usage("Full Time 12 month").location("region-1").build());
 		final var pi = lookup.getPrice();

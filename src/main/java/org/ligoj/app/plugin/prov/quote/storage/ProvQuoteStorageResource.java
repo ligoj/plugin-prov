@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
@@ -342,7 +341,7 @@ public class ProvQuoteStorageResource
 						query.getContainer(), query.getFunction(), query.getOptimized(), qsLoc, qLoc,
 						PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0])
-				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).collect(Collectors.toList());
+				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).toList();
 	}
 
 	/**

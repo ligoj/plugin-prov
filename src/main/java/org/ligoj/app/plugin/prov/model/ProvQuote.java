@@ -177,12 +177,11 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvTag> tags;
-	
+
 	/**
-	 * UI settings. Properties are: 
+	 * UI settings. Properties are:
 	 * <ul>
-	 * <li>
-	 * Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
+	 * <li>Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
 	 * accepted. Sample: <code>#e4560f</code> or <code>rgb(255, 0, 0)</code>, <code>hsl(0, 100%, 50%)</code>.</li>
 	 * </ul>
 	 */
@@ -262,6 +261,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	@Transient
 	@JsonIgnore
 	private transient ProvisioningService service;
+
+	/**
+	 * Lock object for lean operation.
+	 */
+	@Transient
+	@JsonIgnore
+	private final Object leanLock = new Object();
 
 	/**
 	 * When <code>true</code>, the lean process is executed after each change. This option implies more computations

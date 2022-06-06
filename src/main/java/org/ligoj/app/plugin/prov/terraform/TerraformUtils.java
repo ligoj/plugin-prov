@@ -19,7 +19,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -72,7 +71,7 @@ public class TerraformUtils {
 	/**
 	 * Pattern to detect the version inside the release index file.
 	 */
-	private static final Pattern VERSION_PATTERN = Pattern.compile("<a href=\"/terraform/([^/]+)/\">terraform_");
+	private static final Pattern VERSION_PATTERN = Pattern.compile("<a\\s+href\\s*=\\s*\"/terraform/([^/\"]+)/?\"\\s*>terraform_");
 
 	/**
 	 * Terraform base command with argument. The Terraform binary must be in the PATH.
@@ -171,7 +170,7 @@ public class TerraformUtils {
 	 */
 	public List<String[]> getTerraformCommands(final TerraformSequence type) {
 		return Arrays.stream(getTerraformSequence(type)).map(String::trim).map(this::getTerraformArguments)
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	/**
@@ -358,7 +357,7 @@ public class TerraformUtils {
 					// Excludes ".terraform", secrets, and "*.ptf" files
 					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
 					.filter(path -> !path.toString().contains(".terraform")).map(path -> addEntry(fromDir, path, zs))
-					.collect(Collectors.toList());
+					.toList();
 		}
 	}
 

@@ -575,7 +575,7 @@ public class ProvQuoteUploadResource {
 					// Default the storage name to the instance name
 					svo.setSubscription(subscription);
 					return storageResource.create(svo).getId();
-				}).collect(Collectors.toList());
+				}).toList();
 
 		// Tags part
 		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;"))

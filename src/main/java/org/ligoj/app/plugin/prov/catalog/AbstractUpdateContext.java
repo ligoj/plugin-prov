@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
@@ -230,7 +231,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private double hoursMonth = (double) ProvResource.DEFAULT_HOURS_MONTH;
+	private double hoursMonth = ProvResource.DEFAULT_HOURS_MONTH;
 
 	protected AbstractUpdateContext(AbstractUpdateContext parent) {
 		this();
@@ -251,6 +252,15 @@ public abstract class AbstractUpdateContext {
 		this.validRegion = parent.validRegion;
 		this.validOs = parent.validOs;
 		this.mapRegionById = parent.getMapRegionById();
+	}
+
+	/**
+	 * Return amount of seconds in a standard month according to {@link #hoursMonth} configuration.
+	 * 
+	 * @return Amount of seconds in a standard month according to {@link #hoursMonth} configuration.
+	 */
+	public double getSecondsMonth() {
+		return getHoursMonth() * DateUtils.MILLIS_PER_HOUR / DateUtils.MILLIS_PER_SECOND;
 	}
 
 	public void setPrevious(final Map<String, ProvInstancePrice> previous) {

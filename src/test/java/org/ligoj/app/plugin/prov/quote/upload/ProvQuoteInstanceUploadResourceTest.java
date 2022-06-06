@@ -390,7 +390,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadTagsInvalidTagName() throws IOException {
+	void uploadTagsInvalidTagName() {
 		final var input = newStream("ANY;0.5;500;LINUX;app:!!;8");
 		Assertions.assertThrows(ValidationJsonException.class, () -> qiuResource.upload(subscription, input,
 				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, 1));
@@ -431,7 +431,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadConflictName() throws IOException {
+	void uploadConflictName() {
 		final var input = newStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX");
 		Assertions.assertThrows(DataIntegrityViolationException.class,
 				() -> qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os" }, false, null,
@@ -482,7 +482,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	 * Expected usage does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
-	void uploadInvalidUsageForSubscription() throws IOException {
+	void uploadInvalidUsageForSubscription() {
 		final var input = newStream("ANY;0.5;500;LINUX;Full Time2");
 		Assertions.assertEquals("Full Time2", Assertions
 				.assertThrows(EntityNotFoundException.class,
@@ -495,7 +495,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	 * Expected location does not exist for this subscription, so there is no matching instance.
 	 */
 	@Test
-	void uploadInvalidLocationForSubscription() throws IOException {
+	void uploadInvalidLocationForSubscription() {
 		final var input = newStream("ANY;0.5;500;LINUX;region-3");
 		Assertions.assertEquals("region-3",
 				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription, input,
@@ -507,7 +507,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	 * Expected location does not exist at all?
 	 */
 	@Test
-	void uploadInvalidLocation() throws IOException {
+	void uploadInvalidLocation() {
 		final var input = newStream("ANY;0.5;500;LINUX;region-ZZ");
 		Assertions.assertEquals("region-ZZ",
 				Assertions.assertThrows(EntityNotFoundException.class, () -> qiuResource.upload(subscription, input,
@@ -519,7 +519,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	 * Expected usage does not exist at all.
 	 */
 	@Test
-	void uploadInvalidUsage() throws IOException {
+	void uploadInvalidUsage() {
 		final var input = newStream("ANY;0.5;500;LINUX;any");
 		Assertions.assertEquals("any", Assertions
 				.assertThrows(EntityNotFoundException.class,
@@ -529,7 +529,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadInstanceNotFound() throws IOException {
+	void uploadInstanceNotFound() {
 		final var input = newStream("ANY;999;6;WINDOWS");
 		MatcherUtil.assertThrows(
 				Assertions.assertThrows(ValidationJsonException.class,
@@ -545,7 +545,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadStorageNotFound() throws IOException {
+	void uploadStorageNotFound() {
 		final var input = newStream("ANY;1;1;LINUX;99999999999;BEST;THROUGHPUT");
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
 				() -> qiuResource.upload(subscription, input,
@@ -555,7 +555,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadMissingRequiredHeader() throws IOException {
+	void uploadMissingRequiredHeader() {
 		final var input = newStream("ANY");
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
 				() -> qiuResource.upload(subscription, input, new String[] { "any" }, false, "Full Time 12 month", 1)),
@@ -563,7 +563,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadAmbiguousHeader() throws IOException {
+	void uploadAmbiguousHeader() {
 		final var input = newStream("ANY;ANY");
 		MatcherUtil.assertThrows(
 				Assertions.assertThrows(ValidationJsonException.class, () -> qiuResource.upload(subscription, input,
