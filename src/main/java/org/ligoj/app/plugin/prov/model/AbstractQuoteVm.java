@@ -250,5 +250,12 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 
 	@Override
 	public abstract P getPrice();
+	
+	/**
+	 * The maximal used CO2. When <code>null</code>, the requested CO2 is used.
+	 *
+	 * @see #co2
+	 */
+	private double co2;
 
 }

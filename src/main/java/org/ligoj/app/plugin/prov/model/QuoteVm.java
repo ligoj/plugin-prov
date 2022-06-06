@@ -165,4 +165,11 @@ public interface QuoteVm {
 	 */
 	Rate getRamRate();
 
+	/**
+	 * Return the amount of required Co2. Default is 1.
+	 *
+	 * @return The amount of required Co2. Default is 1.
+	 */
+	double getCo2();
+
 }

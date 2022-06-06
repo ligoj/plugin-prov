@@ -107,4 +107,8 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 		return cpu == 0;
 	}
 
+	/**
+	 * Indicates the consumption of carbon(co2) for this instance
+	 */
+	private double co2;
 }
