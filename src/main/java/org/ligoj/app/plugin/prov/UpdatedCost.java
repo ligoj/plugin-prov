@@ -29,19 +29,19 @@ public class UpdatedCost {
 	/**
 	 * The new total quote cost.
 	 */
-	private FloatingCost total;
+	private Floating total;
 
 	/**
 	 * The new resource cost. <code>null</code> for deleted resource.
 	 */
-	private FloatingCost cost;
+	private Floating cost;
 
 	/**
 	 * The new related costs of the update resource. For sample, storage for associated instance. The primary key is the
 	 * resource type: <code>instance</code>, <code>storage</code>, <code>support</code>. The secondary key is the
 	 * resource identifier.
 	 */
-	private Map<ResourceType, Map<Integer, FloatingCost>> related = new EnumMap<>(ResourceType.class);
+	private Map<ResourceType, Map<Integer, Floating>> related = new EnumMap<>(ResourceType.class);
 
 	/**
 	 * The new related deleted costs of the update resource. For sample, storage for associated instance. The primary

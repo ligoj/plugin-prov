@@ -15,7 +15,7 @@ import javax.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -644,16 +644,16 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 	}
 
-	private Map<Integer, FloatingCost> toStoragesFloatingCost(final String instanceName) {
+	private Map<Integer, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream()
-				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(),
+				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new Floating(qs.getCost(), qs.getMaxCost(),
 						0, 0, qs.getQuoteInstance().getMaxQuantity() == null)));
 	}
 
 	@Test
 	void updateInstanceIdentity() {
 		// Check the cost of related storages of this instance
-		final var storagePrices = toStoragesFloatingCost("server1");
+		final var storagePrices = toStoragesFloating("server1");
 		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteInstanceEditionVo();
@@ -696,7 +696,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(42, qs.getMaxCost(), DELTA);
 
 		// Check the cost of related storages of this instance
-		final var storagePrices = toStoragesFloatingCost("server1");
+		final var storagePrices = toStoragesFloating("server1");
 		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteInstanceEditionVo();
@@ -756,7 +756,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void updateInstance() {
 		// Check the cost of related storages of this instance
-		final var storagePrices = toStoragesFloatingCost("server1");
+		final var storagePrices = toStoragesFloating("server1");
 		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteInstanceEditionVo();

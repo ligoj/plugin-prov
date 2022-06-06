@@ -17,7 +17,7 @@ import lombok.Setter;
  * Floating cost configuration.
  */
 @AllArgsConstructor
-public class FloatingCost implements Serializable {
+public class Floating implements Serializable {
 
 	/**
 	 * SID
@@ -64,7 +64,7 @@ public class FloatingCost implements Serializable {
 	/**
 	 * Default float where {@link #min} and {@link #max} are set to <code>0</code>.
 	 */
-	public FloatingCost() {
+	public Floating() {
 		// No value
 		this(0);
 	}
@@ -74,7 +74,7 @@ public class FloatingCost implements Serializable {
 	 *
 	 * @param base The minimal and maximal value.
 	 */
-	public FloatingCost(double base) {
+	public Floating(double base) {
 		min = base;
 		max = base;
 	}
@@ -85,7 +85,7 @@ public class FloatingCost implements Serializable {
 	 * @param other Another cost.
 	 * @return This object.
 	 */
-	public FloatingCost add(final FloatingCost other) {
+	public Floating add(final Floating other) {
 		min += other.min;
 		max += other.max;
 		initial += other.initial;
@@ -99,8 +99,8 @@ public class FloatingCost implements Serializable {
 	 *
 	 * @return A new instance with round values.
 	 */
-	public FloatingCost round() {
-		return new FloatingCost(round(min), round(max), initial, maxInitial, unbound);
+	public Floating round() {
+		return new Floating(round(min), round(max), initial, maxInitial, unbound);
 	}
 
 	/**

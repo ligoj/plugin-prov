@@ -57,21 +57,23 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	/**
 	 * Return the lowest database price configuration from the minimal requirements.
 	 *
-	 * @param types       The valid instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param cpu         The minimum CPU.
-	 * @param gpu         The minimum GPU.
-	 * @param ram         The minimum RAM in GiB.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
-	 *                    <code>null</code>, installed software is also accepted.
-	 * @param edition     Optional database edition.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
+	 * @param types          The valid instance type identifiers.
+	 * @param terms          The valid instance terms identifiers.
+	 * @param cpu            The minimum CPU.
+	 * @param gpu            The minimum GPU.
+	 * @param ram            The minimum RAM in GiB.
+	 * @param engine         Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 *                       <code>null</code>, installed software is also accepted.
+	 * @param edition        Optional database edition.
+	 * @param location       The requested location identifier.
+	 * @param rate           Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param globalRate     Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
+	 * @param duration       The duration in month. Minimum is 1.
+	 * @param license        Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param initialCost    The maximal initial cost.
+	 * @param orderPrimary   Primary ascending order property name of the lookup result.
+	 * @param orderSecondary Secondary ascending order property name of the lookup result.
+	 * @param pageable       The page control to return few item.
 	 * @return The cheapest database price or empty result.
 	 */
 	@Query("""
@@ -100,26 +102,28 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
-			  ORDER BY totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
+			  ORDER BY :orderPrimary ASC, :orderSecondary ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu,double gpu, double ram,
+	List<Object[]> findLowestDynamicPrice(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
 			String engine, String edition, int location, double rate, double globalRate, double duration,
-			String license, double initialCost, Pageable pageable);
+			String license, double initialCost, String orderPrimary, String orderSecondary, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.
 	 *
-	 * @param types       The required instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
-	 *                    <code>null</code>, installed software is also accepted.
-	 * @param edition     Optional database edition.
-	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
+	 * @param types          The required instance type identifiers.
+	 * @param terms          The valid instance terms identifiers.
+	 * @param location       The requested location identifier.
+	 * @param rate           Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param duration       The duration in month. Minimum is 1.
+	 * @param license        Optional license notice. When not <code>null</code> a license constraint is added.
+	 * @param engine         Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 *                       <code>null</code>, installed software is also accepted.
+	 * @param edition        Optional database edition.
+	 * @param initialCost    The maximal initial cost.
+	 * @param orderPrimary   Primary ascending order property name of the lookup result.
+	 * @param orderSecondary Secondary ascending order property name of the lookup result.
+	 * @param pageable       The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
 	@Query("""
@@ -129,7 +133,13 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
 			 CASE
 			  WHEN ip.period = 0 THEN (ip.cost * :rate)
-			  ELSE ip.cost END AS monthlyCost
+			  ELSE ip.cost END AS monthlyCost,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
+			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCo2,
+			 CASE
+			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
+			  ELSE ip.co2 END AS monthlyCo2
 			 FROM #{#entityName} ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL
@@ -138,9 +148,10 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  ORDER BY totalCost ASC, ip.type.id DESC
+			  ORDER BY :orderPrimary ASC, :orderSecondary ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			String license, String engine, String edition, double initialCost, Pageable pageable);
+			String license, String engine, String edition, double initialCost, String orderPrimary,
+			String orderSecondary, Pageable pageable);
 
 }

@@ -41,17 +41,17 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	/**
 	 * Monthly cost, including support.
 	 */
-	private FloatingCost cost;
+	private Floating cost;
 
 	/**
 	 * Monthly cost without support.
 	 */
-	private FloatingCost costNoSupport;
+	private Floating costNoSupport;
 
 	/**
 	 * Monthly support cost, based on {@link #cost}.
 	 */
-	private FloatingCost costSupport;
+	private Floating costSupport;
 
 	/**
 	 * The optional Terraform status.

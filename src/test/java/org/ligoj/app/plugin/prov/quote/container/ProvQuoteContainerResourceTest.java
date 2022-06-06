@@ -19,7 +19,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvBudgetResource;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
@@ -234,16 +234,16 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(qsRepository.existsById(storageOther));
 	}
 
-	private Map<Integer, FloatingCost> toStoragesFloatingCost(final String instanceName) {
+	private Map<Integer, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteContainer.name", instanceName).stream()
-				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new FloatingCost(qs.getCost(), qs.getMaxCost(),
+				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new Floating(qs.getCost(), qs.getMaxCost(),
 						0, 0, qs.getQuoteContainer().getMaxQuantity() == null)));
 	}
 
 	@Test
 	void updateIdentity() {
 		// Check the cost of related storages of this instance
-		final var storagePrices = toStoragesFloatingCost("container1");
+		final var storagePrices = toStoragesFloating("container1");
 		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteContainerEditionVo();
@@ -274,7 +274,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void update() {
 		// Check the cost of related storages of this instance
-		final var storagePrices = toStoragesFloatingCost("container1");
+		final var storagePrices = toStoragesFloating("container1");
 		Assertions.assertEquals(3, storagePrices.size());
 
 		final var vo = new QuoteContainerEditionVo();
@@ -449,7 +449,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Override
-	protected FloatingCost updateCost() {
+	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(5332.478, cost.getMin(), DELTA);
