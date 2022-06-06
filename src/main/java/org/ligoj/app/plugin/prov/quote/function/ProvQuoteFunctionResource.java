@@ -160,6 +160,14 @@ public class ProvQuoteFunctionResource extends
 				location, rate, round(rate * duration), duration, initialCost, query.getNbRequests(), realConcurrency,
 				reservedConcurrency, query.getDuration(), CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
 	}
+	
+	@Override
+	protected List<Object[]> findLowestCo2(final ProvQuote configuration, final QuoteFunction query,
+			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
+			final int duration, final double initialCost,final double co2) {
+		return ipRepository.findLowestCo2(types, terms, location, rate, duration, initialCost, query.getDuration(),
+				PageRequest.of(0, 1),co2);
+	}
 
 	@Override
 	@GET

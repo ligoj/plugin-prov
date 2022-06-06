@@ -168,6 +168,18 @@ public class ProvQuoteDatabaseResource extends
 				editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
 				PageRequest.of(0, 1));
 	}
+	
+	@Override
+	protected List<Object[]> findLowestCo2(final ProvQuote configuration, final QuoteDatabase query,
+			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
+			final int duration, final double initialCost,final double co2) {
+		// Resolve the right license model
+		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final var engineR = normalize(query.getEngine());
+		final var editionR = normalize(query.getEdition());
+		return ipRepository.findLowestCo2(types, terms, location, rate, duration, licenseR, engineR, editionR,
+				initialCost, PageRequest.of(0, 1),co2);
+	}
 
 	private boolean canByol(final String engine) {
 		return ENGINE_ORACLE.equalsIgnoreCase(engine);
