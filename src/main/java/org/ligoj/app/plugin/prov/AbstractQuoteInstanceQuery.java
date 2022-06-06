@@ -150,4 +150,7 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	public String getBudgetName() {
 		return getBudget();
 	}
+	
+	@QueryParam("co2")
+	private double co2 ;
 }

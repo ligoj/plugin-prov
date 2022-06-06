@@ -153,5 +153,4 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
 			String license, String engine, String edition, double initialCost, String orderPrimary,
 			String orderSecondary, Pageable pageable);
-
 }
