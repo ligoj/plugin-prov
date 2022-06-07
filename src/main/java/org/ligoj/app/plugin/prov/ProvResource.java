@@ -339,9 +339,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();
-		vo.setCostNoSupport(new Floating(quote.getCostNoSupport(), quote.getMaxCostNoSupport(),
-				quote.getInitialCost(), quote.getMaxInitialCost(), unbound));
-		vo.setCostSupport(new Floating(quote.getCostSupport(), quote.getMaxCostSupport(), 0, 0, unbound));
+		vo.setCostNoSupport(new Floating(quote.getCostNoSupport(), quote.getMaxCostNoSupport(), quote.getInitialCost(),
+				quote.getMaxInitialCost(), unbound, quote.getCo2(), quote.getMaxCo2()));
+		vo.setCostSupport(new Floating(quote.getCostSupport(), quote.getMaxCostSupport(), 0, 0, unbound, quote.getCo2(),
+				quote.getMaxCo2()));
 		vo.setCost(quote.toFloating());
 		vo.setCurrency(quote.getCurrency());
 		return vo;
@@ -496,6 +497,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setMaxCostNoSupport(0d);
 		entity.setCost(0d);
 		entity.setMaxCost(0d);
+		entity.setCo2(0d);
+		entity.setMaxCo2(0d);
 		entity.setInitialCost(0d);
 		entity.setMaxInitialCost(0d);
 
@@ -533,7 +536,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	private Floating refreshSupportCost(final ProvQuote entity) {
 		final var support = qs2Repository.findAll(entity).stream().map(qspResource::refresh)
-				.reduce(new Floating(0, 0, 0, 0, entity.isUnboundCost()), Floating::add);
+				.reduce(new Floating(0, 0, 0, 0, entity.isUnboundCost(), 0, 0), Floating::add);
 		entity.setCostSupport(round(support.getMin()));
 		entity.setMaxCostSupport(round(support.getMax()));
 		entity.setCost(round(entity.getCostSupport() + entity.getCostNoSupport()));

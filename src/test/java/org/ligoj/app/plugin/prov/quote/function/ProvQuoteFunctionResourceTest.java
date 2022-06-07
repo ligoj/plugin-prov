@@ -338,7 +338,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	private Map<Integer, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteFunction.name", instanceName).stream()
 				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new Floating(qs.getCost(), qs.getMaxCost(),
-						0, 0, qs.getQuoteFunction().getMaxQuantity() == null)));
+						0, 0, qs.getQuoteFunction().getMaxQuantity() == null, qs.getCo2(), qs.getMaxCo2())));
 	}
 
 	@Test

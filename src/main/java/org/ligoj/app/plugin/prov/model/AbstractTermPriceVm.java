@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 import lombok.Getter;
@@ -107,16 +108,19 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	/**
 	 * The optional monthly CO2 consumption of one requested CPU. Required for dynamic instance type.
 	 */
-	private Double co2Cpu;
+	@Column(columnDefinition = "double default 0")
+	private double co2Cpu = 0d;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GPU. Required for dynamic instance type.
 	 */
-	private Double co2Gpu;
+	@Column(columnDefinition = "double default 0")
+	private double co2Gpu = 0d;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GiB memory. Required for dynamic instance type.
 	 */
-	private Double co2Ram;
+	@Column(columnDefinition = "double default 0")
+	private double co2Ram = 0d;
 
 }

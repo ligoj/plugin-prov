@@ -43,8 +43,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	private Map<String, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteInstance.name", instanceName).stream()
-				.collect(Collectors.toMap(ProvQuoteStorage::getName, qs -> new Floating(qs.getCost(),
-						qs.getMaxCost(), 0, 0, qs.getQuoteInstance().getMaxQuantity() == null)));
+				.collect(Collectors.toMap(ProvQuoteStorage::getName, qs -> new Floating(qs.getCost(), qs.getMaxCost(),
+						0, 0, qs.getQuoteInstance().getMaxQuantity() == null, qs.getCo2(), qs.getMaxCo2())));
 	}
 
 	@Test
@@ -540,8 +540,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadInstanceNotFoundContinue() throws IOException {
 		final var input = newStream("ANY;999;6;WINDOWS");
-		qiuResource.upload(subscription, input, null, false, null,
-				MergeMode.INSERT, 1, true, DEFAULT_ENCODING, false, DEFAULT_SEPARATOR);
+		qiuResource.upload(subscription, input, null, false, null, MergeMode.INSERT, 1, true, DEFAULT_ENCODING, false,
+				DEFAULT_SEPARATOR);
 	}
 
 	@Test

@@ -67,15 +67,8 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	 * @return The {@link Floating} from the costs of this entity.
 	 */
 	default Floating toFloating() {
-		return new Floating(getCost(), getMaxCost(), getInitialCost(), getMaxInitialCost(), isUnboundCost());
+		return new Floating(getCost(), getMaxCost(), getInitialCost(), getMaxInitialCost(), isUnboundCost(), getCo2(),
+				getMaxCo2());
 	}
 
-	/**
-	 * Return the {@link Floating} from the costs of this entity.
-	 *
-	 * @return The {@link Floating} from the costs of this entity.
-	 */
-	default Floating toFloatingCo2() {
-		return new Floating(getCo2(), getMaxCo2(), 0, 0, isUnboundCost());
-	}
 }
