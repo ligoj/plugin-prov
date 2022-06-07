@@ -182,7 +182,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setGpuRate(vo.getGpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
-		entity.setCo2(vo.getCo2());
 		checkMinMax(entity);
 
 		saveOrUpdateSpec(entity, vo);
@@ -438,6 +437,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		return computeFloat(
 				rate * (ip.getCost()
 						+ (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getGpu(), qi.getRam(), ip) : 0)),
+				rate * (ip.getCo2()
+						+ (ip.getType().isCustom() ? getCustomCo2(qi.getCpu(), qi.getGpu(), qi.getRam(), ip) : 0)),
 				ip.getInitialCost(), qi);
 	}
 
@@ -456,9 +457,25 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	protected double getCustomCost(final Double cpu, final Double gpu, final Integer ram, final P ip) {
 		// Compute the count of the requested resources
-		return getCustomCost(
-				Math.round(Math.ceil(Math.max(cpu, ip.getMinCpu()) / ip.getIncrementCpu()) * ip.getIncrementCpu()),
-				ip.getCostCpu(), 1) + getCustomCost(ram, ip.getCostRam(), 1024); // +getCustomCost(gpu,ip.getCostGpu())
+		return getCustomCost(cpu, ip.getCostCpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1)
+				+ getCustomCost(gpu, ip.getCostCpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1)
+				+ getCustomCost(ram, ip.getCostRam(), ip.getMinRam(), ip.getIncrementRam(), 1024);
+	}
+
+	/**
+	 * Compute the monthly CO2 consumption of a custom requested resource.
+	 *
+	 * @param cpu The requested CPU.
+	 * @param gpu The requested CPU.
+	 * @param ram The requested RAM in MB.
+	 * @param ip  The resource price configuration.
+	 * @return The CO2 consumption of this custom resource.
+	 */
+	protected double getCustomCo2(final Double cpu, final Double gpu, final Integer ram, final P ip) {
+		// Compute the count of the requested resources
+		return getCustomCost(cpu, ip.getCo2Cpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1)
+				+ getCustomCost(gpu, ip.getCo2Cpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1)
+				+ getCustomCost(ram, ip.getCo2Ram(), ip.getMinRam(), ip.getIncrementRam(), 1024);
 	}
 
 	/**
@@ -466,27 +483,34 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *
 	 * @param requested The request resource amount.
 	 * @param cost      The cost of one resource.
+	 * @param min       The minimum resource amount.
+	 * @param increment The increment resource amount.
 	 * @param weight    The weight of one resource.
 	 * @return The cost of this custom instance resource.
 	 */
-	private double getCustomCost(final Number requested, final double cost, final double weight) {
+	private double getCustomCost(final double requested, final Double cost, final Double min, final Double increment,
+			final double weight) {
+		final var incrementD = Objects.requireNonNullElse(increment, 1d);
 		// Compute the count of the requested resources
-		return Math.ceil(requested.doubleValue() / weight) * cost;
+		return Math.ceil(Math.max(Math.ceil(requested / weight), Objects.requireNonNullElse(min, 0d)) / incrementD)
+				* incrementD * Objects.requireNonNullElse(cost, 0d);
 	}
 
 	/**
 	 * Compute the cost using minimal and maximal quantity of related resource. no rounding there.
 	 *
 	 * @param base    The cost of one resource.
+	 * @param baseCo2 The CO2 consumption of one resource.
 	 * @param initial The initial cost of one resource. May be <code>null</code>.
 	 * @param qi      The quote resource to compute.
 	 * @return The updated cost of this resource.
 	 */
-	public static Floating computeFloat(final double base, final Double initial, final AbstractQuoteVm<?> qi) {
+	public static Floating computeFloat(final double base, final double baseCo2, final Double initial,
+			final AbstractQuoteVm<?> qi) {
 		final var initialR = Objects.requireNonNullElse(initial, 0d);
 		final var maxQuantity = Objects.requireNonNullElse(qi.getMaxQuantity(), qi.getMinQuantity());
 		return new Floating(base * qi.getMinQuantity(), base * maxQuantity, initialR * qi.getMinQuantity(),
-				initialR * maxQuantity, qi.isUnboundCost());
+				initialR * maxQuantity, qi.isUnboundCost(), baseCo2 * qi.getMinQuantity(), baseCo2 * maxQuantity);
 	}
 
 	/**
@@ -686,22 +710,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			List<Integer> terms, double cpu, double gpu, double ram, int location, double rate, int duration,
 			double initialCost);
 
-	/**
-	 * Return the lowest CO2 matching all requirements.
-	 *
-	 * @param configuration The subscription configuration.
-	 * @param query         The query parameters.
-	 * @param types         The valid types matching to the requirements.
-	 * @param terms         The valid terms matching to the requirements.
-	 * @param location      The required location.
-	 * @param rate          The usage rate.
-	 * @param duration      The committed duration.
-	 * @param initialCost   The maximal initial cost.
-	 * @return The valid co2 result.
-	 */
-	protected abstract List<Object[]> findLowestCo2(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int location, double rate, int duration, final double initialCost,double co2 );
-	
 	@Override
 	public Floating refresh(final C qi) {
 		// Find the lowest price

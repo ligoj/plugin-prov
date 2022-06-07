@@ -62,11 +62,28 @@ public class Floating implements Serializable {
 	private boolean unbound;
 
 	/**
+	 * Minimal monthly CO2 consumption.
+	 */
+	@JsonSerialize(using = RoundSerializer.class)
+	@Setter
+	@Getter
+	private double minCo2;
+
+	/**
+	 * The maximal determined monthly cost. When the maximal CO2 consumption. cannot be determined, the minimal CO2
+	 * consumption. is used and the {@link #unbound} is set to <code>true</code>.
+	 */
+	@JsonSerialize(using = RoundSerializer.class)
+	@Setter
+	@Getter
+	private double maxCo2;
+
+	/**
 	 * Default float where {@link #min} and {@link #max} are set to <code>0</code>.
 	 */
 	public Floating() {
 		// No value
-		this(0);
+		this(0,0);
 	}
 
 	/**
@@ -74,9 +91,11 @@ public class Floating implements Serializable {
 	 *
 	 * @param base The minimal and maximal value.
 	 */
-	public Floating(double base) {
+	public Floating(final double base, final double baseCo2) {
 		min = base;
 		max = base;
+		minCo2 = baseCo2;
+		maxCo2 = baseCo2;
 	}
 
 	/**
@@ -91,6 +110,9 @@ public class Floating implements Serializable {
 		initial += other.initial;
 		maxInitial += other.maxInitial;
 		unbound |= other.unbound;
+
+		minCo2 += other.minCo2;
+		maxCo2 += other.maxCo2;
 		return this;
 	}
 
@@ -100,7 +122,7 @@ public class Floating implements Serializable {
 	 * @return A new instance with round values.
 	 */
 	public Floating round() {
-		return new Floating(round(min), round(max), initial, maxInitial, unbound);
+		return new Floating(round(min), round(max), initial, maxInitial, unbound, round(minCo2), round(maxCo2));
 	}
 
 	/**

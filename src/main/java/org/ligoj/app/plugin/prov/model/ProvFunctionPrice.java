@@ -61,22 +61,36 @@ public class ProvFunctionPrice extends AbstractTermPriceVm<ProvFunctionType> {
 	 * Cost per GiB of RAM actually consumed during one month within the concurrency limit.
 	 */
 	private double costRamRequestConcurrency;
-	
+
 	/**
 	 * Increment of the billed duration of a single request.
 	 */
 	@Positive
 	private double incrementDuration;
-	
+
 	/**
 	 * Minimal billed duration of a single request. In milliseconds.
 	 */
 	private double minDuration;
-	
+
 	/**
 	 * Maximal duration of a single request. In milliseconds.
 	 */
 	private Double maxDuration;
 
+	/**
+	 * CO2 per millions requests.
+	 */
+	private double co2Requests;
+
+	/**
+	 * CO2 per GiB of RAM actually consumed during one month whatever the concurrency.
+	 */
+	private double co2RamRequest;
+
+	/**
+	 * CO2 per GiB of RAM actually consumed during one month within the concurrency limit.
+	 */
+	private double co2RamRequestConcurrency;
 
 }

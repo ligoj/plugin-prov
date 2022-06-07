@@ -118,8 +118,8 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "int(11) default 0")
-	private double co2;
+	@Column(columnDefinition = "double default 0")
+	private double co2 = 0d;
 
 	/**
 	 * Maximal determined monthly CO2 consumption of the resource. When there is an unbound maximal (<code>null</code>)
@@ -127,7 +127,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "int(11) default 0")
-	private double maxCo2;
+	@Column(columnDefinition = "double default 0")
+	private double maxCo2 = 0d;
 
 }

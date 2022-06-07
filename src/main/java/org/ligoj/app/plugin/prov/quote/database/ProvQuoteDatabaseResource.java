@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
@@ -153,9 +154,12 @@ public class ProvQuoteDatabaseResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		final var optimizer = configuration.getOptimizer();
-		return ipRepository.findLowestPrice(types, terms, location, rate, duration, licenseR, engineR, editionR,
-				initialCost, optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestCo2(types, terms, location, rate, duration, licenseR, engineR, editionR,
+					initialCost, PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestCost(types, terms, location, rate, duration, licenseR, engineR, editionR,
+				initialCost, PageRequest.of(0, 1));
 	}
 
 	@Override
@@ -165,22 +169,14 @@ public class ProvQuoteDatabaseResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		final var optimizer = configuration.getOptimizer();
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
+					engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
+					PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
 				engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
-				optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
-	}
-	
-	@Override
-	protected List<Object[]> findLowestCo2(final ProvQuote configuration, final QuoteDatabase query,
-			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost,final double co2) {
-		// Resolve the right license model
-		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
-		final var engineR = normalize(query.getEngine());
-		final var editionR = normalize(query.getEdition());
-		return ipRepository.findLowestCo2(types, terms, location, rate, duration, licenseR, engineR, editionR,
-				initialCost, PageRequest.of(0, 1),co2);
+				PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final String engine) {

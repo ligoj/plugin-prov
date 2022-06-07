@@ -23,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteInstanceOsResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
@@ -120,13 +121,16 @@ public class ProvQuoteContainerResource extends
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
 		final var service = getService(configuration);
-		final var optimizer = configuration.getOptimizer();
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		return ipRepository.findLowestPrice(types, terms, os, location, rate, duration, licenseR, initialCost,
-				optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, initialCost,
+					PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestCost(types, terms, os, location, rate, duration, licenseR, initialCost,
+				PageRequest.of(0, 1));
 	}
 
 	@Override
@@ -134,27 +138,18 @@ public class ProvQuoteContainerResource extends
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
 		final var service = getService(configuration);
-		final var optimizer = configuration.getOptimizer();
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
+					Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
+					initialCost, PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
 				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
-				initialCost, optimizer.getOrderPrimary(), optimizer.getOrderSecondary(), PageRequest.of(0, 1));
-	}
-	
-	@Override
-	protected List<Object[]> findLowestCo2(final ProvQuote configuration, final QuoteContainer query,
-			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost,final double co2) {
-		final var service = getService(configuration);
-		// Resolve the right OS
-		final var os = service.getCatalogOs(query.getOs());
-		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, initialCost,
-				PageRequest.of(0, 1),co2);
+				initialCost, PageRequest.of(0, 1));
 	}
 
 	@Override
