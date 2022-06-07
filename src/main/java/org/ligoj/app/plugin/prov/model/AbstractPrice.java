@@ -54,6 +54,6 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	/**
 	 * Indicates the consumption of carbon(co2) for this instance.
 	 */
-	@Column(columnDefinition = "int(11) default 0")
+	@Column(columnDefinition = "double default 0")
 	private double co2 = 0;
 }

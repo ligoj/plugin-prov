@@ -284,7 +284,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "int(11) default 0")
+	@Column(columnDefinition = "double default 0")
 	private double co2 = 0d;
 
 	/**
@@ -294,7 +294,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "int(11) default 0")
+	@Column(columnDefinition = "double default 0")
 	private double maxCo2 = 0d;
 
 	/**

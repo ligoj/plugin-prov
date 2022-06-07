@@ -162,7 +162,7 @@ public class ProvQuoteSupportResource
 
 	@Override
 	public <T extends Costed> void addCost(final T entity, final double old, final double oldMax,
-			final double oldInitial, final double oldMaxInitial) {
+			final double oldInitial, final double oldMaxInitial, final double oldCo2, final double oldMaxCo2) {
 		// Report the delta to the quote. Initial costs are not updated
 		final var quote = entity.getConfiguration();
 		quote.setCost(round(quote.getCost() + entity.getCost() - old));
@@ -286,7 +286,7 @@ public class ProvQuoteSupportResource
 		final var seats = entity.getSeats();
 		return new Floating(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.getInitialCost(),
-				quote.getMaxInitialCost(), quote.isUnboundCost()).round();
+				quote.getMaxInitialCost(), quote.isUnboundCost(), quote.getCo2(), quote.getMaxCo2()).round();
 	}
 
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,

@@ -429,7 +429,6 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		assertTags(storage);
 	}
 
-
 	@Test
 	void refresh() {
 		// Create with constraints
@@ -815,15 +814,14 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"type\":{\"id\":"));
-		Assertions.assertTrue(asJson.endsWith(
+		Assertions.assertTrue(asJson.contains(
 				"\"name\":\"storage1\",\"description\":\"storageD1\",\"code\":\"storage1\",\"latency\":\"good\""
 						+ ",\"optimized\":\"iops\",\"minimal\":1.0,\"maximal\":null,\"increment\":null,\"iops\":200,"
 						+ "\"throughput\":60,\"instanceType\":\"%\",\"notInstanceType\":null,"
 						+ "\"containerType\":null,\"notContainerType\":null,"
 						+ "\"functionType\":null,\"notFunctionType\":null,"
 						+ "\"databaseType\":null,\"notDatabaseType\":null,"
-						+ "\"engine\":null,\"availability\":99.99,\"durability9\":11,"
-						+ "\"network\":\"443/tcp\"},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"),
+						+ "\"engine\":null,\"availability\":99.99,\"durability9\":11," + "\"network\":\"443/tcp\"}"),
 				asJson);
 		// Check the storage result
 		assertCSP(lookup);
