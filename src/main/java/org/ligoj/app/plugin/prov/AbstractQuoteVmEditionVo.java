@@ -208,9 +208,4 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	public String getBudgetName() {
 		return getBudget();
 	}
-	
-	/**
-	 * The requested CO2
-	 */
-	private double co2;
 }

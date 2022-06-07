@@ -160,21 +160,6 @@ public class ProvQuoteInstanceResource extends
 				initialCost, tenancyR, optimizer.getOrderPrimary(), optimizer.getOrderSecondary(),
 				PageRequest.of(0, 1));
 	}
-	
-	@Override
-	protected List<Object[]> findLowestCo2(final ProvQuote configuration, final QuoteInstance query,
-			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost,double co2) {
-		final var service = getService(configuration);
-		// Resolve the right OS
-		final var os = service.getCatalogOs(query.getOs());
-		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		final var softwareR = normalize(query.getSoftware());
-		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
-		return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, softwareR,
-				initialCost, tenancyR, PageRequest.of(0, 1),co2);
-	}
 
 	@Override
 	@GET

@@ -144,52 +144,6 @@ public interface ProvInstancePriceRepository
 	List<Object[]> findLowestPrice(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
 			double duration, String license, String software, double initialCost, ProvTenancy tenancy, String orderPrimary, String orderSecondary,
 			Pageable pageable);
-	
-	/**
-	 * Return the lowest instance co2 configuration from the minimal requirements.
-	 *
-	 * @param types       The valid instance type identifiers.
-	 * @param terms       The valid instance terms identifiers.
-	 * @param os          The requested OS.
-	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
-	 * @param duration    The duration in month. Minimum is 1.
-	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
-	 *                    <code>null</code>, installed software is also accepted.
-	 * @param initialCost The maximal initial cost.
-	 * @param tenancy     The requested tenancy.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
-	 */
-	@Query("""
-			SELECT ip,
-			CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
-			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate)
-			  ELSE ip.cost END AS monthlyCost,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
-			  ELSE (ip.co2Period * CEIL(:duration/ip.period)) END AS totalCo2,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
-			  ELSE ip.co2 END AS monthlyCo2
-			 FROM #{#entityName} ip  WHERE
-			      ip.location.id = :location
-			  AND ip.incrementCpu IS NULL
-			  AND ip.os=:os
-			  AND ip.tenancy=:tenancy
-			  AND (:software IS NULL OR :software = ip.software)
-			  AND (ip.license IS NULL OR :license = ip.license)
-			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC
-			""")
-	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
-			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
-			Pageable pageable,double co2);
 
 	@CacheResult(cacheName = "prov-instance-os")
 	List<String> findAllOs(@CacheKey String node);

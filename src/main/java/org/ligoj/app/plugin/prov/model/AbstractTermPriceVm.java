@@ -103,11 +103,6 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * included in the price or not applicable.
 	 */
 	private String license;
-	
-	/**
-	 * Increment CO2. Required for dynamic instance type.
-	 */
-	private Double CO2;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested CPU. Required for dynamic instance type.

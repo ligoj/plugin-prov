@@ -24,7 +24,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @MappedSuperclass
-@ToString(of = { "cost", "co2", "type", "location" })
+@ToString(of = { "cost", "type", "location" })
 public abstract class AbstractPrice<T extends ProvType> extends AbstractPersistable<Integer> {
 
 	/**
@@ -36,12 +36,6 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	 * The monthly cost of the resource. The meaning of this value depends on the implementing class.
 	 */
 	private double cost = 0;
-	
-	/**
-	 * Indicates the consumption of carbon(co2) for this instance
-	 */
-	private double co2;
-
 
 	/**
 	 * Optional location constraint.

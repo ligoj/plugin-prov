@@ -182,7 +182,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setGpuRate(vo.getGpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
-		entity.setCo2(vo.getCo2());
 		checkMinMax(entity);
 
 		saveOrUpdateSpec(entity, vo);
@@ -686,22 +685,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			List<Integer> terms, double cpu, double gpu, double ram, int location, double rate, int duration,
 			double initialCost);
 
-	/**
-	 * Return the lowest CO2 matching all requirements.
-	 *
-	 * @param configuration The subscription configuration.
-	 * @param query         The query parameters.
-	 * @param types         The valid types matching to the requirements.
-	 * @param terms         The valid terms matching to the requirements.
-	 * @param location      The required location.
-	 * @param rate          The usage rate.
-	 * @param duration      The committed duration.
-	 * @param initialCost   The maximal initial cost.
-	 * @return The valid co2 result.
-	 */
-	protected abstract List<Object[]> findLowestCo2(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int location, double rate, int duration, final double initialCost,double co2 );
-	
 	@Override
 	public Floating refresh(final C qi) {
 		// Find the lowest price
