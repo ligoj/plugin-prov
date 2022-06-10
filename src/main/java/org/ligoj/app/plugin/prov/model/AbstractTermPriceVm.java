@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 import lombok.Getter;
@@ -32,9 +33,9 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
 	 */
 	private Double costCpu;
-	
+
 	/**
-	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
+	 * The optional monthly cost of one requested GPU. Required for dynamic instance type.
 	 */
 	private Double costGpu;
 
@@ -47,12 +48,11 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * Increment CPU step. Required for dynamic instance type.
 	 */
 	private Double incrementCpu;
-	
+
 	/**
 	 * Increment CPU step. Required for dynamic instance type.
 	 */
 	private Double incrementGpu;
-
 
 	/**
 	 * Increment RAM step (GiB). Required for dynamic instance type.
@@ -68,7 +68,7 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * Maximal CPU. Only valid for dynamic instance type.
 	 */
 	private Double maxCpu;
-	
+
 	/**
 	 * Minimal GPU. Required for dynamic instance type.
 	 */
@@ -105,5 +105,22 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 */
 	private String license;
 
+	/**
+	 * The optional monthly CO2 consumption of one requested CPU. Required for dynamic instance type.
+	 */
+	@Column(columnDefinition = "double default 0")
+	private double co2Cpu = 0d;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested GPU. Required for dynamic instance type.
+	 */
+	@Column(columnDefinition = "double default 0")
+	private double co2Gpu = 0d;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested GiB memory. Required for dynamic instance type.
+	 */
+	@Column(columnDefinition = "double default 0")
+	private double co2Ram = 0d;
 
 }

@@ -77,7 +77,7 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 			e.setMaxCost(0d);
 			e.setInitialCost(0d);
 			e.setMaxInitialCost(0d);
-			return new FloatingCost();
+			return new Floating();
 		});
 
 		// Callback before the deletion
@@ -95,7 +95,7 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 	 * @param qr The {@link Costed} to update cost.
 	 * @return The new cost.
 	 */
-	public FloatingCost updateCost(final C qr) {
+	public Floating updateCost(final C qr) {
 		return updateCost(qr, this::getCost);
 	}
 
@@ -105,5 +105,5 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 	 * @param qr The {@link Costed} resource to evaluate.
 	 * @return The cost of this instance.
 	 */
-	protected abstract FloatingCost getCost(final C qr);
+	protected abstract Floating getCost(final C qr);
 }

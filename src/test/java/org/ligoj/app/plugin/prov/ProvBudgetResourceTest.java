@@ -381,7 +381,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void leanNull() {
-		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
+		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class);
 		bResource.lean((ProvBudget) null, relatedCosts);
 		Assertions.assertTrue(relatedCosts.isEmpty());
 	}
@@ -391,14 +391,14 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		configuration.put("service:prov:log", "true");
 		addDatabases();
 		checkCost(resource.refresh(subscription), 5230.6, 7506.9, false);
-		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
+		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class);
 		bResource.lean(getQuote().getBudget(), relatedCosts);
 		Assertions.assertFalse(relatedCosts.isEmpty());
 	}
 
 	@Test
 	void leanNoBudget() {
-		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
+		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class);
 		final var quote = getQuote();
 		quote.setBudget(null);
 		em.merge(quote);
@@ -409,7 +409,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void leanBudget0() {
-		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, FloatingCost>>(ResourceType.class);
+		final var relatedCosts = new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class);
 		final var budget = getBudget();
 		budget.setInitialCost(0);
 		em.merge(budget);

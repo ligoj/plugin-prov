@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov.model;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
@@ -41,6 +42,12 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	 * The cost for the whole period defined in the term.
 	 */
 	private double costPeriod;
+
+	/**
+	 * The CO2 for the whole period defined in the term.
+	 */
+	@Column(columnDefinition = "double default 0")
+	private double co2Period;
 
 	/**
 	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing

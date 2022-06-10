@@ -253,11 +253,11 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		return status;
 	}
 
-	protected FloatingCost checkCost(final FloatingCost cost, final double min, final double max,
+	protected Floating checkCost(final Floating cost, final double min, final double max,
 			final boolean unbound) {
 
-		Assertions.assertEquals(FloatingCost.round(min) + ", " + FloatingCost.round(max),
-				FloatingCost.round(cost.getMin()) + ", " + FloatingCost.round(cost.getMax()));
+		Assertions.assertEquals(Floating.round(min) + ", " + Floating.round(max),
+				Floating.round(cost.getMin()) + ", " + Floating.round(cost.getMax()));
 		Assertions.assertEquals(unbound, cost.isUnbound());
 		return cost;
 	}
@@ -266,7 +266,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		checkCost(cost.getTotal(), min, max, unbound);
 	}
 
-	protected FloatingCost updateCost() {
+	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(4704.758, cost.getMin(), DELTA);

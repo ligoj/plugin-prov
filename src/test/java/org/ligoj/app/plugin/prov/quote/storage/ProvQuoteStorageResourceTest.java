@@ -15,7 +15,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
@@ -429,7 +429,6 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		assertTags(storage);
 	}
 
-
 	@Test
 	void refresh() {
 		// Create with constraints
@@ -815,15 +814,14 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"type\":{\"id\":"));
-		Assertions.assertTrue(asJson.endsWith(
+		Assertions.assertTrue(asJson.contains(
 				"\"name\":\"storage1\",\"description\":\"storageD1\",\"code\":\"storage1\",\"latency\":\"good\""
 						+ ",\"optimized\":\"iops\",\"minimal\":1.0,\"maximal\":null,\"increment\":null,\"iops\":200,"
 						+ "\"throughput\":60,\"instanceType\":\"%\",\"notInstanceType\":null,"
 						+ "\"containerType\":null,\"notContainerType\":null,"
 						+ "\"functionType\":null,\"notFunctionType\":null,"
 						+ "\"databaseType\":null,\"notDatabaseType\":null,"
-						+ "\"engine\":null,\"availability\":99.99,\"durability9\":11,"
-						+ "\"network\":\"443/tcp\"},\"costGb\":0.21,\"costTransaction\":0.0},\"size\":1024}"),
+						+ "\"engine\":null,\"availability\":99.99,\"durability9\":11," + "\"network\":\"443/tcp\"}"),
 				asJson);
 		// Check the storage result
 		assertCSP(lookup);
@@ -1017,7 +1015,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Override
-	protected FloatingCost updateCost() {
+	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
 		Assertions.assertEquals(7105.198, cost.getMin(), DELTA);

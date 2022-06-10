@@ -30,7 +30,7 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	 * Amount of CPU. <code>0</code> for custom instance type.
 	 */
 	private double cpu;
-	
+
 	/**
 	 * Amount of GPU. <code>0</code> for custom instance type.
 	 */
@@ -62,7 +62,7 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	@NotNull
 	@Enumerated(EnumType.ORDINAL)
 	private Rate cpuRate = Rate.MEDIUM;
-	
+
 	/**
 	 * GPU performance.
 	 */
@@ -112,4 +112,8 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 		return cpu == 0;
 	}
 
+	/**
+	 * Indicates the consumption of carbon(co2) for this instance. When <code>null</code>, the value is unknown.
+	 */
+	private Double co2;
 }

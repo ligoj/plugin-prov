@@ -4,7 +4,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import org.ligoj.app.model.Configurable;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 
 /**
  * A configured and also costed entity.
@@ -48,11 +48,27 @@ public interface Costed extends Configurable<ProvQuote, Integer> {
 	double getMaxInitialCost();
 
 	/**
-	 * Return the {@link FloatingCost} from the costs of this entity.
+	 * Return the computed CO2 of this quoted element.
 	 *
-	 * @return The {@link FloatingCost} from the costs of this entity.
+	 * @return The computed CO2 of this quoted element.
 	 */
-	default FloatingCost toFloatingCost() {
-		return new FloatingCost(getCost(), getMaxCost(), getInitialCost(), getMaxInitialCost(), isUnboundCost());
+	double getCo2();
+
+	/**
+	 * Return the computed maximal CO2 of this quoted element.
+	 *
+	 * @return The computed maximal CO2 of this quoted element.
+	 */
+	double getMaxCo2();
+
+	/**
+	 * Return the {@link Floating} from the costs of this entity.
+	 *
+	 * @return The {@link Floating} from the costs of this entity.
+	 */
+	default Floating toFloating() {
+		return new Floating(getCost(), getMaxCost(), getInitialCost(), getMaxInitialCost(), isUnboundCost(), getCo2(),
+				getMaxCo2());
 	}
+
 }

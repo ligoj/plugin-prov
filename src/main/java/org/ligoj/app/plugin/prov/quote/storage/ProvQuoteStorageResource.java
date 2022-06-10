@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
@@ -118,7 +118,7 @@ public class ProvQuoteStorageResource
 	}
 
 	@Override
-	public FloatingCost refresh(final ProvQuoteStorage qs) {
+	public Floating refresh(final ProvQuoteStorage qs) {
 		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
@@ -175,7 +175,7 @@ public class ProvQuoteStorageResource
 		// Save and update the costs
 		final var cost = refreshCost(entity);
 		Optional.ofNullable(entity.getQuoteResource()).ifPresent(qi -> cost.getRelated().put(qi.getResourceType(),
-				Collections.singletonMap(qi.getId(), qi.toFloatingCost())));
+				Collections.singletonMap(qi.getId(), qi.toFloating())));
 
 		// Add tags
 		super.saveOrUpdate(entity, vo);
@@ -356,15 +356,16 @@ public class ProvQuoteStorageResource
 	}
 
 	@Override
-	protected FloatingCost getCost(final ProvQuoteStorage qs) {
+	protected Floating getCost(final ProvQuoteStorage qs) {
 		// Sample Instance1, minQuantity=1, maxQuantity=5
 		// qs1: quantity=4, price=5$ -> displayed quantity=[4,20], price=[20$-100$]
 		// qs2: quantity=3, price=10$ -> displayed quantity=[3,15], price=[30$-150$]
-		final var base = getCost(qs.getPrice(), qs.getSize())
-				* ((double) ObjectUtils.defaultIfNull(qs.getQuantity(), 1));
+		final var quantity = (double) ObjectUtils.defaultIfNull(qs.getQuantity(), 1);
+		final var base = getCost(qs.getPrice(), qs.getSize()) * quantity;
+		final var baseCo2 = getCo2(qs.getPrice(), qs.getSize()) * quantity;
 		return Optional.ofNullable(qs.getQuoteResource())
-				.map(qr -> AbstractProvQuoteVmResource.computeFloat(base, 0d, qr))
-				.orElseGet(() -> new FloatingCost(base));
+				.map(qr -> AbstractProvQuoteVmResource.computeFloat(base, baseCo2, 0d, qr))
+				.orElseGet(() -> new Floating(base, baseCo2));
 	}
 
 	/**
@@ -378,6 +379,19 @@ public class ProvQuoteStorageResource
 		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
 		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment
 				* storagePrice.getCostGb() + storagePrice.getCost());
+	}
+
+	/**
+	 * Compute the CO2 consumption of a storage.
+	 *
+	 * @param storagePrice The storage to evaluate.
+	 * @param size         The requested size in GB.
+	 * @return The cost of this storage.
+	 */
+	private double getCo2(final ProvStoragePrice storagePrice, final int size) {
+		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
+		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment
+				* 0 + storagePrice.getCo2());
 	}
 
 	@Override

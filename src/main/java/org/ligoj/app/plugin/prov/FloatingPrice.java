@@ -23,7 +23,7 @@ public class FloatingPrice<P extends AbstractTermPrice<?>> {
 	/**
 	 * Minimal monthly cost.
 	 */
-	private FloatingCost cost;
+	private Floating cost;
 
 	/**
 	 * The maximal determined monthly cost. When the maximal cost cannot be determined, the minimal cost is used and the

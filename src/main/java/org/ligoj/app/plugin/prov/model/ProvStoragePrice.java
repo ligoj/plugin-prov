@@ -29,7 +29,17 @@ public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 	private double costGb = 0;
 
 	/**
+	 * The monthly CO2 consumption of 1GiB (Gibibyte Bytes).
+	 */
+	private double co2Gb = 0;
+
+	/**
 	 * The cost per million transactions. May be <code>0</code>.
 	 */
 	private double costTransaction;
+
+	/**
+	 * The co2 consumption per million transactions. May be <code>0</code>.
+	 */
+	private double co2Transaction;
 }

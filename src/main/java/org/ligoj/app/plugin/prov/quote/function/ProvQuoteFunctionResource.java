@@ -24,6 +24,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
@@ -130,20 +131,24 @@ public class ProvQuoteFunctionResource extends
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final int duration, final double initialCost) {
-		return ipRepository.findLowestPrice(types, terms, location, rate, duration, initialCost, query.getDuration(),
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestCo2(types, terms, location, rate, duration, initialCost, query.getDuration(),
+					PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestCost(types, terms, location, rate, duration, initialCost, query.getDuration(),
 				PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
-			final List<Integer> types, final List<Integer> terms, final double cpu,final double gpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost) {
-		var result1 = findLowestDynamicPrice(query, types, terms, cpu, gpu, ram, location, rate, duration, initialCost,
-				Math.floor(query.getConcurrency()), Math.floor(query.getConcurrency()));
+		var result1 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
+				duration, initialCost, Math.floor(query.getConcurrency()), Math.floor(query.getConcurrency()));
 		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
 			// Try the greater concurrency level and keeping the original concurrency assumption
-			var result2 = findLowestDynamicPrice(query, types, terms, cpu, gpu, ram, location, rate, duration, initialCost,
-					query.getConcurrency(), Math.ceil(query.getConcurrency()));
+			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
+					duration, initialCost, query.getConcurrency(), Math.ceil(query.getConcurrency()));
 			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
 				// The second concurrency configuration is cheaper
 				return result2;
@@ -152,11 +157,17 @@ public class ProvQuoteFunctionResource extends
 		return result1;
 	}
 
-	private List<Object[]> findLowestDynamicPrice(final QuoteFunction query, final List<Integer> types,
-			final List<Integer> terms, final double cpu,final double gpu, final double ram, final int location, final double rate,
-			final int duration, final double initialCost, final double realConcurrency,
-			final double reservedConcurrency) {
-		return ipRepository.findLowestDynamicPrice(types, terms, Math.ceil(Math.max(1, cpu)), Math.max(1, ram) / 1024d,
+	private List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
+			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
+			final int location, final double rate, final int duration, final double initialCost,
+			final double realConcurrency, final double reservedConcurrency) {
+		if (configuration.getOptimizer() == Optimizer.CO2) {
+			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)),
+					Math.max(1, ram) / 1024d, location, rate, round(rate * duration), duration, initialCost,
+					query.getNbRequests(), realConcurrency, reservedConcurrency, query.getDuration(),
+					CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
+		}
+		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(Math.max(1, cpu)), Math.max(1, ram) / 1024d,
 				location, rate, round(rate * duration), duration, initialCost, query.getNbRequests(), realConcurrency,
 				reservedConcurrency, query.getDuration(), CONCURRENCY_PER_MONTH, 1.0d, PageRequest.of(0, 1));
 	}

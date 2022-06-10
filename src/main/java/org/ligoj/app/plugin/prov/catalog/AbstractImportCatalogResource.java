@@ -26,7 +26,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
-import org.ligoj.app.plugin.prov.FloatingCost;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
@@ -251,7 +251,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @return The rounded value.
 	 */
 	protected double round3Decimals(final double value) {
-		return FloatingCost.round(value);
+		return Floating.round(value);
 	}
 
 	/**
