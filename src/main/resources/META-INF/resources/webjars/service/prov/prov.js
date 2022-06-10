@@ -1000,7 +1000,7 @@ define(function () {
 			// Also trigger the change of the value
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
-		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', ()=>_('database-edition').select2('data', null));
+		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
 		$('input.resource-query[type="number"]').on('change input', delay(function () {
@@ -1756,12 +1756,20 @@ define(function () {
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
-						if (!suggest.price || !suggest.price.edition) {
+						if (suggest.price && suggest.price.edition) {
 							$("#s2id_database-edition").addClass("hidden")
 							$(".input-group-addon").addClass("hidden")
+							if ($("#s2id_database-edition").select2('data')) {
+								// The resource is valid, enable the create
+								current.enableCreate($popup);
+							} else {
+								$("#s2id_instance-price").select2('data', null)
+							}
 						} else {
-							$("#s2id_database-edition").removeClass("hidden")
-							$(".input-group-addon").removeClass("hidden")
+							$("#s2id_database-edition").addClass("hidden")
+							$(".input-group-addon").addClass("hidden")
+							// The resource is valid, enable the create
+							current.enableCreate($popup);
 						}
 						// The resource is valid, enable the create
 						current.enableCreate($popup);
@@ -3282,11 +3290,10 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
 				if (stats.cost) {
 					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
-						if (a.depth == 1 && b.depth == 1) {
+						if (a.depth === 1 && b.depth === 1) {
 							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
-						} else if (a.data.value > b.data.value || a.value > b.value) {
-							return -1;
-						} else return 1;
+						}
+						return (a.data.value > b.data.value || a.value > b.value) ? -1 : 1;
 
 					}, current.sunburstTooltip, d3[colorScheme]);
 					_('prov-sunburst').removeClass('hidden');
