@@ -1756,14 +1756,16 @@ define(function () {
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+						debugger;
 						if (suggest.price && suggest.price.edition) {
-							$("#s2id_database-edition").addClass("hidden")
-							$(".input-group-addon").addClass("hidden")
+							$("#s2id_database-edition").removeClass("hidden")
+							$(".input-group-addon").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
 							} else {
 								$("#s2id_instance-price").select2('data', null)
+								current.disableCreate($popup);
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
@@ -1771,8 +1773,6 @@ define(function () {
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
-						// The resource is valid, enable the create
-						current.enableCreate($popup);
 					}
 				},
 				error: () => current.enableCreate($popup)
