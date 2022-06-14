@@ -36,7 +36,6 @@ import lombok.Setter;
  * </ul>
  */
 @Getter
-@Setter
 @Entity
 @Table(name = "LIGOJ_PROV_FUNCTION_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "location", "term", "type" }), @UniqueConstraint(columnNames = "code") })
@@ -50,32 +49,38 @@ public class ProvFunctionPrice extends AbstractTermPriceVm<ProvFunctionType> {
 	/**
 	 * Cost per millions requests.
 	 */
+	@Setter
 	private double costRequests;
 
 	/**
 	 * Cost per GiB of RAM actually consumed during one month whatever the concurrency.
 	 */
+	@Setter
 	private double costRamRequest;
 
 	/**
 	 * Cost per GiB of RAM actually consumed during one month within the concurrency limit.
 	 */
+	@Setter
 	private double costRamRequestConcurrency;
 
 	/**
 	 * Increment of the billed duration of a single request.
 	 */
 	@Positive
+	@Setter
 	private double incrementDuration;
 
 	/**
 	 * Minimal billed duration of a single request. In milliseconds.
 	 */
+	@Setter
 	private double minDuration;
 
 	/**
 	 * Maximal duration of a single request. In milliseconds.
 	 */
+	@Setter
 	private Double maxDuration;
 
 	/**

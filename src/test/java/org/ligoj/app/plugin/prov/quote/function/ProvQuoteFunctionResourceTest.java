@@ -21,6 +21,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvBudgetResource;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
@@ -90,6 +91,19 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("Node", build.getRuntime());
 		checkFunction(lookup);
 	}
+	
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		final var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).build();
+		final var lookup = qfResource.lookup(subscription, build);
+		Assertions.assertEquals("Node", build.getRuntime());
+		checkFunction(lookup);
+	}
 
 	/**
 	 * Lookup for a only dynamic price and an adjusted concurrency: success
@@ -103,6 +117,31 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
 		Assertions.assertEquals(43.8d, pi.getCostRamRequest());
 		Assertions.assertEquals(25.55d, pi.getCostRamRequestConcurrency());
+		Assertions.assertEquals(1, pi.getMinDuration());
+		Assertions.assertEquals(900000d, pi.getMaxDuration());
+		Assertions.assertEquals(1, pi.getIncrementDuration());
+		Assertions.assertEquals(1d / 1024d, pi.getIncrementRam(), DELTA);
+		Assertions.assertEquals(124.558, lookup.getCost(), DELTA);
+	}
+	
+	/**
+	 * Lookup for a only dynamic price and an adjusted concurrency: success
+	 */
+	@Test
+	void lookupDynamicalOptimizedConcurrencyOkCo2() {
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		// Check with optimized concurrency discovery: succeed, use 2
+		var lookup = qfResource.lookup(subscription,
+				builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1.9).build());
+		var pi = lookup.getPrice();
+		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
+		Assertions.assertEquals(43.8d, pi.getCostRamRequest());
+		Assertions.assertEquals(25.55d, pi.getCostRamRequestConcurrency());
+		Assertions.assertEquals(0, pi.getCo2RamRequest());
+		Assertions.assertEquals(0, pi.getCo2RamRequestConcurrency());
+		Assertions.assertEquals(0, pi.getCo2Requests());
+		Assertions.assertEquals(10, pi.getType().getCo2());
 		Assertions.assertEquals(1, pi.getMinDuration());
 		Assertions.assertEquals(900000d, pi.getMaxDuration());
 		Assertions.assertEquals(1, pi.getIncrementDuration());

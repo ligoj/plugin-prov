@@ -403,6 +403,8 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		instance.setOs(VmOs.WINDOWS);
 		instance.setCost(0D);
 		instance.setMaxCost(0D);
+		instance.setCo2(0D);
+		instance.setMaxCo2(0D);
 		instance.setPrice(ipRepository.findBy("code", "C12"));
 		em.persist(instance);
 		em.flush();

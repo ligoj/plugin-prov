@@ -21,6 +21,7 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvBudgetResource;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
@@ -92,6 +93,19 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 				builder().usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
 	}
+	
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		
+		final var lookup = qbResource.lookup(subscription,
+				builder().usage("Full Time 12 month").engine("MYSQL").build());
+		checkInstance(lookup);
+	}
 
 	/**
 	 * Basic case, almost no requirements but license.
@@ -130,6 +144,33 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("databaseD0", pi.getType().getName());
 		Assertions.assertEquals(0, pi.getType().getCpu());
 		Assertions.assertEquals(0, pi.getType().getRam());
+		Assertions.assertEquals(1, pi.getIncrementCpu());
+		Assertions.assertEquals(1, pi.getMinCpu());
+		Assertions.assertEquals("MYSQL0", pi.getCode());
+		Assertions.assertEquals(0d, pi.getCost(), DELTA);
+		Assertions.assertEquals(0d, pi.getCostPeriod(), DELTA);
+		Assertions.assertEquals("MYSQL", pi.getEngine());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertEquals(100200.0, lookup.getCost(), DELTA);
+	}
+	
+	/**
+	 * Lookup for a only dynamic price.
+	 */
+	@Test
+	void lookupDynamicalCo2() {
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		
+		final var lookup = qbResource.lookup(subscription,
+				builder().usage("Full Time 12 month").engine("MYSQL").cpu(100).ram(2048).build());
+		// Check the instance result
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("databaseD0", pi.getType().getName());
+		Assertions.assertEquals(0, pi.getType().getCpu());
+		Assertions.assertEquals(0, pi.getType().getRam());
+		Assertions.assertEquals(10, pi.getType().getCo2());
 		Assertions.assertEquals(1, pi.getIncrementCpu());
 		Assertions.assertEquals(1, pi.getMinCpu());
 		Assertions.assertEquals("MYSQL0", pi.getCode());

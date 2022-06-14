@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.InternetAccess;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -59,6 +60,18 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookup() {
+		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).build());
+		checkInstance(lookup);
+	}
+	
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {	
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		
 		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
 	}
@@ -408,6 +421,41 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertTrue(pi.getType().isCustom());
+
+		Assertions.assertEquals(242594.101, lookup.getCost(), DELTA);
+	}
+	
+	/**
+	 * Too much requirements for an instance
+	 */
+	@Test
+	void lookupOnlyCustomCo2() {
+		
+		final var quote = getQuote();
+		quote.setOptimizer(Optimizer.CO2);
+		
+		final var lookup = qiResource.lookup(subscription, builder().cpu(999).build());
+
+		// Check the custom instance
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("dynamic", pi.getType().getName());
+		Assertions.assertEquals(0, pi.getType().getCpu());
+		Assertions.assertEquals(0, pi.getType().getGpu());
+		Assertions.assertEquals(0, pi.getType().getRam());
+		Assertions.assertTrue(pi.getType().getConstant());
+		Assertions.assertEquals(0, pi.getCost(), DELTA);
+		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
+		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
+		Assertions.assertTrue(pi.getType().isCustom());
+		
+		Assertions.assertEquals(10, pi.getType().getCo2());
+
+		Assertions.assertEquals(0, pi.getCo2());
+		Assertions.assertEquals(0, pi.getCo2Cpu());
+		Assertions.assertEquals(0, pi.getCo2Gpu());
+		Assertions.assertEquals(0, pi.getCo2Ram());
+		Assertions.assertEquals(0, pi.getCo2Period());
 
 		Assertions.assertEquals(242594.101, lookup.getCost(), DELTA);
 	}

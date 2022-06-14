@@ -15,7 +15,6 @@ import lombok.Setter;
  * The meaning to the cost attribute is the monthly cost of 1GiB (1024 MiB).
  */
 @Getter
-@Setter
 @Entity
 @Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = { "type", "location" }),
 		@UniqueConstraint(columnNames = { "code" }) })
@@ -26,11 +25,13 @@ public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 	 *
 	 * @see <a href="https://en.wikipedia.org/wiki/Gibibyte">Gibibyte</a>
 	 */
+	@Setter
 	private double costGb = 0;
 
 	/**
 	 * The monthly CO2 consumption of 1GiB (Gibibyte Bytes).
 	 */
+	@Setter
 	private double co2Gb = 0;
 
 	/**
