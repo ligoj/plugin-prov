@@ -31,7 +31,7 @@ public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 	/**
 	 * The monthly CO2 consumption of 1GiB (Gibibyte Bytes).
 	 */
-	@Setter
+	@Getter
 	private double co2Gb = 0;
 
 	/**
