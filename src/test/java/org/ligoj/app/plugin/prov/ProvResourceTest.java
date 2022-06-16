@@ -738,6 +738,32 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
+	void getKeyDedicatedHost() {
+		Assertions.assertEquals("service:prov", resource.getKey());
+
+		// Only there for coverage of associations required by JPA
+		new ProvQuote().setStorages(null);
+		new ProvQuote().getStorages();
+		new ProvQuote().getDatabases();
+		new ProvQuote().getContainers();
+		new ProvQuote().getFunctions();
+		new ProvQuote().getTags();
+		new ProvQuote().setTags(null);
+		new ProvQuote().setSupports(null);
+		new ProvQuote().setInstances(null);
+		new ProvQuote().setDatabases(null);
+		new ProvQuote().setContainers(null);
+		new ProvQuote().setFunctions(null);
+		new ProvQuoteInstance().setStorages(null);
+		new ProvQuoteContainer().setStorages(null);
+		new UpdatedCost(0).setDeleted(null);
+		Rate.valueOf(Rate.GOOD.name());
+		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
+		VmOs.valueOf(VmOs.LINUX.name());
+		ProvTenancy.valueOf(ProvTenancy.DEDICATED_HOST.name());
+	}
+
+	@Test
 	void delete() {
 		// Check the pre-deletion
 		Assertions.assertEquals(3, repository.findAll().size());
