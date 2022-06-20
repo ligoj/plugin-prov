@@ -729,6 +729,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		new ProvQuoteInstance().setStorages(null);
 		new ProvQuoteContainer().setStorages(null);
 		new UpdatedCost(0).setDeleted(null);
+		ProvTenancy.valueOf(ProvTenancy.DEDICATED_HOST.name());
 		Rate.valueOf(Rate.GOOD.name());
 		ProvStorageOptimized.valueOf(ProvStorageOptimized.IOPS.name());
 		VmOs.valueOf(VmOs.LINUX.name());
