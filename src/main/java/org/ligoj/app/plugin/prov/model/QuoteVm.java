@@ -114,6 +114,13 @@ public interface QuoteVm {
 	String getBudgetName();
 
 	/**
+	 * Return the optional optimizer name. May be <code>null</code> to use the default one.
+	 *
+	 * @return Optional optimizer name. May be <code>null</code> to use the default one.
+	 */
+	String getOptimizerName();
+
+	/**
 	 * Return optional license model. When <code>null</code>, the global quote's license is used.
 	 *
 	 * @return Optional license model. When <code>null</code>, the global quote's license is used.

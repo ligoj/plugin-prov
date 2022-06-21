@@ -47,6 +47,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -171,7 +172,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8.name());
@@ -253,8 +254,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		return status;
 	}
 
-	protected Floating checkCost(final Floating cost, final double min, final double max,
-			final boolean unbound) {
+	protected Floating checkCost(final Floating cost, final double min, final double max, final boolean unbound) {
 
 		Assertions.assertEquals(Floating.round(min) + ", " + Floating.round(max),
 				Floating.round(cost.getMin()) + ", " + Floating.round(cost.getMax()));

@@ -149,12 +149,12 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost) {
+			final int duration, final double initialCost, final Optimizer optimizer) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, location, rate, duration, licenseR, engineR, editionR,
 					initialCost, PageRequest.of(0, 1));
 		}
@@ -165,11 +165,12 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
-			final int location, final double rate, final int duration, final double initialCost) {
+			final int location, final double rate, final int duration, final double initialCost,
+			final Optimizer optimizer) {
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
 					engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
 					PageRequest.of(0, 1));
@@ -253,6 +254,7 @@ public class ProvQuoteDatabaseResource extends
 		final var result = new QuoteDatabaseLookup();
 		result.setPrice((ProvDatabasePrice) rs[0]);
 		result.setCost(round((double) rs[2]));
+		result.setCo2(round((double) rs[4]));
 		return result;
 	}
 

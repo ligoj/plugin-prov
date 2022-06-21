@@ -72,7 +72,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * Create a budget initiated without any cost.
 	 */
 	public ProvBudgetResource() {
-		super(ResourceScope::getBudget, ResourceScope::setBudget, ProvBudget::new);
+		super(ResourceScope::getBudget, ResourceScope::setBudget, ProvBudget::new, ProvQuote::getBudgets);
 	}
 
 	@Override
@@ -119,6 +119,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var functions = qfRepository.findAll(quote);
 		Hibernate.initialize(quote.getUsages());
 		Hibernate.initialize(quote.getBudgets());
+		Hibernate.initialize(quote.getOptimizers());
 		lean(quote, instances, databases, containers, functions, costs);
 
 		// Reset the orphan budgets
@@ -181,6 +182,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		}
 		Hibernate.initialize(budget.getConfiguration().getUsages());
 		Hibernate.initialize(budget.getConfiguration().getBudgets());
+		Hibernate.initialize(budget.getConfiguration().getOptimizers());
 
 		// Get all related resources
 		log.info("Lean budget {} in subscription {}", budget.getName(),
@@ -240,8 +242,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
 			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		logLean(c -> log.info("Start lean: {}",
-				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList()),
-				instances, databases, containers, functions);
+				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList()), instances, databases,
+				containers, functions);
 
 		// Lookup the best prices
 		// And build the pack candidates
@@ -252,9 +254,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var validatedQc = lookup(containers, prices, qcResource, packToQr);
 		final var validatedQf = lookup(functions, prices, qfResource, packToQr);
 
-		log.info("Lookup result:                {}",
-				prices.entrySet().stream().map(e -> e.getKey().getName() + CODE + e.getKey().getPrice().getCode()
-						+ " -> " + e.getValue().getPrice().getCode() + ")").toList());
+		log.info("Lookup result:                {}", prices.entrySet().stream().map(e -> e.getKey().getName() + CODE
+				+ e.getKey().getPrice().getCode() + " -> " + e.getValue().getPrice().getCode() + ")").toList());
 
 		// Pack the prices having an initial cost
 		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
@@ -264,8 +265,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		commitPrices(validatedQc, prices, ResourceType.CONTAINER, costs, qcResource);
 		commitPrices(validatedQf, prices, ResourceType.FUNCTION, costs, qfResource);
 		logLean(t -> {
-			log.info("Lean:              {}", t.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")")
-					.toList());
+			log.info("Lean:              {}",
+					t.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList());
 			log.info("Lean monthly costs:{}", t.stream().map(i -> i.getPrice().getCost()).toList());
 			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
@@ -343,7 +344,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
 			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
-		return (List) bins.get(1).getPieces().stream().map(packToQr::get).filter(i -> i.getResourceType() == type).toList();
+		return (List) bins.get(1).getPieces().stream().map(packToQr::get).filter(i -> i.getResourceType() == type)
+				.toList();
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> void commitPrices(

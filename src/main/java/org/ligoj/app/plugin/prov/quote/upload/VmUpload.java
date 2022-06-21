@@ -45,13 +45,13 @@ public class VmUpload {
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
-	
+
 	/**
 	 * Optional requested GPU.
 	 */
 	@PositiveOrZero
 	private double gpu = 0;
-	
+
 	/**
 	 * The maximal used CPU. When <code>null</code>, the requested CPU is used.
 	 *
@@ -117,6 +117,11 @@ public class VmUpload {
 	private String usage;
 
 	/**
+	 * Optimizer name within the target quote. Target optimizer must exist.
+	 */
+	private String optimizer;
+
+	/**
 	 * Minimal quantity, when undefined <code>1</code>.
 	 */
 	@PositiveOrZero
@@ -137,7 +142,7 @@ public class VmUpload {
 	 * Minimal CPU rate
 	 */
 	private Rate cpuRate = Rate.WORST;
-	
+
 	/**
 	 * Minimal GPU rate
 	 */

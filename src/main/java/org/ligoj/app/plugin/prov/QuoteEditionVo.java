@@ -44,6 +44,11 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private String budget;
 
 	/**
+	 * Optional optimizer name. May be <code>null</code> for a budget without initial cost.
+	 */
+	private String optimizer;
+
+	/**
 	 * Optional license model. <code>null</code> value corresponds to
 	 * {@value org.ligoj.app.plugin.prov.model.ProvQuoteInstance#LICENSE_INCLUDED}.
 	 */

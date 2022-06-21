@@ -36,4 +36,19 @@ public interface ResourceScope {
 	 */
 	void setBudget(ProvBudget budget);
 
+	/**
+	 * Optional optimizer for this resource when different from the related quote. May be <code>null</code>
+	 *
+	 * @return optimizer for this resource when different from the related quote. May be <code>null</code>
+	 */
+	ProvOptimizer getOptimizer();
+
+	/**
+	 * Optional optimizer for this resource when different from the related quote.
+	 *
+	 * @param optimizer The new optimizer for this resource when different from the related quote. May be
+	 *                  <code>null</code>
+	 */
+	void setOptimizer(ProvOptimizer optimizer);
+
 }

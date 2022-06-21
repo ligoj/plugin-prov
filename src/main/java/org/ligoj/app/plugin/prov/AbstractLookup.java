@@ -30,6 +30,12 @@ public abstract class AbstractLookup<T extends AbstractPrice<? extends ProvType>
 	private double cost;
 
 	/**
+	 * The computed monthly co2 of the related resource.
+	 */
+	@JsonSerialize(using = RoundSerializer.class)
+	private double co2;
+
+	/**
 	 * The lowest price based price. May be <code>null</code>.
 	 */
 	private T price;

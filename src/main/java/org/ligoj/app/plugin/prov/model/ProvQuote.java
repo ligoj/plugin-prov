@@ -9,8 +9,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -23,7 +21,6 @@ import javax.validation.constraints.PositiveOrZero;
 import org.ligoj.app.model.PluginConfiguration;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvisioningService;
-import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -162,6 +159,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private List<ProvBudget> budgets = new ArrayList<>();
 
 	/**
+	 * Optimiers associated to this quote..
+	 */
+	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<ProvOptimizer> optimizers = new ArrayList<>();
+
+	/**
 	 * Quoted storages.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
@@ -209,6 +213,12 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 */
 	@ManyToOne
 	private ProvBudget budget;
+
+	/**
+	 * Optional default budget. When <code>null</code>, full time.
+	 */
+	@ManyToOne
+	private ProvOptimizer optimizer;
 
 	/**
 	 * Optional license model. <code>null</code> value corresponds to {@value ProvQuoteInstance#LICENSE_INCLUDED}.
@@ -297,11 +307,4 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	@Column(columnDefinition = "double default 0")
 	private double maxCo2 = 0d;
 
-	/**
-	 * Optimization mode for this quote.
-	 */
-	@Column(columnDefinition = "varchar(255) default 'COST'")
-	@Enumerated(EnumType.STRING)
-	private Optimizer optimizer = Optimizer.COST;
-	
 }
