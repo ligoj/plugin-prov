@@ -41,6 +41,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	private static final String FULL = "Full Time 12 month";
 
+	private static final String COST = "Cost";
+
 	@Autowired
 	private ProvQuoteRepository repository;
 
@@ -1341,5 +1343,20 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findOsNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findOs(subscription));
+	}
+
+
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).optimizer("CO2").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertNotNull(pi.getId());
+		Assertions.assertEquals("C9", pi.getCode());
+		Assertions.assertEquals(117.12, lookup.getCost(), DELTA);
+		Assertions.assertEquals(118, lookup.getCo2(), DELTA);
+
 	}
 }

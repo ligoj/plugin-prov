@@ -119,13 +119,13 @@ public class ProvQuoteContainerResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteContainer query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost) {
+			final int duration, final double initialCost, final Optimizer optimizer) {
 		final var service = getService(configuration);
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, initialCost,
 					PageRequest.of(0, 1));
 		}
@@ -136,13 +136,14 @@ public class ProvQuoteContainerResource extends
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteContainer query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
-			final int location, final double rate, final int duration, final double initialCost) {
+			final int location, final double rate, final int duration, final double initialCost,
+			final Optimizer optimizer) {
 		final var service = getService(configuration);
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
 					Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
 					initialCost, PageRequest.of(0, 1));
@@ -190,6 +191,7 @@ public class ProvQuoteContainerResource extends
 		final var result = new QuoteContainerLookup();
 		result.setPrice((ProvContainerPrice) rs[0]);
 		result.setCost(round((double) rs[2]));
+		result.setCo2(round((double) rs[4]));
 		return result;
 	}
 }

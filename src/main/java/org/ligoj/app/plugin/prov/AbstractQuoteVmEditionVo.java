@@ -59,7 +59,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
-	
+
 	/**
 	 * The requested GPU
 	 */
@@ -144,6 +144,11 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private String budget;
 
 	/**
+	 * Optional applied optimizer name. When <code>null</code>, the default quote's one will be used.
+	 */
+	private String optimizer;
+
+	/**
 	 * Optional license model. When <code>null</code>, global's configuration is used. "BYOL" and "INCLUDED" are
 	 * accepted.
 	 */
@@ -173,7 +178,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	 * Optional CPU rate requirement.
 	 */
 	private Rate cpuRate;
-	
+
 	/**
 	 * Optional GPU rate requirement.
 	 */
@@ -207,5 +212,10 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	@JsonIgnore
 	public String getBudgetName() {
 		return getBudget();
+	}
+
+	@JsonIgnore
+	public String getOptimizerName() {
+		return getOptimizer();
 	}
 }

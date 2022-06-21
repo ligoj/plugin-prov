@@ -11,6 +11,7 @@ import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
@@ -119,6 +120,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private ProvBudget budget;
 
 	/**
+	 * Default optimizer of this quote. May be <code>null</code>.
+	 */
+	private ProvOptimizer optimizer;
+
+	/**
 	 * Default license model. May be <code>null</code>, equivalent to 'INCLUDED'.
 	 */
 	private String license;
@@ -168,10 +174,9 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private Map<String, List<String>> processors;
 
 	/**
-	 * UI settings. Properties are: 
+	 * UI settings. Properties are:
 	 * <ul>
-	 * <li>
-	 * Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
+	 * <li>Attached tags colors mapping as a JSON map. Key is the tag name. Value is the color code. Color name is not
 	 * accepted. Sample: <code>#e4560f</code> or <code>rgb(255, 0, 0)</code>, <code>hsl(0, 100%, 50%)</code>.</li>
 	 * </ul>
 	 */

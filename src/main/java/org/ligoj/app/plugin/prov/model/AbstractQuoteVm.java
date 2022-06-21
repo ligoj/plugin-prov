@@ -143,6 +143,14 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private ProvBudget budget;
 
 	/**
+	 * Optional budget for this resource when different from the related quote.
+	 */
+	@ManyToOne
+	@JsonSerialize(using = ToIdSerializer.class)
+	private ProvOptimizer optimizer;
+
+	
+	/**
 	 * Optional license model. When <code>null</code>, the configuration license model will be used. May be
 	 * {@value #LICENSE_INCLUDED}.
 	 */
@@ -222,6 +230,17 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	}
 
 	/**
+	 * Return the effective optimizer applied to the given resource. May be <code>null</code>.
+	 *
+	 * @return The effective optimizer applied to the given resource. May be <code>null</code>.
+	 */
+	@JsonIgnore
+	public ProvOptimizer getResolvedOptimizer() {
+		return optimizer == null ? getConfiguration().getOptimizer() : optimizer;
+	}
+
+	
+	/**
 	 * Return the usage name applied to the given resource. May be <code>null</code>.
 	 *
 	 * @return The usage name applied to the given resource. May be <code>null</code>.
@@ -241,6 +260,17 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	@JsonIgnore
 	public String getBudgetName() {
 		return Optional.ofNullable(getResolvedBudget()).map(INamableBean::getName).orElse(null);
+	}
+
+	/**
+	 * Return the optional optimizer name. May be <code>null</code> to use the default one.
+	 *
+	 * @return Optional optimizer name. May be <code>null</code> to use the default one.
+	 */
+	@Override
+	@JsonIgnore
+	public String getOptimizerName() {
+		return Optional.ofNullable(getResolvedOptimizer()).map(INamableBean::getName).orElse(null);
 	}
 
 	/**

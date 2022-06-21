@@ -25,6 +25,7 @@ import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
+import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
@@ -35,6 +36,7 @@ import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.QuoteVm;
@@ -44,6 +46,7 @@ import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -71,6 +74,11 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * The default budget : no initial cost.
 	 */
 	protected static final ProvBudget BUDGET_DEFAULT = new ProvBudget();
+
+	/**
+	 * The default optimizer : no initial cost.
+	 */
+	protected static final ProvOptimizer OPTIMIZER_DEFAULT = new ProvOptimizer();
 
 	@Autowired
 	protected ProvQuoteStorageResource storageResource;
@@ -164,6 +172,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setLocation(resource.findLocation(providerId, vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage()).map(u -> getUsage(quote, u)).orElse(null));
 		entity.setBudget(Optional.ofNullable(vo.getBudget()).map(u -> getBudget(quote, u)).orElse(null));
+		entity.setOptimizer(Optional.ofNullable(vo.getOptimizer()).map(u -> getOptimizer(quote, u)).orElse(null));
 		entity.setRam(vo.getRam());
 		entity.setCpu(vo.getCpu());
 		entity.setGpu(vo.getGpu());
@@ -282,11 +291,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *         {@link #USAGE_DEFAULT} is used as default value.
 	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
-		if (name == null) {
-			return ObjectUtils.defaultIfNull(configuration.getUsage(), USAGE_DEFAULT);
-		}
-		return configuration.getUsages().stream().filter(u -> u.getName().equals(name)).findFirst()
-				.orElseThrow(() -> new EntityNotFoundException(name));
+		return getProfileByName(configuration.getUsage(), name, configuration.getUsages(), USAGE_DEFAULT);
 	}
 
 	/**
@@ -298,10 +303,37 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *         {@link #BUDGET_DEFAULT} is used as default value.
 	 */
 	protected ProvBudget getBudget(final ProvQuote configuration, final String name) {
+		return getProfileByName(configuration.getBudget(), name, configuration.getBudgets(), BUDGET_DEFAULT);
+	}
+
+	/**
+	 * Return the resolved optimizer entity from it's name.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param name          The optimizer name to resolve.
+	 * @return The resolved b entity. Never <code>null</code> since the configuration's optimizer or else
+	 *         {@link #OPTIMIZER_DEFAULT} is used as default value.
+	 */
+	protected ProvOptimizer getOptimizer(final ProvQuote configuration, final String name) {
+		return getProfileByName(configuration.getOptimizer(), name, configuration.getOptimizers(), OPTIMIZER_DEFAULT);
+	}
+
+	/**
+	 * Return the resolved profile entity from it's name.
+	 *
+	 * @param quoteProfile   The global profile level value.
+	 * @param name           The profile name to resolve.
+	 * @param allProfiles    All definied profiles for this quote.
+	 * @param defaultProfile Default profile.
+	 * @return The resolved b entity. Never <code>null</code> since the configuration's profile or else the given
+	 *         default value.
+	 */
+	private <G extends INamableBean<?>> G getProfileByName(final G quoteProfile, final String name, List<G> allProfiles,
+			G defaultProfile) {
 		if (name == null) {
-			return ObjectUtils.defaultIfNull(configuration.getBudget(), BUDGET_DEFAULT);
+			return ObjectUtils.defaultIfNull(quoteProfile, defaultProfile);
 		}
-		return configuration.getBudgets().stream().filter(u -> u.getName().equals(name)).findFirst()
+		return allProfiles.stream().filter(u -> u.getName().equals(name)).findFirst()
 				.orElseThrow(() -> new EntityNotFoundException(name));
 	}
 
@@ -614,6 +646,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		// Compute the rate to use
 		final var usage = getUsage(configuration, query.getUsageName());
 		final var budget = getBudget(configuration, query.getBudgetName());
+		final var optimizer = getOptimizer(configuration, query.getOptimizerName()).getMode();
 		final var convOs = BooleanUtils.toBoolean(usage.getConvertibleOs());
 		final var convEngine = BooleanUtils.toBoolean(usage.getConvertibleEngine());
 		final var convType = BooleanUtils.toBoolean(usage.getConvertibleType());
@@ -637,8 +670,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		Object[] lookup = null;
 		if (!types.isEmpty()) {
 			// Get the best template instance price
-			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost)
-					.stream().findFirst().orElse(null);
+			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost,
+					optimizer).stream().findFirst().orElse(null);
 		}
 
 		// Dynamic type test
@@ -649,7 +682,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
-						rate, duration, initialCost).stream().findFirst().orElse(null);
+						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
 				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
 					// Keep the best one
 					lookup = dlookup;
@@ -685,10 +718,12 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
 	 * @param initialCost   The maximal initial cost.
+	 * @param optimizer     The optimizer mode.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int location, double rate, int duration, final double initialCost);
+			List<Integer> terms, int location, double rate, int duration, final double initialCost,
+			final Optimizer optimizer);
 
 	/**
 	 * Return the lowest price matching all requirements for dynamic types.
@@ -704,11 +739,12 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param rate          The usage rate.
 	 * @param duration      The committed duration.
 	 * @param initialCost   The maximal initial cost.
+	 * @param optimizer     The optimizer mode.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
 			List<Integer> terms, double cpu, double gpu, double ram, int location, double rate, int duration,
-			double initialCost);
+			double initialCost, final Optimizer optimizer);
 
 	@Override
 	public Floating refresh(final C qi) {

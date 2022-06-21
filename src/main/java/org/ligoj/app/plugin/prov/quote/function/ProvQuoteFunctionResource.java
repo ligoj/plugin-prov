@@ -130,8 +130,8 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost) {
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+			final int duration, final double initialCost, final Optimizer optimizer) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, location, rate, duration, initialCost, query.getDuration(),
 					PageRequest.of(0, 1));
 		}
@@ -142,13 +142,15 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
-			final int location, final double rate, final int duration, final double initialCost) {
+			final int location, final double rate, final int duration, final double initialCost,
+			final Optimizer optimizer) {
 		var result1 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
-				duration, initialCost, Math.floor(query.getConcurrency()), Math.floor(query.getConcurrency()));
+				duration, initialCost, optimizer, Math.floor(query.getConcurrency()),
+				Math.floor(query.getConcurrency()));
 		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
 			// Try the greater concurrency level and keeping the original concurrency assumption
 			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
-					duration, initialCost, query.getConcurrency(), Math.ceil(query.getConcurrency()));
+					duration, initialCost, optimizer, query.getConcurrency(), Math.ceil(query.getConcurrency()));
 			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
 				// The second concurrency configuration is cheaper
 				return result2;
@@ -160,8 +162,8 @@ public class ProvQuoteFunctionResource extends
 	private List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
-			final double realConcurrency, final double reservedConcurrency) {
-		if (configuration.getOptimizer() == Optimizer.CO2) {
+			final Optimizer optimizer, final double realConcurrency, final double reservedConcurrency) {
+		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)),
 					Math.max(1, ram) / 1024d, location, rate, round(rate * duration), duration, initialCost,
 					query.getNbRequests(), realConcurrency, reservedConcurrency, query.getDuration(),
@@ -195,6 +197,7 @@ public class ProvQuoteFunctionResource extends
 		final var result = new QuoteFunctionLookup();
 		result.setPrice((ProvFunctionPrice) rs[0]);
 		result.setCost(round((double) rs[2]));
+		result.setCo2(round((double) rs[4]));
 		return result;
 	}
 
