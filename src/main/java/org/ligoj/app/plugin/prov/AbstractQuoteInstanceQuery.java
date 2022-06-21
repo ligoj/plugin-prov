@@ -29,11 +29,11 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("cpu")
 	@Builder.Default
 	private double cpu = 1;
-	
+
 	@DefaultValue(value = "0")
 	@QueryParam("gpu")
 	@Builder.Default
-	private double gpu =0;
+	private double gpu = 0;
 
 	/**
 	 * Required memory in MiB.
@@ -51,7 +51,7 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@PositiveOrZero
 	@QueryParam("cpuMax")
 	private Double cpuMax;
-	
+
 	/**
 	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
 	 *
@@ -88,6 +88,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("budget")
 	private String budget;
 
+	@QueryParam("optimizer")
+	private String optimizer;
+
 	@QueryParam("license")
 	private String license;
 
@@ -123,7 +126,7 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 
 	@QueryParam("cpuRate")
 	private Rate cpuRate;
-	
+
 	@QueryParam("gpuRate")
 	private Rate gpuRate;
 
@@ -149,5 +152,10 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@Override
 	public String getBudgetName() {
 		return getBudget();
+	}
+
+	@Override
+	public String getOptimizerName() {
+		return getOptimizer();
 	}
 }

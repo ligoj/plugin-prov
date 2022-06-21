@@ -3,7 +3,10 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -21,6 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.dao.BaseMultiScopedRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
@@ -30,7 +34,9 @@ import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
+import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.function.ProvQuoteFunctionResource;
@@ -104,6 +110,11 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	private final Supplier<S> newEntity;
 
 	/**
+	 * Provides all profiles of a main quote.
+	 */
+	private final Function<ProvQuote, List<S>> allProfiles;
+
+	/**
 	 * Constructor for data access properties.
 	 *
 	 * @param quoteGetter Quote data getter.
@@ -111,10 +122,12 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 * @param newEntity   Resource creator.
 	 */
 	protected AbstractMultiScopedResource(final Function<ResourceScope, S> quoteGetter,
-			final BiConsumer<ResourceScope, S> quoteSetter, final Supplier<S> newEntity) {
+			final BiConsumer<ResourceScope, S> quoteSetter, final Supplier<S> newEntity,
+			final Function<ProvQuote, List<S>> allProfiles) {
 		this.quoteGetter = quoteGetter;
 		this.quoteSetter = quoteSetter;
 		this.newEntity = newEntity;
+		this.allProfiles = allProfiles;
 	}
 
 	protected abstract R getRepository();
@@ -251,4 +264,31 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	 */
 	protected abstract UpdatedCost saveOrUpdate(final S entity, final V vo);
 
+	protected UpdatedCost saveOrUpdateInternal(final S entity, final V vo) {
+		entity.setName(vo.getName());
+
+		// Fetch the optimizer of this quotes
+		final var quote = entity.getConfiguration();
+		Hibernate.initialize(allProfiles.apply(quote));
+
+		// Prepare the updated cost of updated instances
+		final var relatedCosts = Collections
+				.synchronizedMap(new EnumMap<ResourceType, Map<Integer, Floating>>(ResourceType.class));
+		// Prevent useless computation, check the relations
+		if (entity.getId() != null) {
+			// This is an update, update the cost of all related instances
+			final var instances = getRelated(getRepository()::findRelatedInstances, entity);
+			final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
+			final var containers = getRelated(getRepository()::findRelatedContainers, entity);
+			final var functions = getRelated(getRepository()::findRelatedFunctions, entity);
+			bRessource.lean(quote, instances, databases, containers, functions, relatedCosts);
+		}
+
+		getRepository().saveAndFlush(entity);
+
+		// Update accordingly the support costs
+		final var cost = new UpdatedCost(entity.getId());
+		cost.setRelated(relatedCosts);
+		return resource.refreshSupportCost(cost, quote);
+	}
 }
