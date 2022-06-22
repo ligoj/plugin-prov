@@ -23,7 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Context {
+public class TerraformContext {
 
 	@JsonIgnore
 	private Subscription subscription;
@@ -45,7 +45,7 @@ public class Context {
 	 * @param value Value of the context.
 	 * @return This object.
 	 */
-	public Context add(final String key, final String value) {
+	public TerraformContext add(final String key, final String value) {
 		context.put(key, value);
 		return this;
 	}

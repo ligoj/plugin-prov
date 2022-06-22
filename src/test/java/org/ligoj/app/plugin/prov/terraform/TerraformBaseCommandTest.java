@@ -103,7 +103,7 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 	private String execute(final TerraformBaseCommand resource, String... arguments)
 			throws IOException, InterruptedException {
 		final var sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		context.setSequence(sequence);
 		startTask(resource, getSubscription().getId());

@@ -19,7 +19,7 @@ public interface Terraforming {
 	 * @throws IOException When Terraform content cannot be written.
 	 * @see #generateSecrets(Context)
 	 */
-	void generate(Context context) throws IOException;
+	void generate(TerraformContext context) throws IOException;
 
 	/**
 	 * Generate only the Terraform configuration files required to connect to the account.
@@ -27,6 +27,6 @@ public interface Terraforming {
 	 * @param context The Terraform context holding the subscription, the quote and the user inputs.
 	 * @throws IOException When Terraform content cannot be written.
 	 */
-	void generateSecrets(Context context) throws IOException;
+	void generateSecrets(TerraformContext context) throws IOException;
 
 }

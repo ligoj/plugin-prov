@@ -20,5 +20,5 @@ public interface TerraformAction {
 	 * @throws InterruptedException When the execution is interrupted.
 	 * @throws IOException          When logs cannot be written.
 	 */
-	void execute(Context context, OutputStream out, String... arguments) throws IOException, InterruptedException;
+	void execute(TerraformContext context, OutputStream out, String... arguments) throws IOException, InterruptedException;
 }
