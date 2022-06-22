@@ -1756,7 +1756,6 @@ define(function () {
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
-						debugger;
 						if (suggest.price && suggest.price.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$(".input-group-addon").removeClass("hidden")
