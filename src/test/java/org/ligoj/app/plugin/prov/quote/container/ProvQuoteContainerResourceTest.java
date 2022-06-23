@@ -78,7 +78,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void refresh() {
 		final var refresh = resource.refresh(subscription);
-		checkCost(refresh, 3911.42, 5310.92, false);
+		checkCost(refresh, 3885.62, 5259.32, false);
 	}
 
 	/**
@@ -196,7 +196,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 				StandardCharsets.UTF_8.name());
 		qsRepository.deleteAllBy("name", "container1-shared-data");
 		resource.refresh(subscription);
-		checkCost(subscription, 4321.559, 5795.6, false);
+		checkCost(subscription, 4293.179, 5741.42, false);
 		em.flush();
 		em.clear();
 

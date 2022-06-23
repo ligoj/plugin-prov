@@ -484,7 +484,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 
 		// Check the cost
-		checkCost(resource.refresh(subscription), 5765.6, 8513.5, false);
+		checkCost(resource.refresh(subscription), 5755.6, 8493.5, false);
 
 		// Everything identity but the region
 		final var vo = new QuoteDatabaseEditionVo();
@@ -501,7 +501,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setLocation("region-1");
 
 		// No change
-		checkCost(qbResource.update(vo).getTotal(), 6063.9, 10899.9, false);
+		checkCost(qbResource.update(vo).getTotal(), 6043.9, 10799.9, false);
 
 		vo.setLocation("region-2"); // "region-1" to "region-2"
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qbResource.update(vo)),

@@ -166,7 +166,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		});
 
 		configuration.put("service:prov:log", "true");
-		checkCost(resource.refresh(subscription), 6189.72, 7529.02, false);
+		checkCost(resource.refresh(subscription), 6163.92, 7477.42, false);
 		assertTermCount("1y", 6); // 4 Instances +0 Databases +2 Containers
 		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 		Assertions.assertEquals(2635.2, budgetRepository.findByName(subscription, "Dept2").getRequiredInitialCost());
@@ -174,19 +174,19 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Increase the budget
 		budget2.setInitialCost(5000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6126.32, 7438.82, false);
+		checkCost(resource.refresh(subscription), 6100.52, 7387.22, false);
 		assertTermCount("1y", 8); // 4 Instances +0 Databases +4 Containers
 
 		// Increase the budget to enable databases
 		budget2.setInitialCost(8000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6043.32, 7382.62, false);
+		checkCost(resource.refresh(subscription), 6017.52, 7331.02, false);
 		assertTermCount("1y", 10); // 4 Instances +2 Databases +4 Containers
 
 		// Reduce the budget
 		budget2.setInitialCost(2000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6226.32, 7565.62, false);
+		checkCost(resource.refresh(subscription), 6200.52, 7514.02, false);
 		assertTermCount("1y", 5); // Only one Database and containers fits to the budget with 1y term
 
 		bResource.delete(subscription, budget2.getId()); // Fallback the default budget

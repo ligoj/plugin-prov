@@ -17,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = { "type", "location" }),
+@Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = {
 		@UniqueConstraint(columnNames = { "code" }) })
 public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 
