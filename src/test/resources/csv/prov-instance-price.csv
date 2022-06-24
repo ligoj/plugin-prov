@@ -7,7 +7,7 @@ on-demand2;0;C4;219.6;0.3;219.6;0.3;instance1;WINDOWS;;;;;region-1;;;;;;;
 1y;12;C6;183;2196;183;2196;instance1;WINDOWS;;;;;region-1;;;;2196;;;
 on-demand1;0;C7;135.42;135.42;135.42;135.42;instance2;LINUX;;;;;region-1;;;;;;;
 on-demand1;0;C8;237.9;237.9;237.9;237.9;instance2;WINDOWS;;;;;region-1;;;;;;;
-on-demand2;0;C9;117.12;0.16;117.12;0.16;instance2;LINUX;;;;;region-1;;;;;;;
+on-demand2;0;C9;117.12;0.16;118;0.17;instance2;LINUX;;;;;region-1;;;;;;;
 on-demand2;0;C10;208.62;0.285;208.62;0.285;instance2;WINDOWS;;;;;region-1;;;;;;;
 1y;12;C11;102.48;1229.76;300;3600;instance2;LINUX;;;;;region-1;;;;1229.76;;;
 1y;12;C120;102.49;1229.77;102.49;1229.77;instance2;WINDOWS;;;;;region-1;BYOL;;;1229.77;;;

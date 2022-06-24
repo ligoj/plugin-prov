@@ -167,6 +167,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All budgets associated to this quote.
 	 */
 	private List<ProvBudget> budgets;
+	
+	/**
+	 * All optimizers associated to this quote.
+	 */
+	private List<ProvOptimizer> optimizers;
 
 	/**
 	 * All valid processors for this subscription.

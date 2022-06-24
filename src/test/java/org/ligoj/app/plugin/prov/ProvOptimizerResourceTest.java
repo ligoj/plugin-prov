@@ -77,7 +77,7 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 	void create() {
 		Assertions.assertEquals(13, resource.getConfiguration(subscription).getUsages().size());
 		final var optimizer = new OptimizerEditionVo();
-		optimizer.setName("Cost2");
+		optimizer.setName("Co2_2");
 		optimizer.setMode(Optimizer.CO2);
 		final var id = oResource.create(subscription, optimizer);
 		em.flush();
@@ -86,24 +86,12 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		resource.refresh(subscription);
 		checkCost(subscription, 3165.4, 5615.0, false);
 
-		final var entity = usageRepository.findByName("DevV2");
-		Assertions.assertEquals("DevV2", entity.getName());
-		Assertions.assertEquals(id, entity.getId().intValue());
-		Assertions.assertEquals(subscription, entity.getConfiguration().getSubscription().getId().intValue());
-		Assertions.assertEquals(75, entity.getRate().intValue());
-		Assertions.assertEquals(6, entity.getStart().intValue());
-		Assertions.assertEquals(14, resource.getConfiguration(subscription).getUsages().size());
-		Assertions.assertEquals(14, entity.getConfiguration().getUsages().size());
-
-		Assertions.assertTrue(entity.getConvertibleEngine());
-		Assertions.assertTrue(entity.getConvertibleOs());
-		Assertions.assertTrue(entity.getConvertibleLocation());
-		Assertions.assertTrue(entity.getConvertibleFamily());
-		Assertions.assertTrue(entity.getConvertibleType());
-		Assertions.assertTrue(entity.getReservation());
-
-		// Coverage only
-		entity.getConfiguration().setUsages(Collections.emptyList());
+		final var entity = optimizerRepository.findByName("Co2_2");
+		Assertions.assertEquals("Co2_2", entity.getName());
+		Assertions.assertEquals("CO2", entity.getMode().name());
+		Assertions.assertEquals(Optimizer.CO2, entity.getMode());
+		Assertions.assertEquals(3, resource.getConfiguration(subscription).getOptimizers().size());
+		Assertions.assertEquals(3, entity.getConfiguration().getOptimizers().size());
 	}
 
 	@Override

@@ -812,7 +812,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var lookup = qsResource
 				.lookup(subscription, QuoteStorageQuery.builder().size(1024).latency(Rate.GOOD).build()).get(0);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
-		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"price\":{\"id\":"));
+		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,\"co2\":0.0,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,\"type\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains(
 				"\"name\":\"storage1\",\"description\":\"storageD1\",\"code\":\"storage1\",\"latency\":\"good\""

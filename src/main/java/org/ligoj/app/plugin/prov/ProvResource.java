@@ -340,6 +340,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setNetworks(networkResource.findAll(subscription.getId()));
 		vo.setUsages(usageRepository.findAll(quote));
 		vo.setBudgets(budgetRepository.findAll(quote));
+		vo.setOptimizers(optimizerRepository.findAll(quote));
 		vo.setProcessors(self.findProcessors(subscription.getNode().getTool().getId()));
 
 		// Also copy the costs
