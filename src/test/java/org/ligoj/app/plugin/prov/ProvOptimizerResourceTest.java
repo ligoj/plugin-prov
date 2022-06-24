@@ -64,15 +64,17 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		optimizer.setId(optimizerRepository.findByName("Cost").getId());
 		optimizer.setName("Cost");
 		optimizer.setMode(Optimizer.CO2);
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
-		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false);
-		Assertions.assertEquals("C1", resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3151.15, 5551.15);
+		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false, 3151.15, 5551.15);
+		Assertions.assertEquals("C1",
+				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setOptimizer("Cost");
-		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false); // C1 -> C74
-		Assertions.assertEquals("C74", resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
+		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false, 3049.835, 5044.576); // C1 -> C74
+		Assertions.assertEquals("C74",
+				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
 	}
 
 	@Test
