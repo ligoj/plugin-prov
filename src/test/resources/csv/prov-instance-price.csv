@@ -1,5 +1,5 @@
 term.name;period;code;cost;costPeriod;co2;co2Period;type.name;os;costCpu;costRam;co2Cpu;co2Ram;location.name;license;software;tenancy;initialCost;minCpu;incrementCpu;incrementRam
-on-demand1;0;C1;146.4;146.4;146.4;146.4;instance1;LINUX;;;;;region-1;;;;;;;
+on-demand1;0;C1;146.4;146.4;300;300;instance1;LINUX;;;;;region-1;;;;;;;
 on-demand1;0;C2;256.2;256.2;256.2;256.2;instance1;WINDOWS;;;;;region-1;;;;;;;
 on-demand2;0;C3;128.1;0.175;128.1;0.175;instance1;LINUX;;;;;region-1;;;;;;;
 on-demand2;0;C4;219.6;0.3;219.6;0.3;instance1;WINDOWS;;;;;region-1;;;;;;;

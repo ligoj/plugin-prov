@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,22 +66,24 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		optimizer.setMode(Optimizer.CO2);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false);
+		Assertions.assertEquals("C1", resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
-		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
+		quote.setOptimizer("Cost");
+		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false); // C1 -> C74
+		Assertions.assertEquals("C74", resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
 	}
 
 	@Test
 	void create() {
-		Assertions.assertEquals(13, resource.getConfiguration(subscription).getUsages().size());
+		Assertions.assertEquals(2, resource.getConfiguration(subscription).getOptimizers().size());
 		final var optimizer = new OptimizerEditionVo();
 		optimizer.setName("Co2_2");
 		optimizer.setMode(Optimizer.CO2);
-		final var id = oResource.create(subscription, optimizer);
+		oResource.create(subscription, optimizer);
 		em.flush();
 		em.clear();
-		checkCost(subscription, 4704.758, 7154.358, false);
 		resource.refresh(subscription);
 		checkCost(subscription, 3165.4, 5615.0, false);
 
