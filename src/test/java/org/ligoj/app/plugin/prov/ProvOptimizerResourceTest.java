@@ -5,6 +5,7 @@ package org.ligoj.app.plugin.prov;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,6 +96,9 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(Optimizer.CO2, entity.getMode());
 		Assertions.assertEquals(3, resource.getConfiguration(subscription).getOptimizers().size());
 		Assertions.assertEquals(3, entity.getConfiguration().getOptimizers().size());
+
+		// Coverage only
+		entity.getConfiguration().setOptimizers(Collections.emptyList());
 	}
 
 	@Override
