@@ -158,7 +158,7 @@ public class TerraformResource {
 	 */
 	@POST
 	@Path("{subscription:\\d+}/terraform")
-	public TerraformStatus create(@PathParam("subscription") final int subscription, final Context context) {
+	public TerraformStatus create(@PathParam("subscription") final int subscription, final TerraformContext context) {
 		return sequenceNewThread(subscription, context, TerraformSequence.CREATE);
 	}
 
@@ -171,14 +171,14 @@ public class TerraformResource {
 	 */
 	@DELETE
 	@Path("{subscription:\\d+}/terraform")
-	public TerraformStatus destroy(@PathParam("subscription") final int subscription, final Context context) {
+	public TerraformStatus destroy(@PathParam("subscription") final int subscription, final TerraformContext context) {
 		return sequenceNewThread(subscription, context, TerraformSequence.DESTROY);
 	}
 
 	/**
 	 * Execute a sequence.
 	 */
-	private TerraformStatus sequenceNewThread(final int subscription, final Context context,
+	private TerraformStatus sequenceNewThread(final int subscription, final TerraformContext context,
 			final TerraformSequence sequence) {
 		final var entity = subscriptionResource.checkVisible(subscription);
 
@@ -222,7 +222,7 @@ public class TerraformResource {
 	 * @param type    The sequence type.
 	 * @return The new Terraform status.
 	 */
-	protected TerraformStatus startTask(final Context context, final TerraformSequence type) {
+	protected TerraformStatus startTask(final TerraformContext context, final TerraformSequence type) {
 		return runner.startTask(context.getSubscription().getNode().getId(), t -> {
 			t.setSequence(context.getSequence().stream().map(s -> s[0]).collect(Collectors.joining(",")));
 			t.setSubscription(context.getSubscription().getId());
@@ -245,7 +245,7 @@ public class TerraformResource {
 	 * @throws InterruptedException When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
-	public void sequenceNewTransaction(final Context context) throws IOException, InterruptedException {
+	public void sequenceNewTransaction(final TerraformContext context) throws IOException, InterruptedException {
 		var failed = true;
 		try {
 			context.setQuote(resource.getConfiguration(context.getSubscription().getId()));
@@ -290,7 +290,7 @@ public class TerraformResource {
 	/**
 	 * Execute the given Terraform commands. Note there is no concurrency check for now.
 	 */
-	private void sequenceInternal(final Context context) throws InterruptedException, IOException {
+	private void sequenceInternal(final TerraformContext context) throws InterruptedException, IOException {
 		// Execute the sequence
 		final var subscription = context.getSubscription();
 

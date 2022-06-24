@@ -30,6 +30,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
+import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
 import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
@@ -41,6 +42,7 @@ import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.function.ProvQuoteFunctionResource;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
+import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.NamedBean;
 import org.ligoj.bootstrap.core.json.PaginationJson;
@@ -71,6 +73,9 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	protected ProvQuoteInstanceResource qiResource;
 
 	@Autowired
+	protected ProvQuoteStorageResource qsResource;
+
+	@Autowired
 	protected ProvQuoteDatabaseResource qbResource;
 
 	@Autowired
@@ -90,6 +95,9 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 	@Autowired
 	protected ProvQuoteFunctionRepository qfRepository;
+
+	@Autowired
+	protected ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
 	protected ProvBudgetResource bRessource;
@@ -179,7 +187,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 		}
 		Stream.of(instances, databases, containers, functions)
 				.forEach(l -> l.forEach(i -> quoteSetter.accept(i, null)));
-		bRessource.lean(quote, instances, databases, containers, functions, cost.getRelated());
+		bRessource.lean(quote, instances, databases, containers, functions, List.of(), cost.getRelated());
 
 		// All references are deleted, delete the parent entity
 		getRepository().delete(entity);
@@ -281,7 +289,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 			final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
 			final var containers = getRelated(getRepository()::findRelatedContainers, entity);
 			final var functions = getRelated(getRepository()::findRelatedFunctions, entity);
-			bRessource.lean(quote, instances, databases, containers, functions, relatedCosts);
+			bRessource.lean(quote, instances, databases, containers, functions, List.of(), relatedCosts);
 		}
 
 		getRepository().saveAndFlush(entity);

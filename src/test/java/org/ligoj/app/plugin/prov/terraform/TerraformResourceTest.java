@@ -51,7 +51,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	void coverage() {
 		InstanceMode.values()[InstanceMode.AUTO_SCALING.ordinal()].name();
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setInstances(context.getInstances());
 		context.setLocation(context.getLocation());
 		context.setModes(context.getModes());
@@ -62,7 +62,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	void createNotSupported() {
 		final var resource = newResource(null);
-		final var context = new Context();
+		final var context = new TerraformContext();
 		Assertions.assertEquals("terraform-no-supported", Assertions
 				.assertThrows(BusinessException.class, () -> resource.create(subscription, context)).getMessage());
 	}
@@ -112,7 +112,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final TerraformResource resource = new TerraformResource() {
 
 			@Override
-			public void sequenceNewTransaction(final Context context) throws IOException {
+			public void sequenceNewTransaction(final TerraformContext context) throws IOException {
 				throw new IOException();
 			}
 		};
@@ -128,7 +128,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class))
 				.thenReturn(Mockito.mock(Terraforming.class));
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.add("key", "  value  ");
 		resource.create(subscription, context);
 		Assertions.assertEquals("value", context.get("key"));
@@ -175,7 +175,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		FileUtils.forceMkdir(terraformDir);
 		addGeneratedFiles();
 
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
 				new TerraformResource()).getAction("clean").execute(context, null);
@@ -193,7 +193,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 	@Test
 	void secrets() throws IOException, InterruptedException {
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
 				new TerraformResource()).getAction("secrets").execute(context, null);
@@ -201,7 +201,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 	@Test
 	void generate() throws IOException, InterruptedException {
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
 				new TerraformResource()).getAction("generate").execute(context, null);
@@ -213,14 +213,14 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final var resource = mockResource(newTerraforming(), (s, f) -> null, new TerraformResource() {
 
 			@Override
-			public void sequenceNewTransaction(final Context context) throws IOException {
+			public void sequenceNewTransaction(final TerraformContext context) throws IOException {
 				FileUtils.touch(log);
 			}
 		});
 
 		// Create
 		final var sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		context.setSequence(sequence);
 		resource.create(subscription, context);
@@ -252,7 +252,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	void destroy() {
 		final var resource = newResource(Mockito.mock(Terraforming.class));
-		final var status = resource.destroy(subscription, new Context());
+		final var status = resource.destroy(subscription, new TerraformContext());
 		Assertions.assertEquals(subscription, status.getSubscription());
 		final var task = resource.runner.getTask("service:prov:test:account");
 		Assertions.assertEquals(TerraformSequence.DESTROY, task.getType());
@@ -262,9 +262,9 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	void sequenceNewTransactionIOE() throws IOException, InterruptedException {
 		final var resource = new TerraformResource();
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), resource);
-		Mockito.doThrow(new IOException()).when(resource.executableCommand).execute(ArgumentMatchers.any(Context.class),
+		Mockito.doThrow(new IOException()).when(resource.executableCommand).execute(ArgumentMatchers.any(TerraformContext.class),
 				ArgumentMatchers.any(), ArgumentMatchers.any());
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		context.setSequence(Collections.singletonList(new String[] { "any" }));
 		startTask(resource, subscription);
@@ -284,7 +284,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 		// Create
 		final var sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
-		final var context = new Context();
+		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		context.setSequence(sequence);
 		startTask(resource, subscription, "clean,generate,secrets,init,plan,show,apply");

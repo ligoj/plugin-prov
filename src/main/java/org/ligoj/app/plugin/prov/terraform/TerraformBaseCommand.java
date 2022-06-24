@@ -114,7 +114,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	}
 
 	@Override
-	public void execute(final Context context, OutputStream out, final String... arguments)
+	public void execute(final TerraformContext context, OutputStream out, final String... arguments)
 			throws IOException, InterruptedException {
 		handleCode(context.getSubscription(), out, execute(context.getSubscription(), out, arguments));
 

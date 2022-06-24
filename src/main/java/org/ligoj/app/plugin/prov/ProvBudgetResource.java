@@ -38,6 +38,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
+import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceScope;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -117,10 +118,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var databases = qbRepository.findAll(quote);
 		final var containers = qcRepository.findAll(quote);
 		final var functions = qfRepository.findAll(quote);
+		final var storages = qsRepository.findAll(quote);
 		Hibernate.initialize(quote.getUsages());
 		Hibernate.initialize(quote.getBudgets());
 		Hibernate.initialize(quote.getOptimizers());
-		lean(quote, instances, databases, containers, functions, costs);
+		lean(quote, instances, databases, containers, functions, storages, costs);
 
 		// Reset the orphan budgets
 		final var usedBudgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
@@ -140,11 +142,13 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param databases  The databases implied in the current change.
 	 * @param containers The containers implied in the current change.
 	 * @param functions  The functions implied in the current change.
+	 * @param storages   The storages implied in the current change.
 	 * @param costs      The updated costs and resources.
 	 */
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
-			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
+			final List<ProvQuoteFunction> functions, final List<ProvQuoteStorage> storages,
+			final Map<ResourceType, Map<Integer, Floating>> costs) {
 		synchronized (quote.getLeanLock()) {
 			// Lean all relevant budgets
 			final var budgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
@@ -157,6 +161,11 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			refreshNoBudget(databases, ResourceType.DATABASE, costs, qbResource);
 			refreshNoBudget(containers, ResourceType.CONTAINER, costs, qcResource);
 			refreshNoBudget(functions, ResourceType.FUNCTION, costs, qfResource);
+
+			// Refresh also storages resources, not yet related to budgets
+			this.resource.newStream(storages)
+					.forEach(i -> costs.computeIfAbsent(ResourceType.STORAGE, k -> new ConcurrentHashMap<>())
+							.put(i.getId(), qsResource.addCost(i, qsResource::refresh)));
 		}
 	}
 
