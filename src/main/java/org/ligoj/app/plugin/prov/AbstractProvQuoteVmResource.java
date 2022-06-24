@@ -683,7 +683,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
 						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
-				if (lookup == null || dlookup != null && toTotalCost(dlookup) < toTotalCost(lookup)) {
+				if (lookup == null || dlookup != null && (optimizer.name()=="COST" && toTotalCost(dlookup) < toTotalCost(lookup)) || (optimizer.name()=="CO2" && toTotalCo2(dlookup) < toTotalCo2(lookup))) {
 					// Keep the best one
 					lookup = dlookup;
 				}
@@ -781,6 +781,16 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	protected double toTotalCost(final Object[] lookup) {
 		return ((Double) lookup[1]);
+	}
+	
+	/**
+	 * Return the total co2 from the query result.
+	 *
+	 * @param lookup The lookup result set.
+	 * @return The co2 value.
+	 */
+	protected double toTotalCo2(final Object[] lookup) {
+		return ((Double) lookup[3]);
 	}
 
 	/**

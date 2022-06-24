@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -59,7 +60,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
@@ -89,6 +90,25 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		final var lookup = qfResource.lookup(subscription, build);
 		Assertions.assertEquals("Node", build.getRuntime());
 		checkFunction(lookup);
+	}
+
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).optimizer("CO2")
+				.build();
+		final var lookup = qfResource.lookup(subscription, build);
+		Assertions.assertEquals("Node", build.getRuntime());
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("FUNCTIOND0", pi.getCode());
+		Assertions.assertEquals(0, pi.getCo2Requests());
+		Assertions.assertEquals(43.8, pi.getCo2RamRequest());
+		Assertions.assertEquals(0, pi.getCo2RamRequestConcurrency());
+		Assertions.assertEquals(333.334, lookup.getCo2(), DELTA);
+		Assertions.assertEquals(373.334, lookup.getCost(), DELTA);		
+
 	}
 
 	/**
@@ -124,7 +144,8 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price and an adjusted concurrency: keep the floor version
+	 * Lookup for a only dynamic price and an adjusted concurrency: keep the floor
+	 * version
 	 */
 	@Test
 	void lookupDynamicalOptimizedConcurrencyKo() {
@@ -278,7 +299,8 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		// After delete, it remains only the unattached storages and non function instances
+		// After delete, it remains only the unattached storages and non function
+		// instances
 		checkCost(qfResource.deleteAll(subscription), 4385.158, 5556.358, false);
 
 		// Check the exact new cost
@@ -337,8 +359,8 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 
 	private Map<Integer, Floating> toStoragesFloating(final String instanceName) {
 		return qsRepository.findAllBy("quoteFunction.name", instanceName).stream()
-				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new Floating(qs.getCost(), qs.getMaxCost(),
-						0, 0, qs.getQuoteFunction().getMaxQuantity() == null, qs.getCo2(), qs.getMaxCo2())));
+				.collect(Collectors.toMap(ProvQuoteStorage::getId, qs -> new Floating(qs.getCost(), qs.getMaxCost(), 0,
+						0, qs.getQuoteFunction().getMaxQuantity() == null, qs.getCo2(), qs.getMaxCo2())));
 	}
 
 	@Test

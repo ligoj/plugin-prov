@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -62,7 +63,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class,ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
@@ -91,6 +92,19 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		final var lookup = qbResource.lookup(subscription,
 				builder().usage("Full Time 12 month").engine("MYSQL").build());
 		checkInstance(lookup);
+	}
+
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var lookup = qbResource.lookup(subscription,
+				builder().usage("Full Time 12 month").engine("MYSQL").optimizer("CO2").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("MYSQL0", pi.getCode());
+		Assertions.assertEquals(1100.0, lookup.getCo2(), DELTA);
+		Assertions.assertEquals(1100.0, lookup.getCost(), DELTA);
 	}
 
 	/**
@@ -308,7 +322,8 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		// After delete, it remains only the unattached storages and non database instances
+		// After delete, it remains only the unattached storages and non database
+		// instances
 		checkCost(qbResource.deleteAll(subscription), 4704.758, 7154.358, false);
 
 		// Check the exact new cost

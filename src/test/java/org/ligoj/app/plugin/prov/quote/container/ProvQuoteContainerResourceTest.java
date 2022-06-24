@@ -29,6 +29,7 @@ import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvInstanceType;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
 import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
@@ -60,7 +61,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class,ProvOptimizer.class,ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
@@ -88,6 +89,19 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void lookup() {
 		final var lookup = qcResource.lookup(subscription, builder().usage("Full Time 12 month").build());
 		checkInstance(lookup);
+	}
+	
+	/**
+	 * Basic case, almost no requirements.
+	 */
+	@Test
+	void lookupCo2() {
+		final var lookup = qcResource.lookup(subscription, builder().usage("Full Time 12 month").optimizer("CO2").build());
+		final var pi = lookup.getPrice();
+		Assertions.assertEquals("LINUXD0", pi.getCode());
+		Assertions.assertEquals(0.0, pi.getCost(), DELTA);
+		Assertions.assertEquals(1100.0, lookup.getCo2(), DELTA);
+		Assertions.assertEquals(1100.0, lookup.getCost(), DELTA);
 	}
 
 	/**

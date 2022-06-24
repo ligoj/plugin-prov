@@ -1173,6 +1173,8 @@ define(function () {
 			} else {
 				$popup.removeClass('advanced');
 			}
+		}).on('click','.dropdown-menu', function (e) {
+			$.proxy(current.checkResource, $(this))();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
