@@ -1,9 +1,9 @@
-node.id;code;name;cpu;ram;constant;description;processor
-service:prov:test;function1;function1;0.5;2000;true;functionD1
-service:prov:test;function2;function2;1;2000;false;functionD2;Intel Xeon Platinum 8175 (Skylake)
-service:prov:test;function3;function3;2;2000;true;functionD3
-service:prov:test;functiond0;functionD0;0;0;false;functionD0
-service:prov:test;functiond1;functionD1;0;0;true;functionD1
-service:prov:test;functiond2;functionD2;0;0;true;functionD2
-service:prov:test;functiond3;functionD3;0;0;true;functionD3
-service:prov:x;functionx;functionX;8;8000;false;functionDX;
+node.id;code;name;cpu;ram;constant;description;processor;edge
+service:prov:test;function1;function1;0.5;2000;true;functionD1;;false
+service:prov:test;function2;function2;1;2000;false;functionD2;Intel Xeon Platinum 8175 (Skylake);true
+service:prov:test;function3;function3;2;2000;true;functionD3;;false
+service:prov:test;functiond0;functionD0;0;0;false;functionD0;;false
+service:prov:test;functiond1;functionD1;0;0;true;functionD1;;false
+service:prov:test;functiond2;functionD2;0;0;true;functionD2;;false
+service:prov:test;functiond3;functionD3;0;0;true;functionD3;;false
+service:prov:x;functionx;functionX;8;8000;false;functionDX;;false
