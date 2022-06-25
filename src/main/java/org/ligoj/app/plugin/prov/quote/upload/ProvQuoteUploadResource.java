@@ -53,11 +53,13 @@ import org.ligoj.app.plugin.prov.ProvTagResource;
 import org.ligoj.app.plugin.prov.TagEditionVo;
 import org.ligoj.app.plugin.prov.dao.BaseMultiScopedRepository;
 import org.ligoj.app.plugin.prov.dao.Optimizer;
+import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
 import org.ligoj.app.plugin.prov.dao.ProvOptimizerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
+import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvOptimizer;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
@@ -139,6 +141,8 @@ public class ProvQuoteUploadResource {
 	private SubscriptionResource subscriptionResource;
 	@Autowired
 	private ProvUsageRepository usageRepository;
+	@Autowired
+	private ProvBudgetRepository budgetRepository;
 	@Autowired
 	private ProvOptimizerRepository optimizerRepository;
 
@@ -312,6 +316,8 @@ public class ProvQuoteUploadResource {
 	 *                        parameter is ignored. Otherwise the <code>headers</code> parameter is used.
 	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
 	 *                        associated to this usage.
+	 * @param budget          The optional budget name. When not <code>null</code>, each quote instance will be
+	 *                        associated to this budget.
 	 * @param optimizer       The optional optimizer name. When not <code>null</code>, each quote instance will be
 	 *                        associated to this optimizer.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
@@ -320,10 +326,10 @@ public class ProvQuoteUploadResource {
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final String optimizer, final Integer ramMultiplier)
-			throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, optimizer, MergeMode.KEEP, ramMultiplier,
-				false, DEFAULT_ENCODING, false, false, DEFAULT_SEPARATOR);
+			final boolean headersIncluded, final String usage, final String budget, final String optimizer,
+			final Integer ramMultiplier) throws IOException {
+		upload(subscription, uploadedFile, headers, headersIncluded, usage, budget, optimizer, MergeMode.KEEP,
+				ramMultiplier, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 	}
 
 	/**
@@ -337,6 +343,8 @@ public class ProvQuoteUploadResource {
 	 *                         parameter is ignored. Otherwise the <code>headers</code> parameter is used.
 	 * @param defaultUsage     The optional usage name. When not <code>null</code>, each quote instance without defined
 	 *                         usage will be associated to this usage.
+	 * @param defaultBudget    The optional budget name. When not <code>null</code>, each quote instance without defined
+	 *                         budget will be associated to this budget.
 	 * @param defaultOptimizer The optional optimizer name. When not <code>null</code>, each quote instance without
 	 *                         defined usage will be associated to this optimizer.
 	 * @param mode             The merge option indicates how the entries are inserted.
@@ -344,6 +352,7 @@ public class ProvQuoteUploadResource {
 	 * @param encoding         CSV encoding. Default is UTF-8.
 	 * @param errorContinue    When <code>true</code> errors do not block the upload.
 	 * @param createUsage      When <code>true</code>, missing usage are automatically created.
+	 * @param createBudget     When <code>true</code>, missing budget are automatically created.
 	 * @param createOptimizer  When <code>true</code>, missing optimizer are automatically created.
 	 * @param separator        CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
@@ -356,12 +365,14 @@ public class ProvQuoteUploadResource {
 			@Multipart(value = "headers", required = false) final String[] headers,
 			@Multipart(value = "headers-included", required = false) final boolean headersIncluded,
 			@Multipart(value = "usage", required = false) final String defaultUsage,
-			@Multipart(value = "optimier", required = false) final String defaultOptimizer,
+			@Multipart(value = "budget", required = false) final String defaultBudget,
+			@Multipart(value = "optimizer", required = false) final String defaultOptimizer,
 			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
 			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
 			@Multipart(value = "errorContinue", required = false) final boolean errorContinue,
 			@Multipart(value = "encoding", required = false) final String encoding,
 			@Multipart(value = "createMissingUsage", required = false) final boolean createUsage,
+			@Multipart(value = "createMissingBudget", required = false) final boolean createBudget,
 			@Multipart(value = "createMissingOptimizer", required = false) final boolean createOptimizer,
 			@Multipart(value = "separator", required = false) final String separator) throws IOException {
 		log.info("Upload provisioning requested...");
@@ -411,8 +422,8 @@ public class ProvQuoteUploadResource {
 		context.previousQb = previousQb;
 		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
-				persist(subscription, defaultUsage, defaultOptimizer, mode, ramMultiplier, list.size(), cursor, context,
-						createUsage, createOptimizer, i);
+				persist(subscription, defaultUsage, defaultBudget, defaultOptimizer, mode, ramMultiplier, list.size(),
+						cursor, context, createUsage, createBudget, createOptimizer, i);
 			} catch (final ValidationJsonException e) {
 				handleUploadError(errorContinue, handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
@@ -432,36 +443,37 @@ public class ProvQuoteUploadResource {
 	}
 
 	private <V extends AbstractQuoteVmEditionVo> V copy(final int subscription, final UploadContext context,
-			final String defaultUsage, final String defaultOptimizer, final Integer ramMultiplier,
-			final boolean createUsage, final boolean createOptimizer, final VmUpload upload, final V vo) {
+			final String defaultUsage, final String defaultBudget, final String defaultOptimizer,
+			final Integer ramMultiplier, final boolean createUsage, final boolean createBudget,
+			final boolean createOptimizer, final VmUpload u, final V vo) {
 		// Validate the upload object
-		vo.setName(upload.getName());
-		vo.setDescription(upload.getDescription());
-		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(upload.getCpu(), 0d)));
-		vo.setGpu(upload.getGpu());
-		vo.setProcessor(upload.getProcessor());
-		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
-		vo.setInternet(upload.getInternet());
-		vo.setMaxQuantity(Optional.ofNullable(upload.getMaxQuantity()).filter(q -> q > 0).orElse(null));
-		vo.setMinQuantity(upload.getMinQuantity());
-		vo.setLocation(upload.getLocation());
-		vo.setCpuRate(upload.getCpuRate());
-		vo.setGpuRate(upload.getGpuRate());
-		vo.setRamRate(upload.getRamRate());
-		vo.setNetworkRate(upload.getNetworkRate());
-		vo.setStorageRate(upload.getStorageRate());
-		vo.setConstant(upload.getConstant());
-		vo.setPhysical(upload.getPhysical());
-		vo.setRam(
-				ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(upload.getRam(), 0).intValue());
+		vo.setName(u.getName());
+		vo.setDescription(u.getDescription());
+		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(u.getCpu(), 0d)));
+		vo.setGpu(u.getGpu());
+		vo.setProcessor(u.getProcessor());
+		vo.setLicense(Optional.ofNullable(u.getLicense()).map(StringUtils::upperCase).orElse(null));
+		vo.setInternet(u.getInternet());
+		vo.setMaxQuantity(Optional.ofNullable(u.getMaxQuantity()).filter(q -> q > 0).orElse(null));
+		vo.setMinQuantity(u.getMinQuantity());
+		vo.setLocation(u.getLocation());
+		vo.setCpuRate(u.getCpuRate());
+		vo.setGpuRate(u.getGpuRate());
+		vo.setRamRate(u.getRamRate());
+		vo.setNetworkRate(u.getNetworkRate());
+		vo.setStorageRate(u.getStorageRate());
+		vo.setConstant(u.getConstant());
+		vo.setPhysical(u.getPhysical());
+		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(u.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
-		vo.setType(upload.getType());
-		vo.setCpuMax(upload.getCpuMax());
-		vo.setGpuMax(upload.getGpuMax());
-		vo.setRamMax(upload.getRamMax() == null ? null
-				: ObjectUtils.defaultIfNull(ramMultiplier, 1) * upload.getRamMax().intValue());
-		completeUsage(subscription, context, defaultUsage, createUsage, upload, vo);
-		completeOptimizer(subscription, context, defaultOptimizer, createOptimizer, upload, vo);
+		vo.setType(u.getType());
+		vo.setCpuMax(u.getCpuMax());
+		vo.setGpuMax(u.getGpuMax());
+		vo.setRamMax(
+				u.getRamMax() == null ? null : ObjectUtils.defaultIfNull(ramMultiplier, 1) * u.getRamMax().intValue());
+		completeUsage(subscription, context, defaultUsage, createUsage, u, vo);
+		completeBudget(subscription, context, defaultBudget, createBudget, u, vo);
+		completeOptimizer(subscription, context, defaultOptimizer, createOptimizer, u, vo);
 		return vo;
 	}
 
@@ -494,23 +506,24 @@ public class ProvQuoteUploadResource {
 		return vo;
 	}
 
-	private void persist(final int subscription, final String defaultUsage, final String defaultOptimizer,
-			final MergeMode mode, final Integer ramMultiplier, final int size, final AtomicInteger cursor,
-			final UploadContext context, final boolean createUsage, final boolean createOptimizer, final VmUpload i) {
+	private void persist(final int subscription, final String defaultUsage, final String defaultBudget,
+			final String defaultOptimizer, final MergeMode mode, final Integer ramMultiplier, final int size,
+			final AtomicInteger cursor, final UploadContext context, final boolean createUsage,
+			final boolean createBudget, final boolean createOptimizer, final VmUpload i) {
 
 		if (StringUtils.isNotEmpty(i.getEngine())) {
 			// Database case
 			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(subscription, context, defaultUsage, defaultOptimizer, ramMultiplier, createUsage,
-					createOptimizer, i, newDatabaseVo(i));
+			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
+					createUsage, createBudget, createOptimizer, i, newDatabaseVo(i));
 			vo.setPrice(
 					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
 			// Instance/Container case
 			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(subscription, context, defaultUsage, defaultOptimizer, ramMultiplier, createUsage,
-					createOptimizer, i, newInstanceVo(i));
+			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
+					createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
 			vo.setPrice(
 					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
@@ -521,9 +534,9 @@ public class ProvQuoteUploadResource {
 	}
 
 	private <V extends AbstractQuoteVmEditionVo> void completeUsage(final int subscription, final UploadContext context,
-			final String defaultUsage, final boolean createUsage, final VmUpload i, final V vo) {
+			final String defaultValue, final boolean create, final VmUpload u, final V vo) {
 		// Normalize the name as needed
-		vo.setUsage(completeProfile(subscription, context, defaultUsage, createUsage, i.getUsage(), vo, usageRepository,
+		vo.setUsage(completeProfile(subscription, context, defaultValue, create, u.getUsage(), vo, usageRepository,
 				context.quote.getUsages(), name -> {
 					final var profile = new ProvUsage();
 					profile.setRate(AbstractProvQuoteVmResource.USAGE_DEFAULT.getRate());
@@ -532,21 +545,30 @@ public class ProvQuoteUploadResource {
 	}
 
 	private <V extends AbstractQuoteVmEditionVo> void completeOptimizer(final int subscription,
-			final UploadContext context, final String defaultUsage, final boolean createUsage, final VmUpload i,
+			final UploadContext context, final String defaultValue, final boolean create, final VmUpload u,
 			final V vo) {
 		// Normalize the name as needed
-		vo.setOptimizer(completeProfile(subscription, context, defaultUsage, createUsage, i.getOptimizer(), vo, optimizerRepository,
-				context.quote.getOptimizers(), name -> {
+		vo.setOptimizer(completeProfile(subscription, context, defaultValue, create, u.getOptimizer(), vo,
+				optimizerRepository, context.quote.getOptimizers(), name -> {
 					final var profile = new ProvOptimizer();
 					profile.setMode(Optimizer.COST);
 					return profile;
 				}));
 	}
 
+	private <V extends AbstractQuoteVmEditionVo> void completeBudget(final int subscription,
+			final UploadContext context, final String defaultValue, final boolean create, final VmUpload u,
+			final V vo) {
+		// Normalize the name as needed
+		vo.setBudget(completeProfile(subscription, context, defaultValue, create, u.getBudget(), vo, budgetRepository,
+				context.quote.getBudgets(), name -> new ProvBudget()));
+	}
+
 	private <V extends AbstractQuoteVmEditionVo, G extends AbstractMultiScoped> String completeProfile(
 			final int subscription, final UploadContext context, final String defaultProfile,
-			final boolean createProfile, final String uploadName, final V vo, final BaseMultiScopedRepository<G> repository,
-			final List<G> allProfiles, final Function<String, G> creator) {
+			final boolean createProfile, final String uploadName, final V vo,
+			final BaseMultiScopedRepository<G> repository, final List<G> allProfiles,
+			final Function<String, G> creator) {
 		final var name = Optional.ofNullable(uploadName).orElse(defaultProfile);
 		if (name != null) {
 			var profile = allProfiles.stream().filter(u -> u.getName().equalsIgnoreCase(name)).findFirst().orElse(null);

@@ -30,12 +30,17 @@ public class ProvUsage extends AbstractMultiScoped {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Default usage rate.
+	 */
+	public static final int MAX_RATE = 100;
+
+	/**
 	 * Usage rate base 100.
 	 */
 	@Positive
-	@Max(100)
+	@Max(MAX_RATE)
 	@NotNull
-	private Integer rate = 100;
+	private Integer rate = MAX_RATE;
 
 	/**
 	 * Duration of this usage in month.

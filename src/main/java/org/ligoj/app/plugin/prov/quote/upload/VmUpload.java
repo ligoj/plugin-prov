@@ -112,12 +112,17 @@ public class VmUpload {
 	private String location;
 
 	/**
-	 * Usage name within the target quote. Target usage must exist.
+	 * Usage name within the target quote. When defined, target usage must exist.
 	 */
 	private String usage;
 
 	/**
-	 * Optimizer name within the target quote. Target optimizer must exist.
+	 * Budget name within the target quote. When defined, target budget must exist.
+	 */
+	private String budget;
+
+	/**
+	 * Optimizer name within the target quote. When defined, target optimizer must exist.
 	 */
 	private String optimizer;
 
