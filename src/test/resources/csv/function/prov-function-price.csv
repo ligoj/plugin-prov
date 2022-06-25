@@ -1,4 +1,4 @@
-location.name;term.name;period;code;cost;costPeriod;co2;co2Period;initialCost;type.name;costRequests;incrementDuration;minDuration;maxDuration;costRam;costRamRequestConcurrency;costRamRequest;costCpu;co2RamRequestConcurrency;co2RamRequest;co2Request;co2Cpu;minCpu;maxCpu;minRam;maxRam;minRamRatio;maxRamRatio;incrementCpu;incrementRam
+location.name;term.name;period;code;cost;costPeriod;co2;co2Period;initialCost;type.name;costRequests;incrementDuration;minDuration;maxDuration;costRam;costRamRequestConcurrency;costRamRequest;costCpu;co2RamRequestConcurrency;co2RamRequest;co2Requests;co2Cpu;minCpu;maxCpu;minRam;maxRam;minRamRatio;maxRamRatio;incrementCpu;incrementRam
 region-1;on-demand1;0;FUNCTION1;116.3;116.3;116.3;116.3;;function1;1.1;1;0;;;;;;;;1.1;;;;;;;;;
 region-1;1y;12;FUNCTION2;89.5;1017.4;89.5;1017.4;1017.4;function1;1.2;1;0;;;;;;;;1.2;;;;;;;;;
 region-1;on-demand1;0;FUNCTION3;168;2034;10000;100000;;function2;1.5;1;0;;;;;;;;1.5;;;;;;;;;

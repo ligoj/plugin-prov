@@ -40,8 +40,6 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	private static final String FULL = "Full Time 12 month";
 
-	private static final String COST = "Cost";
-
 	@Autowired
 	private ProvQuoteRepository repository;
 

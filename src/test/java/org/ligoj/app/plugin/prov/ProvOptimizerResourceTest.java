@@ -61,21 +61,33 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void updateNotAttached() {
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3167.15, 5631.15);
+		em.flush();
+		em.clear();
+
 		final var optimizer = new OptimizerEditionVo();
 		optimizer.setId(optimizerRepository.findByName("Cost").getId());
 		optimizer.setName("Cost");
 		optimizer.setMode(Optimizer.CO2);
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3151.15, 5551.15);
-		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false, 3151.15, 5551.15);
+		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false, 3167.15, 5631.15);
 		Assertions.assertEquals("C1",
 				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
 		quote.setOptimizer("Cost");
-		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false, 3049.835, 5044.576); // C1 -> C74
+		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false, 3065.835, 5124.576); // C1 -> C74
 		Assertions.assertEquals("C74",
 				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
+	}
+
+	@Test
+	void updateAttachedInstance() {
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3167.15, 5631.15);
+		resource.getConfiguration(subscription).getInstances().get(0).setOptimizer(optimizerRepository.findByName(subscription, "CO2"));
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(subscription), 3371.285, 6644.426, false, 3065.835, 5124.576); // C1 -> C74
 	}
 
 	@Test
