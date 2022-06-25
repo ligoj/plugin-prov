@@ -657,7 +657,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
 	 * 
-	 * @param <Y>        Map key type.
+	 * @param <K>        Map key type.
 	 * @param <V>        Map value type.
 	 * @param map        Target map of synchronized item.
 	 * @param key        Item's ley to add.

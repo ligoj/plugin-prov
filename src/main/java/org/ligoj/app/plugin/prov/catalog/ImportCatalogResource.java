@@ -259,16 +259,14 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @param vo New catalog settings.
 	 */
 	@PUT
-	public void update(CatalogEditionVo catalogEdition) {
-		final var node = nodeResource.checkWritableNode(catalogEdition.getNode()).getTool().getId();
-		if (locationRepository.findBy("id",catalogEdition.getPreferredLocation()).getNode().getId() != node) {
-			throw new ValidationJsonException(node,"node-not-same");
+	public void update(CatalogEditionVo vo) {
+		final var node = nodeResource.checkWritableNode(vo.getNode()).getTool().getId();
+		if (locationRepository.findBy("id", vo.getPreferredLocation()).getNode().getId() != node) {
+			throw new ValidationJsonException(node, "node-not-same");
 		}
 		locationRepository.unsetPreferredLocation(node);
-		locationRepository.setPreferredLocation(node, catalogEdition.getPreferredLocation());
-
+		locationRepository.setPreferredLocation(node, vo.getPreferredLocation());
 	}
-	//locationRepository.findBy("id",catalogEdition.getPreferredLocation());
 
 	@Override
 	public Supplier<ImportCatalogStatus> newTask() {

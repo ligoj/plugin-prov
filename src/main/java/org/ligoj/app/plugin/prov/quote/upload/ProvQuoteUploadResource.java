@@ -321,8 +321,6 @@ public class ProvQuoteUploadResource {
 	 * @param optimizer       The optional optimizer name. When not <code>null</code>, each quote instance will be
 	 *                        associated to this optimizer.
 	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
-	 * @param encoding        CSV encoding. Default is UTF-8.
-	 * @param separator       CSV separator. Default is ";".
 	 * @throws IOException When the CSV stream cannot be written.
 	 */
 	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,

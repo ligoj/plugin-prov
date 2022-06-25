@@ -45,9 +45,8 @@ public class ProvDatabasePrice extends AbstractTermPriceVm<ProvDatabaseType> {
 
 	/**
 	 * Required storage engine. When not <code>null</code>, this type requires a storage only compatible to this engine.
-	 * When <code>null</code>, this type requires a storage having no engine constraint.
-	 *
-	 * @see org.ligoj.app.plugin.prov.model.ProvStorageType#getEngine()
+	 * When <code>null</code>, this type requires a storage having no engine constraint. Storage compatibility is also
+	 * implied from {@link org.ligoj.app.plugin.prov.model.ProvStorageType#getEngine()}.
 	 */
 	private String storageEngine;
 }

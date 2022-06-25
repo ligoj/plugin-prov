@@ -38,7 +38,7 @@ public abstract class AbstractQuoteVmOs<P extends AbstractTermPriceVmOs<?>> exte
 	private Double maxVariableCost;
 
 	/**
-	 * The requested OS. May be different from the one related by {@link #price}, but refers to
+	 * The requested OS. May be different from the one related by {@link #getPrice()}, but refers to
 	 * {@link VmOs#toPricingOs()}
 	 */
 	@NotNull
