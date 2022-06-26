@@ -150,7 +150,7 @@ public abstract class AbstractUpdateContext {
 	 */
 	@Getter
 	@Setter
-	private Map<String, ProvLocation> regions = new HashMap<>();
+	private Map<String, ProvLocation> regions = Collections.synchronizedMap(new HashMap<>());
 
 	/**
 	 * The merged type's codes.
