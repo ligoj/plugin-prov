@@ -93,6 +93,19 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
+	 * Basic case, edge requirements.
+	 */
+	@Test
+	void lookupEdge() {
+		var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(true).build();
+		var lookup = qfResource.lookup(subscription, build);
+		checkFunction(lookup);
+		build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(false).build();
+		lookup = qfResource.lookup(subscription, build);
+		Assertions.assertEquals("functionD0", lookup.getPrice().getType().getName());
+	}
+
+	/**
 	 * Basic case, almost no requirements.
 	 */
 	@Test
@@ -103,12 +116,11 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("Node", build.getRuntime());
 		final var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND0", pi.getCode());
-		Assertions.assertEquals(0, pi.getCo2Requests());
+		Assertions.assertEquals(0.2, pi.getCo2Requests());
 		Assertions.assertEquals(43.8, pi.getCo2RamRequest());
 		Assertions.assertEquals(0, pi.getCo2RamRequestConcurrency());
-		Assertions.assertEquals(333.334, lookup.getCo2(), DELTA);
-		Assertions.assertEquals(373.334, lookup.getCost(), DELTA);		
-
+		Assertions.assertEquals(373.334, lookup.getCo2(), DELTA);
+		Assertions.assertEquals(373.334, lookup.getCost(), DELTA);
 	}
 
 	/**
@@ -144,8 +156,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price and an adjusted concurrency: keep the floor
-	 * version
+	 * Lookup for a only dynamic price and an adjusted concurrency: keep the floor version
 	 */
 	@Test
 	void lookupDynamicalOptimizedConcurrencyKo() {

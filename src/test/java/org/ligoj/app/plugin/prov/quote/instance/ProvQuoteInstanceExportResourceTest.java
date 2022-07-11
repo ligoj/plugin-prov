@@ -182,7 +182,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Import
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(),
-				null, true, "Full Time 12 month", null, 1);
+				null, true, "Full Time 12 month", null, null, 1);
 		em.flush();
 		em.clear();
 		resource.refresh(subscription);
@@ -210,7 +210,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Import
 		qiuResource.upload(subscription, IOUtils.toInputStream(String.join("\n", lines), "UTF-8"), null, true,
-				"Full Time 12 month", null, 1);
+				"Full Time 12 month", null, null, 1);
 		configuration = getConfiguration();
 
 		// Check backup restore succeed

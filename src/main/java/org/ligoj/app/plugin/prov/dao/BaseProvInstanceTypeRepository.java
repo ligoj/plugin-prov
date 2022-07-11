@@ -51,18 +51,20 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param ramRate     Optional minimal RAM rate.
 	 * @param networkRate Optional minimal network rate.
 	 * @param storageRate Optional minimal storage rate.
+	 * @param edge        Optional edge location constraint.
 	 * @return The matching instance types.
 	 */
 	@Query("""
 			SELECT id FROM #{#entityName} WHERE
 			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
 			  AND (:type IS NULL OR id = :type)
-			  AND (cpu BETWEEN :cpu AND :limitCpu)	
+			  AND (cpu BETWEEN :cpu AND :limitCpu)
 			  AND (:gpu=0.0 OR (gpu IS NOT NULL AND (gpu BETWEEN :gpu AND :limitGpu) AND (:gpuRate IS NULL OR gpuRate >= :gpuRate)))
 			  AND (ram BETWEEN :ram AND :limitRam)
 			  AND (:constant IS NULL OR constant = :constant)
 			  AND (:physical IS NULL OR physical = :physical)
 			  AND (:autoScale = FALSE OR autoScale = :autoScale)
+			  AND (:edge IS NULL OR edge = :edge)
 			  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)
 			  AND (:ramRate IS NULL OR ramRate >= :ramRate)
 			  AND (:networkRate IS NULL OR networkRate >= :networkRate)
@@ -70,9 +72,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 			  AND (:processor IS NULL
 			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
-	List<Integer> findValidTypes(String node, double cpu,double gpu, double ram, double limitCpu, double limitRam,
-			double limitGpu,Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale, 
-			Rate cpuRate,Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate);
+	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu, double limitRam,
+			double limitGpu, Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale,
+			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, Boolean edge);
 
 	/**
 	 * Return the valid instance types matching the requirements.

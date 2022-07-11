@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.bootstrap.core.NamedBean;
 
 import lombok.Getter;
@@ -31,9 +32,9 @@ public class UsageEditionVo extends NamedBean<Integer> {
 	 * Usage rate base 100.
 	 */
 	@Positive
-	@Max(100)
+	@Max(ProvUsage.MAX_RATE)
 	@NotNull
-	private Integer rate = 100;
+	private Integer rate = ProvUsage.MAX_RATE;
 
 	/**
 	 * Usage duration in months.

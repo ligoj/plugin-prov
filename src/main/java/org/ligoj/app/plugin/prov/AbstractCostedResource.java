@@ -75,6 +75,8 @@ public abstract class AbstractCostedResource<T extends ProvType, P extends Abstr
 		addCost(entity, e -> {
 			e.setCost(0d);
 			e.setMaxCost(0d);
+			e.setCo2(0d);
+			e.setMaxCo2(0d);
 			e.setInitialCost(0d);
 			e.setMaxInitialCost(0d);
 			return new Floating();

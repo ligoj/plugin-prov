@@ -255,10 +255,21 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 	}
 
 	protected Floating checkCost(final Floating cost, final double min, final double max, final boolean unbound) {
+		return checkCost(cost, min, max, unbound, null, null);
+	}
+
+	protected Floating checkCost(final Floating cost, final double min, final double max, final boolean unbound,
+			final Double minCo2, final Double maxCo2) {
 
 		Assertions.assertEquals(Floating.round(min) + ", " + Floating.round(max),
 				Floating.round(cost.getMin()) + ", " + Floating.round(cost.getMax()));
 		Assertions.assertEquals(unbound, cost.isUnbound());
+
+		if (minCo2 != null) {
+			// Also check CO2 results
+			Assertions.assertEquals(Floating.round(minCo2) + ", " + Floating.round(maxCo2),
+					Floating.round(cost.getMinCo2()) + ", " + Floating.round(cost.getMaxCo2()));
+		}
 		return cost;
 	}
 

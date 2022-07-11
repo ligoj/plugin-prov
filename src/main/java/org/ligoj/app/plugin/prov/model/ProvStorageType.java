@@ -117,8 +117,8 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	/**
 	 * When not <code>null</code>, this storage can only be attached to a database type providing this engine. When
 	 * <code>null</code>, this storage can only be attached to a database type not requiring a specific storage engine.
-	 *
-	 * @see org.ligoj.app.plugin.prov.model.ProvDatabasePrice#getStorageEngine()
+	 * Compatibility is also implied from {@link org.ligoj.app.plugin.prov.model.ProvDatabasePrice#getStorageEngine()}
+	 * for sample.
 	 */
 	private String engine;
 

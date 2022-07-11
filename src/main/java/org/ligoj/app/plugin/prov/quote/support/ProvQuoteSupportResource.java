@@ -167,6 +167,8 @@ public class ProvQuoteSupportResource
 		final var quote = entity.getConfiguration();
 		quote.setCost(round(quote.getCost() + entity.getCost() - old));
 		quote.setMaxCost(round(quote.getMaxCost() + entity.getMaxCost() - oldMax));
+		quote.setCo2(round(quote.getCo2() + entity.getCo2() - oldCo2));
+		quote.setMaxCo2(round(quote.getMaxCo2() + entity.getMaxCo2() - oldMaxCo2));
 		quote.setCostSupport(round(quote.getCostSupport() + entity.getCost() - old));
 		quote.setMaxCostSupport(round(quote.getMaxCostSupport() + entity.getMaxCost() - oldMax));
 	}

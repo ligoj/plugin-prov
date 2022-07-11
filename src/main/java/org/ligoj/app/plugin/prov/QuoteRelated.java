@@ -156,6 +156,8 @@ public interface QuoteRelated<C extends Costed> {
 			// Recurring part
 			quote.setCostNoSupport(round(quote.getCostNoSupport() + fc.getMin()));
 			quote.setMaxCostNoSupport(round(quote.getMaxCostNoSupport() + fc.getMax()));
+			quote.setCo2(round(quote.getCo2() + fc.getMinCo2()));
+			quote.setMaxCo2(round(quote.getMaxCo2() + fc.getMaxCo2()));
 
 			// Initial part
 			quote.setInitialCost(round(quote.getInitialCost() + fc.getInitial()));
@@ -186,6 +188,8 @@ public interface QuoteRelated<C extends Costed> {
 		final var cost = costProvider.apply(qr);
 		qr.setCost(round(cost.getMin()));
 		qr.setMaxCost(round(cost.getMax()));
+		qr.setCo2(round(cost.getMinCo2()));
+		qr.setMaxCo2(round(cost.getMaxCo2()));
 		qr.setInitialCost(round(cost.getInitial()));
 		qr.setMaxInitialCost(round(cost.getMaxInitial()));
 		return new Floating(qr.getCost(), qr.getMaxCost(), qr.getInitialCost(), qr.getMaxInitialCost(),

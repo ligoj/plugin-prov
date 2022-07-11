@@ -191,6 +191,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setGpuRate(vo.getGpuRate());
 		entity.setNetworkRate(vo.getNetworkRate());
 		entity.setStorageRate(vo.getStorageRate());
+		entity.setEdge(vo.getEdge());
 		checkMinMax(entity);
 
 		saveOrUpdateSpec(entity, vo);
@@ -474,8 +475,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 				ip.getInitialCost(), qi);
 	}
 
+	/**
+	 * Return the rate from the given resource, using first the local, then the global, then the default rate.
+	 * 
+	 * @param qi The resource to inspect.
+	 * @return The effective rate.
+	 */
 	private int getRate(final C qi) {
-		return Optional.ofNullable(qi.getResolvedUsage()).map(ProvUsage::getRate).orElse(100);
+		return Optional.ofNullable(qi.getResolvedUsage()).map(ProvUsage::getRate).orElse(ProvUsage.MAX_RATE);
 	}
 
 	/**
@@ -661,7 +668,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var typeId = getType(subscription, query.getType());
 		final var types = getItRepository().findValidTypes(node, cpuR, gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor,
 				ramR * maxFactor, query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),
-				query.getGpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate());
+				query.getGpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate(),
+				query.getEdge());
 		final var terms = iptRepository.findValidTerms(node,
 				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
 						|| getType() == ResourceType.FUNCTION) && convOs,
@@ -683,7 +691,9 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
 						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
-				if (lookup == null || dlookup != null && (optimizer.name()=="COST" && toTotalCost(dlookup) < toTotalCost(lookup)) || (optimizer.name()=="CO2" && toTotalCo2(dlookup) < toTotalCo2(lookup))) {
+				if (dlookup != null && lookup == null || (dlookup != null
+						&& ((optimizer == Optimizer.COST && toTotalCost(dlookup) < toTotalCost(lookup))
+								|| (optimizer == Optimizer.CO2 && toTotalCo2(dlookup) < toTotalCo2(lookup))))) {
 					// Keep the best one
 					lookup = dlookup;
 				}
@@ -782,7 +792,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	protected double toTotalCost(final Object[] lookup) {
 		return ((Double) lookup[1]);
 	}
-	
+
 	/**
 	 * Return the total co2 from the query result.
 	 *
