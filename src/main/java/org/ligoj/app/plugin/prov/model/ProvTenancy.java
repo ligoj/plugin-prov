@@ -17,6 +17,11 @@ public enum ProvTenancy {
 	/**
 	 * Dedicated hardware inside a host, but the host still shared.
 	 */
-	DEDICATED
+	DEDICATED,
+
+	/**
+	 * Dedicated hardware and host.
+	 */
+	DEDICATED_HOST,
 
 }
