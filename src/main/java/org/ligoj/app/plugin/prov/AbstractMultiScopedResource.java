@@ -277,6 +277,8 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 
 		// Fetch the optimizer of this quotes
 		final var quote = entity.getConfiguration();
+		Hibernate.initialize(quote.getUsages());
+		Hibernate.initialize(quote.getBudgets());
 		Hibernate.initialize(allProfiles.apply(quote));
 
 		// Prepare the updated cost of updated instances
