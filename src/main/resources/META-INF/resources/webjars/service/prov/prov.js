@@ -6,6 +6,7 @@ define(function () {
 
 	let initializedPopupEvents = false;
 	let initializedPopupUsage = false;
+	let initializedPopupOptimizer = false;
 	let initializedPopupBudget = false;
 	const colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
 	const ROOT_PREFIX = 'root-';
@@ -133,6 +134,9 @@ define(function () {
 			if (i.budget) {
 				i.budget = conf.budgetsById[i.budget];
 			}
+			if (i.optimizer) {
+				i.optimizer = conf.optimizersById[i.optimizer];
+			}
 			if (i.cost) {
 				cost += i.cost;
 			}
@@ -141,6 +145,20 @@ define(function () {
 		conf[`${type}Cost`] = cost;
 		return ids;
 	}
+
+
+	/**
+	 * Update JSON object by its identifier.
+	 */
+	function replaceId(jsonData, property, idProperty) {
+		if (jsonData[property]) {
+			jsonData[property] = jsonData[property][idProperty] || jsonData[property];
+		} else {
+			// No value of empty value, remove this property from the target object
+			delete jsonData[property];
+		}
+	}
+
 
 	function delay(callback, ms) {
 		var timer = 0;
@@ -498,6 +516,9 @@ define(function () {
 		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, (currency && currency.unit) || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
 
+	function formatCo2Text(cost, _isMax, _i, noRichText, unbound, currency) {
+		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, 'g' || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+	}
 	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound) {
 		if (isMax) {
 			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
@@ -517,20 +538,22 @@ define(function () {
 	}
 
 	/**
-	 * Format the cost.
-	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * Format the floating value.
+	 * @param {number} value The cost value. May contains "min", "max" and "currency" attributes.
 	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
+	 * @param {number} type TODO 'co2' of 'cost'
 	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
 	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
 	 * @return The formatted cost.
 	 */
-	function formatCost(cost, mode, obj, noRichText) {
+	function formatFloat(cost, mode, obj, noRichText, type = 'cost') {
 		if (mode === 'sort' || mode === 'filter') {
 			return cost;
 		}
 
-		var formatter = formatCostText;
+		var formatter = type === 'co2' ? formatCo2Text : formatCostText;
 		var $cost = $();
+		let maxProperty = type.capitalize()
 		if (mode instanceof jQuery) {
 			// Odomoter format
 			formatter = formatCostOdometer;
@@ -546,7 +569,7 @@ define(function () {
 		}
 		// A floating cost
 		var min = obj.cost || obj.min || 0;
-		var max = typeof obj.maxCost === 'number' ? obj.maxCost : obj.max;
+		var max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
 		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
 		var formatMin = formatManager.formatCost(min)
 		var formatMax = formatManager.formatCost(max)
@@ -557,6 +580,30 @@ define(function () {
 		}
 		// Max cost, is different, display a range
 		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
+	}
+
+	/**
+	 * Format the cost.
+	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
+	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
+	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
+	 * @return The formatted cost.
+	 */
+	function formatCost(cost, mode, obj, noRichText) {
+		return formatFloat(cost, mode, obj, noRichText, 'cost');
+	}
+
+	/**
+	 * Format the cost.
+	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
+	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
+	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
+	 * @return The formatted cost.
+	 */
+	function formatCo2(co2, mode, obj, noRichText) {
+		return formatFloat(co2, mode, obj, noRichText, 'co2');
 	}
 
 	/**
@@ -695,6 +742,9 @@ define(function () {
 
 	function formatBudget(budget, mode) {
 		return formatMultiScoped('budget', budget, current.model.configuration.budget, mode, 'fa-wallet', e => (typeof e.initialCost === 'number' && e.initialCost > 1) ? `<br>${current.title('budget-initialCost')}${formatCost(e.initialCost)}` : '');
+	}
+	function formatOptimizer(optimizer, mode) {
+		return formatMultiScoped('optimizer', optimizer, current.model.configuration.optimizer, mode, 'fa-leaf', e => `<i class="fas fa-${e.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i>`);
 	}
 	function formatUsage(usage, mode) {
 		return formatMultiScoped('usage', usage, current.model.configuration.usage, mode, 'fa-clock', e => {
@@ -1008,6 +1058,7 @@ define(function () {
 		}, 50));
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
+		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
 			if (_('instance-license').provType() === 'instance') {
@@ -1153,7 +1204,6 @@ define(function () {
 		_('instance-term').select2(current.instanceTermSelect2(false));
 	}
 
-
 	/**
 	 * Initialize data tables and popup event : delete and details
 	 */
@@ -1173,7 +1223,7 @@ define(function () {
 			} else {
 				$popup.removeClass('advanced');
 			}
-		}).on('click','.dropdown-menu', function (e) {
+		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
@@ -1210,8 +1260,9 @@ define(function () {
 			current.model.quote = quote;
 			current.toUi(dType, quote);
 			_('instance-location').select2Placeholder(locationToHtml(current.model.configuration.location));
-			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-usage').select2Placeholder(select2Placeholder('usage'));
+			_('instance-optimizer').select2Placeholder(select2Placeholder('optimizer'));
+			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
 		});
@@ -1276,6 +1327,17 @@ define(function () {
 		}));
 	}
 
+	function initializeOptimizerInnerEvents() {
+		initializeMultiScopedInnerEvents('optimizer', () => ({
+			mode: _('optimizer-mode').is(':checked') ? 'co2' : 'cost',
+		}));
+		_('optimizer-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
+		_('optimizer-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
+			// See https://bttstrp.github.io/bootstrap-switch/events.html#
+			$('.optimizer-mode-helper').addClass('hidden').filter(`.mode-${state ? 'co2' : 'cost'}`).removeClass('hidden');
+		});
+	}
+
 	function initializeUsageInnerEvents() {
 		initializeMultiScopedInnerEvents('usage', () => ({
 			rate: parseInt(_('usage-rate').val() || '100', 10),
@@ -1309,12 +1371,12 @@ define(function () {
 	}
 
 	/**
-	 * Configure multi-scoped resource type.
+	 * Configure multi-scoped resource type: modal behavior
 	 */
 	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
-			onShowModal();
+			onShowModal(event);
 			current.enableCreate($popup);
 			copyToUi($(this), `${type}-`, $(event.relatedTarget).is('.btn-success') ? defaultData : event.relatedTarget);
 			validationManager.reset($(this));
@@ -1365,15 +1427,31 @@ define(function () {
 	}
 
 	/**
+	 * Configure usage.
+	 */
+	function initializeOptimizer() {
+		initializeMultiScoped('optimizer', event => {
+			if (initializedPopupOptimizer === false) {
+				initializedPopupOptimizer = true;
+				initializeOptimizerInnerEvents();
+			}
+			const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
+			$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
+		}, { mode: 'cost' });
+	}
+
+	/**
 	 * Configure budget.
 	 */
 	function initializeBudget() {
-		initializeMultiScoped('budget', () => {
-			if (initializedPopupBudget === false) {
-				initializedPopupBudget = true;
-				initializeBudgetInnerEvents();
-			}
-		});
+		require(['bootstrap-switch'], function () {
+			initializeMultiScoped('budget', () => {
+				if (initializedPopupBudget === false) {
+					initializedPopupBudget = true;
+					initializeBudgetInnerEvents();
+				}
+			});
+		})
 	}
 
 	function cleanData(data) {
@@ -1486,6 +1564,7 @@ define(function () {
 			delete current.d3Gauge;
 			initializedPopupEvents = false;
 			initializedPopupUsage = false;
+			initializedPopupOptimizer = false;
 			initializedPopupBudget = false;
 			types.forEach(type => delete current[type + 'Table']);
 		},
@@ -1532,8 +1611,9 @@ define(function () {
 					value: conf.ramAdjustedRate,
 				});
 			});
-			_('quote-usage').select2('data', conf.usage)
-			_('quote-budget').select2('data', conf.budget)
+			_('quote-usage').select2('data', conf.usage);
+			_('quote-budget').select2('data', conf.budget);
+			_('quote-optimizer').select2('data', conf.optimizer);
 		},
 
 		/**
@@ -1665,7 +1745,7 @@ define(function () {
 		 */
 		optimizeModel: function () {
 			var conf = current.model.configuration;
-			['usage', 'budget', 'instance', 'database', 'container', 'function', 'storage', 'support'].forEach(type => toIds(conf, type));
+			['usage', 'budget', 'optimizer', 'instance', 'database', 'container', 'function', 'storage', 'support'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
@@ -1954,6 +2034,11 @@ define(function () {
 				type: 'num',
 				render: formatCost
 			}, {
+				data: 'co2',
+				className: 'truncate hidden-xs',
+				type: 'num',
+				render: formatCo2
+			}, {
 				data: null,
 				width: '51px',
 				orderable: false,
@@ -2009,9 +2094,11 @@ define(function () {
 				_('instance-encoding-upload').val((_('csv-upload-encoding').select2('data') || {}).id || null);
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
 				_('instance-budget-upload-name').val((_('instance-budget-upload').select2('data') || {}).name || null);
+				_('instance-optimizer-upload-name').val((_('instance-optimizer-upload').select2('data') || {}).name || null);
 				_('csv-headers-included').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-error-continue').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-usage').val(_('csv-create-missing-usage').is(':checked') ? 'true' : 'false');
+				_('csv-create-missing-optimizer').val(_('csv-create-missing-optimizer').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
@@ -2150,6 +2237,7 @@ define(function () {
 			current.initializeTerraform();
 			initializeUsage();
 			initializeBudget();
+			initializeOptimizer();
 			current.initializeOtherAssumptionsComponents();
 			current.updateUiAssumptions(current.model.configuration);
 			$('.prov-currency').text(getCurrencyUnit());
@@ -2325,11 +2413,29 @@ define(function () {
 		},
 
 		/**
-		 * Usage Modale Select2 configuration.
+		 * Usage Modal Select2 configuration.
 		 */
 		usageModalSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
 				return usage.text;
+			});
+		},
+
+		/**
+		 * Optimizer Modal Select2 configuration.
+		 */
+		optimizerModalSelect2: function (placeholder) {
+			return genericSelect2(placeholder, current.optimizerToText, 'optimizer', function (optimizer) {
+				return optimizer.text;
+			});
+		},
+
+		/**
+		 * Optimizer Select2 configuration.
+		 */
+		optimizerSelect2: function (placeholder) {
+			return genericSelect2(placeholder, current.optimizerToText, 'optimizer', function (optimizer) {
+				return `${optimizer.name}<span class="select2-optimizer-summary pull-right"><i class="fas fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i><a class="update prov-optimizer-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a></span>`;
 			});
 		},
 
@@ -2509,35 +2615,23 @@ define(function () {
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage,
+				optimizer: conf.optimizer,
 				budget: conf.budget
 			}, data || {});
-			jsonData.location = jsonData.location.name || jsonData.location;
-
-			if (jsonData.processor) {
-				jsonData.processor = jsonData.processor.id || jsonData.processor;
-			}
-			if (jsonData.reservationMode) {
-				jsonData.reservationMode = jsonData.reservationMode.id || jsonData.reservationMode;
-			}
-			if (jsonData.license) {
-				jsonData.license = jsonData.license.id || jsonData.license;
-			}
-			if (jsonData.usage) {
-				jsonData.usage = jsonData.usage.name;
-			} else {
-				delete jsonData.usage;
-			}
-			if (jsonData.budget) {
-				jsonData.budget = jsonData.budget.name;
-			} else {
-				delete jsonData.budget;
-			}
+			replaceId(jsonData, 'location', 'name');
+			replaceId(jsonData, 'processor', 'id');
+			replaceId(jsonData, 'reservationMode', 'id');
+			replaceId(jsonData, 'license', 'id');
+			replaceId(jsonData, 'usage', 'name');
+			replaceId(jsonData, 'optimizer', 'name');
+			replaceId(jsonData, 'budget', 'name');
 
 			// Check the changes
 			if (conf.name === jsonData.name
 				&& conf.description === jsonData.description
 				&& (conf.location && conf.location.name) === jsonData.location
 				&& (conf.usage && conf.usage.name) === jsonData.usage
+				&& (conf.optimizer && conf.optimizer.name) === jsonData.optimizer
 				&& (conf.budget && conf.budget.name) === jsonData.budget
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
@@ -2567,6 +2661,7 @@ define(function () {
 					conf.description = jsonData.description;
 					conf.location = data.location || conf.location;
 					conf.usage = data.usage === null ? null : (data.usage || conf.usage);
+					conf.optimizer = data.optimizer === null ? null : (data.optimizer || conf.optimizer);
 					conf.budget = data.budget === null ? null : (data.budget || conf.budget);
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
@@ -2703,6 +2798,18 @@ define(function () {
 			}
 			return null;
 		},
+
+		/**
+		 * Optimizer text renderer.
+		 */
+		optimizerToText: function (optimizer) {
+			if (optimizer) {
+				return `${optimizer.name}<span class="pull-right"><i class="fas fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i></span>`;
+			}
+			return null;
+		},
+
+
 		/**
 		 * Budget text renderer.
 		 */
@@ -2878,6 +2985,7 @@ define(function () {
 			_(inputType + '-description').val(model.description || '');
 			_(inputType + '-location').select2('data', model.location || null);
 			_(inputType + '-usage').select2('data', model.usage || null);
+			_(inputType + '-optimizer').select2('data', model.optimizer || null);
 			_(inputType + '-budget').select2('data', model.budget || null);
 			$popup.attr('data-prov-type', type);
 			current[type + 'ToUi'](model);
@@ -3036,6 +3144,7 @@ define(function () {
 			var suggest = {
 				price: _(inputType + '-price').select2('data'),
 				usage: _(inputType + '-usage').select2('data'),
+				optimizer: _(inputType + '-optimizer').select2('data'),
 				budget: _(inputType + '-budget').select2('data'),
 				location: _(inputType + '-location').select2('data')
 			};
@@ -3045,6 +3154,7 @@ define(function () {
 				description: _(inputType + '-description').val(),
 				location: (suggest.location || {}).name,
 				usage: (suggest.usage || {}).name,
+				optimizer: (suggest.optimizer || {}).name,
 				budget: (suggest.budget || {}).name,
 				subscription: current.model.subscription
 			};
@@ -3062,7 +3172,7 @@ define(function () {
 				contentType: 'application/json',
 				data: JSON.stringify(data),
 				success: function (updatedCost) {
-					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.budget, suggest.location);
+					current.saveAndUpdateCosts(type, updatedCost, data, suggest.price, suggest.usage, suggest.optimizer, suggest.budget, suggest.location);
 					if ($popup.find('.create-another input[type=checkbox]:checked').is(':checked')) {
 						current.enableCreate($popup);
 						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
@@ -3082,11 +3192,12 @@ define(function () {
 		 * @param {object} data The original data sent to the back-end.
 		 * @param {object} price The last know price suggest replacing the current price. When undefined, the original price is used.
 		 * @param {object} usage The last provided usage.
+		 * @param {object} optimizer The last provided optimizer.
 		 * @param {object} budget The last provided budget.
 		 * @param {object} location The last provided location.
 		 * @return {object} The updated or created model.
 		 */
-		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, budget, location) {
+		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, optimizer, budget, location) {
 			var conf = current.model.configuration;
 
 			// Update the model
@@ -3101,6 +3212,7 @@ define(function () {
 			qx.description = data.description;
 			qx.location = location;
 			qx.usage = usage;
+			qx.optimizer = optimizer;
 			qx.budget = budget;
 			qx.resourceType = type;
 			qx.quantity = data.quantity;
@@ -3334,6 +3446,7 @@ define(function () {
 		sunburstVmTooltip: function (entity) {
 			return '<br>' + current.title('term') + entity.price.term.name
 				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
+				+ '<br>' + current.title('optimizer') + formatOptimizer(entity.optimizer, 'tooltip')
 				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
 		},
 
@@ -4025,7 +4138,7 @@ define(function () {
 								contentType: 'application/json',
 								data: JSON.stringify(data),
 								success: function (updatedCost) {
-									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, null, qi.location);
+									current.saveAndUpdateCosts('storage', updatedCost, data, suggest, null, null, null, qi.location);
 
 									// Keep the focus on this UI after the redraw of the row
 									$(() => _('prov-' + type + 's').find('tr[data-id="' + qi.id + '"]').find('.storage-tags .select2-input').trigger('focus'));
@@ -4081,6 +4194,12 @@ define(function () {
 					type: 'string',
 					render: formatBudget,
 					filter: filterMultiScoped('budget')
+				}, {
+					data: 'optimizer',
+					className: 'hidden-xs hidden-sm optimizer',
+					type: 'string',
+					render: formatOptimizer,
+					filter: filterMultiScoped('optimizer')
 				}, {
 					data: 'location',
 					className: 'hidden-xs hidden-sm location',
