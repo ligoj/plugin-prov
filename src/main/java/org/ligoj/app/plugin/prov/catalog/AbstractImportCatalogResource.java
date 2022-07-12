@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -545,7 +546,55 @@ public abstract class AbstractImportCatalogResource {
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
+			setCo2(context, entity);
 		}, repository::save);
+	}
+
+	/**
+	 * Set the CO2 value in the price entity based on the CO2 data set.
+	 * 
+	 * @param <P>     The target price type.
+	 * @param context The current context holding the CO2 data set
+	 * @param price   The target price to update.
+	 */
+	protected <P extends AbstractTermPrice<?>> void setCo2(final AbstractUpdateContext context, final P price) {
+		// Set C2 data
+		Optional.ofNullable(getCo2(context, price.getType().getCode())).map(Co2Data::getValue).ifPresent(v -> {
+			price.setCo2(v);
+			price.setCo2Period(round3Decimals(v * Math.max(1, price.getTerm().getPeriod())));
+		});
+	}
+
+	/**
+	 * Get the CO2 value from the type name used as key. When not found, no value is set.
+	 * 
+	 * @param context The current context holding the CO2 data set
+	 * @param price   The target price to update.
+	 */
+	protected Co2Data getCo2(final AbstractUpdateContext context, String type) {
+		if (!context.getCo2DataSet().isEmpty() && !context.getCo2DataSetIgnored().containsKey(type)) {
+			// CO2 Dataset is configured, get the related CO2 data of this type
+			final var co2Data = context.getCo2DataSet().get(type);
+			if (co2Data != null) {
+				return co2Data;
+			}
+			log.warn("No CO2 for type {}", type);
+			context.getCo2DataSetIgnored().put(type, Boolean.TRUE);
+		}
+		return null;
+	}
+
+	/**
+	 * Set the CO2 value in the type entity based on the CO2 data set.
+	 * 
+	 * @param context The current context holding the CO2 data set
+	 * @param type    The target type to update.
+	 */
+	protected void setCo2(final AbstractUpdateContext context, final AbstractInstanceType type) {
+		// Set C2 data
+		Optional.ofNullable(getCo2(context, type.getCode())).map(Co2Data::getValue).ifPresent(v -> {
+			type.setCo2(v);
+		});
 	}
 
 	/**
