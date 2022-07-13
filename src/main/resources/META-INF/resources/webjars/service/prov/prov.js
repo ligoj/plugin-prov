@@ -1386,6 +1386,10 @@ define(function () {
 				validationManager.mapping[input] = `${type}-${input}`;
 			});
 			_(`${type}-rate`).trigger('change');
+			$(`#prov-${type}-delete`).addClass('hidden')
+			if (event.relatedTarget.id){
+				$(`#prov-${type}-delete`).removeClass('hidden')	
+			}
 		});
 		_(`instance-${type}-upload`).select2(current[`${type}Select2`](current.$messages['service:prov:default']));
 		let $quote = _(`quote-${type}`);
