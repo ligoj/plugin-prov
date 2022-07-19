@@ -23,6 +23,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
@@ -351,7 +352,8 @@ public abstract class AbstractImportCatalogResource {
 	 * @return <code>true</code> when the configuration enable the given OS.
 	 */
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final String os) {
-		return context.getValidOs().matcher(os.toUpperCase(Locale.ENGLISH)).matches();
+		final var osName = os.toUpperCase(Locale.ENGLISH);
+		return context.getValidOs().matcher(osName).matches() && EnumUtils.isValidEnum(VmOs.class, osName);
 	}
 
 	/**

@@ -596,14 +596,17 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void saveAsNeededPriceTerm() {
-		final var entity = new ProvInstancePrice();
 		final var term = new ProvInstancePriceTerm();
 		term.setPeriod(12d);
+		final var type = new ProvInstanceType();
+		type.setCode("codeT");
+		final var entity = new ProvInstancePrice();
 		entity.setId(1);
 		entity.setTerm(term);
 		entity.setCost(2d);
 		entity.setCostPeriod(24d);
 		entity.setCode("code");
+		entity.setType(type);
 		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 3, repository);
