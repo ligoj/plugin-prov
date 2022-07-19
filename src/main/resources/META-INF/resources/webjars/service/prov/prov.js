@@ -10,6 +10,8 @@ define(function () {
 	let initializedPopupBudget = false;
 	const colorScheme = ['schemeTableau10', 'schemeSet2', 'schemeSet3', 'schemeSet1', 'schemeDark2'][0];
 	const ROOT_PREFIX = 'root-';
+	const DEFAULT_DURATION = 36;
+	const BARCHART_DURATION = DEFAULT_DURATION;
 
 	/**
 	 * Enable resource type.
@@ -513,23 +515,23 @@ define(function () {
 	}
 
 	function formatCostText(cost, _isMax, _i, noRichText, unbound, currency) {
-		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, (currency && currency.unit) || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+		return formatManager.formatCost(cost * currency.rate, 3, currency.unit, noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
 
-	function formatCo2Text(cost, _isMax, _i, noRichText, unbound, currency) {
-		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, 'g' || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+	function formatCo2Text(cost, _isMax, _i, noRichText, unbound) {
+		return formatManager.formatCost(cost, 3, 'g', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
-	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound) {
+	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound, currency) {
 		if (isMax) {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-				var $wrapper = $cost.find('.cost-max');
+			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+				let $wrapper = $cost.find('.cost-max');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 				$wrapper.find('.cost-unit').html(unit);
 			});
 		} else {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-				var $wrapper = $cost.find('.cost-min').removeClass('hidden');
+			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+				let $wrapper = $cost.find('.cost-min').removeClass('hidden');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight);
 				$wrapper.find('.cost-unit').html(unit);
@@ -551,8 +553,9 @@ define(function () {
 			return cost;
 		}
 
-		var formatter = type === 'co2' ? formatCo2Text : formatCostText;
-		var $cost = $();
+		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
+		let currency = type === 'co2' ? {unit:'g', rate:1} : (cost && cost.currency || getCurrencyUnit());
+		let $cost = $();
 		let maxProperty = type.capitalize()
 		if (mode instanceof jQuery) {
 			// Odomoter format
@@ -565,21 +568,21 @@ define(function () {
 		if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 			// Standard cost
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, cost && cost.currency);
+			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, currency);
 		}
 		// A floating cost
-		var min = obj.cost || obj.min || 0;
-		var max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
-		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		var formatMin = formatManager.formatCost(min)
-		var formatMax = formatManager.formatCost(max)
+		let min = obj.cost || obj.min || 0;
+		let max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
+		let unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
+		let formatMin = formatManager.formatCost(min)
+		let formatMax = formatManager.formatCost(max)
 		if ((typeof max !== 'number') || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
+			return formatter(min, true, $cost, noRichText, unbound, currency);
 		}
 		// Max cost, is different, display a range
-		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
+		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, currency);
 	}
 
 	/**
@@ -596,15 +599,20 @@ define(function () {
 
 	/**
 	 * Format the cost.
-	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {number} co2 The CO2 value. May contains "min", "max" and "currency" attributes.
 	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
 	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
-	 * @return The formatted cost.
+	 * @return The formatted CO2.
 	 */
 	function formatCo2(co2, mode, obj, noRichText) {
 		return formatFloat(co2, mode, obj, noRichText, 'co2');
 	}
+
+	/**
+	 * Formatters by the aggregation name (cost or co2)
+	 */
+	const formatByAggregationMode = { co2: formatCo2, cost: formatCost };
 
 	/**
 	 * Return the HTML markup from the rating.
@@ -1387,8 +1395,8 @@ define(function () {
 			});
 			_(`${type}-rate`).trigger('change');
 			$(`#prov-${type}-delete`).addClass('hidden')
-			if (event.relatedTarget.id){
-				$(`#prov-${type}-delete`).removeClass('hidden')	
+			if (event.relatedTarget.id) {
+				$(`#prov-${type}-delete`).removeClass('hidden')
 			}
 		});
 		_(`instance-${type}-upload`).select2(current[`${type}Select2`](current.$messages['service:prov:default']));
@@ -1431,17 +1439,34 @@ define(function () {
 	}
 
 	/**
-	 * Configure usage.
+	 * Configure optimizer.
 	 */
 	function initializeOptimizer() {
-		initializeMultiScoped('optimizer', event => {
-			if (initializedPopupOptimizer === false) {
-				initializedPopupOptimizer = true;
-				initializeOptimizerInnerEvents();
-			}
-			const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
-			$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
-		}, { mode: 'cost' });
+		require(['bootstrap-switch'], function () {
+			initializeMultiScoped('optimizer', event => {
+				if (initializedPopupOptimizer === false) {
+					initializedPopupOptimizer = true;
+					initializeOptimizerInnerEvents();
+				}
+				const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
+				$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
+			}, { mode: 'cost' });
+			initializeOptimizerPage();
+		})
+	}
+
+	function initializeOptimizerPage() {
+		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
+		$('#optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
+			debugger;
+			// See https://bttstrp.github.io/bootstrap-switch/events.html#
+			let newMode = state ? 'co2' : 'cost';
+			localStorage.setItem('service:prov/aggregateMode', newMode);
+			$('#subscribe-configuration-prov').attr('data-aggregation-mode', newMode);
+			current.updateUiCost();
+		});
+		let mode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
+		$('#optimizer-page-mode').bootstrapSwitch('state', mode == 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
 	}
 
 	/**
@@ -1501,7 +1526,7 @@ define(function () {
 		return quote.id ? defaultExisting : defaultNew;
 	}
 
-	var current = {
+	let current = {
 
 		$messages: {},
 
@@ -1910,10 +1935,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
@@ -3202,10 +3227,10 @@ define(function () {
 		 * @return {object} The updated or created model.
 		 */
 		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, optimizer, budget, location) {
-			var conf = current.model.configuration;
+			let conf = current.model.configuration;
 
 			// Update the model
-			var qx = conf[type + 'sById'][updatedCost.id] || {
+			let qx = conf[type + 'sById'][updatedCost.id] || {
 				id: updatedCost.id,
 				cost: 0
 			};
@@ -3232,17 +3257,22 @@ define(function () {
 		/**
 		 * Update the D3 instance types bar chart.
 		 * @param {object} stats 
+		 * @param {string} aggregateMode Aggregation mode: 'cost' or 'co2' 
 		 */
-		updateInstancesBarChart: function (stats) {
+		updateInstancesBarChart: function (stats, aggregateMode) {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
-				var numDataItems = stats.timeline.length;
-				var data = [];
-				for (var i = 0; i < numDataItems; i++) {
-					var value = stats.timeline[i];
-					var stack = {
+				let numDataItems = stats.timeline.length;
+				let data = [];
+				let format = formatByAggregationMode[aggregateMode];
+				for (let i = 0; i < numDataItems; i++) {
+					let value = stats.timeline[i];
+					let stack = {
 						date: value.date
 					};
-					types.forEach(type => stack[type] = value[type]);
+					types.forEach(type => stack[type] = {
+						cost: value[`${type}Cost`],
+						co2: value[`${type}Co2`]
+					});
 					data.push(stack);
 				}
 
@@ -3250,24 +3280,36 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, (d, bars) => {
-							// Tooltip of barchart
-							var tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
-							tooltip += '<br/>' + current.$messages['service:prov:total'] + ': ' + formatCost(bars.reduce((cost, bar) => cost + bar.height0, 0));
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, bars, d) => {
+							// Tooltip of barchart for each resource type
+							//debugger;
+							let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+
+							// For each contributor add its value
+							let barData = data[d['x-index']];
+							let totalCost = 0;
+							let totalCo2 = 0;
 							types.forEach(type => {
-								var cost = bars.filter(bar => bar.cluster === type);
-								if (cost.length && cost[0].height0) {
-									tooltip += '<br/><span' + (d.cluster === type ? ' class="strong">' : '>') + current.$messages['service:prov:' + type] + ': ' + formatCost(cost[0].height0) + '</span>';
+								let value = barData[type]
+								if (value && (value.cost || value.co2)) {
+									totalCost += value.cost || 0;
+									totalCo2 += value.co2 || 0;
+									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; ${formatCo2(value.co2)}</span>`;
 								}
 							});
-							return '<span class="tooltip-text">' + tooltip + '</span>';
+							// Append total
+							tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; ${formatCo2(totalCo2)}`;
+							return `<span class="tooltip-text">${tooltip}</span>`;
 						}, d => {
 							// Hover of barchart -> update sunburst and global cost
 							current.updateUiCost(d && d['x-index']);
 						}, (d, _bars, clicked) => {
 							// Hover of barchart -> update sunburst and global cost
 							current.updateUiCost(clicked && d && d['x-index']);
-						}, d => formatCost(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
+						}, d => {
+							//debugger;
+							format(d, null, null, true);
+						}, (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -3309,33 +3351,28 @@ define(function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function (filterDate) {
-			var conf = current.model.configuration;
+			let conf = current.model.configuration;
+			let aggregateMode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
+			debugger;
 
 			// Compute the new capacity and costs
-			var stats = current.computeStats(filterDate);
+			let stats = current.computeStats(filterDate);
 
 			// Update the global counts
-			var filtered = stats.cost !== conf.cost.min;
-			if (filtered) {
-				// Filtered cost
-				formatCost({
-					min: stats.cost,
-					max: stats.cost,
-					unbound: stats.unbound > 0
-				}, $('.cost'));
-			} else {
-				// Full cost
-				formatCost(conf.cost, $('.cost'));
-			}
+			let filtered = stats.cost !== conf.cost.min;
+			let formatCostParam = filtered ? { min: stats.cost, max: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
+			let formatCo2Param = filtered ? { min: stats.co2, max: stats.co2, unbound: stats.unbound > 0 } : { max: conf.cost.maxCo2, min: conf.cost.minCo2, unbound: conf.unbound };
+			formatCost(formatCostParam, $('.cost'));
+			formatCo2(formatCo2Param, $('.co2'));
 
 			if (typeof filterDate !== 'number') {
 				// Do not update itself
-				current.updateInstancesBarChart(stats);
+				current.updateInstancesBarChart(stats, aggregateMode);
 			}
 
 			// Separated resource counters
 			types.forEach(type => {
-				var $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
+				let $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
 				if (stats[type].nb) {
 					$stats.removeClass('hide').find('.odo-wrapper').text(stats[type].nb);
 					$stats.find('.odo-wrapper-unbound').text((stats[type].min && stats[type].min > stats[type].nb || stats[type].unbound) ? '+' : '');
@@ -3357,7 +3394,7 @@ define(function () {
 			let $summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (stats.database.cpu.available) {
 				current.updateSummary($summary, stats.database);
-				var $engines = $summary.filter('[data-engine]').addClass('hidden');
+				let $engines = $summary.filter('[data-engine]').addClass('hidden');
 				Object.keys(stats.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(stats.database.engines[engine]));
 			} else {
 				$summary.addClass('hidden');
@@ -3405,8 +3442,8 @@ define(function () {
 
 			// Update the sunburst total resource capacity
 			require(['d3', '../main/service/prov/lib/sunburst'], function (d3, sunburst) {
-				if (stats.cost) {
-					sunburst.init('#prov-sunburst', current.toD3(stats), function (a, b) {
+				if (stats[aggregateMode]) {
+					sunburst.init('#prov-sunburst', current.toD3(stats, aggregateMode), function (a, b) {
 						if (a.depth === 1 && b.depth === 1) {
 							return types.indexOf(a.data.type) - types.indexOf(b.data.type);
 						}
@@ -3423,9 +3460,9 @@ define(function () {
 		updateSummary($summary, resource) {
 			$summary.removeClass('hidden');
 			$summary.filter('.cpu').find('span').text(resource.cpu.available);
-			var memoryText = formatRam(resource.ram.available);
-			var memoryUnit = memoryText.replace(/[0-9,.]*/, '');
-			var memoryValue = memoryText.replace(/[^0-9,.]*/, '');
+			let memoryText = formatRam(resource.ram.available);
+			let memoryUnit = memoryText.replace(/[0-9,.]*/, '');
+			let memoryValue = memoryText.replace(/[^0-9,.]*/, '');
 			$summary.filter('.ram').find('span').first().text(memoryValue);
 			$summary.filter('.ram').find('.unit').text(memoryUnit);
 			if (resource.publicAccess) {
@@ -3436,7 +3473,7 @@ define(function () {
 		},
 
 		sunburstTooltip: function (data, d) {
-			var tooltip = current.sunburstBaseTooltip(data)
+			let tooltip = current.sunburstBaseTooltip(data)
 			return '<span class="tooltip-text">' + tooltip
 				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
 				+ current.recursivePercent(d, true, 100)
@@ -3463,7 +3500,7 @@ define(function () {
 		},
 
 		sunburstBaseTooltip: function (data) {
-			var conf = current.model.configuration;
+			let conf = current.model.configuration;
 			switch (data.type) {
 				case 'latency':
 					return current.title('storage-latency') + formatRate(data.name, true);
@@ -3513,7 +3550,7 @@ define(function () {
 		 */
 		updateGauge: function (d3, stats) {
 			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
-				var weightCost = 0;
+				let weightCost = 0;
 				typesStorage.forEach(sType => {
 					if (stats[sType].cpu.available) {
 						weightCost += stats[sType].cost * 0.8 * stats[sType].cpu.reserved / stats[sType].cpu.available;
@@ -3562,7 +3599,8 @@ define(function () {
 			let ramReserved = 0;
 			let cpuAvailable = 0;
 			let cpuReserved = 0;
-			let instanceCost = 0;
+			let totalCost = 0, totalCo2 = 0;
+			let typeCost = `${type}Cost`, typeCo2 = `${type}Co2`;
 			let minInstances = 0;
 			let maxInstancesUnbound = false;
 			let enabledInstances = {};
@@ -3571,7 +3609,7 @@ define(function () {
 				callback(resultType);
 			}
 			instances.forEach(qi => {
-				let cost = qi.cost.min || qi.cost || 0;
+				let cost = qi.cost.min || qi.cost || 0, co2 = qi.co2.min || qi.co2 || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
 				maxInstancesUnbound |= (qi.maxQuantity !== nb);
@@ -3579,15 +3617,20 @@ define(function () {
 				cpuReserved += ((reservationModeMax && qi.cpuMax) ? qi.cpuMax : qi.cpu) * nb;
 				ramAvailable += qi.price.type.ram * nb;
 				ramReserved += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
-				instanceCost += cost;
+				totalCost += cost;
+				totalCo2 += co2;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 				enabledInstances[qi.id] = true;
 				if (typeof callbackQi === 'function') {
 					callbackQi(resultType, qi);
 				}
-				for (let t = (qi.usage || defaultUsage).start || 0; t < duration; t++) {
-					timeline[t][type] += cost;
+				let start = (qi.usage || defaultUsage).start || 0
+				let end = Math.min(duration, start + (qi.usage || defaultUsage).duration);
+				for (let t = start; t < end; t++) {
+					timeline[t][typeCost] += cost;
+					timeline[t][typeCo2] += co2;
 					timeline[t].cost += cost;
+					timeline[t].co2 += co2;
 				}
 			});
 			result[type] = Object.assign(resultType, {
@@ -3605,7 +3648,8 @@ define(function () {
 				publicAccess: publicAccess,
 				filtered: instances,
 				enabled: enabledInstances,
-				cost: instanceCost
+				cost: totalCost,
+				co2: totalCo2
 			});
 		},
 
@@ -3614,18 +3658,19 @@ define(function () {
 		 * Maximal quantities is currently ignored.
 		 */
 		computeStats: function (filterDate) {
-			var conf = current.model.configuration;
-			var i, t;
+			let conf = current.model.configuration;
+			let i, t, start, end;
 			let reservationModeMax = conf.reservationMode === 'max';
 
 			// Timeline
-			var timeline = [];
-			var defaultUsage = conf.usage || { rate: 100, start: 0 };
-			var duration = 36;
-			var date = moment().startOf('month');
-			for (i = 0; i < 36; i++) {
-				let monthData = { cost: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				typesStorage.forEach(type => monthData[type] = 0);
+			let timeline = [];
+			let defaultUsage = conf.usage || { rate: 100, start: 0, duration: DEFAULT_DURATION };
+			let duration = BARCHART_DURATION;
+			let date = moment().startOf('month');
+			for (i = 0; i < duration; i++) {
+				let monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+				typesStorage.forEach(type => monthData[`${type}Cost`] = 0);
+				typesStorage.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
 				date.add(1, 'months');
 			}
@@ -3634,19 +3679,18 @@ define(function () {
 			// Instance statistics
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => {
-				r.nbRequests += qi.nbRequests;
-			});
+			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
 			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
 				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
 				r.engines[engine] = (r.engines[engine] || 0) + 1;
 			});
 
 			// Storage statistics
-			var storageAvailable = 0;
-			var storageReserved = 0;
-			var storageCost = 0;
-			var storages = current.getFilteredData('storage', filterDate);
+			let storageAvailable = 0;
+			let storageReserved = 0;
+			let storageCost = 0;
+			let storageCo2 = 0;
+			let storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
 			storages.forEach(qs => {
 				if (qs.quoteInstance) {
@@ -3661,36 +3705,47 @@ define(function () {
 					nb = 1;
 				}
 
-				var qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
+				let qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				var quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
+				storageCo2 += qs.co2;
+				let quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
-					for (t = (quoteVm.usage || defaultUsage).start || 0; t < duration; t++) {
-						timeline[t].storage += qs.cost;
+					start = (quoteVm.usage || defaultUsage).start || 0
+					end = Math.min(duration, start + (quoteVm.usage || defaultUsage).duration);
+					for (t = start; t < end; t++) {
+						timeline[t].storageCost += qs.cost;
+						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
+						timeline[t].co2 += qs.co2;
 					}
 				} else {
 					for (t = timeline.length; t-- > 0;) {
+						timeline[t].storageCost += qs.cost;
+						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
+						timeline[t].co2 += qs.co2;
 					}
 				}
 			});
 
 			// Support statistics
-			var supportCost = 0;
-			var supports = current.getFilteredData('support', filterDate);
-			supports.forEach(s => supportCost += s.cost);
+			let supports = current.getFilteredData('support', filterDate);
+			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
-				timeline[t].support = supportCost;
+				timeline[t].supportCost = supportCost;
+				timeline[t].supportCo2 = 0;
 				timeline[t].cost += supportCost;
 			}
 
 			let costNoSupport = typesStorage.reduce((total, sType) => total + result[sType].cost, storageCost);
+			let co2NoSupport = typesStorage.reduce((total, sType) => total + result[sType].co2, storageCo2);
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
+				co2: co2NoSupport,
 				costNoSupport: costNoSupport,
+				co2NoSupport: co2NoSupport,
 				unbound: typesStorage.some(sType => result[sType].maxInstancesUnbound),
 				timeline: timeline,
 				storage: {
@@ -3698,14 +3753,16 @@ define(function () {
 					available: storageAvailable,
 					reserved: storageReserved,
 					filtered: storages,
-					cost: storageCost
+					cost: storageCost,
+					co2: storageCo2
 				},
 				support: {
 					nb: supports.length,
 					filtered: supports,
 					first: supports.length ? supports[0].price.type.name : null,
 					more: supports.length > 1,
-					cost: supportCost
+					cost: supportCost,
+					co2: 0
 				}
 			});
 		},
@@ -3759,14 +3816,14 @@ define(function () {
 			}
 		},
 
-		toD3: function (stats) {
-			var root = {
+		toD3: function (stats, aggregateMode) {
+			let root = {
 				name: current.$messages['service:prov:total'],
-				value: stats.cost,
+				value: stats[aggregateMode],
 				children: []
 			};
 			types.forEach(type => {
-				var data = {
+				let data = {
 					value: 0,
 					type: ROOT_PREFIX + type,
 					children: [],
@@ -3775,15 +3832,15 @@ define(function () {
 					unbound: stats[type].unbound,
 					name: current.$messages[`service:prov:${type}s-block`]
 				};
-				current[type + 'ToD3'](data, stats);
+				current[type + 'ToD3'](data, stats, aggregateMode);
 				root.children.push(data);
 			});
 			return root;
 		},
-		computeToD3: function (data, stats, type) {
-			var allOss = {};
+		computeToD3: function (data, stats, type, aggregateMode) {
+			let allOss = {};
 			stats[type].filtered.forEach(qi => {
-				var oss = allOss[qi.os];
+				let oss = allOss[qi.os];
 				if (typeof oss === 'undefined') {
 					// First OS
 					oss = {
@@ -3795,26 +3852,26 @@ define(function () {
 					allOss[qi.os] = oss;
 					data.children.push(oss);
 				}
-				oss.value += qi.cost;
-				data.value += qi.cost;
+				oss.value += qi[aggregateMode];
+				data.value += qi[aggregateMode];
 				oss.children.push({
 					name: qi.id,
 					type: type,
-					size: qi.cost
+					size: qi[aggregateMode]
 				});
 			});
 		},
 
-		instanceToD3: function (data, stats) {
-			current.computeToD3(data, stats, 'instance');
+		instanceToD3: function (data, stats, aggregateMode) {
+			current.computeToD3(data, stats, 'instance', aggregateMode);
 		},
-		containerToD3: function (data, stats) {
-			current.computeToD3(data, stats, 'container');
+		containerToD3: function (data, stats, aggregateMode) {
+			current.computeToD3(data, stats, 'container', aggregateMode);
 		},
-		databaseToD3: function (data, stats) {
-			var allEngines = {};
+		databaseToD3: function (data, stats, aggregateMode) {
+			let allEngines = {};
 			stats.database.filtered.forEach(qi => {
-				var engines = allEngines[qi.engine];
+				let engines = allEngines[qi.engine];
 				if (typeof engines === 'undefined') {
 					// First Engine
 					engines = {
@@ -3826,25 +3883,25 @@ define(function () {
 					allEngines[qi.engine] = engines;
 					data.children.push(engines);
 				}
-				engines.value += qi.cost;
-				data.value += qi.cost;
+				engines.value += qi[aggregateMode];
+				data.value += qi[aggregateMode];
 				engines.children.push({
 					name: qi.id,
 					type: 'database',
-					size: qi.cost
+					size: qi[aggregateMode]
 				});
 			});
 		},
-		functionToD3: function (data, stats) {
+		functionToD3: function (data, stats, aggregateMode) {
 			stats.function.filtered.forEach(qi => {
-				data.value += qi.cost;
+				data.value += qi[aggregateMode];
 			});
 		},
-		storageToD3: function (data, stats) {
+		storageToD3: function (data, stats, aggregateMode) {
 			data.name = current.$messages['service:prov:storages-block'];
-			var allOptimizations = {};
+			let allOptimizations = {};
 			stats.storage.filtered.forEach(qs => {
-				var optimizations = allOptimizations[qs.price.type.latency];
+				let optimizations = allOptimizations[qs.price.type.latency];
 				if (typeof optimizations === 'undefined') {
 					// First optimization
 					optimizations = {
@@ -3856,24 +3913,25 @@ define(function () {
 					allOptimizations[qs.price.type.latency] = optimizations;
 					data.children.push(optimizations);
 				}
-				optimizations.value += qs.cost;
-				data.value += qs.cost;
+				let value = qs[aggregateMode];
+				optimizations.value += value;
+				data.value += value;
 				optimizations.children.push({
 					name: qs.id,
 					type: 'storage',
-					size: qs.cost
+					size: value
 				});
 			});
 		},
 
-		supportToD3: function (data, stats) {
+		supportToD3: function (data, stats, aggregateMode) {
 			data.name = current.$messages['service:prov:support-block'];
 			stats.support.filtered.forEach(support => {
 				data.value += support.cost;
 				data.children.push({
 					name: support.id,
 					type: 'support',
-					size: support.cost
+					size: support[aggregateMode]
 				});
 			});
 		},
@@ -4224,6 +4282,8 @@ define(function () {
 			conf[type + 'Cost'] += newCost.min - resource.cost;
 			conf.cost.min -= resource.cost - newCost.min;
 			conf.cost.max -= (resource.maxCost || resource.cost) - (newCost.max || 0);
+			conf.cost.minCo2 -= resource.co2 - newCost.minCo2;
+			conf.cost.maxCo2 -= (resource.maxCo2 || resource.co2) - (newCost.maxCo2 || 0);
 
 			// Update the resource cost
 			resource.cost = newCost.min;
@@ -4237,16 +4297,16 @@ define(function () {
 		 * @param {object} resource Optional resource to update or create. When null, its a deletion.
 		 */
 		defaultCallback: function (type, updatedCost, resource) {
-			var related = updatedCost.related || {};
-			var deleted = updatedCost.deleted || {};
-			var conf = current.model.configuration;
-			var nbCreated = 0;
-			var nbUpdated = 0;
-			var nbDeleted = 0;
-			var createdSample = null;
-			var updatedSample = null;
-			var deletedSample = null;
-			var nb = 0;
+			let related = updatedCost.related || {};
+			let deleted = updatedCost.deleted || {};
+			let conf = current.model.configuration;
+			let nbCreated = 0;
+			let nbUpdated = 0;
+			let nbDeleted = 0;
+			let createdSample = null;
+			let updatedSample = null;
+			let deletedSample = null;
+			let nb = 0;
 			Object.keys(deleted).forEach(t => nb += deleted[t].length);
 			Object.keys(related).forEach(t => nb += Object.keys(related[t]).length);
 			if (nb > current.changesReloadThreshold) {
@@ -4258,8 +4318,8 @@ define(function () {
 			// Look the deleted resources
 			Object.keys(deleted).forEach(t => {
 				// For each deleted resource of this type, update the UI and the cost in the model
-				for (var i = deleted[t].length; i-- > 0;) {
-					var deletedR = current.delete(t.toLowerCase(), deleted[t][i]);
+				for (let i = deleted[t].length; i-- > 0;) {
+					let deletedR = current.delete(t.toLowerCase(), deleted[t][i]);
 					if (nbDeleted++ === 0) {
 						deletedSample = deletedR.name;
 					}
@@ -4270,8 +4330,8 @@ define(function () {
 			Object.keys(related).forEach(key => {
 				// For each updated resource of this type, update the UI and the cost in the model
 				Object.keys(related[key]).forEach(id => {
-					var relatedType = key.toLowerCase();
-					var relatedR = conf[relatedType + 'sById'][id];
+					let relatedType = key.toLowerCase();
+					let relatedR = conf[relatedType + 'sById'][id];
 					current.updateCost(conf, relatedType, related[key][id], relatedR);
 
 					if (nbUpdated++ === 0) {
@@ -4312,7 +4372,7 @@ define(function () {
 			}
 
 			// Notify callback
-			var message = [];
+			let message = [];
 			if (nbCreated) {
 				message.push(Handlebars.compile(current.$messages['service:prov:created'])({ count: nbCreated, sample: createdSample, more: nbCreated - 1 }));
 			}

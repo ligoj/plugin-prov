@@ -144,8 +144,11 @@
   }
   #prov-instances thead > tr > th.col-cost,
   #prov-databases thead > tr > th.col-cost,
-  #prov-storages thead > tr > th.col-cost {
-    width: 64px;
+  #prov-storages thead > tr > th.col-cost,
+  #prov-instances thead > tr > th.col-co2,
+  #prov-databases thead > tr > th.col-co2,
+  #prov-storages thead > tr > th.col-co2 {
+      width: 64px;
   }
   #prov-instances thead > tr > th.quantity,
   #prov-databases thead > tr > th.quantity,
@@ -528,4 +531,25 @@ i.icon.mdi-expansion-card {
   content: url('./img/expansion-card.svg');
   top: 2px;
   position: relative;
+}
+
+.form-group.form-switch.optimizer-page-mode{
+  display: inline-block;
+  position: absolute;
+    margin-left: 3px;
+}
+
+.optimizer-page-view {
+  display: block;
+  font-size: small;
+}
+.optimizer-page-view span {
+  font-size: small;
+  color: black;
+  display: inline;
+}
+
+[data-aggregation-mode="cost"] .d-co2,
+[data-aggregation-mode="co2"] .d-cost {
+  display: none;
 }
