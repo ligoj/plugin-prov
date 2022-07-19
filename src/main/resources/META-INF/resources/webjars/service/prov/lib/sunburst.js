@@ -2,10 +2,10 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define(['d3', 'jquery'], function (d3, $) {
-	var sunburst = {};
+	let sunburst = {};
 	sunburst.arcTween = function (newAngle) {
 		return function (d) {
-			var interpolate = d3.interpolate(d.endAngle, newAngle);
+			let interpolate = d3.interpolate(d.endAngle, newAngle);
 			return function (t) {
 				d.endAngle = interpolate(t);
 				return arc(d);
@@ -14,12 +14,12 @@ define(['d3', 'jquery'], function (d3, $) {
 	};
 
 	sunburst.init = function ($element, data, sort, tooltipFunction, colorScheme) {
-		var width = 200;
-		var height = 200;
-		var radius = (Math.min(width, height) / 2) - 10;
-		var x = d3.scaleLinear().range([0, 2 * Math.PI]);
-		var y = d3.scaleSqrt().range([0, radius]);
-		var color = function (d) {
+		let width = 200;
+		let height = 200;
+		let radius = (Math.min(width, height) / 2) - 10;
+		let x = d3.scaleLinear().range([0, 2 * Math.PI]);
+		let y = d3.scaleSqrt().range([0, radius]);
+		let color = function (d) {
 
 			// This function builds the total
 			// color palette incrementally so
@@ -29,7 +29,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			// We're going to need a color scale.
 			// Normally we'll distribute the colors
 			// in the scale to child nodes.
-			var colors;
+			let colors;
 
 			// The root node is special since
 			// we have to seed it with our
@@ -60,7 +60,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				// will range from darker than the
 				// node's color to brighter than the
 				// node's color.
-				var startColor = d3.hcl(d.color)
+				let startColor = d3.hcl(d.color)
 					.darker(),
 					endColor = d3.hcl(d.color)
 						.brighter();
@@ -96,8 +96,8 @@ define(['d3', 'jquery'], function (d3, $) {
 
 			return d.color;
 		};
-		var partition = d3.partition();
-		var arc = d3.arc()
+		let partition = d3.partition();
+		let arc = d3.arc()
 			.startAngle(function (d) {
 				return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
 			}).endAngle(function (d) {
@@ -108,7 +108,7 @@ define(['d3', 'jquery'], function (d3, $) {
 				return Math.max(0, y(d.y1));
 			});
 		$($element).empty();
-		var svg = d3.select($element).append('svg')
+		let svg = d3.select($element).append('svg')
 			.attr('width', width)
 			.attr('height', height)
 			.append('g')
@@ -119,7 +119,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			svg.transition()
 				.duration(750)
 				.tween('scale', function () {
-					var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
+					let xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
 						yd = d3.interpolate(y.domain(), [d.y0, 1]),
 						yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
 					return function (t) {
@@ -138,8 +138,8 @@ define(['d3', 'jquery'], function (d3, $) {
 		// Given a node in a partition layout, return an array of all of its ancestor
 		// nodes, highest first, but excluding the root.
 		function getAncestors(node) {
-			var path = [];
-			var current = node;
+			let path = [];
+			let current = node;
 			while (current.parent) {
 				path.unshift(current);
 				current = current.parent;
@@ -154,7 +154,7 @@ define(['d3', 'jquery'], function (d3, $) {
 		}
 
 		function mouseover(e, d) {
-			var sequenceArray = getAncestors(d);
+			let sequenceArray = getAncestors(d);
 
 			// Fade all the segments.
 			svg.selectAll('path').style('opacity', 0.3);
@@ -177,8 +177,8 @@ define(['d3', 'jquery'], function (d3, $) {
 		};
 
 		/* For the drop shadow filter... */
-		var defs = svg.append("defs");
-		var filter = defs.append("filter")
+		let defs = svg.append("defs");
+		let filter = defs.append("filter")
 			.attr("id", "sunburst-filter");
 		filter.append("feGaussianBlur")
 			.attr("in", "SourceAlpha")
@@ -190,7 +190,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			.attr("dy", 2)
 			.attr("result", "offsetBlur");
 
-		var feMerge = filter.append("feMerge");
+		let feMerge = filter.append("feMerge");
 		feMerge.append("feMergeNode")
 			.attr("in", "offsetBlur");
 		feMerge.append("feMergeNode")
@@ -206,7 +206,7 @@ define(['d3', 'jquery'], function (d3, $) {
 			}
 		}
 
-		var root = d3.hierarchy(data);
+		let root = d3.hierarchy(data);
 		root.sum(function (d) {
 			return d.size;
 		}).sort(sort);
