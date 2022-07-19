@@ -1458,7 +1458,6 @@ define(function () {
 	function initializeOptimizerPage() {
 		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
 		$('#optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
-			debugger;
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
 			let newMode = state ? 'co2' : 'cost';
 			localStorage.setItem('service:prov/aggregateMode', newMode);
@@ -3282,7 +3281,6 @@ define(function () {
 						current.d3Bar = d3Bar;
 						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, bars, d) => {
 							// Tooltip of barchart for each resource type
-							//debugger;
 							let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 
 							// For each contributor add its value
@@ -3306,10 +3304,7 @@ define(function () {
 						}, (d, _bars, clicked) => {
 							// Hover of barchart -> update sunburst and global cost
 							current.updateUiCost(clicked && d && d['x-index']);
-						}, d => {
-							//debugger;
-							format(d, null, null, true);
-						}, (a, b) => types.indexOf(a) - types.indexOf(b));
+						}, d => format(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -3353,7 +3348,6 @@ define(function () {
 		updateUiCost: function (filterDate) {
 			let conf = current.model.configuration;
 			let aggregateMode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
-			debugger;
 
 			// Compute the new capacity and costs
 			let stats = current.computeStats(filterDate);
