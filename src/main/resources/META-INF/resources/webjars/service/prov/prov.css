@@ -529,3 +529,23 @@ i.icon.mdi-expansion-card {
   top: 2px;
   position: relative;
 }
+
+.form-group.form-switch.optimizer-page-mode{
+  display: inline-block;
+  position: absolute;
+    margin-left: 3px;
+}
+
+.optimizer-page-mode span{
+  font-size: small;
+  color: black;
+  display: block;
+}
+
+[data-aggregation-mode = cost] .co2 {
+  display: none;
+}
+
+[data-aggregation-mode = co2] .cost {
+  display: none;
+}
