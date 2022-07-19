@@ -515,23 +515,23 @@ define(function () {
 	}
 
 	function formatCostText(cost, _isMax, _i, noRichText, unbound, currency) {
-		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, (currency && currency.unit) || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+		return formatManager.formatCost(cost * currency.rate, 3, currency.unit, noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
 
-	function formatCo2Text(cost, _isMax, _i, noRichText, unbound, currency) {
-		return formatManager.formatCost(cost * (currency ? currency.rate || 1 : getCurrencyRate()), 3, 'g' || getCurrencyUnit(), noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+	function formatCo2Text(cost, _isMax, _i, noRichText, unbound) {
+		return formatManager.formatCost(cost, 3, 'g', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
-	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound) {
+	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound, currency) {
 		if (isMax) {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-				var $wrapper = $cost.find('.cost-max');
+			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+				let $wrapper = $cost.find('.cost-max');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 				$wrapper.find('.cost-unit').html(unit);
 			});
 		} else {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, getCurrencyUnit(), 'cost-unit', function (value, weight, unit) {
-				var $wrapper = $cost.find('.cost-min').removeClass('hidden');
+			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+				let $wrapper = $cost.find('.cost-min').removeClass('hidden');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight);
 				$wrapper.find('.cost-unit').html(unit);
@@ -553,8 +553,9 @@ define(function () {
 			return cost;
 		}
 
-		var formatter = type === 'co2' ? formatCo2Text : formatCostText;
-		var $cost = $();
+		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
+		let currency = type === 'co2' ? {unit:'g', rate:1} : (cost && cost.currency || getCurrencyUnit());
+		let $cost = $();
 		let maxProperty = type.capitalize()
 		if (mode instanceof jQuery) {
 			// Odomoter format
@@ -567,21 +568,21 @@ define(function () {
 		if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
 			// Standard cost
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, cost && cost.currency);
+			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, currency);
 		}
 		// A floating cost
-		var min = obj.cost || obj.min || 0;
-		var max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
-		var unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
-		var formatMin = formatManager.formatCost(min)
-		var formatMax = formatManager.formatCost(max)
+		let min = obj.cost || obj.min || 0;
+		let max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
+		let unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
+		let formatMin = formatManager.formatCost(min)
+		let formatMax = formatManager.formatCost(max)
 		if ((typeof max !== 'number') || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(min, true, $cost, noRichText, unbound, cost && cost.currency);
+			return formatter(min, true, $cost, noRichText, unbound, currency);
 		}
 		// Max cost, is different, display a range
-		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, cost && cost.currency);
+		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, currency);
 	}
 
 	/**
@@ -598,11 +599,11 @@ define(function () {
 
 	/**
 	 * Format the cost.
-	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {number} co2 The CO2 value. May contains "min", "max" and "currency" attributes.
 	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
 	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
-	 * @return The formatted cost.
+	 * @return The formatted CO2.
 	 */
 	function formatCo2(co2, mode, obj, noRichText) {
 		return formatFloat(co2, mode, obj, noRichText, 'co2');
@@ -1450,30 +1451,22 @@ define(function () {
 				const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
 				$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
 			}, { mode: 'cost' });
-			//_('optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
 			initializeOptimizerPage();
-			let co2Mode = _('optimizer-page-mode').is(':checked') ? 'co2' : 'cost';
-			$('#optimizer-page-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
-
 		})
 	}
 
 	function initializeOptimizerPage() {
-		initializeMultiScopedInnerEvents('optimizer', () => ({
-			mode: _('optimizer-page-mode').is(':checked') ? 'co2' : 'cost',
-		}));
-		_('optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
-		_('optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
-			//debugger;
-			localStorage.setItem('service:prov/viewMode', state ? 'co2' : 'cost');
+		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
+		$('#optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
+			debugger;
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
-			//$('.optimizer-mode-helper').addClass('hidden').filter(`.mode-${state ? 'co2' : 'cost'}`).removeClass('hidden');
-			// $(`.${state ? 'co2' : 'cost'}`).removeClass('hidden');
-			// $(`.${!state ? 'co2' : 'cost'}`).addClass('hidden');
-			//$('#subscribe-configuration-prov').addClass("data-aggregation-mode-"+state ? 'co2' : 'cost')
-			$('#subscribe-configuration-prov').attr('data-aggregation-mode', state ? 'co2' : 'cost');
+			let newMode = state ? 'co2' : 'cost';
+			localStorage.setItem('service:prov/aggregateMode', newMode);
+			$('#subscribe-configuration-prov').attr('data-aggregation-mode', newMode);
 			current.updateUiCost();
 		});
+		let mode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
+		$('#optimizer-page-mode').bootstrapSwitch('state', mode == 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
 	}
 
 	/**
@@ -1942,10 +1935,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>'+ formatCo2(qi.cost, null, null, true) +'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>'+ formatCo2(qi.cost, null, null, true) +'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
@@ -3360,7 +3353,7 @@ define(function () {
 		updateUiCost: function (filterDate) {
 			let conf = current.model.configuration;
 			let aggregateMode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
-			// localStorage.setItem('service:prov/viewMode', "cost" or "co2");
+			debugger;
 
 			// Compute the new capacity and costs
 			let stats = current.computeStats(filterDate);
