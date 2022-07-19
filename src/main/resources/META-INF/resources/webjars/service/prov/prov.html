@@ -4,7 +4,7 @@
 		<form class="form-horizontal tab-pane active tab-resources" role="tabpanel" autocomplete="off">
 			<fieldset>
 				<div class="row nav-dashboard">
-					<div class="prov-global-summary col-lg-4 col-md-5 col-xs-6">
+					<div class="prov-global-summary col-lg-4 col-md-5 col-xs-7">
 						<h1 class="prov-project">
 							<i class="service-icon"></i>
 							<span class="quote-name"></span>
@@ -15,6 +15,14 @@
 							<span data-toggle="tooltip" title="{{service:prov:cost-help}}" class="cost"></span><span class="cost-unit">/m</span>
 							<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-help}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
 							<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-help}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
+							<div class="form-group form-switch optimizer-page-mode">
+								<div class="col-sm-1">
+									<input type="checkbox" id="optimizer-page-mode" class="form-control ui-only" maxlength="50" />
+									<span class="co2">50g/m</span>
+									<span class="cost">$50</span>
+								</div>
+								
+							</div>
 						</h2>
 					</div>
 					<div id="prov-dashboard" class="hidden-xs col-lg-8 col-md-7">
