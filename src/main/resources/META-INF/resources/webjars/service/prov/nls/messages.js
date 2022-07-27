@@ -247,6 +247,7 @@ define({
         'service:prov:export:full:json': 'Full',
         'service:prov:created': '{{#if more}}{{count}} created: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} created{{/if}}',
         'service:prov:deleted': '{{#if more}}{{count}} deleted: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} deleted{{/if}}',
+        'service:prov:upfront': 'Upfront',
         'service:prov:updated': '{{#if more}}{{count}} updated: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} updated{{/if}}',
         'csv-error-continue': 'Continue on error',
         'csv-error-continue-help': 'Continue the import when errors are encountered',

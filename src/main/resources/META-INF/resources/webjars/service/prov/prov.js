@@ -478,7 +478,7 @@ define(function () {
 			details = 'on demand, hourly (or less) billing period';
 		}
 		if (qi.price.initialCost) {
-			details += '<br/>Initial cost: $' + qi.price.initialCost;
+			details += `<br/>${current.$messages['service:prov:upfront']}: ${formatCost(qi.price.initialCost)}`;
 		}
 
 		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
