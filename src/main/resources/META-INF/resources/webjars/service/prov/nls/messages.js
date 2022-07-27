@@ -231,6 +231,8 @@ define({
         'service:prov:optimizer-mode': 'Mode',
         'service:prov:optimizer-mode-co2': 'Optimize the CO2',
         'service:prov:optimizer-mode-cost': 'Optimize the cost',
+        'service:prov:optimizer-co2': 'CO2',
+        'service:prov:optimizer-cost': 'Cost',
         'service:prov:budget-failed': 'Budget {{this}} does not support all your requirements',
         'service:prov:budget-help': 'Chosen budget will infer the term, and the best cost. Available budgets are at the subscription level. When undefined, the default budget is used. And when there is no default budget, it will be considered with no cash available.',
         'service:prov:budget': 'Budget profile',

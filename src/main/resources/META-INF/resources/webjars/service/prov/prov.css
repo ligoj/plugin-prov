@@ -533,18 +533,17 @@ i.icon.mdi-expansion-card {
   position: relative;
 }
 
-.form-group.form-switch.optimizer-page-mode{
+.form-group.form-switch.optimizer-view-mode {
   display: inline-block;
   position: absolute;
-    margin-left: 3px;
+  margin-left: 3px;
 }
 
-.optimizer-page-view {
+.optimizer-view-wrapper {
   display: block;
   font-size: small;
 }
-.optimizer-page-view span {
-  font-size: small;
+.optimizer-view-wrapper span {
   color: black;
   display: inline;
 }

@@ -425,7 +425,7 @@ define(function () {
 			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
 		}
-		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
 	}
 
 	function formatStorageType(type, mode) {
@@ -457,7 +457,7 @@ define(function () {
 		if (type.availability) {
 			details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
 		}
-		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
 	}
 
 	/**
@@ -481,7 +481,7 @@ define(function () {
 			details += '<br/>Initial cost: $' + qi.price.initialCost;
 		}
 
-		return '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
 	}
 
 	/**
@@ -505,12 +505,12 @@ define(function () {
 		return min + '-' + max;
 	}
 
-	function getCurrencyUnit() {
-		return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.unit || '$';
+	function getCurrency() {
+		return current.model && current.model.configuration && current.model.configuration.currency || { unit: '$', rate: 1.0 };
 	}
 
-	function getCurrencyRate() {
-		return current.model && current.model.configuration && current.model.configuration.currency && current.model.configuration.currency.rate || 1.0;
+	function getCurrencyUnit() {
+		return getCurrency().unit;
 	}
 
 	function formatCostText(cost, _isMax, _i, noRichText, unbound, currency) {
@@ -522,14 +522,14 @@ define(function () {
 	}
 	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound, currency) {
 		if (isMax) {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+			formatManager.formatCost(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
 				let $wrapper = $cost.find('.cost-max');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 				$wrapper.find('.cost-unit').html(unit);
 			});
 		} else {
-			formatManager.formatCost(cost * getCurrencyRate(), 3, currency, 'cost-unit', function (value, weight, unit) {
+			formatManager.formatCost(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
 				let $wrapper = $cost.find('.cost-min').removeClass('hidden');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight);
@@ -553,9 +553,11 @@ define(function () {
 		}
 
 		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
-		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost && cost.currency || getCurrencyUnit());
+		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost && cost.currency || getCurrency());
 		let $cost = $();
-		let maxProperty = type.capitalize()
+		let capProperty = type.capitalize()
+		let minProperty = `min${capProperty}`;
+		let maxProperty = `max${capProperty}`;
 		if (mode instanceof jQuery) {
 			// Odomoter format
 			formatter = formatCostOdometer;
@@ -564,18 +566,30 @@ define(function () {
 
 		// Computation part
 		obj = (typeof obj === 'undefined' || obj === null) ? cost : obj;
-		if (typeof obj.cost === 'undefined' && typeof obj.min !== 'number') {
+
+		let min = null
+		if (typeof obj[minProperty] === 'number') {
+			min = obj[minProperty]
+		} else if (typeof obj.min === 'number') {
+			min = obj.min
+		}
+		if (min === null) {
 			// Standard cost
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, currency);
 		}
 		// A floating cost
-		let min = obj.cost || obj.min || 0;
-		let max = typeof obj[maxProperty] === 'number' ? obj[maxProperty] : obj.max;
+		let max = null;
+		if (typeof obj[maxProperty] === 'number') {
+			max = obj[maxProperty]
+		} else if (typeof obj.max === 'number') {
+			max = obj.max
+		}
+
 		let unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
 		let formatMin = formatManager.formatCost(min)
-		let formatMax = formatManager.formatCost(max)
-		if ((typeof max !== 'number') || max === min || formatMin === formatMax) {
+		let formatMax = max !== null && formatManager.formatCost(max)
+		if (max === null || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
 			return formatter(min, true, $cost, noRichText, unbound, currency);
@@ -1450,13 +1464,21 @@ define(function () {
 				const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
 				$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
 			}, { mode: 'cost' });
-			initializeOptimizerPage();
+			initializeOptimizerView();
 		})
 	}
 
-	function initializeOptimizerPage() {
-		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
-		$('#optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
+	/** 
+	 * Return the actual view mode.
+	 * @returns {string} 'co2' or 'cost'.
+	*/
+	function getOptimizerViewMode() {
+		return _('optimizer-view-mode').is(':checked') ? 'co2' : 'cost';
+	}
+
+	function initializeOptimizerView() {
+		$('#optimizer-view-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
+		$('#optimizer-view-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
 			let newMode = state ? 'co2' : 'cost';
 			localStorage.setItem('service:prov/aggregateMode', newMode);
@@ -1464,7 +1486,7 @@ define(function () {
 			current.updateUiCost();
 		});
 		let mode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
-		$('#optimizer-page-mode').bootstrapSwitch('state', mode == 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
+		$('#optimizer-view-mode').bootstrapSwitch('state', mode == 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
 	}
 
 	/**
@@ -1933,10 +1955,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-fw fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.cost, null, null, true) + '/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-fw fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.cost, null, null, true) + '/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
@@ -2047,15 +2069,14 @@ define(function () {
 				type: 'string',
 				render: formatName
 			});
-			oSettings.columns.push(
-				{
-					data: null,
-					orderable: false,
-					className: 'truncate hidden-xs',
-					type: 'string',
-					filterName: 'tags',
-					render: current.tagManager.render
-				}, {
+			oSettings.columns.push({
+				data: null,
+				orderable: false,
+				className: 'truncate hidden-xs',
+				type: 'string',
+				filterName: 'tags',
+				render: current.tagManager.render
+			}, {
 				data: 'cost',
 				className: 'truncate hidden-xs',
 				type: 'num',
@@ -3291,11 +3312,11 @@ define(function () {
 								if (value && (value.cost || value.co2)) {
 									totalCost += value.cost || 0;
 									totalCo2 += value.co2 || 0;
-									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; ${formatCo2(value.co2)}</span>`;
+									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}</span>`;
 								}
 							});
 							// Append total
-							tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; ${formatCo2(totalCo2)}`;
+							tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
 							return `<span class="tooltip-text">${tooltip}</span>`;
 						}, d => {
 							// Hover of barchart -> update sunburst and global cost
@@ -3466,11 +3487,12 @@ define(function () {
 		},
 
 		sunburstTooltip: function (data, d) {
-			let tooltip = current.sunburstBaseTooltip(data)
-			return '<span class="tooltip-text">' + tooltip
-				+ '</br>' + current.$messages['service:prov:cost'] + ': ' + formatCost(data.size || data.value)
-				+ current.recursivePercent(d, true, 100)
-				+ (d.depth && d.children ? '</br>' + current.$messages['service:prov:nb'] + ': ' + (data.min || data.nb || d.children.length) : '') + '</span>';
+			const tooltip = current.sunburstBaseTooltip(data);
+			const optimizerMode = getOptimizerViewMode();
+			return `<span class="tooltip-text">${tooltip}
+				</br>${current.$messages['service:prov:optimizer-' + optimizerMode]}: ${(optimizerMode === 'co2' ? formatCo2 : formatCost)(data.size || data.value)}
+				${current.recursivePercent(d, true, 100)}
+				${(d.depth && d.children ? `</br>${current.$messages['service:prov:nb']}: ${data.min || data.nb || d.children.length}` : '')}</span>`;
 		},
 
 		title: function (key, icon) {
@@ -3478,18 +3500,18 @@ define(function () {
 		},
 
 		sunburstVmTooltip: function (entity) {
-			return '<br>' + current.title('term') + entity.price.term.name
-				+ '<br>' + current.title('usage') + formatUsage(entity.usage, 'tooltip')
-				+ '<br>' + current.title('optimizer') + formatOptimizer(entity.optimizer, 'tooltip')
-				+ '<br>' + current.title('budget') + formatBudget(entity.budget, 'tooltip');
+			return `<br>${current.title('term')}${entity.price.term.name}
+				<br>${current.title('usage')}${formatUsage(entity.usage, 'tooltip')}
+				<br>${current.title('optimizer')}${formatOptimizer(entity.optimizer, 'tooltip')}
+				<br>${current.title('budget')}${formatBudget(entity.budget, 'tooltip')}`;
 		},
 
 		sunburstComputeTooltip: function (conf, data, type) {
 			const entity = conf[type + 'sById'][data.name];
-			return current.title('name') + entity.name
-				+ '<br>' + current.title(type + '-type') + entity.price.type.name
-				+ '<br>' + current.title('os') + formatOs(entity.price.os, true)
-				+ current.sunburstVmTooltip(entity);
+			return `${current.title('name')}${entity.name}
+				<br>${current.title(type + '-type')}${entity.price.type.name}
+				<br>${current.title('os')}${formatOs(entity.price.os, true)}
+				${current.sunburstVmTooltip(entity)}`;
 		},
 
 		sunburstBaseTooltip: function (data) {
@@ -3593,7 +3615,8 @@ define(function () {
 			let cpuAvailable = 0;
 			let cpuReserved = 0;
 			let totalCost = 0, totalCo2 = 0;
-			let typeCost = `${type}Cost`, typeCo2 = `${type}Co2`;
+			let typeCost = `${type}Cost`;
+			let typeCo2 = `${type}Co2`;
 			let minInstances = 0;
 			let maxInstancesUnbound = false;
 			let enabledInstances = {};
@@ -3602,7 +3625,8 @@ define(function () {
 				callback(resultType);
 			}
 			instances.forEach(qi => {
-				let cost = qi.cost.min || qi.cost || 0, co2 = qi.co2.min || qi.co2 || 0;
+				let cost = qi.cost.min || qi.cost || 0;
+				let co2 = qi.co2.min || qi.co2 || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
 				maxInstancesUnbound |= (qi.maxQuantity !== nb);
@@ -4273,14 +4297,17 @@ define(function () {
 		updateCost: function (conf, type, newCost, resource) {
 			// Update the sums
 			conf[type + 'Cost'] += newCost.min - resource.cost;
+			conf[type + 'Co2'] += newCost.minCo2 - resource.co2;
 			conf.cost.min -= resource.cost - newCost.min;
-			conf.cost.max -= (resource.maxCost || resource.cost) - (newCost.max || 0);
+			conf.cost.max -= (resource.maxCost || resource.cost || 0) - (newCost.max || 0);
 			conf.cost.minCo2 -= resource.co2 - newCost.minCo2;
-			conf.cost.maxCo2 -= (resource.maxCo2 || resource.co2) - (newCost.maxCo2 || 0);
+			conf.cost.maxCo2 -= (resource.maxCo2 || resource.co2 || 0) - (newCost.maxCo2 || 0);
 
 			// Update the resource cost
 			resource.cost = newCost.min;
 			resource.maxCost = newCost.max || 0;
+			resource.co2 = newCost.minCo2;
+			resource.maxCo2 = newCost.maxCo2 || 0;
 		},
 
 		/**
@@ -4312,7 +4339,7 @@ define(function () {
 			Object.keys(deleted).forEach(t => {
 				// For each deleted resource of this type, update the UI and the cost in the model
 				for (let i = deleted[t].length; i-- > 0;) {
-					let deletedR = current.delete(t.toLowerCase(), deleted[t][i]);
+					const deletedR = current.delete(t.toLowerCase(), deleted[t][i]);
 					if (nbDeleted++ === 0) {
 						deletedSample = deletedR.name;
 					}
@@ -4323,10 +4350,9 @@ define(function () {
 			Object.keys(related).forEach(key => {
 				// For each updated resource of this type, update the UI and the cost in the model
 				Object.keys(related[key]).forEach(id => {
-					let relatedType = key.toLowerCase();
-					let relatedR = conf[relatedType + 'sById'][id];
+					const relatedType = key.toLowerCase();
+					const relatedR = conf[relatedType + 'sById'][id];
 					current.updateCost(conf, relatedType, related[key][id], relatedR);
-
 					if (nbUpdated++ === 0) {
 						updatedSample = relatedR.name;
 					}
@@ -4414,6 +4440,7 @@ define(function () {
 		},
 		formatQuoteResource: formatQuoteResource,
 		formatCost: formatCost,
+		formatCo2: formatCo2,
 		formatCpu: formatCpu,
 		formatRam: formatRam,
 		formatGpu: formatGpu,
