@@ -159,6 +159,8 @@ define({
         'service:prov:cannot-attach-instance': 'Not available',
         'service:prov:cost': 'Cost',
         'service:prov:cost-help': 'Monthly billed',
+        'service:prov:co2': 'CO2',
+        'service:prov:co2-help': 'Monthly CO2',
         'service:prov:rate-invalid': 'N/A',
         'service:prov:rate-worst': 'Worst',
         'service:prov:rate-low': 'Low',

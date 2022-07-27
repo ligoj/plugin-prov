@@ -1769,10 +1769,10 @@ define(function () {
 		 * Configure Odometer components
 		 */
 		initOdometer: function () {
-			const $cost = $('.cost');
+			const $odometer = $('.summary-cost, .summary-co2');
 			const weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
-			$cost.append('<span class="cost-min hidden"><span class="odo-wrapper cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
-			$cost.append('<span class="cost-max"><span class="odo-wrapper cost-value"></span>' + weightUnit + '</span>');
+			$odometer.append(`<span class="cost-min hidden"><span class="odo-wrapper cost-value"></span>${weightUnit}<span class="cost-separator">-</span></span>`);
+			$odometer.append(`<span class="cost-max"><span class="odo-wrapper cost-value"></span>${weightUnit}</span>`);
 			require(['../main/service/prov/lib/odometer', 'domReady'], function (Odometer) {
 				// Odometer component
 				current.registerOdometer(Odometer, $('#service-prov-menu').find('.odo-wrapper'));
@@ -3376,8 +3376,8 @@ define(function () {
 			let filtered = stats.cost !== conf.cost.min;
 			let formatCostParam = filtered ? { min: stats.cost, max: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
 			let formatCo2Param = filtered ? { min: stats.co2, max: stats.co2, unbound: stats.unbound > 0 } : { max: conf.cost.maxCo2, min: conf.cost.minCo2, unbound: conf.unbound };
-			formatCost(formatCostParam, $('.cost'));
-			formatCo2(formatCo2Param, $('.co2'));
+			formatCost(formatCostParam, $('.summary-cost'));
+			formatCo2(formatCo2Param, $('.summary-co2'));
 
 			if (typeof filterDate !== 'number') {
 				// Do not update itself
