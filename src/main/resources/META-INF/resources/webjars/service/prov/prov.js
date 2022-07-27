@@ -553,7 +553,7 @@ define(function () {
 		}
 
 		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
-		let currency = type === 'co2' ? {unit:'g', rate:1} : (cost && cost.currency || getCurrencyUnit());
+		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost && cost.currency || getCurrencyUnit());
 		let $cost = $();
 		let maxProperty = type.capitalize()
 		if (mode instanceof jQuery) {
@@ -1338,7 +1338,7 @@ define(function () {
 		initializeMultiScopedInnerEvents('optimizer', () => ({
 			mode: _('optimizer-mode').is(':checked') ? 'co2' : 'cost',
 		}));
-		_('optimizer-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
+		_('optimizer-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
 		_('optimizer-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
 			$('.optimizer-mode-helper').addClass('hidden').filter(`.mode-${state ? 'co2' : 'cost'}`).removeClass('hidden');
@@ -1455,7 +1455,7 @@ define(function () {
 	}
 
 	function initializeOptimizerPage() {
-		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-leaf"></i>', offText: '<i class="fas fa-dollar-sign"></i>' });
+		$('#optimizer-page-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
 		$('#optimizer-page-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
 			let newMode = state ? 'co2' : 'cost';
@@ -1933,10 +1933,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-fw fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m ≡ <p class="fas fa-fw fa-leaf"></p>' + formatCo2(qi.cost, null, null, true) + 'g/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
@@ -2462,7 +2462,7 @@ define(function () {
 		 */
 		optimizerSelect2: function (placeholder) {
 			return genericSelect2(placeholder, current.optimizerToText, 'optimizer', function (optimizer) {
-				return `${optimizer.name}<span class="select2-optimizer-summary pull-right"><i class="fas fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i><a class="update prov-optimizer-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a></span>`;
+				return `${optimizer.name}<span class="select2-optimizer-summary pull-right"><i class="fas fa-fw fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i><a class="update prov-optimizer-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a></span>`;
 			});
 		},
 
