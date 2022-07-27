@@ -163,9 +163,9 @@ define(function () {
 
 
 	function delay(callback, ms) {
-		var timer = 0;
+		let timer = 0;
 		return function () {
-			var context = this, args = arguments;
+			const context = this, args = arguments;
 			clearTimeout(timer);
 			timer = setTimeout(function () {
 				callback.apply(context, args);
@@ -199,7 +199,7 @@ define(function () {
 			createSearchChoice: term => {
 				if (current.model) {
 					term = term.toLowerCase();
-					var processors = current.model.configuration.processors;
+					const processors = current.model.configuration.processors;
 					// Must be found in all resource types
 					if (typesStorage.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
@@ -210,7 +210,7 @@ define(function () {
 			},
 			data: () => {
 				if (current.model) {
-					var processors = current.model.configuration.processors;
+					const processors = current.model.configuration.processors;
 					return { results: (typeof type === 'function' ? processors[type()] || [] : typesStorage.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
@@ -243,9 +243,9 @@ define(function () {
 	 * Update the button text corresponding to the selected value in the dropdown list.
 	 */
 	function synchronizeDropdownText() {
-		var $select = $(this).closest('.input-group-btn');
+		const $select = $(this).closest('.input-group-btn');
 		$select.find('li.active').removeClass('active');
-		var $active = $(this).addClass('active').find('a');
+		const $active = $(this).addClass('active').find('a');
 		$select.find('.btn span:first-child').html($active.find('i').length ? $active.find('i').prop('outerHTML') : $active.html());
 	}
 
@@ -267,7 +267,7 @@ define(function () {
 
 	function formatDatabaseEngine(engine, mode, className) {
 		let engineId = (engine.id || engine || '').toUpperCase();
-		var cfg = databaseEngines[engineId] || [engineId, 'far fa-question-circle'];
+		const cfg = databaseEngines[engineId] || [engineId, 'far fa-question-circle'];
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
 		}
@@ -283,7 +283,7 @@ define(function () {
 	 * @returns {string} The value to display containing the rate.
 	 */
 	function formatEfficiency(value, max, formatter) {
-		var fullClass = null
+		let fullClass = null
 		if (typeof max === 'undefined') {
 			max = value;
 		} else if (typeof value === 'undefined') {
@@ -302,7 +302,7 @@ define(function () {
 		} else if (max / 1.01 > value) {
 			fullClass = 'fas fa-circle text-success';
 		}
-		var rate = Math.round(value * 100 / max);
+		const rate = Math.round(value * 100 / max);
 		let formatValue;
 		let formatParams;
 		if (formatter) {
@@ -390,14 +390,14 @@ define(function () {
 	 * Format instance type details.
 	 */
 	function formatInstanceType(name, mode, qi) {
-		var type = qi ? qi.price.type : {};
+		const type = qi ? qi.price.type : {};
 		name = type ? type.name : name;
 		if (mode !== 'display' || (typeof type.id === 'undefined')) {
 			// Use only the name
 			return name;
 		}
 		// Instance type details are available
-		var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
+		let details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
 		details += '<i class=\'fas fa-bolt fa-fw\'></i> ';
 		details += type.cpuRate ? '<i class=\'' + rates[type.cpuRate] + '\'></i> ' : '';
 		if (type.cpu) {
@@ -430,13 +430,13 @@ define(function () {
 
 	function formatStorageType(type, mode) {
 		type = type || {};
-		var name = type.name;
+		const name = type.name;
 		if (mode !== 'display' || (typeof type.id === 'undefined')) {
 			// Use only the name
 			return name;
 		}
 		// Storage type details are available
-		var details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
+		let details = type.description ? type.description.replace(/"/g, '') + '<br>' : '';
 		details += '<i class=\'far fa-hdd fa-fw\'></i> ';
 		details += formatManager.formatSize((type.minimal || 1) * 1024 * 1024 * 1024, 3) + ' - ';
 		details += type.maximal ? formatManager.formatSize(type.maximal * 1024 * 1024 * 1024, 3) : '∞';
@@ -451,8 +451,7 @@ define(function () {
 			details += '<br><i class=\'' + storageOptimized.throughput + '\'></i> ' + type.throughput + ' MB/s';
 		}
 		if (type.durability9) {
-			var nines = '9'.repeat(type.durability9);
-			nines = type.durability9 < 3 ? '0'.repeat(3 - type.durability9) : nines;
+			const nines = type.durability9 < 3 ? '0'.repeat(3 - type.durability9) : '9'.repeat(type.durability9);
 			details += '<br><i class=\'far fa-fw fa-gem\'></i> ' + nines.substring(0, 2) + '.' + nines.substring(2) + '%';
 		}
 		if (type.availability) {
@@ -465,14 +464,14 @@ define(function () {
 	 * Format instance term detail
 	 */
 	function formatInstanceTerm(name, mode, qi) {
-		var term = qi ? qi.price.term : null;
+		const term = qi ? qi.price.term : null;
 		name = term ? term.name : name;
 		if (mode === 'sort' || mode === 'filter' || (term && typeof term.id === 'undefined')) {
 			// Use only the name
 			return name;
 		}
 		// Instance details are available
-		var details = '<i class=\'fas fa-clock\'></i> ';
+		let details = '<i class=\'fas fa-clock\'></i> ';
 		if (term && term.period) {
 			details += term.period + ' months period';
 		} else {
@@ -489,12 +488,12 @@ define(function () {
 	 * Format instance quantity
 	 */
 	function formatQuantity(quantity, mode, instance) {
-		var min = typeof instance === 'undefined' ? quantity : (instance.minQuantity || 0);
+		const min = typeof instance === 'undefined' ? quantity : (instance.minQuantity || 0);
 		if (mode === 'sort' || mode === 'filter' || typeof instance === 'undefined') {
 			return min;
 		}
 
-		var max = instance.maxQuantity;
+		const max = instance.maxQuantity;
 		if (typeof max !== 'number') {
 			return min + '+';
 		}
@@ -618,8 +617,8 @@ define(function () {
 	 * Return the HTML markup from the rating.
 	 */
 	function formatRate(rate, mode, className) {
-		var id = ((rate && rate.id) || rate || 'invalid').toLowerCase();
-		var text = id && current.$messages['service:prov:rate-' + id];
+		const id = ((rate && rate.id) || rate || 'invalid').toLowerCase();
+		const text = id && current.$messages['service:prov:rate-' + id];
 		if (mode === 'sort' || mode === 'filter') {
 			return text;
 		}
@@ -666,7 +665,7 @@ define(function () {
 	 * @return {string} The HTML markup representing the quote storage : type and flags.
 	 */
 	function formatStorageHtml(qs, showName) {
-		var type = qs.price.type;
+		const type = qs.price.type;
 		return (showName === true ? type.name + ' ' : '') + `<span data-prov-type="storage" data-id="${qs.id}">
 		${formatRate(type.latency)}${type.optimized ? ' ' + formatStorageOptimized(type.optimized) : ''}
 		<small>${qs.quantity && qs.quantity !== 1 ? (qs.quantity + 'x') : ''}</small>
@@ -782,15 +781,15 @@ define(function () {
 	 * Location html renderer.
 	 */
 	function locationToHtml(location, map, short) {
-		var id = location.name;
-		var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
-		var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
-		var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-		var html = map === true ? locationMap(location) : '';
+		const id = location.name;
+		const subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
+		const m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
+		const placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
+		let html = map === true ? locationMap(location) : '';
 		if (location.countryA2) {
-			var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-			var tooltip = m49 || id;
-			var img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			const a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
+			let tooltip = m49 || id;
+			const img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
 			if (short === true) {
 				// Only flag
 				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
@@ -806,8 +805,8 @@ define(function () {
 	}
 
 	function formatLocation(location, mode, data) {
-		var conf = current.model.configuration;
-		var obj;
+		const conf = current.model.configuration;
+		let obj;
 		if (location) {
 			if (location.id) {
 				obj = location;
@@ -860,7 +859,7 @@ define(function () {
 	function formatSupportLevel(level, mode, className) {
 		const id = level ? (level.id || level).toLowerCase() : '';
 		if (id) {
-			var text = current.$messages['service:prov:support-level-' + id];
+			const text = current.$messages['service:prov:support-level-' + id];
 			className = rates3[id] + (typeof className === 'string' ? className : '');
 			if (mode === 'sort' || mode === 'filter') {
 				return text;
@@ -898,20 +897,20 @@ define(function () {
 
 	function formatSupportType(type, mode) {
 		type = type || {};
-		var name = type.name;
+		const name = type.name;
 		if (mode !== 'display' || (typeof type.id === 'undefined')) {
 			return name;
 		}
 		// Support type details are available
 		const description = type.description;
-		var descriptionIsLink = false;
-		var details = '';
+		let descriptionIsLink = false;
+		let details = '';
 		if (description && !description.startsWith('http://') && !description.startsWith('https://')) {
 			details = type.description.replace(/"/g, '') + '</br>';
 			descriptionIsLink = true;
 		}
 
-		var slaText;
+		let slaText;
 		if (type.slaEndTime) {
 			if (type.slaStartTime === 0 && type.slaEndTime === 86400000) {
 				slaText = '24' + (type.slaWeekEnd && '/7' || 'h Business days');
@@ -926,7 +925,7 @@ define(function () {
 			details += '<br><i class=\'calendar-alt\'></i> ' + current.$messages['service:prov:support-commitment'] + ': ' + moment.duration(type.commitment, 'months').humanize();
 		}
 
-		var markup = '';
+		let markup = '';
 		if (descriptionIsLink) {
 			// Description as a link
 			markup = '<a href="' + description + '" target="_blank">';
@@ -1040,7 +1039,7 @@ define(function () {
 	 * Return the query parameter name to use to filter some other inputs.
 	 */
 	function toQueryName(type, $item) {
-		var id = $item.attr('id');
+		const id = $item.attr('id');
 		return id.indexOf(type + '-') === 0 && id.substring((type + '-').length);
 	}
 
@@ -1355,7 +1354,7 @@ define(function () {
 		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
 
 		// Usage rate template
-		var usageTemplates = [
+		const usageTemplates = [
 			{
 				id: 29,
 				text: moment().day(1).format('dddd') + ' - ' + moment().day(5).format('dddd') + ', 8h30 - 18h30'
@@ -1405,14 +1404,14 @@ define(function () {
 			.on('change', function (event) {
 				current.updateQuote({ [type]: event.added || null }, { name: type, ui: `quote-${type}`, previous: event.removed }, true);
 			});
-		var $select2 = $quote.data('select2');
+		const $select2 = $quote.data('select2');
 		if (typeof $select2.originalSelect === 'undefined') {
 			$select2.originalSelect = $select2.onSelect;
 		}
 		$select2.onSelect = (function (fn) {
 			return function (data, options) {
 				if (options) {
-					var $target = $(options.target).closest(`.prov-${type}-select2-action`);
+					const $target = $(options.target).closest(`.prov-${type}-select2-action`);
 					if ($target.is('.update')) {
 						// Update action
 						$quote.select2('close');
@@ -1575,7 +1574,7 @@ define(function () {
 				_('subscribe-configuration-prov').removeClass('hide');
 				$('.provider').text(current.model.node.name);
 				_('name-prov').val(current.model.configuration.name);
-				var now = moment();
+				const now = moment();
 				$('.prov-export-instances-inline').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-instances-inline-storage-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
 				$('.prov-export-instances-split').attr('href', REST_PATH + 'service/prov/' + subscription.id + '/ligoj-prov-split-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.csv');
 				$('.prov-export-full-json').attr('href', REST_PATH + 'subscription/' + subscription.id + '/configuration').attr('download', 'ligoj-full-' + subscription.id + '-' + now.format('YYYY-MM-DD') + '.json');
@@ -1617,7 +1616,7 @@ define(function () {
 				success: function (data) {
 					current.model = data;
 					current.optimizeModel();
-					var configuration = data.configuration;
+					const configuration = data.configuration;
 					types.forEach(type => _('prov-' + type + 's').DataTable().rows.add(current.model.configuration[type + 's']).draw(false));
 					current.updateUiAssumptions(configuration);
 					current.updateUiCost();
@@ -1690,7 +1689,7 @@ define(function () {
 		 */
 		renderFeatures: function (subscription) {
 			// Add quote configuration link
-			var result = current.$super('renderServiceLink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
+			let result = current.$super('renderServiceLink')('calculator', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:prov:manage');
 
 			// Help
 			result += current.$super('renderServiceHelpLink')(subscription.parameters, 'service:prov:help');
@@ -1703,7 +1702,7 @@ define(function () {
 		renderDetailsFeatures: function (subscription) {
 			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
 				subscription.data.quote.cost.currency = subscription.data.quote.currency;
-				var price = formatCost(subscription.data.quote.cost, null, null, true);
+				const price = formatCost(subscription.data.quote.cost, null, null, true);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-help'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
 			}
 		},
@@ -1712,8 +1711,8 @@ define(function () {
 		 * Render provisioning details : cpu, ram, nbVm, storages.
 		 */
 		renderDetailsKey: function (subscription) {
-			var quote = subscription.data.quote;
-			var resources = [];
+			const quote = subscription.data.quote;
+			const resources = [];
 			if (quote.nbInstances) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + ' VM</span>');
 			}
@@ -1748,8 +1747,8 @@ define(function () {
 		 * Configure Odometer components
 		 */
 		initOdometer: function () {
-			var $cost = $('.cost');
-			var weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
+			const $cost = $('.cost');
+			const weightUnit = '<span class="cost-weight"></span><span class="cost-unit"></span>';
 			$cost.append('<span class="cost-min hidden"><span class="odo-wrapper cost-value"></span>' + weightUnit + '<span class="cost-separator">-</span></span>');
 			$cost.append('<span class="cost-max"><span class="odo-wrapper cost-value"></span>' + weightUnit + '</span>');
 			require(['../main/service/prov/lib/odometer', 'domReady'], function (Odometer) {
@@ -1772,12 +1771,12 @@ define(function () {
 		 * Associate the storages to the instances
 		 */
 		optimizeModel: function () {
-			var conf = current.model.configuration;
+			const conf = current.model.configuration;
 			['usage', 'budget', 'optimizer', 'instance', 'database', 'container', 'function', 'storage', 'support'].forEach(type => toIds(conf, type));
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
-			var tags = current.model && current.model.configuration.tags || {};
+			const tags = current.model && current.model.configuration.tags || {};
 			Object.keys(tags).forEach(type => {
 				let tagT = tags[type];
 				delete tags[type];
@@ -1854,7 +1853,7 @@ define(function () {
 					delete queries['instance'];
 				}
 			}
-			var queriesArray = [];
+			const queriesArray = [];
 			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
 
 			// Check the availability of this instance for these requirements
@@ -1912,9 +1911,9 @@ define(function () {
 		 * @param {object|Array} Quote or prices
 		 */
 		storageSetUiPrice: function (quote) {
-			var suggests = current.toSuggests(quote);
+			const suggests = current.toSuggests(quote);
 			if (suggests) {
-				var suggest = suggests[0];
+				const suggest = suggests[0];
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: formatStoragePriceHtml,
@@ -1930,7 +1929,7 @@ define(function () {
 		 */
 		genericSetUiPrice: function (quote) {
 			if (quote && quote.price) {
-				var suggests = [quote];
+				const suggests = [quote];
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
@@ -1950,9 +1949,9 @@ define(function () {
 		 * Set the current support price.
 		 */
 		supportSetUiPrice: function (quote) {
-			var suggests = current.toSuggests(quote);
+			const suggests = current.toSuggests(quote);
 			if (suggests) {
-				var suggest = suggests[0];
+				const suggest = suggests[0];
 				_('support-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
@@ -1974,7 +1973,7 @@ define(function () {
 		 */
 		toSuggests: function (quote) {
 			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
-				var suggests = quote;
+				let suggests = quote;
 				if (!$.isArray(quote)) {
 					// Single price
 					suggests = [quote];
@@ -1989,9 +1988,9 @@ define(function () {
 		 * Initialize data tables and popup event : delete and details
 		 */
 		initializeDataTableEvents: function (type) {
-			var oSettings = current[type + 'NewTable']();
-			var popupType = typesStorage.includes(type) ? 'generic' : type;
-			var $table = _('prov-' + type + 's');
+			const oSettings = current[type + 'NewTable']();
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				provType: type,
 				data: current.model.configuration[type + 's'] || [],
@@ -2002,7 +2001,7 @@ define(function () {
 				stateDuration: 0,
 				stateLoadCallback: function (settings, callback) {
 					try {
-						var data = JSON.parse(localStorage.getItem('service:prov/' + type));
+						const data = JSON.parse(localStorage.getItem('service:prov/' + type));
 						settings.oPreviousSearch.sSearchAlt = data.searchAlt;
 						current[type + 'TableFilter'] = data.searchAlt;
 						return data;
@@ -2087,7 +2086,7 @@ define(function () {
 		},
 
 		initializeUpload: function () {
-			var $popup = _('popup-prov-instance-import');
+			const $popup = _('popup-prov-instance-import');
 			_('csv-headers-included').on('change', function () {
 				if ($(this).is(':checked')) {
 					// Useless input headers
@@ -2166,13 +2165,13 @@ define(function () {
 			if ($.fn.dataTable.ext.search.length === 0) {
 				$.fn.dataTable.ext.search.push(
 					function (settings, dataFilter, _dataIndex, data) {
-						var type = settings.oInit.provType;
+						const type = settings.oInit.provType;
 						// Save the last used filter
 						if (typeof type === 'undefined') {
 							return true;
 						}
 
-						var filter = settings.oPreviousSearch.sSearchAlt || '';
+						const filter = settings.oPreviousSearch.sSearchAlt || '';
 						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container/function can be displayed
 							// There are 2 operators: 
@@ -2201,18 +2200,18 @@ define(function () {
 
 			$('.subscribe-configuration-prov-search').on('keyup', delay(function (event) {
 				if (event.which !== 16 && event.which !== 91) {
-					var type = $(this).provType();
-					var table = current[type + 'Table'];
+					const type = $(this).provType();
+					const table = current[type + 'Table'];
 					if (table) {
 						table.fnSettings().oPreviousSearch.sSearch = '§force§';
-						var filter = $(this).val()
+						const filter = $(this).val()
 						table.fnSettings().oPreviousSearch.sSearchAlt = filter;
 						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
 
 						if (typesStorage.includes(type)) {
 							// Refresh the storage
-							var tableS = current['storageTable'];
+							const tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
 							tableS.fnFilter('');
 						}
@@ -2710,8 +2709,8 @@ define(function () {
 				},
 				error: function () {
 					if (context) {
-						var eMsg = current.$messages['service:prov:' + context.name + '-failed'];
-						var value = data[context.name] ? data[context.name].name || data[context.name].text || data[context.name].id || data[context.name] : null;
+						const eMsg = current.$messages['service:prov:' + context.name + '-failed'];
+						const value = data[context.name] ? data[context.name].name || data[context.name].text || data[context.name].id || data[context.name] : null;
 						if (eMsg) {
 							notifyManager.notifyDanger(Handlebars.compile(eMsg)(value));
 						} else {
@@ -2858,7 +2857,7 @@ define(function () {
 		 * @param {number|Object} resourceOrId Quote resource or its identifier.
 		 */
 		redrawResource: function (type, resourceOrId) {
-			var id = resourceOrId && (resourceOrId.id || resourceOrId);
+			const id = resourceOrId && (resourceOrId.id || resourceOrId);
 			if (id) {
 				// The instance is valid
 				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw(false);
@@ -3005,9 +3004,9 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			var popupType = typesStorage.includes(type) ? 'generic' : type;
-			var inputType = typesStorage.includes(type) ? 'instance' : type;
-			var $popup = _('popup-prov-' + popupType);
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
 			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
 			_(inputType + '-description').val(model.description || '');
@@ -3037,7 +3036,7 @@ define(function () {
 			_('instance-storageRate').select2('data', current.select2IdentityData((quote.storageRate) || null));
 			_('instance-min-quantity').val(toQuantity(quote, quote.minQuantity, 1, 0));
 			_('instance-max-quantity').val(toQuantity(quote, quote.maxQuantity, 1, ''));
-			var license = (quote.id && (quote.license || quote.price.license)) || null;
+			const license = (quote.id && (quote.license || quote.price.license)) || null;
 			_('instance-license').select2('data', license ? {
 				id: license,
 				text: formatLicense(license)
@@ -3164,19 +3163,19 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			var popupType = typesStorage.includes(type) ? 'generic' : type;
-			var inputType = typesStorage.includes(type) ? 'instance' : type;
-			var $popup = _('popup-prov-' + popupType);
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const $popup = _('popup-prov-' + popupType);
 
 			// Build the play load for API service
-			var suggest = {
+			const suggest = {
 				price: _(inputType + '-price').select2('data'),
 				usage: _(inputType + '-usage').select2('data'),
 				optimizer: _(inputType + '-optimizer').select2('data'),
 				budget: _(inputType + '-budget').select2('data'),
 				location: _(inputType + '-location').select2('data')
 			};
-			var data = {
+			const data = {
 				id: current.model.quote.id,
 				name: _(inputType + '-name').val(),
 				description: _(inputType + '-description').val(),
@@ -3279,7 +3278,7 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, bars, d) => {
+						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, _bars, d) => {
 							// Tooltip of barchart for each resource type
 							let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 
@@ -3507,13 +3506,13 @@ define(function () {
 				case 'container':
 					return current.sunburstComputeTooltip(conf, data, 'container');
 				case 'storage':
-					var storage = conf.storagesById[data.name];
+					const storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
 						+ '<br>' + current.title('storage-type') + storage.price.type.name
 						+ '<br>' + current.title('storage-latency') + formatRate(storage.price.type.latency, true)
 						+ '<br>' + current.title('storage-optimized') + storage.price.type.optimized;
 				case 'support':
-					var support = conf.supportsById[data.name];
+					const support = conf.supportsById[data.name];
 					return current.title('name') + support.name
 						+ '<br>' + current.title('support-type') + support.price.type.name;
 				case 'database':
@@ -3565,9 +3564,9 @@ define(function () {
 		},
 
 		getFilteredData: function (type, filterDate) {
-			var result = [];
+			let result = [];
 			if (current[type + 'Table']) {
-				var data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
+				const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
 				for (let index = 0; index < data.length; index++) {
 					result.push(data[index]);
 				}
@@ -3768,8 +3767,8 @@ define(function () {
 		 */
 		detachStorage: function (storage, property) {
 			if (storage[property]) {
-				var qis = storage[property].storages || [];
-				for (var i = qis.length; i-- > 0;) {
+				const qis = storage[property].storages || [];
+				for (let i = qis.length; i-- > 0;) {
 					if (qis[i] === storage) {
 						qis.splice(i, 1);
 						break;
@@ -3789,7 +3788,7 @@ define(function () {
 			if (typeof resource === 'number') {
 				resource = current.model.configuration[type + 'sById'][resource];
 			}
-			var property = 'quote' + type.charAt(0).toUpperCase() + type.slice(1);
+			const property = 'quote' + type.charAt(0).toUpperCase() + type.slice(1);
 			if (force !== true && storage[property] === resource) {
 				// Already attached or nothing to attach to the target resource
 				return;
@@ -4147,14 +4146,14 @@ define(function () {
 							url: REST_PATH + 'service/prov/' + current.model.subscription + '/storage-lookup?' + type + '=' + qi.id,
 							dataType: 'json',
 							data: function (term) {
-								const regex = /(([\d]+)\s*[*x]\s*)?(\d+)/
+								const regex = /((\d+)\s*[*x]\s*)?(\d+)/
 								const RexExp = term.match(regex)
 								return {
 									size: $.isNumeric(RexExp[3]) ? parseInt(RexExp[3], 10) : 1, // search term
 								};
 							},
 							results: function (data, _query_page, query) {
-								const regex = /(([\d]+)\s*[*x]\s*)?(\d+)/;
+								const regex = /((\d+)\s*[*x]\s*)?(\d+)/;
 								const RexExp = query.term.match(regex);
 
 								// Completed the requested identifier
@@ -4172,8 +4171,8 @@ define(function () {
 					}).select2('data', qi.storages || []).off('change').on('change', function (event) {
 						if (event.added) {
 							// New storage
-							var suggest = event.added;
-							var data = {
+							const suggest = event.added;
+							const data = {
 								name: current.findNewName(current.model.configuration.storages, qi.name),
 								type: suggest.price.type.code,
 								size: suggest.size,
@@ -4202,7 +4201,7 @@ define(function () {
 							});
 						} else if (event.removed) {
 							// Storage to delete
-							var qs = event.removed.qs || event.removed;
+							const qs = event.removed.qs || event.removed;
 							$.ajax({
 								type: 'DELETE',
 								url: REST_PATH + 'service/prov/storage/' + qs.id,
@@ -4389,20 +4388,20 @@ define(function () {
 		 * @param {integer} id The resource identifier.
 		 */
 		delete: function (type, id) {
-			var conf = current.model.configuration;
-			var resources = conf[type + 's'];
-			var EMPTY_COST = { min: 0, max: 0, unbound: false };
-			for (var i = resources.length; i-- > 0;) {
-				var resource = resources[i];
+			const conf = current.model.configuration;
+			const resources = conf[type + 's'];
+			const EMPTY_COST = { min: 0, max: 0, unbound: false };
+			for (let i = resources.length; i-- > 0;) {
+				const resource = resources[i];
 				if (resource.id === id) {
 					resources.splice(i, 1);
 					delete conf[type + 'sById'][resource.id];
 					current.updateCost(conf, type, EMPTY_COST, resource);
 					if (type === 'storage') {
-						var qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer || resource.quoteFunction;
+						const qr = resource.quoteInstance || resource.quoteDatabase || resource.quoteContainer || resource.quoteFunction;
 						if (qr) {
 							// Also redraw the instance
-							var attachedType = qr.resourceType;
+							const attachedType = qr.resourceType;
 							current.detachStorage(resource, 'quote' + attachedType.capitalize());
 							current.redrawResource(attachedType, qr.id);
 						}
