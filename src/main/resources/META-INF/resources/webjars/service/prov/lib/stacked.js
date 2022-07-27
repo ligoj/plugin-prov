@@ -136,8 +136,9 @@ define(['d3', 'jquery'], function (d3) {
                     return notTargetCase;
             }
         }
-        function update(data) {
+        function update(data, aggregateMode) {
             params.input.data = data;
+            params.input.aggregateMode = aggregateMode;
             updateData();
             refresh();
         }
@@ -452,7 +453,7 @@ define(['d3', 'jquery'], function (d3) {
 
         let setUpColors = () => d3.scaleOrdinal(params.colors);
         function create(selector, selectorPercentCB, colors, width, height, data, aggregateMode, tooltipCB, hover, click, axisY, sort) {
-            let input = { data: data, width: width, height: height, aggregateMode : aggregateMode };
+            let input = { data: data, width: width, height: height, aggregateMode: aggregateMode };
             params.input = input;
             params.colors = colors;
             params.selector = selector;

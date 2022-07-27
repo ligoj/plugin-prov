@@ -3330,7 +3330,7 @@ define(function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
-						d3Bar.update(data);
+						d3Bar.update(data, aggregateMode);
 					}
 				} else {
 					$("#prov-barchart").addClass('hidden');
