@@ -13,6 +13,7 @@ define(function () {
 	const DEFAULT_DURATION = 36;
 	const BARCHART_DURATION = DEFAULT_DURATION;
 	const EMPTY_COST = { min: 0, max: 0, minCo2: 0, maxCo2: 0, unbound: false };
+	const SETTINGS_OPTIMIZER_VIEW = 'service:prov:optimizer-view-mode';
 
 	/**
 	 * Enable resource type.
@@ -1474,20 +1475,21 @@ define(function () {
 	 * @returns {string} 'co2' or 'cost'.
 	*/
 	function getOptimizerViewMode() {
-		return _('optimizer-view-mode').is(':checked') ? 'co2' : 'cost';
+		return $('#subscribe-configuration-prov').attr('data-aggregation-mode');
 	}
 
 	function initializeOptimizerView() {
 		$('#optimizer-view-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
 		$('#optimizer-view-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
-			let newMode = state ? 'co2' : 'cost';
-			localStorage.setItem('service:prov/aggregateMode', newMode);
+			const newMode = (state === 'co2' || state === true) ? 'co2' : 'cost';
+			localStorage.setItem(SETTINGS_OPTIMIZER_VIEW, newMode);
 			$('#subscribe-configuration-prov').attr('data-aggregation-mode', newMode);
 			current.updateUiCost();
 		});
-		let mode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
-		$('#optimizer-view-mode').bootstrapSwitch('state', mode == 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
+		const mode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
+		$('#subscribe-configuration-prov').attr('data-aggregation-mode', mode);
+		$('#optimizer-view-mode').bootstrapSwitch('state', mode === 'co2', true).trigger('switchChange.bootstrapSwitch', mode);
 	}
 
 	/**
@@ -3369,7 +3371,7 @@ define(function () {
 		 */
 		updateUiCost: function (filterDate) {
 			let conf = current.model.configuration;
-			let aggregateMode = localStorage.getItem('service:prov/aggregateMode') || 'cost';
+			let aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
 			// Compute the new capacity and costs
 			let stats = current.computeStats(filterDate);
