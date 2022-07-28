@@ -116,7 +116,7 @@
 .prov-project {
   margin-top: 0;
 }
-.cost-unit {
+.cost-unit, .cost-period {
   font-weight: bolder;
 }
 .cost-value {
@@ -551,4 +551,8 @@ i.icon.mdi-expansion-card {
 [data-aggregation-mode="cost"] .d-co2,
 [data-aggregation-mode="co2"] .d-cost {
   display: none;
+}
+
+.cost-period {
+  margin-left: -0.25em;
 }
