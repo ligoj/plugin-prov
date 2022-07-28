@@ -12,6 +12,7 @@ define(function () {
 	const ROOT_PREFIX = 'root-';
 	const DEFAULT_DURATION = 36;
 	const BARCHART_DURATION = DEFAULT_DURATION;
+	const EMPTY_COST = { min: 0, max: 0, minCo2: 0, maxCo2: 0, unbound: false };
 
 	/**
 	 * Enable resource type.
@@ -595,7 +596,7 @@ define(function () {
 			return formatter(min, true, $cost, noRichText, unbound, currency);
 		}
 		// Max cost, is different, display a range
-		return formatter(min, false, $cost, noRichText) + '-' + formatter(max, true, $cost, noRichText, unbound, currency);
+		return formatter(min, false, $cost, noRichText, false, currency) + '-' + formatter(max, true, $cost, noRichText, unbound, currency);
 	}
 
 	/**
@@ -3246,12 +3247,13 @@ define(function () {
 		 * @return {object} The updated or created model.
 		 */
 		saveAndUpdateCosts: function (type, updatedCost, data, price, usage, optimizer, budget, location) {
-			let conf = current.model.configuration;
+			const conf = current.model.configuration;
 
 			// Update the model
-			let qx = conf[type + 'sById'][updatedCost.id] || {
+			const qx = conf[type + 'sById'][updatedCost.id] || {
 				id: updatedCost.id,
-				cost: 0
+				cost: 0,
+				co2: 0
 			};
 
 			// Common data
@@ -3373,9 +3375,8 @@ define(function () {
 			let stats = current.computeStats(filterDate);
 
 			// Update the global counts
-			let filtered = stats.cost !== conf.cost.min;
-			let formatCostParam = filtered ? { min: stats.cost, max: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
-			let formatCo2Param = filtered ? { min: stats.co2, max: stats.co2, unbound: stats.unbound > 0 } : { max: conf.cost.maxCo2, min: conf.cost.minCo2, unbound: conf.unbound };
+			let formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
+			let formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
 			formatCost(formatCostParam, $('.summary-cost'));
 			formatCo2(formatCo2Param, $('.summary-co2'));
 
@@ -3598,9 +3599,10 @@ define(function () {
 			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
-					let rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
-					let start = rUsage.start || 0;
-					return start <= filterDate;
+					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
+					const start = rUsage.start || 0;
+					const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
+					return start <= filterDate && filterDate < duration + start;
 				});
 			}
 			return result;
@@ -3685,7 +3687,7 @@ define(function () {
 			let duration = BARCHART_DURATION;
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
-				let monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
 				typesStorage.forEach(type => monthData[`${type}Cost`] = 0);
 				typesStorage.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
@@ -4416,7 +4418,6 @@ define(function () {
 		delete: function (type, id) {
 			const conf = current.model.configuration;
 			const resources = conf[type + 's'];
-			const EMPTY_COST = { min: 0, max: 0, unbound: false };
 			for (let i = resources.length; i-- > 0;) {
 				const resource = resources[i];
 				if (resource.id === id) {
