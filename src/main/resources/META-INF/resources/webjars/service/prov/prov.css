@@ -556,3 +556,15 @@ i.icon.mdi-expansion-card {
 .cost-period {
   margin-left: -0.25em;
 }
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-primary, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-primary {
+  background: #e6f0e8;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-default, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
+  background: #578ecf;
+  color: #fff;
+}
+.fas.fa-leaf {
+  color:  #29a23c;
+}
