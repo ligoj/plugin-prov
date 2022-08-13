@@ -796,9 +796,9 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 				entity.getType().getWatt10());
 
 		setCo2Custom(context, entity, v, 0.01d);
-		Assertions.assertEquals(10030.2, entity.getCo2());
-		Assertions.assertEquals("613.2,671.6,744.6,817.6,890.6,963.6,1036.6,1109.6,1182.6,1255.6", entity.getCo210());
-		Assertions.assertEquals("29.2,87.6,160.6,233.6,306.6,379.6,452.6,525.6,598.6,671.6", entity.getCo2Cpu10());
+		Assertions.assertEquals(2803.2, entity.getCo2());
+		Assertions.assertEquals("657.0,832.2,1051.2,1270.2,1489.2,1708.2,1927.2,2146.2,2365.2,2584.2", entity.getCo210());
+		Assertions.assertEquals("613.2,671.6,744.6,817.6,890.6,963.6,1036.6,1109.6,1182.6,1255.6", entity.getCo2Cpu10());
 		Assertions.assertEquals("21.9,80.3,153.3,226.3,299.3,372.3,445.3,518.3,591.3,664.3", entity.getCo2Ram10());
 		Assertions.assertEquals("14.6,73.0,146.0,219.0,292.0,365.0,438.0,511.0,584.0,657.0", entity.getCo2Gpu10());
 	}

@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
@@ -598,17 +597,20 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <P extends AbstractTermPriceVm<?>> void setCo2Custom(final AbstractUpdateContext context, final P p,
 			final Co2Data v, final double conversion) {
-		// Global consumption
-		var co2 = setCo2(context, conversion, v.getWatt100(), v.getScope3(), p::setCo2, p::setCo210,
+		// CPU consumption
+		final var co2 = setCo2(context, conversion, v.getWatt100(), v.getScope3(), p::setCo2, p::setCo210,
+				v.getWattArray());
+
+		// RAM/GPU only consumption
+		setCo2(context, conversion, v.getPkgWatt100(), v.getScope3(), p::setCo2Cpu, p::setCo2Cpu10,
 				v.getPkgWattArray());
+		setCo2(context, conversion, v.getRamWatt100(), 0d, p::setCo2Ram, p::setCo2Ram10, v.getRamWattArray());
+		setCo2(context, conversion, v.getGpuWatt100(), 0d, p::setCo2Gpu, p::setCo2Gpu10, v.getGpuWattArray());
 
-		// CPU/RAM/GPU only consumption
-		co2 += setCo2(context, conversion, v.getPkgWatt100(), 0d, p::setCo2Cpu, p::setCo2Cpu10, v.getPkgWattArray());
-		co2 += setCo2(context, conversion, v.getRamWatt100(), 0d, p::setCo2Ram, p::setCo2Ram10, v.getRamWattArray());
-		co2 += setCo2(context, conversion, v.getGpuWatt100(), 0d, p::setCo2Gpu, p::setCo2Gpu10, v.getGpuWattArray());
-
+		// 16.959236111
+		// 18,6 = 1,6(base) +0(GPU) +9,15(RAM) +7,81(CPU)
+		
 		// Set rounded CO2
-		p.setCo2(round3Decimals(co2 * Math.max(1, p.getTerm().getPeriod())));
 		p.setCo2Period(round3Decimals(co2 * Math.max(1, p.getTerm().getPeriod())));
 	}
 
@@ -642,18 +644,18 @@ public abstract class AbstractImportCatalogResource {
 			final var fragments = StringUtils.split(l + "._", ".-");
 			final var rawMatch = new String[] { l, fragments[0] + "-" + fragments[1], fragments[0] + "." + fragments[1],
 					fragments[0] };
-			var match = Arrays.stream(rawMatch).map(mapping::get).filter(Objects::nonNull).findFirst().orElse(null);
+			var match = Arrays.stream(rawMatch).filter(mapping::containsKey).findFirst().orElse(null);
 			if (match == null) {
 				match = Arrays.stream(rawMatch).map(this::toPattern)
-						.map(p -> mapping.entrySet().stream().filter(e -> p.asMatchPredicate().test(e.getKey()))
-								.map(e -> e.getValue()).findFirst())
-						.filter(Optional::isPresent).map(Optional::get).findFirst().orElse(null);
+						.map(p -> mapping.keySet().stream().filter(p.asMatchPredicate()).findFirst().orElse(null))
+						.filter(k -> k != null).findFirst().orElse(null);
 				if (match == null) {
 					log.warn("No regional CO2 for region {}", location);
 					return new Co2RegionData();
 				}
 			}
-			return match;
+			log.info("No perfect regional CO2 for region {}, using {}", location, match);
+			return mapping.get(match);
 		});
 
 		return data.getPue() * data.getGPerKWH() / 1000d; // kW.h to W.h
