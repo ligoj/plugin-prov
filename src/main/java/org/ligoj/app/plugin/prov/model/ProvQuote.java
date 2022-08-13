@@ -159,7 +159,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private List<ProvBudget> budgets = new ArrayList<>();
 
 	/**
-	 * Optimiers associated to this quote..
+	 * Optimizers associated to this quote..
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
@@ -215,7 +215,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private ProvBudget budget;
 
 	/**
-	 * Optional default budget. When <code>null</code>, full time.
+	 * Optional default optimizer. When <code>null</code>, full time.
 	 */
 	@ManyToOne
 	private ProvOptimizer optimizer;

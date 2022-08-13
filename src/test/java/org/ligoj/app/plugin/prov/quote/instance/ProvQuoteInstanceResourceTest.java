@@ -49,7 +49,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
-				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"constant\":true,\"license\":\"LI\",\"os\":\"LINUX\","
+				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
 		QuoteInstanceQuery.builder().toString();
 	}
@@ -109,7 +109,17 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		build.setAutoScale(true); // Coverage only
 		Assertions.assertEquals("instance2", qiResource.lookup(subscription, build).getPrice().getType().getCode());
 		Assertions.assertNull(qiResource.lookup(subscription, builder().autoScale(true).cpu(2).build()));
+	}
 
+	/**
+	 * Edge based lookup.
+	 */
+	@Test
+	void lookupEdge() {
+		var build = builder().edge(true).build();
+		build.setEdge(true); // Coverage only
+		Assertions.assertEquals("instance2", qiResource.lookup(subscription, build).getPrice().getType().getCode());
+		Assertions.assertNull(qiResource.lookup(subscription, builder().edge(true).cpu(2).build()));
 	}
 
 	/**
@@ -272,7 +282,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupHighConstraints() throws IOException {
-		final var build = builder().cpu(3).ram(9).constant(true).tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
+		final var build = builder().cpu(3).ram(9).workload("100").tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
 				.usage(FULL).build();
 		build.setTenancy(ProvTenancy.SHARED); // Coverage only
 		final var lookupObj = qiResource.lookup(subscription, build);
@@ -284,7 +294,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance9", pi.getType().getName());
 		Assertions.assertEquals(4, pi.getType().getCpu());
 		Assertions.assertEquals(16000, pi.getType().getRam());
-		Assertions.assertTrue(pi.getType().getConstant());
+		Assertions.assertEquals(100d, pi.getType().getBaseline());
 		Assertions.assertEquals(2928.0, pi.getCost(), DELTA);
 		Assertions.assertEquals(VmOs.WINDOWS, pi.getOs());
 		Assertions.assertEquals("1y", pi.getTerm().getName());
@@ -382,6 +392,15 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setBudget("any"); // Coverage only
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
+	/**
+	 * No such budget name.
+	 */
+	@Test
+	void lookupOptimizerNotFound() {
+		final var vo = builder().os(VmOs.LINUX).optimizer("any").build();
+		vo.setOptimizer("any"); // Coverage only
+		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
+	}
 
 	@Test
 	void lookupTypeNotFound() {
@@ -403,7 +422,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(0, pi.getType().getCpu());
 		Assertions.assertEquals(0, pi.getType().getGpu());
 		Assertions.assertEquals(0, pi.getType().getRam());
-		Assertions.assertTrue(pi.getType().getConstant());
+		Assertions.assertEquals(100d, pi.getType().getBaseline());
 		Assertions.assertEquals(0, pi.getCost(), DELTA);
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
@@ -934,7 +953,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setCpuMax(0.5);
 		vo.setGpu(0D);
 		vo.setGpuMax(0D);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setPhysical(false);
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setTenancy(ProvTenancy.SHARED);
@@ -944,6 +963,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setMaxQuantity(15);
 
 		vo.setAutoScale(true);
+		vo.setEdge(false);
 
 		vo.setRamRate(Rate.LOW);
 		vo.setCpuRate(Rate.MEDIUM);
@@ -970,7 +990,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);
 		Assertions.assertEquals(3129.3, instance.getMaxCost(), DELTA);
-		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals("100", instance.getWorkload());
 		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
 		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
 		Assertions.assertEquals(10, instance.getMinQuantity());
@@ -999,7 +1019,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setCpuMax(0.5);
 		vo.setGpu(1D);
 		vo.setGpuMax(2D);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setPhysical(false);
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setTenancy(ProvTenancy.SHARED);
@@ -1036,7 +1056,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(2086.2, instance.getCost(), DELTA);
 		Assertions.assertEquals(3129.3, instance.getMaxCost(), DELTA);
-		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals("100", instance.getWorkload());
 		Assertions.assertEquals(InternetAccess.PUBLIC, instance.getInternet());
 		Assertions.assertEquals(210.9, instance.getMaxVariableCost(), DELTA);
 		Assertions.assertEquals(10, instance.getMinQuantity());
@@ -1121,7 +1141,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		vo.setCpu(0.5);
 		vo.setGpu(0D);
 		vo.setOs(VmOs.SUSE);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setInternet(InternetAccess.PUBLIC);
 		vo.setMaxVariableCost(210.9);
 		vo.setMinQuantity(10);
@@ -1295,13 +1315,13 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.findOs(subscription));
 	}
 
-
 	/**
 	 * Basic case, almost no requirements.
 	 */
 	@Test
 	void lookupCo2() {
-		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).optimizer("CO2").build());
+		final var lookup = qiResource.lookup(subscription,
+				builder().ram(2000).ephemeral(true).usage(FULL).optimizer("CO2").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("C9", pi.getCode());

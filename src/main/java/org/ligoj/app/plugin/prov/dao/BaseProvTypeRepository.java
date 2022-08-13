@@ -9,8 +9,7 @@ import org.ligoj.app.plugin.prov.model.ProvType;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query
-	;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
@@ -31,7 +30,7 @@ public interface BaseProvTypeRepository<T extends AbstractCodedEntity & ProvType
 	 */
 	@Query("SELECT i FROM #{#entityName} i, Subscription s INNER JOIN s.node AS sn INNER JOIN i.node AS n"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%')"
-			+ " AND (:criteria IS NULL OR UPPER(i.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
+			+ " AND (:criteria = '' OR UPPER(i.name) LIKE CONCAT(CONCAT('%', :criteria), '%'))")
 	Page<T> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**

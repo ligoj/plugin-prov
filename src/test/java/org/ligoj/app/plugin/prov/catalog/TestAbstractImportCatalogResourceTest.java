@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResource {
 
 	private AbstractImportCatalogResource resource;
+	protected static final double DELTA = 0.01d;
 
 	/**
 	 * Only there for coverage and API contracts.
@@ -83,6 +84,9 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.setFunctionTypes(new HashMap<>());
 		context.getPreviousFunction();
 		context.setPreviousFunction(new HashMap<>());
+
+		context.setCo2DataSet(null);
+		context.setCo2RegionDataSet(null);
 
 		new AbstractUpdateContext(context) {
 		}.cleanup();
@@ -164,9 +168,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	}
 
 	private ProvInstancePrice newPrice() {
+		final var term = new ProvInstancePriceTerm();
+		term.setPeriod(2d);
+
 		final var entity = new ProvInstancePrice();
 		entity.setCode("old");
 		entity.setId(1);
+		entity.setTerm(term);
 		return entity;
 	}
 
@@ -430,6 +438,8 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertFalse(isEnabledOs(context, VmOs.WINDOWS));
 		Assertions.assertTrue(isEnabledOs(context, VmOs.LINUX));
 		Assertions.assertTrue(isEnabledOs(context, VmOs.RHEL));
+		Assertions.assertTrue(isEnabledOs(context, "rhel"));
+		Assertions.assertFalse(isEnabledOs(context, "rhel_BAD"));
 	}
 
 	@Test
@@ -600,6 +610,8 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		term.setPeriod(12d);
 		final var type = new ProvInstanceType();
 		type.setCode("codeT");
+		final var location = new ProvLocation();
+		location.setName("any");
 		final var entity = new ProvInstancePrice();
 		entity.setId(1);
 		entity.setTerm(term);
@@ -607,6 +619,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setCostPeriod(24d);
 		entity.setCode("code");
 		entity.setType(type);
+		entity.setLocation(location);
 		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 3, repository);
@@ -716,6 +729,118 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {
 			throw new AssertionError("Should not be called");
 		}));
+	}
+
+	@Test
+	void setCo2Custom() {
+		final var v = new Co2Data();
+		final var entity = newPrice();
+		final var context = newContext();
+		final var type = new ProvInstanceType();
+		type.setCode("codeT");
+		entity.setType(type);
+
+		// Coverage only
+		v.getDrop();
+		v.setDrop("");
+		v.getType();
+		v.setType("");
+
+		v.setExtra(1d);
+		v.setScope3(0.8d);
+
+		v.setGpuWatt0(2d);
+		v.setGpuWatt10(10d);
+		v.setGpuWatt20(20d);
+		v.setGpuWatt30(30d);
+		v.setGpuWatt40(40d);
+		v.setGpuWatt50(50d);
+		v.setGpuWatt60(60d);
+		v.setGpuWatt70(70d);
+		v.setGpuWatt80(80d);
+		v.setGpuWatt90(90d);
+		v.setGpuWatt100(100d);
+
+		v.setRamWatt0(3d);
+		v.setRamWatt10(11d);
+		v.setRamWatt20(21d);
+		v.setRamWatt30(31d);
+		v.setRamWatt40(41d);
+		v.setRamWatt50(51d);
+		v.setRamWatt60(61d);
+		v.setRamWatt70(71d);
+		v.setRamWatt80(81d);
+		v.setRamWatt90(91d);
+		v.setRamWatt100(101d);
+
+		v.setPkgWatt0(4d);
+		v.setPkgWatt10(12d);
+		v.setPkgWatt20(22d);
+		v.setPkgWatt30(32d);
+		v.setPkgWatt40(42d);
+		v.setPkgWatt50(52d);
+		v.setPkgWatt60(62d);
+		v.setPkgWatt70(72d);
+		v.setPkgWatt80(82d);
+		v.setPkgWatt90(92d);
+		v.setPkgWatt100(102d);
+
+		v.compute();
+
+		// Set Watt data
+
+		context.getCo2DataSet().put("codeT", v);
+		setWatt(context, entity.getType());
+		Assertions.assertEquals(304.0, entity.getType().getWatt());
+		Assertions.assertEquals("10.0,34.0,64.0,94.0,124.0,154.0,184.0,214.0,244.0,274.0",
+				entity.getType().getWatt10());
+
+		setCo2Custom(context, entity, v, 0.01d);
+		Assertions.assertEquals(10030.2, entity.getCo2());
+		Assertions.assertEquals("613.2,671.6,744.6,817.6,890.6,963.6,1036.6,1109.6,1182.6,1255.6", entity.getCo210());
+		Assertions.assertEquals("29.2,87.6,160.6,233.6,306.6,379.6,452.6,525.6,598.6,671.6", entity.getCo2Cpu10());
+		Assertions.assertEquals("21.9,80.3,153.3,226.3,299.3,372.3,445.3,518.3,591.3,664.3", entity.getCo2Ram10());
+		Assertions.assertEquals("14.6,73.0,146.0,219.0,292.0,365.0,438.0,511.0,584.0,657.0", entity.getCo2Gpu10());
+	}
+
+	@Test
+	void toConversion() {
+		final var entity = newPrice();
+		final var context = newContext();
+		final var type = new ProvInstanceType();
+		type.setCode("codeT");
+		entity.setType(type);
+
+		final var eu = new Co2RegionData();
+		// Coverage only
+		eu.getDrop();
+		eu.setDrop("");
+		eu.getRegion();
+		eu.setRegion("");
+
+		eu.setPue(1.2d);
+		eu.setGPerKWH(200d);
+
+		final var us = new Co2RegionData();
+		us.setPue(1.21d);
+		us.setGPerKWH(210d);
+
+		final var ap = new Co2RegionData();
+		ap.setPue(1.22d);
+		ap.setGPerKWH(220d);
+
+		context.getCo2RegionDataSet().put("eu-west-1", eu);
+		context.getCo2RegionDataSet().put("us-east", us);
+		context.getCo2RegionDataSet().put("ap", ap);
+
+		Assertions.assertEquals(0.24d, toConversion(context, "eu-west-1"));
+		Assertions.assertEquals(0.24d, toConversion(context, "eu-west-2"));
+		Assertions.assertEquals(0.2541d, toConversion(context, "us-east-1"));
+		Assertions.assertEquals(0.2541d, toConversion(context, "us-west-1"));
+		Assertions.assertEquals(0.268d, toConversion(context, "ap-west-1"), DELTA);
+		Assertions.assertEquals(0.268d, toConversion(context, "ap-west"), DELTA);
+		Assertions.assertEquals(0d, toConversion(context, "cn-west-1"));
+
 	}
 
 }

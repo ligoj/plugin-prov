@@ -86,7 +86,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NOT NULL
 			  AND :engine = ip.engine
-			  AND (:edition   IS NULL OR ip.edition=:edition)
+			  AND (:edition   = '' OR ip.edition=:edition)
 			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
 			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
 			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
@@ -108,7 +108,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -135,7 +136,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -168,7 +170,7 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL
 			  AND :engine = ip.engine
-			  AND (:edition IS NULL OR ip.edition=:edition)
+			  AND (:edition = '' OR ip.edition=:edition)
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
@@ -180,7 +182,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param types       The required instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
@@ -202,7 +205,8 @@ public interface ProvDatabasePriceRepository extends BaseProvTermPriceRepository
 	 * @param types       The required instance type identifiers.
 	 * @param terms       The valid instance terms identifiers.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen

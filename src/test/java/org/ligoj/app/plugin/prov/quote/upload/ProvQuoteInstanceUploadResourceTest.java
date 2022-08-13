@@ -50,7 +50,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void upload() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "constant", "description" },
+				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
 				false, "Full Time 12 month", null, null, 1);
 		checkUpload();
 	}
@@ -58,7 +58,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadNormalizedName() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "constant", "description" },
+				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
 				false, "full time 12 MONTH", "DEPT1", "COST", 1);
 		checkUpload();
 	}
@@ -66,7 +66,7 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadCreateAsNeed() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "constant", "description" },
+				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
 				false, "Usage Will be created", "Budget Will be created", "Optimizer Will be created", MergeMode.INSERT,
 				1, false, DEFAULT_ENCODING, true, true, true, DEFAULT_SEPARATOR);
 		final var configuration = getConfiguration();
@@ -247,8 +247,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadBoundQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;true;1;1000;true"), new String[] { "name", "cpu", "ram",
-						"os", "disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1000;true"), new String[] { "name", "cpu", "ram",
+						"os", "disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -268,8 +268,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadMaxQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;true;1;1;true"), new String[] { "name", "cpu", "ram", "os",
-						"disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1;true"), new String[] { "name", "cpu", "ram", "os",
+						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -285,8 +285,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadMultipleDisks() throws IOException {
-		qiuResource.upload(subscription, newStream("MYINSTANCE;0.5;500;LINUX;1,0,10;true;true"),
-				new String[] { "name", "cpu", "ram", "os", "disk", "constant", "ephemeral" }, false,
+		qiuResource.upload(subscription, newStream("MYINSTANCE;0.5;500;LINUX;1,0,10;100;true"),
+				new String[] { "name", "cpu", "ram", "os", "disk", "workload", "ephemeral" }, false,
 				"Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -306,8 +306,8 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadUnBoundQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;true;1;0;true"), new String[] { "name", "cpu", "ram", "os",
-						"disk", "constant", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;0;true"), new String[] { "name", "cpu", "ram", "os",
+						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -452,9 +452,9 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadProfilesPerEntry() throws IOException {
-		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;Full Time 12 month"),
+		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;Full Time 12 month;Dept2;Cost"),
 				new String[] { "name", "cpu", "ram", "os", "usage", "budget", "optimizer" }, false,
-				"Full Time 13 month", "Dept2", "Cost", 1);
+				"Full Time 13 month", "Dept1", "CO2", 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());

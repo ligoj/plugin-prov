@@ -6,11 +6,13 @@ package org.ligoj.app.plugin.prov;
 
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvType;
+import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
@@ -98,5 +100,56 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		networkResource.onDelete(getType(), id);
 		return resource.refreshSupportCost(new UpdatedCost(id),
 				deleteAndUpdateCost(getResourceRepository(), id, Function.identity()::apply));
+	}
+
+	/**
+	 * Return a normalized form a string.
+	 *
+	 * @param value The raw value.
+	 * @return The normalized value.
+	 */
+	protected String normalize(final String value) {
+		return StringUtils.trimToEmpty(StringUtils.upperCase(value));
+	}
+
+	/**
+	 * Return the rate replacing the <code>null</code> value by the minimal constraint
+	 * 
+	 * @param rate The query context.
+	 * @return The adjusted rate, never <code>null</code>.
+	 */
+	protected Rate normalize(final Rate rate) {
+		return rate == null ? Rate.WORST : rate;
+	}
+
+	/**
+	 * Return the identifier replacing the <code>null</code> value by 0.
+	 * 
+	 * @param value The query context.
+	 * @return The adjusted identifier, never <code>null</code>.
+	 */
+	protected int normalize(final Integer value) {
+		return value == null ? 0 : value;
+	}
+
+	/**
+	 * Return the boolean replacing the <code>null</code> value by 0.
+	 * 
+	 * @param value The query context.
+	 * @return The adjusted boolean, never <code>null</code>.
+	 */
+	protected boolean normalize(final Boolean value) {
+		return value == null ? false : value;
+	}
+
+	/**
+	 * Return the resolved resource requirement from the resource or from the quote.
+	 *
+	 * @param quoteValue Quote's value.
+	 * @param value      The local requirement value.
+	 * @return The resolved requirement, default is <code>true</code>.
+	 */
+	protected boolean normalize(final Boolean quoteValue, final Boolean value) {
+		return quoteValue == null ? normalize(value) : quoteValue;
 	}
 }

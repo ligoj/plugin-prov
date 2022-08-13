@@ -80,7 +80,8 @@ public interface ProvContainerPriceRepository
 	 * @param ram         The required RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -105,7 +106,8 @@ public interface ProvContainerPriceRepository
 	 * @param ram         The required RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -150,7 +152,8 @@ public interface ProvContainerPriceRepository
 	 * @param terms       The valid instance terms identifiers.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
@@ -170,7 +173,8 @@ public interface ProvContainerPriceRepository
 	 * @param terms       The valid instance terms identifiers.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.

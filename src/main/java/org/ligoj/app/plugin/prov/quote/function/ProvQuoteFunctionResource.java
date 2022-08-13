@@ -130,7 +130,7 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer) {
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, location, rate, duration, initialCost, query.getDuration(),
 					PageRequest.of(0, 1));

@@ -76,7 +76,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	protected static final ProvBudget BUDGET_DEFAULT = new ProvBudget();
 
 	/**
-	 * The default optimizer : no initial cost.
+	 * The default optimizer : cost optimization.
 	 */
 	protected static final ProvOptimizer OPTIMIZER_DEFAULT = new ProvOptimizer();
 
@@ -177,7 +177,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setCpu(vo.getCpu());
 		entity.setGpu(vo.getGpu());
 		entity.setProcessor(vo.getProcessor());
-		entity.setConstant(vo.getConstant());
+		entity.setWorkload(vo.getWorkload());
 		entity.setPhysical(vo.getPhysical());
 		entity.setMinQuantity(vo.getMinQuantity());
 		entity.setMaxQuantity(vo.getMaxQuantity());
@@ -346,18 +346,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The resolved processor requirement. May be <code>null</code>.
 	 */
 	protected String getProcessor(final ProvQuote configuration, final String processor) {
-		return ObjectUtils.defaultIfNull(processor, configuration.getProcessor());
-	}
-
-	/**
-	 * Return the resolved resource requirement from the resource or from the quote.
-	 *
-	 * @param quoteValue Quote's value.
-	 * @param value      The local requirement value.
-	 * @return The resolved requirement. May be <code>null</code>.
-	 */
-	protected Boolean getBoolean(final Boolean quoteValue, final Boolean value) {
-		return ObjectUtils.defaultIfNull(value, quoteValue);
+		return ObjectUtils.defaultIfNull(processor, ObjectUtils.defaultIfNull(configuration.getProcessor(), ""));
 	}
 
 	/**
@@ -366,11 +355,10 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
 	 * @param type         The type's code.May be <code>null</code>.
-	 * @return The instance type identifier. Will be <code>null</code> only when the given name was <code>null</code>
-	 *         too.
+	 * @return The instance type identifier. Default is 0.
 	 */
-	protected Integer getType(final int subscription, final String type) {
-		return type == null ? null : assertFound(getItRepository().findByCode(subscription, type), type).getId();
+	protected int getType(final int subscription, final String name) {
+		return name == null ? 0 : assertFound(getItRepository().findByCode(subscription, name), name).getId();
 	}
 
 	/**
@@ -445,7 +433,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	protected TableItem<ProvInstancePriceTerm> findPriceTerms(final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				iptRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}
@@ -462,17 +450,51 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		// Fixed price + custom price
 		final double rate;
 		if (ip.getTerm().getPeriod() == 0) {
-			// Related term has a period lesser than the month, rate applies
+			// Related term has a period lesser than the month, rate can be applied
 			rate = getRate(qi) / 100d;
 		} else {
 			rate = 1d;
 		}
+		final var workload = Workload.from(qi.getWorkload());
 		return computeFloat(
 				rate * (ip.getCost()
 						+ (ip.getType().isCustom() ? getCustomCost(qi.getCpu(), qi.getGpu(), qi.getRam(), ip) : 0)),
-				rate * (ip.getCo2()
-						+ (ip.getType().isCustom() ? getCustomCo2(qi.getCpu(), qi.getGpu(), qi.getRam(), ip) : 0)),
-				ip.getInitialCost(), qi);
+				rate * getCo2(qi, ip, workload), ip.getInitialCost(), qi);
+	}
+
+	private double getCo2_(final double co2b100, final String co2b10, final Workload workload) {
+		final var baseline = workload.getBaseline();
+		if (baseline < 100 && StringUtils.isNotEmpty(co2b10)) {
+			final var co2Values = StringUtils.split(co2b10, ',');
+			// At least one CO2 profile in addition of the full one
+			final var step = 100d / co2Values.length;
+			final var co2 = workload.getPeriods().stream().mapToDouble(p -> {
+				final var index = (int) (p.value / step);
+				final var baselineMin = index * step;
+				final var co2Min = index >= co2Values.length - 1 ? co2b100 : Double.valueOf(co2Values[index]);
+				final var co2Max = index >= co2Values.length - 2 ? co2b100 : Double.valueOf(co2Values[index + 1]);
+				return p.duration * (co2Min + (co2Max - co2Min) * ((p.value - baselineMin) / step)) / 100d;
+			}).sum();
+			return co2;
+		}
+		return co2b100;
+	}
+
+	/**
+	 * Update the CO2 based on the baseline distributions.
+	 */
+	private double getCo2(final C qi, final P ip, final Workload workload) {
+		var co2 = 0d;
+		co2 += getCo2_(ip.getCo2(), ip.getCo210(), workload);
+		if (ip.getType().isCustom()) {
+			final var qCpu = getQuantity(qi.getCpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1);
+			final var qRam = getQuantity(qi.getRam(), ip.getMinRam(), ip.getIncrementRam(), 1024);
+			final var qGpu = getQuantity(qi.getGpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1);
+			co2 += getCo2_(ip.getCo2Cpu(), ip.getCo2Cpu10(), workload) * qCpu;
+			co2 += getCo2_(ip.getCo2Ram(), ip.getCo2Ram10(), workload) * qRam;
+			co2 += getCo2_(ip.getCo2Gpu(), ip.getCo2Gpu10(), workload) * qGpu;
+		}
+		return co2;
 	}
 
 	/**
@@ -494,27 +516,11 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param ip  The resource price configuration.
 	 * @return The cost of this custom resource.
 	 */
-	protected double getCustomCost(final Double cpu, final Double gpu, final Integer ram, final P ip) {
+	protected double getCustomCost(final double cpu, final double gpu, final int ram, final P ip) {
 		// Compute the count of the requested resources
 		return getCustomCost(cpu, ip.getCostCpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1)
 				+ getCustomCost(gpu, ip.getCostCpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1)
 				+ getCustomCost(ram, ip.getCostRam(), ip.getMinRam(), ip.getIncrementRam(), 1024);
-	}
-
-	/**
-	 * Compute the monthly CO2 consumption of a custom requested resource.
-	 *
-	 * @param cpu The requested CPU.
-	 * @param gpu The requested CPU.
-	 * @param ram The requested RAM in MB.
-	 * @param ip  The resource price configuration.
-	 * @return The CO2 consumption of this custom resource.
-	 */
-	protected double getCustomCo2(final Double cpu, final Double gpu, final Integer ram, final P ip) {
-		// Compute the count of the requested resources
-		return getCustomCost(cpu, ip.getCo2Cpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1)
-				+ getCustomCost(gpu, ip.getCo2Cpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1)
-				+ getCustomCost(ram, ip.getCo2Ram(), ip.getMinRam(), ip.getIncrementRam(), 1024);
 	}
 
 	/**
@@ -529,10 +535,24 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	private double getCustomCost(final double requested, final Double cost, final Double min, final Double increment,
 			final double weight) {
+		// Compute the quantity of the requested resources and costs
+		return getQuantity(requested, min, increment, weight) * Objects.requireNonNullElse(cost, 0d);
+	}
+
+	/**
+	 * Compute the quantity of a custom requested resource.
+	 *
+	 * @param requested The request resource amount.
+	 * @param min       The minimum resource amount.
+	 * @param increment The increment resource amount.
+	 * @param weight    The weight of one resource.
+	 * @return The count of this custom instance resource.
+	 */
+	private double getQuantity(final double requested, final Double min, final Double increment, final double weight) {
 		final var incrementD = Objects.requireNonNullElse(increment, 1d);
 		// Compute the count of the requested resources
 		return Math.ceil(Math.max(Math.ceil(requested / weight), Objects.requireNonNullElse(min, 0d)) / incrementD)
-				* incrementD * Objects.requireNonNullElse(cost, 0d);
+				* incrementD;
 	}
 
 	/**
@@ -645,7 +665,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var cpuR = getCpu(configuration, query);
 		final var gpuR = getGpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
-		final var physR = getBoolean(configuration.getPhysical(), query.getPhysical());
+		final var physR = normalize(configuration.getPhysical(), query.getPhysical());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -661,15 +681,18 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var convLocation = BooleanUtils.toBoolean(usage.getConvertibleLocation());
 		final var reservation = BooleanUtils.toBoolean(usage.getReservation());
 		final var rate = usage.getRate() / 100d;
+		final var workload = Workload.from(query.getWorkload());
 		final var duration = usage.getDuration();
 		final var initialCost = Objects.requireNonNullElse(budget.getRemainingBudget(), budget.getInitialCost());
+		final var baseline = workload.getBaseline();
+		final var baselineR = (double) Math.round(baseline / 5d) * 5; // Round for cache hit improvement
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
 		final var types = getItRepository().findValidTypes(node, cpuR, gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor,
-				ramR * maxFactor, query.getConstant(), physR, typeId, procR, query.isAutoScale(), query.getCpuRate(),
-				query.getGpuRate(), query.getRamRate(), query.getNetworkRate(), query.getStorageRate(),
-				query.getEdge());
+				ramR * maxFactor, baselineR, physR, typeId, procR, query.isAutoScale(), normalize(query.getCpuRate()),
+				normalize(query.getGpuRate()), normalize(query.getRamRate()), normalize(query.getNetworkRate()),
+				normalize(query.getStorageRate()), normalize(query.getEdge()));
 		final var terms = iptRepository.findValidTerms(node,
 				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
 						|| getType() == ResourceType.FUNCTION) && convOs,
@@ -684,9 +707,10 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		// Dynamic type test
 		if (getItRepository().hasDynamicalTypes(node) && gpuR == 0) {
-			final var dTypes = getItRepository().findDynamicTypes(node, query.getConstant(), physR, typeId, procR,
-					query.isAutoScale(), query.getCpuRate(), query.getGpuRate(), query.getRamRate(),
-					query.getNetworkRate(), query.getStorageRate());
+			final var dTypes = getItRepository().findDynamicTypes(node, baselineR, physR, typeId, procR,
+					query.isAutoScale(), normalize(query.getCpuRate()), normalize(query.getGpuRate()),
+					normalize(query.getRamRate()), normalize(query.getNetworkRate()), normalize(query.getStorageRate()),
+					normalize(query.getEdge()));
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
@@ -725,14 +749,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param types         The valid types matching to the requirements.
 	 * @param terms         The valid terms matching to the requirements.
 	 * @param location      The required location.
-	 * @param rate          The usage rate.
+	 * @param rate          Usage rate within the duration, from 0 (stopped) to 1 (full time).
 	 * @param duration      The committed duration.
 	 * @param initialCost   The maximal initial cost.
 	 * @param optimizer     The optimizer mode.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
-			List<Integer> terms, int location, double rate, int duration, final double initialCost,
+			List<Integer> terms, int location, double rate, double duration, final double initialCost,
 			final Optimizer optimizer);
 
 	/**
@@ -746,8 +770,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param gpu           The required GPU.
 	 * @param ram           The required RAM.
 	 * @param location      The required location.
-	 * @param rate          The usage rate.
-	 * @param duration      The committed duration.
+	 * @param rate          Usage rate within the duration, from 0 (stopped) to 1 (full time).
+	 * @param duration      Committed duration.
 	 * @param initialCost   The maximal initial cost.
 	 * @param optimizer     The optimizer mode.
 	 * @return The valid prices result.
@@ -764,10 +788,10 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the new cost corresponding to the given criteria. No change are made to then entity.
+	 * Return the new cost corresponding to the given criteria. No changes are made to the entity.
 	 *
 	 * @param qi The entity to validate.
-	 * @return The new cost corresponding to the given criteria. No change are made to then entity.
+	 * @return The new cost corresponding to the given criteria. No changes are made to the entity.
 	 */
 	public FloatingPrice<P> getNewPrice(final C qi) {
 		// Find the lowest price
@@ -804,16 +828,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return a normalized form a string.
-	 *
-	 * @param value The raw value.
-	 * @return The normalized value.
-	 */
-	protected String normalize(final String value) {
-		return StringUtils.trimToNull(StringUtils.upperCase(value));
-	}
-
-	/**
 	 * Return the tool provisioning node from the configuration entity.
 	 *
 	 * @param configuration The configuration entity attached to a node.
@@ -838,7 +852,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	protected TableItem<T> findAllTypes(final int subscription, final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				getItRepository().findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				getItRepository().findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}

@@ -31,8 +31,7 @@ public class ProvCache implements CacheManagerAware {
 		cacheManager.createCache("terraform-version-latest", cfgTVL);
 
 		final var cfgPL = provider.apply("prov-location")
-				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
-						.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
+				.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU).setSize(1000));
 		cacheManager.createCache("prov-location", cfgPL);
 
 		// Instance cache configurations
@@ -56,8 +55,7 @@ public class ProvCache implements CacheManagerAware {
 			final Function<String, CacheConfig<?, ?>> provider, final String... names) {
 		Stream.of(names).forEach(name -> {
 			final var cfgPIT = provider.apply(name)
-					.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU)
-							.setMaximumSizePolicy(EvictionConfig.MaxSizePolicy.ENTRY_COUNT).setSize(1000));
+					.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU).setSize(1000));
 			cacheManager.createCache(name, cfgPIT);
 		});
 	}

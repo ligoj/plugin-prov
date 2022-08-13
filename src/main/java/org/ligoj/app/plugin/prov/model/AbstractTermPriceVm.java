@@ -106,21 +106,42 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	private String license;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested CPU. Required for dynamic instance type.
+	 * The optional monthly CO2 consumption of one requested CPU with 100% workload usage. Required for dynamic instance
+	 * type.
 	 */
 	@Column(columnDefinition = "double default 0")
 	private double co2Cpu = 0d;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested GPU. Required for dynamic instance type.
+	 * The optional monthly CO2 consumption of one requested GPU with 100% workload usage. Required for dynamic instance
+	 * type.
 	 */
 	@Column(columnDefinition = "double default 0")
 	private double co2Gpu = 0d;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested GiB memory. Required for dynamic instance type.
+	 * The optional monthly CO2 consumption of one requested GiB memory with 100% workload usage. Required for dynamic
+	 * instance type.
 	 */
 	@Column(columnDefinition = "double default 0")
 	private double co2Ram = 0d;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested CPU with an array of 10% workload usage, from idle to 90%.
+	 * Required for dynamic instance type.
+	 */
+	private String co2Cpu10 = null;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested GPU with an array of 10% workload usage, from idle to 90%.
+	 * Required for dynamic instance type.
+	 */
+	private String co2Gpu10 = null;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested GiB memory with an array of 10% workload usage, from idle
+	 * to 90%. Required for dynamic instance type.
+	 */
+	private String co2Ram10 = null;
 
 }

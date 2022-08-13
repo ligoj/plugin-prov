@@ -156,7 +156,7 @@ define(function () {
 	 */
 	function replaceId(jsonData, property, idProperty) {
 		if (jsonData[property]) {
-			jsonData[property] = jsonData[property][idProperty] || jsonData[property];
+			jsonData[property] = jsonData[property][idProperty] ?? jsonData[property];
 		} else {
 			// No value of empty value, remove this property from the target object
 			delete jsonData[property];
@@ -183,16 +183,16 @@ define(function () {
 
 	function locationToStringCompare(location) {
 		return location.name
-			+ '#' + (location.subRegion && (current.$messages[location.subRegion] || location.subRegion))
+			+ '#' + (location.subRegion && (current.$messages[location.subRegion] ?? location.subRegion))
 			+ '#' + location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)]
 			+ '#' + location.id;
 	}
 	function locationMatcher(term, location) {
 		return matcher(term, location.name)
-			|| location.subRegion && matcher(term, (current.$messages[location.subRegion] || location.subRegion))
+			|| location.subRegion && matcher(term, (current.$messages[location.subRegion] ?? location.subRegion))
 			|| location.description && matcher(term, location.description)
 			|| location.countryM49 && matcher(term, current.$messages.m49[parseInt(location.countryM49, 10)])
-			|| location.countryA2 && (matcher(term, location.countryA2) || location.countryA2 === 'UK' && matcher(term, 'GB'));
+			|| location.countryA2 && (matcher(term, location.countryA2) ?? (location.countryA2 === 'UK' && matcher(term, 'GB')));
 	}
 	function newProcessorOpts(type) {
 		return {
@@ -268,8 +268,8 @@ define(function () {
 	}
 
 	function formatDatabaseEngine(engine, mode, className) {
-		let engineId = (engine.id || engine || '').toUpperCase();
-		const cfg = databaseEngines[engineId] || [engineId, 'far fa-question-circle'];
+		let engineId = (engine.id ?? engine ?? '').toUpperCase();
+		const cfg = databaseEngines[engineId] ?? [engineId, 'far fa-question-circle'];
 		if (mode === 'sort' || mode === 'filter') {
 			return cfg[0];
 		}
@@ -370,7 +370,7 @@ define(function () {
 				value = instance.gpu;
 			}
 		}
-		value = value || 0
+		value ||= 0
 		if (mode === 'sort' || mode === 'filter') {
 			return value;
 		}
@@ -431,7 +431,7 @@ define(function () {
 	}
 
 	function formatStorageType(type, mode) {
-		type = type || {};
+		type ||= {};
 		const name = type.name;
 		if (mode !== 'display' || (typeof type.id === 'undefined')) {
 			// Use only the name
@@ -474,7 +474,7 @@ define(function () {
 		}
 		// Instance details are available
 		let details = '<i class=\'fas fa-clock\'></i> ';
-		if (term && term.period) {
+		if (term?.period) {
 			details += term.period + ' months period';
 		} else {
 			details = 'on demand, hourly (or less) billing period';
@@ -508,7 +508,7 @@ define(function () {
 	}
 
 	function getCurrency() {
-		return current.model && current.model.configuration && current.model.configuration.currency || { unit: '$', rate: 1.0 };
+		return current.model?.configuration?.currency || { unit: '$', rate: 1.0 };
 	}
 
 	function getCurrencyUnit() {
@@ -555,7 +555,7 @@ define(function () {
 		}
 
 		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
-		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost && cost.currency || getCurrency());
+		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost?.currency || getCurrency());
 		let $cost = $();
 		let capProperty = type.capitalize()
 		let minProperty = `min${capProperty}`;
@@ -578,7 +578,7 @@ define(function () {
 		if (min === null) {
 			// Standard cost
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(cost, true, $cost, noRichText, cost && cost.unbound, currency);
+			return formatter(cost, true, $cost, noRichText, cost?.unbound, currency);
 		}
 		// A floating cost
 		let max = null;
@@ -588,7 +588,7 @@ define(function () {
 			max = obj.max
 		}
 
-		let unbound = obj.unbound || (cost && cost.unbound) || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
+		let unbound = obj.unbound || cost?.unbound || (typeof obj.minQuantity === 'number' && (obj.maxQuantity === null || typeof obj.maxQuantity === 'undefined'));
 		let formatMin = formatManager.formatCost(min)
 		let formatMax = max !== null && formatManager.formatCost(max)
 		if (max === null || max === min || formatMin === formatMax) {
@@ -633,7 +633,7 @@ define(function () {
 	 * Return the HTML markup from the rating.
 	 */
 	function formatRate(rate, mode, className) {
-		const id = ((rate && rate.id) || rate || 'invalid').toLowerCase();
+		const id = ((rate?.id) || rate || 'invalid').toLowerCase();
 		const text = id && current.$messages['service:prov:rate-' + id];
 		if (mode === 'sort' || mode === 'filter') {
 			return text;
@@ -651,7 +651,7 @@ define(function () {
 		if (mode === 'sort' || mode === 'filter') {
 			return sizeGB;
 		}
-		if (data && data.price.type.minimal > sizeGB) {
+		if (data?.price.type.minimal > sizeGB) {
 			// Enable efficiency display
 			return formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
 				return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
@@ -829,15 +829,15 @@ define(function () {
 			} else {
 				obj = conf.locationsById[location];
 			}
-		} else if (data.price && data.price.location) {
+		} else if (data.price?.location) {
 			obj = conf.locationsById[data.price.location];
-		} else if (data.quoteInstance && data.quoteInstance.price.location) {
+		} else if (data.quoteInstance?.price.location) {
 			obj = conf.locationsById[data.quoteInstance.price.location];
-		} else if (data.quoteContainer && data.quoteContainer.price.location) {
+		} else if (data.quoteContainer?.price.location) {
 			obj = conf.locationsById[data.quoteContainer.price.location];
-		} else if (data.quoteDatabase && data.quoteDatabase.price.location) {
+		} else if (data.quoteDatabase?.price.location) {
 			obj = conf.locationsById[data.quoteDatabase.price.location];
-		} else if (data.quoteFunction && data.quoteFunction.price.location) {
+		} else if (data.quoteFunction?.price.location) {
 			obj = conf.locationsById[data.quoteFunction.price.location];
 		} else {
 			obj = current.model.configuration.location;
@@ -912,7 +912,7 @@ define(function () {
 	}
 
 	function formatSupportType(type, mode) {
-		type = type || {};
+		type ||= {};
 		const name = type.name;
 		if (mode !== 'display' || (typeof type.id === 'undefined')) {
 			return name;
@@ -921,7 +921,7 @@ define(function () {
 		const description = type.description;
 		let descriptionIsLink = false;
 		let details = '';
-		if (description && !description.startsWith('http://') && !description.startsWith('https://')) {
+		if (typeof description === 'string' && !description.startsWith('http://') && !description.startsWith('https://')) {
 			details = type.description.replace(/"/g, '') + '</br>';
 			descriptionIsLink = true;
 		}
@@ -1463,7 +1463,7 @@ define(function () {
 					initializedPopupOptimizer = true;
 					initializeOptimizerInnerEvents();
 				}
-				const co2Mode = event.relatedTarget && event.relatedTarget.mode === 'co2';
+				const co2Mode = event.relatedTarget?.mode === 'co2';
 				$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
 			}, { mode: 'cost' });
 			initializeOptimizerView();
@@ -1516,7 +1516,7 @@ define(function () {
 			value = $item.find('li.active').data('value');
 		} else if ($item.prev().is('.select2-container')) {
 			const data = ($item.select2('data') || {});
-			value = $item.is('.named') ? data.name || (data.data && data.data.name) : (data.id || $item.val());
+			value = $item.is('.named') ? data.name || data.data?.name : (data.id || $item.val());
 		} else if ($item.data('ligojProvSlider')) {
 			value = $item.provSlider('value', 'reserved');
 		} else if ($item.is('[type="number"]')) {
@@ -1725,7 +1725,7 @@ define(function () {
 		 * Display the cost of the quote.
 		 */
 		renderDetailsFeatures: function (subscription) {
-			if (subscription.data.quote && (subscription.data.quote.cost.min || subscription.data.quote.cost.max)) {
+			if (subscription.data.quote?.cost.min || subscription.data.quote?.cost.max) {
 				subscription.data.quote.cost.currency = subscription.data.quote.currency;
 				const price = formatCost(subscription.data.quote.cost, null, null, true);
 				return '<span data-toggle="tooltip" title="' + current.$messages['service:prov:cost-help'] + ' : ' + price + '" class="price label label-default">' + price + '</span>';
@@ -1801,7 +1801,7 @@ define(function () {
 			toIds(conf, 'location', 'name');
 
 			// Tags case issue
-			const tags = current.model && current.model.configuration.tags || {};
+			const tags = current.model?.configuration.tags || {};
 			Object.keys(tags).forEach(type => {
 				let tagT = tags[type];
 				delete tags[type];
@@ -1890,7 +1890,7 @@ define(function () {
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
-						if (suggest.price && suggest.price.edition) {
+						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$(".input-group-addon").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
@@ -1953,7 +1953,7 @@ define(function () {
 		 * Set the current instance/database/container/function price.
 		 */
 		genericSetUiPrice: function (quote) {
-			if (quote && quote.price) {
+			if (quote?.price) {
 				const suggests = [quote];
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
@@ -2399,7 +2399,7 @@ define(function () {
 			// render the dashboard
 			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
 				const $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
-				if ($tool && $tool.dashboardLink) {
+				if ($tool?.dashboardLink) {
 					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
 				} else {
 					$dashboard.addClass('hidden');
@@ -2680,10 +2680,10 @@ define(function () {
 			// Check the changes
 			if (conf.name === jsonData.name
 				&& conf.description === jsonData.description
-				&& (conf.location && conf.location.name) === jsonData.location
-				&& (conf.usage && conf.usage.name) === jsonData.usage
-				&& (conf.optimizer && conf.optimizer.name) === jsonData.optimizer
-				&& (conf.budget && conf.budget.name) === jsonData.budget
+				&& conf.location?.name === jsonData.location
+				&& conf.usage?.name === jsonData.usage
+				&& conf.optimizer?.name === jsonData.optimizer
+				&& conf.budget?.name === jsonData.budget
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
 				&& conf.physical === jsonData.physical
@@ -2777,7 +2777,7 @@ define(function () {
 				contentType: 'application/json',
 				success: function (newCost) {
 					// Commit to the model
-					if (conf[type] && conf[type].id === id) {
+					if (conf[type]?.id === id) {
 						// Update the resource of the quote
 						delete conf[type];
 						_(`prov-${type}`).select2('data', null);
@@ -2814,13 +2814,13 @@ define(function () {
 				data: JSON.stringify(data),
 				success: function (newCost) {
 					// Commit to the model
-					data.id = data.id || newCost.id || newCost;
+					data.id ||= newCost.id || newCost;
 					if (ids[data.id]) {
 						Object.assign(ids[data.id], data);
 					} else {
 						ids[data.id] = data;
 					}
-					if (conf[type] && conf[type].id === data.id) {
+					if (conf[type]?.id === data.id) {
 						// Update the resource of the quote
 						conf[type] = data;
 						_(`quote-${type}`).select2('data', data);
@@ -2881,7 +2881,7 @@ define(function () {
 		 * @param {number|Object} resourceOrId Quote resource or its identifier.
 		 */
 		redrawResource: function (type, resourceOrId) {
-			const id = resourceOrId && (resourceOrId.id || resourceOrId);
+			const id = resourceOrId?.id || resourceOrId;
 			if (id) {
 				// The instance is valid
 				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw(false);
@@ -3146,7 +3146,7 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		storageToUi: function (quote) {
-			_('storage-size').val((quote && quote.size) || '10');
+			_('storage-size').val(quote?.size || '10');
 			_('storage-latency').select2('data', current.select2IdentityData((quote.latency) || null));
 			_('storage-optimized').select2('data', current.select2IdentityData((quote.optimized) || null));
 			_('storage-instance').select2('data', quote.quoteInstance || quote.quoteDatabase || quote.quoteContainer || quote.quoteFunction || null);
@@ -3159,11 +3159,11 @@ define(function () {
 		 */
 		adaptRamUnit: function (ram) {
 			_('instance-ram-unit').find('li.active').removeClass('active');
-			if (ram && ram >= 1048576 && (ram / 1048576) % 1 === 0) {
+			if (ram >= 1048576 && (ram / 1048576) % 1 === 0) {
 				// Auto select TB
 				_('instance-ram-unit').find('li:last-child').addClass('active');
 				ram = ram / 1048576
-			} else if (ram && ram >= 1024 && (ram / 1024) % 1 === 0) {
+			} else if (ram >= 1024 && (ram / 1024) % 1 === 0) {
 				// Keep GB
 				_('instance-ram-unit').find('li:nth-child(2)').addClass('active');
 				ram = ram / 1024
@@ -3313,7 +3313,7 @@ define(function () {
 							let totalCo2 = 0;
 							types.forEach(type => {
 								let value = barData[type]
-								if (value && (value.cost || value.co2)) {
+								if (value?.cost || value?.co2) {
 									totalCost += value.cost || 0;
 									totalCo2 += value.co2 || 0;
 									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}</span>`;
@@ -3324,10 +3324,10 @@ define(function () {
 							return `<span class="tooltip-text">${tooltip}</span>`;
 						}, d => {
 							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(d && d['x-index']);
+							current.updateUiCost(d?.['x-index']);
 						}, (d, _bars, clicked) => {
 							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(clicked && d && d['x-index']);
+							current.updateUiCost(clicked && d?.['x-index']);
 						}, d => format(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
@@ -4063,7 +4063,7 @@ define(function () {
 				resources.forEach(resource => resourcesByName[resource.name] = resource);
 			}
 			if (resourcesByName[prefix]) {
-				increment = increment || 1;
+				increment ||= 1;
 				if (resourcesByName[prefix + '-' + increment]) {
 					return current.findNewName(resourcesByName, prefix, increment + 1, resourcesByName);
 				}

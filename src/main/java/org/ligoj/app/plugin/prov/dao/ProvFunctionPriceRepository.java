@@ -212,7 +212,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param cpu                 The required CPU.
 	 * @param ram                 The consumed average RAM (GiB) during a month.
 	 * @param location            The requested location identifier.
-	 * @param rate                Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate                Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                            <code>1</code>, (full time).
 	 * @param globalRate          Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration            The duration in month. Minimum is 1.
 	 * @param initialCost         The maximal initial cost.
@@ -241,7 +242,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param cpu                 The required CPU.
 	 * @param ram                 The consumed average RAM (GiB) during a month.
 	 * @param location            The requested location identifier.
-	 * @param rate                Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate                Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                            <code>1</code>, (full time).
 	 * @param globalRate          Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration            The duration in month. Minimum is 1.
 	 * @param initialCost         The maximal initial cost.
@@ -291,7 +293,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param types           The valid instance type identifiers.
 	 * @param terms           The valid instance terms identifiers.
 	 * @param location        The requested location identifier.
-	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate            Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                        <code>1</code>, (full time).
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
@@ -310,7 +313,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param types           The valid instance type identifiers.
 	 * @param terms           The valid instance terms identifiers.
 	 * @param location        The requested location identifier.
-	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate            Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                        <code>1</code>, (full time).
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.

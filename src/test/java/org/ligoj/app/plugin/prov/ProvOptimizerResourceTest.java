@@ -33,7 +33,7 @@ import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test class of {@link ProvUsageResource}
+ * Test class of {@link ProvOptimizerResource}
  */
 class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 
@@ -61,33 +61,71 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void updateNotAttached() {
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3167.15, 5631.15);
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 1331.82, 3795.82);
 		em.flush();
 		em.clear();
 
+		// Change, unattached optimizer profile
 		final var optimizer = new OptimizerEditionVo();
-		optimizer.setId(optimizerRepository.findByName("Cost").getId());
-		optimizer.setName("Cost");
+		optimizer.setId(optimizerRepository.findByName("CO2").getId());
+		optimizer.setName("CO2New");
 		optimizer.setMode(Optimizer.CO2);
-		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false, 3167.15, 5631.15);
-		Assertions.assertEquals("C1",
-				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
+		checkCost(oResource.update(subscription, optimizer).getTotal(), 3165.4, 5615.0, false, 1331.82, 3795.82);
+		var instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C1", instance.getPrice().getCode());
+		Assertions.assertEquals(600.0, instance.getCo2());
+	}
+
+	@Test
+	void optimizeCo2() {
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 1331.82, 3795.82);
+		em.flush();
+		em.clear();
+		var instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C1", instance.getPrice().getCode());
+		Assertions.assertEquals(600.0, instance.getCo2());
+
+		// Attach the CO2 profile as default optimizer of this quote
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
 		quote.setLocation("region-1");
-		quote.setOptimizer("Cost");
-		checkCost(resource.update(subscription, quote), 3371.285, 6644.426, false, 3065.835, 5124.576); // C1 -> C74
-		Assertions.assertEquals("C74",
-				resource.getConfiguration(subscription).getInstances().get(0).getPrice().getCode());
+		quote.setOptimizer("CO2");
+		checkCost(resource.update(subscription, quote), 3485.208, 6758.349, false, 901.6, 2014.4); // C1 -> C74
+		checkCost(resource.refresh(subscription), 3485.208, 6758.349, false, 901.6, 2014.4);
+
+		// C74 CO2: ram=1.3g/GiB, cpu=128.5g/cpu, minCpu = 1.0
+		// server1: cpu=1, ram=2000, minQuantity=2
+		// Total = (128.5+1.3*2)*2 = 262.2
+		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C74", instance.getPrice().getCode());
+		Assertions.assertEquals(262.2, instance.getCo2());
+
+		// Change the Watt profile to a ~linear function
+		instance.setWorkload("80,40@50,60@100");
+		em.persist(instance);
+		em.flush();
+		em.clear();
+		checkCost(resource.refresh(subscription), 3485.208, 6758.349, false, 862.0, 1816.4);
+
+		// C74 CO2: ram=0.8g@50% & 1.3@100%/GiB, cpu=80g@50% & 128.5@100%/cpu, minCpu = 1.0
+		// server1: cpu=1, ram=2000, minQuantity=2
+		// Total = (cpu:(80*0.4+128.5*0.6) +ram:(0.8*0.4+1.3*0.6)*2)*2 = 111.3 *2 = 222,6
+		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals(222.6d, instance.getCo2());
 	}
 
 	@Test
 	void updateAttachedInstance() {
-		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 3167.15, 5631.15);
-		resource.getConfiguration(subscription).getInstances().get(0).setOptimizer(optimizerRepository.findByName(subscription, "CO2"));
+		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false, 1331.82, 3795.82);
+		var instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C1", instance.getPrice().getCode());
+		instance.setOptimizer(optimizerRepository.findByName(subscription, "CO2"));
 		em.flush();
 		em.clear();
-		checkCost(resource.refresh(subscription), 3371.285, 6644.426, false, 3065.835, 5124.576); // C1 -> C74
+		checkCost(resource.refresh(subscription), 3371.285, 6644.426, false, 994.02, 2106.82); // C1 -> C74
+		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C74", instance.getPrice().getCode());
+		Assertions.assertEquals(262.2, instance.getCo2());
 	}
 
 	@Test

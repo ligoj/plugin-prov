@@ -48,20 +48,20 @@ public interface ProvInstancePriceRepository
 			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
 			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
 			 )
-			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
+			 * CASE WHEN ip.period = 0.0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCost,
 			 (  ip.cost
 			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.costCpu
 			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.costGpu) END
 			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.costRam
 			 )
-			 * CASE WHEN ip.period = 0 THEN :rate ELSE 1.0 END AS monthlyCost,
-			 
+			 * CASE WHEN ip.period = 0.0 THEN :rate ELSE 1.0 END AS monthlyCost,
+
 			 (  ip.co2
 			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.co2Cpu
 			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.co2Gpu) END
 			  + CEIL(GREATEST(GREATEST(ip.minCpu, :cpu) * COALESCE(ip.minRamRatio,0.0), :ram) /ip.incrementRam) * ip.incrementRam * ip.co2Ram
 			 )
-			 * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCo2,
+			 * CASE WHEN ip.period = 0.0 THEN :globalRate ELSE (ip.period * CEIL(:duration/ip.period)) END AS totalCo2,
 			 (  ip.co2
 			  + CEIL(GREATEST(ip.minCpu, :cpu) /ip.incrementCpu) * ip.incrementCpu * ip.co2Cpu
 			  + CASE WHEN (ip.incrementGpu IS NULL OR ip.incrementGpu=0.0) THEN 0.0 ELSE (CEIL(GREATEST(ip.minGpu, :gpu) /ip.incrementGpu) * ip.incrementGpu * ip.co2Gpu) END
@@ -73,7 +73,7 @@ public interface ProvInstancePriceRepository
 			  AND ip.incrementCpu IS NOT NULL
 			  AND ip.os=:os
 			  AND ip.tenancy=:tenancy
-			  AND (:software  IS NULL OR :software = ip.software)
+			  AND (:software  = '' OR :software = ip.software)
 			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
 			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
 			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
@@ -93,7 +93,8 @@ public interface ProvInstancePriceRepository
 	 * @param ram         The minimum RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -121,7 +122,8 @@ public interface ProvInstancePriceRepository
 	 * @param ram         The minimum RAM in GiB.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
@@ -142,23 +144,23 @@ public interface ProvInstancePriceRepository
 	String LOWEST_QUERY = """
 			SELECT ip,
 			 CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
+			  WHEN ip.period = 0.0 THEN (ip.cost * :rate * :duration)
 			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
 			 CASE
-			  WHEN ip.period = 0 THEN (ip.cost * :rate)
+			  WHEN ip.period = 0.0 THEN (ip.cost * :rate)
 			  ELSE ip.cost END AS monthlyCost,
 			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
+			  WHEN ip.period = 0.0 THEN (ip.co2 * :rate * :duration)
 			  ELSE (ip.co2Period * CEIL(:duration/ip.period)) END AS totalCo2,
 			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
+			  WHEN ip.period = 0.0 THEN (ip.co2 * :rate)
 			  ELSE ip.co2 END AS monthlyCo2
 			 FROM #{#entityName} ip  WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL
 			  AND ip.os=:os
 			  AND ip.tenancy=:tenancy
-			  AND (:software IS NULL OR :software = ip.software)
+			  AND (:software = '' OR :software = ip.software)
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
@@ -171,7 +173,8 @@ public interface ProvInstancePriceRepository
 	 * @param terms       The valid instance terms identifiers.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
@@ -195,7 +198,8 @@ public interface ProvInstancePriceRepository
 	 * @param terms       The valid instance terms identifiers.
 	 * @param os          The requested OS.
 	 * @param location    The requested location identifier.
-	 * @param rate        Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate        Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
@@ -213,5 +217,6 @@ public interface ProvInstancePriceRepository
 			Pageable pageable);
 
 	@CacheResult(cacheName = "prov-instance-os")
+	@Override
 	List<String> findAllOs(@CacheKey String node);
 }

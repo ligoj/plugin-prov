@@ -41,7 +41,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param limitCpu    The maximum CPU. Used only to reduce initial lookup potential result.
 	 * @param limitGpu    The maximum GPU. Used only to reduce initial lookup potential result.
 	 * @param limitRam    The maximum RAM in MB. Used only to reduce initial lookup potential result.
-	 * @param constant    The optional constant CPU behavior constraint.
+	 * @param baseline    The baseline CPU usage from 0 to 100.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.
 	 * @param processor   Optional processor requirement. A <code>LIKE</code> will be used.
@@ -57,30 +57,30 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	@Query("""
 			SELECT id FROM #{#entityName} WHERE
 			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
-			  AND (:type IS NULL OR id = :type)
+			  AND (:type = 0 OR id = :type)
 			  AND (cpu BETWEEN :cpu AND :limitCpu)
-			  AND (:gpu=0.0 OR (gpu IS NOT NULL AND (gpu BETWEEN :gpu AND :limitGpu) AND (:gpuRate IS NULL OR gpuRate >= :gpuRate)))
 			  AND (ram BETWEEN :ram AND :limitRam)
-			  AND (:constant IS NULL OR constant = :constant)
-			  AND (:physical IS NULL OR physical = :physical)
+			  AND (:gpu=0.0 OR (gpu IS NOT NULL AND (gpu BETWEEN :gpu AND :limitGpu) AND gpuRate >= :gpuRate))
+			  AND (baseline=0.0 OR baseline IS NULL OR :baseline <= baseline)
+			  AND (:physical = FALSE OR physical = :physical)
 			  AND (:autoScale = FALSE OR autoScale = :autoScale)
-			  AND (:edge IS NULL OR edge = :edge)
-			  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)
-			  AND (:ramRate IS NULL OR ramRate >= :ramRate)
-			  AND (:networkRate IS NULL OR networkRate >= :networkRate)
-			  AND (:storageRate IS NULL OR storageRate >= :storageRate)
-			  AND (:processor IS NULL
+			  AND (:edge = FALSE OR edge = :edge)
+			  AND (cpuRate IS NULL OR cpuRate >= :cpuRate)
+			  AND (ramRate IS NULL OR ramRate >= :ramRate)
+			  AND (networkRate IS NULL OR networkRate >= :networkRate)
+			  AND (storageRate IS NULL OR storageRate >= :storageRate)
+			  AND (:processor = ''
 			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
 	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu, double limitRam,
-			double limitGpu, Boolean constant, Boolean physical, Integer type, String processor, boolean autoScale,
-			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, Boolean edge);
+			double limitGpu, double baseline, boolean physical, int type, String processor, boolean autoScale,
+			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, boolean edge);
 
 	/**
 	 * Return the valid instance types matching the requirements.
 	 *
 	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
-	 * @param constant    The optional constant CPU behavior constraint.
+	 * @param baseline    The minial baseline CPU percentage, from 1 to 100.
 	 * @param physical    The optional physical (not virtual) instance type constraint.
 	 * @param type        The optional instance type identifier. May be <code>null</code>.
 	 * @param processor   Optional processor requirement. A <code>LIKE</code> will be used.
@@ -90,27 +90,30 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param ramRate     Optional minimal RAM rate.
 	 * @param networkRate Optional minimal network rate.
 	 * @param storageRate Optional minimal storage rate.
+	 * @param edge        Optional edge location constraint.
 	 * @return The matching dynamic instance types.
 	 */
 	@Query("""
 			SELECT id FROM #{#entityName} WHERE
 			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
-			  AND (:type IS NULL OR id = :type)
 			  AND cpu = 0
-			  AND (:constant IS NULL OR constant = :constant)
-			  AND (:physical IS NULL OR physical = :physical)
+			  AND (:type = 0 OR id = :type)
+			  AND (baseline=0.0 OR :baseline <= baseline)
+			  AND (:physical = FALSE OR physical = :physical)
 			  AND (:autoScale = FALSE OR autoScale = :autoScale)
-			  AND (:cpuRate IS NULL OR cpuRate >= :cpuRate)
-			  AND (:gpuRate IS NULL OR gpuRate >= :gpuRate)
-			  AND (:ramRate IS NULL OR ramRate >= :ramRate)
-			  AND (:networkRate IS NULL OR networkRate >= :networkRate)
-			  AND (:storageRate IS NULL OR storageRate >= :storageRate)
-			  AND (:processor IS NULL
+			  AND (:edge = FALSE OR edge = :edge)
+			  AND (cpuRate IS NULL OR cpuRate >= :cpuRate)
+			  AND (ramRate IS NULL OR ramRate >= :ramRate)
+			  AND (gpuRate IS NULL OR gpuRate >= :gpuRate)
+			  AND (networkRate IS NULL OR networkRate >= :networkRate)
+			  AND (storageRate IS NULL OR storageRate >= :storageRate)
+			  AND (:processor = ''
 			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
-	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
+			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
+			boolean edge);
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.

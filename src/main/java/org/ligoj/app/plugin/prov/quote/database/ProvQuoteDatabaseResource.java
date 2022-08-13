@@ -149,7 +149,7 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());

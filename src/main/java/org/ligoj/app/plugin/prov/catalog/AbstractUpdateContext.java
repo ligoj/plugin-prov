@@ -234,18 +234,18 @@ public abstract class AbstractUpdateContext {
 	private double hoursMonth = ProvResource.DEFAULT_HOURS_MONTH;
 
 	/**
-	 * CO2 data set.
+	 * Instance CO2 data set.
 	 */
 	@Getter
 	@Setter
 	private Map<String, Co2Data> co2DataSet = new HashMap<>();
 
 	/**
-	 * Ingored CO2 data set. Key is the instance type to ignore, either explicitly, either already warned.
+	 * Regional CO2 data set.
 	 */
 	@Getter
 	@Setter
-	private Map<String, Boolean> co2DataSetIgnored = new ConcurrentHashMap<>();
+	private Map<String, Co2RegionData> co2RegionDataSet = new HashMap<>();
 
 	protected AbstractUpdateContext(AbstractUpdateContext parent) {
 		this();
@@ -267,7 +267,7 @@ public abstract class AbstractUpdateContext {
 		this.validOs = parent.validOs;
 		this.mapRegionById = parent.getMapRegionById();
 		this.co2DataSet = parent.getCo2DataSet();
-		this.co2DataSetIgnored = parent.getCo2DataSetIgnored();
+		this.co2RegionDataSet = parent.getCo2RegionDataSet();
 	}
 
 	/**

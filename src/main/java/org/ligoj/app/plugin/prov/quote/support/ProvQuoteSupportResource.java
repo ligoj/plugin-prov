@@ -196,7 +196,7 @@ public class ProvQuoteSupportResource
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}

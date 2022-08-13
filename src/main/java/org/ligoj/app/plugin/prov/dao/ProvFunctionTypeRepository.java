@@ -20,9 +20,9 @@ public interface ProvFunctionTypeRepository extends BaseProvInstanceTypeReposito
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey double gpu,
 			@CacheKey double ram, @CacheKey double limitCpu, @CacheKey double limitGpu, @CacheKey double limitRam,
-			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor,
+			@CacheKey double baseline, @CacheKey boolean physical, @CacheKey int type, @CacheKey String processor,
 			@CacheKey boolean autoScale, @CacheKey Rate cpuRate, @CacheKey Rate gpuRate, @CacheKey Rate ramRate,
-			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey Boolean edge);
+			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey boolean edge);
 
 	@CacheResult(cacheName = "prov-function-type-has-dyn")
 	@Override
@@ -30,8 +30,9 @@ public interface ProvFunctionTypeRepository extends BaseProvInstanceTypeReposito
 
 	@CacheResult(cacheName = "prov-function-type-dyn")
 	@Override
-	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
+			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
+			@CacheKey boolean edge);
 
 }

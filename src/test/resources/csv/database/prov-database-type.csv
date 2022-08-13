@@ -1,6 +1,6 @@
-node.id;code;name;cpu;ram;constant;description;processor
-service:prov:test;database1;database1;0.5;2000;true;databaseD1
-service:prov:test;database2;database2;1;2000;false;databaseD2;Intel Xeon Platinum 8175 (Skylake)
-service:prov:test;database3;database3;2;2000;true;databaseD3
-service:prov:test;databased0;databaseD0;0;0;true;databaseD0
-service:prov:x;databasex;databaseX;8;8000;false;databaseDX
+node.id;code;name;cpu;ram;baseline;description;processor
+service:prov:test;database1;database1;0.5;2000;100;databaseD1
+service:prov:test;database2;database2;1;2000;20;databaseD2;Intel Xeon Platinum 8175 (Skylake)
+service:prov:test;database3;database3;2;2000;100;databaseD3
+service:prov:test;databased0;databaseD0;0;0;100;databaseD0
+service:prov:x;databasex;databaseX;8;8000;15;databaseDX

@@ -42,6 +42,11 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	private double ram;
 
 	/**
+	 * Maximal efficient baseline CPU workload, from 0 to 100. Default is <code>100</code> for <code>null</code> value.
+	 */
+	private Double baseline;
+
+	/**
 	 * Optional physical processor. May be <code>null</code>.
 	 */
 	private String processor;
@@ -92,12 +97,6 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	private Rate networkRate = Rate.MEDIUM;
 
 	/**
-	 * When <code>true</code> the delivery power is constant over time. Otherwise, is variable.
-	 */
-	@NotNull
-	private Boolean constant;
-
-	/**
 	 * Optional auto-scaling capability requirement. When <code>true</code>, auto-scale must be supported.
 	 */
 	private boolean autoScale;
@@ -113,7 +112,13 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	}
 
 	/**
-	 * Indicates the consumption of carbon(co2) for this instance. When <code>null</code>, the value is unknown.
+	 * Indicates the consumption of Watt for this instance. When <code>null</code>, the value is unknown.
 	 */
-	private Double co2;
+	private Double watt;
+
+	/**
+	 * Indicates the consumption of Watt for this instance. When <code>null</code>, the value is unknown. This an array
+	 * of 10% workload usage, from idle to 90%. Separator is <code>;</code>.
+	 */
+	private String watt10;
 }

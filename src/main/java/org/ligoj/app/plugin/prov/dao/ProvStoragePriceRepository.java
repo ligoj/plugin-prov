@@ -56,47 +56,47 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			             END) * sp.costGb) AS cost,
 			 st.latency AS latency FROM #{#entityName} AS sp INNER JOIN sp.type st
 			 WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))
-			 AND (:latency IS NULL OR st.latency >= :latency)
-			 AND (:optimized IS NULL OR st.optimized = :optimized)
+			 AND (st.latency >= :latency)
+			 AND (CAST(:optimized as string) IS NULL OR st.optimized = :optimized)
 			 AND (st.maximal IS NULL OR st.maximal >= :size)
 			 AND (sp.location IS NULL OR sp.location.id = :location)
-			 AND (:instance IS NULL OR st.notInstanceType IS NULL
+			 AND (:instance = 0 OR st.notInstanceType IS NULL
 			   OR EXISTS(SELECT 1 FROM ProvQuoteInstance qi
 			        LEFT JOIN qi.price pqi LEFT JOIN pqi.type type
 			     WHERE qi.id = :instance
 			      AND (sp.location = qi.location OR sp.location.id = :qLocation)
 			      AND (type.code NOT LIKE st.notInstanceType)))
-			 AND (:instance IS NULL OR (st.instanceType IS NOT NULL
+			 AND (:instance = 0 OR (st.instanceType IS NOT NULL
 			   AND EXISTS(SELECT 1 FROM ProvQuoteInstance qi
 			        LEFT JOIN qi.price pqi LEFT JOIN pqi.type type
 			     WHERE qi.id = :instance
 			      AND (sp.location = qi.location OR sp.location.id = :qLocation)
 			      AND (type.code LIKE st.instanceType))))
-			 AND (:container IS NULL OR st.notContainerType IS NULL
+			 AND (:container = 0 OR st.notContainerType IS NULL
 			   OR EXISTS(SELECT 1 FROM ProvQuoteContainer qc
 			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
 			     WHERE qc.id = :container
 			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
 			      AND (type.code NOT LIKE st.notContainerType)))
-			 AND (:container IS NULL OR (st.containerType IS NOT NULL
+			 AND (:container = 0 OR (st.containerType IS NOT NULL
 			   AND EXISTS(SELECT 1 FROM ProvQuoteContainer qc
 			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
 			     WHERE qc.id = :container
 			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
 			      AND (type.code LIKE st.containerType))))
-			 AND (:function IS NULL OR st.notFunctionType IS NULL
+			 AND (:function = 0 OR st.notFunctionType IS NULL
 			   OR EXISTS(SELECT 1 FROM ProvQuoteFunction qc
 			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
 			     WHERE qc.id = :function
 			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
 			      AND (type.code NOT LIKE st.notFunctionType)))
-			 AND (:function IS NULL OR (st.functionType IS NOT NULL
+			 AND (:function = 0 OR (st.functionType IS NOT NULL
 			   AND EXISTS(SELECT 1 FROM ProvQuoteFunction qc
 			        LEFT JOIN qc.price pqc LEFT JOIN pqc.type type
 			     WHERE qc.id = :function
 			      AND (sp.location = qc.location OR sp.location.id = :qLocation)
 			      AND (type.code LIKE st.functionType))))
-			 AND (:database IS NULL OR st.notDatabaseType IS NULL
+			 AND (:database = 0 OR st.notDatabaseType IS NULL
 			    OR EXISTS(SELECT 1 FROM ProvQuoteDatabase qb
 			        LEFT JOIN qb.price price
 			        LEFT JOIN qb.price pqb LEFT JOIN pqb.type type
@@ -105,7 +105,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			      AND (type.code NOT LIKE st.notDatabaseType)
 			      AND ((price.storageEngine IS NULL AND st.engine IS NULL)
 			        OR price.storageEngine = st.engine)))
-			 AND (:database IS NULL OR (st.databaseType IS NOT NULL
+			 AND (:database = 0 OR (st.databaseType IS NOT NULL
 			    AND EXISTS(SELECT 1 FROM ProvQuoteDatabase qb
 			        LEFT JOIN qb.price price
 			        LEFT JOIN qb.price pqb LEFT JOIN pqb.type type
@@ -114,8 +114,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			      AND (type.code LIKE st.databaseType)
 			      AND ((price.storageEngine IS NULL AND st.engine IS NULL) OR price.storageEngine = st.engine))))
 			 ORDER BY cost ASC, latency DESC""")
-	List<Object[]> findLowestPrice(String node, double size, Rate latency, Integer instance, Integer database,
-			Integer container, Integer function, ProvStorageOptimized optimized, int location, int qLocation,
+	List<Object[]> findLowestPrice(String node, double size, Rate latency, int instance, int database,
+			int container, int function, ProvStorageOptimized optimized, int location, int qLocation,
 			Pageable pageable);
 
 	/**
@@ -129,8 +129,8 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 */
 	@Query("SELECT sp FROM #{#entityName} sp, Subscription s INNER JOIN s.node AS sn LEFT JOIN sp.location AS loc INNER JOIN sp.type AS st"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(st.node.id, ':%') AND st.code = :type "
-			+ " AND (loc IS NULL OR :location IS NULL OR loc.id = :location)")
-	ProvStoragePrice findByTypeCode(int subscription, String type, Integer location);
+			+ " AND (loc IS NULL OR loc.id = :location)")
+	ProvStoragePrice findByTypeCode(int subscription, String type, int location);
 
 	/**
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
@@ -140,7 +140,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
-			+ " (:location IS NULL OR l.name = :location) AND t.node.id = :node             ")
+			+ " (:location = '' OR l.name = :location) AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByLocation(String node, String location);
 
 	/**

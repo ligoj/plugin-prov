@@ -130,7 +130,7 @@ public class ProvQuoteInstanceResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteInstance query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer) {
 		final var service = getService(configuration);
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());

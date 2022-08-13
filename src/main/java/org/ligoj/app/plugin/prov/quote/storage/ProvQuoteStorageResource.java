@@ -274,7 +274,7 @@ public class ProvQuoteStorageResource
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}
@@ -337,9 +337,9 @@ public class ProvQuoteStorageResource
 			qsLoc = Optional.ofNullable(locationRepository.toId(node, query.getLocationName())).orElse(0);
 		}
 		return spRepository
-				.findLowestPrice(node, query.getSize(), query.getLatency(), query.getInstance(), query.getDatabase(),
-						query.getContainer(), query.getFunction(), query.getOptimized(), qsLoc, qLoc,
-						PageRequest.of(0, 10))
+				.findLowestPrice(node, query.getSize(), normalize(query.getLatency()), normalize(query.getInstance()),
+						normalize(query.getDatabase()), normalize(query.getContainer()), normalize(query.getFunction()),
+						query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0])
 				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).toList();
 	}
@@ -390,8 +390,8 @@ public class ProvQuoteStorageResource
 	 */
 	private double getCo2(final ProvStoragePrice storagePrice, final int size) {
 		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
-		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment
-				* 0 + storagePrice.getCo2());
+		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment * 0
+				+ storagePrice.getCo2());
 	}
 
 	@Override

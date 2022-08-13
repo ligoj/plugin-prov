@@ -29,7 +29,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 */
 	@Query("SELECT ipt FROM ProvInstancePriceTerm ipt, Subscription s INNER JOIN s.node AS sn INNER JOIN ipt.node AS iptn"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(iptn.id, ':%')"
-			+ " AND (:criteria IS NULL OR UPPER(ipt.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%'))")
+			+ " AND (:criteria = '' OR UPPER(ipt.name) LIKE CONCAT(CONCAT('%', :criteria), '%'))")
 	Page<ProvInstancePriceTerm> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
@@ -50,18 +50,20 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @return The matching instance terms.
 	 */
 	@CacheResult(cacheName = "prov-instance-term")
-	@Query("SELECT id FROM #{#entityName} WHERE                                         "
-			+ "      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))               "
-			+ "  AND (:convOs = FALSE OR :convOs = convertibleOs)                       "
-			+ "  AND (:convEngine = FALSE OR :convEngine = convertibleEngine)           "
-			+ "  AND (:convType = FALSE OR :convType = convertibleType)                 "
-			+ "  AND (:convFamily = FALSE OR :convFamily = convertibleFamily)           "
-			+ "  AND (:convLocation = FALSE OR :convLocation = convertibleLocation)     "
-			+ "  AND (:reservation = FALSE OR :reservation = reservation)               "
-			+ "  AND (:ephemeral = TRUE OR ephemeral = FALSE)                           "
-			+ "  AND (location IS NULL OR location.id = :location)                      "
-			+ "  AND (:initialCost = TRUE OR initialCost = FALSE OR initialCost IS NULL)"
-			+ "  AND :maxPeriod >= period     ")
+	@Query("""
+			SELECT id FROM #{#entityName} WHERE
+			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			  AND (:convOs = FALSE OR :convOs = convertibleOs)
+			  AND (:convEngine = FALSE OR :convEngine = convertibleEngine)
+			  AND (:convType = FALSE OR :convType = convertibleType)
+			  AND (:convFamily = FALSE OR :convFamily = convertibleFamily)
+			  AND (:convLocation = FALSE OR :convLocation = convertibleLocation)
+			  AND (:reservation = FALSE OR :reservation = reservation)
+			  AND (:ephemeral = TRUE OR ephemeral = FALSE)
+			  AND (location IS NULL OR location.id = :location)
+			  AND (:initialCost = TRUE OR initialCost = FALSE OR initialCost IS NULL)
+			  AND :maxPeriod >= period
+			  """)
 	List<Integer> findValidTerms(@CacheKey String node, @CacheKey boolean convOs, @CacheKey boolean convEngine,
 			@CacheKey boolean convType, @CacheKey boolean convFamily, @CacheKey boolean convLocation,
 			@CacheKey boolean reservation, @CacheKey double maxPeriod, @CacheKey boolean ephemeral,

@@ -59,13 +59,13 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 */
 	@PositiveOrZero
 	private Double cpuMax;
-	
+
 	/**
 	 * The requested GPU.
 	 */
 	@PositiveOrZero
 	private double gpu;
-	
+
 	/**
 	 * The maximal used GPU. When <code>null</code>, the requested GPU is used.
 	 *
@@ -89,9 +89,9 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private Integer ramMax;
 
 	/**
-	 * The requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 * Efficient baseline CPU workload, from 1 to 100. Undefined when <code>null</code>
 	 */
-	private Boolean constant;
+	private String workload;
 
 	/**
 	 * Optional physical processor.
@@ -107,7 +107,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 * When <code>true</code>, this instance type must be executed at edge location.
 	 */
 	private Boolean edge;
-	
+
 	/**
 	 * The Internet access : Internet facing, etc.
 	 */
@@ -143,13 +143,12 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private ProvBudget budget;
 
 	/**
-	 * Optional budget for this resource when different from the related quote.
+	 * Optional optimizer for this resource when different from the related quote.
 	 */
 	@ManyToOne
 	@JsonSerialize(using = ToIdSerializer.class)
 	private ProvOptimizer optimizer;
 
-	
 	/**
 	 * Optional license model. When <code>null</code>, the configuration license model will be used. May be
 	 * {@value #LICENSE_INCLUDED}.
@@ -171,7 +170,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 */
 	@Enumerated(EnumType.ORDINAL)
 	private Rate cpuRate;
-	
+
 	/**
 	 * Optional GPU rate requirement.
 	 */
@@ -239,7 +238,6 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 		return optimizer == null ? getConfiguration().getOptimizer() : optimizer;
 	}
 
-	
 	/**
 	 * Return the usage name applied to the given resource. May be <code>null</code>.
 	 *
