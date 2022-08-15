@@ -21,7 +21,15 @@ import org.springframework.data.repository.NoRepositoryBean;
  */
 @NoRepositoryBean
 public interface BaseProvTermPriceOsRepository<T extends AbstractInstanceType, P extends AbstractTermPriceVmOs<T>>
-		extends BaseProvTermPriceRepository<T, P> {
+		extends BaseProvTermPriceVmRepository<T, P> {
+
+	String DYNAMIC_QUERY_OS = DYNAMIC_QUERY_VM + """
+			  AND ip.os=:os
+			""";
+
+	String LOWEST_QUERY_OS = LOWEST_QUERY_VM + """
+			  AND ip.os=:os
+			""";
 
 	/**
 	 * Return all licenses related to given node identifier.
@@ -32,7 +40,7 @@ public interface BaseProvTermPriceOsRepository<T extends AbstractInstanceType, P
 	 */
 	@Query("""
 			SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i
-			  WHERE (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%')) AND ip.os=:os ORDER BY ip.license
+			  WHERE :node = i.node.id AND ip.os=:os ORDER BY ip.license
 			""")
 	List<String> findAllLicenses(String node, VmOs os);
 
@@ -44,7 +52,7 @@ public interface BaseProvTermPriceOsRepository<T extends AbstractInstanceType, P
 	 */
 	@Query("""
 			SELECT DISTINCT(ip.os) FROM #{#entityName} ip INNER JOIN ip.type AS i
-			  WHERE ip.os IS NOT NULL AND (:node = i.node.id OR :node LIKE CONCAT(i.node.id,':%'))
+			  WHERE ip.os IS NOT NULL AND :node = i.node.id
 			  ORDER BY ip.os
 			""")
 	List<String> findAllOs(@CacheKey String node);

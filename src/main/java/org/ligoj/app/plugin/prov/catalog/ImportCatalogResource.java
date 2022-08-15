@@ -24,18 +24,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.dao.NodeRepository;
+import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.dao.Co2Price;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
-import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
 import org.ligoj.app.resource.node.NodeResource;
@@ -66,6 +62,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	private NodeResource nodeResource;
 
 	@Autowired
+	private ProvResource resource;
+
+	@Autowired
 	private SecurityHelper securityHelper;
 
 	@Autowired
@@ -78,27 +77,6 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	@Autowired
 	@Getter
 	protected ImportCatalogStatusRepository taskRepository;
-
-	@Autowired
-	private ProvInstancePriceRepository ipRepository;
-
-	@Autowired
-	private ProvDatabasePriceRepository dpRepository;
-
-	@Autowired
-	private ProvContainerPriceRepository cpRepository;
-
-	@Autowired
-	private ProvStorageTypeRepository stRepository;
-
-	@Autowired
-	private ProvInstanceTypeRepository itRepository;
-
-	@Autowired
-	private ProvContainerTypeRepository ctRepository;
-
-	@Autowired
-	private ProvDatabaseTypeRepository dtRepository;
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
@@ -121,9 +99,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		final var catalogService = locator.getResource(entity.getId(), ImportCatalogService.class);
 		final var task = startTask(entity.getId(), t -> {
 			t.setLocation(null);
-			t.setNbInstancePrices(null);
-			t.setNbInstanceTypes(null);
-			t.setNbStorageTypes(null);
+			t.setNbPrices(0);
+			t.setNbCo2Prices(0);
+			t.setNbTypes(0);
 			t.setWorkload(0);
 			t.setDone(0);
 			t.setPhase(null);
@@ -211,12 +189,24 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @param node The node identifier.
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
-		task.setNbInstancePrices(Stream.of(ipRepository, dpRepository, cpRepository)
-				.mapToInt(r -> (int) r.countBy("type.node.id", node)).sum());
-		task.setNbInstanceTypes(Stream.of(itRepository, dtRepository, ctRepository)
-				.mapToInt(r -> (int) r.countBy(BY_NODE, node)).sum());
+		Stream.of(ResourceType.values()).forEach(t -> updateResourceStats(task, node, t));
 		task.setNbLocations((int) locationRepository.countBy(BY_NODE, node));
-		task.setNbStorageTypes((int) stRepository.countBy(BY_NODE, node));
+	}
+
+	private void updateResourceStats(final ImportCatalogStatus task, final String node, ResourceType t) {
+		final AbstractProvQuoteResource resource = this.resource.getResource(t);
+		task.setNbPrices(addStat(task.getNbPrices(), (int) resource.getIpRepository().countBy("type.node.id", node)));
+		if (t.isCo2()) {
+			// UPdate CO2 prices
+			task.setNbCo2Prices(
+					addStat(task.getNbCo2Prices(), ((Co2Price) resource.getIpRepository()).countCo2DataByNode(node)));
+		}
+		task.setNbTypes(addStat(task.getNbTypes(), (int) resource.getItRepository().countBy(BY_NODE, node)));
+	}
+
+	private int addStat(final Integer current, final int value) {
+		return value + (current == null ? 0 : current.intValue());
+
 	}
 
 	/**
@@ -246,11 +236,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			vo.setNode(NodeResource.toVo(n));
 			vo.setCanImport(locator.getResource(n.getId(), ImportCatalogService.class) != null);
 			vo.setNbQuotes((int) repository.countByNode(n.getId()));
-			vo.setPreferredLocation(
-					locationRepository.findBy("node", n, new String[] { "preferred" }, new Object[] { true }));
+			vo.setPreferredLocation(locationRepository.findBy("node", n, new String[] { "preferred" }, true));
 			return vo;
 		}).toList();
-
 	}
 
 	/**

@@ -78,6 +78,7 @@ import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import lombok.Getter;
@@ -125,6 +126,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * @see <a href= "https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian_calendar</a>
 	 */
 	public static final int DEFAULT_HOURS_MONTH = 8760 / 12;
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Autowired
 	@Getter
@@ -683,5 +687,16 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	@Override
 	public String getName() {
 		return "Provisioning";
+	}
+
+	/**
+	 * Return the resource managing the given resource type.
+	 *
+	 * @param type The resource type to query.
+	 * @return The corresponding {@link BaseProvQuoteResource} managing the requested type.
+	 */
+	public AbstractProvQuoteResource<?, ?, ?, ?> getResource(final ResourceType type) {
+		return context.getBean("provQuote" + StringUtils.capitalize(type.name().toLowerCase()) + "Resource",
+				AbstractProvQuoteResource.class);
 	}
 }

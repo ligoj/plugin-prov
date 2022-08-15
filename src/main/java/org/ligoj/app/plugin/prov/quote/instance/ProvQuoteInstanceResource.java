@@ -197,7 +197,8 @@ public class ProvQuoteInstanceResource extends
 	@Path("{subscription:\\d+}/instance-software/{os}")
 	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
-		return ipRepository.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+		return ipRepository
+				.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getTool().getId(), os);
 	}
 
 	@Override
@@ -224,4 +225,5 @@ public class ProvQuoteInstanceResource extends
 		result.setCo2(round((double) rs[4]));
 		return result;
 	}
+
 }

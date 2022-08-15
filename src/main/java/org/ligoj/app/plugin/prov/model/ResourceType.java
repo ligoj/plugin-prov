@@ -13,37 +13,47 @@ public enum ResourceType {
 	/**
 	 * Storage resource.
 	 */
-	STORAGE(true),
+	STORAGE(true, false),
 
 	/**
 	 * Instance resource.
 	 */
-	INSTANCE(true),
+	INSTANCE(true, true),
 
 	/**
 	 * Support resource.
 	 */
-	SUPPORT(false),
+	SUPPORT(false, false),
 
 	/**
 	 * Database resource
 	 */
-	DATABASE(true),
+	DATABASE(true, true),
 
 	/**
 	 * Container resource
 	 */
-	CONTAINER(true),
+	CONTAINER(true, true),
 
 	/**
 	 * Function resource
 	 */
-	FUNCTION(true);
+	FUNCTION(true, true);
 
+	/**
+	 * When <code>true</code>, has network capability.
+	 */
 	@Getter
 	private boolean network;
 
-	ResourceType(boolean network) {
+	/**
+	 * When <code>true</code>, has CO2 capability.
+	 */
+	@Getter
+	private boolean co2;
+
+	ResourceType(boolean network, boolean co2) {
 		this.network = network;
+		this.co2 = co2;
 	}
 }

@@ -157,10 +157,10 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(status.isFinished());
 		Assertions.assertFalse(status.isFailed());
 		Assertions.assertNotEquals(0, status.getLastSuccess().getTime());
-		Assertions.assertEquals(116, status.getNbInstancePrices().intValue()); // 105 + 11 (db)
-		Assertions.assertEquals(17, status.getNbInstanceTypes().intValue()); // 13 + 3
+		Assertions.assertEquals(124, status.getNbPrices().intValue());
+		Assertions.assertEquals(116, status.getNbCo2Prices().intValue());
+		Assertions.assertEquals(23, status.getNbTypes().intValue()); // 13 + 3 + 6 storage
 		Assertions.assertEquals(4, status.getNbLocations().intValue());
-		Assertions.assertEquals(6, status.getNbStorageTypes().intValue()); // 4 + 2
 		Mockito.verify(service).updateCatalog("service:prov:test", false);
 	}
 
@@ -199,10 +199,10 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertTrue(status.isFinished());
 		Assertions.assertTrue(status.isFailed());
 		Assertions.assertEquals(0, status.getLastSuccess().getTime());
-		Assertions.assertEquals(-1, status.getNbInstancePrices().intValue());
-		Assertions.assertEquals(-1, status.getNbInstanceTypes().intValue());
-		Assertions.assertEquals(-1, status.getNbLocations().intValue());
-		Assertions.assertEquals(-1, status.getNbStorageTypes().intValue());
+		Assertions.assertEquals(0, status.getNbPrices().intValue());
+		Assertions.assertEquals(0, status.getNbCo2Prices().intValue());
+		Assertions.assertEquals(0, status.getNbTypes().intValue());
+		Assertions.assertEquals(0, status.getNbLocations().intValue());
 		Mockito.verify(service).updateCatalog("service:prov:test", false);
 	}
 
@@ -217,10 +217,10 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		final var status = new ImportCatalogStatus();
 		status.setLastSuccess(new Date(0));
 		status.setAuthor(DEFAULT_USER);
-		status.setNbInstancePrices(-1);
-		status.setNbInstanceTypes(-1);
-		status.setNbLocations(-1);
-		status.setNbStorageTypes(-1);
+		status.setNbPrices(0);
+		status.setNbTypes(0);
+		status.setNbLocations(0);
+		status.setNbCo2Prices(0);
 		status.setStart(new Date());
 		status.setLocked(nodeRepository.findOne("service:prov:test"));
 		repository.saveAndFlush(status);
@@ -310,7 +310,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(location, catalogs.get(2).getPreferredLocation().getId());
 
 		// This provider does not support catalog update
-		Assertions.assertEquals(0, catalogs.get(0).getStatus().getNbInstancePrices().intValue());
+		Assertions.assertEquals(0, catalogs.get(0).getStatus().getNbPrices().intValue());
 		Assertions.assertNull(catalogs.get(0).getStatus().getEnd());
 		Assertions.assertNull(catalogs.get(0).getStatus().getStart());
 		Assertions.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());

@@ -22,17 +22,21 @@ public interface ProvContainerTypeRepository extends BaseProvInstanceTypeReposit
 			@CacheKey double ram, @CacheKey double limitCpu, @CacheKey double limitGpu, @CacheKey double limitRam,
 			@CacheKey double baseline, @CacheKey boolean physical, @CacheKey int type, @CacheKey String processor,
 			@CacheKey boolean autoScale, @CacheKey Rate cpuRate, @CacheKey Rate gpuRate, @CacheKey Rate ramRate,
-			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey boolean edge);
-
-	@CacheResult(cacheName = "prov-container-type-has-dyn")
-	@Override
-	boolean hasDynamicalTypes(String node);
+			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey boolean edge, @CacheKey boolean co2Mode);
 
 	@CacheResult(cacheName = "prov-container-type-dyn")
 	@Override
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
 			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
 			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
-			@CacheKey boolean edge);
+			@CacheKey boolean edge, @CacheKey boolean co2Mode);
+
+	@CacheResult(cacheName = "prov-container-type-has-dyn")
+	@Override
+	boolean hasDynamicalTypes(String node);
+
+	@CacheResult(cacheName = "prov-container-has-co2")
+	@Override
+	boolean hasCo2Data(String node);
 
 }

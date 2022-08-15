@@ -194,4 +194,5 @@ public class ProvQuoteContainerResource extends
 		result.setCo2(round((double) rs[4]));
 		return result;
 	}
+
 }

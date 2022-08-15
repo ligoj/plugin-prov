@@ -9,7 +9,7 @@ import org.ligoj.bootstrap.core.IDescribableBean;
 /**
  * Resource type specifications.
  */
-public interface ProvType extends NodeScoped, IDescribableBean<Integer> {
+public interface ProvType extends NodeScoped<Integer>, IDescribableBean<Integer> {
 
 	/**
 	 * Return the code of the type.

@@ -36,10 +36,10 @@ public class ProvCache implements CacheManagerAware {
 
 		// Instance cache configurations
 		createCacheEvict(cacheManager, provider, "prov-instance-type", "prov-instance-type-dyn",
-				"prov-instance-type-has-dyn", "prov-instance-term", "prov-database-type", "prov-database-type-dyn",
-				"prov-database-type-has-dyn", "prov-container-type", "prov-container-type-dyn",
-				"prov-container-type-has-dyn", "prov-function-type", "prov-function-type-dyn",
-				"prov-function-type-has-dyn");
+				"prov-instance-type-has-dyn", "prov-instance-has-co2", "prov-instance-term", "prov-database-type",
+				"prov-database-type-dyn", "prov-database-type-has-dyn", "prov-database-has-co2", "prov-container-type",
+				"prov-container-type-dyn", "prov-container-type-has-dyn", "prov-container-has-co2",
+				"prov-function-type", "prov-function-type-dyn", "prov-function-type-has-dyn", "prov-function-has-co2");
 		createCache(cacheManager, provider, "prov-processor", "prov-instance-software", "prov-instance-license",
 				"prov-instance-os", "prov-database-engine", "prov-database-edition", "prov-database-license",
 				"prov-container-license", "prov-container-os");

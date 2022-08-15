@@ -8,6 +8,8 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
+import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
@@ -16,6 +18,7 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -27,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <E> Quoted resource edition VO type.
  * @since 1.8.5
  */
-public abstract class AbstractProvQuoteResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
+public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity & ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
 		extends AbstractCostedResource<T, P, C> {
 
 	@Autowired
@@ -37,13 +40,32 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 	protected ProvNetworkResource networkResource;
 
 	/**
+	 * Return the repository managing the instance pricing entities.
+	 *
+	 * @return The repository managing the instance pricing entities.
+	 */
+	public abstract RestRepository<P, Integer> getIpRepository();
+
+	/**
+	 * Return the repository managing the quote entities.
+	 *
+	 * @return The repository managing the quote entities.
+	 */
+	public abstract BaseProvQuoteRepository<C> getQiRepository();
+
+	/**
+	 * Return the repository managing the instance type entities.
+	 *
+	 * @return The repository managing the instance type entities.
+	 */
+	public abstract BaseProvTypeRepository<T> getItRepository();
+
+	/**
 	 * Return the resource type managed by this service.
 	 *
 	 * @return The resource type managed by this service.
 	 */
 	protected abstract ResourceType getType();
-
-	protected abstract BaseProvQuoteRepository<C> getResourceRepository();
 
 	/**
 	 * Create the container inside a quote.
@@ -74,7 +96,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		networkResource.onDeleteAll(getType(), quote.getId());
 
 		// Delete all resources
-		final var repository = getResourceRepository();
+		final var repository = getQiRepository();
 		cost.getDeleted().put(getType(), repository.findAllIdentifiers(quote));
 		repository.deleteAll(repository.findAllBy("configuration.subscription.id", subscription));
 		repository.flush();
@@ -99,7 +121,7 @@ public abstract class AbstractProvQuoteResource<T extends ProvType, P extends Ab
 		tagResource.onDelete(getType(), id);
 		networkResource.onDelete(getType(), id);
 		return resource.refreshSupportCost(new UpdatedCost(id),
-				deleteAndUpdateCost(getResourceRepository(), id, Function.identity()::apply));
+				deleteAndUpdateCost(getQiRepository(), id, Function.identity()::apply));
 	}
 
 	/**

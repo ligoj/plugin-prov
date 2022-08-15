@@ -31,6 +31,8 @@ import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
+import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
@@ -54,6 +56,7 @@ import org.ligoj.app.plugin.prov.model.QuoteStorage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -95,11 +98,6 @@ public class ProvQuoteStorageResource
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
-
-	@Override
-	protected ProvQuoteStorageRepository getResourceRepository() {
-		return qsRepository;
-	}
 
 	@Override
 	@POST
@@ -399,4 +397,18 @@ public class ProvQuoteStorageResource
 		return ResourceType.STORAGE;
 	}
 
+	@Override
+	public RestRepository<ProvStoragePrice, Integer> getIpRepository() {
+		return spRepository;
+	}
+
+	@Override
+	public BaseProvQuoteRepository<ProvQuoteStorage> getQiRepository() {
+		return qsRepository;
+	}
+
+	@Override
+	public BaseProvTypeRepository<ProvStorageType> getItRepository() {
+		return stRepository;
+	}
 }

@@ -18,7 +18,8 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @param <T> The instance type type.
  */
 @NoRepositoryBean
-public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> extends BaseProvTypeRepository<T> {
+public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
+		extends BaseProvTypeRepository<T>, Co2Type {
 
 	/**
 	 * Return all distinct processors.
@@ -27,9 +28,25 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @return All distinct processors.
 	 */
 	@Query("SELECT DISTINCT processor FROM #{#entityName} AS t WHERE processor IS NOT NULL "
-			+ " AND t.node.id = :node OR t.node.id LIKE CONCAT(:node, ':%')                "
-			+ " ORDER BY processor           ")
+			+ " AND t.node.id = :node ORDER BY processor           ")
 	List<String> findProcessors(String node);
+
+	String BASE_CRITERIA = """
+			SELECT id FROM #{#entityName} WHERE
+			         :node = node.id
+			  AND (:type = 0 OR id = :type)
+			  AND (baseline=0.0 OR :baseline <= baseline)
+			  AND (:physical = FALSE OR physical = :physical)
+			  AND (:autoScale = FALSE OR autoScale = :autoScale)
+			  AND (:edge = FALSE OR edge = :edge)
+			  AND (cpuRate IS NULL OR cpuRate >= :cpuRate)
+			  AND (ramRate IS NULL OR ramRate >= :ramRate)
+			  AND (networkRate IS NULL OR networkRate >= :networkRate)
+			  AND (storageRate IS NULL OR storageRate >= :storageRate)
+			  AND (:co2Mode = FALSE OR watt > 0)
+			  AND (:processor = ''
+			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
+			""";
 
 	/**
 	 * Return the valid instance types matching the requirements.
@@ -52,29 +69,18 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param networkRate Optional minimal network rate.
 	 * @param storageRate Optional minimal storage rate.
 	 * @param edge        Optional edge location constraint.
+	 * @param co2Mode     When <code>true</code> only types having CO2 data are returned.
 	 * @return The matching instance types.
 	 */
-	@Query("""
-			SELECT id FROM #{#entityName} WHERE
-			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
-			  AND (:type = 0 OR id = :type)
+	@Query(BASE_CRITERIA + """
 			  AND (cpu BETWEEN :cpu AND :limitCpu)
 			  AND (ram BETWEEN :ram AND :limitRam)
 			  AND (:gpu=0.0 OR (gpu IS NOT NULL AND (gpu BETWEEN :gpu AND :limitGpu) AND gpuRate >= :gpuRate))
-			  AND (baseline=0.0 OR baseline IS NULL OR :baseline <= baseline)
-			  AND (:physical = FALSE OR physical = :physical)
-			  AND (:autoScale = FALSE OR autoScale = :autoScale)
-			  AND (:edge = FALSE OR edge = :edge)
-			  AND (cpuRate IS NULL OR cpuRate >= :cpuRate)
-			  AND (ramRate IS NULL OR ramRate >= :ramRate)
-			  AND (networkRate IS NULL OR networkRate >= :networkRate)
-			  AND (storageRate IS NULL OR storageRate >= :storageRate)
-			  AND (:processor = ''
-			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
 	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu, double limitRam,
 			double limitGpu, double baseline, boolean physical, int type, String processor, boolean autoScale,
-			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, boolean edge);
+			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, boolean edge,
+			boolean co2Mode);
 
 	/**
 	 * Return the valid instance types matching the requirements.
@@ -91,29 +97,17 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 * @param networkRate Optional minimal network rate.
 	 * @param storageRate Optional minimal storage rate.
 	 * @param edge        Optional edge location constraint.
+	 * @param co2Mode     When <code>true</code> only types having CO2 data are returned.
 	 * @return The matching dynamic instance types.
 	 */
-	@Query("""
-			SELECT id FROM #{#entityName} WHERE
-			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+	@Query(BASE_CRITERIA + """
 			  AND cpu = 0
-			  AND (:type = 0 OR id = :type)
-			  AND (baseline=0.0 OR :baseline <= baseline)
-			  AND (:physical = FALSE OR physical = :physical)
-			  AND (:autoScale = FALSE OR autoScale = :autoScale)
-			  AND (:edge = FALSE OR edge = :edge)
-			  AND (cpuRate IS NULL OR cpuRate >= :cpuRate)
-			  AND (ramRate IS NULL OR ramRate >= :ramRate)
 			  AND (gpuRate IS NULL OR gpuRate >= :gpuRate)
-			  AND (networkRate IS NULL OR networkRate >= :networkRate)
-			  AND (storageRate IS NULL OR storageRate >= :storageRate)
-			  AND (:processor = ''
-			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
 			""")
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
 			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
 			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
-			boolean edge);
+			boolean edge, boolean co2Mode);
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.
@@ -123,7 +117,14 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType> 
 	 */
 	@Query("""
 			SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM #{#entityName} WHERE
-			  (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			  :node = node.id
 			  AND cpu = 0""")
 	boolean hasDynamicalTypes(String node);
+
+	@Override
+	@Query("""
+			SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM #{#entityName} WHERE
+			  :node = node.id
+			  AND watt > 0""")
+	boolean hasCo2Data(String node);
 }

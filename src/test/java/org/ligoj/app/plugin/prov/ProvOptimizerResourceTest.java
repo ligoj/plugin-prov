@@ -84,6 +84,7 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		var instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
 		Assertions.assertEquals("C1", instance.getPrice().getCode());
 		Assertions.assertEquals(600.0, instance.getCo2());
+		Assertions.assertEquals(292.8, instance.getCost());
 
 		// Attach the CO2 profile as default optimizer of this quote
 		final var quote = new QuoteEditionVo();
@@ -112,6 +113,32 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		// Total = (cpu:(80*0.4+128.5*0.6) +ram:(0.8*0.4+1.3*0.6)*2)*2 = 111.3 *2 = 222,6
 		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
 		Assertions.assertEquals(222.6d, instance.getCo2());
+
+		// Remove a specific quote instance to define a valid configuration
+		qiRepository.deleteAllBy("name", "server7");
+		checkCost(resource.refresh(subscription), 2678.6, 5951.741, false, 776.5, 1730.9);
+
+		// Delete CO2 data from a specific price (C74), it becomes excluded from CO2 optimization lookup
+		instance.getPrice().getType().setWatt(0d);
+		em.persist(instance.getPrice().getType());
+		em.flush();
+		em.clear();
+		clearAllCache();
+		checkCost(resource.refresh(subscription), 4033.57, 7654.37, false, 3728.12, 6134.52);
+		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C13", instance.getPrice().getCode());
+		Assertions.assertEquals(585.6, instance.getCo2());
+		Assertions.assertEquals(585.6, instance.getCost());
+
+		// Delete all CO2 data from intance types to sitxh to COST mode when there is no CO2 data
+		em.createQuery("UPDATE ProvInstanceType SET watt=0").executeUpdate();
+		em.flush();
+		clearAllCache();
+		checkCost(resource.refresh(subscription), 2358.792, 4808.392, false, 1246.32, 3710.32);
+		instance = findByName(resource.getConfiguration(subscription).getInstances(), "server1");
+		Assertions.assertEquals("C1", instance.getPrice().getCode());
+		Assertions.assertEquals(600.0, instance.getCo2());
+		Assertions.assertEquals(292.8, instance.getCost());
 	}
 
 	@Test

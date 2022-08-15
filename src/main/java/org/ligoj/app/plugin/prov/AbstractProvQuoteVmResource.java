@@ -23,7 +23,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
 import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
@@ -101,31 +100,11 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	@Autowired
 	protected ServicePluginLocator locator;
 
-	/**
-	 * Return the repository managing the instance pricing entities.
-	 *
-	 * @return The repository managing the instance pricing entities.
-	 */
-	protected abstract BaseProvTermPriceRepository<T, P> getIpRepository();
-
-	/**
-	 * Return the repository managing the quote entities.
-	 *
-	 * @return The repository managing the quote entities.
-	 */
-	protected abstract BaseProvQuoteRepository<C> getQiRepository();
-
-	/**
-	 * Return the repository managing the instance type entities.
-	 *
-	 * @return The repository managing the instance type entities.
-	 */
-	protected abstract BaseProvInstanceTypeRepository<T> getItRepository();
+	@Override
+	public abstract BaseProvTermPriceRepository<T, P> getIpRepository();
 
 	@Override
-	protected BaseProvQuoteRepository<C> getResourceRepository() {
-		return getQiRepository();
-	}
+	public abstract BaseProvInstanceTypeRepository<T> getItRepository();
 
 	@Override
 	public UpdatedCost update(final E vo) {
@@ -659,7 +638,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
 	 */
 	private L lookup(final ProvQuote configuration, final Q query, final int maxPeriod, final double maxFactor) {
-		final var node = configuration.getSubscription().getNode().getId();
+		final var node = configuration.getSubscription().getNode().getTool().getId();
 		final int subscription = configuration.getSubscription().getId();
 		final var ramR = getRam(configuration, query);
 		final var cpuR = getCpu(configuration, query);
@@ -673,7 +652,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		// Compute the rate to use
 		final var usage = getUsage(configuration, query.getUsageName());
 		final var budget = getBudget(configuration, query.getBudgetName());
-		final var optimizer = getOptimizer(configuration, query.getOptimizerName()).getMode();
 		final var convOs = BooleanUtils.toBoolean(usage.getConvertibleOs());
 		final var convEngine = BooleanUtils.toBoolean(usage.getConvertibleEngine());
 		final var convType = BooleanUtils.toBoolean(usage.getConvertibleType());
@@ -687,30 +665,38 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var baseline = workload.getBaseline();
 		final var baselineR = (double) Math.round(baseline / 5d) * 5; // Round for cache hit improvement
 
+		// Override the optimizer depending on the capabilities of the catalog
+		var optimizer = getOptimizer(configuration, query.getOptimizerName()).getMode();
+		optimizer = (optimizer == Optimizer.CO2 && getItRepository().hasCo2Data(node)) ? optimizer : Optimizer.COST;
+
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
 		final var types = getItRepository().findValidTypes(node, cpuR, gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor,
 				ramR * maxFactor, baselineR, physR, typeId, procR, query.isAutoScale(), normalize(query.getCpuRate()),
 				normalize(query.getGpuRate()), normalize(query.getRamRate()), normalize(query.getNetworkRate()),
-				normalize(query.getStorageRate()), normalize(query.getEdge()));
+				normalize(query.getStorageRate()), normalize(query.getEdge()), optimizer == Optimizer.CO2);
+
+		// Resolve the valid terms
 		final var terms = iptRepository.findValidTerms(node,
 				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
 						|| getType() == ResourceType.FUNCTION) && convOs,
 				getType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation, reservation,
 				maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
 		Object[] lookup = null;
+
+		// Find the best price
 		if (!types.isEmpty()) {
 			// Get the best template instance price
 			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost,
 					optimizer).stream().findFirst().orElse(null);
 		}
 
-		// Dynamic type test
+		// Dynamic type lookup
 		if (getItRepository().hasDynamicalTypes(node) && gpuR == 0) {
 			final var dTypes = getItRepository().findDynamicTypes(node, baselineR, physR, typeId, procR,
 					query.isAutoScale(), normalize(query.getCpuRate()), normalize(query.getGpuRate()),
 					normalize(query.getRamRate()), normalize(query.getNetworkRate()), normalize(query.getStorageRate()),
-					normalize(query.getEdge()));
+					normalize(query.getEdge()), optimizer == Optimizer.CO2);
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,

@@ -52,7 +52,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	@CacheResult(cacheName = "prov-instance-term")
 	@Query("""
 			SELECT id FROM #{#entityName} WHERE
-			      (:node = node.id OR :node LIKE CONCAT(node.id,':%'))
+			      :node = node.id
 			  AND (:convOs = FALSE OR :convOs = convertibleOs)
 			  AND (:convEngine = FALSE OR :convEngine = convertibleEngine)
 			  AND (:convType = FALSE OR :convType = convertibleType)
