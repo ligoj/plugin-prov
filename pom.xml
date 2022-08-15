@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.2.17-SNAPSHOT</version>
+		<version>3.3.0</version>
 		<relativePath />
 	</parent>
 

@@ -189,24 +189,24 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 * @param node The node identifier.
 	 */
 	private void updateStats(final ImportCatalogStatus task, final String node) {
-		Stream.of(ResourceType.values()).forEach(t -> updateResourceStats(task, node, t));
+		final var taskTemp = new ImportCatalogStatus();
+		Stream.of(ResourceType.values()).forEach(t -> updateResourceStats(taskTemp, node, t));
 		task.setNbLocations((int) locationRepository.countBy(BY_NODE, node));
+		task.setNbPrices(taskTemp.getNbPrices());
+		task.setNbTypes(taskTemp.getNbTypes());
+		task.setNbCo2Prices(taskTemp.getNbCo2Prices());
 	}
 
 	private void updateResourceStats(final ImportCatalogStatus task, final String node, ResourceType t) {
+		@SuppressWarnings("rawtypes")
 		final AbstractProvQuoteResource resource = this.resource.getResource(t);
-		task.setNbPrices(addStat(task.getNbPrices(), (int) resource.getIpRepository().countBy("type.node.id", node)));
+		task.setNbPrices(task.getNbPrices() + (int) resource.getIpRepository().countBy("type.node.id", node));
 		if (t.isCo2()) {
 			// UPdate CO2 prices
 			task.setNbCo2Prices(
-					addStat(task.getNbCo2Prices(), ((Co2Price) resource.getIpRepository()).countCo2DataByNode(node)));
+					task.getNbCo2Prices() + ((Co2Price) resource.getIpRepository()).countCo2DataByNode(node));
 		}
-		task.setNbTypes(addStat(task.getNbTypes(), (int) resource.getItRepository().countBy(BY_NODE, node)));
-	}
-
-	private int addStat(final Integer current, final int value) {
-		return value + (current == null ? 0 : current.intValue());
-
+		task.setNbTypes(task.getNbTypes() + (int) resource.getItRepository().countBy(BY_NODE, node));
 	}
 
 	/**

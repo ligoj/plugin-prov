@@ -85,9 +85,6 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		context.getPreviousFunction();
 		context.setPreviousFunction(new HashMap<>());
 
-		context.setCo2DataSet(null);
-		context.setCo2RegionDataSet(null);
-
 		new AbstractUpdateContext(context) {
 		}.cleanup();
 

@@ -44,7 +44,7 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity implement
 	/**
 	 * Maximal efficient baseline CPU workload, from 0 to 100. Default is <code>100</code> for <code>null</code> value.
 	 */
-	private Double baseline;
+	private double baseline = 0;
 
 	/**
 	 * Optional physical processor. May be <code>null</code>.

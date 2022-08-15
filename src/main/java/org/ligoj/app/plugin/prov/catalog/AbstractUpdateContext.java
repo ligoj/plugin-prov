@@ -237,15 +237,13 @@ public abstract class AbstractUpdateContext {
 	 * Instance CO2 data set.
 	 */
 	@Getter
-	@Setter
-	private Map<String, Co2Data> co2DataSet = new HashMap<>();
+	private Map<String, Co2Data> co2DataSet = new ConcurrentHashMap<>();
 
 	/**
 	 * Regional CO2 data set.
 	 */
 	@Getter
-	@Setter
-	private Map<String, Co2RegionData> co2RegionDataSet = new HashMap<>();
+	private Map<String, Co2RegionData> co2RegionDataSet = new ConcurrentHashMap<>();
 
 	protected AbstractUpdateContext(AbstractUpdateContext parent) {
 		this();

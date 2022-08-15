@@ -33,7 +33,7 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 
 	String BASE_CRITERIA = """
 			SELECT id FROM #{#entityName} WHERE
-			         :node = node.id
+			       :node = node.id
 			  AND (:type = 0 OR id = :type)
 			  AND (baseline=0.0 OR :baseline <= baseline)
 			  AND (:physical = FALSE OR physical = :physical)

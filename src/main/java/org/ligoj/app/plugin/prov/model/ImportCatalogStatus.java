@@ -46,7 +46,7 @@ public class ImportCatalogStatus extends AbstractLongTaskNode {
 	/**
 	 * Number of imported instance prices from the last successful import having CO2 data.
 	 */
-	private Integer nbCo2Prices = null;
+	private Integer nbCo2Prices = 0;
 
 	/**
 	 * The current region being imported.
