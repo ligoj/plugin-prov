@@ -632,11 +632,11 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Return the kW.h to equivalent C02g/W.h depending on the location.
+	 * Return the kW.h to equivalent CO2g/W.h depending on the location.
 	 * 
 	 * @param context  The current context holding the CO2 data set
 	 * @param location Te target location.
-	 * @return the kW.h to equivalent C02g/W.h depending on the location.
+	 * @return the kW.h to equivalent CO2g/W.h depending on the location.
 	 */
 	protected double toConversion(final AbstractUpdateContext context, final String location) {
 		final var mapping = context.getCo2RegionDataSet();
