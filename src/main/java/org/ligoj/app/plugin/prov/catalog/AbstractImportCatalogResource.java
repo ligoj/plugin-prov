@@ -522,7 +522,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
-	private <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
+	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
