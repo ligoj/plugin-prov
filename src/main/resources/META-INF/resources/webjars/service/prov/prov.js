@@ -1590,6 +1590,9 @@ define(function () {
 			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter', '../main/service/prov/prov-slider', '../main/service/prov/lib/checkbox3'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
 				current.$cascade.trigger('html', _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))));
+				if (typeof current.$parent.$parent.getRestrictedUrl() === 'string') {
+					$('.prov-menu-separator').remove();
+				}
 				current.tagManager = tagManager.build(current);
 				current.filterManager = filterManager;
 				current.initOdometer();
