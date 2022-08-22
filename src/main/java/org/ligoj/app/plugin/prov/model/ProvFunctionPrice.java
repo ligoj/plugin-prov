@@ -39,7 +39,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_FUNCTION_PRICE", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "location", "term", "type" }), @UniqueConstraint(columnNames = "code") })
+		@UniqueConstraint(columnNames = { "location", "license", "term", "type" }),
+		@UniqueConstraint(columnNames = "code") })
 public class ProvFunctionPrice extends AbstractTermPriceVm<ProvFunctionType> {
 
 	/**
