@@ -20,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_CONTAINER_PRICE", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "location", "os", "term", "type" }),
+		@UniqueConstraint(columnNames = { "location", "os", "license", "term", "type" }),
 		@UniqueConstraint(columnNames = "code") })
 public class ProvContainerPrice extends AbstractTermPriceVmOs<ProvContainerType> {
 
