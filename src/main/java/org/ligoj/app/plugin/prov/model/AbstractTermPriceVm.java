@@ -103,6 +103,7 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * Optional built-in license model. Special license term is <code>BYOL</code>. When <code>null</code>, license is
 	 * included in the price or not applicable.
 	 */
+	@Column(length = 50)
 	private String license;
 
 	/**

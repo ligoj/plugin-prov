@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
@@ -36,6 +37,7 @@ public abstract class AbstractTermPriceVmOs<T extends ProvType> extends Abstract
 	 */
 	@NotNull
 	@Enumerated(EnumType.STRING)
+	@Column(length = 50)
 	private VmOs os;
 
 }

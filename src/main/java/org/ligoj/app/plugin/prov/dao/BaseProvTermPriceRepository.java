@@ -39,8 +39,9 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 			 FROM #{#entityName} ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL
+			  AND (ip.type.id IN :types)
+			  AND (ip.term.id IN :terms)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			""";
 
 	/**

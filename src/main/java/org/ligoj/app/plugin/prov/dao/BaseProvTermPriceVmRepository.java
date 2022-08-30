@@ -49,12 +49,13 @@ public interface BaseProvTermPriceVmRepository<T extends AbstractInstanceType, P
 			 FROM #{#entityName} ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NOT NULL
+			  AND (ip.license IS NULL OR :license = ip.license)
+			  AND (ip.type.id IN :types)
+			  AND (ip.term.id IN :terms)
 			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
 			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
 			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
-			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
 			""";
 

@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -22,9 +23,8 @@ import lombok.ToString;
 @Setter
 @Entity
 @ToString(of = { "engine", "edition" }, callSuper = true)
-@Table(name = "LIGOJ_PROV_DATABASE_PRICE", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "location", "engine", "edition", "license", "term", "type" }),
-		@UniqueConstraint(columnNames = "code") })
+@Table(name = "LIGOJ_PROV_DATABASE_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = "code") }, indexes = {
+		@Index(name = "lookup_d_index", columnList = "location,type,term,engine,edition,increment_cpu,license") })
 public class ProvDatabasePrice extends AbstractTermPriceVm<ProvDatabaseType> {
 
 	/**

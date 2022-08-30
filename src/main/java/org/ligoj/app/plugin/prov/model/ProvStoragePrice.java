@@ -4,6 +4,7 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -18,7 +19,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_STORAGE_PRICE", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "code" }) })
+		@UniqueConstraint(columnNames = { "code" }) }, indexes = {
+				@Index(name = "lookup_s_index", columnList = "location,type") })
 public class ProvStoragePrice extends AbstractPrice<ProvStorageType> {
 
 	/**
