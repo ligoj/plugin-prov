@@ -60,8 +60,6 @@ import net.jnellis.binpack.LinearBinPacker;
 @Slf4j
 public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, ProvBudgetRepository, BudgetEditionVo> {
 
-	private static final String CODE = " (code=";
-
 	@Autowired
 	@Getter
 	private ProvBudgetRepository repository;
@@ -114,14 +112,19 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param costs The updated costs and resources.
 	 */
 	public void lean(final ProvQuote quote, final Map<ResourceType, Map<Integer, Floating>> costs) {
+		Hibernate.initialize(quote.getUsages());
+		Hibernate.initialize(quote.getBudgets());
+		Hibernate.initialize(quote.getOptimizers());
+		Hibernate.initialize(quote.getInstances());
+		Hibernate.initialize(quote.getDatabases());
+		Hibernate.initialize(quote.getContainers());
+		Hibernate.initialize(quote.getFunctions());
+		Hibernate.initialize(quote.getStorages());
 		final var instances = qiRepository.findAll(quote);
 		final var databases = qbRepository.findAll(quote);
 		final var containers = qcRepository.findAll(quote);
 		final var functions = qfRepository.findAll(quote);
 		final var storages = qsRepository.findAll(quote);
-		Hibernate.initialize(quote.getUsages());
-		Hibernate.initialize(quote.getBudgets());
-		Hibernate.initialize(quote.getOptimizers());
 		lean(quote, instances, databases, containers, functions, storages, costs);
 
 		// Reset the orphan budgets
@@ -251,20 +254,17 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
 			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		logLean(c -> log.info("Start lean: {}",
-				c.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList()), instances, databases,
+				c.stream().map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList()), instances, databases,
 				containers, functions);
 
 		// Lookup the best prices
 		// And build the pack candidates
 		final var packToQr = new IdentityHashMap<Double, AbstractQuoteVm<?>>();
-		final var prices = new HashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
+		final var prices = new ConcurrentHashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
 		final var validatedQi = lookup(instances, prices, qiResource, packToQr);
 		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
 		final var validatedQc = lookup(containers, prices, qcResource, packToQr);
 		final var validatedQf = lookup(functions, prices, qfResource, packToQr);
-
-		log.info("Lookup result:                {}", prices.entrySet().stream().map(e -> e.getKey().getName() + CODE
-				+ e.getKey().getPrice().getCode() + " -> " + e.getValue().getPrice().getCode() + ")").toList());
 
 		// Pack the prices having an initial cost
 		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
@@ -275,7 +275,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		commitPrices(validatedQf, prices, ResourceType.FUNCTION, costs, qfResource);
 		logLean(t -> {
 			log.info("Lean:              {}",
-					t.stream().map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList());
+					t.stream().map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList());
 			log.info("Lean monthly costs:{}", t.stream().map(i -> i.getPrice().getCost()).toList());
 			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
@@ -294,8 +294,9 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		// At least one initial cost is implied, use bin packing strategy
 		final var packStart = System.currentTimeMillis();
 		final var packer = new LinearBinPacker();
+		final var entries = new ArrayList<>(packToQr.entrySet());
 		final var bins = packer.packAll(
-				new ArrayList<>(packToQr.entrySet().stream().sorted(priceOrder(prices)).map(Entry::getKey).toList()),
+				new ArrayList<>(entries.stream().sorted(priceOrder(prices)).map(Entry::getKey).toList()),
 				new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
 				new ArrayList<>(List.of(Double.MAX_VALUE)));
 		final var bin = bins.get(0);
@@ -312,7 +313,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		});
 		logLean(b -> {
 			log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
-					.map(i -> i.getName() + CODE + i.getPrice().getCode() + ")").toList());
+					.map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList());
 			log.info("Packing result: {}", b);
 		}, bins);
 		logPack(packStart, packToQr, budget);
