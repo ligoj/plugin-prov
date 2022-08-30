@@ -45,7 +45,6 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @param maxPeriod    Maximal accepted period.
 	 * @param ephemeral    When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only
 	 *                     non ephemeral instance are accepted.
-	 * @param location     The required location.
 	 * @param initialCost  When <code>true</code>, the terms having an initial cost are accepted.
 	 * @return The matching instance terms.
 	 */
@@ -60,27 +59,25 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 			  AND (:convLocation = FALSE OR :convLocation = convertibleLocation)
 			  AND (:reservation = FALSE OR :reservation = reservation)
 			  AND (:ephemeral = TRUE OR ephemeral = FALSE)
-			  AND (location IS NULL OR location.id = :location)
 			  AND (:initialCost = TRUE OR initialCost = FALSE OR initialCost IS NULL)
 			  AND :maxPeriod >= period
 			  """)
 	List<Integer> findValidTerms(@CacheKey String node, @CacheKey boolean convOs, @CacheKey boolean convEngine,
 			@CacheKey boolean convType, @CacheKey boolean convFamily, @CacheKey boolean convLocation,
 			@CacheKey boolean reservation, @CacheKey double maxPeriod, @CacheKey boolean ephemeral,
-			@CacheKey int location, @CacheKey boolean initialCost);
+			@CacheKey boolean initialCost);
 
 	/**
 	 * Return all {@link ProvInstancePriceTerm} related to given node and within a specific location.
 	 *
-	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
-	 * @param term1    The expected term name prefix alternative 1.
-	 * @param term2    The expected term name prefix alternative 2.
+	 * @param node  The node (provider) to match.
+	 * @param term1 The expected term name prefix alternative 1.
+	 * @param term2 The expected term name prefix alternative 2.
 	 * @return The filtered {@link ProvInstancePriceTerm}.
 	 */
-	@Query("FROM #{#entityName} e LEFT JOIN FETCH e.location l WHERE                      "
-			+ "     (l.name IS NULL OR l.name = :location)                                "
-			+ " AND e.node.id = :node                                                "
-			+ " AND (e.name LIKE CONCAT(:term1, '%') OR e.name LIKE CONCAT(:term2, '%'))")
-	List<ProvInstancePriceTerm> findByLocation(String node, String location, final String term1, final String term2);
+	@Query("""
+			FROM #{#entityName} e WHERE e.node.id = :node
+			 AND (e.name LIKE CONCAT(:term1, '%') OR e.name LIKE CONCAT(:term2, '%'))
+			""")
+	List<ProvInstancePriceTerm> findByName(String node, final String term1, final String term2);
 }

@@ -327,7 +327,6 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance5", pi.getType().getName());
 		Assertions.assertEquals(1537.2, pi.getCost(), DELTA);
 		Assertions.assertEquals("on-demandR5", pi.getTerm().getName());
-		Assertions.assertEquals("region-5", pi.getTerm().getLocation().getName());
 		Assertions.assertFalse(pi.getTerm().getConvertibleEngine());
 		Assertions.assertFalse(pi.getTerm().getConvertibleOs());
 		Assertions.assertTrue(pi.getTerm().getConvertibleFamily());

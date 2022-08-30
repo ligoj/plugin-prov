@@ -239,7 +239,6 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(190.0, pi.getCost(), DELTA);
 		Assertions.assertEquals("MYSQLE5", pi.getCode());
 		Assertions.assertEquals("on-demandE5", pi.getTerm().getName());
-		Assertions.assertEquals("region-5", pi.getTerm().getLocation().getName());
 		Assertions.assertTrue(pi.getTerm().getConvertibleEngine());
 	}
 

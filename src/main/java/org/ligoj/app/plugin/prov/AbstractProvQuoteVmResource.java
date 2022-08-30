@@ -51,6 +51,8 @@ import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The resource part of the provisioning of a VM like type.
  *
@@ -61,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <L> Quoted resource lookup result type.
  * @param <Q> Quoted resource details type.
  */
+@Slf4j
 public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>, E extends AbstractQuoteVmEditionVo, L extends AbstractLookup<P>, Q extends QuoteVm>
 		extends AbstractProvQuoteResource<T, P, C, E> {
 
@@ -619,12 +622,18 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var rate = usage.getRate() / 100d;
 		final var duration = usage.getDuration();
 		final var maxPeriod = (int) Math.ceil(duration * rate) + 12;
+		final var start = System.currentTimeMillis();
+		var moreExecution = false;
+
 		var lookup = this.lookup(configuration, query, maxPeriod, 10);
 		if (lookup == null) {
 			// Another wider lookup
+			moreExecution = true;
 			lookup = this.lookup(configuration, query, 10000, 10000);
 		}
 		// Return the match
+		log.debug("lookup {} (ext={}): {}ms - {}", configuration.getSubscription().getId(), moreExecution,
+				System.currentTimeMillis() - start, query);
 		return lookup;
 	}
 
@@ -681,7 +690,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 				(getType() == ResourceType.INSTANCE || getType() == ResourceType.CONTAINER
 						|| getType() == ResourceType.FUNCTION) && convOs,
 				getType() == ResourceType.DATABASE && convEngine, convType, convFamily, convLocation, reservation,
-				maxPeriod, query.isEphemeral(), locationR, initialCost > 0);
+				maxPeriod, query.isEphemeral(), initialCost > 0);
 		Object[] lookup = null;
 
 		// Find the best price
