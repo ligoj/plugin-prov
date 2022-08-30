@@ -873,7 +873,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 		var lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
 		Assertions.assertEquals("storage1", lookup.getPrice().getType().getCode());
-
+		
 		lookup.getPrice().getType().setInstanceType("-not-match-");
 		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
 		Assertions.assertEquals("storage4", lookup.getPrice().getType().getCode());

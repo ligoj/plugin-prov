@@ -41,7 +41,6 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
 import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
@@ -62,7 +61,6 @@ import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -318,6 +316,11 @@ public class ProvQuoteStorageResource
 		return lookup(configuration, query, qi, qb, qc, qf);
 	}
 
+	private int getLocation(final String node, final QuoteStorage query, final int defaultLocation) {
+		return query.getLocationName() == null ? defaultLocation
+				: normalize(locationRepository.toId(node, query.getLocationName()));
+	}
+
 	private List<QuoteStorageLookup> lookup(final ProvQuote configuration, final QuoteStorage query,
 			final ProvQuoteInstance qi, final ProvQuoteDatabase qb, final ProvQuoteContainer qc,
 			final ProvQuoteFunction qf) {
@@ -326,17 +329,23 @@ public class ProvQuoteStorageResource
 		final var node = configuration.getSubscription().getNode().getRefined().getId();
 
 		// The the right location from instance first, then the request one
-		final int qLoc = configuration.getLocation().getId();
+		final var attachment = Stream.of(qi, qb, qc, qf).filter(Objects::nonNull).findFirst().orElse(null);
+		final int qLoc;
 		final int qsLoc;
-		if (query.getLocationName() == null) {
-			qsLoc = Stream.of(qi, qb, qc, qf).filter(Objects::nonNull).findFirst().map(AbstractQuoteVm::getLocation)
-					.map(Persistable::getId).orElse(qLoc);
+		if (attachment == null) {
+			qLoc = 0;
+			qsLoc = getLocation(node, query, configuration.getLocation().getId());
 		} else {
-			qsLoc = Optional.ofNullable(locationRepository.toId(node, query.getLocationName())).orElse(0);
+			if (attachment.getLocation() == null) {
+				qLoc = configuration.getLocation().getId();
+			} else {
+				qLoc = attachment.getLocation().getId();
+			}
+			qsLoc = getLocation(node, query, qLoc);
 		}
 		return spRepository
-				.findLowestPrice(node, query.getSize(), normalize(query.getLatency()), normalize(query.getInstance()),
-						normalize(query.getDatabase()), normalize(query.getContainer()), normalize(query.getFunction()),
+				.findLowestPrice(node, query.getSize(), normalize(query.getLatency()), normalize(qi), normalize(qb),
+						qb == null ? "" : normalize(qb.getPrice().getStorageEngine()), normalize(qc), normalize(qf),
 						query.getOptimized(), qsLoc, qLoc, PageRequest.of(0, 10))
 				.stream().map(spx -> (ProvStoragePrice) spx[0])
 				.map(sp -> newPrice(sp, query.getSize(), getCost(sp, query.getSize()))).toList();

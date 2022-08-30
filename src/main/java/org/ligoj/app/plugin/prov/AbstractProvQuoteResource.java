@@ -135,6 +135,19 @@ public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity & 
 	}
 
 	/**
+	 * Return a normalized form a quote resource.
+	 *
+	 * @param value The optional quote.
+	 * @return The normalized value of the type's code.
+	 */
+	protected String normalize(final AbstractQuote<?> quote) {
+		if (quote == null) {
+			return "";
+		}
+		return quote.getPrice().getType().getCode();
+	}
+
+	/**
 	 * Return the rate replacing the <code>null</code> value by the minimal constraint
 	 * 
 	 * @param rate The query context.
