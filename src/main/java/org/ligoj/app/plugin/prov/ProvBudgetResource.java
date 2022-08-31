@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -259,7 +258,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 
 		// Lookup the best prices
 		// And build the pack candidates
-		final var packToQr = new IdentityHashMap<Double, AbstractQuoteVm<?>>();
+		final var packToQr = new ConcurrentHashMap<Double, AbstractQuoteVm<?>>();
 		final var prices = new ConcurrentHashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
 		final var validatedQi = lookup(instances, prices, qiResource, packToQr);
 		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
@@ -381,7 +380,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> lookup(
 			final List<C> nodes, final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource,
-			final IdentityHashMap<Double, AbstractQuoteVm<?>> packToQi) {
+			final Map<Double, AbstractQuoteVm<?>> packToQi) {
 		final var validatedQi = new ArrayList<C>();
 		this.resource.newStream(nodes).forEach(i -> {
 			final var price = resource.getNewPrice(i);

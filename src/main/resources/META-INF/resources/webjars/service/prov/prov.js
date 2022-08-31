@@ -520,18 +520,18 @@ define(function () {
 	}
 
 	function formatCo2Text(cost, _isMax, _i, noRichText, unbound) {
-		return formatManager.formatCost(cost, 3, 'g', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
+		return formatManager.formatWeight(cost, 3, 'g', noRichText === true ? '' : 'cost-unit') + (unbound ? '+' : '');
 	}
-	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound, currency) {
+	function formatCostOdometer(cost, isMax, $cost, _noRichTest, unbound, currency, baseFormatter) {
 		if (isMax) {
-			formatManager.formatCost(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
+			(baseFormatter || formatManager.formatCost)(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
 				let $wrapper = $cost.find('.cost-max');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight + ((cost.unbound || unbound) ? '+' : ''));
 				$wrapper.find('.cost-unit').html(unit);
 			});
 		} else {
-			formatManager.formatCost(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
+			(baseFormatter || formatManager.formatCost)(cost * currency.rate, 3, currency.unit, 'cost-unit', function (value, weight, unit) {
 				let $wrapper = $cost.find('.cost-min').removeClass('hidden');
 				$wrapper.find('.cost-value').html(value);
 				$wrapper.find('.cost-weight').html(weight);
@@ -554,16 +554,20 @@ define(function () {
 			return cost;
 		}
 
-		let formatter = type === 'co2' ? formatCo2Text : formatCostText;
 		let currency = type === 'co2' ? { unit: 'g', rate: 1 } : (cost?.currency || getCurrency());
 		let $cost = $();
 		let capProperty = type.capitalize()
 		let minProperty = `min${capProperty}`;
 		let maxProperty = `max${capProperty}`;
+		let formatter = null;
+		let baseFormatter = null;
 		if (mode instanceof jQuery) {
 			// Odomoter format
 			formatter = formatCostOdometer;
 			$cost = mode;
+			baseFormatter = type === 'co2' ? formatManager.formatWeight : formatManager.formatCost;
+		} else {
+			formatter = type === 'co2' ? formatCo2Text : formatCostText;
 		}
 
 		// Computation part
@@ -578,7 +582,7 @@ define(function () {
 		if (min === null) {
 			// Standard cost
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(cost, true, $cost, noRichText, cost?.unbound, currency);
+			return formatter(cost, true, $cost, noRichText, cost?.unbound, currency, baseFormatter);
 		}
 		// A floating cost
 		let max = null;
@@ -594,10 +598,10 @@ define(function () {
 		if (max === null || max === min || formatMin === formatMax) {
 			// Max cost is equal to min cost, no range
 			$cost.find('.cost-min').addClass('hidden');
-			return formatter(min, true, $cost, noRichText, unbound, currency);
+			return formatter(min, true, $cost, noRichText, unbound, currency, baseFormatter);
 		}
 		// Max cost, is different, display a range
-		return formatter(min, false, $cost, noRichText, false, currency) + '-' + formatter(max, true, $cost, noRichText, unbound, currency);
+		return formatter(min, false, $cost, noRichText, false, currency, baseFormatter) + '-' + formatter(max, true, $cost, noRichText, unbound, currency, baseFormatter);
 	}
 
 	/**
@@ -1961,10 +1965,10 @@ define(function () {
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2, null, null, true) + '/m)';
 					},
 					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.cost, null, null, true) + '/m)';
+						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2, null, null, true) + '/m)';
 					}
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
