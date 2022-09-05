@@ -61,7 +61,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		persistSystemEntities();
 		persistEntities("csv",
 				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class,ProvOptimizer.class,ProvStorageType.class,
+						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8.name());
@@ -90,13 +90,14 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		final var lookup = qcResource.lookup(subscription, builder().usage("Full Time 12 month").build());
 		checkInstance(lookup);
 	}
-	
+
 	/**
 	 * Basic case, almost no requirements.
 	 */
 	@Test
 	void lookupCo2() {
-		final var lookup = qcResource.lookup(subscription, builder().usage("Full Time 12 month").optimizer("CO2").build());
+		final var lookup = qcResource.lookup(subscription,
+				builder().usage("Full Time 12 month").optimizer("CO2").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertEquals("LINUXD0", pi.getCode());
 		Assertions.assertEquals(0.0, pi.getCost(), DELTA);
@@ -151,7 +152,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void queryJson() throws IOException {
 		new ObjectMapperTrim()
-				.readValue("{\"os\":\"LINUX\"," + "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\""
+				.readValue("{\"os\":\"LINUX\"," + "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteContainerQuery.class);
 		builder().toString();
 	}
@@ -344,7 +345,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		vo.setRam(1024);
 		vo.setCpu(0.5);
 		vo.setGpu(0D);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		vo.setOs(VmOs.WINDOWS);
@@ -365,7 +366,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.WINDOWS, instance.getOs());
 		Assertions.assertEquals(1464.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(2196.0, instance.getMaxCost(), DELTA);
-		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals("100", instance.getWorkload());
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());

@@ -111,7 +111,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void updateSameInitialCost() {
+	void updateSameInitialCostAndBackToNull() {
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
 		final var quote = new QuoteEditionVo();
 		quote.setName("any");
@@ -121,6 +121,13 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription, quote), 2982.4, 5139.2, false);
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);
 		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
+		
+		// Identity update
+		checkCost(resource.update(subscription, quote), 2982.4, 5139.2, false);
+		
+		// Change to no bugdet
+		quote.setBudget(null);
+		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}
 
 	@Test

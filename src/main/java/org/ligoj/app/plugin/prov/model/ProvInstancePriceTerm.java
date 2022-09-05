@@ -4,13 +4,8 @@
 package org.ligoj.app.plugin.prov.model;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.ligoj.bootstrap.core.model.ToNameSerializer;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -83,13 +78,5 @@ public class ProvInstancePriceTerm extends AbstractCodedEntity {
 	 * When <code>true</code>, this term is associated to initial cost.
 	 */
 	private Boolean initialCost = false;
-
-	/**
-	 * Optional location constraint. When not <code>null</code>, is redundant of the
-	 * {@link org.ligoj.app.plugin.prov.model.AbstractPrice} <code>location</code>.
-	 */
-	@ManyToOne
-	@JsonSerialize(using = ToNameSerializer.class)
-	private ProvLocation location;
 
 }

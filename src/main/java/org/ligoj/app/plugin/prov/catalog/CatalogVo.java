@@ -38,7 +38,8 @@ public class CatalogVo {
 	private int nbQuotes;
 
 	/**
-	 * The preferred location
+	 * The preferred location, may be <code>null</code>.
 	 */
 	private ProvLocation preferredLocation;
+
 }

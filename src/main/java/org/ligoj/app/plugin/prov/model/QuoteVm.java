@@ -54,13 +54,11 @@ public interface QuoteVm {
 	Integer getRamMax();
 
 	/**
-	 * Return Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code> constant
-	 * CPU is requested.
+	 * The typical workload of this resource using repeated CPU baseline and patterns data points.
 	 *
-	 * @return Optional constant CPU. When <code>false</code>, variable CPU is requested. When <code>true</code>
-	 *         constant CPU is requested.
+	 * @return Optional global workload. Default is fulltime 100%.
 	 */
-	Boolean getConstant();
+	String getWorkload();
 
 	/**
 	 * Optional physical processor. Return Optional physical processor.

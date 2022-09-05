@@ -30,6 +30,7 @@ import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
+import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
@@ -42,6 +43,7 @@ import org.ligoj.app.plugin.prov.model.Rate;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.plugin.prov.model.SupportType;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -196,7 +198,7 @@ public class ProvQuoteSupportResource
 			@Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				stRepository.findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}
@@ -341,8 +343,18 @@ public class ProvQuoteSupportResource
 	}
 
 	@Override
-	protected BaseProvQuoteRepository<ProvQuoteSupport> getResourceRepository() {
+	public RestRepository<ProvSupportPrice, Integer> getIpRepository() {
+		return spRepository;
+	}
+
+	@Override
+	public BaseProvQuoteRepository<ProvQuoteSupport> getQiRepository() {
 		return qsRepository;
+	}
+
+	@Override
+	public BaseProvTypeRepository<ProvSupportType> getItRepository() {
+		return stRepository;
 	}
 
 }

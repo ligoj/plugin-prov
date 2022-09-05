@@ -35,7 +35,7 @@ public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extend
 	 * @return The filtered resources.
 	 */
 	@Query("SELECT pu FROM #{#entityName} pu WHERE pu.configuration.subscription.id = :subscription"
-			+ " AND UPPER(pu.name) LIKE CONCAT(CONCAT('%', UPPER(:criteria)), '%') ORDER BY UPPER(pu.name)")
+			+ " AND UPPER(pu.name) LIKE CONCAT(CONCAT('%', :criteria), '%') ORDER BY UPPER(pu.name)")
 	Page<S> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**

@@ -80,9 +80,9 @@ public class VmUpload {
 	private String processor;
 
 	/**
-	 * Optional constant
+	 * The typical workload of this resource using repeated CPU baseline and patterns data points. Default is fulltime 100%.
 	 */
-	private Boolean constant;
+	private String workload;
 
 	/**
 	 * Optional physical instance type constraint. When <code>true</code>, this instance type is physical, not virtual.

@@ -6,6 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -28,6 +29,7 @@ import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
 import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
+import org.ligoj.app.plugin.prov.dao.ProvOptimizerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
@@ -61,6 +63,7 @@ import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.support.ProvQuoteSupportResource;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
+import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -97,6 +100,9 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	@Autowired
 	protected ProvBudgetRepository budgetRepository;
+
+	@Autowired
+	protected ProvOptimizerRepository optimizerRepository;
 
 	@Autowired
 	protected ProvLocationRepository locationRepository;
@@ -186,6 +192,7 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 		// Set the default budget
 		final var quote = getQuote();
 		quote.setBudget(budgetRepository.findByName(subscription, "Dept1"));
+		quote.setOptimizer(optimizerRepository.findByName(subscription, "Cost"));
 		updateCost();
 	}
 
@@ -275,6 +282,10 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 
 	protected void checkCost(final UpdatedCost cost, final double min, final double max, final boolean unbound) {
 		checkCost(cost.getTotal(), min, max, unbound);
+	}
+
+	protected <Q extends INamableBean<?>> Q findByName(final Collection<Q> resources, final String name) {
+		return resources.stream().filter(q -> name.equals(q.getName())).findAny().orElse(null);
 	}
 
 	protected Floating updateCost() {

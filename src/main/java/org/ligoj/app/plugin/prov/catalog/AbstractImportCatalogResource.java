@@ -12,17 +12,20 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
@@ -56,6 +59,7 @@ import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
 import org.ligoj.app.plugin.prov.model.AbstractPrice;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
@@ -351,7 +355,8 @@ public abstract class AbstractImportCatalogResource {
 	 * @return <code>true</code> when the configuration enable the given OS.
 	 */
 	protected boolean isEnabledOs(final AbstractUpdateContext context, final String os) {
-		return context.getValidOs().matcher(os.toUpperCase(Locale.ENGLISH)).matches();
+		final var osName = os.toUpperCase(Locale.ENGLISH);
+		return context.getValidOs().matcher(osName).matches() && EnumUtils.isValidEnum(VmOs.class, osName);
 	}
 
 	/**
@@ -517,7 +522,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
-	private <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
+	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
@@ -535,19 +540,24 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <T>        The price's type.
 	 * @param <P>        The instance type's type.
 	 * @param context    The context to initialize.
-	 * @param entity     The target entity to update.
+	 * @param price      The target entity to update.
 	 * @param newCost    The new cost.
 	 * @param repository The repository for persist.
 	 * @return The saved price.
 	 */
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
-			final AbstractUpdateContext context, final P entity, final double newCost,
+			final AbstractUpdateContext context, final P price, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repository) {
-		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
-			entity.setCost(cR);
-			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
-			setCo2(context, entity);
+		return saveAsNeeded(context, price, price.getCost(), newCost, (cR, c) -> {
+			price.setCost(cR);
+			price.setCostPeriod(round3Decimals(c * Math.max(1, price.getTerm().getPeriod())));
+			setCo2(context, price);
 		}, repository::save);
+	}
+
+	private String newCarbonData(final DoubleUnaryOperator converter, final double... watt) {
+		return Arrays.stream(watt).map(converter).map(this::round3Decimals).mapToObj(String::valueOf)
+				.collect(Collectors.joining(","));
 	}
 
 	/**
@@ -558,11 +568,102 @@ public abstract class AbstractImportCatalogResource {
 	 * @param price   The target price to update.
 	 */
 	protected <P extends AbstractTermPrice<?>> void setCo2(final AbstractUpdateContext context, final P price) {
-		// Set C2 data
-		Optional.ofNullable(getCo2(context, price.getType().getCode())).map(Co2Data::getValue).ifPresent(v -> {
-			price.setCo2(v);
-			price.setCo2Period(round3Decimals(v * Math.max(1, price.getTerm().getPeriod())));
+		// Set CO2 data
+		final var v = getCo2(context, price.getType().getCode());
+		final var conversion = toConversion(context, price.getLocation().getName());
+		setCo2(context, price, v, conversion);
+	}
+
+	/**
+	 * Set the CO2 value in the price entity based on the CO2 data set.
+	 * 
+	 * @param <P>     The target price type.
+	 * @param context The current context holding the CO2 data set
+	 * @param price   The target price to update.
+	 */
+	protected <P extends AbstractTermPrice<?>> void setCo2(final AbstractUpdateContext context, final P price,
+			final Co2Data v, final double conversion) {
+		final var co2 = setCo2(context, conversion, v.getWatt100(), v.getScope3(), price::setCo2, price::setCo210,
+				v.getPkgWattArray());
+		price.setCo2Period(round3Decimals(co2 * Math.max(1, price.getTerm().getPeriod())));
+	}
+
+	/**
+	 * Set the CO2 value in the price entity based on the CO2 data set.
+	 * 
+	 * @param <P>     The target price type.
+	 * @param context The current context holding the CO2 data set
+	 * @param p       The target price to update.
+	 */
+	protected <P extends AbstractTermPriceVm<?>> void setCo2Custom(final AbstractUpdateContext context, final P p,
+			final Co2Data v, final double conversion) {
+		// CPU consumption
+		final var co2 = setCo2(context, conversion, v.getWatt100(), v.getScope3(), p::setCo2, p::setCo210,
+				v.getWattArray());
+
+		// RAM/GPU only consumption
+		setCo2(context, conversion, v.getPkgWatt100(), v.getScope3(), p::setCo2Cpu, p::setCo2Cpu10,
+				v.getPkgWattArray());
+		setCo2(context, conversion, v.getRamWatt100(), 0d, p::setCo2Ram, p::setCo2Ram10, v.getRamWattArray());
+		setCo2(context, conversion, v.getGpuWatt100(), 0d, p::setCo2Gpu, p::setCo2Gpu10, v.getGpuWattArray());
+
+		// 16.959236111
+		// 18,6 = 1,6(base) +0(GPU) +9,15(RAM) +7,81(CPU)
+		
+		// Set rounded CO2
+		p.setCo2Period(round3Decimals(co2 * Math.max(1, p.getTerm().getPeriod())));
+	}
+
+	private double setCo2(final AbstractUpdateContext context, final double conversion, final double watt100,
+			final double base, final Consumer<Double> setCo2, final Consumer<String> setCo2100, final double[] data10) {
+		if (watt100 == 0) {
+			// No available data
+			return 0d;
+		}
+
+		final var co2 = toCo2(context, watt100, conversion, base);
+		setCo2.accept(round3Decimals(co2));
+		setCo2100.accept(newCarbonData(w -> round3Decimals(toCo2(context, w, conversion, base)), data10));
+		return co2;
+	}
+
+	private double toCo2(final AbstractUpdateContext context, double watt, final double conversion, final double base) {
+		return (watt * conversion + base) * (context == null ? 1d : context.getHoursMonth());
+	}
+
+	/**
+	 * Return the kW.h to equivalent CO2g/W.h depending on the location.
+	 * 
+	 * @param context  The current context holding the CO2 data set
+	 * @param location Te target location.
+	 * @return the kW.h to equivalent CO2g/W.h depending on the location.
+	 */
+	protected double toConversion(final AbstractUpdateContext context, final String location) {
+		final var mapping = context.getCo2RegionDataSet();
+		final var data = mapping.computeIfAbsent(location, l -> {
+			final var fragments = StringUtils.split(l + "._", ".-");
+			final var rawMatch = new String[] { l, fragments[0] + "-" + fragments[1], fragments[0] + "." + fragments[1],
+					fragments[0] };
+			var match = Arrays.stream(rawMatch).filter(mapping::containsKey).findFirst().orElse(null);
+			if (match == null) {
+				match = Arrays.stream(rawMatch).map(this::toPattern)
+						.map(p -> mapping.keySet().stream().filter(p.asMatchPredicate()).findFirst().orElse(null))
+						.filter(k -> k != null).findFirst().orElse(null);
+				if (match == null) {
+					log.warn("No regional CO2 for region {}", location);
+					return new Co2RegionData();
+				}
+			}
+			log.info("No perfect regional CO2 for region {}, using {}", location, match);
+			return mapping.get(match);
 		});
+
+		return data.getPue() * data.getGPerKWH() / 1000d; // kW.h to W.h
+
+	}
+
+	private Pattern toPattern(final String regular) {
+		return Pattern.compile(StringUtils.replace(regular, ".", "\\.") + ".*");
 	}
 
 	/**
@@ -572,29 +673,22 @@ public abstract class AbstractImportCatalogResource {
 	 * @param price   The target price to update.
 	 */
 	protected Co2Data getCo2(final AbstractUpdateContext context, String type) {
-		if (!context.getCo2DataSet().isEmpty() && !context.getCo2DataSetIgnored().containsKey(type)) {
-			// CO2 Dataset is configured, get the related CO2 data of this type
-			final var co2Data = context.getCo2DataSet().get(type);
-			if (co2Data != null) {
-				return co2Data;
-			}
+		return context.getCo2DataSet().computeIfAbsent(type, t -> {
 			log.warn("No CO2 for type {}", type);
-			context.getCo2DataSetIgnored().put(type, Boolean.TRUE);
-		}
-		return null;
+			return new Co2Data();
+		});
 	}
 
 	/**
-	 * Set the CO2 value in the type entity based on the CO2 data set.
+	 * Set the Watt value in the type entity based on the CO2 data set.
 	 * 
-	 * @param context The current context holding the CO2 data set
+	 * @param context The current context holding the CO2/Watt data set
 	 * @param type    The target type to update.
 	 */
-	protected void setCo2(final AbstractUpdateContext context, final AbstractInstanceType type) {
-		// Set C2 data
-		Optional.ofNullable(getCo2(context, type.getCode())).map(Co2Data::getValue).ifPresent(v -> {
-			type.setCo2(v);
-		});
+	protected void setWatt(final AbstractUpdateContext context, final AbstractInstanceType type) {
+		// Set Watt data
+		final var v = getCo2(context, type.getCode());
+		setCo2(null, 1d, v.getWatt100(), 0d, type::setWatt, type::setWatt10, v.getWattArray());
 	}
 
 	/**

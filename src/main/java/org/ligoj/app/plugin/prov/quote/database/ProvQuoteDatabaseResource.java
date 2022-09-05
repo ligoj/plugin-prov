@@ -149,7 +149,7 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final int duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
@@ -205,8 +205,8 @@ public class ProvQuoteDatabaseResource extends
 	@Path("{subscription:\\d+}/database-license/{engine}")
 	public List<String> findLicenses(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
-		final var result = ipRepository
-				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), normalize(engine));
+		final var result = ipRepository.findAllLicenses(
+				subscriptionResource.checkVisible(subscription).getNode().getTool().getId(), normalize(engine));
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteVm.LICENSE_INCLUDED));
 		return result;
 	}
@@ -221,7 +221,7 @@ public class ProvQuoteDatabaseResource extends
 	@GET
 	@Path("{subscription:\\d+}/database-engine")
 	public List<String> findEngines(@PathParam("subscription") final int subscription) {
-		return ipRepository.findAllEngines(subscriptionResource.checkVisible(subscription).getNode().getId());
+		return ipRepository.findAllEngines(subscriptionResource.checkVisible(subscription).getNode().getTool().getId());
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class ProvQuoteDatabaseResource extends
 	@Path("{subscription:\\d+}/database-edition/{engine}")
 	public List<String> findEditions(@PathParam("subscription") final int subscription,
 			@PathParam("engine") final String engine) {
-		return ipRepository.findAllEditions(subscriptionResource.checkVisible(subscription).getNode().getId(),
+		return ipRepository.findAllEditions(subscriptionResource.checkVisible(subscription).getNode().getTool().getId(),
 				normalize(engine));
 	}
 

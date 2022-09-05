@@ -56,4 +56,10 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	 */
 	@Column(columnDefinition = "double default 0")
 	private double co2 = 0;
+
+	/**
+	 * The optional monthly CO2 consumption of one requested CPU with an array of 10% workload usage, from idle to 90%.
+	 * Required for dynamic instance type. Separator is <code>;</code>.
+	 */
+	private String co210 = null;
 }

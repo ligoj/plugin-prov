@@ -136,8 +136,9 @@ define(['d3', 'jquery'], function (d3) {
                     return notTargetCase;
             }
         }
-        function update(data) {
+        function update(data, aggregateMode) {
             params.input.data = data;
+            params.input.aggregateMode = aggregateMode;
             updateData();
             refresh();
         }
@@ -247,11 +248,11 @@ define(['d3', 'jquery'], function (d3) {
                     e.preventDefault();
                     refresh();
                 })
-                .on('click', (e, d) => {
+                .on('click', (_e, d) => {
                     if (params.click) {
                         let isClicked = d.clicked;
                         if (params.clicked) {
-                            // Uselect the previous selection
+                            // Unselect the previous selection
                             bar.selectAll('rect')
                                 .filter(o => o.clicked)
                                 .each(o => o.clicked = false)
@@ -305,7 +306,7 @@ define(['d3', 'jquery'], function (d3) {
                         params.hover();
                     }
                 })
-                .on('mouseenter', (e, d) => {
+                .on('mouseenter', (_e, d) => {
                     let bars = bar.selectAll('rect')
                         .filter(f => f.x === d.x)
                         .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
@@ -452,7 +453,7 @@ define(['d3', 'jquery'], function (d3) {
 
         let setUpColors = () => d3.scaleOrdinal(params.colors);
         function create(selector, selectorPercentCB, colors, width, height, data, aggregateMode, tooltipCB, hover, click, axisY, sort) {
-            let input = { data: data, width: width, height: height, aggregateMode : aggregateMode };
+            let input = { data: data, width: width, height: height, aggregateMode: aggregateMode };
             params.input = input;
             params.colors = colors;
             params.selector = selector;
@@ -480,7 +481,7 @@ define(['d3', 'jquery'], function (d3) {
                 .data(params.filteredClusterNames)
                 .enter().append('g')
                 .attr('class', 'legend')
-                .on('click', function (e, d) {
+                .on('click', function (_e, d) {
                     chosen.cluster = chosen.cluster === d ? null : d;
                     refresh();
                 });

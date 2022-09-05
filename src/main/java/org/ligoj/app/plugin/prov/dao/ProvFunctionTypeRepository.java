@@ -20,18 +20,23 @@ public interface ProvFunctionTypeRepository extends BaseProvInstanceTypeReposito
 	@Override
 	List<Integer> findValidTypes(@CacheKey String node, @CacheKey double cpu, @CacheKey double gpu,
 			@CacheKey double ram, @CacheKey double limitCpu, @CacheKey double limitGpu, @CacheKey double limitRam,
-			@CacheKey Boolean constant, @CacheKey Boolean physical, @CacheKey Integer type, @CacheKey String processor,
+			@CacheKey double baseline, @CacheKey boolean physical, @CacheKey int type, @CacheKey String processor,
 			@CacheKey boolean autoScale, @CacheKey Rate cpuRate, @CacheKey Rate gpuRate, @CacheKey Rate ramRate,
-			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey Boolean edge);
+			@CacheKey Rate networkRate, @CacheKey Rate storageRate, @CacheKey boolean edge, @CacheKey boolean co2Mode);
+
+	@CacheResult(cacheName = "prov-function-type-dyn")
+	@Override
+	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
+			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
+			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
+			@CacheKey boolean edge, @CacheKey boolean co2Mode);
 
 	@CacheResult(cacheName = "prov-function-type-has-dyn")
 	@Override
 	boolean hasDynamicalTypes(String node);
 
-	@CacheResult(cacheName = "prov-function-type-dyn")
+	@CacheResult(cacheName = "prov-function-has-co2")
 	@Override
-	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey Boolean constant, @CacheKey Boolean physical,
-			@CacheKey Integer type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate);
+	boolean hasCo2Data(String node);
 
 }

@@ -179,7 +179,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void queryJson() throws IOException {
 		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
-				+ "\"cpu\":2,\"ram\":3000,\"constant\":true,\"license\":\"LI\""
+				+ "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);
 		builder().toString();
 	}
@@ -239,7 +239,6 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(190.0, pi.getCost(), DELTA);
 		Assertions.assertEquals("MYSQLE5", pi.getCode());
 		Assertions.assertEquals("on-demandE5", pi.getTerm().getName());
-		Assertions.assertEquals("region-5", pi.getTerm().getLocation().getName());
 		Assertions.assertTrue(pi.getTerm().getConvertibleEngine());
 	}
 
@@ -273,14 +272,13 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupHighConstraints() {
-		final var lookup = qbResource.lookup(subscription, builder().cpu(0.25).ram(1900).constant(true)
+		final var lookup = qbResource.lookup(subscription, builder().cpu(0.25).ram(1900).workload("100")
 				.usage("Full Time 12 month").engine("MYSQL").budget("Dept1").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("database1", pi.getType().getName());
 		Assertions.assertEquals(0.5, pi.getType().getCpu(), DELTA);
 		Assertions.assertEquals(2000, pi.getType().getRam());
-		Assertions.assertTrue(pi.getType().getConstant());
 		Assertions.assertEquals(89.5, pi.getCost(), DELTA);
 		Assertions.assertEquals("MYSQL", pi.getEngine());
 		Assertions.assertEquals("1y", pi.getTerm().getName());
@@ -533,7 +531,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setRam(1024);
 		vo.setCpu(0.5);
 		vo.setGpu(0D);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		vo.setEngine("ORACLE");
@@ -556,7 +554,6 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("STANDARD ONE", instance.getEdition());
 		Assertions.assertEquals(1464.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(2196.0, instance.getMaxCost(), DELTA);
-		Assertions.assertTrue(instance.getConstant());
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());
@@ -590,7 +587,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setCpu(0.5);
 		vo.setGpu(0D);
 		vo.setEngine("ANY");
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qbResource.create(vo)),
@@ -609,7 +606,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		vo.setGpu(0D);
 		vo.setEngine("MYSQL");
 		vo.setEdition("ANY");
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> qbResource.create(vo)),

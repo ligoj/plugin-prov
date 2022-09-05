@@ -70,8 +70,8 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	@QueryParam("ramMax")
 	private Integer ramMax;
 
-	@QueryParam("constant")
-	private Boolean constant;
+	@QueryParam("workload")
+	private String workload;
 
 	/**
 	 * Code of required instance type.

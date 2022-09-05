@@ -97,10 +97,10 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupEdge() {
-		var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(true).build();
+		var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(false).build();
 		var lookup = qfResource.lookup(subscription, build);
 		checkFunction(lookup);
-		build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(false).build();
+		build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(true).build();
 		lookup = qfResource.lookup(subscription, build);
 		Assertions.assertEquals("functionD0", lookup.getPrice().getType().getName());
 	}
@@ -477,7 +477,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		vo.setRam(1024);
 		vo.setCpu(0.5);
 		vo.setGpu(0D);
-		vo.setConstant(true);
+		vo.setWorkload("100");
 		vo.setMinQuantity(10);
 		vo.setMaxQuantity(15);
 		vo.setNbRequests(10);
@@ -501,7 +501,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(10, instance.getNbRequests());
 		Assertions.assertEquals(1163.0, instance.getCost(), DELTA);
 		Assertions.assertEquals(1744.5, instance.getMaxCost(), DELTA);
-		Assertions.assertTrue(instance.getConstant());
+		Assertions.assertEquals("100", instance.getWorkload());
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
 		Assertions.assertFalse(instance.isUnboundCost());

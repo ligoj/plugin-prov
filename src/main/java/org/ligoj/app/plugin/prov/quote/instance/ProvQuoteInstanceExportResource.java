@@ -91,7 +91,7 @@ public class ProvQuoteInstanceExportResource {
 				// Minimal headers
 				writer.format("%s" + ";%s".repeat(34), "resource-type", "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram",
 						"ramMax", "os", "usage", "budget", "optimizer", "term", "location", "min", "max",
-						"maxvariablecost", "constant", "processor", "physical", "ephemeral", "type", "engine",
+						"maxvariablecost", "workload", "processor", "physical", "ephemeral", "type", "engine",
 						"edition", "internet", "license", "cost", "tags", "disk", "diskMax", "diskType", "diskLatency",
 						"diskOptimized", "diskCost", "diskTags");
 
@@ -107,7 +107,7 @@ public class ProvQuoteInstanceExportResource {
 							toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(), toString(qi.getUsage()),
 							toString(qi.getBudget()), toString(qi.getOptimizer()), toString(qi.getPrice().getTerm()),
 							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
-							toString(qi.getMaxVariableCost()), toString(qi.getConstant()), toString(qi.getProcessor()),
+							toString(qi.getMaxVariableCost()), toString(qi.getWorkload()), toString(qi.getProcessor()),
 							toString(qi.getPhysical()), qi.isEphemeral(), toType(qi), "", "", qi.getInternet(),
 							toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags));
 					writeStorage(writer, qsByQi, stags, qi.getId());
@@ -120,7 +120,7 @@ public class ProvQuoteInstanceExportResource {
 							toString(qi.getRam()), toString(qi.getRamMax()), "", toString(qi.getUsage()),
 							toString(qi.getBudget()), toString(qi.getOptimizer()), toString(qi.getPrice().getTerm()),
 							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
-							toString(qi.getConstant()), toString(qi.getProcessor()), toString(qi.getPhysical()), "",
+							toString(qi.getWorkload()), toString(qi.getProcessor()), toString(qi.getPhysical()), "",
 							toType(qi), qi.getEngine(), toString(qi.getEdition()), qi.getInternet(),
 							toString(qi.getLicense()), toString(qi.getCost()), toString(qi, dtags));
 					writeStorage(writer, qsByQb, stags, qi.getId());
@@ -134,7 +134,7 @@ public class ProvQuoteInstanceExportResource {
 							toString(qc.getUsage()), toString(qc.getBudget()), toString(qc.getOptimizer()),
 							toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
 							toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()),
-							toString(qc.getConstant()), toString(qc.getProcessor()), toString(qc.getPhysical()),
+							toString(qc.getWorkload()), toString(qc.getProcessor()), toString(qc.getPhysical()),
 							qc.isEphemeral(), toType(qc), "", "", qc.getInternet(), toString(qc.getLicense()),
 							toString(qc.getCost()), toString(qc, ctags));
 					writeStorage(writer, qsByQc, stags, qc.getId());
@@ -146,7 +146,7 @@ public class ProvQuoteInstanceExportResource {
 							toString(qf.getCpuMax()), toString(qf.getGpu()), toString(qf.getGpuMax()),
 							toString(qf.getRam()), toString(qf.getRamMax()), qf.getRuntime(), toString(qf.getUsage()),
 							toString(qf.getBudget()), toString(qf.getOptimizer()), toString(qf.getPrice().getTerm()),
-							toString(qf.getLocation()), qf.getNbRequests(), "", "", toString(qf.getConstant()),
+							toString(qf.getLocation()), qf.getNbRequests(), "", "", toString(qf.getWorkload()),
 							toString(qf.getProcessor()), toString(qf.getPhysical()), qf.isEphemeral(), toType(qf), "",
 							"", qf.getInternet(), "", toString(qf.getCost()), toString(qf, ftags));
 					writeStorage(writer, qsByQf, stags, qf.getId());
@@ -184,7 +184,7 @@ public class ProvQuoteInstanceExportResource {
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				writer.format("%s" + ";%s".repeat(33), "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram", "ramMax", "os",
-						"usage", "buget", "optimizer", "term", "location", "min", "max", "maxvariablecost", "constant",
+						"usage", "buget", "optimizer", "term", "location", "min", "max", "maxvariablecost", "workload",
 						"processor", "physical", "ephemeral", "type", "internet", "license", "cost", "tags", "disk",
 						"diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
 
@@ -195,7 +195,7 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(),
 						toString(qi.getUsage()), toString(qi.getBudget()), toString(qi.getOptimizer()),
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-						toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()), toString(qi.getConstant()),
+						toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()), toString(qi.getWorkload()),
 						toString(qi.getProcessor()), toString(qi.getPhysical()), qi.isEphemeral(), toType(qi),
 						qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags)));
 
@@ -206,7 +206,7 @@ public class ProvQuoteInstanceExportResource {
 						toString(qc.getGpuMax()), toString(qc.getRam()), toString(qc.getRamMax()), qc.getOs(),
 						toString(qc.getUsage()), toString(qc.getBudget()), toString(qc.getOptimizer()),
 						toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
-						toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()), toString(qc.getConstant()),
+						toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()), toString(qc.getWorkload()),
 						toString(qc.getProcessor()), toString(qc.getPhysical()), qc.isEphemeral(), toType(qc),
 						qc.getInternet(), toString(qc.getLicense()), toString(qc.getCost()), toString(qc, ctags)));
 				// Write quote functions
@@ -217,7 +217,7 @@ public class ProvQuoteInstanceExportResource {
 								toString(qf.getRam()), toString(qf.getRamMax()), qf.getRuntime(),
 								toString(qf.getUsage()), toString(qf.getBudget()), toString(qf.getOptimizer()),
 								toString(qf.getPrice().getTerm()), toString(qf.getLocation()), qf.getNbRequests(), "",
-								"", toString(qf.getConstant()), toString(qf.getProcessor()), toString(qf.getPhysical()),
+								"", toString(qf.getWorkload()), toString(qf.getProcessor()), toString(qf.getPhysical()),
 								qf.isEphemeral(), toType(qf), qf.getInternet(), "", toString(qf.getCost()),
 								toString(qf, ftags)));
 
@@ -228,7 +228,7 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), "",
 						toString(qi.getUsage()), toString(qi.getBudget()), toString(qi.getOptimizer()),
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
-						toString(qi.getMaxQuantity()), "", toString(qi.getConstant()), toString(qi.getProcessor()),
+						toString(qi.getMaxQuantity()), "", toString(qi.getWorkload()), toString(qi.getProcessor()),
 						toString(qi.getPhysical()), "", toType(qi), "", toString(qi.getLicense()),
 						toString(qi.getCost()), toString(qi, dtags), qi.getEngine(), toString(qi.getEdition())));
 

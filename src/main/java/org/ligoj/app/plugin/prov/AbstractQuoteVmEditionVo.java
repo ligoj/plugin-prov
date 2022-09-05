@@ -90,9 +90,9 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private Integer ramMax;
 
 	/**
-	 * The optional requested CPU behavior. When <code>false</code>, the CPU is variable, with boost mode.
+	 * The typical workload of this resource using repeated CPU baseline and patterns data points. Default is 5%.
 	 */
-	private Boolean constant;
+	private String workload;
 
 	/**
 	 * Optional physical processor. Case insensitive with 'like' match.

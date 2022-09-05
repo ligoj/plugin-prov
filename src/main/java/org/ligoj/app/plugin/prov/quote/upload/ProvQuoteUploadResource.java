@@ -109,15 +109,15 @@ public class ProvQuoteUploadResource {
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
-			"gpu:gpu", "ram:memory", "constant:steady", "physical:metal", "os:(system|operating[ -_]?system)",
+			"gpu:gpu", "ram:memory", "workload:workload", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
-			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "license:licence",
-			"software:package", "description:note", "tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)",
-			"gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)", "ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate",
-			"networkRate:networkRate", "storageRate:storageRate",
-			"ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
+			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "budget:(finops|capex|upfront)",
+			"optimizer:(greenops|green|carbon|target)", "license:licence", "software:package", "description:note",
+			"tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", "gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)",
+			"ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate", "networkRate:networkRate",
+			"storageRate:storageRate", "ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
 			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
 
@@ -460,7 +460,7 @@ public class ProvQuoteUploadResource {
 		vo.setRamRate(u.getRamRate());
 		vo.setNetworkRate(u.getNetworkRate());
 		vo.setStorageRate(u.getStorageRate());
-		vo.setConstant(u.getConstant());
+		vo.setWorkload(u.getWorkload());
 		vo.setPhysical(u.getPhysical());
 		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(u.getRam(), 0).intValue());
 		vo.setSubscription(subscription);

@@ -153,7 +153,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	public TableItem<S> findAll(@PathParam("subscription") final int subscription, @Context final UriInfo uriInfo) {
 		subscriptionResource.checkVisible(subscription);
 		return paginationJson.applyPagination(uriInfo,
-				getRepository().findAll(subscription, DataTableAttributes.getSearch(uriInfo),
+				getRepository().findAll(subscription, DataTableAttributes.getSearch(uriInfo).toUpperCase(),
 						paginationJson.getPageRequest(uriInfo, ProvResource.ORM_COLUMNS)),
 				Function.identity());
 	}

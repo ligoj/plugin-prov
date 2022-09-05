@@ -231,7 +231,7 @@ class TerraformUtilsTest extends AbstractServerTest {
 	@Test
 	void getLatestVersion() {
 		final var version = resource.getLatestVersion();
-		Assertions.assertEquals(3, StringUtils.split(version, '.').length);
+		Assertions.assertEquals(3, StringUtils.split(StringUtils.trimToEmpty(version), '.').length);
 	}
 
 	@Test

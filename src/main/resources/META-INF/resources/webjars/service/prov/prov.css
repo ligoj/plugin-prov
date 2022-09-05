@@ -116,7 +116,7 @@
 .prov-project {
   margin-top: 0;
 }
-.cost-unit {
+.cost-unit, .cost-period {
   font-weight: bolder;
 }
 .cost-value {
@@ -533,18 +533,17 @@ i.icon.mdi-expansion-card {
   position: relative;
 }
 
-.form-group.form-switch.optimizer-page-mode{
+.form-group.form-switch.optimizer-view-mode {
   display: inline-block;
   position: absolute;
-    margin-left: 3px;
+  margin-left: 3px;
 }
 
-.optimizer-page-view {
+.optimizer-view-wrapper {
   display: block;
   font-size: small;
 }
-.optimizer-page-view span {
-  font-size: small;
+.optimizer-view-wrapper span {
   color: black;
   display: inline;
 }
@@ -552,4 +551,20 @@ i.icon.mdi-expansion-card {
 [data-aggregation-mode="cost"] .d-co2,
 [data-aggregation-mode="co2"] .d-cost {
   display: none;
+}
+
+.cost-period {
+  margin-left: -0.25em;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-primary, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-primary {
+  background: #e6f0e8;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-default, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
+  background: #578ecf;
+  color: #fff;
+}
+.fas.fa-leaf {
+  color:  #29a23c;
 }

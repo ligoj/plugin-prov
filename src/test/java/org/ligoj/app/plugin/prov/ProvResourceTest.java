@@ -154,7 +154,6 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(quoteInstance.getId());
 		Assertions.assertEquals("server1", quoteInstance.getName());
 		Assertions.assertEquals("serverD1", quoteInstance.getDescription());
-		Assertions.assertTrue(quoteInstance.getConstant());
 		Assertions.assertEquals(InternetAccess.PUBLIC, quoteInstance.getInternet());
 		Assertions.assertEquals(10.1, quoteInstance.getMaxVariableCost(), DELTA);
 		Assertions.assertEquals(2, quoteInstance.getMinQuantity());
@@ -175,7 +174,6 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instanceD1", instance.getDescription());
 		Assertions.assertEquals(0.5, instance.getCpu(), 0.0001);
 		Assertions.assertEquals(2000, instance.getRam());
-		Assertions.assertTrue(instance.getConstant());
 
 		// No minimal for this instance price
 		Assertions.assertNull(instances.get(1).getMaxVariableCost());
@@ -184,9 +182,9 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, instances.get(3).getMaxQuantity().intValue());
 
 		// Check the constant CPU requirement
-		Assertions.assertTrue(instances.get(0).getConstant());
-		Assertions.assertNull(instances.get(1).getConstant());
-		Assertions.assertFalse(instances.get(3).getConstant());
+		Assertions.assertEquals("100",instances.get(0).getWorkload());
+		Assertions.assertNull(instances.get(1).getWorkload());
+		Assertions.assertEquals("15",instances.get(3).getWorkload());
 
 		// Check the network requirement
 		Assertions.assertEquals(InternetAccess.PUBLIC, instances.get(0).getInternet());
@@ -282,6 +280,10 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		// One special associated budget
 		Assertions.assertNotNull(vo.getBudget());
 		Assertions.assertNotNull(vo.getBudgets());
+
+		// One special associated budget
+		Assertions.assertNotNull(vo.getOptimizer());
+		Assertions.assertNotNull(vo.getOptimizers());
 
 		// No networks
 		Assertions.assertTrue(vo.getNetworks().isEmpty());

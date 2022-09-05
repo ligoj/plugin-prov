@@ -1,8 +1,8 @@
-configuration.name;price.code;name;description;cpu;ram;os;cost;maxCost;constant;internet;maxVariableCost;minQuantity;maxQuantity;ephemeral;processor;physical
-quote1;C1;server1;serverD1;0.5;2000;LINUX;0.128;0.129;true;PUBLIC;10.1;2;10;;;
+configuration.name;price.code;name;description;cpu;ram;os;cost;maxCost;workload;internet;maxVariableCost;minQuantity;maxQuantity;ephemeral;processor;physical
+quote1;C1;server1;serverD1;0.5;2000;LINUX;0.128;0.129;100;PUBLIC;10.1;2;10;;;
 quote1;C3;server2;serverD2;0.25;1000;LINUX;0;0;;PRIVATE;;;;true;Intel;
 quote1;C6;server3;serverD3;0.5;2000;WINDOWS;0;0;;PRIVATE_NAT;;;;;;
-quote1;C13;server4;serverD4;1;2000;DEBIAN;0;0;false;;;;;;;
+quote1;C13;server4;serverD4;1;2000;DEBIAN;0;0;15;;;;;;;
 quote1;C27;server5;serverD5;1;4000;LINUX;0;0;;;;;;true;;
 quote1;C55;server6;serverD6;4;8000;LINUX;0;0;;;;;;;;
 quote1;C74;server7;serverD7;3;24576;LINUX;0;0;;;;;;;;

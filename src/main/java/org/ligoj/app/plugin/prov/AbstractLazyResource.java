@@ -3,11 +3,9 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Base resource class for lazy relationship with {@link ProvResource}.
@@ -16,9 +14,6 @@ public abstract class AbstractLazyResource {
 
 	@Autowired
 	protected ProvResource resource;
-
-	@Autowired
-	private ApplicationContext context;
 
 	/**
 	 * Must be invoked when a resource is deleted. This is due to the weak relationship between the resources and the
@@ -45,8 +40,7 @@ public abstract class AbstractLazyResource {
 	 * @return The corresponding {@link BaseProvQuoteRepository} managing the requested type.
 	 */
 	protected BaseProvQuoteRepository<?> getRepository(final ResourceType type) {
-		return context.getBean("provQuote" + StringUtils.capitalize(type.name().toLowerCase()) + "Repository",
-				BaseProvQuoteRepository.class);
+		return resource.getResource(type).getQiRepository();
 	}
 
 }

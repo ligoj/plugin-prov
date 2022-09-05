@@ -204,6 +204,10 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			 AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			""";
 
+	String LOWEST_QUERY = BaseProvTermPriceRepository.LOWEST_QUERY_TERM + """
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
+			""";
+
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
@@ -212,7 +216,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param cpu                 The required CPU.
 	 * @param ram                 The consumed average RAM (GiB) during a month.
 	 * @param location            The requested location identifier.
-	 * @param rate                Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate                Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                            <code>1</code>, (full time).
 	 * @param globalRate          Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration            The duration in month. Minimum is 1.
 	 * @param initialCost         The maximal initial cost.
@@ -241,7 +246,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param cpu                 The required CPU.
 	 * @param ram                 The consumed average RAM (GiB) during a month.
 	 * @param location            The requested location identifier.
-	 * @param rate                Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate                Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                            <code>1</code>, (full time).
 	 * @param globalRate          Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration            The duration in month. Minimum is 1.
 	 * @param initialCost         The maximal initial cost.
@@ -262,36 +268,14 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
 			double rateFull, Pageable pageable);
 
-	String LOWEST_QUERY = """
-			SELECT
-			 ip,
-			  CASE
-			   WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
-			   ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
-			  CASE
-			   WHEN ip.period = 0 THEN (ip.cost * :rate)
-			   ELSE ip.cost END AS monthlyCost,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
-			  ELSE (ip.co2Period * CEIL(:duration/ip.period)) END AS totalCo2,
-			 CASE
-			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
-			  ELSE ip.co2 END AS monthlyCo2
-			 FROM #{#entityName} ip  WHERE
-			      ip.location.id = :location
-			  AND ip.incrementCpu IS NULL
-			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
-			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
-			""";
-
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
 	 *
 	 * @param types           The valid instance type identifiers.
 	 * @param terms           The valid instance terms identifiers.
 	 * @param location        The requested location identifier.
-	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate            Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                        <code>1</code>, (full time).
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
@@ -310,7 +294,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param types           The valid instance type identifiers.
 	 * @param terms           The valid instance terms identifiers.
 	 * @param location        The requested location identifier.
-	 * @param rate            Usage rate. Positive number. Maximum is <code>1</code>, minimum is <code>0.01</code>.
+	 * @param rate            Usage rate within the duration, positive number, from <code>0.01</code> (stopped) to
+	 *                        <code>1</code>, (full time).
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
@@ -323,4 +308,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
 			double initialCost, double requestDuration, Pageable pageable);
 
+	@Override
+	@Query("SELECT COUNT(id) FROM #{#entityName} WHERE type.node.id = :node AND (co2 > 0 OR co2Requests > 0 OR co2Cpu > 0)")
+	int countCo2DataByNode(String node);
 }

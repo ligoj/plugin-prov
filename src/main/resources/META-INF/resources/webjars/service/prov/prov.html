@@ -12,18 +12,19 @@
 							<span class="provider"></span>
 						</h1>
 						<h2 class="text-info prov-cost-wrapper">
-							<span data-toggle="tooltip" title="{{service:prov:cost-help}}" class="cost d-cost"></span>
-							<span data-toggle="tooltip" title="{{service:prov:co2-help}}" class="co2 d-co2"></span>
-							<span class="cost-unit">/m</span>
+							<span data-toggle="tooltip" title="{{service:prov:cost-help}}" class="summary-cost d-cost"></span>
+							<span data-toggle="tooltip" title="{{service:prov:co2-help}}" class="summary-co2 d-co2"></span>
+							<span class="cost-period">/m</span>
 							<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-help}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
 							<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-help}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
-							<div class="form-group form-switch optimizer-page-mode">
+							<div class="form-group form-switch optimizer-view-mode">
 								<div class="col-sm-12 ">
-									<input type="checkbox" id="optimizer-page-mode" class="form-control ui-only" />
-									<div class="optimizer-page-view">
-										<span class="co2 d-cost"></span>
-										<span class="cost d-co2"></span>
-										<span class="cost-unit">/m</span>
+									<input type="checkbox" id="optimizer-view-mode" class="form-control ui-only" />
+									<div class="optimizer-view-wrapper">
+										<i class="fas fa-leaf d-cost"></i>
+										<span class="summary-co2 d-cost"></span>
+										<span class="summary-cost d-co2"></span>
+										<span class="cost-period">/m</span>
 									</div>
 								</div>
 							</div>
@@ -573,10 +574,10 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-price">{{service:prov:instance}}</label>
+							<label class="control-label col-sm-3" for="instance-price">{{service:prov:price}}</label>
 							<div class="col-sm-9">
 								<input type="text" id="instance-price" class="form-control" required readonly />
-								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:instance-help}}"></i></span>
+								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:price-help}}"></i></span>
 							</div>
 						</div>
 					</div>

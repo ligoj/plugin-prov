@@ -34,7 +34,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 		extends AbstractProvQuoteVmResource<T, P, C, E, L, Q> {
 
 	@Override
-	protected abstract BaseProvTermPriceOsRepository<T, P> getIpRepository();
+	public abstract BaseProvTermPriceOsRepository<T, P> getIpRepository();
 
 	/**
 	 * Check the requested OS is compliant with the one of associated {@link ProvInstancePrice}
@@ -80,7 +80,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 	 */
 	public List<String> findLicenses(final int subscription, final VmOs os) {
 		final var result = getIpRepository()
-				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getId(), os);
+				.findAllLicenses(subscriptionResource.checkVisible(subscription).getNode().getTool().getId(), os);
 		result.replaceAll(l -> StringUtils.defaultIfBlank(l, AbstractQuoteVm.LICENSE_INCLUDED));
 		return result;
 	}
@@ -93,6 +93,6 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 	 * @return The available OS names for the given subscription.
 	 */
 	public List<String> findOs(final int subscription) {
-		return getIpRepository().findAllOs(subscriptionResource.checkVisible(subscription).getNode().getId());
+		return getIpRepository().findAllOs(subscriptionResource.checkVisible(subscription).getNode().getTool().getId());
 	}
 }
