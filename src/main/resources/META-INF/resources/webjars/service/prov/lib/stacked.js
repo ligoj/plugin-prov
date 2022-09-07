@@ -213,7 +213,14 @@ define(['d3', 'jquery'], function (d3) {
             if (percentView) {
                 axisY.tickFormat(d3.format(".0%"));
             } else if (params.axisY) {
-                axisY.tickFormat(params.axisY);
+                debugger;
+                axisY.tickFormat( function(d) { 
+                    if (params.input.aggregateMode == 'co2'){
+                        return d + "g";
+                    }else {
+                        return "$" + d ;
+                    }                    
+                });
             }
 
             svg.selectAll('.axisY')
@@ -405,7 +412,14 @@ define(['d3', 'jquery'], function (d3) {
                 .tickSize(3)
                 .ticks(5);
             if (params.axisY) {
-                yAxis.tickFormat(params.axisY);
+                debugger;
+                yAxis.tickFormat( function(d) { 
+                    if (params.input.aggregateMode == 'co2'){
+                        return d + "g";
+                    }else {
+                        return "$" + d ;
+                    }                    
+                });
             }
             let xAxis = d3.axisBottom(x)
                 .tickSizeOuter(5)
