@@ -392,6 +392,52 @@ class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
 				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
 		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&".equals(t.getName())));
 	}
+	
+	@Test
+	void uploadi18FR() throws IOException {
+		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
+				new String[] { "Nom", "cpu", "ram", "os", "Etiquette", "Disque" }, false, null, null, null, 1);
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		final var id = configuration.getInstances().get(7).getId();
+		var tags = configuration.getTags().get(ResourceType.INSTANCE).get(id);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&;8".equals(t.getName())));
+
+		var sid = configuration.getStorages().stream().filter(s -> id.equals(s.getInstance())).findFirst().get()
+				.getId();
+		tags = configuration.getTags().get(ResourceType.STORAGE).get(sid);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&".equals(t.getName())));
+	}
+	
+	@Test
+	void uploadi18AL() throws IOException {
+		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
+				new String[] { "name", "cpu", "ram", "os", "Etikett", "Scheibe" }, false, null, null, null, 1);
+		final var configuration = getConfiguration();
+		Assertions.assertEquals(8, configuration.getInstances().size());
+		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
+		final var id = configuration.getInstances().get(7).getId();
+		var tags = configuration.getTags().get(ResourceType.INSTANCE).get(id);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&;8".equals(t.getName())));
+
+		var sid = configuration.getStorages().stream().filter(s -> id.equals(s.getInstance())).findFirst().get()
+				.getId();
+		tags = configuration.getTags().get(ResourceType.STORAGE).get(sid);
+		Assertions.assertTrue(tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG1".equals(t.getValue())));
+		Assertions.assertTrue(
+				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
+		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&".equals(t.getName())));
+	}
 
 	@Test
 	void uploadTagsInvalidTagName() {

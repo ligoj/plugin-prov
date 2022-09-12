@@ -108,17 +108,17 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?", "cpu:(vcpu|core|processor)s?",
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?|nom", "cpu:(vcpu|core|processor)s?",
 			"gpu:gpu", "ram:memory", "workload:workload", "physical:metal", "os:(system|operating[ -_]?system)",
-			"disk:(storage|size)", "latency:(disk|storage)latency", "optimized:(disk|storage)?optimized",
+			"disk:(storage|size|disque|scheibe)", "latency:(disk|storage|disque|scheibe)latency", "optimized:(disk|storage|disque|scheibe)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "budget:(finops|capex|upfront)",
 			"optimizer:(greenops|green|carbon|target)", "license:licence", "software:package", "description:note",
-			"tags:(tag|label|labels)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", "gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)",
+			"tags:(tag|label|labels|etiquette|etikett)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", "gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)",
 			"ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate", "networkRate:networkRate",
 			"storageRate:storageRate", "ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
-			"diskMax:(max[-_ ]?(size|disk|storage)|(size|disk|storage)[-_ ]?max)", "processor:proc", "engine:db",
+			"diskMax:(max[-_ ]?(size|disk|storage|disque|scheibe)|(size|disk|storage|disque|scheibe)[-_ ]?max)", "processor:proc", "engine:db",
 			"edition:version", "tenancy:tenancy");
 
 	/**
