@@ -35,7 +35,7 @@ define(['sparkline'], function () {
 					'sortd': 'asc'
 				},
 				transport: typeof customComparator === 'function' ? function (options) {
-					let $this = this;
+					const $this = this;
 					if ($this.cachedData) {
 						filterSelect2Result($this.cachedData, options, customComparator, matcherFn);
 					} else {
@@ -51,7 +51,7 @@ define(['sparkline'], function () {
 					}
 				} : $.fn.select2.ajaxDefaults.transport,
 				results: function (data, page) {
-					let result = ((typeof data.data === 'undefined') ? (data.results || data) : data.data).map(item => {
+					const result = ((typeof data.data === 'undefined') ? (data.results || data) : data.data).map(item => {
 						if (typeof item === 'string') {
 							item = {
 								id: item,
@@ -95,26 +95,26 @@ define(['sparkline'], function () {
  * Location html renderer.
  */
 	function locationToHtml(location, map, short) {
-		var id = location.name;
-		var subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
-		var m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
-		var placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
-		var html = map === true ? locationMap(location) : '';
+		const id = location.name;
+		const subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
+		const m49 = location.countryM49 && current.$messages.m49[parseInt(location.countryM49, 10)];
+		const placement = subRegion || (location.placement && current.$messages[location.placement]) || location.placement;
+		let html = map === true ? locationMap(location) : '';
 		if (location.countryA2) {
-			var a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-			var tooltip = m49 || id;
-			var img = '<img class="flag-icon prov-location-flag" src="main/service/prov/flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			const a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
+			let tooltip = m49 || id;
+			const img = `<img class="flag-icon prov-location-flag" src="main/service/prov/flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
 				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
 				tooltip += '<br>Id: ' + id;
-				return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
+				return `<u class="details-help" data-toggle="popover" data-content="${tooltip}" title="${location.name}">${img}></u>`;
 			}
 			html += img + ' title="' + location.name + '">';
 		}
 		html += m49 || id;
-		html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-		html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
+		html += (placement && placement !== html) ? ` <span class="small">(${placement})</span>` : '';
+		html += (subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id;
 		return html;
 	}
 
@@ -153,31 +153,31 @@ define(['sparkline'], function () {
 
 	function initializePopupEvents() {
 		// Resource edition pop-up
-		var $popup = _('popup-location');
-		var $node;
+		const $popup = _('popup-location');
+		let $node = null;
 		$popup.on('shown.bs.modal', function () {
 			_('instance-location').trigger('focus');
-			if ($('.select2-chosen').text()!==' '){
+			if ($('.select2-chosen').text() !== ' ') {
 				current.enableCreate($popup)
-			}else current.disableCreate($popup)
-		}).on('change',_('instance-location') , function (e) {
-			if ($('.select2-chosen').text()!==' '){
+			} else current.disableCreate($popup)
+		}).on('change', _('instance-location'), function (e) {
+			if ($('.select2-chosen').text() !== ' ') {
 				current.enableCreate($popup)
-			}else current.disableCreate($popup)
+			} else current.disableCreate($popup)
 		}).on('submit', function (e) {
 			e.preventDefault();
 			current.save($(this), $node);
 		}).on('show.bs.modal', function (event) {
-			let $source = $(event.relatedTarget);
-			var $tr = $source.closest('tr')[0];
+			const $source = $(event.relatedTarget);
+			const $tr = $source.closest('tr')[0];
 			$node = $tr.dataset.node;
 			_('generic-modal-title').text(current.table.dataTable().fnGetData($tr).node.name);
 			initializePopupInnerEvents($node);
-			_('instance-location').select2('data',current.table.dataTable().fnGetData($tr).preferredLocation)
+			_('instance-location').select2('data', current.table.dataTable().fnGetData($tr).preferredLocation)
 		});
 	}
 
-	var current = {
+	const current = {
 
 		table: null,
 		$table: null,
@@ -190,7 +190,7 @@ define(['sparkline'], function () {
 		/**
 		 * Location Select2 configuration.
 		 */
-		locationSelect2: function (_,node) {
+		locationSelect2: function (_, node) {
 			return genericSelect2(false, locationToHtml, node, null, locationComparator, locationMatcher);
 		},
 
@@ -199,9 +199,9 @@ define(['sparkline'], function () {
 		 * @param {string} node Resource node.
 		 */
 		save: function (i, node) {
-			var $popup = _('popup-location');
+			const $popup = _('popup-location');
 			const location = _('instance-location').select2('data')
-			var data = {
+			const data = {
 				node: node,
 				preferredLocation: location.id || null
 			}
@@ -256,7 +256,7 @@ define(['sparkline'], function () {
 					url: REST_PATH + 'service/prov/catalog',
 					dataSrc: '',
 				},
-				initComplete: function (settings, catalogs) {
+				initComplete: function (_settings, catalogs) {
 					Object.keys(catalogs).forEach(function (index) {
 						if (catalogs[index].status.start && (catalogs[index].status.end || 0) === 0) {
 							current.poll(catalogs[index].node.id);
@@ -298,32 +298,46 @@ define(['sparkline'], function () {
 					className: 'hidden-xs hidden-sm preferredLocation',
 					width: '16px',
 					type: 'string',
-					render: function (data) {
-						if (!data) {
-							return ""
-						} else return locationToHtml(data, false, true)
+					render: function (data, mode) {
+						if (data) {
+							if (mode === 'display') {
+								return locationToHtml(data, false, true);
+							}
+							return data;
+						}
+						return "";
 					}
 				}, {
-					data: 'status.nbStorageTypes',
+					data: 'status.nbTypes',
 					type: 'num',
 					width: '16px'
 				}, {
-					data: 'status.nbInstanceTypes',
-					type: 'num',
-					width: '16px'
-				}, {
-					data: 'status.nbInstancePrices',
+					data: 'status.nbPrices',
 					type: 'num',
 					width: '32px'
+				}, {
+					data: 'status.nbCo2Prices',
+					type: 'num',
+					width: '32px',
+					render: function (data, mode, object) {
+						if (data && object?.status?.nbPrices) {
+							const percent = data / object.status.nbPrices
+							if (mode === 'display') {
+								return `${Math.round(percent * 1_000) / 10}%`;
+							}
+							return percent;
+						}
+						return "";
+					}
 				}, {
 					data: 'status.end',
 					width: '16px',
 					type: 'num',
-					render: function (_i, mode, catalog) {
-						if (mode === 'sort') {
-							return catalog.status.end;
+					render: function (_i, mode, object) {
+						if (mode === 'display') {
+							return `<div class="catalog-status" data-toggle="tooltip" title="${current.toStatusText(object)}">${current.toStatus(object)}</div>`;
 						}
-						return '<div class="catalog-status" data-toggle="tooltip" title="' + current.toStatusText(catalog) + '">' + current.toStatus(catalog) + '</div>';
+						return current.toStatus(object);
 					}
 				}, {
 					data: null,
@@ -333,7 +347,7 @@ define(['sparkline'], function () {
 						if (catalog.canImport) {
 							if (catalog.status.start && (catalog.status.end || 0) === 0) {
 								// Stop button
-								return '<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="' + current.$messages.stop + '"></i></a>';
+								return `<a class="cancel"><i class="fas fa-stop text-danger" data-toggle="tooltip" title="${current.$messages.stop}"></i></a>`;
 							}
 							// Refresh button
 							return `<div class="input-group-btn catalog-import">
@@ -352,10 +366,8 @@ define(['sparkline'], function () {
 					}
 				}, {
 					width: '17px',
-					render: function () {
-						return `<a class="update" data-toggle="modal" data-target="#popup-location"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="" data-original-title="Modifier"></i></a>`
-
-					}
+					orderable: false,
+					render: () => `<a class="update" data-toggle="modal" data-target="#popup-location"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="" data-original-title="${current.$messages.update}"></i></a>`
 				}]
 			});
 		},
@@ -363,7 +375,7 @@ define(['sparkline'], function () {
 		 * Return the text corresponding to the catalog status.
 		 */
 		toStatusText: function (catalog) {
-			var status = catalog.status;
+			const status = catalog.status;
 			if (catalog.canImport) {
 				// Catalog update is supported
 				if (status.end && status.start) {
@@ -445,10 +457,10 @@ define(['sparkline'], function () {
 		 * Request a catalog update.
 		 */
 		importCatalog: function () {
-			var catalog = current.table.fnGetData($(this).closest('tr')[0]);
-			var id = catalog.node.id;
-			var name = catalog.node.name;
-			var force = $(this).is('.force');
+			const catalog = current.table.fnGetData($(this).closest('tr')[0]);
+			const id = catalog.node.id;
+			const name = catalog.node.name;
+			const force = $(this).is('.force');
 			$.ajax({
 				type: 'POST',
 				url: REST_PATH + 'service/prov/catalog/' + id + '?force=' + force,
@@ -465,9 +477,9 @@ define(['sparkline'], function () {
 		 * Cancel a catalog update.
 		 */
 		cancelImportCatalog: function () {
-			var catalog = current.table.fnGetData($(this).closest('tr')[0]);
-			var id = catalog.node.id;
-			var name = catalog.node.name;
+			const catalog = current.table.fnGetData($(this).closest('tr')[0]);
+			const id = catalog.node.id;
+			const name = catalog.node.name;
 			$.ajax({
 				type: 'DELETE',
 				url: REST_PATH + 'service/prov/catalog/' + id,
@@ -550,8 +562,8 @@ define(['sparkline'], function () {
 		 * Generate a pie corresponding to the given catalog status
 		 */
 		toStatus: function (catalog) {
-			var id = catalog.node.id;
-			var status = catalog.status;
+			const id = catalog.node.id;
+			const status = catalog.status;
 			if (catalog.canImport) {
 				// Catalog update is supported
 				if (status.end && status.start) {
