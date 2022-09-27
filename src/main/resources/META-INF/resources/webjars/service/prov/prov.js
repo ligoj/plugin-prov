@@ -1899,7 +1899,7 @@ define(function () {
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
-							$(".input-group-addon").removeClass("hidden")
+							$("#separtor-database-engine").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
@@ -1909,7 +1909,7 @@ define(function () {
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
-							$(".input-group-addon").addClass("hidden")
+							$("#separtor-database-engine").addClass("hidden")
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
