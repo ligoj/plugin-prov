@@ -1245,37 +1245,50 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change', '.mode-advanced input[type=checkbox]', function (e) {
-			debugger;
 			if (e.currentTarget.checked) {
 				$popup.addClass('advanced');
 			} else {
 				$popup.removeClass('advanced');
 			}
 		}).on('change', '.mode-workload-details input[type=checkbox]', function (e) {
-			debugger;
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
 				$('#instance-workload').addClass('disabled');
 			} else {
 				$popup.removeClass('detailWorkload');
+				$('#instance-workload').removeClass('disabled');
 			}
+		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
+			if ( ( ($('#instance-workload-dure').val()== 0 || '') || $('#instance-workload-dure').val()>100 ) ||  (($('#instance-workload-cpu').val()== 0 || '') || $('#instance-workload-cpu').val()>100)){
+				$('#create-workload').addClass('disabled');
+			}else{
+				$('#create-workload').removeClass('disabled');
+			}
+		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
+			calculWorkload();
+			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			//todo add element
 			var duree = $('#instance-workload-dure').val()
 			var cpu = $('#instance-workload-cpu').val()
-			$("ul.list-group.workload").append($(`<li class="list-group-item">`).html(`<div class="input-group">
-			<span class="input-group-addon">durée :</span>	
+			$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9">`).html(`<div class="input-group">
 			<input type="number" value="${duree}" min="0" max="100" class="form-control instance-workload-dataDure"/>
-			<span class="input-group-addon">% / cpu</span>
+			<span class="input-group-addon">% @</span>
 			<input type="number" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
 			<span class="input-group-addon">%</span>
 			<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus"></i></button>
 			</div>`));
+			calculWorkload();
+			$.proxy(current.checkResource, $(this))();
+			$('#instance-workload-dure').val('');
+			$('#instance-workload-cpu').val('');
 		}).on('click', '.btn.btn-danger.addon-workload', function () {
 			//todo delete element
 			$(event.target).parents('.list-group-item').remove();
+			calculWorkload();
+			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
@@ -1318,6 +1331,25 @@ define(function () {
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
 		});
+	}
+
+	function calculWorkload() {
+		if ($('.instance-workload-dataDure')) {
+			let i = 0;
+			var workload = 0;
+			var details =''; 
+			while (i <= ($('.instance-workload-dataDure').length - 1)) {
+				workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
+				details = details + ","+ $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value
+				i++;
+			}
+			if (workload == 0) {
+				_('instance-workload').val('');
+			} else {
+				debugger;
+				_('instance-workload').val(workload+details);
+			}
+		}
 	}
 
 	function select2Placeholder(name) {
@@ -1927,7 +1959,7 @@ define(function () {
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
-							$(".input-group-addon").removeClass("hidden")
+							//$(".input-group-addon").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
@@ -1937,7 +1969,7 @@ define(function () {
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
-							$(".input-group-addon").addClass("hidden")
+							//$(".input-group-addon").addClass("hidden")
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
