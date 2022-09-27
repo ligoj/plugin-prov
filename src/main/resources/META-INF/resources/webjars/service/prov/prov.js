@@ -1245,13 +1245,37 @@ define(function () {
 			e.preventDefault();
 			current.save($(this).provType());
 		}).on('change', '.mode-advanced input[type=checkbox]', function (e) {
+			debugger;
 			if (e.currentTarget.checked) {
 				$popup.addClass('advanced');
 			} else {
 				$popup.removeClass('advanced');
 			}
+		}).on('change', '.mode-workload-details input[type=checkbox]', function (e) {
+			debugger;
+			if (e.currentTarget.checked) {
+				$popup.addClass('detailWorkload');
+				$('#instance-workload').addClass('disabled');
+			} else {
+				$popup.removeClass('detailWorkload');
+			}
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
+		}).on('click', '.btn.btn-success.addon-workload', function () {
+			//todo add element
+			var duree = $('#instance-workload-dure').val()
+			var cpu = $('#instance-workload-cpu').val()
+			$("ul.list-group.workload").append($(`<li class="list-group-item">`).html(`<div class="input-group">
+			<span class="input-group-addon">durée :</span>	
+			<input type="number" value="${duree}" min="0" max="100" class="form-control instance-workload-dataDure"/>
+			<span class="input-group-addon">% / cpu</span>
+			<input type="number" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+			<span class="input-group-addon">%</span>
+			<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus"></i></button>
+			</div>`));
+		}).on('click', '.btn.btn-danger.addon-workload', function () {
+			//todo delete element
+			$(event.target).parents('.list-group-item').remove();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
@@ -1275,6 +1299,7 @@ define(function () {
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
 			$popup.find('div .element-advanced').addClass('advanced')
+			$popup.find('div .element-workload-details').addClass('detailWorkload')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();

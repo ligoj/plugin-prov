@@ -492,9 +492,36 @@
 						</div>
 						<div class="form-group element-advanced">
 							<label class="control-label col-sm-3" for="instance-workload">workload</label>
-							<div class="col-sm-9">
-								<input type="text" id="instance-workload" class="resource-query form-control" maxlength="250"/>
+							<div class="col-sm-7">
+								<input type="text" id="instance-workload" class="resource-query form-control" maxlength="100"/>
 							</div>
+							<label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
+								<input type="checkbox" id="mode-workload-details">
+								<span>Détails&emsp; </span>
+							</label>
+							<div class="input-group workload-details element-workload-details">
+								<span class="input-group-addon">durée :</span>	
+								<input type="number" value="0" min="0" max="100" id="instance-workload-dure" class="resource-query form-control"/>
+								<span class="input-group-addon">% @ cpu</span>
+								<input type="number" value="0" min="0" max="100" id="instance-workload-cpu" class="resource-query form-control"/>
+								<span class="input-group-addon">%</span>
+								<button type="button" class="btn btn-success addon-workload"><i class="fas fa-plus"></i></button>
+							</div>
+						</div>
+						<div class="form-group element-advanced element-workload-details">
+							<label class="control-label col-sm-3" for="instance-workload-data">données :</label>
+							<ul class="list-group workload">
+								<li class="list-group-item">
+									<div class="input-group">
+										<span class="input-group-addon">durée :</span>	
+										<input type="number" value="0" min="0" max="100" id="instance-workload-dataDure" class="resource-query form-control"/>
+										<span class="input-group-addon">% @ cpu</span>
+										<input type="number" value="0" min="0" max="100" id="instance-workload-dataCpu" class="resource-query form-control"/>
+										<span class="input-group-addon">%</span>
+										<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus"></i></button>
+									</div>
+								</li>
+                            </ul>
 						</div>
 						<div class="form-group element-advanced" data-exclusive="instance container database">
 							<label class="control-label col-sm-3" for="instance-processor">{{service:prov:processor}}</label>
