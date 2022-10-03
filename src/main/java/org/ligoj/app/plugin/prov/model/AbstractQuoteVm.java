@@ -13,6 +13,7 @@ import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.ligoj.app.plugin.prov.Workload;
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 
@@ -89,7 +90,9 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private Integer ramMax;
 
 	/**
-	 * Efficient baseline CPU workload, from 1 to 100. Undefined when <code>null</code>
+	 * Efficient baseline CPU workload details.
+	 * 
+	 * @see Workload#from(String)
 	 */
 	private String workload;
 

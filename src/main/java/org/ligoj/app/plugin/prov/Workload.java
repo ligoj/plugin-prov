@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Workload modelisation.
+ * Efficient baseline with detailed CPU workload.
  */
 @Getter
 public class Workload {
@@ -54,7 +54,26 @@ public class Workload {
 		double value = 0d;
 	}
 
-	static Workload from(final String rawData) {
+	/**
+	 * This string follows this pattern: <code>$baseline(,$duration@$cpu)*</code>. Sample value:
+	 * <code>80,20@55,10@23,65@10</code>. Constraints:
+	 * <ul>
+	 * <li>Weighted average of values corresponds to the baseline</li>
+	 * <li>When there is no details (only the baseline), no computation has to be done. Min is <code>0</code> and max is
+	 * <code>100</code></li>.
+	 * <li>Sum of durations should be <code>100</code>. When different than <code>100</code> a prorata is applied to
+	 * each value according to their weight.</li>
+	 * <li>Min value's duration is <code>0</code></li>
+	 * <li>Max value's duration should be <code>100</code>, however adjustment is applied to be aligned to
+	 * <code>100</code></li>
+	 * <li>Min value's COU is <code>0</code></li>
+	 * <li>Max value's CPU is <code>100</code></li>
+	 * <ul>
+	 * 
+	 * @param rawData The raw data containing baseline and optional details.
+	 * @return The Workload entity built from this raw value.
+	 */
+	public static Workload from(final String rawData) {
 		if (rawData == null) {
 			return DEFAULT_WORKLOAD;
 		}
