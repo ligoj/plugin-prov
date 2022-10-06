@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 /*jshint esversion: 6*/
-define(function () {
+define(['sparkline'],function () {
 
 	let initializedPopupEvents = false;
 	let initializedPopupUsage = false;
@@ -1080,7 +1080,7 @@ define(function () {
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('change input', delay(function () {
+		$('input.resource-query[type="number"]').on('focusout', delay(function () {
 			$.proxy(current.checkResource, $(this))();
 		}, 50));
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
@@ -1258,35 +1258,99 @@ define(function () {
 				$popup.removeClass('detailWorkload');
 				$('#instance-workload').removeClass('disabled');
 			}
+			if ($('.mode-workload-details input[type=checkbox]:checked').length > 0) {
+				var workload = _('instance-workload').val().split(',');
+				var dureeTotal = 0 ; 
+				if (workload.length > 1) {
+					for (let i = 1; i < workload.length; i++) {
+						var data = workload[i].split('@');
+						if (data.length == 2) {
+							dureeTotal = dureeTotal + parseInt(data[0]);
+							if(dureeTotal <= 100 && data[0]!=(""||0) && data[1]!=""){
+							$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+							<input type="number" placeholder="durée" value="${data[0]}" min="1" max="100" class="form-control instance-workload-dataDure"/>
+							<span class="input-group-addon">% @</span>
+							<input type="number" placeholder="cpu" value="${data[1]}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+							<span class="input-group-addon">%</span>
+							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="{{service:prov:delete-workload}}"></i></button>
+							</div>`));
+							}
+						}
+					}
+				calculWorkload();
+				$.proxy(current.checkResource, $popup)();
+				}
+			}else {
+				$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
+			}
 		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
-			if ( ( ($('#instance-workload-dure').val()== 0 || '') || $('#instance-workload-dure').val()>100 ) ||  (($('#instance-workload-cpu').val()== 0 || '') || $('#instance-workload-cpu').val()>100)){
+			if ( ( ($('#instance-workload-dure').val()== 0 || '') || $('#instance-workload-dure').val()>100 ) ||  (($('#instance-workload-cpu').val()== '') || $('#instance-workload-cpu').val()>100)){
 				$('#create-workload').addClass('disabled');
 			}else{
 				$('#create-workload').removeClass('disabled');
 			}
 		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
-			calculWorkload();
-			$.proxy(current.checkResource, $(this))();
+			let i = 0;
+			var dureeTotal = 0;
+			if(($('.instance-workload-dataDure').length >=2)){
+                while (i < ($('.instance-workload-dataDure').length)) {
+					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
+					i++;
+                }
+            }else if($('.instance-workload-dataDure')[0]) {
+                dureeTotal = $('.instance-workload-dataDure')[0].value
+			}
+			if (dureeTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+				if ($(e.target).val()>100){
+					$(e.target).val(100);
+				}
+				calculWorkload();
+				$.proxy(current.checkResource, $popup)();
+			} else if ($(e.target).val() == 0 || $(e.target).val() == '' ) {
+				if ($(e.target)[0]==$('.instance-workload-dataCpu')[0]){
+					$(e.target).val(0);
+				}else {
+					$(e.target).val(1);
+				}
+				calculWorkload();
+				$.proxy(current.checkResource, $popup)();
+			} else {
+				$(e.target).val($(e.target).val() - (dureeTotal - 100));
+				calculWorkload();
+				$.proxy(current.checkResource, $popup)();
+			}   
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.btn.btn-success.addon-workload', function () {
-			//todo add element
+			let i = 0;
+			var dureeTotal = 0;
+            if(($('.instance-workload-dataDure').length >=2)){
+                while (i < ($('.instance-workload-dataDure').length)) {
+					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
+					i++;
+                }
+            }else if($('.instance-workload-dataDure')[0]) {
+				dureeTotal = $('.instance-workload-dataDure')[0].value;
+			}
+			
 			var duree = $('#instance-workload-dure').val()
 			var cpu = $('#instance-workload-cpu').val()
-			$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9">`).html(`<div class="input-group">
-			<input type="number" value="${duree}" min="0" max="100" class="form-control instance-workload-dataDure"/>
-			<span class="input-group-addon">% @</span>
-			<input type="number" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
-			<span class="input-group-addon">%</span>
-			<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus"></i></button>
-			</div>`));
-			calculWorkload();
-			$.proxy(current.checkResource, $(this))();
+			if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
+				$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+				<input type="number" placeholder="durée" value="${duree}" min="1" max="100" class="form-control instance-workload-dataDure"/>
+				<span class="input-group-addon">% @</span>
+				<input type="number" placeholder="cpu" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+				<span class="input-group-addon">%</span>
+				<button type="button" class="btn btn-danger addon-workload" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"><i class="fas fa-minus"></i></button>
+				</div>`));
+				calculWorkload();
+				$.proxy(current.checkResource, $popup)();
+			 }
 			$('#instance-workload-dure').val('');
 			$('#instance-workload-cpu').val('');
-		}).on('click', '.btn.btn-danger.addon-workload', function () {
-			//todo delete element
-			$(event.target).parents('.list-group-item').remove();
+			$('#create-workload').addClass('disabled');
+		}).on('click', '.btn.btn-danger.addon-workload', function (e) {
+			$(e.target).parents('.list-group-item').remove();
 			calculWorkload();
 			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
@@ -1337,17 +1401,67 @@ define(function () {
 		if ($('.instance-workload-dataDure')) {
 			let i = 0;
 			var workload = 0;
-			var details =''; 
+			var details = '';
+			var duree = 0;
+			var tabValeur = [];
 			while (i <= ($('.instance-workload-dataDure').length - 1)) {
 				workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
-				details = details + ","+ $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value
+				details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
+				duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
+				tabValeur.push({"duration": parseInt($('.instance-workload-dataDure')[i].value) , "cpu": parseInt($('.instance-workload-dataCpu')[i].value) }) 
 				i++;
 			}
+
+			var proRata = duree / 100;
+			var detailsPoints = [];
+			var baselinePoints = [];
+			var incrementDuration = 1 // 1 %
+			tabValeur.forEach(detail => {
+				var nbIncrements = 0;
+				nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+				for (let y =0 ; y < nbIncrements; y++) {
+					detailsPoints.push(detail.cpu);
+					baselinePoints.push(workload);
+				}
+			})
+			console.log(detailsPoints);
+			console.log(baselinePoints);
+
 			if (workload == 0) {
 				_('instance-workload').val('');
+				$('#sparkline-workload').addClass('hidden');
 			} else {
-				debugger;
-				_('instance-workload').val(workload+details);
+				_('instance-workload').val(workload + details);
+				if ($('.instance-workload-dataDure').length > 1) {
+					$('#sparkline-workload').removeClass('hidden');
+				}else {
+					$('#sparkline-workload').addClass('hidden');
+				}
+				$('#sparkline-workload').sparkline(detailsPoints, {
+					width: '140',
+					height: '50',
+					chartRangeMin: 0,
+					chartRangeMax: 100,
+					// chartRangeMinX: 0,
+					// chartRangeMaxX: 100,
+					lineWidth: 4,
+					spotRadius: 4,
+					normalRangeMin: parseInt(baselinePoints) - 1,
+					normalRangeMax: parseInt(baselinePoints),
+					drawNormalOnTop: true,
+					normalRangeColor: '#ff0000',
+					fillColor: '#ffffff',
+					tooltipFormatter: function (sparkline, options, fields) {
+						return "Baseline : " + workload + " CPU : " + fields.y +"";
+						}
+				})
+				// $('#sparkline-workload').sparkline(detailsPoints, {
+				// 	type: 'bar', barSpacing: 1, chartRangeMin: 0, barWidth: 10, chartRangeMax: 100, height: 50,width:140, tooltipPrefix: "CPU :"
+				// })
+				// $('#sparkline-workload').sparkline(baselinePoints, {
+				// 	type: 'line', fillColor: null, lineColor: "#f00", spotRadius: 0, lineWidth: 2, chartRangeMin: 0, composite: true, chartRangeMax: 100, tooltipPrefix: "Baseline :"
+				// })
+
 			}
 		}
 	}
@@ -1567,8 +1681,12 @@ define(function () {
 		})
 	}
 
-	function cleanData(data) {
+	function cleanNumber(data) {
 		return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
+	}
+
+	function cleanData(data) {
+		return (typeof data === 'string') ? data.trim() || null : data;
 	}
 
 	function getResourceValue($item) {
@@ -1581,7 +1699,7 @@ define(function () {
 		} else if ($item.data('ligojProvSlider')) {
 			value = $item.provSlider('value', 'reserved');
 		} else if ($item.is('[type="number"]')) {
-			value = parseInt(cleanData($item.val()) || "0", 10);
+			value = parseInt(cleanNumber($item.val()) || "0", 10);
 		} else if (!$item.is('.select2-container')) {
 			value = cleanData($item.val());
 		}
@@ -1589,11 +1707,11 @@ define(function () {
 	}
 
 	function cleanFloat(data) {
-		let cData = cleanData(data);
+		let cData = cleanNumber(data);
 		return cData && parseFloat(cData, 10);
 	}
 	function cleanInt(data) {
-		let cData = cleanData(data);
+		let cData = cleanNumber(data);
 		return cData && parseInt(cData, 10);
 	}
 	function cleanRam(mode) {
@@ -1943,11 +2061,7 @@ define(function () {
 				}
 			}
 			const queriesArray = [];
-			if (queries.workload && queries.workload.includes("%40")){
-				queries.workload= queries.workload.replaceAll('%40', '@').replaceAll(".",",").replaceAll("%2C",",");
-			}
 			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
-
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
 			$.ajax({
@@ -2164,7 +2278,7 @@ define(function () {
 				type: 'string',
 				render: function () {
 					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
-						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
+						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></a>`
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
 			});
