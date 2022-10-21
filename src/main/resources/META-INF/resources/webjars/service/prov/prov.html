@@ -482,8 +482,8 @@
 						</div>
 						<div class="form-group required element-advanced">
 							<label class="control-label col-sm-3" for="instance-gpu">{{service:prov:gpu}}</label>
-							<div class="col-xs-3">
-								<div class="input-group">
+							<div class="col-sm-9">
+								<div class="input-group col-sm-3">
 									<input type="text" id="instance-gpuRate" class="prov-rate resource-query form-control element-advanced" />
 									<input type="number" value ="0" min="0" max="8" id="instance-gpu" class="resource-query form-control" required />
 								</div>
@@ -491,15 +491,18 @@
 							</div>
 						</div>
 						<div class="form-group element-advanced">
-							 <label class="control-label col-sm-3" for="instance-workload">{{service:prov:workload}}</label>
-							<div class="col-sm-4">
-								<input type="text" id="instance-workload" class="resource-query form-control"/>
+							<label class="control-label col-sm-3" for="instance-workload">{{service:prov:workload}}</label>
+							<div class="col-sm-2">
+								<input type="text" id="instance-workload" class="resource-query form-control" />
 							</div>
-							<label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
-								<input type="checkbox" id="mode-workload-details">
-								<span>Détails&emsp; </span>
-							</label>
-							<span id="sparkline-workload" class="element-workload-details"></span>
+							<div style="padding: 9px; float: left;">
+								<input type="checkbox" id="mode-workload-details" data-size="mini" data-handle-width="10" data-on-color="success">
+							</div>
+							<svg class="svg-workload hidden" width="250" height="50"></svg>
+							<!-- <label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
+														<input type="checkbox" id="mode-workload-details">
+														<span>Détails&emsp; </span> 
+													</label> -->
 						</div>
 						<span class="input-help element-advanced"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:workload-help}}"></i></span>
 						<div class="form-group element-advanced element-workload-details">
@@ -517,6 +520,8 @@
 								</li>
 							</ul>
 						</div>
+						<!-- <svg class="svg-workload" width="500" height="400"></svg> -->
+						<div id="my_dataviz"></div>
 						<div class="form-group element-advanced" data-exclusive="instance container database">
 							<label class="control-label col-sm-3" for="instance-processor">{{service:prov:processor}}</label>
 							<div class="col-sm-9">
