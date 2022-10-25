@@ -491,28 +491,30 @@
 							</div>
 						</div>
 						<div class="form-group element-advanced">
-							<label class="control-label col-sm-3" for="instance-workload">Workload</label>
-							<div class="col-sm-7">
-								<input type="text" id="instance-workload" class="resource-query form-control" maxlength="100"/>
+							 <label class="control-label col-sm-3" for="instance-workload">{{service:prov:workload}}</label>
+							<div class="col-sm-4">
+								<input type="text" id="instance-workload" class="resource-query form-control"/>
 							</div>
 							<label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
 								<input type="checkbox" id="mode-workload-details">
 								<span>Détails&emsp; </span>
 							</label>
-							<div class="col-sm-offset-3 col-sm-9">
-								<div class="input-group workload-details element-workload-details detailWorkload">						
-									<input type="number" value="" min="0" max="100" id="instance-workload-dure"class="resource-query form-control">
-									<span class="input-group-addon">% @</span>
-									<input type="number" value="" min="0" max="100" id="instance-workload-cpu" class="resource-query form-control">
-									<span class="input-group-addon">%</span>
-									<button type="button" id="create-workload"class="btn btn-success addon-workload disabled"><i class="fas fa-plus"></i>
-										<div class="ripple-container"></div>
-									</button>
-								</div>
-							</div>
+							<span id="sparkline-workload" class="element-workload-details"></span>
 						</div>
+						<span class="input-help element-advanced"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:workload-help}}"></i></span>
 						<div class="form-group element-advanced element-workload-details">
 							<ul class="list-group workload">
+								<li class="list-group-item col-sm-offset-3 col-sm-9">
+									<div class="input-group workload-details element-workload-details detailWorkload">						
+										<input type="number" placeholder="{{service:prov:workload-duree}}" value="" min="1" max="100" id="instance-workload-dure"class="form-control">
+										<span class="input-group-addon">% @</span>
+										<input type="number" placeholder="{{service:prov:workload-cpu}}" value="" min="0" max="100" id="instance-workload-cpu" class="form-control">
+										<span class="input-group-addon">%</span>
+										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i>
+											<div class="ripple-container"></div>
+										</button>
+									</div>
+								</li>
 							</ul>
 						</div>
 						<div class="form-group element-advanced" data-exclusive="instance container database">
