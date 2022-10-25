@@ -815,13 +815,13 @@ define(['sparkline', 'd3'], function () {
 			const img = `<img class="flag-icon prov-location-flag" src="${current.$path}flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
-				const tooltip = `${m49 || id}${(placement && placement !== html) ? `<br>Placement: ${placement}` : ''}<br>Id: ${id}`;
+				const tooltip = `${m49 || id}${placement && placement !== html && `<br>Placement: ${placement}` || ''}<br>Id: ${id}`;
 				return `<u class="details-help" data-toggle="popover" data-content="${toHtmlAttribute(tooltip)}" title="${toHtmlAttribute(location.name)}">${img}></u>`;
 			}
 			html += `${img} title="${toHtmlAttribute(location.name)}">`;
 		}
 		html += m49 || id;
-		return `${(placement && placement !== html) ? ` <span class="small">(${toHtmlAttribute(placement)})</span>` : ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}}`;
+		return `${html}${placement && placement !== html && ` <span class="small">(${placement})</span>` || ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}`;
 	}
 
 	function formatLocation(location, mode, data) {
