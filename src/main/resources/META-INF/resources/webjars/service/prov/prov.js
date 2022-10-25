@@ -3661,6 +3661,7 @@ define(['sparkline', 'd3'], function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
+
 						d3Bar.update(data, aggregateMode);
 					}
 				} else {
@@ -4016,7 +4017,7 @@ define(['sparkline', 'd3'], function () {
 			let duration = BARCHART_DURATION;
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
-				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, supportCost: 0, storageCo2: 0, storageCost: 0, supportCo2: 0, };
 				computeTypes.forEach(type => monthData[`${type}Cost`] = 0);
 				computeTypes.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
@@ -4037,43 +4038,31 @@ define(['sparkline', 'd3'], function () {
 			let storageAvailable = 0;
 			let storageReserved = 0;
 			let storageCost = 0;
-			let storageCo2 = 0;
-			let storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
+			const storages = current.getFilteredData('storage', filterDate);
 			storages.forEach(qs => {
-				if (qs.quoteInstance) {
-					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
-				} else if (qs.quoteDatabase) {
-					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
-				} else if (qs.quoteFunction) {
-					nb = 1;
-				} else if (qs.quoteContainer) {
-					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
-				} else {
-					nb = 1;
-				}
+				const quoteVm = (
+					(qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id])
+					|| (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id])
+					|| (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id])
+					|| (qs.quoteFunction && result.function.enabled[qs.quoteFunction.id]));
+				nb = quoteVm && quoteVm.minQuantity || 1;
 
-				let qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
+				const qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				storageCo2 += qs.co2;
-				let quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
-					start = (quoteVm.usage || defaultUsage).start || 0
+					start = (quoteVm.usage || defaultUsage).start || 0;
 					end = Math.min(duration, start + (quoteVm.usage || defaultUsage).duration);
 					for (t = start; t < end; t++) {
 						timeline[t].storageCost += qs.cost;
-						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
-						timeline[t].co2 += qs.co2;
 					}
 				} else {
 					for (t = timeline.length; t-- > 0;) {
 						timeline[t].storageCost += qs.cost;
-						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
-						timeline[t].co2 += qs.co2;
 					}
 				}
 			});
@@ -4083,12 +4072,11 @@ define(['sparkline', 'd3'], function () {
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;
-				timeline[t].supportCo2 = 0;
 				timeline[t].cost += supportCost;
 			}
 
 			let costNoSupport = computeTypes.reduce((total, sType) => total + result[sType].cost, storageCost);
-			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, storageCo2);
+			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, 0);
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
 				co2: co2NoSupport,
@@ -4102,7 +4090,7 @@ define(['sparkline', 'd3'], function () {
 					reserved: storageReserved,
 					filtered: storages,
 					cost: storageCost,
-					co2: storageCo2
+					co2: 0
 				},
 				support: {
 					nb: supports.length,
