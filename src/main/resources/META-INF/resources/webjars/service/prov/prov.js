@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 /*jshint esversion: 6*/
-define(['sparkline','d3'],function () {
+define(['sparkline', 'd3'], function () {
 
 	let initializedPopupEvents = false;
 	let initializedPopupUsage = false;
@@ -427,7 +427,7 @@ define(['sparkline','d3'],function () {
 			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
 		}
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 	}
 
 	function formatStorageType(type, mode) {
@@ -459,7 +459,7 @@ define(['sparkline','d3'],function () {
 		if (type.availability) {
 			details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
 		}
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 	}
 
 	/**
@@ -483,7 +483,11 @@ define(['sparkline','d3'],function () {
 			details += `<br/>${current.$messages['service:prov:upfront']}: ${formatCost(qi.price.initialCost)}`;
 		}
 
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
+	}
+
+	function toHtmlAttribute(text) {
+		return text.replaceAll('"', '&#34;');
 	}
 
 	/**
@@ -808,20 +812,16 @@ define(['sparkline','d3'],function () {
 		let html = map === true ? locationMap(location) : '';
 		if (location.countryA2) {
 			const a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-			let tooltip = m49 || id;
-			const img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			const img = `<img class="flag-icon prov-location-flag" src="${current.$path}flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
-				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
-				tooltip += '<br>Id: ' + id;
-				return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
+				const tooltip = `${m49 || id}${(placement && placement !== html) ? `<br>Placement: ${placement}` : ''}<br>Id: ${id}`;
+				return `<u class="details-help" data-toggle="popover" data-content="${toHtmlAttribute(tooltip)}" title="${toHtmlAttribute(location.name)}">${img}></u>`;
 			}
-			html += img + ' title="' + location.name + '">';
+			html += `${img} title="${toHtmlAttribute(location.name)}">`;
 		}
 		html += m49 || id;
-		html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-		html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
-		return html;
+		return `${(placement && placement !== html) ? ` <span class="small">(${toHtmlAttribute(placement)})</span>` : ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}}`;
 	}
 
 	function formatLocation(location, mode, data) {
@@ -948,9 +948,9 @@ define(['sparkline','d3'],function () {
 		let markup = '';
 		if (descriptionIsLink) {
 			// Description as a link
-			markup = '<a href="' + description + '" target="_blank">';
+			markup = `<a href="${description}" target="_blank">`;
 		}
-		markup += '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		markup += `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 		if (descriptionIsLink) {
 			// Description as a link
 			markup += '</a>';
@@ -1262,14 +1262,14 @@ define(['sparkline','d3'],function () {
 			}
 			if (e.currentTarget.checked) {
 				var workload = _('instance-workload').val().split(',');
-				var dureeTotal = 0 ; 
+				var dureeTotal = 0;
 				if (workload.length > 1) {
 					for (let i = 1; i < workload.length; i++) {
 						var data = workload[i].split('@');
 						if (data.length == 2) {
 							dureeTotal = dureeTotal + parseInt(data[0]);
-							if(dureeTotal <= 100 && data[0]!=(""||0) && data[1]!=""){
-							$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+							if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+								$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
 							<input type="number" placeholder="durée" value="${data[0]}" min="1" max="100" class="form-control instance-workload-dataDure"/>
 							<span class="input-group-addon">% @</span>
 							<input type="number" placeholder="cpu" value="${data[1]}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
@@ -1279,39 +1279,39 @@ define(['sparkline','d3'],function () {
 							}
 						}
 					}
-				calcul_list_and_create_sparkline();
-				$.proxy(current.checkResource, $popup)();
+					calcul_list_and_create_sparkline();
+					$.proxy(current.checkResource, $popup)();
 				}
-			}else {
+			} else {
 				$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
 			}
 		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
-			if ( ( ($('#instance-workload-dure').val()== 0 || '') || $('#instance-workload-dure').val()>100 ) ||  (($('#instance-workload-cpu').val()== '') || $('#instance-workload-cpu').val()>100)){
+			if ((($('#instance-workload-dure').val() == 0 || '') || $('#instance-workload-dure').val() > 100) || (($('#instance-workload-cpu').val() == '') || $('#instance-workload-cpu').val() > 100)) {
 				$('#create-workload').addClass('disabled');
-			}else{
+			} else {
 				$('#create-workload').removeClass('disabled');
 			}
 		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
 			let i = 0;
 			var dureeTotal = 0;
-			if(($('.instance-workload-dataDure').length >=2)){
-                while (i < ($('.instance-workload-dataDure').length)) {
+			if (($('.instance-workload-dataDure').length >= 2)) {
+				while (i < ($('.instance-workload-dataDure').length)) {
 					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
 					i++;
-                }
-            }else if($('.instance-workload-dataDure')[0]) {
-                dureeTotal = $('.instance-workload-dataDure')[0].value
+				}
+			} else if ($('.instance-workload-dataDure')[0]) {
+				dureeTotal = $('.instance-workload-dataDure')[0].value
 			}
 			if (dureeTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
-				if ($(e.target).val()>100){
+				if ($(e.target).val() > 100) {
 					$(e.target).val(100);
 				}
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
-			} else if ($(e.target).val() == 0 || $(e.target).val() == '' ) {
-				if ($(e.target)[0].classList.value == 'form-control instance-workload-dataCpu'){
+			} else if ($(e.target).val() == 0 || $(e.target).val() == '') {
+				if ($(e.target)[0].classList.value == 'form-control instance-workload-dataCpu') {
 					$(e.target).val(0);
-				}else {
+				} else {
 					$(e.target).val(1);
 				}
 				calcul_list_and_create_sparkline();
@@ -1320,21 +1320,21 @@ define(['sparkline','d3'],function () {
 				$(e.target).val($(e.target).val() - (dureeTotal - 100));
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
-			}   
+			}
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			let i = 0;
 			var dureeTotal = 0;
-            if(($('.instance-workload-dataDure').length >= 2)){
-                while (i < ($('.instance-workload-dataDure').length)) {
+			if (($('.instance-workload-dataDure').length >= 2)) {
+				while (i < ($('.instance-workload-dataDure').length)) {
 					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
 					i++;
-                }
-            }else if($('.instance-workload-dataDure')[0]) {
+				}
+			} else if ($('.instance-workload-dataDure')[0]) {
 				dureeTotal = $('.instance-workload-dataDure')[0].value;
 			}
-			
+
 			var duree = $('#instance-workload-dure').val()
 			var cpu = $('#instance-workload-cpu').val()
 			if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
@@ -1347,7 +1347,7 @@ define(['sparkline','d3'],function () {
 				</div>`));
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
-			 }
+			}
 			$('#instance-workload-dure').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
@@ -1395,7 +1395,7 @@ define(['sparkline','d3'],function () {
 			_('instance-optimizer').select2Placeholder(select2Placeholder('optimizer'));
 			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
-			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);	
+			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
 			$popup.find('.mode-workload-details input[type=checkbox]').prop("checked", false);
 			$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
 			$('.workload-part').remove();
@@ -1403,54 +1403,55 @@ define(['sparkline','d3'],function () {
 			$('#instance-workload').removeClass('disabled');
 			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
 			_('mode-workload-details').bootstrapSwitch('state', false);
-			calcul_input_and_create_sparkline();	
+			calcul_input_and_create_sparkline();
 		});
 	}
 
 	function calcul_list_and_create_sparkline() {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').addClass("hidden");
-		if ($('.instance-workload-dataDure')) {
-			let i = 0;
-			var workload = 0;
-			var details = '';
-			var duree = 0;
-			var tabValeur = [];
-			while (i <= ($('.instance-workload-dataDure').length - 1)) {
-				workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
-				details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
-				duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
-				tabValeur.push({"duration": parseInt($('.instance-workload-dataDure')[i].value) , "cpu": parseInt($('.instance-workload-dataCpu')[i].value) }) 
-				i++;
-			}
-
-			var proRata = duree / 100;
-			var detailsPoints = [];
-			var baselinePoints = [];
-			var incrementDuration = 1 // 1 %
-			tabValeur.forEach(detail => {
-				var nbIncrements = 0;
-				nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
-				for (let y =0 ; y < nbIncrements; y++) {
-					detailsPoints.push(detail.cpu);
-					baselinePoints.push(workload);
+			if ($('.instance-workload-dataDure')) {
+				let i = 0;
+				var workload = 0;
+				var details = '';
+				var duree = 0;
+				var tabValeur = [];
+				while (i <= ($('.instance-workload-dataDure').length - 1)) {
+					workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
+					details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
+					duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
+					tabValeur.push({ "duration": parseInt($('.instance-workload-dataDure')[i].value), "cpu": parseInt($('.instance-workload-dataCpu')[i].value) })
+					i++;
 				}
-			})
 
-			if (workload == 0) {
-				_('instance-workload').val('');
-				$('#sparkline-workload').addClass('hidden');
-			} else {
-				_('instance-workload').val(workload + details);
-				if ($('.instance-workload-dataDure').length > 1) {
-					$('#sparkline-workload').removeClass('hidden');
-				}else {
+				var proRata = duree / 100;
+				var detailsPoints = [];
+				var baselinePoints = [];
+				var incrementDuration = 1 // 1 %
+				tabValeur.forEach(detail => {
+					var nbIncrements = 0;
+					nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+					for (let y = 0; y < nbIncrements; y++) {
+						detailsPoints.push(detail.cpu);
+						baselinePoints.push(workload);
+					}
+				})
+
+				if (workload == 0) {
+					_('instance-workload').val('');
 					$('#sparkline-workload').addClass('hidden');
-				}						
+				} else {
+					_('instance-workload').val(workload + details);
+					if ($('.instance-workload-dataDure').length > 1) {
+						$('#sparkline-workload').removeClass('hidden');
+					} else {
+						$('#sparkline-workload').addClass('hidden');
+					}
+				}
+				create_Sparkline(detailsPoints, baselinePoints);
 			}
-			create_Sparkline(detailsPoints,baselinePoints);
-		}
-	})}
+		})
+	}
 
 	function create_Sparkline(detailsPoints, baselinePoints) {
 		require(['d3'], function (d3, d3Bar) {
@@ -1552,7 +1553,7 @@ define(['sparkline','d3'],function () {
 		$('.svg-workload').addClass("hidden");
 		var input_workload = _('instance-workload').val().split(',');
 		var workload = 0;
-		var details = ""; 
+		var details = "";
 		var dureeTotal = 0;
 		var tabValeur = [];
 		if (input_workload.length > 1) {
@@ -1562,7 +1563,7 @@ define(['sparkline','d3'],function () {
 					dureeTotal = dureeTotal + parseInt(data[0]);
 					if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
 						workload = workload + (data[0] * data[1] / 100);
-						details = details + ","+data[0]+"@"+data[1]
+						details = details + "," + data[0] + "@" + data[1]
 						tabValeur.push({ "duration": data[0], "cpu": data[1] });
 					}
 				}
@@ -1572,7 +1573,7 @@ define(['sparkline','d3'],function () {
 			} else {
 				_('instance-workload').val(input_workload[0]);
 			}
-			 
+
 			var proRata = dureeTotal / 100;
 			var detailsPoints = [];
 			var baselinePoints = [];
@@ -1586,15 +1587,14 @@ define(['sparkline','d3'],function () {
 				}
 			})
 			create_Sparkline(detailsPoints, baselinePoints);
-		}else{
+		} else {
 			$('.svg-workload').addClass("hidden");
-			var val_input = _('instance-workload').val().replace(/[^0-9]+/g,'');
+			var val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
 			_('instance-workload').val(val_input);
-			if(_('instance-workload').val() > 100)
-			{
+			if (_('instance-workload').val() > 100) {
 				_('instance-workload').val('');
 			}
-		}	
+		}
 	}
 
 	function select2Placeholder(name) {
@@ -1702,7 +1702,8 @@ define(['sparkline','d3'],function () {
 	/**
 	 * Configure multi-scoped resource type: modal behavior
 	 */
-	function initializeMultiScoped(type, onShowModal, defaultData = {}) {;
+	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
+		;
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
 			onShowModal(event);
@@ -3367,8 +3368,8 @@ define(['sparkline','d3'],function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
-			_('instance-gpu').val(quote.gpu || 0 );
-			_('instance-workload').val(quote.workload || null );
+			_('instance-gpu').val(quote.gpu || 0);
+			_('instance-workload').val(quote.workload || null);
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
