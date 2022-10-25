@@ -1079,10 +1079,7 @@ define(['sparkline', 'd3'], function () {
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
-		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('focusout', delay(function () {
-			$.proxy(current.checkResource, $(this))();
-		}, 50));
+		$('input.resource-query').on('input', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
@@ -1673,7 +1670,7 @@ define(['sparkline', 'd3'], function () {
 			duration: parseInt(_('usage-duration').val() || '1', 10)
 		}));
 
-		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
+		$('.usage-inputs input').on('change keyup', current.synchronizeUsage);
 
 		// Usage rate template
 		const usageTemplates = [
