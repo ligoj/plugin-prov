@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 /*jshint esversion: 6*/
-define(['sparkline'],function () {
+define(['sparkline','d3'],function () {
 
 	let initializedPopupEvents = false;
 	let initializedPopupUsage = false;
@@ -1250,7 +1250,9 @@ define(['sparkline'],function () {
 			} else {
 				$popup.removeClass('advanced');
 			}
-		}).on('change', '.mode-workload-details input[type=checkbox]', function (e) {
+		}).on('change', '#instance-workload', function (e) {
+			calcul_input_and_create_sparkline();
+		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
 				$('#instance-workload').addClass('disabled');
@@ -1258,7 +1260,7 @@ define(['sparkline'],function () {
 				$popup.removeClass('detailWorkload');
 				$('#instance-workload').removeClass('disabled');
 			}
-			if ($('.mode-workload-details input[type=checkbox]:checked').length > 0) {
+			if (e.currentTarget.checked) {
 				var workload = _('instance-workload').val().split(',');
 				var dureeTotal = 0 ; 
 				if (workload.length > 1) {
@@ -1272,12 +1274,12 @@ define(['sparkline'],function () {
 							<span class="input-group-addon">% @</span>
 							<input type="number" placeholder="cpu" value="${data[1]}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
 							<span class="input-group-addon">%</span>
-							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="{{service:prov:delete-workload}}"></i></button>
+							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></button>
 							</div>`));
 							}
 						}
 					}
-				calculWorkload();
+				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 				}
 			}else {
@@ -1304,19 +1306,19 @@ define(['sparkline'],function () {
 				if ($(e.target).val()>100){
 					$(e.target).val(100);
 				}
-				calculWorkload();
+				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 			} else if ($(e.target).val() == 0 || $(e.target).val() == '' ) {
-				if ($(e.target)[0]==$('.instance-workload-dataCpu')[0]){
+				if ($(e.target)[0].classList.value == 'form-control instance-workload-dataCpu'){
 					$(e.target).val(0);
 				}else {
 					$(e.target).val(1);
 				}
-				calculWorkload();
+				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 			} else {
 				$(e.target).val($(e.target).val() - (dureeTotal - 100));
-				calculWorkload();
+				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 			}   
 		}).on('click', '.dropdown-menu', function () {
@@ -1324,7 +1326,7 @@ define(['sparkline'],function () {
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			let i = 0;
 			var dureeTotal = 0;
-            if(($('.instance-workload-dataDure').length >=2)){
+            if(($('.instance-workload-dataDure').length >= 2)){
                 while (i < ($('.instance-workload-dataDure').length)) {
 					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
 					i++;
@@ -1343,7 +1345,7 @@ define(['sparkline'],function () {
 				<span class="input-group-addon">%</span>
 				<button type="button" class="btn btn-danger addon-workload" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"><i class="fas fa-minus"></i></button>
 				</div>`));
-				calculWorkload();
+				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 			 }
 			$('#instance-workload-dure').val('');
@@ -1351,7 +1353,7 @@ define(['sparkline'],function () {
 			$('#create-workload').addClass('disabled');
 		}).on('click', '.btn.btn-danger.addon-workload', function (e) {
 			$(e.target).parents('.list-group-item').remove();
-			calculWorkload();
+			calcul_list_and_create_sparkline();
 			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
@@ -1393,11 +1395,21 @@ define(['sparkline'],function () {
 			_('instance-optimizer').select2Placeholder(select2Placeholder('optimizer'));
 			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
-			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
+			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);	
+			$popup.find('.mode-workload-details input[type=checkbox]').prop("checked", false);
+			$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
+			$('.workload-part').remove();
+			$popup.removeClass('detailWorkload');
+			$('#instance-workload').removeClass('disabled');
+			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
+			_('mode-workload-details').bootstrapSwitch('state', false);
+			calcul_input_and_create_sparkline();	
 		});
 	}
 
-	function calculWorkload() {
+	function calcul_list_and_create_sparkline() {
+		require(['d3'], function (d3, d3Bar) {
+			$('.svg-workload').addClass("hidden");
 		if ($('.instance-workload-dataDure')) {
 			let i = 0;
 			var workload = 0;
@@ -1424,8 +1436,6 @@ define(['sparkline'],function () {
 					baselinePoints.push(workload);
 				}
 			})
-			console.log(detailsPoints);
-			console.log(baselinePoints);
 
 			if (workload == 0) {
 				_('instance-workload').val('');
@@ -1436,34 +1446,155 @@ define(['sparkline'],function () {
 					$('#sparkline-workload').removeClass('hidden');
 				}else {
 					$('#sparkline-workload').addClass('hidden');
-				}
-				$('#sparkline-workload').sparkline(detailsPoints, {
-					width: '140',
-					height: '50',
-					chartRangeMin: 0,
-					chartRangeMax: 100,
-					// chartRangeMinX: 0,
-					// chartRangeMaxX: 100,
-					lineWidth: 4,
-					spotRadius: 4,
-					normalRangeMin: parseInt(baselinePoints) - 1,
-					normalRangeMax: parseInt(baselinePoints),
-					drawNormalOnTop: true,
-					normalRangeColor: '#ff0000',
-					fillColor: '#ffffff',
-					tooltipFormatter: function (sparkline, options, fields) {
-						return "Baseline : " + workload + " CPU : " + fields.y +"";
-						}
-				})
-				// $('#sparkline-workload').sparkline(detailsPoints, {
-				// 	type: 'bar', barSpacing: 1, chartRangeMin: 0, barWidth: 10, chartRangeMax: 100, height: 50,width:140, tooltipPrefix: "CPU :"
-				// })
-				// $('#sparkline-workload').sparkline(baselinePoints, {
-				// 	type: 'line', fillColor: null, lineColor: "#f00", spotRadius: 0, lineWidth: 2, chartRangeMin: 0, composite: true, chartRangeMax: 100, tooltipPrefix: "Baseline :"
-				// })
-
+				}						
 			}
+			create_Sparkline(detailsPoints,baselinePoints);
 		}
+	})}
+
+	function create_Sparkline(detailsPoints, baselinePoints) {
+		require(['d3'], function (d3, d3Bar) {
+			$('.svg-workload').removeClass("hidden");
+			$('.workload-line').remove();
+			const WIDTH = 250;
+			const HEIGHT = 40;
+			const MARGIN = { top: 5, right: 0, bottom: 4, left: 2 };
+			const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
+			const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
+			const dataPoint = detailsPoints.map(x => x);
+			const dataBaseline = baselinePoints.map(x => x);
+			const x = d3.scaleLinear().domain([0, 100]).range([0, INNER_WIDTH]);
+			const y = d3.scaleLinear().domain([0, 100]).range([INNER_HEIGHT, 0]);
+			const svg = d3.select('.svg-workload')
+				.attr('width', WIDTH)
+				.attr('height', HEIGHT)
+				.append('g')
+				.attr('class', 'workload-line')
+				.attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
+			const line = d3.line()
+				.x((d, i) => x(i))
+				.y(d => y(d));
+
+			function tooltip() {
+				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+					return d3.select('body')
+						.append('div')
+						.attr('class', 'tooltip d3-tooltip tooltip-inner');
+				} else {
+					return d3.select('body .d3-tooltip.tooltip-inner');
+				}
+			}
+
+			svg.append('path').datum(dataBaseline)
+				.attr('fill', 'none')
+				.attr('stroke', 'blue')
+				.attr('stroke-width', 1)
+				.attr('class', 'workload-part')
+				.attr('d', line);
+
+			svg.append('path').datum(dataPoint)
+				.attr('fill', 'none')
+				.attr('stroke', 'red')
+				.attr('stroke-width', 1)
+				.attr('class', 'workload-part')
+				.attr('d', line)
+				.on('mouseover', function (e, d) {
+					$('.circle-workload').remove();
+					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
+					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
+					data = data < 0 ? data = 0 : data;
+					var valX = Math.trunc(e.pageX - firstPixelX);
+					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
+					svg.append('circle')
+						.attr('cx', valX)
+						.attr('cy', valY)
+						.attr('class', 'circle-workload')
+						.attr('r', 3)
+						.attr('stroke', 'black')
+						.attr('fill', '#69a3b2')
+						.on('mouseover', function () {
+							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
+						})
+						.on('mouseout', function () {
+							tooltip().style('visibility', 'hidden');
+							$('.circle-workload').remove();
+						});
+				})
+				.on('mousemove', (e, d) => {
+					$('.circle-workload').remove();
+					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
+					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
+					data = data < 0 ? data = 0 : data;
+					var valX = Math.trunc(e.pageX - firstPixelX);
+					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
+					svg.append('circle')
+						.attr('cx', valX)
+						.attr('cy', valY)
+						.attr('class', 'circle-workload')
+						.attr('r', 3)
+						.attr('stroke', 'black')
+						.attr('fill', '#69a3b2')
+						.on('mouseover', function () {
+							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
+						})
+						.on('mouseout', function () {
+							tooltip().style('visibility', 'hidden');
+							$('.circle-workload').remove();
+						});
+				})
+				.on('mouseout', function () {
+					return tooltip().style('visibility', 'hidden');
+				});
+		})
+	}
+
+	function calcul_input_and_create_sparkline() {
+		$('.svg-workload').addClass("hidden");
+		var input_workload = _('instance-workload').val().split(',');
+		var workload = 0;
+		var details = ""; 
+		var dureeTotal = 0;
+		var tabValeur = [];
+		if (input_workload.length > 1) {
+			for (let i = 1; i < input_workload.length; i++) {
+				var data = input_workload[i].split('@');
+				if (data.length == 2) {
+					dureeTotal = dureeTotal + parseInt(data[0]);
+					if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+						workload = workload + (data[0] * data[1] / 100);
+						details = details + ","+data[0]+"@"+data[1]
+						tabValeur.push({ "duration": data[0], "cpu": data[1] });
+					}
+				}
+			}
+			if (workload != 0) {
+				_('instance-workload').val(workload + details);
+			} else {
+				_('instance-workload').val(input_workload[0]);
+			}
+			 
+			var proRata = dureeTotal / 100;
+			var detailsPoints = [];
+			var baselinePoints = [];
+			var incrementDuration = 1 // 1 %
+			tabValeur.forEach(detail => {
+				var nbIncrements = 0;
+				nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+				for (let y = 0; y < nbIncrements; y++) {
+					detailsPoints.push(detail.cpu);
+					baselinePoints.push(workload);
+				}
+			})
+			create_Sparkline(detailsPoints, baselinePoints);
+		}else{
+			$('.svg-workload').addClass("hidden");
+			var val_input = _('instance-workload').val().replace(/[^0-9]+/g,'');
+			_('instance-workload').val(val_input);
+			if(_('instance-workload').val() > 100)
+			{
+				_('instance-workload').val('');
+			}
+		}	
 	}
 
 	function select2Placeholder(name) {
@@ -1571,7 +1702,7 @@ define(['sparkline'],function () {
 	/**
 	 * Configure multi-scoped resource type: modal behavior
 	 */
-	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
+	function initializeMultiScoped(type, onShowModal, defaultData = {}) {;
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
 			onShowModal(event);
@@ -3161,6 +3292,7 @@ define(['sparkline'],function () {
 			data.workload = _('instance-workload').val();
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ramMax = cleanRam('max');
+			_('instance-workload').val();
 			data.cpuRate = _('instance-cpuRate').val();
 			data.gpuRate = _('instance-gpuRate').val();
 			data.ramRate = _('instance-ramRate').val();
@@ -3235,8 +3367,8 @@ define(['sparkline'],function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
-			_('instance-gpu').val();
-			_('instance-workload').val();
+			_('instance-gpu').val(quote.gpu || 0 );
+			_('instance-workload').val(quote.workload || null );
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
