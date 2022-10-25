@@ -1250,8 +1250,45 @@ define(function () {
 			} else {
 				$popup.removeClass('advanced');
 			}
+		}).on('change', '.mode-workload-details input[type=checkbox]', function (e) {
+			if (e.currentTarget.checked) {
+				$popup.addClass('detailWorkload');
+				$('#instance-workload').addClass('disabled');
+			} else {
+				$popup.removeClass('detailWorkload');
+				$('#instance-workload').removeClass('disabled');
+			}
+		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
+			if ( ( ($('#instance-workload-dure').val()== 0 || '') || $('#instance-workload-dure').val()>100 ) ||  (($('#instance-workload-cpu').val()== 0 || '') || $('#instance-workload-cpu').val()>100)){
+				$('#create-workload').addClass('disabled');
+			}else{
+				$('#create-workload').removeClass('disabled');
+			}
+		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
+			calculWorkload();
+			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
+		}).on('click', '.btn.btn-success.addon-workload', function () {
+			//todo add element
+			var duree = $('#instance-workload-dure').val()
+			var cpu = $('#instance-workload-cpu').val()
+			$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9">`).html(`<div class="input-group">
+			<input type="number" value="${duree}" min="0" max="100" class="form-control instance-workload-dataDure"/>
+			<span class="input-group-addon">% @</span>
+			<input type="number" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+			<span class="input-group-addon">%</span>
+			<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus"></i></button>
+			</div>`));
+			calculWorkload();
+			$.proxy(current.checkResource, $(this))();
+			$('#instance-workload-dure').val('');
+			$('#instance-workload-cpu').val('');
+		}).on('click', '.btn.btn-danger.addon-workload', function () {
+			//todo delete element
+			$(event.target).parents('.list-group-item').remove();
+			calculWorkload();
+			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
@@ -1275,6 +1312,7 @@ define(function () {
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
 			$popup.find('div .element-advanced').addClass('advanced')
+			$popup.find('div .element-workload-details').addClass('detailWorkload')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
@@ -1293,6 +1331,25 @@ define(function () {
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
 		});
+	}
+
+	function calculWorkload() {
+		if ($('.instance-workload-dataDure')) {
+			let i = 0;
+			var workload = 0;
+			var details =''; 
+			while (i <= ($('.instance-workload-dataDure').length - 1)) {
+				workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
+				details = details + ","+ $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value
+				i++;
+			}
+			if (workload == 0) {
+				_('instance-workload').val('');
+			} else {
+				debugger;
+				_('instance-workload').val(workload+details);
+			}
+		}
 	}
 
 	function select2Placeholder(name) {

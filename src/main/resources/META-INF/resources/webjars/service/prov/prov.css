@@ -504,6 +504,9 @@ img.flag-icon.prov-location-flag {
 #subscribe-configuration-prov .modal:not(.advanced) .element-advanced {
   display: none;
 }
+#subscribe-configuration-prov .modal:not(.detailWorkload) .element-workload-details{
+  display: none;
+}
 #subscribe-configuration-prov .select2-search-choice [data-prov-type] {
   cursor: pointer;
 }
