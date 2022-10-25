@@ -3643,7 +3643,7 @@ define(['sparkline', 'd3'], function () {
 								if (value?.cost || value?.co2) {
 									totalCost += value.cost || 0;
 									totalCo2 += value.co2 || 0;
-									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}</span>`;
+									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
 								}
 							});
 							// Append total
