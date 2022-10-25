@@ -1886,6 +1886,9 @@ define(function () {
 				}
 			}
 			const queriesArray = [];
+			if (queries.workload && queries.workload.includes("%40")){
+				queries.workload= queries.workload.replaceAll('%40', '@').replaceAll(".",",").replaceAll("%2C",",");
+			}
 			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
 
 			// Check the availability of this instance for these requirements
@@ -2919,6 +2922,7 @@ define(function () {
 			model.cpuRate = data.cpuRate;
 			model.gpuRate = data.gpuRate
 			model.ramRate = data.ramRate;
+			model.workload = data.workload;
 			model.networkRate = data.networkRate;
 			model.storageRate = data.storageRate;
 			model.internet = data.internet;
@@ -2983,6 +2987,7 @@ define(function () {
 			data.cpu = cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
 			data.gpu = cleanFloat(_('instance-gpu').val());
 			data.ram = cleanRam('reserved');
+			data.workload = _('instance-workload').val();
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ramMax = cleanRam('max');
 			data.cpuRate = _('instance-cpuRate').val();
@@ -3060,6 +3065,7 @@ define(function () {
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-gpu').val();
+			_('instance-workload').val();
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
