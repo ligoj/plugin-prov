@@ -246,7 +246,7 @@ define({
 	'service:prov:deleted': '{{#if more}}{{count}} supprimés: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} supprimé{{/if}}',
 	'service:prov:updated': '{{#if more}}{{count}} mis à jours: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} mis à jours{{/if}}',
 	'service:prov:workload': 'Charge',
-    'service:prov:workload-duree': 'Durée',
+    'service:prov:workload-duration': 'Durée',
 	'service:prov:workload-cpu': 'CPU',
 	'service:prov:workload-help' : ' Programmation de la charge de cpu et de la durée d’utilisation au cours d’une journée',
 	'service:prov:delete-workload' : 'Supprimer la charge',
