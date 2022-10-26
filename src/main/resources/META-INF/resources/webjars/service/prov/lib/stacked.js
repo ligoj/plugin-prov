@@ -5,7 +5,9 @@
 define(['d3', 'jquery'], function (d3) {
     return (function () {
         let params = {};
-        let marginTop = 20;
+        const LEGEND_WIDTH = 20;
+        const MARGIN = { top: 10, left: LEGEND_WIDTH + 20, bottom: 20, right: 0 };
+        const LEGEND_MARGIN_TOP = MARGIN.top + 10;
 
         // formatting Data to a more d3-friendly format
         // extracting binNames and clusterNames
@@ -62,9 +64,9 @@ define(['d3', 'jquery'], function (d3) {
         function getLegendY(d) {
             let i = params.filteredClusterNames.indexOf(d);
             if (i > params.filteredClusterNames.indexOf(params.chosen.cluster)) {
-                return choice(params.chosen.cluster, d, 20 * (params.filteredClusterNames.length - i), marginTop, marginTop);
+                return choice(params.chosen.cluster, d, LEGEND_WIDTH * (params.filteredClusterNames.length - i), LEGEND_MARGIN_TOP, LEGEND_MARGIN_TOP);
             }
-            return choice(params.chosen.cluster, d, 20 * (params.filteredClusterNames.length - i), marginTop, marginTop);
+            return choice(params.chosen.cluster, d, LEGEND_WIDTH * (params.filteredClusterNames.length - i), LEGEND_MARGIN_TOP, LEGEND_MARGIN_TOP);
         }
 
         function initialize() {
@@ -231,7 +233,7 @@ define(['d3', 'jquery'], function (d3) {
             legend.selectAll('rect')
                 .transition()
                 .duration(transDuration)
-                .attr('height', d => choice(chosen.cluster, d, 20, 20, 0))
+                .attr('height', d => choice(chosen.cluster, d, LEGEND_WIDTH, LEGEND_WIDTH, 0))
                 .attr('y', getLegendY)
 
             legend.selectAll('foreignObject')
@@ -448,18 +450,17 @@ define(['d3', 'jquery'], function (d3) {
 
         function setUpSvgCanvas(input, selector) {
             // Set up the svg canvas
-            let margin = { top: 10, left: 80, bottom: 20, right: 10 };
             let svg = d3.select(selector)
                 .attr('width', input.width)
                 .attr('height', input.height)
                 .append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                .attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
 
             return {
                 svg: svg,
-                margin: margin,
-                width: input.width - margin.left - margin.right,
-                height: input.height - margin.top - margin.bottom
+                margin: MARGIN,
+                width: input.width - MARGIN.left - MARGIN.right,
+                height: input.height - MARGIN.top - MARGIN.bottom
             };
         }
 
