@@ -213,13 +213,12 @@ define(['d3', 'jquery'], function (d3) {
             if (percentView) {
                 axisY.tickFormat(d3.format(".0%"));
             } else if (params.axisY) {
-                debugger;
-                axisY.tickFormat( function(d) { 
-                    if (params.input.aggregateMode == 'co2'){
+                axisY.tickFormat(function (d) {
+                    if (params.input.aggregateMode == 'co2') {
                         return d + "g";
-                    }else {
-                        return "$" + d ;
-                    }                    
+                    } else {
+                        return "$" + d;
+                    }
                 });
             }
 
@@ -412,13 +411,12 @@ define(['d3', 'jquery'], function (d3) {
                 .tickSize(3)
                 .ticks(5);
             if (params.axisY) {
-                debugger;
-                yAxis.tickFormat( function(d) { 
-                    if (params.input.aggregateMode == 'co2'){
+                yAxis.tickFormat(function (d) {
+                    if (params.input.aggregateMode == 'co2') {
                         return d + "g";
-                    }else {
-                        return "$" + d ;
-                    }                    
+                    } else {
+                        return "$" + d;
+                    }
                 });
             }
             let xAxis = d3.axisBottom(x)
@@ -467,7 +465,7 @@ define(['d3', 'jquery'], function (d3) {
 
         let setUpColors = () => d3.scaleOrdinal(params.colors);
         function create(selector, selectorPercentCB, colors, width, height, data, aggregateMode, tooltipCB, hover, click, axisY, sort) {
-            let input = { data: data, width: width, height: height, aggregateMode: aggregateMode };
+            const input = { data, width, height, aggregateMode };
             params.input = input;
             params.colors = colors;
             params.selector = selector;
@@ -485,7 +483,7 @@ define(['d3', 'jquery'], function (d3) {
 
         function resize(width) {
             params.canvas.svg.html(null);
-            create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.tooltip, params.hover, params.click, params.axisY, params.sort);
+            create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.input.aggregateMode, params.tooltip, params.hover, params.click, params.axisY, params.sort);
         }
 
         function initializeLegend(svg, margin, chosen) {
@@ -518,10 +516,10 @@ define(['d3', 'jquery'], function (d3) {
 
         // Exports
         return {
-            create: create,
-            refresh: refresh,
-            update: update,
-            resize: resize
+            create,
+            refresh,
+            update,
+            resize
         };
     }).call(this);
 });

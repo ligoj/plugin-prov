@@ -187,7 +187,7 @@ label[for="instance-max-variable-cost"] {
 }
 
 .d3-tooltip {
-  z-index: 1031;
+  z-index: 10310;
   text-align: left;
   padding: 8px;
   margin-top: -20px;
@@ -504,6 +504,9 @@ img.flag-icon.prov-location-flag {
 #subscribe-configuration-prov .modal:not(.advanced) .element-advanced {
   display: none;
 }
+#subscribe-configuration-prov .modal:not(.detailWorkload) .element-workload-details{
+  display: none;
+}
 #subscribe-configuration-prov .select2-search-choice [data-prov-type] {
   cursor: pointer;
 }
@@ -567,4 +570,9 @@ i.icon.mdi-expansion-card {
 }
 .fas.fa-leaf {
   color:  #29a23c;
+}
+.svg-workload{
+  border-bottom-style:groove;
+   border-left-style:groove; 
+   position: absolute;
 }
