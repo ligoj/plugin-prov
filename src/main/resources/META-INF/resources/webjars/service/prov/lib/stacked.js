@@ -213,7 +213,6 @@ define(['d3', 'jquery'], function (d3) {
             if (percentView) {
                 axisY.tickFormat(d3.format(".0%"));
             } else if (params.axisY) {
-                debugger;
                 axisY.tickFormat( function(d) { 
                     if (params.input.aggregateMode == 'co2'){
                         return d + "g";
@@ -412,7 +411,6 @@ define(['d3', 'jquery'], function (d3) {
                 .tickSize(3)
                 .ticks(5);
             if (params.axisY) {
-                debugger;
                 yAxis.tickFormat( function(d) { 
                     if (params.input.aggregateMode == 'co2'){
                         return d + "g";
