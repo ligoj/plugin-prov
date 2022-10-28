@@ -138,6 +138,7 @@ define(['d3', 'jquery'], function (d3) {
                     return notTargetCase;
             }
         }
+
         function update(data, aggregateMode) {
             params.input.data = data;
             params.input.aggregateMode = aggregateMode;
@@ -215,13 +216,7 @@ define(['d3', 'jquery'], function (d3) {
             if (percentView) {
                 axisY.tickFormat(d3.format(".0%"));
             } else if (params.axisY) {
-                axisY.tickFormat(function (d) {
-                    if (params.input.aggregateMode == 'co2') {
-                        return d + "g";
-                    } else {
-                        return "$" + d;
-                    }
-                });
+                axisY.tickFormat(d => params.axisY[params.input.aggregateMode](d, null, null, true));
             }
 
             svg.selectAll('.axisY')
@@ -413,13 +408,7 @@ define(['d3', 'jquery'], function (d3) {
                 .tickSize(3)
                 .ticks(5);
             if (params.axisY) {
-                yAxis.tickFormat(function (d) {
-                    if (params.input.aggregateMode == 'co2') {
-                        return d + "g";
-                    } else {
-                        return "$" + d;
-                    }
-                });
+                yAxis.tickFormat(d => params.axisY[params.input.aggregateMode](d, null, null, true));
             }
             let xAxis = d3.axisBottom(x)
                 .tickSizeOuter(5)
@@ -465,14 +454,14 @@ define(['d3', 'jquery'], function (d3) {
         }
 
         let setUpColors = () => d3.scaleOrdinal(params.colors);
-        function create(selector, selectorPercentCB, colors, width, height, data, aggregateMode, tooltipCB, hover, click, axisY, sort) {
+        function create({ selector, selectorPercentCB, colors, width, height, data, aggregateMode, tooltip, hover, click, axisY, sort }) {
             const input = { data, width, height, aggregateMode };
             params.input = input;
             params.colors = colors;
             params.selector = selector;
             params.percentCB = selectorPercentCB;
             params.canvas = setUpSvgCanvas(input, selector);
-            params.tooltip = tooltipCB;
+            params.tooltip = tooltip;
             params.hover = hover;
             params.click = click;
             params.clicked = null;
@@ -484,7 +473,7 @@ define(['d3', 'jquery'], function (d3) {
 
         function resize(width) {
             params.canvas.svg.html(null);
-            create(params.selector, params.percentCB, params.colors, width, params.input.height, params.input.data, params.input.aggregateMode, params.tooltip, params.hover, params.click, params.axisY, params.sort);
+            create({ ...params, ...params.input });
         }
 
         function initializeLegend(svg, margin, chosen) {
