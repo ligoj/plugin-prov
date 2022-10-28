@@ -1085,6 +1085,10 @@ define(['sparkline', 'd3'], function () {
 			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
+        $('#instance-min-quantity, #instance-max-quantity').on('change', () => {
+            current.updateAutoScale();
+            $.proxy(current.checkResource,$('#popup-prov-generic'))();
+        });
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('input.resource-query').on('input', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
@@ -2270,16 +2274,20 @@ define(['sparkline', 'd3'], function () {
 		 * Set the current instance/database/container/function price.
 		 */
 		genericSetUiPrice: function (quote) {
+			let min = $('#instance-min-quantity').val();
+			let max = $('#instance-max-quantity').val();
+			function genericFormatPrice(qi){
+				if (min == max) {
+					return qi.price.type.name + ' (' + formatCost(qi.cost* min, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2* min, null, null, true) + '/m)';
+				} 
+				return qi.price.type.name + ' (' + formatCost(qi.cost * min, null, null, true) + ' - ' + formatCost(qi.cost * max, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2 * min, null, null, true) + ' - ' + formatCo2(qi.co2 * max, null, null, true) + '/m)';
+			};
 			if (quote?.price) {
 				const suggests = [quote];
 				_('instance-price').select2('destroy').select2({
 					data: suggests,
-					formatSelection: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2, null, null, true) + '/m)';
-					},
-					formatResult: function (qi) {
-						return qi.price.type.name + ' (' + formatCost(qi.cost, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2, null, null, true) + '/m)';
-					}
+					formatSelection: (qi) => genericFormatPrice(qi),
+					formatResult: (qi) => genericFormatPrice(qi)
 				}).select2('data', quote);
 				_('instance-term').select2('data', quote.price.term).val(quote.price.term.id);
 			} else {
