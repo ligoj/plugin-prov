@@ -215,7 +215,13 @@ define(['d3', 'jquery'], function (d3) {
             } else if (params.axisY) {
                 axisY.tickFormat( function(d) { 
                     if (params.input.aggregateMode == 'co2'){
-                        return d + "g";
+                        if(d/1000000 >= 1 ){
+                            return d/1000000 + "t";
+                        }
+                        else if(d/1000 >= 1){
+                            return d/1000 + "kg";
+                        }
+                        else return d + "g";
                     }else {
                         return "$" + d ;
                     }                    

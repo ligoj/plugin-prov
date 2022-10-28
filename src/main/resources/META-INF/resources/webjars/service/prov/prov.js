@@ -3367,7 +3367,7 @@ define(function () {
 				stats.cpu = { available: 0 };
 				stats.ram = { available: 0 };
 				current.updateSummary($summary, stats);
-				$('span.badge.requests').text(stats.function.nbRequests)
+				$summary.find('.requests').find('span').text(stats.function.nbRequests);
 			} else {
 				$summary.addClass('hidden');
 			}
