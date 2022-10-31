@@ -3699,7 +3699,7 @@ define(['sparkline', 'd3'], function () {
 				stats.cpu = { available: 0 };
 				stats.ram = { available: 0 };
 				current.updateSummary($summary, stats);
-				$summary.find('.requests').find('span').text(stats.function.nbRequests);
+				$summary.filter('.requests').find('span').text(stats.function.nbRequests);
 			} else {
 				$summary.addClass('hidden');
 			}
