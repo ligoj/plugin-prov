@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 /*jshint esversion: 6*/
-define(function () {
+define(['sparkline', 'd3'], function () {
 
 	let initializedPopupEvents = false;
 	let initializedPopupUsage = false;
@@ -31,7 +31,7 @@ define(function () {
 	/**
 	 * Enable resource type to relatable to storages.
 	 */
-	const typesStorage = ['instance', 'database', 'container', 'function'];
+	const computeTypes = ['instance', 'database', 'container', 'function'];
 
 	/**
 	 * OS key to markup/label mapping.
@@ -203,7 +203,7 @@ define(function () {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
 					// Must be found in all resource types
-					if (typesStorage.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -213,7 +213,7 @@ define(function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : typesStorage.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -427,7 +427,7 @@ define(function () {
 			details += '<br><i class=\'fas fa-globe fa-fw\'></i> ';
 			details += type.ramRate ? '<i class=\'' + rates[type.networkRate] + '\'></i>' : '';
 		}
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 	}
 
 	function formatStorageType(type, mode) {
@@ -459,7 +459,7 @@ define(function () {
 		if (type.availability) {
 			details += '<br><i class=\'fas fa-fw fa-thumbs-up\'></i> ' + type.availability + '%';
 		}
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 	}
 
 	/**
@@ -483,7 +483,11 @@ define(function () {
 			details += `<br/>${current.$messages['service:prov:upfront']}: ${formatCost(qi.price.initialCost)}`;
 		}
 
-		return `<u class="details-help" data-toggle="popover" title="${name}" data-content="${details}">${name}</u>`;
+		return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
+	}
+
+	function toHtmlAttribute(text) {
+		return text.replaceAll('"', '&#34;');
 	}
 
 	/**
@@ -808,20 +812,16 @@ define(function () {
 		let html = map === true ? locationMap(location) : '';
 		if (location.countryA2) {
 			const a2 = (location.countryA2 === 'UK' ? 'GB' : location.countryA2).toLowerCase();
-			let tooltip = m49 || id;
-			const img = '<img class="flag-icon prov-location-flag" src="' + current.$path + 'flag-icon-css/flags/4x3/' + a2 + '.svg" alt=""';
+			const img = `<img class="flag-icon prov-location-flag" src="${current.$path}flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
-				tooltip += (placement && placement !== html) ? '<br>Placement: ' + placement : '';
-				tooltip += '<br>Id: ' + id;
-				return '<u class="details-help" data-toggle="popover" data-content="' + tooltip + '" title="' + location.name + '">' + img + '></u>';
+				const tooltip = `${m49 || id}${placement && placement !== html && `<br>Placement: ${placement}` || ''}<br>Id: ${id}`;
+				return `<u class="details-help" data-toggle="popover" data-content="${toHtmlAttribute(tooltip)}" title="${toHtmlAttribute(location.name)}">${img}></u>`;
 			}
-			html += img + ' title="' + location.name + '">';
+			html += `${img} title="${toHtmlAttribute(location.name)}">`;
 		}
 		html += m49 || id;
-		html += (placement && placement !== html) ? ' <span class="small">(' + placement + ')</span>' : '';
-		html += (subRegion || m49) ? '<span class="prov-location-api">' + id + '</span>' : id;
-		return html;
+		return `${html}${placement && placement !== html && ` <span class="small">(${placement})</span>` || ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}`;
 	}
 
 	function formatLocation(location, mode, data) {
@@ -853,12 +853,19 @@ define(function () {
 		return locationToHtml(obj, false, true);
 	}
 
+	function toModalDataTarget(resourceType) {
+		if (computeTypes.includes(resourceType)) {
+			return 'generic';
+		}
+		return resourceType;
+	}
+
 	/**
 	 * Return the HTML markup from the quote instance model.
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${toModalDataTarget(resource.resourceType)}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -866,11 +873,11 @@ define(function () {
 	/**
 	 * Return the HTML markup from the quote resource.
 	 */
-	function formatName(name, mode, obj) {
+	function formatName(name, mode, resource) {
 		if (mode !== 'display') {
 			return name
 		}
-		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${obj.resourceType === "storage" ? "storage" : "generic"}">${name}</a>`;
+		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`;
 	}
 
 	/**
@@ -948,9 +955,9 @@ define(function () {
 		let markup = '';
 		if (descriptionIsLink) {
 			// Description as a link
-			markup = '<a href="' + description + '" target="_blank">';
+			markup = `<a href="${description}" target="_blank">`;
 		}
-		markup += '<u class="details-help" data-toggle="popover" title="' + name + '" data-content="' + details + '">' + name + '</u>';
+		markup += `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}">${name}</u>`;
 		if (descriptionIsLink) {
 			// Description as a link
 			markup += '</a>';
@@ -1079,10 +1086,7 @@ define(function () {
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
-		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('change input', delay(function () {
-			$.proxy(current.checkResource, $(this))();
-		}, 50));
+		$('input.resource-query').on('input', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
@@ -1236,10 +1240,10 @@ define(function () {
 	 */
 	function initializePopupEvents(type) {
 		// Resource edition pop-up
-		const popupType = typesStorage.includes(type) ? 'generic' : type;
+		const popupType = computeTypes.includes(type) ? 'generic' : type;
 		const $popup = _('popup-prov-' + popupType);
 		$popup.on('shown.bs.modal', function () {
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
@@ -1250,8 +1254,111 @@ define(function () {
 			} else {
 				$popup.removeClass('advanced');
 			}
+		}).on('change', '#instance-workload', function (e) {
+			calcul_input_and_create_sparkline();
+		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
+			if (e.currentTarget.checked) {
+				$popup.addClass('detailWorkload');
+				$('#instance-workload').addClass('disabled');
+			} else {
+				$popup.removeClass('detailWorkload');
+				$('#instance-workload').removeClass('disabled');
+			}
+			if (e.currentTarget.checked) {
+				var workload = _('instance-workload').val().split(',');
+				var dureeTotal = 0;
+				if (workload.length > 1) {
+					for (let i = 1; i < workload.length; i++) {
+						var data = workload[i].split('@');
+						if (data.length == 2) {
+							dureeTotal = dureeTotal + parseInt(data[0]);
+							if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+								$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+							<input type="number" placeholder="durée" value="${data[0]}" min="1" max="100" class="form-control instance-workload-dataDure"/>
+							<span class="input-group-addon">% @</span>
+							<input type="number" placeholder="cpu" value="${data[1]}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+							<span class="input-group-addon">%</span>
+							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></button>
+							</div>`));
+							}
+						}
+					}
+					calcul_list_and_create_sparkline();
+					$.proxy(current.checkResource, $popup)();
+				}
+			} else {
+				$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
+			}
+		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
+			if ((($('#instance-workload-dure').val() == 0 || '') || $('#instance-workload-dure').val() > 100) || (($('#instance-workload-cpu').val() == '') || $('#instance-workload-cpu').val() > 100)) {
+				$('#create-workload').addClass('disabled');
+			} else {
+				$('#create-workload').removeClass('disabled');
+			}
+		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
+			let i = 0;
+			var dureeTotal = 0;
+			if (($('.instance-workload-dataDure').length >= 2)) {
+				while (i < ($('.instance-workload-dataDure').length)) {
+					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
+					i++;
+				}
+			} else if ($('.instance-workload-dataDure')[0]) {
+				dureeTotal = $('.instance-workload-dataDure')[0].value
+			}
+			if (dureeTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+				if ($(e.target).val() > 100) {
+					$(e.target).val(100);
+				}
+				calcul_list_and_create_sparkline();
+				$.proxy(current.checkResource, $popup)();
+			} else if ($(e.target).val() == 0 || $(e.target).val() == '') {
+				if ($(e.target)[0].classList.value == 'form-control instance-workload-dataCpu') {
+					$(e.target).val(0);
+				} else {
+					$(e.target).val(1);
+				}
+				calcul_list_and_create_sparkline();
+				$.proxy(current.checkResource, $popup)();
+			} else {
+				$(e.target).val($(e.target).val() - (dureeTotal - 100));
+				calcul_list_and_create_sparkline();
+				$.proxy(current.checkResource, $popup)();
+			}
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
+		}).on('click', '.btn.btn-success.addon-workload', function () {
+			let i = 0;
+			var dureeTotal = 0;
+			if (($('.instance-workload-dataDure').length >= 2)) {
+				while (i < ($('.instance-workload-dataDure').length)) {
+					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
+					i++;
+				}
+			} else if ($('.instance-workload-dataDure')[0]) {
+				dureeTotal = $('.instance-workload-dataDure')[0].value;
+			}
+
+			var duree = $('#instance-workload-dure').val()
+			var cpu = $('#instance-workload-cpu').val()
+			if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
+				$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+				<input type="number" placeholder="durée" value="${duree}" min="1" max="100" class="form-control instance-workload-dataDure"/>
+				<span class="input-group-addon">% @</span>
+				<input type="number" placeholder="cpu" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+				<span class="input-group-addon">%</span>
+				<button type="button" class="btn btn-danger addon-workload" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"><i class="fas fa-minus"></i></button>
+				</div>`));
+				calcul_list_and_create_sparkline();
+				$.proxy(current.checkResource, $popup)();
+			}
+			$('#instance-workload-dure').val('');
+			$('#instance-workload-cpu').val('');
+			$('#create-workload').addClass('disabled');
+		}).on('click', '.btn.btn-danger.addon-workload', function (e) {
+			$(e.target).parents('.list-group-item').remove();
+			calcul_list_and_create_sparkline();
+			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
 			const dType = $source.provType();
@@ -1275,6 +1382,7 @@ define(function () {
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
 			$popup.find('div .element-advanced').addClass('advanced')
+			$popup.find('div .element-workload-details').addClass('detailWorkload')
 			if (initializedPopupEvents === false) {
 				initializedPopupEvents = true;
 				initializePopupInnerEvents();
@@ -1292,7 +1400,205 @@ define(function () {
 			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
+			$popup.find('.mode-workload-details input[type=checkbox]').prop("checked", false);
+			$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
+			$('.workload-part').remove();
+			$popup.removeClass('detailWorkload');
+			$('#instance-workload').removeClass('disabled');
+			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
+			_('mode-workload-details').bootstrapSwitch('state', false);
+			calcul_input_and_create_sparkline();
 		});
+	}
+
+	function calcul_list_and_create_sparkline() {
+		require(['d3'], function (d3, d3Bar) {
+			$('.svg-workload').addClass("hidden");
+			if ($('.instance-workload-dataDure')) {
+				let i = 0;
+				var workload = 0;
+				var details = '';
+				var duree = 0;
+				var tabValeur = [];
+				while (i <= ($('.instance-workload-dataDure').length - 1)) {
+					workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
+					details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
+					duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
+					tabValeur.push({ "duration": parseInt($('.instance-workload-dataDure')[i].value), "cpu": parseInt($('.instance-workload-dataCpu')[i].value) })
+					i++;
+				}
+
+				var proRata = duree / 100;
+				var detailsPoints = [];
+				var baselinePoints = [];
+				var incrementDuration = 1 // 1 %
+				tabValeur.forEach(detail => {
+					var nbIncrements = 0;
+					nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+					for (let y = 0; y < nbIncrements; y++) {
+						detailsPoints.push(detail.cpu);
+						baselinePoints.push(workload);
+					}
+				})
+
+				if (workload == 0) {
+					_('instance-workload').val('');
+					$('#sparkline-workload').addClass('hidden');
+				} else {
+					_('instance-workload').val(workload + details);
+					if ($('.instance-workload-dataDure').length > 1) {
+						$('#sparkline-workload').removeClass('hidden');
+					} else {
+						$('#sparkline-workload').addClass('hidden');
+					}
+				}
+				create_Sparkline(detailsPoints, baselinePoints);
+			}
+		})
+	}
+
+	function create_Sparkline(detailsPoints, baselinePoints) {
+		require(['d3'], function (d3, d3Bar) {
+			$('.svg-workload').removeClass("hidden");
+			$('.workload-line').remove();
+			const WIDTH = 250;
+			const HEIGHT = 40;
+			const MARGIN = { top: 5, right: 0, bottom: 4, left: 2 };
+			const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
+			const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
+			const dataPoint = detailsPoints.map(x => x);
+			const dataBaseline = baselinePoints.map(x => x);
+			const x = d3.scaleLinear().domain([0, 100]).range([0, INNER_WIDTH]);
+			const y = d3.scaleLinear().domain([0, 100]).range([INNER_HEIGHT, 0]);
+			const svg = d3.select('.svg-workload')
+				.attr('width', WIDTH)
+				.attr('height', HEIGHT)
+				.append('g')
+				.attr('class', 'workload-line')
+				.attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
+			const line = d3.line()
+				.x((d, i) => x(i))
+				.y(d => y(d));
+
+			function tooltip() {
+				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+					return d3.select('body')
+						.append('div')
+						.attr('class', 'tooltip d3-tooltip tooltip-inner');
+				} else {
+					return d3.select('body .d3-tooltip.tooltip-inner');
+				}
+			}
+
+			svg.append('path').datum(dataBaseline)
+				.attr('fill', 'none')
+				.attr('stroke', 'blue')
+				.attr('stroke-width', 1)
+				.attr('class', 'workload-part')
+				.attr('d', line);
+
+			svg.append('path').datum(dataPoint)
+				.attr('fill', 'none')
+				.attr('stroke', 'red')
+				.attr('stroke-width', 1)
+				.attr('class', 'workload-part')
+				.attr('d', line)
+				.on('mouseover', function (e, d) {
+					$('.circle-workload').remove();
+					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
+					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
+					data = data < 0 ? data = 0 : data;
+					var valX = Math.trunc(e.pageX - firstPixelX);
+					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
+					svg.append('circle')
+						.attr('cx', valX)
+						.attr('cy', valY)
+						.attr('class', 'circle-workload')
+						.attr('r', 3)
+						.attr('stroke', 'black')
+						.attr('fill', '#69a3b2')
+						.on('mouseover', function () {
+							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
+						})
+						.on('mouseout', function () {
+							tooltip().style('visibility', 'hidden');
+							$('.circle-workload').remove();
+						});
+				})
+				.on('mousemove', (e, d) => {
+					$('.circle-workload').remove();
+					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
+					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
+					data = data < 0 ? data = 0 : data;
+					var valX = Math.trunc(e.pageX - firstPixelX);
+					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
+					svg.append('circle')
+						.attr('cx', valX)
+						.attr('cy', valY)
+						.attr('class', 'circle-workload')
+						.attr('r', 3)
+						.attr('stroke', 'black')
+						.attr('fill', '#69a3b2')
+						.on('mouseover', function () {
+							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
+						})
+						.on('mouseout', function () {
+							tooltip().style('visibility', 'hidden');
+							$('.circle-workload').remove();
+						});
+				})
+				.on('mouseout', function () {
+					return tooltip().style('visibility', 'hidden');
+				});
+		})
+	}
+
+	function calcul_input_and_create_sparkline() {
+		$('.svg-workload').addClass("hidden");
+		var input_workload = _('instance-workload').val().split(',');
+		var workload = 0;
+		var details = "";
+		var dureeTotal = 0;
+		var tabValeur = [];
+		if (input_workload.length > 1) {
+			for (let i = 1; i < input_workload.length; i++) {
+				var data = input_workload[i].split('@');
+				if (data.length == 2) {
+					dureeTotal = dureeTotal + parseInt(data[0]);
+					if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+						workload = workload + (data[0] * data[1] / 100);
+						details = details + "," + data[0] + "@" + data[1]
+						tabValeur.push({ "duration": data[0], "cpu": data[1] });
+					}
+				}
+			}
+			if (workload != 0) {
+				_('instance-workload').val(workload + details);
+			} else {
+				_('instance-workload').val(input_workload[0]);
+			}
+
+			var proRata = dureeTotal / 100;
+			var detailsPoints = [];
+			var baselinePoints = [];
+			var incrementDuration = 1 // 1 %
+			tabValeur.forEach(detail => {
+				var nbIncrements = 0;
+				nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+				for (let y = 0; y < nbIncrements; y++) {
+					detailsPoints.push(detail.cpu);
+					baselinePoints.push(workload);
+				}
+			})
+			create_Sparkline(detailsPoints, baselinePoints);
+		} else {
+			$('.svg-workload').addClass("hidden");
+			var val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
+			_('instance-workload').val(val_input);
+			if (_('instance-workload').val() > 100) {
+				_('instance-workload').val('');
+			}
+		}
 	}
 
 	function select2Placeholder(name) {
@@ -1371,7 +1677,7 @@ define(function () {
 			duration: parseInt(_('usage-duration').val() || '1', 10)
 		}));
 
-		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
+		$('.usage-inputs input').on('change keyup', current.synchronizeUsage);
 
 		// Usage rate template
 		const usageTemplates = [
@@ -1401,6 +1707,7 @@ define(function () {
 	 * Configure multi-scoped resource type: modal behavior
 	 */
 	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
+		;
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
 			onShowModal(event);
@@ -1510,8 +1817,12 @@ define(function () {
 		})
 	}
 
-	function cleanData(data) {
+	function cleanNumber(data) {
 		return (typeof data === 'string') ? data.replace(',', '.').replace(' ', '') || null : data;
+	}
+
+	function cleanData(data) {
+		return (typeof data === 'string') ? data.trim() || null : data;
 	}
 
 	function getResourceValue($item) {
@@ -1524,7 +1835,7 @@ define(function () {
 		} else if ($item.data('ligojProvSlider')) {
 			value = $item.provSlider('value', 'reserved');
 		} else if ($item.is('[type="number"]')) {
-			value = parseInt(cleanData($item.val()) || "0", 10);
+			value = parseInt(cleanNumber($item.val()) || "0", 10);
 		} else if (!$item.is('.select2-container')) {
 			value = cleanData($item.val());
 		}
@@ -1532,11 +1843,11 @@ define(function () {
 	}
 
 	function cleanFloat(data) {
-		let cData = cleanData(data);
+		let cData = cleanNumber(data);
 		return cData && parseFloat(cData, 10);
 	}
 	function cleanInt(data) {
-		let cData = cleanData(data);
+		let cData = cleanNumber(data);
 		return cData && parseInt(cData, 10);
 	}
 	function cleanRam(mode) {
@@ -1817,7 +2128,7 @@ define(function () {
 
 			// Storage
 			conf.storageCost = 0;
-			conf.storages.forEach(qs => typesStorage.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
+			conf.storages.forEach(qs => computeTypes.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
 			current.initializeTerraformStatus();
 		},
 
@@ -1864,7 +2175,7 @@ define(function () {
 			const $form = $(this).prov();
 			const queries = {};
 			const type = $form.provType();
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the query
@@ -1872,14 +2183,14 @@ define(function () {
 				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive').includes(type);
 			}).each(function () {
 				current.addQuery(type, $(this), queries);
-				if (type !== 'instance' && typesStorage.includes(type)) {
+				if (type !== 'instance' && computeTypes.includes(type)) {
 					// Also include the instance inputs
 					current.addQuery('instance', $(this), queries);
 				}
 			});
 			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data')) {
 				let sType = _('storage-instance').select2('data').resourceType;
-				if (sType !== 'instance' && typesStorage.includes(sType)) {
+				if (sType !== 'instance' && computeTypes.includes(sType)) {
 					// Replace the resource lookup
 					queries[sType] = queries['instance'];
 					delete queries['instance'];
@@ -1887,7 +2198,6 @@ define(function () {
 			}
 			const queriesArray = [];
 			Object.keys(queries).forEach(q => queriesArray.push(q + '=' + queries[q]));
-
 			// Check the availability of this instance for these requirements
 			current.disableCreate($popup);
 			$.ajax({
@@ -1899,7 +2209,7 @@ define(function () {
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
-							$(".input-group-addon").removeClass("hidden")
+							$("#separtor-database-engine").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
@@ -1909,7 +2219,7 @@ define(function () {
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
-							$(".input-group-addon").addClass("hidden")
+							$("#separtor-database-engine").addClass("hidden")
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
@@ -2021,7 +2331,7 @@ define(function () {
 		 */
 		initializeDataTableEvents: function (type) {
 			const oSettings = current[type + 'NewTable']();
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
 			const $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				provType: type,
@@ -2091,12 +2401,18 @@ define(function () {
 				className: 'truncate hidden-xs',
 				type: 'num',
 				render: formatCost
-			}, {
-				data: 'co2',
-				className: 'truncate hidden-xs',
-				type: 'num',
-				render: formatCo2
-			}, {
+			});
+
+			// Add CO2 data only for compute services for now
+			if (computeTypes.includes(type)) {
+				oSettings.columns.push({
+					data: 'co2',
+					className: 'truncate hidden-xs',
+					type: 'num',
+					render: formatCo2
+				});
+			}
+			oSettings.columns.push({
 				data: null,
 				width: '51px',
 				orderable: false,
@@ -2104,7 +2420,7 @@ define(function () {
 				type: 'string',
 				render: function () {
 					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
-						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
+						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></a>`
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
 			});
@@ -2203,14 +2519,14 @@ define(function () {
 						}
 
 						const filter = settings.oPreviousSearch.sSearchAlt || '';
-						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
+						if (type === 'storage' && computeTypes.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container/function can be displayed
 							// There are 2 operators: 
 							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
 							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
-								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
-								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
+								cache: computeTypes.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
+								filters: computeTypes.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
 							});
 						}
 						if (filter === '') {
@@ -2240,7 +2556,7 @@ define(function () {
 						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
 
-						if (typesStorage.includes(type)) {
+						if (computeTypes.includes(type)) {
 							// Refresh the storage
 							const tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
@@ -2900,7 +3216,7 @@ define(function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
+			computeTypes.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -2919,6 +3235,7 @@ define(function () {
 			model.cpuRate = data.cpuRate;
 			model.gpuRate = data.gpuRate
 			model.ramRate = data.ramRate;
+			model.workload = data.workload;
 			model.networkRate = data.networkRate;
 			model.storageRate = data.storageRate;
 			model.internet = data.internet;
@@ -2958,7 +3275,7 @@ define(function () {
 		},
 
 		storageUiToData: function (data) {
-			typesStorage.forEach(sType => delete data[sType]);
+			computeTypes.forEach(sType => delete data[sType]);
 			let storage = _('storage-instance').select2('data');
 			if (storage) {
 				data[storage.resourceType] = storage.id;
@@ -2983,8 +3300,10 @@ define(function () {
 			data.cpu = cleanFloat(_('instance-cpu').provSlider('value', 'reserved'));
 			data.gpu = cleanFloat(_('instance-gpu').val());
 			data.ram = cleanRam('reserved');
+			data.workload = _('instance-workload').val();
 			data.cpuMax = cleanFloat(_('instance-cpu').provSlider('value', 'max'));
 			data.ramMax = cleanRam('max');
+			_('instance-workload').val();
 			data.cpuRate = _('instance-cpuRate').val();
 			data.gpuRate = _('instance-gpuRate').val();
 			data.ramRate = _('instance-ramRate').val();
@@ -3035,8 +3354,8 @@ define(function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
 			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
@@ -3059,7 +3378,8 @@ define(function () {
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
-			_('instance-gpu').val();
+			_('instance-gpu').val(quote.gpu || 0);
+			_('instance-workload').val(quote.workload || null);
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
 			_('instance-ramRate').select2('data', current.select2IdentityData((quote.ramRate) || null));
 			_('instance-gpuRate').select2('data', current.select2IdentityData((quote.gpuRate) || null));
@@ -3194,8 +3514,8 @@ define(function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the play load for API service
@@ -3293,7 +3613,6 @@ define(function () {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
 				let numDataItems = stats.timeline.length;
 				let data = [];
-				let format = formatByAggregationMode[aggregateMode];
 				for (let i = 0; i < numDataItems; i++) {
 					let value = stats.timeline[i];
 					let stack = {
@@ -3310,32 +3629,45 @@ define(function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, _bars, d) => {
-							// Tooltip of barchart for each resource type
-							let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+						d3Bar.create(
+							{
+								selector: "#prov-barchart .prov-barchart-svg",
+								selectorPercentCB: false,
+								colors: d3[colorScheme],
+								width: parseInt($('#prov-barchart').css('width')),
+								height: 150,
+								data,
+								aggregateMode,
+								tooltip: (_event, _bars, d) => {
+									// Tooltip of barchart for each resource type
+									let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 
-							// For each contributor add its value
-							let barData = data[d['x-index']];
-							let totalCost = 0;
-							let totalCo2 = 0;
-							types.forEach(type => {
-								let value = barData[type]
-								if (value?.cost || value?.co2) {
-									totalCost += value.cost || 0;
-									totalCo2 += value.co2 || 0;
-									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}</span>`;
-								}
+									// For each contributor add its value
+									let barData = data[d['x-index']];
+									let totalCost = 0;
+									let totalCo2 = 0;
+									types.forEach(type => {
+										let value = barData[type]
+										if (value?.cost || value?.co2) {
+											totalCost += value.cost || 0;
+											totalCo2 += value.co2 || 0;
+											tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+										}
+									});
+									// Append total
+									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
+									return `<span class="tooltip-text">${tooltip}</span>`;
+								},
+								hover: d => {
+									// Hover of barchart -> update sunburst and global cost
+									current.updateUiCost(d?.['x-index']);
+								},
+								click: (d, _bars, clicked) => {
+									// Hover of barchart -> update sunburst and global cost
+									current.updateUiCost(clicked && d?.['x-index']);
+								}, axisY: formatByAggregationMode,
+								sort: (a, b) => types.indexOf(a) - types.indexOf(b)
 							});
-							// Append total
-							tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
-							return `<span class="tooltip-text">${tooltip}</span>`;
-						}, d => {
-							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(d?.['x-index']);
-						}, (d, _bars, clicked) => {
-							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(clicked && d?.['x-index']);
-						}, d => format(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -3576,7 +3908,7 @@ define(function () {
 		updateGauge: function (d3, stats) {
 			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
 				let weightCost = 0;
-				typesStorage.forEach(sType => {
+				computeTypes.forEach(sType => {
 					if (stats[sType].cpu.available) {
 						weightCost += stats[sType].cost * 0.8 * stats[sType].cpu.reserved / stats[sType].cpu.available;
 					}
@@ -3605,7 +3937,7 @@ define(function () {
 			} else {
 				result = current.model.configuration[type + 's'] || [];
 			}
-			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
+			if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
 					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
@@ -3696,9 +4028,9 @@ define(function () {
 			let duration = BARCHART_DURATION;
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
-				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				typesStorage.forEach(type => monthData[`${type}Cost`] = 0);
-				typesStorage.forEach(type => monthData[`${type}Co2`] = 0);
+				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, supportCost: 0, storageCo2: 0, storageCost: 0, supportCo2: 0, };
+				computeTypes.forEach(type => monthData[`${type}Cost`] = 0);
+				computeTypes.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
 				date.add(1, 'months');
 			}
@@ -3717,43 +4049,31 @@ define(function () {
 			let storageAvailable = 0;
 			let storageReserved = 0;
 			let storageCost = 0;
-			let storageCo2 = 0;
-			let storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
+			const storages = current.getFilteredData('storage', filterDate);
 			storages.forEach(qs => {
-				if (qs.quoteInstance) {
-					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
-				} else if (qs.quoteDatabase) {
-					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
-				} else if (qs.quoteFunction) {
-					nb = 1;
-				} else if (qs.quoteContainer) {
-					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
-				} else {
-					nb = 1;
-				}
+				const quoteVm = (
+					(qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id])
+					|| (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id])
+					|| (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id])
+					|| (qs.quoteFunction && result.function.enabled[qs.quoteFunction.id]));
+				nb = quoteVm && quoteVm.minQuantity || 1;
 
-				let qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
+				const qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
-				storageCo2 += qs.co2;
-				let quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
-					start = (quoteVm.usage || defaultUsage).start || 0
+					start = (quoteVm.usage || defaultUsage).start || 0;
 					end = Math.min(duration, start + (quoteVm.usage || defaultUsage).duration);
 					for (t = start; t < end; t++) {
 						timeline[t].storageCost += qs.cost;
-						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
-						timeline[t].co2 += qs.co2;
 					}
 				} else {
 					for (t = timeline.length; t-- > 0;) {
 						timeline[t].storageCost += qs.cost;
-						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
-						timeline[t].co2 += qs.co2;
 					}
 				}
 			});
@@ -3763,18 +4083,17 @@ define(function () {
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;
-				timeline[t].supportCo2 = 0;
 				timeline[t].cost += supportCost;
 			}
 
-			let costNoSupport = typesStorage.reduce((total, sType) => total + result[sType].cost, storageCost);
-			let co2NoSupport = typesStorage.reduce((total, sType) => total + result[sType].co2, storageCo2);
+			let costNoSupport = computeTypes.reduce((total, sType) => total + result[sType].cost, storageCost);
+			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, 0);
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
 				co2: co2NoSupport,
 				costNoSupport: costNoSupport,
 				co2NoSupport: co2NoSupport,
-				unbound: typesStorage.some(sType => result[sType].maxInstancesUnbound),
+				unbound: computeTypes.some(sType => result[sType].maxInstancesUnbound),
 				timeline: timeline,
 				storage: {
 					nb: storages.length,
@@ -3782,7 +4101,7 @@ define(function () {
 					reserved: storageReserved,
 					filtered: storages,
 					cost: storageCost,
-					co2: storageCo2
+					co2: 0
 				},
 				support: {
 					nb: supports.length,

@@ -30,10 +30,10 @@
 							</div>
 						</h2>
 					</div>
-					<div id="prov-dashboard" class="hidden-xs col-lg-8 col-md-7">
+					<div id="prov-dashboard" class="col-lg-8 col-md-7 hidden-xs ">
 						<div class="svg-wrapper row">
 							<div id="prov-sunburst" class="col-lg-4 col-md-12"></div>
-							<div id="prov-barchart" class="col-lg-8 hidden-xs hidden-sm hidden-md hidden">
+							<div id="prov-barchart" class="col-lg-8 hidden-md hidden">
 								<svg class="prov-barchart-svg pull-right"></svg>
 							</div>
 						</div>
@@ -218,13 +218,12 @@
 									<th data-toggle="tooltip" title="{{service:prov:storage-instance-help}}" class="hidden-xs hidden-sm">{{service:prov:instance}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:tag-help}}"><i class="fas fa-tags"></i> {{service:prov:tags}}</th>
 									<th data-toggle="tooltip" title="{{service:prov:cost-help}}" class="hidden-xs col-cost"><i class="fas fa-usd"></i> {{service:prov:cost}}</th>
-									<th data-toggle="tooltip" title="{{service:prov:co2-help}}" class="noVisDefault col-co2"><i class="fas fa-leaf"></i> {{service:prov:co2}}</th>
 									<th class="noVis"><a class="delete-all pull-right"><i class="fas fa-fw fa-trash-alt" data-toggle="tooltip" title="{{delete}}"></i></a></th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									<td class="dataTables_empty" colspan="11">{{loading}}</td>
+									<td class="dataTables_empty" colspan="10">{{loading}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -408,7 +407,7 @@
 							<div class="col-sm-9">
 								<div class="input-group">
 									<input type="text" id="database-engine" class="resource-query form-control" required />
-									<div class="input-group-addon"> / </div>
+									<div class="input-group-addon" id="separtor-database-engine"> / </div>
 									<input type="text" id="database-edition" class="resource-query form-control" placeholder="{{service:prov:database-edition}}" />
 								</div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:database-edition-help}}"></i></span>
@@ -482,14 +481,46 @@
 						</div>
 						<div class="form-group required element-advanced">
 							<label class="control-label col-sm-3" for="instance-gpu">{{service:prov:gpu}}</label>
-							<div class="col-xs-3">
-								<div class="input-group">
+							<div class="col-sm-9">
+								<div class="input-group col-sm-3">
 									<input type="text" id="instance-gpuRate" class="prov-rate resource-query form-control element-advanced" />
 									<input type="number" value ="0" min="0" max="8" id="instance-gpu" class="resource-query form-control" required />
 								</div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:gpu-help}}"></i></span>
 							</div>
 						</div>
+						<div class="form-group element-advanced">
+							<label class="control-label col-sm-3" for="instance-workload">{{service:prov:workload}}</label>
+							<div class="col-sm-2">
+								<input type="text" id="instance-workload" class="resource-query form-control" />
+							</div>
+							<div style="padding: 9px; float: left;">
+								<input type="checkbox" id="mode-workload-details" data-size="mini" data-handle-width="10" data-on-color="success">
+							</div>
+							<svg class="svg-workload hidden" width="250" height="50"></svg>
+							<!-- <label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
+														<input type="checkbox" id="mode-workload-details">
+														<span>Détails&emsp; </span> 
+													</label> -->
+						</div>
+						<span class="input-help element-advanced"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:workload-help}}"></i></span>
+						<div class="form-group element-advanced element-workload-details">
+							<ul class="list-group workload">
+								<li class="list-group-item col-sm-offset-3 col-sm-9">
+									<div class="input-group workload-details element-workload-details detailWorkload">						
+										<input type="number" placeholder="{{service:prov:workload-duree}}" value="" min="1" max="100" id="instance-workload-dure"class="form-control">
+										<span class="input-group-addon">% @</span>
+										<input type="number" placeholder="{{service:prov:workload-cpu}}" value="" min="0" max="100" id="instance-workload-cpu" class="form-control">
+										<span class="input-group-addon">%</span>
+										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i>
+											<div class="ripple-container"></div>
+										</button>
+									</div>
+								</li>
+							</ul>
+						</div>
+						<!-- <svg class="svg-workload" width="500" height="400"></svg> -->
+						<div id="my_dataviz"></div>
 						<div class="form-group element-advanced" data-exclusive="instance container database">
 							<label class="control-label col-sm-3" for="instance-processor">{{service:prov:processor}}</label>
 							<div class="col-sm-9">
