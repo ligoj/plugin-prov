@@ -252,7 +252,7 @@ define({
         'service:prov:upfront': 'Upfront',
         'service:prov:updated': '{{#if more}}{{count}} updated: {{/if}}{{sample}}{{#if more}}, ... (+{{more}}){{else}} updated{{/if}}',
         'service:prov:workload': 'Workload',
-        'service:prov:workload-duration': 'the duration',
+        'service:prov:workload-duration': 'Duration',
         'service:prov:workload-cpu': 'CPU',
         'service:prov:workload-help' : 'programming of cpu load and duration of use during a day',
         'service:prov:delete-workload' : 'Delete workload',
