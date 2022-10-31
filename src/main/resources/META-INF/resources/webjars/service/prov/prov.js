@@ -3578,7 +3578,6 @@ define(['sparkline', 'd3'], function () {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
 				let numDataItems = stats.timeline.length;
 				let data = [];
-				let format = formatByAggregationMode[aggregateMode];
 				for (let i = 0; i < numDataItems; i++) {
 					let value = stats.timeline[i];
 					let stack = {
@@ -3595,32 +3594,45 @@ define(['sparkline', 'd3'], function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						d3Bar.create("#prov-barchart .prov-barchart-svg", false, d3[colorScheme], parseInt($('#prov-barchart').css('width')), 150, data, aggregateMode, (_event, _bars, d) => {
-							// Tooltip of barchart for each resource type
-							let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+						d3Bar.create(
+							{
+								selector: "#prov-barchart .prov-barchart-svg",
+								selectorPercentCB: false,
+								colors: d3[colorScheme],
+								width: parseInt($('#prov-barchart').css('width')),
+								height: 150,
+								data,
+								aggregateMode,
+								tooltip: (_event, _bars, d) => {
+									// Tooltip of barchart for each resource type
+									let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 
-							// For each contributor add its value
-							let barData = data[d['x-index']];
-							let totalCost = 0;
-							let totalCo2 = 0;
-							types.forEach(type => {
-								let value = barData[type]
-								if (value?.cost || value?.co2) {
-									totalCost += value.cost || 0;
-									totalCo2 += value.co2 || 0;
-									tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}</span>`;
-								}
+									// For each contributor add its value
+									let barData = data[d['x-index']];
+									let totalCost = 0;
+									let totalCo2 = 0;
+									types.forEach(type => {
+										let value = barData[type]
+										if (value?.cost || value?.co2) {
+											totalCost += value.cost || 0;
+											totalCo2 += value.co2 || 0;
+											tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+										}
+									});
+									// Append total
+									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
+									return `<span class="tooltip-text">${tooltip}</span>`;
+								},
+								hover: d => {
+									// Hover of barchart -> update sunburst and global cost
+									current.updateUiCost(d?.['x-index']);
+								},
+								click: (d, _bars, clicked) => {
+									// Hover of barchart -> update sunburst and global cost
+									current.updateUiCost(clicked && d?.['x-index']);
+								}, axisY: formatByAggregationMode,
+								sort: (a, b) => types.indexOf(a) - types.indexOf(b)
 							});
-							// Append total
-							tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
-							return `<span class="tooltip-text">${tooltip}</span>`;
-						}, d => {
-							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(d?.['x-index']);
-						}, (d, _bars, clicked) => {
-							// Hover of barchart -> update sunburst and global cost
-							current.updateUiCost(clicked && d?.['x-index']);
-						}, d => format(d, null, null, true), (a, b) => types.indexOf(a) - types.indexOf(b));
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
 							&& typeof e.target.screenLeft === 'number'
 							&& $('#prov-barchart').length
@@ -3652,7 +3664,7 @@ define(['sparkline', 'd3'], function () {
 				stats.cpu = { available: 0 };
 				stats.ram = { available: 0 };
 				current.updateSummary($summary, stats);
-				$summary.find('.requests').find('span').text(stats.function.nbRequests);
+				$summary.filter('.requests').find('span').text(stats.function.nbRequests);
 			} else {
 				$summary.addClass('hidden');
 			}
