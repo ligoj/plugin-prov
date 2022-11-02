@@ -1268,7 +1268,7 @@ define(['sparkline','d3'],function () {
 						var data = workload[i].split('@');
 						if (data.length == 2) {
 							dureeTotal = dureeTotal + parseInt(data[0]);
-							if(dureeTotal <= 100 && data[0]!=(""||0) && data[1]!=""){
+							if( data[0]!=(""||0) && data[1]!=""){ //dureeTotal <= 100 &&
 							$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
 							<input type="number" placeholder="durée" value="${data[0]}" min="1" max="100" class="form-control instance-workload-dataDure"/>
 							<span class="input-group-addon">% @</span>
@@ -1279,6 +1279,7 @@ define(['sparkline','d3'],function () {
 							}
 						}
 					}
+				workloadWarning(dureeTotal);
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 				}
@@ -1302,10 +1303,11 @@ define(['sparkline','d3'],function () {
             }else if($('.instance-workload-dataDure')[0]) {
                 dureeTotal = $('.instance-workload-dataDure')[0].value
 			}
-			if (dureeTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+			if ( $(e.target).val() != 0 && $(e.target).val() != '') { // dureeTotal <= 100 &&
 				if ($(e.target).val()>100){
 					$(e.target).val(100);
 				}
+				workloadWarning(dureeTotal);
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
 			} else if ($(e.target).val() == 0 || $(e.target).val() == '' ) {
@@ -1337,7 +1339,7 @@ define(['sparkline','d3'],function () {
 			
 			var duree = $('#instance-workload-dure').val()
 			var cpu = $('#instance-workload-cpu').val()
-			if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
+			//if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
 				$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
 				<input type="number" placeholder="durée" value="${duree}" min="1" max="100" class="form-control instance-workload-dataDure"/>
 				<span class="input-group-addon">% @</span>
@@ -1345,9 +1347,10 @@ define(['sparkline','d3'],function () {
 				<span class="input-group-addon">%</span>
 				<button type="button" class="btn btn-danger addon-workload" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"><i class="fas fa-minus"></i></button>
 				</div>`));
+				workloadWarning(dureeTotal);
 				calcul_list_and_create_sparkline();
 				$.proxy(current.checkResource, $popup)();
-			 }
+			 //}
 			$('#instance-workload-dure').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
@@ -1407,6 +1410,14 @@ define(['sparkline','d3'],function () {
 		});
 	}
 
+	function workloadWarning(dureeTotal){
+		if (dureeTotal <= 100){
+			$('.workload-warning').addClass('hidden')
+		} else {
+			$('.workload-warning').removeClass('hidden')
+		}
+	}
+
 	function calcul_list_and_create_sparkline() {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').addClass("hidden");
@@ -1414,17 +1425,17 @@ define(['sparkline','d3'],function () {
 			let i = 0;
 			var workload = 0;
 			var details = '';
-			var duree = 0;
+			var dureeTotal = 0;
 			var tabValeur = [];
 			while (i <= ($('.instance-workload-dataDure').length - 1)) {
 				workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
 				details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
-				duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
+				dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
 				tabValeur.push({"duration": parseInt($('.instance-workload-dataDure')[i].value) , "cpu": parseInt($('.instance-workload-dataCpu')[i].value) }) 
 				i++;
 			}
 
-			var proRata = duree / 100;
+			var proRata = dureeTotal / 100;
 			var detailsPoints = [];
 			var baselinePoints = [];
 			var incrementDuration = 1 // 1 %
@@ -1437,11 +1448,12 @@ define(['sparkline','d3'],function () {
 				}
 			})
 
+			workloadWarning(dureeTotal);
 			if (workload == 0) {
 				_('instance-workload').val('');
 				$('#sparkline-workload').addClass('hidden');
 			} else {
-				_('instance-workload').val(workload + details);
+				_('instance-workload').val(Math.round(workload) + details);
 				if ($('.instance-workload-dataDure').length > 1) {
 					$('#sparkline-workload').removeClass('hidden');
 				}else {
@@ -1560,7 +1572,7 @@ define(['sparkline','d3'],function () {
 				var data = input_workload[i].split('@');
 				if (data.length == 2) {
 					dureeTotal = dureeTotal + parseInt(data[0]);
-					if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+					if (data[0] != ("" || 0) && data[1] != "") { //dureeTotal <= 100 && 
 						workload = workload + (data[0] * data[1] / 100);
 						details = details + ","+data[0]+"@"+data[1]
 						tabValeur.push({ "duration": data[0], "cpu": data[1] });
@@ -1568,10 +1580,11 @@ define(['sparkline','d3'],function () {
 				}
 			}
 			if (workload != 0) {
-				_('instance-workload').val(workload + details);
+				_('instance-workload').val(Math.round( workload) + details);
 			} else {
 				_('instance-workload').val(input_workload[0]);
 			}
+			workloadWarning(dureeTotal);
 			 
 			var proRata = dureeTotal / 100;
 			var detailsPoints = [];
@@ -1590,10 +1603,10 @@ define(['sparkline','d3'],function () {
 			$('.svg-workload').addClass("hidden");
 			var val_input = _('instance-workload').val().replace(/[^0-9]+/g,'');
 			_('instance-workload').val(val_input);
-			if(_('instance-workload').val() > 100)
-			{
-				_('instance-workload').val('');
-			}
+			// if(_('instance-workload').val() > 100)
+			// {
+			// 	_('instance-workload').val('');
+			// }
 		}	
 	}
 
