@@ -217,7 +217,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 if (this.options.onChange) {
                     $.proxy(this.options.onChange, $bar)(label, value, this.options);
                 }
-                this.input.trigger('change');
+                this.input.trigger('input');
             },
 
             /**

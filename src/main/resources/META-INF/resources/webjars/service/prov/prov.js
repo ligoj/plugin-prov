@@ -31,7 +31,7 @@ define(['sparkline', 'd3'], function () {
 	/**
 	 * Enable resource type to relatable to storages.
 	 */
-	const computeTypes = ['instance', 'database', 'container', 'function'];
+	const typesStorage = ['instance', 'database', 'container', 'function'];
 
 	/**
 	 * OS key to markup/label mapping.
@@ -203,7 +203,7 @@ define(['sparkline', 'd3'], function () {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
 					// Must be found in all resource types
-					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					if (typesStorage.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -213,7 +213,7 @@ define(['sparkline', 'd3'], function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					return { results: (typeof type === 'function' ? processors[type()] || [] : typesStorage.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -815,13 +815,13 @@ define(['sparkline', 'd3'], function () {
 			const img = `<img class="flag-icon prov-location-flag" src="${current.$path}flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
-				const tooltip = `${m49 || id}${placement && placement !== html && `<br>Placement: ${placement}` || ''}<br>Id: ${id}`;
+				const tooltip = `${m49 || id}${(placement && placement !== html) ? `<br>Placement: ${placement}` : ''}<br>Id: ${id}`;
 				return `<u class="details-help" data-toggle="popover" data-content="${toHtmlAttribute(tooltip)}" title="${toHtmlAttribute(location.name)}">${img}></u>`;
 			}
 			html += `${img} title="${toHtmlAttribute(location.name)}">`;
 		}
 		html += m49 || id;
-		return `${html}${placement && placement !== html && ` <span class="small">(${placement})</span>` || ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}`;
+		return `${(placement && placement !== html) ? ` <span class="small">(${toHtmlAttribute(placement)})</span>` : ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}}`;
 	}
 
 	function formatLocation(location, mode, data) {
@@ -853,19 +853,12 @@ define(['sparkline', 'd3'], function () {
 		return locationToHtml(obj, false, true);
 	}
 
-	function toModalDataTarget(resourceType) {
-		if (computeTypes.includes(resourceType)) {
-			return 'generic';
-		}
-		return resourceType;
-	}
-
 	/**
 	 * Return the HTML markup from the quote instance model.
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${toModalDataTarget(resource.resourceType)}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -873,11 +866,11 @@ define(['sparkline', 'd3'], function () {
 	/**
 	 * Return the HTML markup from the quote resource.
 	 */
-	function formatName(name, mode, resource) {
+	function formatName(name, mode, obj) {
 		if (mode !== 'display') {
 			return name
 		}
-		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`;
+		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${obj.resourceType === "storage" ? "storage" : "generic"}">${name}</a>`;
 	}
 
 	/**
@@ -1086,7 +1079,8 @@ define(['sparkline', 'd3'], function () {
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
-		$('.modal').on('change', 'input.resource-query', current.checkResource);
+		$('.modal').on('change', 'input.resource-query:not([type="number"])', current.checkResource);
+		$('.modal').on('input', 'input.resource-query[type="number"]', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
@@ -1240,10 +1234,10 @@ define(['sparkline', 'd3'], function () {
 	 */
 	function initializePopupEvents(type) {
 		// Resource edition pop-up
-		const popupType = computeTypes.includes(type) ? 'generic' : type;
+		const popupType = typesStorage.includes(type) ? 'generic' : type;
 		const $popup = _('popup-prov-' + popupType);
 		$popup.on('shown.bs.modal', function () {
-			const inputType = computeTypes.includes(type) ? 'instance' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
@@ -1255,7 +1249,7 @@ define(['sparkline', 'd3'], function () {
 				$popup.removeClass('advanced');
 			}
 		}).on('change', '#instance-workload', function (e) {
-			calcul_input_and_create_sparkline();
+			calculate_input_and_createSparkline();
 		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
@@ -1265,52 +1259,46 @@ define(['sparkline', 'd3'], function () {
 				$('#instance-workload').removeClass('disabled');
 			}
 			if (e.currentTarget.checked) {
-				var workload = _('instance-workload').val().split(',');
-				var dureeTotal = 0;
+				const workload = _('instance-workload').val().split(',');
+				let durationTotal = 0;
 				if (workload.length > 1) {
 					for (let i = 1; i < workload.length; i++) {
-						var data = workload[i].split('@');
+						const data = workload[i].split('@');
 						if (data.length == 2) {
-							dureeTotal = dureeTotal + parseInt(data[0]);
-							if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
-								$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
-							<input type="number" placeholder="durée" value="${data[0]}" min="1" max="100" class="form-control instance-workload-dataDure"/>
-							<span class="input-group-addon">% @</span>
-							<input type="number" placeholder="cpu" value="${data[1]}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
-							<span class="input-group-addon">%</span>
-							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></button>
-							</div>`));
+							durationTotal = durationTotal + parseInt(data[0]);
+							if (durationTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+								html_workload(data[0],data[1]);
 							}
 						}
 					}
-					calcul_list_and_create_sparkline();
+					calculate_list_and_createSparkline();
 					$.proxy(current.checkResource, $popup)();
 				}
 			} else {
 				$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
 			}
-		}).on('change', '#instance-workload-dure , #instance-workload-cpu', function (e) {
-			if ((($('#instance-workload-dure').val() == 0 || '') || $('#instance-workload-dure').val() > 100) || (($('#instance-workload-cpu').val() == '') || $('#instance-workload-cpu').val() > 100)) {
+		}).on('change', '#instance-workload-duration , #instance-workload-cpu', function (e) {
+			if ((($('#instance-workload-duration').val() == 0 || '') || $('#instance-workload-duration').val() > 100) || (($('#instance-workload-cpu').val() == '') || $('#instance-workload-cpu').val() > 100)) {
 				$('#create-workload').addClass('disabled');
 			} else {
 				$('#create-workload').removeClass('disabled');
 			}
-		}).on('focusout', '.instance-workload-dataDure , .instance-workload-dataCpu', function (e) {
+		}).on('focusout', '.instance-workload-dataDuration , .instance-workload-dataCpu', function (e) {
 			let i = 0;
-			var dureeTotal = 0;
-			if (($('.instance-workload-dataDure').length >= 2)) {
-				while (i < ($('.instance-workload-dataDure').length)) {
-					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
+			let durationTotal = 0;
+			if (($('.instance-workload-dataDuration').length >= 2)) {
+				while (i < ($('.instance-workload-dataDuration').length)) {
+					durationTotal = durationTotal + parseInt($('.instance-workload-dataDuration')[i].value);
 					i++;
 				}
-			} else if ($('.instance-workload-dataDure')[0]) {
-				dureeTotal = $('.instance-workload-dataDure')[0].value
+			} else if ($('.instance-workload-dataDuration')[0]) {
+				durationTotal = $('.instance-workload-dataDuration')[0].value
 			}
-			if (dureeTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+			if (durationTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
 				if ($(e.target).val() > 100) {
 					$(e.target).val(100);
 				}
-				calcul_list_and_create_sparkline();
+				calculate_list_and_createSparkline();
 				$.proxy(current.checkResource, $popup)();
 			} else if ($(e.target).val() == 0 || $(e.target).val() == '') {
 				if ($(e.target)[0].classList.value == 'form-control instance-workload-dataCpu') {
@@ -1318,46 +1306,40 @@ define(['sparkline', 'd3'], function () {
 				} else {
 					$(e.target).val(1);
 				}
-				calcul_list_and_create_sparkline();
+				calculate_list_and_createSparkline();
 				$.proxy(current.checkResource, $popup)();
 			} else {
-				$(e.target).val($(e.target).val() - (dureeTotal - 100));
-				calcul_list_and_create_sparkline();
+				$(e.target).val($(e.target).val() - (durationTotal - 100));
+				calculate_list_and_createSparkline();
 				$.proxy(current.checkResource, $popup)();
 			}
 		}).on('click', '.dropdown-menu', function () {
 			$.proxy(current.checkResource, $(this))();
 		}).on('click', '.btn.btn-success.addon-workload', function () {
-			let i = 0;
-			var dureeTotal = 0;
-			if (($('.instance-workload-dataDure').length >= 2)) {
-				while (i < ($('.instance-workload-dataDure').length)) {
-					dureeTotal = dureeTotal + parseInt($('.instance-workload-dataDure')[i].value);
-					i++;
+			let index = 0;
+			let durationTotal = 0;
+			if (($('.instance-workload-dataDuration').length >= 2)) {
+				while (index < ($('.instance-workload-dataDuration').length)) {
+					durationTotal = durationTotal + parseInt($('.instance-workload-dataDuration')[index].value);
+					index++;
 				}
-			} else if ($('.instance-workload-dataDure')[0]) {
-				dureeTotal = $('.instance-workload-dataDure')[0].value;
+			} else if ($('.instance-workload-dataDuration')[0]) {
+				durationTotal = $('.instance-workload-dataDuration')[0].value;
 			}
 
-			var duree = $('#instance-workload-dure').val()
-			var cpu = $('#instance-workload-cpu').val()
-			if (parseInt(dureeTotal) + parseInt(duree) <= 100) {
-				$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
-				<input type="number" placeholder="durée" value="${duree}" min="1" max="100" class="form-control instance-workload-dataDure"/>
-				<span class="input-group-addon">% @</span>
-				<input type="number" placeholder="cpu" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
-				<span class="input-group-addon">%</span>
-				<button type="button" class="btn btn-danger addon-workload" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"><i class="fas fa-minus"></i></button>
-				</div>`));
-				calcul_list_and_create_sparkline();
+			let duration = $('#instance-workload-duration').val()
+			let cpu = $('#instance-workload-cpu').val()
+			if (parseInt(durationTotal) + parseInt(duration) <= 100) {
+				html_workload(duration,cpu);
+				calculate_list_and_createSparkline();
 				$.proxy(current.checkResource, $popup)();
 			}
-			$('#instance-workload-dure').val('');
+			$('#instance-workload-duration').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
 		}).on('click', '.btn.btn-danger.addon-workload', function (e) {
 			$(e.target).parents('.list-group-item').remove();
-			calcul_list_and_create_sparkline();
+			calculate_list_and_createSparkline();
 			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
@@ -1407,57 +1389,108 @@ define(['sparkline', 'd3'], function () {
 			$('#instance-workload').removeClass('disabled');
 			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
 			_('mode-workload-details').bootstrapSwitch('state', false);
-			calcul_input_and_create_sparkline();
+			calculate_input_and_createSparkline();
 		});
 	}
 
-	function calcul_list_and_create_sparkline() {
-		require(['d3'], function (d3, d3Bar) {
-			$('.svg-workload').addClass("hidden");
-			if ($('.instance-workload-dataDure')) {
-				let i = 0;
-				var workload = 0;
-				var details = '';
-				var duree = 0;
-				var tabValeur = [];
-				while (i <= ($('.instance-workload-dataDure').length - 1)) {
-					workload = workload + $('.instance-workload-dataDure')[i].value * $('.instance-workload-dataCpu')[i].value / 100;
-					details = details + "," + $('.instance-workload-dataDure')[i].value + '@' + $('.instance-workload-dataCpu')[i].value;
-					duree = duree + parseInt($('.instance-workload-dataDure')[i].value);
-					tabValeur.push({ "duration": parseInt($('.instance-workload-dataDure')[i].value), "cpu": parseInt($('.instance-workload-dataCpu')[i].value) })
-					i++;
-				}
-
-				var proRata = duree / 100;
-				var detailsPoints = [];
-				var baselinePoints = [];
-				var incrementDuration = 1 // 1 %
-				tabValeur.forEach(detail => {
-					var nbIncrements = 0;
-					nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
-					for (let y = 0; y < nbIncrements; y++) {
-						detailsPoints.push(detail.cpu);
-						baselinePoints.push(workload);
-					}
-				})
-
-				if (workload == 0) {
-					_('instance-workload').val('');
-					$('#sparkline-workload').addClass('hidden');
-				} else {
-					_('instance-workload').val(workload + details);
-					if ($('.instance-workload-dataDure').length > 1) {
-						$('#sparkline-workload').removeClass('hidden');
-					} else {
-						$('#sparkline-workload').addClass('hidden');
-					}
-				}
-				create_Sparkline(detailsPoints, baselinePoints);
-			}
-		})
+	function html_workload(duration, cpu){
+		$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
+							<input type="number" placeholder="${current.$messages['service:prov:workload-duration']}" value="${duration}" min="1" max="100" class="form-control instance-workload-dataDuration"/>
+							<span class="input-group-addon">% @</span>
+							<input type="number" placeholder="${current.$messages['service:prov:workload-cpu']}" value="${cpu}" min="0" max="100" class="form-control instance-workload-dataCpu"/>
+							<span class="input-group-addon">%</span>
+							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></button>
+							</div>`));
 	}
 
-	function create_Sparkline(detailsPoints, baselinePoints) {
+	function calculate_list_and_createSparkline() {
+			$('.svg-workload').addClass("hidden");
+			const $detailsDuration = $('.instance-workload-dataDuration');
+			const $detailsCpu = $('.instance-workload-dataCpu');
+			let index = 0;
+			let workload = 0;
+			let details = '';
+			let totalDuration = 0;
+			let dataPoints = [];
+			while (index <= ($detailsDuration.length - 1)) {
+				const duration = parseInt($detailsDuration[index].value, 10);
+				const cpu = parseInt($detailsCpu[index].value, 10);
+				workload = workload + duration * cpu / 100;
+				details = details + `,${duration}@${cpu}`;
+				totalDuration = totalDuration + duration;
+				dataPoints.push({ duration, cpu })
+				index++;
+			}
+
+			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+
+			if (workload == 0) {
+				_('instance-workload').val('');
+				$('#sparkline-workload').addClass('hidden');
+			} else {
+				_('instance-workload').val(`${workload}${details}`);
+				if ($('.instance-workload-dataDuration').length > 1) {
+					$('#sparkline-workload').removeClass('hidden');
+				} else {
+					$('#sparkline-workload').addClass('hidden');
+				}
+			}
+			createSparkline(sparklinePoints[0], sparklinePoints[1]);
+	}
+
+	function calculate_input_and_createSparkline() {
+		$('.svg-workload').addClass("hidden");
+		let input_workload = _('instance-workload').val().split(',');
+		let workload = 0;
+		let details = "";
+		let totalDuration = 0;
+		let dataPoints = [];
+		if (input_workload.length > 1) {
+			for (let i = 1; i < input_workload.length; i++) {
+				let data = input_workload[i].split('@');
+				if (data.length == 2) {
+					totalDuration = totalDuration + parseInt(data[0]);
+					if (totalDuration <= 100 && data[0] != ("" || 0) && data[1] != "") {
+						workload = workload + (data[0] * data[1] / 100);
+						details = details + `,${data[0]}@${data[1]}`
+						dataPoints.push({ "duration": data[0], "cpu": data[1] });
+					}
+				}
+			}
+			if (workload != 0) {
+				_('instance-workload').val(workload + details);
+			} else {
+				_('instance-workload').val(input_workload[0]);
+			}
+
+			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+			createSparkline(sparklinePoints[0], sparklinePoints[1]);
+		} else {
+			$('.svg-workload').addClass("hidden");
+			const val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
+			_('instance-workload').val(val_input);
+			if (_('instance-workload').val() > 100) {
+				_('instance-workload').val('');
+			}
+		}
+	}
+
+	function create_points(dataPoints , totalDuration , workload) {
+		const proRata = totalDuration / 100;
+		const detailsPoints = [];
+		const baselinePoints = [];
+		const incrementDuration = 1 // 1 %
+		dataPoints.forEach(detail => {
+			const nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
+			for (let y = 0; y < nbIncrements; y++) {
+				detailsPoints.push(detail.cpu);
+				baselinePoints.push(workload);
+			}
+		})
+		return [detailsPoints,baselinePoints];
+	}
+
+	function createSparkline(detailsPoints, baselinePoints) {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').removeClass("hidden");
 			$('.workload-line').remove();
@@ -1480,16 +1513,6 @@ define(['sparkline', 'd3'], function () {
 				.x((d, i) => x(i))
 				.y(d => y(d));
 
-			function tooltip() {
-				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
-					return d3.select('body')
-						.append('div')
-						.attr('class', 'tooltip d3-tooltip tooltip-inner');
-				} else {
-					return d3.select('body .d3-tooltip.tooltip-inner');
-				}
-			}
-
 			svg.append('path').datum(dataBaseline)
 				.attr('fill', 'none')
 				.attr('stroke', 'blue')
@@ -1504,101 +1527,47 @@ define(['sparkline', 'd3'], function () {
 				.attr('class', 'workload-part')
 				.attr('d', line)
 				.on('mouseover', function (e, d) {
-					$('.circle-workload').remove();
-					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
-					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
-					data = data < 0 ? data = 0 : data;
-					var valX = Math.trunc(e.pageX - firstPixelX);
-					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
-					svg.append('circle')
-						.attr('cx', valX)
-						.attr('cy', valY)
-						.attr('class', 'circle-workload')
-						.attr('r', 3)
-						.attr('stroke', 'black')
-						.attr('fill', '#69a3b2')
-						.on('mouseover', function () {
-							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
-						})
-						.on('mouseout', function () {
-							tooltip().style('visibility', 'hidden');
-							$('.circle-workload').remove();
-						});
+					createCircleTootips(svg, e, d);
 				})
 				.on('mousemove', (e, d) => {
-					$('.circle-workload').remove();
-					var firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
-					var data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
-					data = data < 0 ? data = 0 : data;
-					var valX = Math.trunc(e.pageX - firstPixelX);
-					var valY = Math.trunc(30 - ((d[data] * 30) / 100));
-					svg.append('circle')
-						.attr('cx', valX)
-						.attr('cy', valY)
-						.attr('class', 'circle-workload')
-						.attr('r', 3)
-						.attr('stroke', 'black')
-						.attr('fill', '#69a3b2')
-						.on('mouseover', function () {
-							tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
-						})
-						.on('mouseout', function () {
-							tooltip().style('visibility', 'hidden');
-							$('.circle-workload').remove();
-						});
+					createCircleTootips(svg, e, d);
 				})
-				.on('mouseout', function () {
-					return tooltip().style('visibility', 'hidden');
-				});
 		})
 	}
 
-	function calcul_input_and_create_sparkline() {
-		$('.svg-workload').addClass("hidden");
-		var input_workload = _('instance-workload').val().split(',');
-		var workload = 0;
-		var details = "";
-		var dureeTotal = 0;
-		var tabValeur = [];
-		if (input_workload.length > 1) {
-			for (let i = 1; i < input_workload.length; i++) {
-				var data = input_workload[i].split('@');
-				if (data.length == 2) {
-					dureeTotal = dureeTotal + parseInt(data[0]);
-					if (dureeTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
-						workload = workload + (data[0] * data[1] / 100);
-						details = details + "," + data[0] + "@" + data[1]
-						tabValeur.push({ "duration": data[0], "cpu": data[1] });
-					}
+	function createCircleTootips(svg, e, d) {
+		require(['d3'], function (d3, d3Bar) {
+			function tooltip() {
+				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
+					return d3.select('body')
+						.append('div')
+						.attr('class', 'tooltip d3-tooltip tooltip-inner');
+				} else {
+					return d3.select('body .d3-tooltip.tooltip-inner');
 				}
-			}
-			if (workload != 0) {
-				_('instance-workload').val(workload + details);
-			} else {
-				_('instance-workload').val(input_workload[0]);
 			}
 
-			var proRata = dureeTotal / 100;
-			var detailsPoints = [];
-			var baselinePoints = [];
-			var incrementDuration = 1 // 1 %
-			tabValeur.forEach(detail => {
-				var nbIncrements = 0;
-				nbIncrements = Math.round((detail.duration / proRata) / incrementDuration);
-				for (let y = 0; y < nbIncrements; y++) {
-					detailsPoints.push(detail.cpu);
-					baselinePoints.push(workload);
-				}
-			})
-			create_Sparkline(detailsPoints, baselinePoints);
-		} else {
-			$('.svg-workload').addClass("hidden");
-			var val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
-			_('instance-workload').val(val_input);
-			if (_('instance-workload').val() > 100) {
-				_('instance-workload').val('');
-			}
-		}
+			$('.circle-workload').remove();
+			const firstPixelX = Math.trunc($('.workload-part')[0].getBoundingClientRect().x);
+			let data = Math.trunc(((e.pageX - firstPixelX) / 245) * 100) - 1;
+			data = data < 0 ? 0 : data;
+			const valX = Math.trunc(e.pageX - firstPixelX);
+			const valY = Math.trunc(30 - ((d[data] * 30) / 100));
+			svg.append('circle')
+				.attr('cx', valX)
+				.attr('cy', valY)
+				.attr('class', 'circle-workload')
+				.attr('r', 3)
+				.attr('stroke', 'black')
+				.attr('fill', '#69a3b2')
+				.on('mouseover', function () {
+					tooltip().html("CPU : " + d[data] + "%").style('visibility', 'visible').style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px');
+				})
+				.on('mouseout', function () {
+					tooltip().style('visibility', 'hidden');
+					$('.circle-workload').remove();
+				});
+		})
 	}
 
 	function select2Placeholder(name) {
@@ -1677,7 +1646,7 @@ define(['sparkline', 'd3'], function () {
 			duration: parseInt(_('usage-duration').val() || '1', 10)
 		}));
 
-		$('.usage-inputs input').on('change keyup', current.synchronizeUsage);
+		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
 
 		// Usage rate template
 		const usageTemplates = [
@@ -2128,7 +2097,7 @@ define(['sparkline', 'd3'], function () {
 
 			// Storage
 			conf.storageCost = 0;
-			conf.storages.forEach(qs => computeTypes.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
+			conf.storages.forEach(qs => typesStorage.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
 			current.initializeTerraformStatus();
 		},
 
@@ -2173,11 +2142,9 @@ define(['sparkline', 'd3'], function () {
 		 */
 		checkResource: function () {
 			const $form = $(this).prov();
-			console.log('checkResourceModal',$form );
-			debugger;
 			const queries = {};
 			const type = $form.provType();
-			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the query
@@ -2185,14 +2152,14 @@ define(['sparkline', 'd3'], function () {
 				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive').includes(type);
 			}).each(function () {
 				current.addQuery(type, $(this), queries);
-				if (type !== 'instance' && computeTypes.includes(type)) {
+				if (type !== 'instance' && typesStorage.includes(type)) {
 					// Also include the instance inputs
 					current.addQuery('instance', $(this), queries);
 				}
 			});
 			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data')) {
 				let sType = _('storage-instance').select2('data').resourceType;
-				if (sType !== 'instance' && computeTypes.includes(sType)) {
+				if (sType !== 'instance' && typesStorage.includes(sType)) {
 					// Replace the resource lookup
 					queries[sType] = queries['instance'];
 					delete queries['instance'];
@@ -2333,7 +2300,7 @@ define(['sparkline', 'd3'], function () {
 		 */
 		initializeDataTableEvents: function (type) {
 			const oSettings = current[type + 'NewTable']();
-			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
 			const $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				provType: type,
@@ -2403,18 +2370,12 @@ define(['sparkline', 'd3'], function () {
 				className: 'truncate hidden-xs',
 				type: 'num',
 				render: formatCost
-			});
-
-			// Add CO2 data only for compute services for now
-			if (computeTypes.includes(type)) {
-				oSettings.columns.push({
-					data: 'co2',
-					className: 'truncate hidden-xs',
-					type: 'num',
-					render: formatCo2
-				});
-			}
-			oSettings.columns.push({
+			}, {
+				data: 'co2',
+				className: 'truncate hidden-xs',
+				type: 'num',
+				render: formatCo2
+			}, {
 				data: null,
 				width: '51px',
 				orderable: false,
@@ -2521,14 +2482,14 @@ define(['sparkline', 'd3'], function () {
 						}
 
 						const filter = settings.oPreviousSearch.sSearchAlt || '';
-						if (type === 'storage' && computeTypes.some(sType => current[sType + 'TableFilter'] !== '')) {
+						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container/function can be displayed
 							// There are 2 operators: 
 							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
 							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
-								cache: computeTypes.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
-								filters: computeTypes.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
+								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
+								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
 							});
 						}
 						if (filter === '') {
@@ -2558,7 +2519,7 @@ define(['sparkline', 'd3'], function () {
 						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
 
-						if (computeTypes.includes(type)) {
+						if (typesStorage.includes(type)) {
 							// Refresh the storage
 							const tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
@@ -3218,7 +3179,7 @@ define(['sparkline', 'd3'], function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			computeTypes.forEach(type => current.attachStorage(model, type, data[type]));
+			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -3277,7 +3238,7 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		storageUiToData: function (data) {
-			computeTypes.forEach(sType => delete data[sType]);
+			typesStorage.forEach(sType => delete data[sType]);
 			let storage = _('storage-instance').select2('data');
 			if (storage) {
 				data[storage.resourceType] = storage.id;
@@ -3356,8 +3317,8 @@ define(['sparkline', 'd3'], function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			const popupType = computeTypes.includes(type) ? 'generic' : type;
-			const inputType = computeTypes.includes(type) ? 'instance' : type;
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
 			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
@@ -3516,8 +3477,8 @@ define(['sparkline', 'd3'], function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			const popupType = computeTypes.includes(type) ? 'generic' : type;
-			const inputType = computeTypes.includes(type) ? 'instance' : type;
+			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const inputType = typesStorage.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the play load for API service
@@ -3910,7 +3871,7 @@ define(['sparkline', 'd3'], function () {
 		updateGauge: function (d3, stats) {
 			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
 				let weightCost = 0;
-				computeTypes.forEach(sType => {
+				typesStorage.forEach(sType => {
 					if (stats[sType].cpu.available) {
 						weightCost += stats[sType].cost * 0.8 * stats[sType].cpu.reserved / stats[sType].cpu.available;
 					}
@@ -3939,7 +3900,7 @@ define(['sparkline', 'd3'], function () {
 			} else {
 				result = current.model.configuration[type + 's'] || [];
 			}
-			if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
+			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
 					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
@@ -4030,9 +3991,9 @@ define(['sparkline', 'd3'], function () {
 			let duration = BARCHART_DURATION;
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
-				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, supportCost: 0, storageCo2: 0, storageCost: 0, supportCo2: 0, };
-				computeTypes.forEach(type => monthData[`${type}Cost`] = 0);
-				computeTypes.forEach(type => monthData[`${type}Co2`] = 0);
+				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+				typesStorage.forEach(type => monthData[`${type}Cost`] = 0);
+				typesStorage.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
 				date.add(1, 'months');
 			}
@@ -4051,31 +4012,43 @@ define(['sparkline', 'd3'], function () {
 			let storageAvailable = 0;
 			let storageReserved = 0;
 			let storageCost = 0;
+			let storageCo2 = 0;
+			let storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
-			const storages = current.getFilteredData('storage', filterDate);
 			storages.forEach(qs => {
-				const quoteVm = (
-					(qs.quoteDatabase && result.database.enabled[qs.quoteDatabase.id])
-					|| (qs.quoteInstance && result.instance.enabled[qs.quoteInstance.id])
-					|| (qs.quoteContainer && result.container.enabled[qs.quoteContainer.id])
-					|| (qs.quoteFunction && result.function.enabled[qs.quoteFunction.id]));
-				nb = quoteVm && quoteVm.minQuantity || 1;
+				if (qs.quoteInstance) {
+					nb = result.instance.enabled[qs.quoteInstance.id] && qs.quoteInstance.minQuantity || 1;
+				} else if (qs.quoteDatabase) {
+					nb = result.database.enabled[qs.quoteDatabase.id] && qs.quoteDatabase.minQuantity || 1;
+				} else if (qs.quoteFunction) {
+					nb = 1;
+				} else if (qs.quoteContainer) {
+					nb = result.container.enabled[qs.quoteContainer.id] && qs.quoteContainer.minQuantity || 1;
+				} else {
+					nb = 1;
+				}
 
-				const qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
+				let qsSize = (reservationModeMax && qs.sizeMax) ? qs.sizeMax : qs.size;
 				storageAvailable += Math.max(qsSize, qs.price.type.minimal) * nb;
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
+				storageCo2 += qs.co2;
+				let quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
-					start = (quoteVm.usage || defaultUsage).start || 0;
+					start = (quoteVm.usage || defaultUsage).start || 0
 					end = Math.min(duration, start + (quoteVm.usage || defaultUsage).duration);
 					for (t = start; t < end; t++) {
 						timeline[t].storageCost += qs.cost;
+						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
+						timeline[t].co2 += qs.co2;
 					}
 				} else {
 					for (t = timeline.length; t-- > 0;) {
 						timeline[t].storageCost += qs.cost;
+						timeline[t].storageCo2 += qs.co2;
 						timeline[t].cost += qs.cost;
+						timeline[t].co2 += qs.co2;
 					}
 				}
 			});
@@ -4085,17 +4058,18 @@ define(['sparkline', 'd3'], function () {
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;
+				timeline[t].supportCo2 = 0;
 				timeline[t].cost += supportCost;
 			}
 
-			let costNoSupport = computeTypes.reduce((total, sType) => total + result[sType].cost, storageCost);
-			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, 0);
+			let costNoSupport = typesStorage.reduce((total, sType) => total + result[sType].cost, storageCost);
+			let co2NoSupport = typesStorage.reduce((total, sType) => total + result[sType].co2, storageCo2);
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
 				co2: co2NoSupport,
 				costNoSupport: costNoSupport,
 				co2NoSupport: co2NoSupport,
-				unbound: computeTypes.some(sType => result[sType].maxInstancesUnbound),
+				unbound: typesStorage.some(sType => result[sType].maxInstancesUnbound),
 				timeline: timeline,
 				storage: {
 					nb: storages.length,
@@ -4103,7 +4077,7 @@ define(['sparkline', 'd3'], function () {
 					reserved: storageReserved,
 					filtered: storages,
 					cost: storageCost,
-					co2: 0
+					co2: storageCo2
 				},
 				support: {
 					nb: supports.length,
