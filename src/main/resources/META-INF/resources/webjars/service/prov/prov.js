@@ -2211,7 +2211,7 @@ define(['sparkline', 'd3'], function () {
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
-							$("#separtor-database-engine").removeClass("hidden")
+							$("#separator-database-engine").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
@@ -2221,7 +2221,7 @@ define(['sparkline', 'd3'], function () {
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
-							$("#separtor-database-engine").addClass("hidden")
+							$("#separator-database-engine").addClass("hidden")
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
