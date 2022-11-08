@@ -1082,11 +1082,11 @@ define(['sparkline', 'd3'], function () {
 		_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
 			$.proxy(synchronizeDropdownText, $(this))();
 			// Also trigger the change of the value
-			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
+			$(e.target).closest('.input-group-btn').prev('input').trigger('change');
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
-		$('input.resource-query').on('input', current.checkResource);
+		$('.modal').on('change', 'input.resource-query', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
@@ -2173,6 +2173,8 @@ define(['sparkline', 'd3'], function () {
 		 */
 		checkResource: function () {
 			const $form = $(this).prov();
+			console.log('checkResourceModal',$form );
+			debugger;
 			const queries = {};
 			const type = $form.provType();
 			const popupType = computeTypes.includes(type) ? 'generic' : type;

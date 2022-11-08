@@ -6,7 +6,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
         if ($.fn.provSlider) {
             return $.fn.provSlider;
         }
-        var uuid = 0;
+        let uuid = 0;
         $.widget("ligoj.provSlider", {
             options: {
                 // Ordered values
@@ -32,7 +32,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     return this.options.values;
                 }
 
-                var label = labelOrValues;
+                const label = labelOrValues;
                 if (value === undefined) {
                     // No value, act as a getter for this label
                     if (typeof labelOrValues === 'string') {
@@ -57,8 +57,8 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 this.formLabel.find('.selected').text(label);
 
                 // Update the input value
-                var value = this.options.values[this.options.labelsToIndex[label]];
-                var constraints = this._getConstraints(label);
+                const value = this.options.values[this.options.labelsToIndex[label]];
+                const constraints = this._getConstraints(label);
                 this.input.attr('min', constraints.min).attr('max', constraints.max);
                 this._synchronizeBar(this.slider.find('[data-label="' + label + '"]'), label, value, true);
             },
@@ -67,7 +67,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Update the bar to reflect the business hours values.
              */
             _synchronizeBar: function ($bar, label, value, setX) {
-                var valueF = `<strong>${this.options.format(value)}</strong>`;
+                const valueF = `<strong>${this.options.format(value)}</strong>`;
                 $bar.attr('data-original-title', valueF)
                     .tooltip('show')
                     .find('[data-toggle="tooltip"]')
@@ -82,7 +82,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 }
                 if (setX) {
                     if (typeof value === 'number') {
-                        var width = Math.round(this._valueToRate(value) * 10000) / 100;
+                        const width = Math.round(this._valueToRate(value) * 10000) / 100;
                         $bar.removeClass('hidden').attr('style', 'width:' + width + '%;');
                     } else {
                         $bar.addClass('hidden').attr('style', 'width:0');
@@ -94,7 +94,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Add a new business hours UI. Data is not updated. Return the created UI.
              */
             _addRange: function (label, value) {
-                var $bar = $(`<div class="progress-bar prov-slider-part" data-toggle="tooltip" data-html="true" data-placement="right" data-label="${label}"></div>`);
+                const $bar = $(`<div class="progress-bar prov-slider-part" data-toggle="tooltip" data-html="true" data-placement="right" data-label="${label}"></div>`);
                 $bar.append($('<span class="end" data-toggle="tooltip" data-html="true"><i class="fa fa-caret-up"></i></span>'));
                 this.slider.append($bar);
                 this.selector.find('.dropdown-menu').prepend(
@@ -112,10 +112,10 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             },
 
             _onDelete: function (e) {
-                var $label = $(e.target).closest('[data-label]');
-                var label = this._getLabel($label);
-                var remaining = null;
-                for (var index = 0; index < this.options.labels.length; index++) {
+                const $label = $(e.target).closest('[data-label]');
+                const label = this._getLabel($label);
+                let remaining = null;
+                for (let index = 0; index < this.options.labels.length; index++) {
                     if (typeof this.options.values[index] === 'number' && this.options.labels[index] !== label) {
                         remaining = index;
                         break;
@@ -136,11 +136,11 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             },
 
             _onAdd: function (e) {
-                var $label = $(e.target).closest('[data-label]');
-                var label = this._getLabel($label);
-                var labelIndex = this.options.labelsToIndex[label];
-                var value = null;
-                var index = 0;
+                const $label = $(e.target).closest('[data-label]');
+                const label = this._getLabel($label);
+                const labelIndex = this.options.labelsToIndex[label];
+                let value = null;
+                let index = 0;
                 for (index = labelIndex + 1; index < this.options.labels.length; index++) {
                     value = this.options.values[index];
                     if (typeof value === 'number') {
@@ -157,14 +157,14 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     }
                 }
 
-                // Set the value from the neightbour and select it
+                // Set the value from the neighbor and select it
                 this.formLabel.find('li[data-label="' + label + '"]').addClass('has-value');
                 this.options.values[labelIndex] = value;
                 this.label(label)
             },
 
             _create: function () {
-                var $that = this;
+                const $that = this;
                 // Prepare containers
                 this.input = this.element;
                 this.selectedLabel = this.options.label;
@@ -188,11 +188,11 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 this.formLabel.after(this.selector);
 
                 // Add ranges
-                var labels = this.options.labels || [];
+                const labels = this.options.labels || [];
                 this.options.labelsToIndex = {};
                 this.slider.append($('<div class="progress-bar bar-info"></div>'));
-                for (var index = labels.length; index-- > 0;) {
-                    var label = labels[index];
+                for (let index = labels.length; index-- > 0;) {
+                    const label = labels[index];
                     this.options.labelsToIndex[label] = index;
                     this._addRange(label, this.options.values[index], label);
                 }
@@ -204,8 +204,8 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     }
                 });
                 this.label(this.selectedLabel);
-                this.input.off('change.slider').on('change.slider', function () {
-                    var val = $(this).val();
+                this.input.off('input.slider').on('input.slider', function () {
+                    const val = $(this).val();
                     if ($.isNumeric(val)) {
                         $.proxy($that.value, $that)($that.selectedLabel, parseInt(val, 10));
                     }
@@ -224,10 +224,10 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Return the min and max values for the given label.
              */
             _getConstraints: function (label) {
-                var result = { min: 0, max: this.options.max };
-                var index = this.options.labelsToIndex[label];
-                for (var i = 0; i < this.options.values.length; i++) {
-                    var value = this.options.values[i];
+                const result = { min: 0, max: this.options.max };
+                const index = this.options.labelsToIndex[label];
+                for (let i = 0; i < this.options.values.length; i++) {
+                    const value = this.options.values[i];
                     if (typeof value === 'number') {
                         if (i < index) {
                             result.min = Math.max(result.min, value);
@@ -245,9 +245,9 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
 
             _resize: function ($bar, data) {
                 // live update the start/end dates
-                var label = this._getLabel($bar);
-                var value = this._pixelToValue(data.size.width);
-                var constraints = this._getConstraints(label);
+                const label = this._getLabel($bar);
+                const value = this._pixelToValue(data.size.width);
+                const constraints = this._getConstraints(label);
                 if (value < constraints.min || value > constraints.max) {
                     // Invalidate this resize
                     return false;
@@ -256,7 +256,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             },
 
             _enableResize: function ($bar) {
-                var $this = this;
+                const $this = this;
                 $bar.resizable({
                     handles: 'e',
                     resize: function (_i, data) {
@@ -272,9 +272,9 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             },
 
             _redraw: function () {
-                var $slider = this.slider;
-                for (var index = 0; index < this.options.labels.length; index++) {
-                    var label = this.options.labels[index];
+                const $slider = this.slider;
+                for (let index = 0; index < this.options.labels.length; index++) {
+                    const label = this.options.labels[index];
                     this._synchronizeBar($slider.find('[data-label="' + label + '"]'), label, this.options.values[index], true);
                 }
             },
@@ -282,16 +282,16 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
               * Update the grid option according to the grid width.
               */
             _onStartDrag: function (e, $bar) {
-                var constraints = this._getConstraints(this._getLabel($bar));
+                const constraints = this._getConstraints(this._getLabel($bar));
                 $bar.resizable('option', 'minWidth', this._valueToPixel(constraints.min));
                 $bar.resizable('option', 'maxWidth', this._valueToPixel(constraints.max));
             },
 
             _onStopDrag: function (e, $bar, data) {
-                var value = this._pixelToValue(data.size.width);
-                var label = this._getLabel($bar);
-                var constraints = this._getConstraints(label);
-                var previousValue = this.options.values[this.options.labelsToIndex[label]];
+                const value = this._pixelToValue(data.size.width);
+                const label = this._getLabel($bar);
+                const constraints = this._getConstraints(label);
+                const previousValue = this.options.values[this.options.labelsToIndex[label]];
                 if (value < constraints.min || value > constraints.max || value === previousValue) {
                     // Restore original UI
                     this._synchronizeBar($bar, label, previousValue, true);
