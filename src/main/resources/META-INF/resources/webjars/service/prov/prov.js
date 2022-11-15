@@ -3592,7 +3592,6 @@ define(['sparkline', 'd3'], function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
-						console.log("#prov-barchart.create", data);
 						d3Bar.create(
 							{
 								selector: "#prov-barchart .prov-barchart-svg",
@@ -3637,7 +3636,6 @@ define(['sparkline', 'd3'], function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
-						console.log("#prov-barchart.update", data);
 						d3Bar.update(data, aggregateMode);
 					}
 				} else {
@@ -3647,11 +3645,11 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		updateComputeUiConst: function (stats, type) {
-			let $summary = $(`.nav-pills [href="#tab-${type}"] .summary> .badge`);
+			const $summary = $(`.nav-pills [href="#tab-${type}"] .summary> .badge`);
 			if (stats[type].cpu.available) {
-				let sStats = stats[type];
+				const sStats = stats[type];
 				current.updateSummary($summary, sStats);
-				let $oss = $summary.filter('[data-os]').addClass('hidden');
+				const $oss = $summary.filter('[data-os]').addClass('hidden');
 				Object.keys(sStats.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(sStats.oss[o]));
 			} else {
 				$summary.addClass('hidden');
@@ -3659,7 +3657,7 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		updateFunctionUiConst: function (stats) {
-			let $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
+			const $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
 			if (stats.function.nbRequests) {
 				stats.cpu = { available: 0 };
 				stats.ram = { available: 0 };
@@ -3674,15 +3672,15 @@ define(['sparkline', 'd3'], function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function (filterDate) {
-			let conf = current.model.configuration;
-			let aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
+			const conf = current.model.configuration;
+			const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
 			// Compute the new capacity and costs
 			const stats = current.computeStats(filterDate);
 
 			// Update the global counts
-			let formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
-			let formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
 			formatCost(formatCostParam, $('.summary-cost'));
 			formatCo2(formatCo2Param, $('.summary-co2'));
 
@@ -3715,7 +3713,7 @@ define(['sparkline', 'd3'], function () {
 			let $summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (stats.database.cpu.available) {
 				current.updateSummary($summary, stats.database);
-				let $engines = $summary.filter('[data-engine]').addClass('hidden');
+				const $engines = $summary.filter('[data-engine]').addClass('hidden');
 				Object.keys(stats.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(stats.database.engines[engine]));
 			} else {
 				$summary.addClass('hidden');
