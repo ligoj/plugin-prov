@@ -4,7 +4,7 @@
  */
 define(['d3', 'jquery'], function (d3) {
     return (function () {
-        let params = {};
+        const params = {};
         const LEGEND_WIDTH = 20;
         const MARGIN = { top: 10, left: LEGEND_WIDTH + 20, bottom: 20, right: 0 };
         const LEGEND_MARGIN_TOP = MARGIN.top + 10;
@@ -12,16 +12,16 @@ define(['d3', 'jquery'], function (d3) {
         // formatting Data to a more d3-friendly format
         // extracting binNames and clusterNames
         function formatData(data, aggregateMode, sort) {
-            let clusterNames = Object.keys(data[0]).filter(k => k !== 'date').sort(sort);
-            let binNames = [];
-            let blockData = [];
-            let ranges = {};
+            const clusterNames = Object.keys(data[0]).filter(k => k !== 'date').sort(sort);
+            const binNames = [];
+            const blockData = [];
+            const ranges = {};
             clusterNames.forEach(k => ranges[k] = { min: Number.MAX_VALUE, max: -1 });
             data.forEach((bar, i) => {
                 let y = 0;
                 binNames.push(bar.date);
                 clusterNames.forEach((key, j) => {
-                    let value = parseFloat(bar[key][aggregateMode]);
+                    const value = parseFloat(bar[key][aggregateMode]);
                     ranges[key].min = Math.min(ranges[key].min, value);
                     ranges[key].max = Math.max(ranges[key].max, value);
                     y += value;
@@ -37,16 +37,11 @@ define(['d3', 'jquery'], function (d3) {
                     });
                 });
             });
-            return {
-                blockData: blockData,
-                binNames: binNames,
-                ranges: ranges,
-                clusterNames: clusterNames
-            };
+            return { blockData, binNames, ranges, clusterNames };
         }
 
         function updateData() {
-            let input = params.input,
+            const input = params.input,
                 formattedData = formatData(input.data, input.aggregateMode, params.sort),
                 blockData = formattedData.blockData,
                 clusterNames = formattedData.clusterNames;
@@ -62,7 +57,7 @@ define(['d3', 'jquery'], function (d3) {
         }
 
         function getLegendY(d) {
-            let i = params.filteredClusterNames.indexOf(d);
+            const i = params.filteredClusterNames.indexOf(d);
             if (i > params.filteredClusterNames.indexOf(params.chosen.cluster)) {
                 return choice(params.chosen.cluster, d, LEGEND_WIDTH * (params.filteredClusterNames.length - i), LEGEND_MARGIN_TOP, LEGEND_MARGIN_TOP);
             }
@@ -72,25 +67,25 @@ define(['d3', 'jquery'], function (d3) {
         function initialize() {
 
             // unpacking params
-            let canvas = params.canvas;
+            const canvas = params.canvas;
 
             // unpacking canvas
-            let svg = canvas.svg,
+            const svg = canvas.svg,
                 margin = canvas.margin,
                 height = params.height = canvas.height;
             params.width = canvas.width;
 
             // processing Data and extracting binNames and clusterNames
-            let formattedData = updateData(),
+            const formattedData = updateData(),
                 blockData = formattedData.blockData,
                 clusterNames = formattedData.clusterNames;
 
             // initialize color
-            let color = setUpColors().domain(clusterNames);
+            const color = setUpColors().domain(clusterNames);
             params.color = color;
 
             // initialize scales and axis
-            let scales = params.scales,
+            const scales = params.scales,
                 x = scales.x,
                 y = scales.y;
 
@@ -100,7 +95,7 @@ define(['d3', 'jquery'], function (d3) {
             initializeAxis(svg, x, y, height);
 
             // initialize bars
-            let bar = params.bar = svg.selectAll('.bar')
+            const bar = params.bar = svg.selectAll('.bar')
                 .data(blockData)
                 .enter().append('g')
                 .attr('class', 'bar');
@@ -113,7 +108,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('fill', d => color(d.cluster));
 
             // variable to store chosen cluster when bar is clicked
-            let chosen = params.chosen = {
+            const chosen = params.chosen = {
                 cluster: null
             };
 
@@ -365,13 +360,10 @@ define(['d3', 'jquery'], function (d3) {
         // heights is a dictionary to store bar height by cluster
         // this hierarchy is important for animation purposes 
         function setUpHeights(clusterNames, blockData) {
-            let heights = {};
-            clusterNames.forEach(function (cluster) {
-                let clusterVec = [];
-                blockData.filter(d => d.cluster == cluster).forEach(d => clusterVec.push(d.height));
-                heights[cluster] = clusterVec;
-            });
-            return heights;
+            return clusterNames.reduce((heights, cluster) => {
+                heights[cluster] = blockData.filter(d => d.cluster == cluster).map(d => d.height);
+                return heights;
+            }, {});
         }
 
         // Max value of each bin, to convert back and forth to percentage
