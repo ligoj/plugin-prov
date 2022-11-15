@@ -3574,11 +3574,11 @@ define(['sparkline', 'd3'], function () {
 		 */
 		updateInstancesBarChart: function (stats, aggregateMode) {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
-				let numDataItems = stats.timeline.length;
-				let data = [];
+				const numDataItems = stats.timeline.length;
+				const data = [];
 				for (let i = 0; i < numDataItems; i++) {
-					let value = stats.timeline[i];
-					let stack = {
+					const value = stats.timeline[i];
+					const stack = {
 						date: value.date
 					};
 					types.forEach(type => stack[type] = {
@@ -3592,6 +3592,7 @@ define(['sparkline', 'd3'], function () {
 					$("#prov-barchart").removeClass('hidden');
 					if (typeof current.d3Bar === 'undefined') {
 						current.d3Bar = d3Bar;
+						console.log("#prov-barchart.create", data);
 						d3Bar.create(
 							{
 								selector: "#prov-barchart .prov-barchart-svg",
@@ -3610,7 +3611,7 @@ define(['sparkline', 'd3'], function () {
 									let totalCost = 0;
 									let totalCo2 = 0;
 									types.forEach(type => {
-										let value = barData[type]
+										const value = barData[type]
 										if (value?.cost || value?.co2) {
 											totalCost += value.cost || 0;
 											totalCo2 += value.co2 || 0;
@@ -3636,6 +3637,7 @@ define(['sparkline', 'd3'], function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
+						console.log("#prov-barchart.update", data);
 						d3Bar.update(data, aggregateMode);
 					}
 				} else {
@@ -3676,7 +3678,7 @@ define(['sparkline', 'd3'], function () {
 			let aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
 			// Compute the new capacity and costs
-			let stats = current.computeStats(filterDate);
+			const stats = current.computeStats(filterDate);
 
 			// Update the global counts
 			let formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
@@ -3981,7 +3983,7 @@ define(['sparkline', 'd3'], function () {
 		 * Maximal quantities is currently ignored.
 		 */
 		computeStats: function (filterDate) {
-			let conf = current.model.configuration;
+			const conf = current.model.configuration;
 			let i, t, start, end;
 			let reservationModeMax = conf.reservationMode === 'max';
 
@@ -3992,8 +3994,8 @@ define(['sparkline', 'd3'], function () {
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
 				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				typesStorage.forEach(type => monthData[`${type}Cost`] = 0);
-				typesStorage.forEach(type => monthData[`${type}Co2`] = 0);
+				types.forEach(type => monthData[`${type}Cost`] = 0);
+				types.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
 				date.add(1, 'months');
 			}
