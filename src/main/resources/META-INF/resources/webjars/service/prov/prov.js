@@ -31,7 +31,7 @@ define(['sparkline', 'd3'], function () {
 	/**
 	 * Enable resource type to relatable to storages.
 	 */
-	const typesStorage = ['instance', 'database', 'container', 'function'];
+	const computeTypes = ['instance', 'database', 'container', 'function'];
 
 	/**
 	 * OS key to markup/label mapping.
@@ -203,7 +203,7 @@ define(['sparkline', 'd3'], function () {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
 					// Must be found in all resource types
-					if (typesStorage.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -213,7 +213,7 @@ define(['sparkline', 'd3'], function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : typesStorage.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -815,13 +815,13 @@ define(['sparkline', 'd3'], function () {
 			const img = `<img class="flag-icon prov-location-flag" src="${current.$path}flag-icon-css/flags/4x3/${a2}.svg" alt=""`;
 			if (short === true) {
 				// Only flag
-				const tooltip = `${m49 || id}${(placement && placement !== html) ? `<br>Placement: ${placement}` : ''}<br>Id: ${id}`;
+				const tooltip = `${m49 || id}${placement && placement !== html && `<br>Placement: ${placement}` || ''}<br>Id: ${id}`;
 				return `<u class="details-help" data-toggle="popover" data-content="${toHtmlAttribute(tooltip)}" title="${toHtmlAttribute(location.name)}">${img}></u>`;
 			}
 			html += `${img} title="${toHtmlAttribute(location.name)}">`;
 		}
 		html += m49 || id;
-		return `${(placement && placement !== html) ? ` <span class="small">(${toHtmlAttribute(placement)})</span>` : ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}}`;
+		return `${html}${placement && placement !== html && ` <span class="small">(${placement})</span>` || ''}${(subRegion || m49) ? `<span class="prov-location-api">${id}</span>` : id}`;
 	}
 
 	function formatLocation(location, mode, data) {
@@ -853,12 +853,19 @@ define(['sparkline', 'd3'], function () {
 		return locationToHtml(obj, false, true);
 	}
 
+	function toModalDataTarget(resourceType) {
+		if (computeTypes.includes(resourceType)) {
+			return 'generic';
+		}
+		return resourceType;
+	}
+
 	/**
 	 * Return the HTML markup from the quote instance model.
 	 */
 	function formatQuoteResource(resource) {
 		if (resource) {
-			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${resource.resourceType}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
+			return `<a class="update" data-toggle="modal" data-target="#popup-prov-generic" data-prov-type="${toModalDataTarget(resource.resourceType)}"> <i class="${typeIcons[resource.resourceType]}"></i></a> ${resource.name}`;
 		}
 		return '';
 	}
@@ -866,11 +873,11 @@ define(['sparkline', 'd3'], function () {
 	/**
 	 * Return the HTML markup from the quote resource.
 	 */
-	function formatName(name, mode, obj) {
+	 function formatName(name, mode, resource) {
 		if (mode !== 'display') {
 			return name
 		}
-		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${obj.resourceType === "storage" ? "storage" : "generic"}">${name}</a>`;
+		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`;
 	}
 
 	/**
@@ -1234,10 +1241,10 @@ define(['sparkline', 'd3'], function () {
 	 */
 	function initializePopupEvents(type) {
 		// Resource edition pop-up
-		const popupType = typesStorage.includes(type) ? 'generic' : type;
+		const popupType = computeTypes.includes(type) ? 'generic' : type;
 		const $popup = _('popup-prov-' + popupType);
 		$popup.on('shown.bs.modal', function () {
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			_(inputType + '-name').trigger('focus');
 		}).on('submit', function (e) {
 			e.preventDefault();
@@ -1646,7 +1653,7 @@ define(['sparkline', 'd3'], function () {
 			duration: parseInt(_('usage-duration').val() || '1', 10)
 		}));
 
-		$('.usage-inputs input').on('change', current.synchronizeUsage).on('keyup', current.synchronizeUsage);
+		$('.usage-inputs input').on('change keyup', current.synchronizeUsage);
 
 		// Usage rate template
 		const usageTemplates = [
@@ -2097,7 +2104,7 @@ define(['sparkline', 'd3'], function () {
 
 			// Storage
 			conf.storageCost = 0;
-			conf.storages.forEach(qs => typesStorage.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
+			conf.storages.forEach(qs => computeTypes.forEach(type => current.attachStorage(qs, type, qs['quote' + type.capitalize()], true)));
 			current.initializeTerraformStatus();
 		},
 
@@ -2144,7 +2151,7 @@ define(['sparkline', 'd3'], function () {
 			const $form = $(this).prov();
 			const queries = {};
 			const type = $form.provType();
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the query
@@ -2152,14 +2159,14 @@ define(['sparkline', 'd3'], function () {
 				return $(this).closest('[data-exclusive]').length === 0 || $(this).closest('[data-exclusive]').attr('data-exclusive').includes(type);
 			}).each(function () {
 				current.addQuery(type, $(this), queries);
-				if (type !== 'instance' && typesStorage.includes(type)) {
+				if (type !== 'instance' && computeTypes.includes(type)) {
 					// Also include the instance inputs
 					current.addQuery('instance', $(this), queries);
 				}
 			});
 			if (type === 'storage' && queries['instance'] && _('storage-instance').select2('data')) {
 				let sType = _('storage-instance').select2('data').resourceType;
-				if (sType !== 'instance' && typesStorage.includes(sType)) {
+				if (sType !== 'instance' && computeTypes.includes(sType)) {
 					// Replace the resource lookup
 					queries[sType] = queries['instance'];
 					delete queries['instance'];
@@ -2300,7 +2307,7 @@ define(['sparkline', 'd3'], function () {
 		 */
 		initializeDataTableEvents: function (type) {
 			const oSettings = current[type + 'NewTable']();
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
 			const $table = _('prov-' + type + 's');
 			$.extend(oSettings, {
 				provType: type,
@@ -2370,12 +2377,18 @@ define(['sparkline', 'd3'], function () {
 				className: 'truncate hidden-xs',
 				type: 'num',
 				render: formatCost
-			}, {
-				data: 'co2',
-				className: 'truncate hidden-xs',
-				type: 'num',
-				render: formatCo2
-			}, {
+			});
+
+			// Add CO2 data only for compute services for now
+			if (computeTypes.includes(type)) {
+				oSettings.columns.push({
+					data: 'co2',
+					className: 'truncate hidden-xs',
+					type: 'num',
+					render: formatCo2
+				});
+			}
+			oSettings.columns.push({
 				data: null,
 				width: '51px',
 				orderable: false,
@@ -2482,14 +2495,14 @@ define(['sparkline', 'd3'], function () {
 						}
 
 						const filter = settings.oPreviousSearch.sSearchAlt || '';
-						if (type === 'storage' && typesStorage.some(sType => current[sType + 'TableFilter'] !== '')) {
+						if (type === 'storage' && computeTypes.some(sType => current[sType + 'TableFilter'] !== '')) {
 							// Only storage rows unrelated to filtered instance/database/container/function can be displayed
 							// There are 2 operators: 
 							// - 'in' = 's.instance NOT NULL AND s.instance IN (:table)' - IN
 							// - 'lj' = 's.instance IS NULL OR s.instance IN (:table)' - LEFT JOIN
 							return current.filterManager.accept(settings, type, dataFilter, data, filter, {
-								cache: typesStorage.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
-								filters: typesStorage.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
+								cache: computeTypes.map(sType => current[sType + 'TableFilter'] !== '').join('/'),
+								filters: computeTypes.map(sType => ({ property: 'quote' + sType.capitalize(), op: 'in', table: current[sType + 'TableFilter'] && current[sType + 'Table'] }))
 							});
 						}
 						if (filter === '') {
@@ -2519,7 +2532,7 @@ define(['sparkline', 'd3'], function () {
 						current[type + 'TableFilter'] = filter;
 						table.fnFilter('');
 
-						if (typesStorage.includes(type)) {
+						if (computeTypes.includes(type)) {
 							// Refresh the storage
 							const tableS = current['storageTable'];
 							tableS.fnSettings().oPreviousSearch.sSearch = '§force§';
@@ -3179,7 +3192,7 @@ define(['sparkline', 'd3'], function () {
 			model.latency = data.latency;
 			model.optimized = data.optimized;
 			// Update the attachment
-			typesStorage.forEach(type => current.attachStorage(model, type, data[type]));
+			computeTypes.forEach(type => current.attachStorage(model, type, data[type]));
 		},
 
 		supportCommitToModel: function (data, model) {
@@ -3238,7 +3251,7 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		storageUiToData: function (data) {
-			typesStorage.forEach(sType => delete data[sType]);
+			computeTypes.forEach(sType => delete data[sType]);
 			let storage = _('storage-instance').select2('data');
 			if (storage) {
 				data[storage.resourceType] = storage.id;
@@ -3317,8 +3330,8 @@ define(['sparkline', 'd3'], function () {
 		 * @param {Object} model, the entity corresponding to the quote.
 		 */
 		toUi: function (type, model) {
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 			validationManager.reset($popup);
 			_(inputType + '-name').val(model.name || current.findNewName(current.model.configuration[type + 's'], type));
@@ -3477,8 +3490,8 @@ define(['sparkline', 'd3'], function () {
 		 * @param {string} type Resource type to save.
 		 */
 		save: function (type) {
-			const popupType = typesStorage.includes(type) ? 'generic' : type;
-			const inputType = typesStorage.includes(type) ? 'instance' : type;
+			const popupType = computeTypes.includes(type) ? 'generic' : type;
+			const inputType = computeTypes.includes(type) ? 'instance' : type;
 			const $popup = _('popup-prov-' + popupType);
 
 			// Build the play load for API service
@@ -3871,7 +3884,7 @@ define(['sparkline', 'd3'], function () {
 		updateGauge: function (d3, stats) {
 			if (d3.select('#prov-gauge').on('valueChanged') && stats.costNoSupport) {
 				let weightCost = 0;
-				typesStorage.forEach(sType => {
+				computeTypes.forEach(sType => {
 					if (stats[sType].cpu.available) {
 						weightCost += stats[sType].cost * 0.8 * stats[sType].cpu.reserved / stats[sType].cpu.available;
 					}
@@ -3900,7 +3913,7 @@ define(['sparkline', 'd3'], function () {
 			} else {
 				result = current.model.configuration[type + 's'] || [];
 			}
-			if (typeof filterDate === 'number' && (typesStorage.includes(type) || type === 'storage')) {
+			if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
 				let usage = current.model.configuration.usage || {};
 				return result.filter(qi => {
 					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
@@ -4062,14 +4075,14 @@ define(['sparkline', 'd3'], function () {
 				timeline[t].cost += supportCost;
 			}
 
-			let costNoSupport = typesStorage.reduce((total, sType) => total + result[sType].cost, storageCost);
-			let co2NoSupport = typesStorage.reduce((total, sType) => total + result[sType].co2, storageCo2);
+			let costNoSupport = computeTypes.reduce((total, sType) => total + result[sType].cost, storageCost);
+			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, storageCo2);
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
 				co2: co2NoSupport,
 				costNoSupport: costNoSupport,
 				co2NoSupport: co2NoSupport,
-				unbound: typesStorage.some(sType => result[sType].maxInstancesUnbound),
+				unbound: computeTypes.some(sType => result[sType].maxInstancesUnbound),
 				timeline: timeline,
 				storage: {
 					nb: storages.length,
