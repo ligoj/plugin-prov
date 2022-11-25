@@ -1082,14 +1082,12 @@ define(['sparkline', 'd3'], function () {
 		_('popup-prov-generic').on('click', '.input-group-btn li', function (e) {
 			$.proxy(synchronizeDropdownText, $(this))();
 			// Also trigger the change of the value
-			$(e.target).closest('.input-group-btn').prev('input').trigger('keyup');
+			$(e.target).closest('.input-group-btn').prev('input').trigger('change');
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
-		$('input.resource-query').not('[type="number"]').on('change', current.checkResource);
-		$('input.resource-query[type="number"]').on('focusout', delay(function () {
-			$.proxy(current.checkResource, $(this))();
-		}, 50));
+		$('.modal').on('change', 'input.resource-query:not([type="number"])', current.checkResource);
+		$('.modal').on('input', 'input.resource-query[type="number"]', current.checkResource);
 		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
@@ -2187,7 +2185,7 @@ define(['sparkline', 'd3'], function () {
 					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
-							$("#separtor-database-engine").removeClass("hidden")
+							$("#separator-database-engine").removeClass("hidden")
 							if ($("#s2id_database-edition").select2('data')) {
 								// The resource is valid, enable the create
 								current.enableCreate($popup);
@@ -2197,7 +2195,7 @@ define(['sparkline', 'd3'], function () {
 							}
 						} else {
 							$("#s2id_database-edition").addClass("hidden")
-							$("#separtor-database-engine").addClass("hidden")
+							$("#separator-database-engine").addClass("hidden")
 							// The resource is valid, enable the create
 							current.enableCreate($popup);
 						}
@@ -3589,11 +3587,11 @@ define(['sparkline', 'd3'], function () {
 		 */
 		updateInstancesBarChart: function (stats, aggregateMode) {
 			require(['d3', '../main/service/prov/lib/stacked'], function (d3, d3Bar) {
-				let numDataItems = stats.timeline.length;
-				let data = [];
+				const numDataItems = stats.timeline.length;
+				const data = [];
 				for (let i = 0; i < numDataItems; i++) {
-					let value = stats.timeline[i];
-					let stack = {
+					const value = stats.timeline[i];
+					const stack = {
 						date: value.date
 					};
 					types.forEach(type => stack[type] = {
@@ -3625,7 +3623,7 @@ define(['sparkline', 'd3'], function () {
 									let totalCost = 0;
 									let totalCo2 = 0;
 									types.forEach(type => {
-										let value = barData[type]
+										const value = barData[type]
 										if (value?.cost || value?.co2) {
 											totalCost += value.cost || 0;
 											totalCo2 += value.co2 || 0;
@@ -3660,11 +3658,11 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		updateComputeUiConst: function (stats, type) {
-			let $summary = $(`.nav-pills [href="#tab-${type}"] .summary> .badge`);
+			const $summary = $(`.nav-pills [href="#tab-${type}"] .summary> .badge`);
 			if (stats[type].cpu.available) {
-				let sStats = stats[type];
+				const sStats = stats[type];
 				current.updateSummary($summary, sStats);
-				let $oss = $summary.filter('[data-os]').addClass('hidden');
+				const $oss = $summary.filter('[data-os]').addClass('hidden');
 				Object.keys(sStats.oss).forEach(o => $oss.filter('[data-os="' + o + '"]').removeClass('hidden').find('span').text(sStats.oss[o]));
 			} else {
 				$summary.addClass('hidden');
@@ -3672,7 +3670,7 @@ define(['sparkline', 'd3'], function () {
 		},
 
 		updateFunctionUiConst: function (stats) {
-			let $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
+			const $summary = $('.nav-pills [href="#tab-function"] .summary> .badge');
 			if (stats.function.nbRequests) {
 				stats.cpu = { available: 0 };
 				stats.ram = { available: 0 };
@@ -3687,15 +3685,15 @@ define(['sparkline', 'd3'], function () {
 		 * Update the total cost of the quote.
 		 */
 		updateUiCost: function (filterDate) {
-			let conf = current.model.configuration;
-			let aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
+			const conf = current.model.configuration;
+			const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
 			// Compute the new capacity and costs
-			let stats = current.computeStats(filterDate);
+			const stats = current.computeStats(filterDate);
 
 			// Update the global counts
-			let formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
-			let formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
 			formatCost(formatCostParam, $('.summary-cost'));
 			formatCo2(formatCo2Param, $('.summary-co2'));
 
@@ -3728,7 +3726,7 @@ define(['sparkline', 'd3'], function () {
 			let $summary = $('.nav-pills [href="#tab-database"] .summary> .badge');
 			if (stats.database.cpu.available) {
 				current.updateSummary($summary, stats.database);
-				let $engines = $summary.filter('[data-engine]').addClass('hidden');
+				const $engines = $summary.filter('[data-engine]').addClass('hidden');
 				Object.keys(stats.database.engines).forEach(engine => $engines.filter('[data-engine="' + engine + '"]').removeClass('hidden').find('span').text(stats.database.engines[engine]));
 			} else {
 				$summary.addClass('hidden');
@@ -3996,7 +3994,7 @@ define(['sparkline', 'd3'], function () {
 		 * Maximal quantities is currently ignored.
 		 */
 		computeStats: function (filterDate) {
-			let conf = current.model.configuration;
+			const conf = current.model.configuration;
 			let i, t, start, end;
 			let reservationModeMax = conf.reservationMode === 'max';
 
@@ -4007,8 +4005,8 @@ define(['sparkline', 'd3'], function () {
 			let date = moment().startOf('month');
 			for (i = 0; i < duration; i++) {
 				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				computeTypes.forEach(type => monthData[`${type}Cost`] = 0);
-				computeTypes.forEach(type => monthData[`${type}Co2`] = 0);
+				types.forEach(type => monthData[`${type}Cost`] = 0);
+				types.forEach(type => monthData[`${type}Co2`] = 0);
 				timeline.push(monthData);
 				date.add(1, 'months');
 			}
