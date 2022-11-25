@@ -873,7 +873,7 @@ define(['sparkline', 'd3'], function () {
 	/**
 	 * Return the HTML markup from the quote resource.
 	 */
-	 function formatName(name, mode, resource) {
+	function formatName(name, mode, resource) {
 		if (mode !== 'display') {
 			return name
 		}
@@ -1085,10 +1085,10 @@ define(['sparkline', 'd3'], function () {
 			$(e.target).closest('.input-group-btn').prev('input').trigger('change');
 		});
 		$('#database-engine').select2(genericSelect2(null, formatDatabaseEngine, 'database-engine', null, ascendingComparator)).on('change', () => _('database-edition').select2('data', null));
-        $('#instance-min-quantity, #instance-max-quantity').on('change', () => {
-            current.updateAutoScale();
-            $.proxy(current.checkResource,$('#popup-prov-generic'))();
-        });
+		$('#instance-min-quantity, #instance-max-quantity').on('change', () => {
+			current.updateAutoScale();
+			$.proxy(current.checkResource, $('#popup-prov-generic'))();
+		});
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('.modal').on('change', 'input.resource-query:not([type="number"])', current.checkResource);
 		$('.modal').on('input', 'input.resource-query[type="number"]', current.checkResource);
@@ -1278,7 +1278,7 @@ define(['sparkline', 'd3'], function () {
 						if (data.length == 2) {
 							durationTotal = durationTotal + parseInt(data[0]);
 							if (durationTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
-								html_workload(data[0],data[1]);
+								html_workload(data[0], data[1]);
 							}
 						}
 					}
@@ -1341,7 +1341,7 @@ define(['sparkline', 'd3'], function () {
 			let duration = $('#instance-workload-duration').val()
 			let cpu = $('#instance-workload-cpu').val()
 			if (parseInt(durationTotal) + parseInt(duration) <= 100) {
-				html_workload(duration,cpu);
+				html_workload(duration, cpu);
 				calculate_list_and_createSparkline();
 				$.proxy(current.checkResource, $popup)();
 			}
@@ -1404,7 +1404,7 @@ define(['sparkline', 'd3'], function () {
 		});
 	}
 
-	function html_workload(duration, cpu){
+	function html_workload(duration, cpu) {
 		$("ul.list-group.workload").append($(`<li class="list-group-item col-sm-offset-3 col-sm-9 workload-data">`).html(`<div class="input-group">
 							<input type="number" placeholder="${current.$messages['service:prov:workload-duration']}" value="${duration}" min="1" max="100" class="form-control instance-workload-dataDuration"/>
 							<span class="input-group-addon">% @</span>
@@ -1415,38 +1415,38 @@ define(['sparkline', 'd3'], function () {
 	}
 
 	function calculate_list_and_createSparkline() {
-			$('.svg-workload').addClass("hidden");
-			const $detailsDuration = $('.instance-workload-dataDuration');
-			const $detailsCpu = $('.instance-workload-dataCpu');
-			let index = 0;
-			let workload = 0;
-			let details = '';
-			let totalDuration = 0;
-			let dataPoints = [];
-			while (index <= ($detailsDuration.length - 1)) {
-				const duration = parseInt($detailsDuration[index].value, 10);
-				const cpu = parseInt($detailsCpu[index].value, 10);
-				workload = workload + duration * cpu / 100;
-				details = details + `,${duration}@${cpu}`;
-				totalDuration = totalDuration + duration;
-				dataPoints.push({ duration, cpu })
-				index++;
-			}
+		$('.svg-workload').addClass("hidden");
+		const $detailsDuration = $('.instance-workload-dataDuration');
+		const $detailsCpu = $('.instance-workload-dataCpu');
+		let index = 0;
+		let workload = 0;
+		let details = '';
+		let totalDuration = 0;
+		let dataPoints = [];
+		while (index <= ($detailsDuration.length - 1)) {
+			const duration = parseInt($detailsDuration[index].value, 10);
+			const cpu = parseInt($detailsCpu[index].value, 10);
+			workload = workload + duration * cpu / 100;
+			details = details + `,${duration}@${cpu}`;
+			totalDuration = totalDuration + duration;
+			dataPoints.push({ duration, cpu })
+			index++;
+		}
 
-			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+		let sparklinePoints = create_points(dataPoints, totalDuration, workload);
 
-			if (workload == 0) {
-				_('instance-workload').val('');
-				$('#sparkline-workload').addClass('hidden');
+		if (workload == 0) {
+			_('instance-workload').val('');
+			$('#sparkline-workload').addClass('hidden');
+		} else {
+			_('instance-workload').val(`${workload}${details}`);
+			if ($('.instance-workload-dataDuration').length > 1) {
+				$('#sparkline-workload').removeClass('hidden');
 			} else {
-				_('instance-workload').val(`${workload}${details}`);
-				if ($('.instance-workload-dataDuration').length > 1) {
-					$('#sparkline-workload').removeClass('hidden');
-				} else {
-					$('#sparkline-workload').addClass('hidden');
-				}
+				$('#sparkline-workload').addClass('hidden');
 			}
-			createSparkline(sparklinePoints[0], sparklinePoints[1]);
+		}
+		createSparkline(sparklinePoints[0], sparklinePoints[1]);
 	}
 
 	function calculate_input_and_createSparkline() {
@@ -1486,7 +1486,7 @@ define(['sparkline', 'd3'], function () {
 		}
 	}
 
-	function create_points(dataPoints , totalDuration , workload) {
+	function create_points(dataPoints, totalDuration, workload) {
 		const proRata = totalDuration / 100;
 		const detailsPoints = [];
 		const baselinePoints = [];
@@ -1498,7 +1498,7 @@ define(['sparkline', 'd3'], function () {
 				baselinePoints.push(workload);
 			}
 		})
-		return [detailsPoints,baselinePoints];
+		return [detailsPoints, baselinePoints];
 	}
 
 	function createSparkline(detailsPoints, baselinePoints) {
@@ -2250,12 +2250,12 @@ define(['sparkline', 'd3'], function () {
 		 * Set the current instance/database/container/function price.
 		 */
 		genericSetUiPrice: function (quote) {
-			let min = $('#instance-min-quantity').val();
-			let max = $('#instance-max-quantity').val();
-			function genericFormatPrice(qi){
+			const min = $('#instance-min-quantity').val();
+			const max = $('#instance-max-quantity').val();
+			function genericFormatPrice(qi) {
 				if (min == max) {
-					return qi.price.type.name + ' (' + formatCost(qi.cost* min, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2* min, null, null, true) + '/m)';
-				} 
+					return qi.price.type.name + ' (' + formatCost(qi.cost * min, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2 * min, null, null, true) + '/m)';
+				}
 				return qi.price.type.name + ' (' + formatCost(qi.cost * min, null, null, true) + ' - ' + formatCost(qi.cost * max, null, null, true) + '/m &equiv; <i class="fas fa-fw fa-leaf"></i> ' + formatCo2(qi.co2 * min, null, null, true) + ' - ' + formatCo2(qi.co2 * max, null, null, true) + '/m)';
 			};
 			if (quote?.price) {
@@ -3712,7 +3712,7 @@ define(['sparkline', 'd3'], function () {
 
 			// Separated resource counters
 			types.forEach(type => {
-				let $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
+				const $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
 				if (stats[type].nb) {
 					$stats.removeClass('hide').find('.odo-wrapper').text(stats[type].nb);
 					$stats.find('.odo-wrapper-unbound').text((stats[type].min && stats[type].min > stats[type].nb || stats[type].unbound) ? '+' : '');
@@ -4034,7 +4034,7 @@ define(['sparkline', 'd3'], function () {
 			let storageReserved = 0;
 			let storageCost = 0;
 			let storageCo2 = 0;
-			let storages = current.getFilteredData('storage', filterDate);
+			const storages = current.getFilteredData('storage', filterDate);
 			let nb = 0;
 			storages.forEach(qs => {
 				if (qs.quoteInstance) {
@@ -4054,7 +4054,7 @@ define(['sparkline', 'd3'], function () {
 				storageReserved += qsSize * nb;
 				storageCost += qs.cost;
 				storageCo2 += qs.co2;
-				let quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
+				const quoteVm = qs.quoteDatabase || qs.quoteInstance || qs.quoteContainer || qs.quoteFunction;
 				if (quoteVm) {
 					start = (quoteVm.usage || defaultUsage).start || 0
 					end = Math.min(duration, start + (quoteVm.usage || defaultUsage).duration);
