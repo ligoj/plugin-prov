@@ -359,7 +359,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		resource.objectMapper = new ObjectMapper();
 
 		// Coverage only, required for inheriting provisioning plug-in
-		resource.getImportCatalogResource();
+		Assertions.assertNotNull(resource.getImportCatalogResource());
 		resource.setImportCatalogResource(null);
 		importCatalogResource = Mockito.mock(ImportCatalogResource.class);
 		objectMapper = new ObjectMapper();
@@ -511,9 +511,8 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvInstancePrice();
 		entity.setCost(1d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		saveAsNeeded(newContext(), entity, 2.013d, 2.01234d, (cRound, c) -> {
-			entity.setCost(cRound);
-		}, consumer);
+		saveAsNeeded(newContext(), entity, 2.013d, 2.01234d, (cRound, c) -> entity.setCost(cRound)
+				, consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
 		Assertions.assertEquals(2.012d, entity.getCost());
 	}
@@ -523,8 +522,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvStoragePrice();
 		entity.setId(1);
 		entity.setCostGb(2d);
-		@SuppressWarnings("unchecked")
-		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
 		saveAsNeeded(newContext(), entity, 1, repository);
 		Assertions.assertEquals(1, entity.getCostGb());
 		Mockito.verify(repository).save(entity);
@@ -535,8 +533,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvStoragePrice();
 		entity.setId(1);
 		entity.setCostGb(1d);
-		@SuppressWarnings("unchecked")
-		final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
 		saveAsNeeded(newContext(), entity, 1, repository);
 		Assertions.assertEquals(1, entity.getCostGb());
 		Mockito.verify(repository, Mockito.never()).save(entity);
@@ -550,9 +547,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		newContext.setForce(true);
 
 		// Force mode for same cost
-		saveAsNeeded(newContext, entity, 1, 1, (cRound, c) -> {
-			entity.setCost(cRound);
-		}, consumer);
+		saveAsNeeded(newContext, entity, 1, 1, (cRound, c) -> entity.setCost(cRound), consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
 		Assertions.assertEquals(1, entity.getCost());
 	}
@@ -622,7 +617,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		saveAsNeeded(context, entity, 3, repository);
 		Assertions.assertEquals(3, entity.getCost());
 		Assertions.assertEquals(36, entity.getCostPeriod());
-		context.getPrices().contains("code");
+		Assertions.assertTrue(context.getPrices().contains("code"));
 		Mockito.verify(repository).save(entity);
 	}
 
@@ -677,9 +672,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void syncAdd() {
 		final var collection = new HashSet<>(Set.of("entry1"));
 		final var flag = new AtomicBoolean();
-		super.syncAdd(collection, "entry2", c -> {
-			flag.set(true);
-		});
+		super.syncAdd(collection, "entry2", c -> flag.set(true));
 		Assertions.assertTrue(collection.contains("entry2"));
 		Assertions.assertTrue(flag.get());
 	}
@@ -719,8 +712,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void syncAddSynchronized() {
-		@SuppressWarnings("unchecked")
-		final Set<String> collection = Mockito.mock(Set.class);
+		@SuppressWarnings("unchecked") final Set<String> collection = Mockito.mock(Set.class);
 		Mockito.when(collection.contains("entry2")).thenReturn(false);
 		Mockito.when(collection.add("entry2")).thenReturn(false);
 		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {

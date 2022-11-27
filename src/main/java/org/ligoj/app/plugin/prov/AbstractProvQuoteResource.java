@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @param <C> Quoted resource type.
  * @param <P> Quoted resource price type.
- * @param <T> Quoted resource price type type.
+ * @param <T> Quoted resource price type's type.
  * @param <E> Quoted resource edition VO type.
  * @since 1.8.5
  */
@@ -137,7 +137,7 @@ public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity & 
 	/**
 	 * Return a normalized form a quote resource.
 	 *
-	 * @param value The optional quote.
+	 * @param quote The optional quote.
 	 * @return The normalized value of the type's code.
 	 */
 	protected String normalize(final AbstractQuote<?> quote) {
@@ -174,7 +174,7 @@ public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity & 
 	 * @return The adjusted boolean, never <code>null</code>.
 	 */
 	protected boolean normalize(final Boolean value) {
-		return value == null ? false : value;
+		return value != null && value;
 	}
 
 	/**

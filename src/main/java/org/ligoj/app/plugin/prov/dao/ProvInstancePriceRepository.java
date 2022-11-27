@@ -36,11 +36,11 @@ public interface ProvInstancePriceRepository
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
-	 * Return all softwares related to given node identifier.
+	 * Return all software related to given node identifier.
 	 *
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @param os   The filtered OS.
-	 * @return The filtered softwares.
+	 * @return The filtered software.
 	 */
 	@CacheResult(cacheName = "prov-instance-software")
 	@Query("""

@@ -129,7 +129,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 	/**
 	 * Save or update the given entity from the {@link AbstractQuoteVm}. The computed cost are recursively updated from
-	 * the resource to the quote total cost. The change must contains a price retrieved from a previous lookup. The
+	 * the resource to the quote total cost. The change must contain a price retrieved from a previous lookup. The
 	 * match is not performed by the following function.
 	 *
 	 * @param quote  The related quote.
@@ -266,7 +266,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the resolved usage entity from it's name.
+	 * Return the resolved usage entity from its name.
 	 *
 	 * @param configuration Configuration containing the default values and defined usages.
 	 * @param name          The usage name to resolve.
@@ -278,7 +278,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the resolved budget entity from it's name.
+	 * Return the resolved budget entity from its name.
 	 *
 	 * @param configuration Configuration containing the default values.
 	 * @param name          The budget name to resolve.
@@ -290,7 +290,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the resolved optimizer entity from it's name.
+	 * Return the resolved optimizer entity from its name.
 	 *
 	 * @param configuration Configuration containing the default values.
 	 * @param name          The optimizer name to resolve.
@@ -302,7 +302,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the resolved profile entity from it's name.
+	 * Return the resolved profile entity from its name.
 	 *
 	 * @param quoteProfile   The global profile level value.
 	 * @param name           The profile name to resolve.
@@ -336,11 +336,11 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the resources from the associated
 	 *                     provider.
-	 * @param type         The type's code.May be <code>null</code>.
+	 * @param code         The type's code.May be <code>null</code>.
 	 * @return The instance type identifier. Default is 0.
 	 */
-	protected int getType(final int subscription, final String name) {
-		return name == null ? 0 : assertFound(getItRepository().findByCode(subscription, name), name).getId();
+	protected int getType(final int subscription, final String code) {
+		return code == null ? 0 : assertFound(getItRepository().findByCode(subscription, code), code).getId();
 	}
 
 	/**
@@ -391,11 +391,11 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Return the location identifier from it's name.
+	 * Return the location identifier from its name.
 	 *
 	 * @param configuration Configuration containing the default values.
 	 * @param location      The location name. When <code>null</code>, the default one is used.
-	 * @return The resolved location identifier from it's name. Never <code>null</code>.
+	 * @return The resolved location identifier from its name. Never <code>null</code>.
 	 */
 	protected int getLocation(final ProvQuote configuration, final String location) {
 		final var provider = String.join(":",
@@ -450,14 +450,13 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			final var co2Values = StringUtils.split(co2b10, ',');
 			// At least one CO2 profile in addition of the full one
 			final var step = 100d / co2Values.length;
-			final var co2 = workload.getPeriods().stream().mapToDouble(p -> {
+			return workload.getPeriods().stream().mapToDouble(p -> {
 				final var index = (int) (p.value / step);
 				final var baselineMin = index * step;
-				final var co2Min = index >= co2Values.length - 1 ? co2b100 : Double.valueOf(co2Values[index]);
-				final var co2Max = index >= co2Values.length - 2 ? co2b100 : Double.valueOf(co2Values[index + 1]);
+				final var co2Min = index >= co2Values.length - 1 ? co2b100 : Double.parseDouble(co2Values[index]);
+				final var co2Max = index >= co2Values.length - 2 ? co2b100 : Double.parseDouble(co2Values[index + 1]);
 				return p.duration * (co2Min + (co2Max - co2Min) * ((p.value - baselineMin) / step)) / 100d;
 			}).sum();
-			return co2;
 		}
 		return co2b100;
 	}
@@ -555,7 +554,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	}
 
 	/**
-	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
+	 * Request a cost update of the given entity and report the delta to the global cost. The changes are persisted.
 	 *
 	 * @param entity The quote resource to update.
 	 * @return The new computed cost.
@@ -572,7 +571,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param key           The criteria used to evaluate the license <code>null</code> value.
 	 * @param canByol       The predicate evaluating the key when the given license is <code>null</code>
 	 * @param <K>           The key type.
-	 * @return The human readable license value.
+	 * @return The human-readable license value.
 	 */
 	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,
 			Predicate<K> canByol) {

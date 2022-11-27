@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvTag} repository.
  */
+@SuppressWarnings("unused")
 public interface ProvTagRepository extends RestRepository<ProvTag, Integer> {
 
 	/**

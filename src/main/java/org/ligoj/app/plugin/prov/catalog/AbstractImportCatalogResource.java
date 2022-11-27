@@ -221,7 +221,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param type The rating mapping name.
 	 * @param name The name to map.
 	 * @return The direct [class, generation, size] rate association, or the [class, generation] rate association, or
-	 *         the [class] association, of the explicit "default association or {@link Rate#MEDIUM} value.
+	 *         the [class] association, of the explicit default association or {@link Rate#MEDIUM} value.
 	 */
 	protected Rate getRate(final String type, final String name) {
 		final var map = mapRate.get(type);
@@ -316,10 +316,10 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
-	 * Return the OS from it's name.
+	 * Return the OS from its name.
 	 *
 	 * @param osName The OS name Case is not sensitive.
-	 * @return The OS from it's name. Never <code>null</code>.
+	 * @return The OS from its name. Never <code>null</code>.
 	 */
 	protected VmOs toVmOs(String osName) {
 		return VmOs.valueOf(osName.toUpperCase(Locale.ENGLISH));
@@ -648,7 +648,7 @@ public abstract class AbstractImportCatalogResource {
 			if (match == null) {
 				match = Arrays.stream(rawMatch).map(this::toPattern)
 						.map(p -> mapping.keySet().stream().filter(p.asMatchPredicate()).findFirst().orElse(null))
-						.filter(k -> k != null).findFirst().orElse(null);
+						.filter(Objects::nonNull).findFirst().orElse(null);
 				if (match == null) {
 					log.warn("No regional CO2 for region {}", location);
 					return new Co2RegionData();
@@ -670,7 +670,7 @@ public abstract class AbstractImportCatalogResource {
 	 * Get the CO2 value from the type name used as key. When not found, no value is set.
 	 * 
 	 * @param context The current context holding the CO2 data set
-	 * @param price   The target price to update.
+	 * @param type   The data type to get.
 	 */
 	protected Co2Data getCo2(final AbstractUpdateContext context, String type) {
 		return context.getCo2DataSet().computeIfAbsent(type, t -> {
@@ -807,7 +807,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param whenAbsent The callback to notify when the item was not present into the collection, adn return the value
 	 *                   to put in the map.
 	 * @param onCompute  The callback called whatever the item base present or not.
-	 * @return The value previously stored in the map, or the new one returned by the <code>whenAbsent</code> callback..
+	 * @return The value previously stored in the map, or the new one returned by the <code>whenAbsent</code> callback.
 	 */
 	protected <K, V> V syncAdd(final Map<K, V> map, final K key, final Function<K, V> whenAbsent,
 			final Function<V, V> onCompute) {

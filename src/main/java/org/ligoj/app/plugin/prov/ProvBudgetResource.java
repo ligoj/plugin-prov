@@ -221,7 +221,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases,
 			final List<ProvQuoteContainer> containers, final List<ProvQuoteFunction> functions) {
 		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
-			List.of(instances, databases, containers, functions).stream().forEach(logger::accept);
+			List.of(instances, databases, containers, functions).forEach(logger);
 		}
 	}
 
@@ -372,7 +372,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	/**
-	 * Execute a lookup for each resources, and store the resolved price in the "prices" parameter. Then separate the
+	 * Execute a lookup for each resource, and store the resolved price in the "prices" parameter. Then separate the
 	 * resolved prices having an initial cost from the one without. These excluded resources are returned. The prices
 	 * having an initial cost are put in the given identity map where the key corresponds to this cost, and the value
 	 * corresponds to the resource.

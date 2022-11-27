@@ -109,7 +109,7 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 		startTask(resource, getSubscription().getId());
 		final var outputStream = new ByteArrayOutputStream();
 		resource.execute(context, outputStream, arguments);
-		return new String(outputStream.toByteArray());
+		return outputStream.toString();
 	}
 
 	private void executeExit(final int code, final String message) throws Exception {

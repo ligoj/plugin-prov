@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvCurrency} repository.
  */
+@SuppressWarnings("unused")
 public interface ProvCurrencyRepository extends RestRepository<ProvCurrency, Integer> {
 
 	/**

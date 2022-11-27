@@ -26,8 +26,7 @@ public class FloatingPrice<P extends AbstractTermPrice<?>> {
 	private Floating cost;
 
 	/**
-	 * The maximal determined monthly cost. When the maximal cost cannot be determined, the minimal cost is used and the
-	 * {@link #unbound} is set to <code>true</code>.
+	 * The related price instance.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	private P price;

@@ -17,7 +17,7 @@ public interface Terraforming {
 	 *
 	 * @param context The Terraform context holding the subscription, the quote and the user inputs.
 	 * @throws IOException When Terraform content cannot be written.
-	 * @see #generateSecrets(Context)
+	 * @see #generateSecrets(TerraformContext)
 	 */
 	void generate(TerraformContext context) throws IOException;
 

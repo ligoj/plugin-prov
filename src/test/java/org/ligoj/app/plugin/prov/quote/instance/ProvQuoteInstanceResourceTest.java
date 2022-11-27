@@ -513,7 +513,6 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(VmOs.LINUX, pi.getOs());
 		Assertions.assertEquals("on-demand1", pi.getTerm().getName());
 		Assertions.assertEquals(135.42, lookup.getCost(), DELTA);
-		;
 	}
 
 	private void assertPrice(final QuoteInstanceLookup lookup, final String code, final String instance,

@@ -18,6 +18,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  *
  * @param <C> Quote resource type.
  */
+@SuppressWarnings("unused")
 @NoRepositoryBean
 public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends RestRepository<C, Integer> {
 

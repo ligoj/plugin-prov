@@ -693,7 +693,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 * Return the resource managing the given resource type.
 	 *
 	 * @param type The resource type to query.
-	 * @return The corresponding {@link BaseProvQuoteResource} managing the requested type.
+	 * @return The corresponding {@link AbstractProvQuoteResource} managing the requested type.
 	 */
 	public AbstractProvQuoteResource<?, ?, ?, ?> getResource(final ResourceType type) {
 		return context.getBean("provQuote" + StringUtils.capitalize(type.name().toLowerCase()) + "Resource",

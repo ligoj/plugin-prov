@@ -20,7 +20,6 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
-import org.ligoj.app.plugin.prov.ProvBudgetResource;
 import org.ligoj.app.plugin.prov.model.ProvBudget;
 import org.ligoj.app.plugin.prov.model.ProvCurrency;
 import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
@@ -42,16 +41,12 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 
 /**
  * Test class of {@link ProvQuoteFunctionResource}
  */
 class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
-
-	@Autowired
-	protected ProvBudgetResource budgetResource;
 
 	@Override
 	@BeforeEach

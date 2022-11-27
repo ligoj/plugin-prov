@@ -44,13 +44,13 @@ public enum ResourceType {
 	 * When <code>true</code>, has network capability.
 	 */
 	@Getter
-	private boolean network;
+	private final boolean network;
 
 	/**
 	 * When <code>true</code>, has CO2 capability.
 	 */
 	@Getter
-	private boolean co2;
+	private final boolean co2;
 
 	ResourceType(boolean network, boolean co2) {
 		this.network = network;

@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * An priced container with billing configuration. <br>
+ * A priced container with billing configuration. <br>
  * The cost attribute is the corresponding effective monthly cost of this container. Includes the initial cost to allow
  * quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
  * <code>cost - initialCost / 24 / 365</code>.

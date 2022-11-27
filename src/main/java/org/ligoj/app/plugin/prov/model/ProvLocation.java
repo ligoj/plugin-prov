@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Location for a VM provider. The name attribute is an unique location API name within the VM provider.
+ * Location for a VM provider. The name attribute is a unique location API name within the VM provider.
  *
  * @see <a href="https://unstats.un.org/unsd/methodology/m49/">unstats.un.org</a>
  * @see <a href="https://en.wikipedia.org/wiki/UN_M.49">UN_M.49</a>

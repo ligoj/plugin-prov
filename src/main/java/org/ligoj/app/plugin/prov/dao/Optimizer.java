@@ -19,6 +19,6 @@ public enum Optimizer {
 	/**
 	 * Optimization by CO2 consumption (g)
 	 */
-	CO2;
+	CO2
 
 }

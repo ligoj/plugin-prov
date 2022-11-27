@@ -23,7 +23,7 @@ import lombok.Getter;
  *
  * @param <C> Quoted resource type.
  * @param <P> Quoted resource price type.
- * @param <T> Quoted resource price type type.
+ * @param <T> Quoted resource price type's type.
  */
 public abstract class AbstractCostedResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
 		implements QuoteRelated<C> {

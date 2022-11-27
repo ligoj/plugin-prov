@@ -15,7 +15,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 /**
  * {@link ProvType} base repository.
  *
- * @param <T> The instance type type.
+ * @param <T> The instance type's type.
  */
 @NoRepositoryBean
 public interface BaseProvTypeRepository<T extends AbstractCodedEntity & ProvType> extends RestRepository<T, Integer> {
@@ -34,7 +34,7 @@ public interface BaseProvTypeRepository<T extends AbstractCodedEntity & ProvType
 	Page<T> findAll(int subscription, String criteria, Pageable pageRequest);
 
 	/**
-	 * Return the {@link ProvType} by it's code. Case is sensitive.
+	 * Return the {@link ProvType} by its code. Case is sensitive.
 	 *
 	 * @param subscription The subscription identifier to match.
 	 * @param code         The code to match.

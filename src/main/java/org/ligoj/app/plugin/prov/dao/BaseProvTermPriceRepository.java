@@ -15,9 +15,10 @@ import org.springframework.data.repository.NoRepositoryBean;
 /**
  * {@link AbstractTermPrice} repository.
  *
- * @param <T> The instance type type.
+ * @param <T> The instance type's type.
  * @param <P> The price type.
  */
+@SuppressWarnings("unused")
 @NoRepositoryBean
 public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P extends AbstractTermPrice<T>>
 		extends RestRepository<P, Integer>, Co2Price {
@@ -48,7 +49,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	 * Return all {@link ProvInstancePrice} related to given node and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
+	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvInstancePrice}.
 	 */
 	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
@@ -58,7 +59,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	 * Return all {@link ProvInstancePrice} related to given node, and term names, and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
+	 * @param location The expected location name. Case-sensitive.
 	 * @param term1    The expected term name prefix alternative 1.
 	 * @param term2    The expected term name prefix alternative 2.
 	 * @return The filtered {@link ProvInstancePrice}.

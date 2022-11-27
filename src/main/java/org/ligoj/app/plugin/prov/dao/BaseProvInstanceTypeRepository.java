@@ -17,6 +17,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  *
  * @param <T> The instance type type.
  */
+@SuppressWarnings("ALL")
 @NoRepositoryBean
 public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 		extends BaseProvTypeRepository<T>, Co2Type {

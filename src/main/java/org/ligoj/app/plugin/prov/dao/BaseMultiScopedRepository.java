@@ -23,6 +23,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  *
  * @param <S> The scoped resource type.
  */
+@SuppressWarnings("ALL")
 @NoRepositoryBean
 public interface BaseMultiScopedRepository<S extends AbstractMultiScoped> extends RestRepository<S, Integer> {
 

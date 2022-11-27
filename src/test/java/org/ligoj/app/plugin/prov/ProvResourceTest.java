@@ -506,8 +506,6 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		quote.setRefresh(false);
 		quote.setReservationMode(ReservationMode.MAX);
-		// checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68,
-		// false);
 		checkCost(resource.update(subscription.getId(), quote), 366.0, 366.0, false);
 		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());

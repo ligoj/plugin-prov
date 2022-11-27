@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * A resource related to an instance and with floating cost and a OS.
+ * A resource related to an instance and with floating cost and an OS.
  *
  * @param <P> Price configuration type.
  */

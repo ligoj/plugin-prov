@@ -44,7 +44,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @param reservation  When <code>true</code>, terms with reservation are required.
 	 * @param maxPeriod    Maximal accepted period.
 	 * @param ephemeral    When <code>true</code>, ephemeral contract is accepted. Otherwise (<code>false</code>), only
-	 *                     non ephemeral instance are accepted.
+	 *                     non-ephemeral instance are accepted.
 	 * @param initialCost  When <code>true</code>, the terms having an initial cost are accepted.
 	 * @return The matching instance terms.
 	 */

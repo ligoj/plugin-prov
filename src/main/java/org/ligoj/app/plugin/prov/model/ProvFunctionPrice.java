@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * An priced function with billing configuration. <br>
+ * A priced function with billing configuration. <br>
  * The cost attribute is the corresponding effective monthly cost of this function independent of the actual usage or
  * memory: pre-warmed resource. Includes the initial cost to allow quick sort. To compute the remaining monthly cost
  * reduced by the initial cost, the formula is : <code>cost - initialCost / 24 / 365</code>. Computation sample with

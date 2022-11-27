@@ -95,7 +95,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private String workload;
 
 	/**
-	 * Optional physical processor. Case insensitive with 'like' match.
+	 * Optional physical processor. Case-insensitive with 'like' match.
 	 */
 	private String processor;
 

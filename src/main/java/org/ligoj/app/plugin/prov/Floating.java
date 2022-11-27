@@ -99,7 +99,7 @@ public class Floating implements Serializable {
 	}
 
 	/**
-	 * Add a another floating cost. This operation updates the current object.
+	 * Add another floating cost. This operation updates the current object.
 	 *
 	 * @param other Another cost.
 	 * @return This object.

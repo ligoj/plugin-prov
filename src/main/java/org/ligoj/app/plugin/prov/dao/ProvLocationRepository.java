@@ -30,7 +30,7 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	List<ProvLocation> findAll(String node);
 
 	/**
-	 * Return the {@link ProvLocation} by it's name, ignoring the case.
+	 * Return the {@link ProvLocation} by its name, ignoring the case.
 	 *
 	 * @param node The node identifier to match.
 	 * @param name The name to match.
@@ -42,7 +42,7 @@ public interface ProvLocationRepository extends RestRepository<ProvLocation, Int
 	ProvLocation findByName(String node, String name);
 
 	/**
-	 * Return the {@link ProvLocation} identifier by it's name, ignoring the case.
+	 * Return the {@link ProvLocation} identifier by its name, ignoring the case.
 	 *
 	 * @param node The node identifier to match.
 	 * @param name The name to match.

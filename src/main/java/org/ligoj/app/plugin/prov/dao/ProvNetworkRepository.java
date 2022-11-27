@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvNetwork} repository.
  */
+@SuppressWarnings("unused")
 public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integer> {
 
 	/**

@@ -107,7 +107,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			t.setPhase(null);
 		});
 		final var user = securityHelper.getLogin();
-		// The import execution will done into another thread
+		// The import execution will be done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);

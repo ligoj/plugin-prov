@@ -8,6 +8,7 @@ import org.ligoj.app.plugin.prov.model.ProvSupportType;
 /**
  * {@link ProvSupportType} repository.
  */
+@SuppressWarnings("unused")
 public interface ProvSupportTypeRepository extends BaseProvTypeRepository<ProvSupportType> {
 
 	// All delegated

@@ -31,12 +31,12 @@ import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.dao.DataIntegrityViolationException;;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
- * Test class of {@link ProvQuoteInstanceUploadResource}
+ * Test class of {@link ProvQuoteUploadResource}
  */
-class ProvQuoteInstanceUploadResourceTest extends AbstractProvResourceTest {
+class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvQuoteUploadResource qiuResource;

@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvStoragePrice} repository.
  */
+@SuppressWarnings("unused")
 public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePrice, Integer> {
 
 	/**
