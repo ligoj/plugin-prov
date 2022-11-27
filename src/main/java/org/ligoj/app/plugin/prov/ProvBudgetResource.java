@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -148,9 +150,9 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param costs      The updated costs and resources.
 	 */
 	public void lean(final ProvQuote quote, final List<ProvQuoteInstance> instances,
-			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
-			final List<ProvQuoteFunction> functions, final List<ProvQuoteStorage> storages,
-			final Map<ResourceType, Map<Integer, Floating>> costs) {
+	                 final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
+	                 final List<ProvQuoteFunction> functions, final List<ProvQuoteStorage> storages,
+	                 final Map<ResourceType, Map<Integer, Floating>> costs) {
 		synchronized (quote.getLeanLock()) {
 			// Lean all relevant budgets
 			final var budgets = Stream.of(instances, databases, containers, functions).flatMap(Collection::stream)
@@ -218,8 +220,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * Logger as needed.
 	 */
 	private void logLean(final Consumer<List<? extends AbstractQuoteVm<?>>> logger,
-			final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases,
-			final List<ProvQuoteContainer> containers, final List<ProvQuoteFunction> functions) {
+	                     final List<ProvQuoteInstance> instances, final List<ProvQuoteDatabase> databases,
+	                     final List<ProvQuoteContainer> containers, final List<ProvQuoteFunction> functions) {
 		if (BooleanUtils.toBoolean(configuration.get(ProvResource.SERVICE_KEY + ":log"))) {
 			List.of(instances, databases, containers, functions).forEach(logger);
 		}
@@ -250,23 +252,26 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	private double leanRecursive(final ProvBudget budget, final List<ProvQuoteInstance> instances,
-			final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
-			final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
+	                             final List<ProvQuoteDatabase> databases, final List<ProvQuoteContainer> containers,
+	                             final List<ProvQuoteFunction> functions, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		logLean(c -> log.info("Start lean: {}",
-				c.stream().map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList()), instances, databases,
+						c.stream().map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList()), instances, databases,
 				containers, functions);
 
 		// Lookup the best prices
 		// And build the pack candidates
-		final var packToQr = new ConcurrentHashMap<Double, AbstractQuoteVm<?>>();
+		final var initialCosts = new ConcurrentHashMap<AbstractQuoteVm<?>, Double>();
 		final var prices = new ConcurrentHashMap<AbstractQuoteVm<?>, FloatingPrice<?>>();
-		final var validatedQi = lookup(instances, prices, qiResource, packToQr);
-		final var validatedQb = lookup(databases, prices, qbResource, packToQr);
-		final var validatedQc = lookup(containers, prices, qcResource, packToQr);
-		final var validatedQf = lookup(functions, prices, qfResource, packToQr);
+		final var validatedQi = lookup(instances, prices, qiResource, initialCosts);
+		final var validatedQb = lookup(databases, prices, qbResource, initialCosts);
+		final var validatedQc = lookup(containers, prices, qcResource, initialCosts);
+		final var validatedQf = lookup(functions, prices, qfResource, initialCosts);
+
+		// Reverse the cost map fot the packer
+		final var packToQrRev = initialCosts.entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey, (a, b) -> b, (Supplier<IdentityHashMap<Double, AbstractQuoteVm<?>>>) IdentityHashMap::new));
 
 		// Pack the prices having an initial cost
-		var init = pack(budget, packToQr, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
+		var init = pack(budget, packToQrRev, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
 		// Commit this pack
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
@@ -284,9 +289,9 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	}
 
 	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
-			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
-			final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
-			final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, Floating>> costs) {
+	                    final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
+	                    final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
+	                    final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, Floating>> costs) {
 		if (packToQr.isEmpty()) {
 			return 0d;
 		}
@@ -317,7 +322,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		}, bins);
 		logPack(packStart, packToQr, budget);
 
-		var init = bin.getTotal();
+		var init = (double) bin.getTotal();
 		if (bins.size() > 1) {
 			// Extra bin needs to make a new pass
 			budget.setRemainingBudget(Floating.round(budget.getRemainingBudget() - bin.getTotal()));
@@ -326,9 +331,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final List<ProvQuoteContainer> subQc = newSubPack(packToQr, bins, ResourceType.CONTAINER);
 			final List<ProvQuoteFunction> subQf = newSubPack(packToQr, bins, ResourceType.FUNCTION);
 			init += leanRecursive(budget, subQi, subQb, subQc, subQf, costs);
-		} else {
-			// Pack is completed
 		}
+		// ... else pack is completed
 		return init;
 	}
 
@@ -340,7 +344,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	 * @param budget    The related budget.
 	 */
 	protected void logPack(final long packStart, final Map<Double, AbstractQuoteVm<?>> packToQr,
-			final ProvBudget budget) {
+	                       final ProvBudget budget) {
 		// Log packing statistic
 		final var packTime = System.currentTimeMillis() - packStart;
 		if (packTime > 500) {
@@ -350,7 +354,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
 			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
 		return (List) bins.get(1).getPieces().stream().map(packToQr::get).filter(i -> i.getResourceType() == type)
@@ -362,8 +366,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			final Map<ResourceType, Map<Integer, Floating>> costs,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource) {
 		nodes.forEach(i -> {
-			@SuppressWarnings("unchecked")
-			final var price = (FloatingPrice<P>) prices.get(i);
+			@SuppressWarnings("unchecked") final var price = (FloatingPrice<P>) prices.get(i);
 			costs.computeIfAbsent(type, k -> new HashMap<>()).put(i.getId(), resource.addCost(i, qi -> {
 				qi.setPrice(price.getPrice());
 				return resource.updateCost(qi);
@@ -380,14 +383,14 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> lookup(
 			final List<C> nodes, final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices,
 			final AbstractProvQuoteVmResource<T, P, C, ?, ?, ?> resource,
-			final Map<Double, AbstractQuoteVm<?>> packToQi) {
+			final Map<AbstractQuoteVm<?>, Double> initialCosts) {
 		final var validatedQi = new ArrayList<C>();
 		this.resource.newStream(nodes).forEach(i -> {
 			final var price = resource.getNewPrice(i);
 			prices.put(i, price);
 			if (price.getCost().getInitial() > 0) {
 				// Add this price to the pack
-				packToQi.put(price.getCost().getInitial(), i);
+				initialCosts.put(i, price.getCost().getInitial());
 			} else {
 				// Add this price to the commit stage
 				validatedQi.add(i);
