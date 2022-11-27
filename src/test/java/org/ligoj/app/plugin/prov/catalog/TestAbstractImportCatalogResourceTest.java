@@ -359,7 +359,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		resource.objectMapper = new ObjectMapper();
 
 		// Coverage only, required for inheriting provisioning plug-in
-		Assertions.assertNotNull(resource.getImportCatalogResource());
+		Assertions.assertNull(resource.getImportCatalogResource());
 		resource.setImportCatalogResource(null);
 		importCatalogResource = Mockito.mock(ImportCatalogResource.class);
 		objectMapper = new ObjectMapper();
