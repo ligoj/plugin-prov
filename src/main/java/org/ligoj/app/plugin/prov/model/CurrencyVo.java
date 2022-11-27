@@ -19,7 +19,7 @@ public class CurrencyVo extends ProvCurrency {
 	/**
 	 * Amount of quotes using this currency.
 	 */
-	private long nbQuotes;
+	private final long nbQuotes;
 
 	/**
 	 * Create a simple currency view from a given JPA entity and related statistics.
