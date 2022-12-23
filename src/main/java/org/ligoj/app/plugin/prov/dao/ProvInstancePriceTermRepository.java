@@ -27,8 +27,8 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @param pageRequest  The page request for ordering.
 	 * @return The filtered {@link ProvInstancePriceTerm}.
 	 */
-	@Query("SELECT ipt FROM ProvInstancePriceTerm ipt, Subscription s INNER JOIN s.node AS sn INNER JOIN ipt.node AS iptn"
-			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(iptn.id, ':%')"
+	@Query("SELECT ipt FROM ProvInstancePriceTerm ipt, Subscription s INNER JOIN s.node AS sn INNER JOIN ipt.node AS n"
+			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(n.id, ':%')"
 			+ " AND (:criteria = '' OR UPPER(ipt.name) LIKE CONCAT(CONCAT('%', :criteria), '%'))")
 	Page<ProvInstancePriceTerm> findAll(int subscription, String criteria, Pageable pageRequest);
 

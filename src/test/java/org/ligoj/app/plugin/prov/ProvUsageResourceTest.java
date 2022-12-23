@@ -8,7 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import javax.persistence.EntityNotFoundException;
+import javax.ws.rs.core.UriInfo;
 
+import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
 import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
 import org.ligoj.app.plugin.prov.model.ProvStorageType;
 import org.ligoj.app.plugin.prov.model.ProvUsage;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -233,7 +236,12 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void findAll() {
-		final var usages = uResource.findAll(subscription, newUriInfo());
+		final var uriInfo = newUriInfo();
+		uriInfo.getQueryParameters().putSingle("order[0][dir]", "ASC");
+		uriInfo.getQueryParameters().putSingle("order[0][column]", "1");
+		uriInfo.getQueryParameters().putSingle("columns[1][data]", "name");
+
+		final var usages = uResource.findAll(subscription, uriInfo);
 		Assertions.assertEquals(10, usages.getData().size());
 		Assertions.assertEquals("Dev", usages.getData().get(0).getName());
 		Assertions.assertEquals("Dev 11 month", usages.getData().get(1).getName());

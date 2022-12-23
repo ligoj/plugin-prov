@@ -100,7 +100,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 	protected ProvQuoteStorageRepository qsRepository;
 
 	@Autowired
-	protected ProvBudgetResource bRessource;
+	protected ProvBudgetResource bResource;
 
 	/**
 	 * Quote data getter.
@@ -187,7 +187,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 		}
 		Stream.of(instances, databases, containers, functions)
 				.forEach(l -> l.forEach(i -> quoteSetter.accept(i, null)));
-		bRessource.lean(quote, instances, databases, containers, functions, List.of(), cost.getRelated());
+		bResource.lean(quote, instances, databases, containers, functions, List.of(), cost.getRelated());
 
 		// All references are deleted, delete the parent entity
 		getRepository().delete(entity);
@@ -291,7 +291,7 @@ public abstract class AbstractMultiScopedResource<S extends AbstractMultiScoped,
 			final var databases = getRelated(getRepository()::findRelatedDatabases, entity);
 			final var containers = getRelated(getRepository()::findRelatedContainers, entity);
 			final var functions = getRelated(getRepository()::findRelatedFunctions, entity);
-			bRessource.lean(quote, instances, databases, containers, functions, List.of(), relatedCosts);
+			bResource.lean(quote, instances, databases, containers, functions, List.of(), relatedCosts);
 		}
 
 		getRepository().saveAndFlush(entity);

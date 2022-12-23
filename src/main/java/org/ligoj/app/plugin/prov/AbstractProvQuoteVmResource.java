@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
 import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
@@ -98,7 +99,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	protected ProvUsageRepository usageRepository;
 
 	@Autowired
-	protected ProvBudgetResource budgetRepsource;
+	protected ProvBudgetResource budgetResource;
 
 	@Autowired
 	protected ServicePluginLocator locator;
@@ -199,10 +200,10 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		// Refresh costs
 		if (BooleanUtils.isTrue(quote.getLeanOnChange())) {
-			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
+			budgetResource.lean(entity.getResolvedBudget(), cost.getRelated());
 			if (!Objects.equals(oldBudget, entity.getResolvedBudget())) {
 				// Also update the old budget
-				budgetRepsource.lean(oldBudget, cost.getRelated());
+				budgetResource.lean(oldBudget, cost.getRelated());
 			}
 		}
 		return resource.refreshSupportCost(cost, quote);
@@ -235,7 +236,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		final var cost = super.deleteAll(subscription);
 		cost.getDeleted().put(ResourceType.STORAGE, sIds);
-		budgetRepsource.lean(quote, cost.getRelated());
+		budgetResource.lean(quote, cost.getRelated());
 		return cost;
 	}
 
@@ -260,7 +261,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 		// Prepare the updated cost of updated instances
 		if (BooleanUtils.isTrue(entity.getConfiguration().getLeanOnChange())) {
-			budgetRepsource.lean(entity.getResolvedBudget(), cost.getRelated());
+			budgetResource.lean(entity.getResolvedBudget(), cost.getRelated());
 		}
 		return resource.refreshSupportCost(cost, entity);
 	}
@@ -306,7 +307,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *
 	 * @param quoteProfile   The global profile level value.
 	 * @param name           The profile name to resolve.
-	 * @param allProfiles    All definied profiles for this quote.
+	 * @param allProfiles    All defined profiles for this quote.
 	 * @param defaultProfile Default profile.
 	 * @return The resolved b entity. Never <code>null</code> since the configuration's profile or else the given
 	 *         default value.
@@ -530,7 +531,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The count of this custom instance resource.
 	 */
 	private double getQuantity(final double requested, final Double min, final Double increment, final double weight) {
-		final var incrementD = Objects.requireNonNullElse(increment, 1d);
+		final double incrementD = Objects.requireNonNullElse(increment, 1d);
 		// Compute the count of the requested resources
 		return Math.ceil(Math.max(Math.ceil(requested / weight), Objects.requireNonNullElse(min, 0d)) / incrementD)
 				* incrementD;
@@ -601,8 +602,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var result = lookup(getQuoteFromSubscription(subscription), query);
 		if (result != null) {
 			// Fetch term and the type for serialization
-			result.getPrice().getTerm();
-			result.getPrice().getType();
+			Hibernate.initialize(result.getPrice().getTerm());
+			Hibernate.initialize(result.getPrice().getType());
 		}
 		return result;
 	}
@@ -669,7 +670,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var rate = usage.getRate() / 100d;
 		final var workload = Workload.from(query.getWorkload());
 		final var duration = usage.getDuration();
-		final var initialCost = Objects.requireNonNullElse(budget.getRemainingBudget(), budget.getInitialCost());
+		final double initialCost = Objects.requireNonNullElse(budget.getRemainingBudget(), budget.getInitialCost());
 		final var baseline = workload.getBaseline();
 		final var baselineR = (double) Math.round(baseline / 5d) * 5; // Round for cache hit improvement
 
@@ -707,13 +708,13 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 					normalize(query.getEdge()), optimizer == Optimizer.CO2);
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
-				var dlookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
+				var dLookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
 						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
-				if (dlookup != null && lookup == null || (dlookup != null
-						&& ((optimizer == Optimizer.COST && toTotalCost(dlookup) < toTotalCost(lookup))
-								|| (optimizer == Optimizer.CO2 && toTotalCo2(dlookup) < toTotalCo2(lookup))))) {
+				if (dLookup != null && lookup == null || (dLookup != null
+						&& ((optimizer == Optimizer.COST && toTotalCost(dLookup) < toTotalCost(lookup))
+								|| (optimizer == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
 					// Keep the best one
-					lookup = dlookup;
+					lookup = dLookup;
 				}
 			}
 		}

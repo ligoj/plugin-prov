@@ -88,7 +88,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		new AbstractUpdateContext(context) {
 		}.cleanup();
 
-		Assertions.assertEquals(8760 / 12 * 3600, context.getSecondsMonth());
+		Assertions.assertEquals(8760 / 12d * 3600, context.getSecondsMonth());
 	}
 
 	/**

@@ -49,7 +49,7 @@ public interface ProvInstancePriceRepository
 			   AND ip.os=:os AND ip.software IS NOT NULL
 			ORDER BY ip.software
 			 """)
-	List<String> findAllSoftwares(@CacheKey String node, @CacheKey VmOs os);
+	List<String> findAllSoftwareNames(@CacheKey String node, @CacheKey VmOs os);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.

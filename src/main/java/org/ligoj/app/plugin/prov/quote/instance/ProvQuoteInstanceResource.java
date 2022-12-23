@@ -191,14 +191,14 @@ public class ProvQuoteInstanceResource extends
 	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
 	 *                     provider.
 	 * @param os           The filtered OS.
-	 * @return The available softwares for the given subscription.
+	 * @return The available software names for the given subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/instance-software/{os}")
-	public List<String> findSoftwares(@PathParam("subscription") final int subscription,
+	public List<String> findSoftwareNames(@PathParam("subscription") final int subscription,
 			@PathParam("os") final VmOs os) {
 		return ipRepository
-				.findAllSoftwares(subscriptionResource.checkVisible(subscription).getNode().getTool().getId(), os);
+				.findAllSoftwareNames(subscriptionResource.checkVisible(subscription).getNode().getTool().getId(), os);
 	}
 
 	@Override

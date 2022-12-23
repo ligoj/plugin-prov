@@ -16,7 +16,7 @@ class BinPackerTest {
 
 	@Data
 	@AllArgsConstructor
-	class Piece {
+	static class Piece {
 		Double internalId;
 		String name;
 	}

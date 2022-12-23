@@ -91,7 +91,7 @@ public class ProvQuoteInstanceExportResource {
 				// Minimal headers
 				writer.format("%s" + ";%s".repeat(34), "resource-type", "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram",
 						"ramMax", "os", "usage", "budget", "optimizer", "term", "location", "min", "max",
-						"maxvariablecost", "workload", "processor", "physical", "ephemeral", "type", "engine",
+						"maxVariableCost", "workload", "processor", "physical", "ephemeral", "type", "engine",
 						"edition", "internet", "license", "cost", "tags", "disk", "diskMax", "diskType", "diskLatency",
 						"diskOptimized", "diskCost", "diskTags");
 
@@ -184,12 +184,12 @@ public class ProvQuoteInstanceExportResource {
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
 				writer.format("%s" + ";%s".repeat(33), "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram", "ramMax", "os",
-						"usage", "buget", "optimizer", "term", "location", "min", "max", "maxvariablecost", "workload",
+						"usage", "budget", "optimizer", "term", "location", "min", "max", "maxVariableCost", "workload",
 						"processor", "physical", "ephemeral", "type", "internet", "license", "cost", "tags", "disk",
 						"diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
 
 				// Write quote instances
-				final var itags = vo.getTags().get(ResourceType.INSTANCE);
+				final var iTags = vo.getTags().get(ResourceType.INSTANCE);
 				vo.getInstances().forEach(qi -> writer.format("\n%s" + ";%s".repeat(24), toString(qi),
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getGpu()),
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(),
@@ -197,10 +197,10 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
 						toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()), toString(qi.getWorkload()),
 						toString(qi.getProcessor()), toString(qi.getPhysical()), qi.isEphemeral(), toType(qi),
-						qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags)));
+						qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()), toString(qi, iTags)));
 
 				// Write quote containers
-				final var ctags = vo.getTags().get(ResourceType.CONTAINER);
+				final var cTags = vo.getTags().get(ResourceType.CONTAINER);
 				vo.getContainers().forEach(qc -> writer.format("\n%s" + ";%s".repeat(24), toString(qc),
 						toString(qc.getCpu()), toString(qc.getCpuMax()), toString(qc.getGpu()),
 						toString(qc.getGpuMax()), toString(qc.getRam()), toString(qc.getRamMax()), qc.getOs(),
@@ -208,9 +208,9 @@ public class ProvQuoteInstanceExportResource {
 						toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
 						toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()), toString(qc.getWorkload()),
 						toString(qc.getProcessor()), toString(qc.getPhysical()), qc.isEphemeral(), toType(qc),
-						qc.getInternet(), toString(qc.getLicense()), toString(qc.getCost()), toString(qc, ctags)));
+						qc.getInternet(), toString(qc.getLicense()), toString(qc.getCost()), toString(qc, cTags)));
 				// Write quote functions
-				final var ftags = vo.getTags().get(ResourceType.FUNCTION);
+				final var fTags = vo.getTags().get(ResourceType.FUNCTION);
 				vo.getFunctions()
 						.forEach(qf -> writer.format("\n%s" + ";%s".repeat(24), toString(qf), toString(qf.getCpu()),
 								toString(qf.getCpuMax()), toString(qf.getGpu()), toString(qf.getGpuMax()),
@@ -219,10 +219,10 @@ public class ProvQuoteInstanceExportResource {
 								toString(qf.getPrice().getTerm()), toString(qf.getLocation()), qf.getNbRequests(), "",
 								"", toString(qf.getWorkload()), toString(qf.getProcessor()), toString(qf.getPhysical()),
 								qf.isEphemeral(), toType(qf), qf.getInternet(), "", toString(qf.getCost()),
-								toString(qf, ftags)));
+								toString(qf, fTags)));
 
 				// Write quote databases
-				final var dtags = vo.getTags().get(ResourceType.DATABASE);
+				final var dTags = vo.getTags().get(ResourceType.DATABASE);
 				vo.getDatabases().forEach(qi -> writer.format("\n%s" + ";%s".repeat(24) + ";;;;;;%s;%s", toString(qi),
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getGpu()),
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), "",
@@ -230,20 +230,20 @@ public class ProvQuoteInstanceExportResource {
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
 						toString(qi.getMaxQuantity()), "", toString(qi.getWorkload()), toString(qi.getProcessor()),
 						toString(qi.getPhysical()), "", toType(qi), "", toString(qi.getLicense()),
-						toString(qi.getCost()), toString(qi, dtags), qi.getEngine(), toString(qi.getEdition())));
+						toString(qi.getCost()), toString(qi, dTags), qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
-				final var stags = vo.getTags().get(ResourceType.STORAGE);
+				final var sTags = vo.getTags().get(ResourceType.STORAGE);
 				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;%s;;;;;;;%s;;" + ";%s".repeat(8),
 						toString(qs), toString(qs.getLocation()), toType(qs), toString(qs.getCost()),
-						toString(qs, stags), qs.getSize(), toString(qs.getSizeMax()), toString(qs.getQuoteInstance()),
+						toString(qs, sTags), qs.getSize(), toString(qs.getSizeMax()), toString(qs.getQuoteInstance()),
 						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
 				// Write quote support
-				final var s2tags = vo.getTags().get(ResourceType.SUPPORT);
+				final var s2Tags = vo.getTags().get(ResourceType.SUPPORT);
 				vo.getSupports()
 						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
-								toType(qs), toString(qs.getCost()), toString(qs, s2tags), toString(qs.getSeats())));
+								toType(qs), toString(qs.getCost()), toString(qs, s2Tags), toString(qs.getSeats())));
 				writer.flush();
 			}
 		}, file).build();

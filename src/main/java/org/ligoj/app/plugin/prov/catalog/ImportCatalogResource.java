@@ -202,7 +202,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		final AbstractProvQuoteResource resource = this.resource.getResource(t);
 		task.setNbPrices(task.getNbPrices() + (int) resource.getIpRepository().countBy("type.node.id", node));
 		if (t.isCo2()) {
-			// UPdate CO2 prices
+			// Update CO2 prices
 			task.setNbCo2Prices(
 					task.getNbCo2Prices() + ((Co2Price) resource.getIpRepository()).countCo2DataByNode(node));
 		}
@@ -248,12 +248,12 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 */
 	@PUT
 	public void update(CatalogEditionVo vo) {
-		final var node = nodeResource.checkWritableNode(vo.getNode()).getTool().getId();
-		if (locationRepository.findBy("id", vo.getPreferredLocation()).getNode().getId() != node) {
-			throw new ValidationJsonException(node, "node-not-same");
+		final var nodeId = nodeResource.checkWritableNode(vo.getNode()).getTool().getId();
+		if (!locationRepository.findBy("id", vo.getPreferredLocation()).getNode().getId().equals(nodeId)) {
+			throw new ValidationJsonException(nodeId, "node-not-same");
 		}
-		locationRepository.unsetPreferredLocation(node);
-		locationRepository.setPreferredLocation(node, vo.getPreferredLocation());
+		locationRepository.unsetPreferredLocation(nodeId);
+		locationRepository.setPreferredLocation(nodeId, vo.getPreferredLocation());
 	}
 
 	@Override

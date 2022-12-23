@@ -49,9 +49,9 @@ public class Workload {
 	}
 
 	@AllArgsConstructor
-	class WorkloadPeriod {
-		double duration = 0d;
-		double value = 0d;
+	static class WorkloadPeriod {
+		double duration;
+		double value;
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class Workload {
 	 * <li>Weighted average of values corresponds to the baseline</li>
 	 * <li>When there is no details (only the baseline), no computation has to be done. Min is <code>0</code> and max is
 	 * <code>100</code></li>.
-	 * <li>Sum of durations should be <code>100</code>. When different than <code>100</code> a prorata is applied to
+	 * <li>Sum of durations should be <code>100</code>. When different than <code>100</code> a pro rata is applied to
 	 * each value according to their weight.</li>
 	 * <li>Min value's duration is <code>0</code></li>
 	 * <li>Max value's duration should be <code>100</code>, however adjustment is applied to be aligned to

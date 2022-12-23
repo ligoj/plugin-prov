@@ -15,7 +15,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> {
 
 	/**
-	 * Return the compute quote summary from the related subscription.
+	 * Return the computed quote summary from the related subscription.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
 	 * @return The quote with aggregated details : Quote, amount of instances, total RAM and total CPU and total GPU.
@@ -69,10 +69,10 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	List<Object[]> getStorageSummary(int subscription);
 
 	/**
-	 * Return the compute quote details from the related subscription.
+	 * Return the computed quote details from the related subscription.
 	 *
 	 * @param subscription The subscription identifier linking the quote.
-	 * @return The compute quote details : Quote, instance details and price details.
+	 * @return The computed quote details : Quote, instance details and price details.
 	 */
 	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
 			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription")
