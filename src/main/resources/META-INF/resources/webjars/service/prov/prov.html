@@ -498,10 +498,6 @@
 								<input type="checkbox" id="mode-workload-details" data-size="mini" data-handle-width="10" data-on-color="success">
 							</div>
 							<svg class="svg-workload hidden" width="250" height="50"></svg>
-							<!-- <label class="checkbox-inline element-advanced mode-workload-details" for="mode-workload-details">
-														<input type="checkbox" id="mode-workload-details">
-														<span>Détails&emsp; </span> 
-													</label> -->
 						</div>
 						<span class="input-help element-advanced"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:workload-help}}"></i></span>
 						<div class="form-group element-advanced element-workload-details">
@@ -512,9 +508,7 @@
 										<span class="input-group-addon">% @</span>
 										<input type="number" placeholder="{{service:prov:workload-cpu}}" min="0" max="100" id="instance-workload-cpu" class="form-control">
 										<span class="input-group-addon">%</span>
-										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i>
-											<div class="ripple-container"></div>
-										</button>
+										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i></button>
 									</div>
 								</li>
 							</ul>
@@ -808,7 +802,7 @@
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
 								<br /><code><strong>constant</strong> [(null),true,false] for CPU behavior</code>
 								<br /><code><strong>os</strong> [(LINUX),WINDOWS,RHEL,SUSE,CENTOS,DEBIAN]</code>
-								<br /><code><strong>disk</strong> Optional disk size, in Gibi Byte (GiB)</code>
+								<br /><code><strong>disk</strong> Optional disk size, in Gibibyte (GiB)</code>
 								<br /><code><strong>latency</strong> [WORST, LOW, MEDIUM, GOOD, BEST], default is GOOD</code>
 								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
 								<br /><code><strong>type</strong> Instance type name, case insensitive, default is auto</code>
@@ -1203,14 +1197,14 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" aria-labelledby="u-modal-title" autocomplete="off">
+	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" aria-labelledby="t-modal-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="u-modal-title">{{service:prov:terraform:execute}}</h4>
+					<h4 class="modal-title" id="t-modal-title">{{service:prov:terraform:execute}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
