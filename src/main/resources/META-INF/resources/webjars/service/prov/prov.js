@@ -3631,13 +3631,14 @@ define(['sparkline', 'd3'], function () {
 									let totalCost = 0;
 									let totalCo2 = 0;
 									types.forEach(type => {
-										const value = barData[type]
-										if (value?.cost || value?.co2) {
-											totalCost += value.cost || 0;
-											totalCo2 += value.co2 || 0;
-											tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
-										}
-									});
+                                        const value = barData[type]
+                                        if (value?.cost || value?.co2) {
+                                            totalCost += value.cost || 0;
+                                            totalCo2 += value.co2 || 0;
+                                            tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster === type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+                                        }
+                                    });
+
 									// Append total
 									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
 									return `<span class="tooltip-text">${tooltip}</span>`;
