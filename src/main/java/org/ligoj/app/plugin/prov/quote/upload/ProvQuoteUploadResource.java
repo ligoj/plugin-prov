@@ -382,7 +382,7 @@ public class ProvQuoteUploadResource {
 		// Check headers validity
 		final String[] headersArray;
 		final InputStream fileNoHeader;
-		if (headersIncluded == null || !headersIncluded) {
+		if (headersIncluded == null || headersIncluded) {
 			// Header at first line
 			final var br = new BufferedReader(new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
 			headersArray = StringUtils.defaultString(br.readLine()).split(separator);
