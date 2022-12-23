@@ -37,7 +37,7 @@ public class ProvQuoteContainer extends AbstractQuoteVmOs<ProvContainerPrice> im
 
 	/**
 	 * The optional maximum monthly cost you want to pay. Only for one instance, does not consider the
-	 * {@link #minQuantity} or {@link #maxQuantity}. When <code>null</code>, there is no limit. Only relevant for
+	 * {@link #getMinQuantity()} or {@link #getMaxQuantity()}. When <code>null</code>, there is no limit. Only relevant for
 	 * variable instance price type such as AWS Spot.
 	 */
 	@Positive

@@ -127,7 +127,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price.
+	 * Lookup for an only dynamic price.
 	 */
 	@Test
 	void lookupDynamical() {
@@ -150,7 +150,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price but deleted.
+	 * Lookup for an only dynamic price but deleted.
 	 */
 	@Test
 	void lookupNoMatchDynamical() {
@@ -238,7 +238,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Search instance type within a non existing region
+	 * Search instance type within a non-existing region
 	 */
 	@Test
 	void lookupLocationNotFound() {
@@ -282,7 +282,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupNoMatch() {

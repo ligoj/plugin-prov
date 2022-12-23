@@ -230,7 +230,7 @@ public class ProvQuoteDatabaseResource extends
 	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
 	 *                     provider.
 	 * @param engine       The filtered engine.
-	 * @return The available softwares for the given subscription.
+	 * @return The available software names for the given subscription.
 	 */
 	@GET
 	@Path("{subscription:\\d+}/database-edition/{engine}")

@@ -328,7 +328,7 @@ public class ProvQuoteStorageResource
 		// Get the attached node and check the security on this subscription
 		final var node = configuration.getSubscription().getNode().getRefined().getId();
 
-		// The the right location from instance first, then the request one
+		// The right location from instance first, then the request one
 		final var attachment = Stream.of(qi, qb, qc, qf).filter(Objects::nonNull).findFirst().orElse(null);
 		final int qLoc;
 		final int qsLoc;

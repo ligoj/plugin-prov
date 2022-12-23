@@ -10,7 +10,7 @@ package org.ligoj.app.plugin.prov.terraform;
 public enum TerraformSequence {
 
 	/**
-	 * Will do every thing to setup the target resources including the initialization and the progress management.
+	 * Will do every thing to configure the target resources including the initialization and the progress management.
 	 */
 	CREATE,
 

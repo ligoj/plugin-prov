@@ -394,7 +394,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	}
 	
 	@Test
-	void uploadi18FR() throws IOException {
+	void uploadWithI18FR() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
 				new String[] { "Nom", "cpu", "ram", "os", "Etiquette", "Disque" }, false, null, null, null, 1);
 		final var configuration = getConfiguration();

@@ -153,7 +153,7 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Request a cost update of the given entity and report the delta to the the global cost. The changes are persisted.
+	 * Request a cost update of the given entity and report the delta to the global cost. The changes are persisted.
 	 *
 	 * @param entity The quote support to update.
 	 * @return The new computed cost.

@@ -125,7 +125,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Identity update
 		checkCost(resource.update(subscription, quote), 2982.4, 5139.2, false);
 		
-		// Change to no bugdet
+		// Change to no budget
 		quote.setBudget(null);
 		checkCost(resource.update(subscription, quote), 3165.4, 5615.0, false);
 	}

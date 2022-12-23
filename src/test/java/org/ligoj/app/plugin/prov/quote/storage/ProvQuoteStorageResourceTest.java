@@ -287,7 +287,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Create a storage to a database type having a engine constraint.
+	 * Create a storage to a database type having an engine constraint.
 	 */
 	@Test
 	void createDatabaseEngineConstraint() {
@@ -455,7 +455,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		// Cost is the same since the type still match the constraints
 		checkCost(qsResource.update(vo).getCost(), 107.52, 107.52, false);
 
-		// The cost changed since a best type matches to the constraints
+		// The cost changed, a better type matches to the constraints
 		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
 		Assertions.assertEquals("storage2", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 
@@ -471,7 +471,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 
 		// Even if "storage2" and "storage3" have identical prices and match to
 		// the
-		// requirements, "storage3" offers a lowest latency.
+		// requirements, "storage3" offers a lower latency.
 		checkCost(qsResource.refresh(qsRepository.findOneExpected(cost.getId())), 77.8, 77.8, false);
 		Assertions.assertEquals("storage3", qsRepository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
@@ -832,7 +832,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupStorageNoMatch() {
@@ -993,7 +993,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * All quote instances are based on the default quote's location : "region1", and lookup for an storage whatever the
+	 * All quote instances are based on the default quote's location : "region1", and lookup for a storage whatever the
 	 * location but attached to instance located in "region-1".
 	 */
 	@Test

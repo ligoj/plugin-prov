@@ -61,7 +61,7 @@ public class TerraformResource {
 	 * Terraform version output pattern matcher. Expected output is like : <code>Terraform v0.11.5<code>, and maybe
 	 * followed by some outputs like new lines or content to ignore.
 	 */
-	private static final Pattern TERRFORM_VERSION = Pattern.compile(".* v([^\\s]+)\\s+.*");
+	private static final Pattern TERRAFORM_VERSION = Pattern.compile(".* v([^\\s]+)\\s+.*");
 
 	@Autowired
 	private SubscriptionResource subscriptionResource;
@@ -196,7 +196,7 @@ public class TerraformResource {
 		// Trim the user input from the context
 		context.getContext().entrySet().forEach(e -> e.setValue(StringUtils.trim(e.getValue())));
 
-		// The Terraform execution will done into another thread
+		// The Terraform execution will be done into another thread
 		final var task = startTask(context, sequence);
 		Executors.newSingleThreadExecutor().submit(() -> {
 			// Restore the context
@@ -241,7 +241,7 @@ public class TerraformResource {
 	 * Prepare the Terraform environment to apply/destroy the new environment. Note there is no concurrency check.
 	 *
 	 * @param context The Terraform context holding the subscription, the quote and the user inputs.
-	 * @throws IOException          When files or logs cannot cannot be generated.
+	 * @throws IOException          When files or logs cannot be generated.
 	 * @throws InterruptedException When Terraform execution has been interrupted.
 	 */
 	@Transactional(value = TxType.REQUIRES_NEW)
@@ -260,10 +260,10 @@ public class TerraformResource {
 	}
 
 	/**
-	 * Delete all files (including logs) that could generated again and we don't need to track.
+	 * Delete all files (including logs) that could be generated again we don't need to track.
 	 *
 	 * @param subscription The related subscription.
-	 * @throws IOException When files or logs cannot cannot be deleted.
+	 * @throws IOException When files or logs cannot be deleted.
 	 */
 	protected void clean(final Subscription subscription) throws IOException {
 		final var parent = utils.toFile(subscription).toPath();
@@ -311,7 +311,7 @@ public class TerraformResource {
 	/**
 	 * Return the executor corresponding to the given command.
 	 *
-	 * @param command The requested command, such as <code>appy</code>, <code>clean</code> ,...
+	 * @param command The requested command, such as <code>apply</code>, <code>clean</code> ,...
 	 * @return The executor corresponding to the given command.
 	 */
 	protected TerraformAction getAction(final String command) {
@@ -321,7 +321,7 @@ public class TerraformResource {
 	/**
 	 * Return the Terraform versions : current and latest version.
 	 *
-	 * @return The terraform version when succeed, or <code>null</code>. Is cached.
+	 * @return The Terraform version when succeeded or <code>null</code>. Is cached.
 	 * @throws IOException          Stream cannot be read.
 	 * @throws InterruptedException The process cannot be executed.
 	 */
@@ -338,7 +338,7 @@ public class TerraformResource {
 			final var output = bos.toString();
 			if (code == 0) {
 				// Terraform v0.11.5
-				final var matcher = TERRFORM_VERSION.matcher(output);
+				final var matcher = TERRAFORM_VERSION.matcher(output);
 				if (matcher.find()) {
 					result.setVersion(matcher.group(1));
 				}

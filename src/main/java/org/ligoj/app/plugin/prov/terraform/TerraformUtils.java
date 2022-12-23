@@ -258,8 +258,8 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Install latest version of Terraform in the current system using the default repository and the home directory. It
-	 * override the previous version :
+	 * Install the latest version of Terraform in the current system using the default repository and the home directory. It
+	 * overrides the previous version :
 	 * <ul>
 	 * <li>Determine the last release</li>
 	 * <li>Determine the right repository</li>
@@ -276,7 +276,7 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Install latest version of Terraform in the given directory. It override the previous version :
+	 * Install the latest version of Terraform in the given directory. It overrides the previous version :
 	 * <ul>
 	 * <li>Determine the right repository</li>
 	 * <li>Determine the right distribution</li>
@@ -293,7 +293,7 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Install latest version of Terraform in the current system using the default repository :
+	 * Install the latest version of Terraform in the current system using the default repository :
 	 * <ul>
 	 * <li>Determine the right distribution</li>
 	 * <li>Download</li>
@@ -381,7 +381,7 @@ public class TerraformUtils {
 	}
 
 	/**
-	 * Unzip all files from the given ZIP stream to target directory and return the unziped files.
+	 * Unzip all files from the given ZIP stream to target directory and return the uncompressed files.
 	 *
 	 * @param source The source ZIP file stream.
 	 * @param toDir  The target directory where uncompressed files will be placed.

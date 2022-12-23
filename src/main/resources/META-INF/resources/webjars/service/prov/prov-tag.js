@@ -79,7 +79,7 @@ define(['jquery'], function ($) {
 				// Then add the term itself
 				if (tags.indexOf(term) === -1) {
 					if (term.endsWith(':')) {
-						// Itself but withot the trailing (useless) ':'
+						// Itself but without the trailing (useless) ':'
 						var part = term.substring(0, term.indexOf(':'));
 						suggests.push({ text: part, id: part });
 					} else if (!keyValues.includes(term)){

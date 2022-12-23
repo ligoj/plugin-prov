@@ -287,7 +287,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	/**
 	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
 	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
-	 * cases, the the name must be found.
+	 * cases, the name must be found.
 	 *
 	 * @param node The provider node.
 	 * @param name The location name. Case is insensitive.
@@ -487,7 +487,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * For each resources, execute the given cost function.
+	 * For each resource, execute the given cost function.
 	 */
 	private UpdatedCost processCost(final ProvQuote entity, boolean lean) {
 		final var relatedCosts = Collections
@@ -496,7 +496,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * For each resources, execute the given cost function.
+	 * For each resource, execute the given cost function.
 	 */
 	private UpdatedCost processCost(final ProvQuote entity, final boolean lean,
 			Map<ResourceType, Map<Integer, Floating>> relatedCosts) {
@@ -516,12 +516,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setInitialCost(0d);
 		entity.setMaxInitialCost(0d);
 
-		// Fetch the usages and budgets of this quotes (parallel)
+		// Fetch the usages and budgets of these quotes (parallel)
 		Hibernate.initialize(entity.getUsages());
 		Hibernate.initialize(entity.getBudgets());
 		Hibernate.initialize(entity.getOptimizers());
 
-		// Add the compute cost, and update the unbound cost
+		// Add the computing cost, and update the unbound cost
 		long unbound = 0;
 		unbound += addCost(entity, qiRepository, qiResource, "instances");
 		unbound += addCost(entity, qbRepository, qbResource, "databases");
@@ -560,7 +560,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Refresh the cost of the support for the whole whole quote.
+	 * Refresh the cost of the support for the whole quote.
 	 *
 	 * @param cost  The target cost object to update.
 	 * @param quote The source quote.

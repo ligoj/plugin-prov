@@ -60,13 +60,13 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private double maxCost = 0d;
 
 	/**
-	 * Minimal initial cost. Does not includes support cost.
+	 * Minimal initial cost. Does not include support cost.
 	 */
 	@PositiveOrZero
 	private double initialCost = 0d;
 
 	/**
-	 * Maximal initial cost. Does not includes support cost.
+	 * Maximal initial cost. Does not include support cost.
 	 *
 	 * @see #maxCost
 	 */
@@ -145,21 +145,21 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private List<ProvQuoteFunction> functions;
 
 	/**
-	 * Usages associated to this quote..
+	 * Usages associated to this quote.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvUsage> usages = new ArrayList<>();
 
 	/**
-	 * Budgets associated to this quote..
+	 * Budgets associated to this quote.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<ProvBudget> budgets = new ArrayList<>();
 
 	/**
-	 * Optimizers associated to this quote..
+	 * Optimizers associated to this quote.
 	 */
 	@OneToMany(mappedBy = "configuration", cascade = CascadeType.REMOVE)
 	@JsonIgnore
@@ -226,7 +226,7 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	private String license;
 
 	/**
-	 * Rate applied to required RAM to lookup the suiting instance type. This rate is divided by <code>100</code>, then
+	 * Rate applied to required RAM to find the suiting instance type. This rate is divided by <code>100</code>, then
 	 * multiplied to the required RAM of each memory before calling the lookup. Value lesser than <code>100</code>
 	 * allows the lookup to elect an instance having less RAM than the requested one. Value greater than
 	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.

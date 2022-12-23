@@ -40,7 +40,7 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	private Rate latency;
 
 	/**
-	 * Optimized best usage of this storage
+	 * Optimized usage of this storage
 	 */
 	@Enumerated(EnumType.STRING)
 	private ProvStorageOptimized optimized;
@@ -82,35 +82,35 @@ public class ProvStorageType extends AbstractCodedEntity implements ProvType {
 	 */
 	private String notInstanceType = null;
 	/**
-	 * When not <code>null</code>, this storage can only be attached to an container whose type's code is matching the
+	 * When not <code>null</code>, this storage can only be attached to a container whose type's code is matching the
 	 * expression.
 	 */
 	private String containerType = null;
 
 	/**
-	 * When not <code>null</code>, this storage can not be attached to an container whose type's code is matching the
+	 * When not <code>null</code>, this storage can not be attached to a container whose type's code is matching the
 	 * expression.
 	 */
 	private String notContainerType = null;
 	/**
-	 * When not <code>null</code>, this storage can only be attached to an function whose type's code is matching the
+	 * When not <code>null</code>, this storage can only be attached to a function whose type's code is matching the
 	 * expression.
 	 */
 	private String functionType = null;
 
 	/**
-	 * When not <code>null</code>, this storage can not be attached to an function whose type's code is matching the
+	 * When not <code>null</code>, this storage can not be attached to a function whose type's code is matching the
 	 * expression.
 	 */
 	private String notFunctionType = null;
 
 	/**
-	 * When not <code>null</code>, this storage can only attached to an database whose type is matching the expression.
+	 * When not <code>null</code>, this storage can only be attached to a database whose type is matching the expression.
 	 */
 	private String databaseType = null;
 
 	/**
-	 * When not <code>null</code>, this storage cannot be attached to an database whose type is matching the expression.
+	 * When not <code>null</code>, this storage cannot be attached to a database whose type is matching the expression.
 	 */
 	private String notDatabaseType = null;
 

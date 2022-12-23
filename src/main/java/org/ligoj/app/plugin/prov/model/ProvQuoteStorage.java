@@ -49,7 +49,7 @@ public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements
 	private Rate latency;
 
 	/**
-	 * Optional required optimized best usage of this storage
+	 * Required optimized usage requirement of this storage
 	 */
 	private ProvStorageOptimized optimized;
 

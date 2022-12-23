@@ -101,7 +101,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price.
+	 * Lookup for an only dynamic price.
 	 */
 	@Test
 	void lookupDynamical() {
@@ -124,7 +124,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price but deleted.
+	 * Lookup for an only dynamic price but deleted.
 	 */
 	@Test
 	void lookupNoMatchDynamical() {
@@ -170,7 +170,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupNoMatch() {
@@ -489,7 +489,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void findCointainerOs() {
+	void findContainerOs() {
 		final var tableItem = qcResource.findOs(subscription);
 		Assertions.assertEquals(2, tableItem.size());
 		Assertions.assertEquals("LINUX", tableItem.get(0));

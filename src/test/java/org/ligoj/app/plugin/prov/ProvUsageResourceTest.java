@@ -152,7 +152,7 @@ class ProvUsageResourceTest extends AbstractProvResourceTest {
 		checkCost(uResource.update(subscription, usage).getTotal(), 3165.4, 5615.0, false);
 		resource.refresh(subscription);
 
-		// Usage -> duration extended to 12 month, the term is updated, cheapest monthly bill
+		// Usage -> duration extended to 12 month, term is updated with a cheaper monthly bill
 		usage.setDuration(12);
 		uResource.update(subscription, usage);
 		checkCost(resource.refresh(subscription), 2982.4, 5139.2, false);

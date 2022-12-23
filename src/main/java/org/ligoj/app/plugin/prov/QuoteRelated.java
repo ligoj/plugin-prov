@@ -18,7 +18,7 @@ import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 
 /**
- * An object related to a quote. Handle cost cost and association validation against the quote.
+ * An object related to a quote. Handle cost and association validation against the quote.
  *
  * @param <C> The related entity.
  */
@@ -148,7 +148,7 @@ public interface QuoteRelated<C extends Costed> {
 	 * Update the quote's cost minimal and maximal values.
 	 *
 	 * @param quote The quote entity.
-	 * @param fc    The cost to add. May be a negative value.
+	 * @param fc    The cost to add. Can be a negative value.
 	 * @return The formal {@code fc} parameter.
 	 */
 	default Floating addCost(final ProvQuote quote, final Floating fc) {
@@ -210,8 +210,8 @@ public interface QuoteRelated<C extends Costed> {
 	}
 
 	/**
-	 * Refresh the resources and the related cost. This is a full optimization where lookups of the best prices is
-	 * performed. Note only the given entity is updated, the related quote's cost is not updated.
+	 * Refresh the resources and the related cost. This is a full optimization lookup of the best prices.
+	 * Note only the given entity is updated, the related quote's cost is not updated.
 	 *
 	 * @param costed The entity to refresh.
 	 * @return The new computed price.

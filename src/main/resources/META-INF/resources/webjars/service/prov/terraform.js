@@ -47,7 +47,7 @@ define([], function () {
                 confI.width *= ratio;
             });
 
-            // Update the progress tooltips and witdh
+            // Update the progress tooltips and width
             var $progress = $status.find('.progress');
             var finished = typeof status.end !== 'undefined';
             for (var i = 0; i <= commandIndex; i++) {
@@ -84,7 +84,7 @@ define([], function () {
                 var text = '';
                 if (configurationI.details) {
                     if (active) {
-                        // Update 2 progressbars: each one has a part of the reserved width
+                        // Update 2 progress bars: each one has a part of the reserved width
                         var total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
                         var full = total === 0 || status.end && !status.failed;
                         var completed = full ? configurationI.width : (configurationI.width * status.completed / total);
@@ -117,7 +117,7 @@ define([], function () {
                     }
                 }
                 if (active && (status.failed || !finished)) {
-                    // Add an overlay text above the progres
+                    // Add an overlay text above the progress
                     $progressI.not('.completing')
                         .html('<span class="progress-text">'
                             + ($messages['service:prov:terraform:status-' + commandI] || Handlebars.compile($messages['service:prov:terraform:status-command'])(commandI)) + '</span>' + text);

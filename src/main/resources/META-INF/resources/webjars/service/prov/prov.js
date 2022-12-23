@@ -1537,16 +1537,12 @@ define(['sparkline', 'd3'], function () {
 				.attr('stroke-width', 1)
 				.attr('class', 'workload-part')
 				.attr('d', line)
-				.on('mouseover', function (e, d) {
-					createCircleTootips(svg, e, d);
-				})
-				.on('mousemove', (e, d) => {
-					createCircleTootips(svg, e, d);
-				})
+				.on('mouseover', (e, d) => createCircleTooltips(svg, e, d))
+				.on('mousemove', (e, d) => createCircleTooltips(svg, e, d))
 		})
 	}
 
-	function createCircleTootips(svg, e, d) {
+	function createCircleTooltips(svg, e, d) {
 		require(['d3'], function (d3, d3Bar) {
 			function tooltip() {
 				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {

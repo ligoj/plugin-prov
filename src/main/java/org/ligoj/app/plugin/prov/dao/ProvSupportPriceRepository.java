@@ -25,10 +25,10 @@ public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPr
 	List<ProvSupportPrice> findAll(String node);
 
 	/**
-	 * Return the {@link ProvSupportPrice} by it's name and related to given subscription.
+	 * Return the {@link ProvSupportPrice} by its name and related to given subscription.
 	 *
 	 * @param subscription The subscription identifier to match.
-	 * @param type         The type name to match. Case insensitive.
+	 * @param type         The type name to match. Case-insensitive.
 	 *
 	 * @return The entity or <code>null</code>.
 	 */
