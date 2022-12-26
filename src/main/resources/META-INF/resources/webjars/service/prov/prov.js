@@ -2457,6 +2457,7 @@ define(['sparkline', 'd3'], function () {
 				_('csv-error-continue').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-usage').val(_('csv-create-missing-usage').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-optimizer').val(_('csv-create-missing-optimizer').is(':checked') ? 'true' : 'false');
+				_('csv-create-missing-budget').val(_('csv-create-missing-budget').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
