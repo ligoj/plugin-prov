@@ -1277,7 +1277,7 @@ define(['sparkline', 'd3'], function () {
 						const data = workload[i].split('@');
 						if (data.length == 2) {
 							durationTotal = durationTotal + parseInt(data[0]);
-							if (durationTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+							if (data[0] != ("" || 0) && data[1] != "") {
 								html_workload(data[0], data[1]);
 							}
 						}
@@ -1305,7 +1305,7 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value
 			}
-			if (durationTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+			if ($(e.target).val() != 0 && $(e.target).val() != '') {
 				if ($(e.target).val() > 100) {
 					$(e.target).val(100);
 				}
@@ -1329,6 +1329,9 @@ define(['sparkline', 'd3'], function () {
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			let index = 0;
 			let durationTotal = 0;
+			let duration = $('#instance-workload-duration').val()
+			let cpu = $('#instance-workload-cpu').val()
+			html_workload(duration, cpu);
 			if (($('.instance-workload-dataDuration').length >= 2)) {
 				while (index < ($('.instance-workload-dataDuration').length)) {
 					durationTotal = durationTotal + parseInt($('.instance-workload-dataDuration')[index].value);
@@ -1337,14 +1340,8 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value;
 			}
-
-			let duration = $('#instance-workload-duration').val()
-			let cpu = $('#instance-workload-cpu').val()
-			if (parseInt(durationTotal) + parseInt(duration) <= 100) {
-				html_workload(duration, cpu);
-				calculate_list_and_createSparkline();
-				$.proxy(current.checkResource, $popup)();
-			}
+			calculate_list_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
 			$('#instance-workload-duration').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
@@ -1400,6 +1397,7 @@ define(['sparkline', 'd3'], function () {
 			$('#instance-workload').removeClass('disabled');
 			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
 			_('mode-workload-details').bootstrapSwitch('state', false);
+			$('.workload-warning').addClass('hidden');
 			calculate_input_and_createSparkline();
 		});
 	}
@@ -1412,6 +1410,14 @@ define(['sparkline', 'd3'], function () {
 							<span class="input-group-addon">%</span>
 							<button type="button" class="btn btn-danger addon-workload"><i class="fas fa-minus" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></button>
 							</div>`));
+	}
+
+	function workloadWarning(durationTotal) {
+		if (durationTotal <= 100) {
+			$('.workload-warning').addClass('hidden')
+		} else {
+			$('.workload-warning').removeClass('hidden')
+		}
 	}
 
 	function calculate_list_and_createSparkline() {
@@ -1434,12 +1440,13 @@ define(['sparkline', 'd3'], function () {
 		}
 
 		let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+		workloadWarning(totalDuration);
 
 		if (workload == 0) {
 			_('instance-workload').val('');
 			$('#sparkline-workload').addClass('hidden');
 		} else {
-			_('instance-workload').val(`${workload}${details}`);
+			_('instance-workload').val(`${Math.round(workload)}${details}`);
 			if ($('.instance-workload-dataDuration').length > 1) {
 				$('#sparkline-workload').removeClass('hidden');
 			} else {
@@ -1461,7 +1468,7 @@ define(['sparkline', 'd3'], function () {
 				let data = input_workload[i].split('@');
 				if (data.length == 2) {
 					totalDuration = totalDuration + parseInt(data[0]);
-					if (totalDuration <= 100 && data[0] != ("" || 0) && data[1] != "") {
+					if (data[0] != ("" || 0) && data[1] != "") {
 						workload = workload + (data[0] * data[1] / 100);
 						details = details + `,${data[0]}@${data[1]}`
 						dataPoints.push({ "duration": data[0], "cpu": data[1] });
@@ -1469,20 +1476,21 @@ define(['sparkline', 'd3'], function () {
 				}
 			}
 			if (workload != 0) {
-				_('instance-workload').val(workload + details);
+				_('instance-workload').val(Math.round(workload) + details);
 			} else {
 				_('instance-workload').val(input_workload[0]);
 			}
 
+			workloadWarning(totalDuration);
 			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
 			createSparkline(sparklinePoints[0], sparklinePoints[1]);
 		} else {
 			$('.svg-workload').addClass("hidden");
 			const val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
 			_('instance-workload').val(val_input);
-			if (_('instance-workload').val() > 100) {
-				_('instance-workload').val('');
-			}
+			//if (_('instance-workload').val() > 100) {
+			//	_('instance-workload').val('');
+			//}
 		}
 	}
 

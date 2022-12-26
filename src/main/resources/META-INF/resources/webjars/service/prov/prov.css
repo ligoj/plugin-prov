@@ -576,3 +576,7 @@ i.icon.mdi-expansion-card {
    border-left-style:groove; 
    position: absolute;
 }
+.workload-warning{
+  position: fixed;
+  font-weight: bolder;
+}
