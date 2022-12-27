@@ -1950,9 +1950,9 @@ define(['sparkline', 'd3'], function () {
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
-			update3States(_('quote-physical'), conf.physical);
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
+			update3States(_('quote-physical'), conf.physical);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -3225,6 +3225,7 @@ define(['sparkline', 'd3'], function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.physical = data.physical;
+			model.processor = data.processor;
 		},
 		computeCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
