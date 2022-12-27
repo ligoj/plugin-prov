@@ -47,6 +47,8 @@ define({
         'service:prov:os-help': 'Operating System pre-installed for this instance. The instance price includes the corresponding license, and is often in relation to the amount of running CPU',
         'service:prov:cpu': 'CPU',
         'service:prov:cpu-help': 'The requested CPU. The best instance matching to this requirement may include more than this amount. So it is important to request a balanced resource (CPU/RAM) to limit this loss.<div class=\'text-left\'><i class=\'fas fa-bolt fa-fw\'></i> Variable CPU has credit with turbo.<br><i class=\'fas fa-minus fa-fw\'></i> Constant CPU delivers a continuous power.</div>',
+        'service:prov:advanced': 'Advanced mode',
+        'service:prov:create-another': 'Create another',
         'service:prov:gpu': 'GPU',
         'service:prov:gpu-help': 'The requested GPU.',
         'service:prov:constant-null': 'Any',
