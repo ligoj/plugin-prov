@@ -257,7 +257,11 @@ define({
 	'csv-headers': 'Entêtes',
 	'csv-headers-included-help': 'Lorsque les entêtes sont en première ligne du fichier',
 	'csv-create-missing-usage': 'Créer profil d\'utilisation',
-	'csv-create-missing-usage-help': 'Créer un profil d\'utilisation non existant au lieu de provoquer une erreur',
+    'csv-create-missing-usage-help': 'Créer un profil d\'utilisation non existant au lieu de provoquer une erreur',
+    'csv-create-missing-budget': 'Créer un budget',
+    'csv-create-missing-budget-help': 'Créer un budget non existant au lieu de provoquer une erreur',
+    'csv-create-missing-optimizer': 'Créer une optimisation',
+    'csv-create-missing-optimizer-help': 'Créer une optimisation non existant au lieu de provoquer une erreur',
 	'csv-separator': 'Séparateur',
 	'csv-separator-help': 'Caractère de séparation des champs du CSV',
 	'error': {

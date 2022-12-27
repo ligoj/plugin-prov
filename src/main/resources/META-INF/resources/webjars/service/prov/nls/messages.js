@@ -264,6 +264,10 @@ define({
         'csv-headers-included-help': 'When headers are in the first line of CSV file',
         'csv-create-missing-usage': 'Create usage',
         'csv-create-missing-usage-help': 'Create non existing usage instead of generating an error',
+        'csv-create-missing-budget': 'Create budget',
+        'csv-create-missing-budget-help': 'Create non existing budget instead of generating an error',
+        'csv-create-missing-optimizer': 'Create optimizer',
+        'csv-create-missing-optimizer-help': 'Create non existing optimizer instead of generating an error',
         'csv-separator': 'Separator',
         'csv-separator-help': 'Separator character of CSV fields',
         'error': {
