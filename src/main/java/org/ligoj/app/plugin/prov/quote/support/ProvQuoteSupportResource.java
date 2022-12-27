@@ -290,7 +290,7 @@ public class ProvQuoteSupportResource
 		final var seats = entity.getSeats();
 		return new Floating(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.getInitialCost(),
-				quote.getMaxInitialCost(), quote.isUnboundCost(), quote.getCo2(), quote.getMaxCo2()).round();
+				quote.getMaxInitialCost(), quote.isUnboundCost(), 0, 0).round();
 	}
 
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,
