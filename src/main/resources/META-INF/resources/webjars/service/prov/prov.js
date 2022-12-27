@@ -194,7 +194,7 @@ define(['sparkline', 'd3'], function () {
 			|| location.countryM49 && matcher(term, current.$messages.m49[parseInt(location.countryM49, 10)])
 			|| location.countryA2 && (matcher(term, location.countryA2) ?? (location.countryA2 === 'UK' && matcher(term, 'GB')));
 	}
-	function newProcessorOpts(type) {
+	function newProcessorOpts(filteredType) {
 		return {
 			placeholder: current.$messages['service:prov:processor-default'],
 			allowClear: true,
@@ -202,9 +202,9 @@ define(['sparkline', 'd3'], function () {
 				if (current.model) {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
-					// Must be found in all resource types
-					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
-						return { id: term, text: '[' + term + ']' };
+                    const type = typeof filteredType === 'function' ? filteredType() : null;
+					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					    return { id: term, text: '[' + term + ']' };
 					}
 				}
 				// Invalid processor
@@ -213,7 +213,8 @@ define(['sparkline', 'd3'], function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					const type = typeof filteredType === 'function' ? filteredType() : null;
+					return { results: (type? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
