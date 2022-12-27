@@ -71,7 +71,6 @@ define({
         'service:prov:instance-custom': 'Custom instance',
         'service:prov:instance-custom-help': 'VM type with custom resources',
         'service:prov:instance-cleared': 'All instances and attached storages have been deleted',
-        'service:prov:instance-choice': 'The best price is determined from the provided requirements',
         'service:prov:instance-type': 'Type',
         'service:prov:instance-type-help': 'Instance type of the provider',
         'service:prov:instance-ephemeral': 'Ephemeral',

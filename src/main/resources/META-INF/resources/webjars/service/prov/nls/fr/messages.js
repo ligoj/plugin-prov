@@ -70,7 +70,6 @@ define({
 	'service:prov:instance-custom': 'Instance personnalisée',
 	'service:prov:instance-custom-help': 'Type de VM avec des ressources personnalisées',
 	'service:prov:instance-cleared': 'Toutes les instances et leurs stockages attachés ont été supprimées',
-	'service:prov:instance-choice': 'La meilleure instance du fournisseur sera choisie en fonction des exigences exprimées',
 	'service:prov:instance-type': 'Type',
 	'service:prov:instance-type-help': 'Type d\'instance du fournisseur',
 	'service:prov:instance-ephemeral': 'Ephémère',
