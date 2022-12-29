@@ -202,9 +202,9 @@ define(['sparkline', 'd3'], function () {
 				if (current.model) {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
-                    const type = typeof filteredType === 'function' ? filteredType() : null;
+					const type = typeof filteredType === 'function' ? filteredType() : null;
 					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
-					    return { id: term, text: '[' + term + ']' };
+						return { id: term, text: '[' + term + ']' };
 					}
 				}
 				// Invalid processor
@@ -214,7 +214,7 @@ define(['sparkline', 'd3'], function () {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
 					const type = typeof filteredType === 'function' ? filteredType() : null;
-					return { results: (type? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					return { results: (type ? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -240,6 +240,49 @@ define(['sparkline', 'd3'], function () {
 			return false;
 		}
 		return null;
+	}
+
+	function applyStorageEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-disk', price.type.minimal, formatStorageEfficiency);
+		} else {
+			// Remove gauges
+			_('popup-prov-storage').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
+	}
+
+	function formatStorageEfficiency(valueGB, minGB, noText) {
+		return formatEfficiency(valueGB, minGB, value => formatManager.formatSize(value * 1024 * 1024 * 1024, 3), noText);
+	}
+
+	function formatRamEfficiency(valueMB, maxMB, noText) {
+		return formatEfficiency(valueMB, maxMB, value => formatManager.formatSize(value * 1024 * 1024, 3), noText)
+	}
+
+	function applyEfficiency(inputId, weight, max, formatter) {
+		const $input = _(inputId);
+		const value = parseFloat($input.val() || '0', 10) * weight;
+		const html = formatter ? formatter(value, max, true) : formatEfficiency(value, max, null, true);
+		const $wrapper = $input.closest('.input-group').next('.input-help');
+		$wrapper.find('.efficiency').remove();
+		$wrapper.addClass('has-gauge').append(html);
+	}
+
+	function applyComputeEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-cpu', 1, price.type.cpu);
+			applyEfficiency('instance-ram', getRamUnitWeight(), price.type.ram, formatRamEfficiency);
+			applyEfficiency('instance-gpu', 1, price.type.gpu);
+		} else {
+			// Remove gauges
+			_('popup-prov-generic').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
 	}
 
 	/**
@@ -282,10 +325,11 @@ define(['sparkline', 'd3'], function () {
 	 * Format the efficiency of a data depending on the rate against the maximum value.
 	 * @param value {number} Current value.
 	 * @param max {number} Maximal value.
-	 * @param formatter {function} Option formatter function of the value. 
+	 * @param formatter {function} Option formatter function of the value.
+	 * @param noText {number} When true, only graphic is displayed.
 	 * @returns {string} The value to display containing the rate.
 	 */
-	function formatEfficiency(value, max, formatter) {
+	function formatEfficiency(value, max, formatter, noText) {
 		let fullClass = null
 		if (typeof max === 'undefined') {
 			max = value;
@@ -309,10 +353,10 @@ define(['sparkline', 'd3'], function () {
 		let formatValue;
 		let formatParams;
 		if (formatter) {
-			formatValue = formatter(value);
+			formatValue = noText ? '' : formatter(value);
 			formatParams = [formatter(value), formatter(max), rate];
 		} else {
-			formatValue = value;
+			formatValue = noText ? '' : value;
 			formatParams = [value, max, rate];
 		}
 		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
@@ -354,9 +398,7 @@ define(['sparkline', 'd3'], function () {
 			return sizeMB;
 		}
 		if (instance) {
-			return formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024, 3);
-			});
+			return formatRamEfficiency(sizeMB, instance.price.type.ram);
 		}
 		return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 	}
@@ -662,9 +704,7 @@ define(['sparkline', 'd3'], function () {
 		}
 		if (data?.price.type.minimal > sizeGB) {
 			// Enable efficiency display
-			return formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-			});
+			return formatStorageEfficiency(sizeGB, data.price.type.minimal);
 		}
 
 		// No efficiency rendering can be done
@@ -2183,7 +2223,7 @@ define(['sparkline', 'd3'], function () {
 				type: 'GET',
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
-					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+					if (suggest?.price || ($.isArray(suggest) && suggest.length)) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$("#separator-database-engine").removeClass("hidden")
@@ -2237,10 +2277,11 @@ define(['sparkline', 'd3'], function () {
 					data: suggests,
 					formatSelection: formatStoragePriceHtml,
 					formatResult: formatStoragePriceHtml
-				}).select2('data', suggest);
+				}).on('change', applyStorageEfficiency).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
 			}
+			applyStorageEfficiency();
 		},
 
 		/**
@@ -2266,6 +2307,9 @@ define(['sparkline', 'd3'], function () {
 			} else {
 				_('instance-price').select2('data', null);
 			}
+
+			// Update the efficiency
+			applyComputeEfficiency();
 		},
 
 		/**
@@ -3630,13 +3674,13 @@ define(['sparkline', 'd3'], function () {
 									let totalCost = 0;
 									let totalCo2 = 0;
 									types.forEach(type => {
-                                        const value = barData[type]
-                                        if (value?.cost || value?.co2) {
-                                            totalCost += value.cost || 0;
-                                            totalCo2 += value.co2 || 0;
-                                            tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster === type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
-                                        }
-                                    });
+										const value = barData[type]
+										if (value?.cost || value?.co2) {
+											totalCost += value.cost || 0;
+											totalCo2 += value.co2 || 0;
+											tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster === type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+										}
+									});
 
 									// Append total
 									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;

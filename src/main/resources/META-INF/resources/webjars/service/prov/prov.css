@@ -580,3 +580,11 @@ i.icon.mdi-expansion-card {
     margin-top: .9em;
     float: left !important;
 }
+
+.input-help.has-gauge {
+	top: -44px;
+}
+.input-help .efficiency {
+  left: -14px;
+  top: 18px;
+}
