@@ -218,7 +218,7 @@ define({
 	'service:prov:usage-upload-help': 'Profil d\'utilisation à associer à chaque instance importée',
 	'service:prov:usage-default': 'Profil d\'utilisation par défaut : {{this}}%',
 	'service:prov:usage-actual-cost': 'Profil d\'utilisation actuel : {{this}}%',
-	'service:prov:usage-partial': 'Utilisation seulement de {{[0]}} sur {{[1]}} disponibles ({{[2]}}%)',
+	'service:prov:usage-partial': 'Utilise seulement <strong>{{[0]}}</strong> ({{[2]}}%) des <strong>{{[1]}}</strong> disponibles',
 	'service:prov:usage-rate': 'Niveau',
 	'service:prov:usage-rate-help': 'Taux dutilisation correspondant à la durée de disponibilité de cette resource. 100% implique toujours disponible.',
 	'service:prov:usage-duration': 'Durée',

@@ -221,7 +221,7 @@ define({
         'service:prov:usage-upload-help': 'Default usage to associate to each imported entry when undefined',
         'service:prov:usage-default': 'Default usage rate : {{this}}%',
         'service:prov:usage-actual-cost': 'Actual usage rate : {{this}}%',
-        'service:prov:usage-partial': 'Use only {{[0]}} of {{[1]}} available ({{[2]}}%)',
+        'service:prov:usage-partial': 'Use only <strong>{{[0]}}</strong> ({{[2]}}%) of <strong>{{[1]}}</strong> available',
         'service:prov:usage-rate': 'Rate',
         'service:prov:usage-rate-help': 'Usage rate corresponding to the time the corresponding resource must be available. 100% implies always up.',
         'service:prov:usage-duration': 'Duration',
