@@ -258,6 +258,7 @@ define({
         'service:prov:workload-help' : 'programming of cpu load and duration of use during a day',
         'service:prov:delete-workload' : 'Delete workload',
 	    'service:prov:add-workload' : 'Add workload',
+        'service:prov:message-copy' : 'Copy',
         'csv-error-continue': 'Continue on error',
         'csv-error-continue-help': 'Continue the import when errors are encountered',
         'csv-headers-included': 'CSV file has headers',

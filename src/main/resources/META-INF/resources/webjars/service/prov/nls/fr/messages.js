@@ -252,6 +252,7 @@ define({
 	'service:prov:workload-help' : ' Programmation de la charge de cpu et de la durée d’utilisation au cours d’une journée',
 	'service:prov:delete-workload' : 'Supprimer la charge',
 	'service:prov:add-workload' : 'Créer la charge',
+	'service:prov:message-copy' : 'Copier',
 	'csv-error-continue': 'Continuer sur erreurs',
 	'csv-error-continue-help': 'Continuer l\'import lorsque des erreurs sont rencontrées',
 	'csv-headers-included': 'CSV contient les entêtes',
