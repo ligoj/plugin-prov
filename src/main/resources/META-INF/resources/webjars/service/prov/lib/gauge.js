@@ -264,7 +264,13 @@ define(['d3'], function (d3) {
 							var that = d3.select(this);
 							let int = d3.interpolate(from, to);
 							return function (t) {
-								that.text(textRounder(int(t)) + percentText);
+								if (int(t) == 100) {
+									that.text("✓");
+									$('.liquidFillGaugeText').attr("font-size", "30px").attr("transform", "translate(25,35.5625)").attr("style", "fill: rgb(1000, 1000, 1000);")
+								} else {
+									that.text(textRounder(int(t)) + percentText);
+									$('.liquidFillGaugeText').attr("font-size", "18.75px").attr("transform", "translate(25,31.5625)").attr("style", "fill: rgb(164, 219, 248);")
+								}
 							};
 						};
 						text1.transition()
