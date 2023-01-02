@@ -3582,6 +3582,7 @@ define(['sparkline', 'd3'], function () {
 						current.enableCreate($popup);
 						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
 						$(_(inputType + '-name')).focus();
+						delete current.model.quote.id
 					} else {
 						$popup.modal('hide');
 					}
