@@ -149,7 +149,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private String optimizer;
 
 	/**
-	 * Optional license model. When <code>null</code>, global's configuration is used. "BYOL" and "INCLUDED" are
+	 * Optional license model. When <code>null</code>, global configuration is used. "BYOL" and "INCLUDED" are
 	 * accepted.
 	 */
 	private String license;

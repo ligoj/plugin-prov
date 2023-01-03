@@ -221,7 +221,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		// Cost is the same since the type still match the constraints
 		checkCost(qs2Resource.update(vo).getCost(), 376.54, 621.5, false);
 
-		// The cost changed since a best type matches to the constraints
+		// The cost changed since a better type matches to the constraints
 		checkCost(qs2Resource.refresh(qs2Repository.findOneExpected(cost.getId())), 338.54, 502.75, false);
 		Assertions.assertEquals("support2", qs2Repository.findOneExpected(cost.getId()).getPrice().getType().getName());
 	}
@@ -435,7 +435,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupNoMatch() {

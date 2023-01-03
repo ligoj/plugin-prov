@@ -316,14 +316,14 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());
 		Assertions.assertFalse(catalogs.get(0).isCanImport());
 		Assertions.assertEquals(0, catalogs.get(0).getNbQuotes());
-		Assertions.assertEquals(null, catalogs.get(0).getPreferredLocation());
+		Assertions.assertNull(catalogs.get(0).getPreferredLocation());
 
 		// This provider supports catalog update
 		Assertions.assertNotNull(catalogs.get(1).getStatus());
 		Assertions.assertEquals("service:prov:test", catalogs.get(1).getNode().getId());
 		Assertions.assertTrue(catalogs.get(1).isCanImport());
 		Assertions.assertEquals(2, catalogs.get(1).getNbQuotes());
-		Assertions.assertEquals(null, catalogs.get(1).getPreferredLocation());
+		Assertions.assertNull(catalogs.get(1).getPreferredLocation());
 
 		// This provider does not support catalog update
 		Assertions.assertEquals("service:prov:x", catalogs.get(2).getNode().getId());

@@ -22,7 +22,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
+	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
@@ -85,10 +85,10 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			int location, int qLocation, Pageable pageable);
 
 	/**
-	 * Return the {@link ProvStoragePrice} by it's name and the location and related to given subscription.
+	 * Return the {@link ProvStoragePrice} by its name and the location and related to given subscription.
 	 *
 	 * @param subscription The subscription identifier to match.
-	 * @param type         The type's code to match. Case sensitive.
+	 * @param type         The type's code to match. Case-sensitive.
 	 * @param location     The expected location identifier.
 	 *
 	 * @return The entity or <code>null</code>.
@@ -102,7 +102,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
-	 * @param location The expected location name. Case sensitive.
+	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
@@ -113,7 +113,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * Return all {@link ProvStoragePrice} related to given node and within a specific location.
 	 *
 	 * @param node The node (provider) to match.
-	 * @param type The expected type code. Case sensitive.
+	 * @param type The expected type code. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
 	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "

@@ -119,7 +119,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price and an adjusted concurrency: success
+	 * Lookup for an only dynamic price and an adjusted concurrency: success
 	 */
 	@Test
 	void lookupDynamicalOptimizedConcurrencyOk() {
@@ -151,7 +151,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price and an adjusted concurrency: keep the floor version
+	 * Lookup for an only dynamic price and an adjusted concurrency: keep the floor version
 	 */
 	@Test
 	void lookupDynamicalOptimizedConcurrencyKo() {
@@ -164,7 +164,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price without concurrency
+	 * Lookup for an only dynamic price without concurrency
 	 */
 	@Test
 	void lookupDynamicalNoConcurrency() {
@@ -177,7 +177,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price with concurrency.
+	 * Lookup for an only dynamic price with concurrency.
 	 */
 	@Test
 	void lookupDynamicalConcurrency() {
@@ -186,7 +186,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price with concurrency covering the all requests.
+	 * Lookup for an only dynamic price with concurrency covering the all requests.
 	 */
 	@Test
 	void lookupDynamicalConcurrencyLow() {
@@ -195,7 +195,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price with concurrency but only at part-time.
+	 * Lookup for an only dynamic price with concurrency but only at part-time.
 	 */
 	@Test
 	void lookupDynamicalConcurrencyDev() {
@@ -212,7 +212,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price requesting RAM at the edge of the increment.
+	 * Lookup for an only dynamic price requesting RAM at the edge of the increment.
 	 */
 	@Test
 	void lookupDynamicalIncrement() {
@@ -237,7 +237,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Lookup for a only dynamic price but deleted.
+	 * Lookup for an only dynamic price but deleted.
 	 */
 	@Test
 	void lookupNoMatchDynamical() {
@@ -288,7 +288,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupNoMatch() {

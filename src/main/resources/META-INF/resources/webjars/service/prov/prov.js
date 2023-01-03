@@ -194,7 +194,7 @@ define(['sparkline', 'd3'], function () {
 			|| location.countryM49 && matcher(term, current.$messages.m49[parseInt(location.countryM49, 10)])
 			|| location.countryA2 && (matcher(term, location.countryA2) ?? (location.countryA2 === 'UK' && matcher(term, 'GB')));
 	}
-	function newProcessorOpts(type) {
+	function newProcessorOpts(filteredType) {
 		return {
 			placeholder: current.$messages['service:prov:processor-default'],
 			allowClear: true,
@@ -202,8 +202,8 @@ define(['sparkline', 'd3'], function () {
 				if (current.model) {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
-					// Must be found in all resource types
-					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					const type = typeof filteredType === 'function' ? filteredType() : null;
+					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -213,7 +213,8 @@ define(['sparkline', 'd3'], function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					const type = typeof filteredType === 'function' ? filteredType() : null;
+					return { results: (type ? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -239,6 +240,49 @@ define(['sparkline', 'd3'], function () {
 			return false;
 		}
 		return null;
+	}
+
+	function applyStorageEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-disk', price.type.minimal, formatStorageEfficiency);
+		} else {
+			// Remove gauges
+			_('popup-prov-storage').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
+	}
+
+	function formatStorageEfficiency(valueGB, minGB, noText) {
+		return formatEfficiency(valueGB, minGB, value => formatManager.formatSize(value * 1024 * 1024 * 1024, 3), noText);
+	}
+
+	function formatRamEfficiency(valueMB, maxMB, noText) {
+		return formatEfficiency(valueMB, maxMB, value => formatManager.formatSize(value * 1024 * 1024, 3), noText)
+	}
+
+	function applyEfficiency(inputId, weight, max, formatter) {
+		const $input = _(inputId);
+		const value = parseFloat($input.val() || '0', 10) * weight;
+		const html = formatter ? formatter(value, max, true) : formatEfficiency(value, max, null, true);
+		const $wrapper = $input.closest('.input-group').next('.input-help');
+		$wrapper.find('.efficiency').remove();
+		$wrapper.addClass('has-gauge').append(html);
+	}
+
+	function applyComputeEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-cpu', 1, price.type.cpu);
+			applyEfficiency('instance-ram', getRamUnitWeight(), price.type.ram, formatRamEfficiency);
+			applyEfficiency('instance-gpu', 1, price.type.gpu);
+		} else {
+			// Remove gauges
+			_('popup-prov-generic').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
 	}
 
 	/**
@@ -281,10 +325,11 @@ define(['sparkline', 'd3'], function () {
 	 * Format the efficiency of a data depending on the rate against the maximum value.
 	 * @param value {number} Current value.
 	 * @param max {number} Maximal value.
-	 * @param formatter {function} Option formatter function of the value. 
+	 * @param formatter {function} Option formatter function of the value.
+	 * @param noText {number} When true, only graphic is displayed.
 	 * @returns {string} The value to display containing the rate.
 	 */
-	function formatEfficiency(value, max, formatter) {
+	function formatEfficiency(value, max, formatter, noText) {
 		let fullClass = null
 		if (typeof max === 'undefined') {
 			max = value;
@@ -308,10 +353,10 @@ define(['sparkline', 'd3'], function () {
 		let formatValue;
 		let formatParams;
 		if (formatter) {
-			formatValue = formatter(value);
+			formatValue = noText ? '' : formatter(value);
 			formatParams = [formatter(value), formatter(max), rate];
 		} else {
-			formatValue = value;
+			formatValue = noText ? '' : value;
 			formatParams = [value, max, rate];
 		}
 		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
@@ -353,9 +398,7 @@ define(['sparkline', 'd3'], function () {
 			return sizeMB;
 		}
 		if (instance) {
-			return formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024, 3);
-			});
+			return formatRamEfficiency(sizeMB, instance.price.type.ram);
 		}
 		return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 	}
@@ -661,9 +704,7 @@ define(['sparkline', 'd3'], function () {
 		}
 		if (data?.price.type.minimal > sizeGB) {
 			// Enable efficiency display
-			return formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-			});
+			return formatStorageEfficiency(sizeGB, data.price.type.minimal);
 		}
 
 		// No efficiency rendering can be done
@@ -1545,16 +1586,12 @@ define(['sparkline', 'd3'], function () {
 				.attr('stroke-width', 1)
 				.attr('class', 'workload-part')
 				.attr('d', line)
-				.on('mouseover', function (e, d) {
-					createCircleTootips(svg, e, d);
-				})
-				.on('mousemove', (e, d) => {
-					createCircleTootips(svg, e, d);
-				})
+				.on('mouseover', (e, d) => createCircleTooltips(svg, e, d))
+				.on('mousemove', (e, d) => createCircleTooltips(svg, e, d))
 		})
 	}
 
-	function createCircleTootips(svg, e, d) {
+	function createCircleTooltips(svg, e, d) {
 		require(['d3'], function (d3, d3Bar) {
 			function tooltip() {
 				if ($('body').has('.d3-tooltip.tooltip-inner').length === 0) {
@@ -1961,9 +1998,9 @@ define(['sparkline', 'd3'], function () {
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
-			update3States(_('quote-physical'), conf.physical);
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
+			update3States(_('quote-physical'), conf.physical);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -2194,7 +2231,7 @@ define(['sparkline', 'd3'], function () {
 				type: 'GET',
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
-					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+					if (suggest?.price || ($.isArray(suggest) && suggest.length)) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$("#separator-database-engine").removeClass("hidden")
@@ -2248,10 +2285,11 @@ define(['sparkline', 'd3'], function () {
 					data: suggests,
 					formatSelection: formatStoragePriceHtml,
 					formatResult: formatStoragePriceHtml
-				}).select2('data', suggest);
+				}).on('change', applyStorageEfficiency).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
 			}
+			applyStorageEfficiency();
 		},
 
 		/**
@@ -2277,6 +2315,9 @@ define(['sparkline', 'd3'], function () {
 			} else {
 				_('instance-price').select2('data', null);
 			}
+
+			// Update the efficiency
+			applyComputeEfficiency();
 		},
 
 		/**
@@ -2465,6 +2506,7 @@ define(['sparkline', 'd3'], function () {
 				_('csv-error-continue').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-usage').val(_('csv-create-missing-usage').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-optimizer').val(_('csv-create-missing-optimizer').is(':checked') ? 'true' : 'false');
+				_('csv-create-missing-budget').val(_('csv-create-missing-budget').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
@@ -3235,6 +3277,7 @@ define(['sparkline', 'd3'], function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.physical = data.physical;
+			model.processor = data.processor;
 		},
 		computeCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
@@ -3547,6 +3590,7 @@ define(['sparkline', 'd3'], function () {
 						current.enableCreate($popup);
 						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
 						$(_(inputType + '-name')).focus();
+						delete current.model.quote.id
 					} else {
 						$popup.modal('hide');
 					}
@@ -3643,9 +3687,10 @@ define(['sparkline', 'd3'], function () {
 										if (value?.cost || value?.co2) {
 											totalCost += value.cost || 0;
 											totalCo2 += value.co2 || 0;
-											tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+											tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster === type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
 										}
 									});
+
 									// Append total
 									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
 									return `<span class="tooltip-text">${tooltip}</span>`;

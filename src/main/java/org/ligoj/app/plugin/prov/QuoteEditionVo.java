@@ -55,7 +55,7 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private String license;
 
 	/**
-	 * Rate applied to required RAM to lookup the suiting instance type. This rate is divided by <code>100</code>, then
+	 * Rate applied to required RAM to find the suiting instance type. This rate is divided by <code>100</code>, then
 	 * multiplied to the required RAM of each memory before calling the lookup. Values lesser than <code>100</code>
 	 * allows the lookup to elect an instance having less RAM than the requested one. Value greater than
 	 * <code>100</code> makes the lookup to request instance types providing more RAM than the requested one.

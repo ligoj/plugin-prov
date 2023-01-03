@@ -56,7 +56,7 @@ public interface QuoteVm {
 	/**
 	 * The typical workload of this resource using repeated CPU baseline and patterns data points.
 	 *
-	 * @return Optional global workload. Default is fulltime 100%.
+	 * @return Optional global workload. Default is full-time 100%.
 	 */
 	String getWorkload();
 
@@ -126,10 +126,10 @@ public interface QuoteVm {
 	String getLicense();
 
 	/**
-	 * Return optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
+	 * Return optional ephemeral constraint. When <code>false</code> (default), only non-ephemeral instance are
 	 * accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 *
-	 * @return Optional ephemeral constraint. When <code>false</code> (default), only non ephemeral instance are
+	 * @return Optional ephemeral constraint. When <code>false</code> (default), only non-ephemeral instance are
 	 *         accepted. Otherwise (<code>true</code>), ephemeral instance contract is accepted.
 	 */
 	boolean isEphemeral();

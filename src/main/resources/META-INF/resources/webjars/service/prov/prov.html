@@ -355,7 +355,6 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">
-						<div class="alert alert-info">{{service:prov:instance-choice}}</div>
 						<div class="form-group required">
 							<label class="control-label col-sm-3" for="instance-name">{{name}}</label>
 							<div class="col-sm-9">
@@ -511,9 +510,7 @@
 										<span class="input-group-addon">% @</span>
 										<input type="number" placeholder="{{service:prov:workload-cpu}}" min="0" max="100" id="instance-workload-cpu" class="form-control">
 										<span class="input-group-addon">%</span>
-										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i>
-											<div class="ripple-container"></div>
-										</button>
+										<button type="button" id="create-workload"class="btn btn-success addon-workload disabled" data-toggle="tooltip" title="{{service:prov:add-workload}}"><i class="fas fa-plus" ></i></button>
 									</div>
 								</li>
 							</ul>
@@ -611,13 +608,13 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<label class="mode-advanced checkbox-inline" for="mode-advanced">
+					<label class="mode-advanced checkbox-inline pull-left" for="mode-advanced">
 						<input type="checkbox" id="mode-advanced">
-						<span>Mode advanced &emsp; </span>
+						<span>{{service:prov:advanced}}</span>
 					</label>
-					<label class="create-another checkbox-inline" for="create-another">
+					<label class="create-another checkbox-inline pull-left" for="create-another">
 						<input type="checkbox" id="create-another">
-						<span>Create another &emsp; </span>
+						<span>{{service:prov:create-another}}</span>
 					</label>
 					<input type="submit" class="btn btn-raised" value="{{save}}" data-loading-text="{{save}} ..." data-complete-text="{{save}}">
 					<button type="button" class="btn btn-link" data-dismiss="modal" aria-hidden="true">{{cancel}}</button>
@@ -805,7 +802,7 @@
 								<br /><code><strong>ram</strong> Minimum memory, Number, in Mega Byte</code>
 								<br /><code><strong>constant</strong> [(null),true,false] for CPU behavior</code>
 								<br /><code><strong>os</strong> [(LINUX),WINDOWS,RHEL,SUSE,CENTOS,DEBIAN]</code>
-								<br /><code><strong>disk</strong> Optional disk size, in Gibi Byte (GiB)</code>
+								<br /><code><strong>disk</strong> Optional disk size, in Gibibyte (GiB)</code>
 								<br /><code><strong>latency</strong> [WORST, LOW, MEDIUM, GOOD, BEST], default is GOOD</code>
 								<br /><code><strong>optimized</strong> [IOPS,THROUGHPUT], default is auto</code>
 								<br /><code><strong>type</strong> Instance type name, case insensitive, default is auto</code>
@@ -889,39 +886,59 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-usage-upload" data-toggle="tooltip" title="{{service:prov:usage-help}}">{{service:prov:usage}}</label>
-							<div class="col-sm-9">
-								<input type="text" id="instance-usage-upload" class="form-control" placeholder="{{default}}" />
-								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
-							</div>
-							<input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-optimizer-upload" data-toggle="tooltip" title="{{service:prov:optimizer-help}}">{{service:prov:optimizer}}</label>
-							<div class="col-sm-9">
-								<input type="text" id="instance-optimizer-upload" class="form-control" placeholder="{{default}}" />
-								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:optimizer-upload-help}}"></i></span>
-							</div>
-							<input type="text" id="instance-optimizer-upload-name" class="hidden" name="optimizer">
-						</div>
-						<div class="form-group">
-							<div class="col-sm-9 col-sm-offset-3">
-								<div class="checkbox">
-									<label for="csv-create-missing-usage">
-										<input type="checkbox" checked id="csv-create-missing-usage" name="createMissingUsage"> {{csv-create-missing-usage}}
-									</label>
-								</div>
-								<p class="help-block">{{csv-create-missing-usage-help}}</p>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-3" for="instance-budget-upload" data-toggle="tooltip" title="{{service:prov:budget-help}}">{{service:prov:budget}}</label>
-							<div class="col-sm-9">
-								<input type="text" id="instance-budget-upload" class="form-control" placeholder="{{default}}" />
-								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-upload-help}}"></i></span>
-							</div>
-							<input type="text" id="instance-budget-upload-name" class="hidden" name="budget">
-						</div>
+                            <label class="control-label col-sm-3" for="instance-usage-upload" data-toggle="tooltip" title="{{service:prov:usage-help}}">{{service:prov:usage}}</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="instance-usage-upload" class="form-control" placeholder="{{default}}" />
+                                <span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:usage-upload-help}}"></i></span>
+                            </div>
+                            <input type="text" id="instance-usage-upload-name" class="hidden" name="usage">
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-9 col-sm-offset-3">
+                                <div class="checkbox">
+                                    <label for="csv-create-missing-usage">
+                                        <input type="checkbox" checked id="csv-create-missing-usage" name="createMissingUsage"> {{csv-create-missing-usage}}
+                                    </label>
+                                </div>
+                                <p class="help-block">{{csv-create-missing-usage-help}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance-optimizer-upload" data-toggle="tooltip" title="{{service:prov:optimizer-help}}">{{service:prov:optimizer}}</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="instance-optimizer-upload" class="form-control" placeholder="{{default}}" />
+                                <span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:optimizer-upload-help}}"></i></span>
+                            </div>
+                            <input type="text" id="instance-optimizer-upload-name" class="hidden" name="optimizer">
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-9 col-sm-offset-3">
+                                <div class="checkbox">
+                                    <label for="csv-create-missing-optimizer">
+                                        <input type="checkbox" checked id="csv-create-missing-optimizer" name="createMissingOptimizer"> {{csv-create-missing-optimizer}}
+                                    </label>
+                                </div>
+                                <p class="help-block">{{csv-create-missing-optimizer-help}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="instance-budget-upload" data-toggle="tooltip" title="{{service:prov:budget-help}}">{{service:prov:budget}}</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="instance-budget-upload" class="form-control" placeholder="{{default}}" />
+                                <span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:budget-upload-help}}"></i></span>
+                            </div>
+                            <input type="text" id="instance-budget-upload-name" class="hidden" name="budget">
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-9 col-sm-offset-3">
+                                <div class="checkbox">
+                                    <label for="csv-create-missing-budget">
+                                        <input type="checkbox" checked id="csv-create-missing-budget" name="createMissingBudget"> {{csv-create-missing-budget}}
+                                    </label>
+                                </div>
+                                <p class="help-block">{{csv-create-missing-budget-help}}</p>
+                            </div>
+                        </div>
 						<div class="form-group">
 							<label class="control-label col-sm-3" for="instance-memory-unit-upload" data-toggle="tooltip">{{service:prov:memory-unit-upload}}</label>
 							<div class="col-sm-9">
@@ -1200,14 +1217,14 @@
 			</div>
 		</div>
 	</form>
-	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" aria-labelledby="u-modal-title" autocomplete="off">
+	<form id="popup-prov-terraform" class="modal fade" tabindex="-1" aria-labelledby="t-modal-title" autocomplete="off">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title" id="u-modal-title">{{service:prov:terraform:execute}}</h4>
+					<h4 class="modal-title" id="t-modal-title">{{service:prov:terraform:execute}}</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-horizontal">

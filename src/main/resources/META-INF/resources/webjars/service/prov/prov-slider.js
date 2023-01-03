@@ -102,8 +102,8 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                         <a class="value"></a>
                         <p>
                             <span class="menu-right menu-label">${label}</span>
-                            <a class="menu-right delete" data-toogle="tooltip" title="${$cascade.$messages.remove}"><i class="fa fa-fw fa-times"></i></a>
-                            <a class="menu-right add"    data-toogle="tooltip" title="${$cascade.$messages.add}"><i class="fa fa-fw fa-plus"></i></a>
+                            <a class="menu-right delete" data-toggle="tooltip" title="${$cascade.$messages.remove}"><i class="fa fa-fw fa-times"></i></a>
+                            <a class="menu-right add"    data-toggle="tooltip" title="${$cascade.$messages.add}"><i class="fa fa-fw fa-plus"></i></a>
                         </p>
                     </li>`)
                 this._enableResize($bar);
@@ -128,7 +128,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 this.formLabel.find('li[data-label="' + label + '"]').removeClass('has-value');
                 this.options.values[this.options.labelsToIndex[label]] = false;
                 if (label === this.selectedLabel) {
-                    // Deleting the current label, swith the label
+                    // Deleting the current label, switch the label
                     this.label(this.options.labels[remaining]);
                 } else {
                     this._synchronizeBar(this.slider.find('[data-label="' + label + '"]'), label, false, true);

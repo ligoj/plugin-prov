@@ -36,14 +36,14 @@ public class ProvSupportPrice extends AbstractPrice<ProvSupportType> implements 
 	private int min;
 
 	/**
-	 * Base 100 percentages. Each rate use ';' as separator, and its order must corresponds to the {@link #limit}'s one.
+	 * Base 100 percentages. Each rate use ';' as separator, and its order must correspond to the {@link #limit}'s one.
 	 * May be <code>null</code> or empty.
 	 */
 	private String rate;
 
 	/**
 	 * Maximal price limit where corresponding {@link #rate} is applicable. Each limit use ';' as separator, and its.
-	 * May be <code>null</code> or empty. order must corresponds to the {@link #rate}'s one.
+	 * May be <code>null</code> or empty. order must correspond to the {@link #rate}'s one.
 	 */
 	private String limit;
 

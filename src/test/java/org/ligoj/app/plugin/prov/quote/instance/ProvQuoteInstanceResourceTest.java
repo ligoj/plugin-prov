@@ -253,7 +253,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Search instance type within a non existing region
+	 * Search instance type within a non-existing region
 	 */
 	@Test
 	void lookupLocationNotFound() {
@@ -365,7 +365,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupNoMatch() {
@@ -408,7 +408,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	/**
-	 * Too much requirements for an instance
+	 * Too many requirements for an instance
 	 */
 	@Test
 	void lookupOnlyCustom() {
@@ -567,7 +567,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(3, deletedS.size());
 		Assertions.assertTrue(deletedS.contains(storage1));
 
-		// The remaining storage for this subscription is not related to a delete instance
+		// The remaining storage for this subscription is not related to a deleted instance
 		Assertions.assertNull(qsRepository.findAll(getQuote()).get(0).getQuoteInstance());
 
 		// Check the exact new cost
@@ -1253,17 +1253,17 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void findSoftwares() {
-		final var tableItem = qiResource.findSoftwares(subscription, VmOs.WINDOWS);
+	void findSoftwareNames() {
+		final var tableItem = qiResource.findSoftwareNames(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(1, tableItem.size());
 		Assertions.assertEquals("SQL WEB", tableItem.get(0));
 	}
 
 	@Test
-	void findSoftwaresNotVisibleSubscription() {
+	void findSoftwareNamesNotVisibleSubscription() {
 		initSpringSecurityContext("any");
 		Assertions.assertThrows(EntityNotFoundException.class,
-				() -> qiResource.findSoftwares(subscription, VmOs.WINDOWS));
+				() -> qiResource.findSoftwareNames(subscription, VmOs.WINDOWS));
 	}
 
 	@Test

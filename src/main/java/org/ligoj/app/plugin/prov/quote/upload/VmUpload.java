@@ -75,12 +75,12 @@ public class VmUpload {
 	private Double ramMax;
 
 	/**
-	 * Optional physical processor. Case insensitive with 'like' match.
+	 * Optional physical processor. Case-insensitive with 'like' match.
 	 */
 	private String processor;
 
 	/**
-	 * The typical workload of this resource using repeated CPU baseline and patterns data points. Default is fulltime 100%.
+	 * The typical workload of this resource using repeated CPU baseline and patterns data points. Default is full-time 100%.
 	 */
 	private String workload;
 
@@ -202,7 +202,7 @@ public class VmUpload {
 	private List<ProvStorageOptimized> optimized = new ArrayList<>();
 
 	/**
-	 * Optional license model. When <code>null</code>, global's license is used. "INCLUDED" and "BYOL" values are
+	 * Optional license model. When <code>null</code>, global license is used. "INCLUDED" and "BYOL" values are
 	 * accepted.
 	 */
 	private String license;

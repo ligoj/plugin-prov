@@ -7,7 +7,7 @@ define({
 	'quotes': 'Nombre de prix basés sur ce catalogue',
 	'lastSuccess': 'Date',
 	'nbLocations': 'Nombre de localisations disponibles pour ce fournisseur',
-	'locationPreferred': 'Localisation préféré',
+	'locationPreferred': 'Localisation préférée',
 	'nbTypes': 'Nombre de types disponibles pour ce fournisseur',
 	'nbPrices': 'Nombre de combinaison de prix disponibles pour ce fournisseur',
 	'percentCo2Prices': 'Pourcentage de prix ayant une donnée d\'équivalent CO2',

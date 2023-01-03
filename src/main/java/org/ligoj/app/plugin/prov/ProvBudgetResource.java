@@ -284,7 +284,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			log.info("Lean monthly cost: {}", t.stream().mapToDouble(i -> i.getPrice().getCost()).sum());
 			log.info("Lean initial cost: {}", t.stream().mapToDouble(i -> i.getPrice().getInitialCost()).sum());
 		}, validatedQi, validatedQb, validatedQc, validatedQf);
-		logLean(c -> log.info("Total intitialCost:{}", c), init);
+		logLean(c -> log.info("Total initialCost:{}", c), init);
 		return Floating.round(init);
 	}
 

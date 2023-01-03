@@ -159,7 +159,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	}
 
 	/**
-	 * Validate the given name can be resolved to an unique resource identifier.
+	 * Validate the given name can be resolved to a unique resource identifier.
 	 */
 	private boolean validateName(final Map<ResourceType, Map<String, Integer>> nameAndIds,
 			final Map<String, Integer> counters, final String name, final IntConsumer setId,
@@ -215,7 +215,7 @@ public class ProvNetworkResource extends AbstractLazyResource {
 	}
 
 	/**
-	 * Create an new {@link ProvNetwork} instance from the user data. Identifiers and consistency are not checked.
+	 * Create a new {@link ProvNetwork} instance from the user data. Identifiers and consistency are not checked.
 	 */
 	private ProvNetwork newNetwork(final ResourceType type, final Integer id, final ProvQuote quote,
 			final NetworkVo t) {

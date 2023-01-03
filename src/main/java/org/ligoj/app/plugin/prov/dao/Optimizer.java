@@ -6,7 +6,7 @@ package org.ligoj.app.plugin.prov.dao;
 import lombok.Getter;
 
 /**
- * Optimizer type of lookups
+ * Optimizer type of findings
  */
 @Getter
 public enum Optimizer {

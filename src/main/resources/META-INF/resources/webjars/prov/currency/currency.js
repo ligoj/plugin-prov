@@ -9,7 +9,7 @@ define(function () {
 
 		initialize: function () {
 			current.initializeDataTable();
-			// update focus when modal popup is dhown
+			// update focus when modal popup is down
 			_('popup').on('shown.bs.modal', function () {
 				_('name').focus();
 			}).on('show.bs.modal', function (event) {

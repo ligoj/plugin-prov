@@ -122,7 +122,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		// Header
 		Assertions.assertEquals(
 				"resource-type;name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;budget;optimizer;term;location;min;max"
-						+ ";maxvariablecost;workload;processor;physical;ephemeral;type;engine;edition;internet;"
+						+ ";maxVariableCost;workload;processor;physical;ephemeral;type;engine;edition;internet;"
 						+ "license;cost;tags" + ";disk;diskMax;diskType;diskLatency;diskOptimized;diskCost;diskTags"
 						+ ";disk1;disk1Max;disk1Type;disk1Latency;disk1Optimized;disk1Cost;disk1Tags"
 						+ ";disk2;disk2Max;disk2Type;disk2Latency;disk2Optimized;disk2Cost;disk2Tags",
@@ -233,7 +233,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Header
 		Assertions.assertEquals(
-				"name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;buget;optimizer;term;location;min;max;maxvariablecost;workload;"
+				"name;cpu;cpuMax;gpu;gpuMax;ram;ramMax;os;usage;budget;optimizer;term;location;min;max;maxVariableCost;workload;"
 						+ "processor;physical;ephemeral;type;internet;license;cost;tags;disk;diskMax;instance;database;"
 						+ "latency;optimized;engine;edition;seats",
 				lines.get(0));
