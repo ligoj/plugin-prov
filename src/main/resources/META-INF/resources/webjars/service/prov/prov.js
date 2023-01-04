@@ -1302,6 +1302,7 @@ define(['sparkline', 'd3'], function () {
 			}
 		}).on('change', '#instance-workload', function (e) {
 			calculate_input_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
 		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
@@ -1438,7 +1439,6 @@ define(['sparkline', 'd3'], function () {
 			$('#instance-workload').removeClass('disabled');
 			_('mode-workload-details').bootstrapSwitch({ onText: '<i class="fas fa-list"></i>', offText: '<i class="far fa-times-circle"></i>' });
 			_('mode-workload-details').bootstrapSwitch('state', false);
-			$('.workload-warning').addClass('hidden');
 			calculate_input_and_createSparkline();
 		});
 	}
@@ -1455,9 +1455,11 @@ define(['sparkline', 'd3'], function () {
 
 	function workloadWarning(durationTotal) {
 		if (durationTotal <= 100) {
-			$('.workload-warning').addClass('hidden')
+			$('.workload-warning').addClass('hidden');
+			$('.part-workload').removeClass('has-error');
 		} else {
-			$('.workload-warning').removeClass('hidden')
+			$('.workload-warning').removeClass('hidden');
+			$('.part-workload').addClass('has-error');
 		}
 	}
 
@@ -1504,22 +1506,22 @@ define(['sparkline', 'd3'], function () {
 		let details = "";
 		let totalDuration = 0;
 		let dataPoints = [];
-		if (input_workload.length > 1) {
-			for (let i = 1; i < input_workload.length; i++) {
+		if (input_workload.length > 1) {		
+			for ( let i =0; i < input_workload.length; i++) {
 				let data = input_workload[i].split('@');
-				if (data.length == 2) {
+				if (data.length == 2 && data[0]!=="") {
 					totalDuration = totalDuration + parseInt(data[0]);
-					if (data[0] != ("" || 0) && data[1] != "") {
+					if (data[0] !== 0 && data[1] !== "") {
 						workload = workload + (data[0] * data[1] / 100);
 						details = details + `,${data[0]}@${data[1]}`
 						dataPoints.push({ "duration": data[0], "cpu": data[1] });
 					}
-				}
+				}	
 			}
-			if (workload != 0) {
-				_('instance-workload').val(Math.round(workload) + details);
-			} else {
+			if (workload == 0) {
 				_('instance-workload').val(input_workload[0]);
+			} else {
+				_('instance-workload').val(Math.round(workload) + details);
 			}
 
 			workloadWarning(totalDuration);
@@ -1529,9 +1531,7 @@ define(['sparkline', 'd3'], function () {
 			$('.svg-workload').addClass("hidden");
 			const val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
 			_('instance-workload').val(val_input);
-			//if (_('instance-workload').val() > 100) {
-			//	_('instance-workload').val('');
-			//}
+			workloadWarning(totalDuration);
 		}
 	}
 
@@ -1554,7 +1554,7 @@ define(['sparkline', 'd3'], function () {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').removeClass("hidden");
 			$('.workload-line').remove();
-			const WIDTH = 250;
+			const WIDTH = 240;
 			const HEIGHT = 40;
 			const MARGIN = { top: 5, right: 0, bottom: 4, left: 2 };
 			const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
