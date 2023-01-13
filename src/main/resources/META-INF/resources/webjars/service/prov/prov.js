@@ -1395,7 +1395,7 @@ define(['sparkline', 'd3'], function () {
 			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
-			const dType = $source.provType();
+			let dType = $source.provType();
 			const $tr = $source.closest('tr');
 			const $table = $tr.closest('table');
 			let quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
@@ -1403,6 +1403,9 @@ define(['sparkline', 'd3'], function () {
 				// Display sub resource
 				if ($source.attr('data-id')) {
 					quote = current.model.configuration[dType + 'sById'][$source.attr('data-id')];
+				} else if (quote.quoteInstance || quote.quoteFunction || quote.quoteContainer || quote.quoteDatabase) {
+					dType = quote.quoteInstance ? "instance" : quote.quoteFunction ? "function" : quote.quoteDatabase ? "database" : "container";
+					quote = quote.quoteInstance ? quote.quoteInstance : quote.quoteFunction ? quote.quoteFunction : quote.quoteDatabase ? quote.quoteDatabase : quote.quoteContainer;
 				} else {
 					quote = quote['quote' + dType.capitalize()];
 				}
@@ -1497,10 +1500,10 @@ define(['sparkline', 'd3'], function () {
 		let details = "";
 		let totalDuration = 0;
 		let dataPoints = [];
-		if (input_workload.length > 1) {
-			for (let i = 1; i < input_workload.length; i++) {
+		if (input_workload.length > 1) {		
+			for ( let i =0; i < input_workload.length; i++) {
 				let data = input_workload[i].split('@');
-				if (data.length == 2) {
+				if (data.length == 2 && data[0]!=="") {
 					totalDuration = totalDuration + parseInt(data[0]);
 					if (totalDuration <= 100 && data[0] != ("" || 0) && data[1] != "") {
 						workload = workload + (data[0] * data[1] / 100);
@@ -3233,7 +3236,7 @@ define(['sparkline', 'd3'], function () {
 			const id = resourceOrId?.id || resourceOrId;
 			if (id) {
 				// The instance is valid
-				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw(false);
+				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === parseInt(id)).invalidate().draw(false);
 			}
 		},
 
@@ -4707,6 +4710,30 @@ define(['sparkline', 'd3'], function () {
 				return
 			}
 
+			// Update the current object
+			if (resource) {
+				current.updateCost(conf, type, updatedCost.cost, resource);
+
+				if (conf[type + 'sById'][updatedCost.id]) {
+					// Update : Redraw the row
+					nbUpdated++;
+					updatedSample = resource.name;
+					current.redrawResource(type, updatedCost.id);
+				} else {
+					// Create
+					conf[type + 's'].push(resource);
+					conf[type + 'sById'][updatedCost.id] = resource;
+					resource.id = updatedCost.id;
+					nbCreated++;
+					createdSample = resource.name;
+					_('prov-' + type + 's').DataTable().row.add(resource).draw(false);
+				}
+			} else if (updatedCost.id) {
+				// Delete this object
+				nbDeleted++;
+				deletedSample = current.delete(type, updatedCost.id).name;
+			}
+
 			// Look the deleted resources
 			Object.keys(deleted).forEach(t => {
 				// For each deleted resource of this type, update the UI and the cost in the model
@@ -4732,29 +4759,6 @@ define(['sparkline', 'd3'], function () {
 				});
 			});
 
-			// Update the current object
-			if (resource) {
-				current.updateCost(conf, type, updatedCost.cost, resource);
-
-				if (conf[type + 'sById'][updatedCost.id]) {
-					// Update : Redraw the row
-					nbUpdated++;
-					updatedSample = resource.name;
-					current.redrawResource(type, updatedCost.id);
-				} else {
-					// Create
-					conf[type + 's'].push(resource);
-					conf[type + 'sById'][updatedCost.id] = resource;
-					resource.id = updatedCost.id;
-					nbCreated++;
-					createdSample = resource.name;
-					_('prov-' + type + 's').DataTable().row.add(resource).draw(false);
-				}
-			} else if (updatedCost.id) {
-				// Delete this object
-				nbDeleted++;
-				deletedSample = current.delete(type, updatedCost.id).name;
-			}
 
 			if (conf.cost.min !== updatedCost.total.min || conf.cost.max !== updatedCost.total.max || conf.cost.unbound !== updatedCost.total.unbound) {
 				console.log('Need to readjust the computed cost: min=' + (updatedCost.total.min - conf.cost.min)
