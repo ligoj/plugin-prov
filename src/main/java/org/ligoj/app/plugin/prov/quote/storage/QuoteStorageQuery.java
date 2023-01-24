@@ -69,7 +69,7 @@ public class QuoteStorageQuery implements QuoteStorage {
 	 * The optional requested quote function to be associated. Cannot be not <code>null</code> with {@link #instance} or
 	 * {@link #database} or {@link #container}.
 	 */
-	@QueryParam("container")
+	@QueryParam("function")
 	private Integer function;
 
 	/**
