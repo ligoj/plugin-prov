@@ -74,7 +74,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                     .attr('data-original-title', valueF);
                 if (typeof value === 'number') {
                     this.formGroup.find('li[data-label="' + label + '"]').addClass('has-value').find('.value').html(valueF);
-                    if (label === this.selectedLabel && this.input.val() !== value) {
+                    if (label === this.selectedLabel && this.input.val() != value) {
                         this.input.val(value);
                     }
                 } else {
@@ -207,7 +207,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 this.input.off('input.slider').on('input.slider', function () {
                     const val = $(this).val();
                     if ($.isNumeric(val)) {
-                        $.proxy($that.value, $that)($that.selectedLabel, parseInt(val, 10));
+                        $.proxy($that.value, $that)($that.selectedLabel, parseFloat(val, 10));
                     }
                     return true;
                 });
@@ -246,7 +246,10 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             _resize: function ($bar, data) {
                 // live update the start/end dates
                 const label = this._getLabel($bar);
-                const value = this._pixelToValue(data.size.width);
+                let value = this._pixelToValue(data.size.width);
+                if (data.element.parent().parent().children().prevObject.find("#instance-ramRate")[0]) {
+                    value = Math.round(value)
+                }
                 const constraints = this._getConstraints(label);
                 if (value < constraints.min || value > constraints.max) {
                     // Invalidate this resize
@@ -288,7 +291,10 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
             },
 
             _onStopDrag: function (e, $bar, data) {
-                const value = this._pixelToValue(data.size.width);
+                let value = this._pixelToValue(data.size.width);
+                if (e.target.parentNode.parentElement.firstChild.nextSibling.getAttribute('id') == 's2id_instance-ramRate') {
+                    value = Math.round(value);
+                }        
                 const label = this._getLabel($bar);
                 const constraints = this._getConstraints(label);
                 const previousValue = this.options.values[this.options.labelsToIndex[label]];
@@ -306,7 +312,7 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Convert a pixel value position to milliseconds.
              */
             _pixelToValue: function (width) {
-                return Math.round(this.options.toValue(width, this.options.width, this.options.max, this.options.toInternal));
+                return Math.round(this.options.toValue(width, this.options.width, this.options.max, this.options.toInternal) * 10) / 4;
             },
 
             /**
