@@ -912,14 +912,78 @@ define(['sparkline', 'd3'], function () {
 	}
 
 	/**
-	 * Return the HTML markup from the quote resource.
-	 */
-	function formatName(name, mode, resource) {
-		if (mode !== 'display') {
-			return name
-		}
-		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`;
-	}
+     * Return the HTML markup from the quote resource.
+     */
+    function formatName(name, mode, resource) {
+        if (mode !== 'display') {
+            return name
+        }
+        let details;
+        // cost
+        details = formatCost(resource.cost);
+        // co2  
+        if (resource.co2) {
+            details += '<br><i class=\'fas fa-leaf\'></i> ';
+            details += formatCo2(resource.co2);
+        }
+        // cpu
+        if (resource.cpu) {
+            details += '<br><i class=\'fas fa-bolt\'></i> ';
+            details += formatCpu(resource.cpu);
+        }
+        // ram
+        if (resource.ram) {
+            details += '<br><i class=\'fas fa-memory\'></i> ';
+            details += formatRam(resource.ram);
+        }
+        // gpu
+        if (resource.gpu) {
+            details += '<br><i class=\'icon mdi-expansion-card\'></i> ';
+            details += formatGpu(resource.gpu);
+        }
+        // currency
+        if (resource.currency) {
+            details += '<br><i class=\'fas fa-stream\'></i> ';
+            details += resource.currency ? `${resource.currency}` : '';
+        }
+        // duration
+        if (resource.duration) {
+            details += '<br><i class=\'fas fa-stopwatch\'></i> ';
+            details += resource.duration ? `${resource.duration}` : ''; 
+        }
+        // engine
+        if (resource.engine) {
+            details += '<br>Moteur : ';
+            details += formatDatabaseEngine(resource.engine);
+        }
+        // latency 
+        if (resource.latency) {
+            details += '<br>latency :  ';
+            details += resource.latency ? `${resource.latency}` : '';
+        }
+        // internet
+        if (resource.internet) {
+            details += '<br>Internet : ';
+            details += formatInternet(resource.internet);
+        }
+        // localisationName
+        if (resource.localisationName) {
+            details += '<br><i class=\'fas fa-map-marker-alt fa-fw\'></i> ';
+            details += resource.localisationName ? `${resource.localisationName}` : '';
+        }
+        // os
+        if (resource.os) {
+            details += '<br>OS : ';
+            details += formatOs(resource.os);
+        }
+        // optimized
+        if (resource.optimized) {
+            details += '<br>Optimized : ';
+            details += resource.optimized ? `${resource.optimized}` : '';
+        }
+        var link = `<a class="update details-help" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`
+        return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}" >${link}</u>`;
+    }
 
 	/**
 	 * Return the HTML markup from the support level.
