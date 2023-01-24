@@ -151,7 +151,7 @@ define(['d3', 'jquery'], function (d3) {
             }
         }
 
-        function refresh(Tooltip) {
+        function refresh(hint) {
 
             // retrieving params to avoid putting params.x everywhere
             let svg = params.canvas.svg,
@@ -168,8 +168,8 @@ define(['d3', 'jquery'], function (d3) {
                 legend = params.legend,
                 maxPerBin = params.maxPerBin;
 
-            if (Tooltip) {
-                params.tooltip = Tooltip;
+            if (hint) {
+                params.tooltip = hint;
             }
 
             let transDuration = 700;
