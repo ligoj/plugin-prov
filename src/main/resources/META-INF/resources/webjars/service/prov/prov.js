@@ -1398,7 +1398,8 @@ define(['sparkline', 'd3'], function () {
 			const dType = $source.provType();
 			const $tr = $source.closest('tr');
 			const $table = $tr.closest('table');
-			let quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			let quote = ($tr.length && Object.assign({}, $table.dataTable().fnGetData($tr[0]))) || {};
+			$source[0].className == 'copy' ? delete quote['id'] && delete quote['name'] : '';
 			if (dType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub resource
 				if ($source.attr('data-id')) {
@@ -2273,6 +2274,9 @@ define(['sparkline', 'd3'], function () {
 			const suggests = current.toSuggests(quote);
 			if (suggests) {
 				const suggest = suggests[0];
+				if (!current.model.quote.name &&  current.model.quote.id ){
+					delete suggest['id']
+				}
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: formatStoragePriceHtml,
@@ -2319,6 +2323,9 @@ define(['sparkline', 'd3'], function () {
 			const suggests = current.toSuggests(quote);
 			if (suggests) {
 				const suggest = suggests[0];
+				if (!current.model.quote.name &&  current.model.quote.id ){
+					delete suggest['id']
+				}
 				_('support-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
@@ -2439,12 +2446,13 @@ define(['sparkline', 'd3'], function () {
 			}
 			oSettings.columns.push({
 				data: null,
-				width: '51px',
+				width: '65px',
 				orderable: false,
 				searchable: false,
 				type: 'string',
 				render: function () {
 					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
+						+ `<a class="copy" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-copy" data-toggle="tooltip" title="${current.$messages['service:prov:message-copy']}"></i></a>`
 						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></a>`
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
