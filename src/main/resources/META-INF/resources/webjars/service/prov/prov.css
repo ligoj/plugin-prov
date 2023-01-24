@@ -576,6 +576,11 @@ i.icon.mdi-expansion-card {
    border-left-style:groove; 
    position: absolute;
 }
+.workload-warning{
+  position: fixed;
+  font-weight: bolder;
+}
+  
 .checkbox-inline.mode-advanced, .checkbox-inline.create-another {
     margin-top: .9em;
     float: left !important;

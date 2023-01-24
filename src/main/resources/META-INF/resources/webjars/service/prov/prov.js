@@ -1302,6 +1302,7 @@ define(['sparkline', 'd3'], function () {
 			}
 		}).on('change', '#instance-workload', function (e) {
 			calculate_input_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
 		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
@@ -1318,7 +1319,7 @@ define(['sparkline', 'd3'], function () {
 						const data = workload[i].split('@');
 						if (data.length == 2) {
 							durationTotal = durationTotal + parseInt(data[0]);
-							if (durationTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+							if (data[0] > 0) {
 								html_workload(data[0], data[1]);
 							}
 						}
@@ -1346,7 +1347,7 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value
 			}
-			if (durationTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+			if ($(e.target).val() != 0 && $(e.target).val() != '') {
 				if ($(e.target).val() > 100) {
 					$(e.target).val(100);
 				}
@@ -1370,6 +1371,9 @@ define(['sparkline', 'd3'], function () {
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			let index = 0;
 			let durationTotal = 0;
+			const duration = $('#instance-workload-duration').val()
+			const cpu = $('#instance-workload-cpu').val()
+			html_workload(duration, cpu);
 			if (($('.instance-workload-dataDuration').length >= 2)) {
 				while (index < ($('.instance-workload-dataDuration').length)) {
 					durationTotal = durationTotal + parseInt($('.instance-workload-dataDuration')[index].value);
@@ -1378,14 +1382,8 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value;
 			}
-
-			let duration = $('#instance-workload-duration').val()
-			let cpu = $('#instance-workload-cpu').val()
-			if (parseInt(durationTotal) + parseInt(duration) <= 100) {
-				html_workload(duration, cpu);
-				calculate_list_and_createSparkline();
-				$.proxy(current.checkResource, $popup)();
-			}
+			calculate_list_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
 			$('#instance-workload-duration').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
@@ -1456,6 +1454,16 @@ define(['sparkline', 'd3'], function () {
 							</div>`));
 	}
 
+	function workloadWarning(durationTotal) {
+		if (durationTotal <= 100) {
+			$('.workload-warning').addClass('hidden');
+			$('.part-workload').removeClass('has-error');
+		} else {
+			$('.workload-warning').removeClass('hidden');
+			$('.part-workload').addClass('has-error');
+		}
+	}
+
 	function calculate_list_and_createSparkline() {
 		$('.svg-workload').addClass("hidden");
 		const $detailsDuration = $('.instance-workload-dataDuration');
@@ -1476,12 +1484,13 @@ define(['sparkline', 'd3'], function () {
 		}
 
 		let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+		workloadWarning(totalDuration);
 
 		if (workload == 0) {
 			_('instance-workload').val('');
 			$('#sparkline-workload').addClass('hidden');
 		} else {
-			_('instance-workload').val(`${workload}${details}`);
+			_('instance-workload').val(formatInputWorkload(workload, details));
 			if ($('.instance-workload-dataDuration').length > 1) {
 				$('#sparkline-workload').removeClass('hidden');
 			} else {
@@ -1499,21 +1508,21 @@ define(['sparkline', 'd3'], function () {
 		let totalDuration = 0;
 		let dataPoints = [];
 		if (input_workload.length > 1) {
-			for (let i = 1; i < input_workload.length; i++) {
+			for (let i = 0; i < input_workload.length; i++) {
 				let data = input_workload[i].split('@');
-				if (data.length == 2) {
+				if (data.length == 2 && data[0] > 0) {
 					totalDuration = totalDuration + parseInt(data[0]);
-					if (totalDuration <= 100 && data[0] != ("" || 0) && data[1] != "") {
+					if (data[1] !== "") {
 						workload = workload + (data[0] * data[1] / 100);
 						details = details + `,${data[0]}@${data[1]}`
 						dataPoints.push({ "duration": data[0], "cpu": data[1] });
 					}
 				}
 			}
-			if (workload != 0) {
-				_('instance-workload').val(workload + details);
-			} else {
+			if (workload == 0) {
 				_('instance-workload').val(input_workload[0]);
+			} else {
+				_('instance-workload').val(formatInputWorkload(workload, details));
 			}
 
 			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
@@ -1522,10 +1531,12 @@ define(['sparkline', 'd3'], function () {
 			$('.svg-workload').addClass("hidden");
 			const val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
 			_('instance-workload').val(val_input);
-			if (_('instance-workload').val() > 100) {
-				_('instance-workload').val('');
-			}
 		}
+		workloadWarning(totalDuration);
+	}
+
+	function formatInputWorkload(workload, details) {
+		return Math.round(workload) + details
 	}
 
 	function create_points(dataPoints, totalDuration, workload) {
@@ -1547,7 +1558,7 @@ define(['sparkline', 'd3'], function () {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').removeClass("hidden");
 			$('.workload-line').remove();
-			const WIDTH = 250;
+			const WIDTH = 240;
 			const HEIGHT = 40;
 			const MARGIN = { top: 5, right: 0, bottom: 4, left: 2 };
 			const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
@@ -3411,7 +3422,7 @@ define(['sparkline', 'd3'], function () {
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
-			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
+			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128.0 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-gpu').val(quote.gpu || 0);
 			_('instance-workload').val(quote.workload || null);
