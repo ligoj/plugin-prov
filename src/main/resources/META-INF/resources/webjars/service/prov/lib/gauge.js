@@ -264,7 +264,7 @@ define(['d3'], function (d3) {
 							var that = d3.select(this);
 							let int = d3.interpolate(from, to);
 							return function (t) {
-								if (int(t) == 100) {
+								if (int(t) >= 99) {
 									that.text("✓");
 									$('.liquidFillGaugeText').attr("font-size", "30px").attr("transform", "translate(25,35.5625)").attr("style", "fill: rgb(1000, 1000, 1000);")
 								} else {
