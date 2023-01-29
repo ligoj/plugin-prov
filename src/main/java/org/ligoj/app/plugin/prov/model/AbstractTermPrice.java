@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
 
 /**
  * A priced term based resource with billing configuration. <br>
@@ -46,7 +47,7 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	/**
 	 * The CO2 for the whole period defined in the term.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2Period;
 
 	/**

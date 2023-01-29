@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -118,7 +119,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2 = 0d;
 
 	/**
@@ -127,7 +128,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double maxCo2 = 0d;
 
 }
