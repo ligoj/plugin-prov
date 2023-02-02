@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;

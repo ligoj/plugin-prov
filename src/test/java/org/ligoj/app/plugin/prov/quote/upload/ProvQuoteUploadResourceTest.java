@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;

@@ -3,10 +3,10 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Configurable;
 import org.ligoj.bootstrap.core.model.AbstractNamedEntity;

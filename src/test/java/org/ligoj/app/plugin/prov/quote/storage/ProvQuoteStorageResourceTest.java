@@ -6,7 +6,7 @@ package org.ligoj.app.plugin.prov.quote.storage;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

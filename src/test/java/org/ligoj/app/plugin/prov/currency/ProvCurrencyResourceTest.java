@@ -5,7 +5,7 @@ package org.ligoj.app.plugin.prov.currency;
 
 import java.io.IOException;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

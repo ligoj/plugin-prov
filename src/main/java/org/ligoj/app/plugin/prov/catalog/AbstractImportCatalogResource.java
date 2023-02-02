@@ -20,9 +20,9 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContextType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;

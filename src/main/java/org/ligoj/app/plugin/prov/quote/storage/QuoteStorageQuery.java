@@ -3,9 +3,9 @@
  */
 package org.ligoj.app.plugin.prov.quote.storage;
 
-import javax.validation.constraints.Positive;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.validation.constraints.Positive;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.QuoteStorage;

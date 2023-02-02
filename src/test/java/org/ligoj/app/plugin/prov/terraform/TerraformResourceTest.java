@@ -14,9 +14,9 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;

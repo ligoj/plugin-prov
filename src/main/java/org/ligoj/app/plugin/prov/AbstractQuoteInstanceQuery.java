@@ -3,9 +3,9 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.PositiveOrZero;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.model.QuoteVm;
 import org.ligoj.app.plugin.prov.model.Rate;

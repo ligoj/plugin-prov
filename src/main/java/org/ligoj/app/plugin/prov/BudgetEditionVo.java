@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import org.ligoj.bootstrap.core.NamedBean;
 

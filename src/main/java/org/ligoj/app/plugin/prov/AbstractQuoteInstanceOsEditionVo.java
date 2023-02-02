@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.Positive;
 
 import org.ligoj.app.plugin.prov.model.VmOs;
 

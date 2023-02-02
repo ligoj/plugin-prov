@@ -3,8 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.quote.container;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceQuery;
 import org.ligoj.app.plugin.prov.model.QuoteContainer;

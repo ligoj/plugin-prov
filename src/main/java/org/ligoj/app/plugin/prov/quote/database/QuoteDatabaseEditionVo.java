@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.quote.database;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;
