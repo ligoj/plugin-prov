@@ -23,7 +23,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Setter
 @ToString(of = { "license" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTermPrice<T> {
+public abstract class AbstractTermPriceVm<T extends AbstractCodedEntity> extends AbstractTermPrice<T> {
 
 	/**
 	 * SID

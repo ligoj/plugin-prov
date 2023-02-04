@@ -3,19 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import jakarta.persistence.Column;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
-
-import org.hibernate.annotations.ColumnDefault;
-import org.ligoj.bootstrap.core.model.AbstractPersistable;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 /**
  * Resource price context.
@@ -26,7 +22,7 @@ import lombok.ToString;
 @Setter
 @MappedSuperclass
 @ToString(of = { "cost", "type", "location" })
-public abstract class AbstractPrice<T extends ProvType> extends AbstractPersistable<Integer> {
+public abstract class AbstractPrice<T extends AbstractCodedEntity> extends AbstractPersistable<Integer> {
 
 	/**
 	 * The internal offer code.

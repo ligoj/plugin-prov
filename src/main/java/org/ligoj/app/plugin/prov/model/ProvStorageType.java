@@ -25,7 +25,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "LIGOJ_PROV_STORAGE_TYPE", uniqueConstraints = { @UniqueConstraint(columnNames = { "name", "node" }),
 		@UniqueConstraint(columnNames = { "code", "node" }) })
-public class ProvStorageType extends AbstractCodedEntity implements ProvType {
+public class ProvStorageType extends AbstractCodedEntity {
 
 	/**
 	 * SID

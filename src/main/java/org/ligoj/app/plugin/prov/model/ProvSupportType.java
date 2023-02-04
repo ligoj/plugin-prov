@@ -23,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_SUPPORT_TYPE", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "node" }))
-public class ProvSupportType extends AbstractCodedEntity implements ProvType {
+public class ProvSupportType extends AbstractCodedEntity {
 
 	/**
 	 * SID

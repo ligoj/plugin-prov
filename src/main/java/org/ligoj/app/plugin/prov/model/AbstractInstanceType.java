@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class AbstractInstanceType extends AbstractCodedEntity implements ProvType {
+public abstract class AbstractInstanceType extends AbstractCodedEntity {
 
 	/**
 	 * SID

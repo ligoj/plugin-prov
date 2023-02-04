@@ -283,7 +283,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 
 		Mockito.doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository)
-				.finUsedPrices("service:prov:some");
+				.findUsedPrices("service:prov:some");
 
 		purgePrices(newContext, previous, pRepository, qRepository);
 

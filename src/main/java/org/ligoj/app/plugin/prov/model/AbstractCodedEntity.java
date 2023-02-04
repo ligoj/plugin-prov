@@ -26,7 +26,7 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractCodedEntity extends AbstractDescribedEntity<Integer> implements NodeScoped<Integer> {
+public abstract class AbstractCodedEntity extends AbstractDescribedEntity<Integer> implements NodeScoped<Integer>, ProvType {
 
 	/**
 	 * SID

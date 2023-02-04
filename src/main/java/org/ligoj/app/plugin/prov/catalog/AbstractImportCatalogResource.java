@@ -3,27 +3,14 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.ObjDoubleConsumer;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceContextType;
-
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,41 +19,8 @@ import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
-import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
-import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStorageTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvSupportTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
-import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
-import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuote;
-import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
-import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
-import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvType;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.dao.*;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.dao.csv.CsvForJpa;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -76,12 +30,16 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.ObjDoubleConsumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Base catalog management with rating.
@@ -502,7 +460,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
-	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
+	protected <T extends AbstractCodedEntity, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		context.getPrices().add(price.getCode());
@@ -522,7 +480,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param persister  The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
-	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
+	protected <T extends AbstractCodedEntity, P extends AbstractPrice<T>> P saveAsNeededInternal(final AbstractUpdateContext context,
 			final P price, final double oldCost, final double newCost, final ObjDoubleConsumer<Double> updateCost,
 			final Consumer<P> persister) {
 		final var newCostR = round3Decimals(newCost);
@@ -703,7 +661,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param repository The repository used for persist.
 	 * @return The saved price.
 	 */
-	protected <T extends ProvType, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
+	protected <T extends AbstractCodedEntity, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repository) {
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
 				repository::save);
@@ -880,14 +838,14 @@ public abstract class AbstractImportCatalogResource {
 	 * @param <P>          The price type.
 	 * @param <Q>          The quote type.
 	 */
-	protected <T extends ProvType, P extends AbstractPrice<T>, Q extends AbstractQuote<P>> void purgePrices(
+	protected <T extends AbstractCodedEntity, P extends AbstractPrice<T>, Q extends AbstractQuote<P>> void purgePrices(
 			final AbstractUpdateContext context, final Map<String, P> storedPrices,
 			final CrudRepository<P, Integer> pRepository, final BaseProvQuoteRepository<Q> qRepository) {
 		final var retiredCodes = new HashSet<>(storedPrices.keySet());
 		retiredCodes.removeAll(context.getPrices());
 		if (!retiredCodes.isEmpty()) {
 			final var nbRetiredCodes = retiredCodes.size();
-			retiredCodes.removeAll(qRepository.finUsedPrices(context.getNode().getId()));
+			retiredCodes.removeAll(qRepository.findUsedPrices(context.getNode().getId()));
 			log.info("Purging {} unused of {} retired catalog prices ...", retiredCodes.size(), nbRetiredCodes);
 			retiredCodes.stream().map(storedPrices::get).forEach(pRepository::delete);
 			log.info("Code purged");

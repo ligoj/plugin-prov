@@ -25,7 +25,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = { "os" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPriceVmOs<T extends ProvType> extends AbstractTermPriceVm<T> {
+public abstract class AbstractTermPriceVmOs<T extends AbstractCodedEntity> extends AbstractTermPriceVm<T> {
 
 	/**
 	 * SID

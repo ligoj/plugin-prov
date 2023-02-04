@@ -3,17 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.io.Serializable;
-
-import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
+
+import java.io.Serializable;
 
 /**
  * A priced term based resource with billing configuration. <br>
@@ -27,7 +25,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Setter
 @ToString(of = { "term" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPrice<T> implements Serializable {
+public abstract class AbstractTermPrice<T extends AbstractCodedEntity> extends AbstractPrice<T> implements Serializable {
 
 	/**
 	 * SID
