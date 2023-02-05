@@ -596,7 +596,7 @@ define(['sparkline', 'd3'], function () {
 	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
 	 * @return The formatted cost.
 	 */
-	function formatFloat(cost, mode, obj, noRichText, type = 'cost') {
+	function formatFloat(cost, mode, obj, noRichText, type) {
 		if (mode === 'sort' || mode === 'filter') {
 			return cost;
 		}
@@ -1461,14 +1461,17 @@ define(['sparkline', 'd3'], function () {
 			const $tr = $source.closest('tr');
 			const $table = $tr.closest('table');
 			let quote = ($tr.length && Object.assign({}, $table.dataTable().fnGetData($tr[0]))) || {};
-			$source[0].className == 'copy' ? delete quote['id'] && delete quote['name'] : '';
+			if ($source.hasClass('copy')) {
+                delete quote.id;
+                delete quote.name;
+            };
 			if (dType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub resource
 				if ($source.attr('data-id')) {
 					quote = current.model.configuration[dType + 'sById'][$source.attr('data-id')];
 				} else if (quote.quoteInstance || quote.quoteFunction || quote.quoteContainer || quote.quoteDatabase) {
 					dType = quote.quoteInstance ? "instance" : quote.quoteFunction ? "function" : quote.quoteDatabase ? "database" : "container";
-					quote = quote.quoteInstance ? quote.quoteInstance : quote.quoteFunction ? quote.quoteFunction : quote.quoteDatabase ? quote.quoteDatabase : quote.quoteContainer;
+					quote = quote.quoteInstance || quote.quoteFunction || quote.quoteContainer || quote.quoteDatabase;
 				} else {
 					quote = quote['quote' + dType.capitalize()];
 				}
