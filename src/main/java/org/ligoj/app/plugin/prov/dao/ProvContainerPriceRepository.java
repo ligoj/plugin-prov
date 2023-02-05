@@ -50,7 +50,7 @@ public interface ProvContainerPriceRepository
 	@Query(DYNAMIC_QUERY_OS + """
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
+	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double cpu2, double gpu, double gpu2, double ram, double ram2,
 			VmOs os, int location, double rate, double globalRate, double duration, String license, double initialCost,
 			Pageable pageable);
 
@@ -76,7 +76,7 @@ public interface ProvContainerPriceRepository
 	@Query(DYNAMIC_QUERY_OS + """
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
+	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu,double cpu2, double gpu, double gpu2, double ram,double ram2,
 			VmOs os, int location, double rate, double globalRate, double duration, String license, double initialCost,
 			Pageable pageable);
 	/**

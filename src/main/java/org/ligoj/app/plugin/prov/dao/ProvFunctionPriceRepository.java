@@ -195,17 +195,17 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     ip.location.id = :location
 			 AND ip.incrementCpu IS NOT NULL
 			 AND ip.incrementRam IS NOT NULL
-			 AND (ip.maxCpu IS NULL or ip.maxCpu >= :cpu)
-			 AND (ip.maxRam IS NULL OR ip.maxRam >= :ram)
-			 AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
-			 AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
-			 AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
-			 AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
+			 AND (ip.maxCpu      IS NULL OR ip.maxCpu >= :cpu2)
+			 AND (ip.maxRam      IS NULL OR ip.maxRam >= :ram2)
+			 AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration2)
+			 AND (ip.initialCost IS NULL OR ip.initialCost <= :initialCost)
+			 AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu3) * ip.maxRamRatio <= :ram3)
+			 AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency2 = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency3 > 0.0)
 			 AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
 			""";
 
 	String LOWEST_QUERY = BaseProvTermPriceRepository.LOWEST_QUERY_TERM + """
-			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration)
+			  AND (ip.maxDuration IS NULL OR ip.maxDuration >= :requestDuration2)
 			""";
 
 	/**
@@ -233,9 +233,9 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	@Query(DYNAMIC_QUERY + """
 			 ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double ram, int location,
+	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double cpu2, double cpu3, double ram, double ram2, double ram3, int location,
 			double rate, double globalRate, double duration, double initialCost, double nbRequests,
-			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
+			double realConcurrency, double reservedConcurrency, double reservedConcurrency2, double reservedConcurrency3, double requestDuration,double requestDuration2, double concurrencyMonth,
 			double rateFull, Pageable pageable);
 
 	/**
@@ -263,9 +263,9 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	@Query(DYNAMIC_QUERY + """
 			 ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
-	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double ram, int location,
+	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double cpu2, double cpu3, double ram, double ram2,double ram3, int location,
 			double rate, double globalRate, double duration, double initialCost, double nbRequests,
-			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
+			double realConcurrency, double reservedConcurrency, double reservedConcurrency2, double reservedConcurrency3, double requestDuration,double requestDuration2, double concurrencyMonth,
 			double rateFull, Pageable pageable);
 
 	/**
@@ -286,7 +286,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCost(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable);
+			double initialCost, double requestDuration,double requestDuration2, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -306,7 +306,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable);
+			double initialCost, double requestDuration, double requestDuration2, Pageable pageable);
 
 	@Override
 	@Query("SELECT COUNT(id) FROM #{#entityName} WHERE type.node.id = :node AND (co2 > 0 OR co2Requests > 0 OR co2Cpu > 0)")

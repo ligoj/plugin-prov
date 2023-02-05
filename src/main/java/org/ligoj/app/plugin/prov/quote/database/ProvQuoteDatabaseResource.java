@@ -170,12 +170,14 @@ public class ProvQuoteDatabaseResource extends
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
+		final var cpuR = Math.ceil(cpu);
+		final var ramR = Math.ceil(round(ram / 1024));
 		if (optimizer == Optimizer.CO2) {
-			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
+			return ipRepository.findLowestDynamicCo2(types, terms, cpuR, cpuR, gpu, gpu, ramR, ramR,
 					engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
 					PageRequest.of(0, 1));
 		}
-		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
+		return ipRepository.findLowestDynamicCost(types, terms, cpuR, cpuR, gpu, gpu, ramR, ramR,
 				engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
 				PageRequest.of(0, 1));
 	}

@@ -158,13 +158,15 @@ public class ProvQuoteInstanceResource extends
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
 		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
+		final var cpuR = Math.ceil(Math.max(1, cpu));
+		final var ramR = Math.ceil(round(ram / 1024));
 		if (optimizer == Optimizer.CO2) {
-			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
-					Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,
+			return ipRepository.findLowestDynamicCo2(types, terms, cpuR, cpuR, gpu, gpu,
+					ramR, ramR, os, location, rate, round(rate * duration), duration, licenseR,
 					softwareR, initialCost, tenancyR, PageRequest.of(0, 1));
 		}
-		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
-				Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR, softwareR,
+		return ipRepository.findLowestDynamicCost(types, terms, cpuR, cpuR, gpu, gpu,
+				ramR, ramR, os, location, rate, round(rate * duration), duration, licenseR, softwareR,
 				initialCost, tenancyR, PageRequest.of(0, 1));
 	}
 

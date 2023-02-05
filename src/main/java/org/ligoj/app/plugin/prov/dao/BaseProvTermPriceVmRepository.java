@@ -52,11 +52,11 @@ public interface BaseProvTermPriceVmRepository<T extends AbstractInstanceType, P
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.type.id IN :types)
 			  AND (ip.term.id IN :terms)
-			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
-			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
-			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)
+			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu2)
+			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu2)
+			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram2)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
-			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu) * ip.maxRamRatio <= :ram)
+			  AND (ip.maxRamRatio IS NULL OR GREATEST(ip.minCpu, :cpu2) * ip.maxRamRatio <= :ram2)
 			""";
 
 	String LOWEST_QUERY_VM = LOWEST_QUERY_TERM + """
