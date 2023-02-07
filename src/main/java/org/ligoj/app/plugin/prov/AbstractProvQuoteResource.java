@@ -4,22 +4,16 @@
 
 package org.ligoj.app.plugin.prov;
 
-import java.util.function.Function;
-
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.BaseProvTypeRepository;
-import org.ligoj.app.plugin.prov.model.AbstractCodedEntity;
-import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvType;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.function.Function;
 
 /**
  * The resource part of the provisioning.
@@ -30,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @param <E> Quoted resource edition VO type.
  * @since 1.8.5
  */
-public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity & ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
+public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity, P extends AbstractPrice<T>, C extends AbstractQuote<P>, E extends IDescribableBean<Integer>>
 		extends AbstractCostedResource<T, P, C> {
 
 	@Autowired

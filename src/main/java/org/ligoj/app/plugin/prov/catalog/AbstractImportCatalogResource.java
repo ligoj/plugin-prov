@@ -707,7 +707,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param repository The repository used to persist the replacement. May be <code>null</code>.
 	 * @return The given entity.
 	 */
-	protected <T extends AbstractCodedEntity & ProvType> T copyAsNeeded(final AbstractUpdateContext context,
+	protected <T extends AbstractCodedEntity> T copyAsNeeded(final AbstractUpdateContext context,
 			final T entity, Consumer<T> updater, final BaseProvTypeRepository<T> repository) {
 		return syncAdd(context.getMergedTypes(), entity.getCode(), updater, entity, repository);
 	}
