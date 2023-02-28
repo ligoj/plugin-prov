@@ -247,9 +247,6 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
                 // live update the start/end dates
                 const label = this._getLabel($bar);
                 let value = this._pixelToValue(data.size.width);
-                if (data.element.parent().parent().children().prevObject.find("#instance-ramRate")[0]) {
-                    value = Math.round(value)
-                }
                 const constraints = this._getConstraints(label);
                 if (value < constraints.min || value > constraints.max) {
                     // Invalidate this resize
@@ -292,9 +289,6 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
 
             _onStopDrag: function (e, $bar, data) {
                 let value = this._pixelToValue(data.size.width);
-                if (e.target.parentNode.parentElement.firstChild.nextSibling.getAttribute('id') == 's2id_instance-ramRate') {
-                    value = Math.round(value);
-                }        
                 const label = this._getLabel($bar);
                 const constraints = this._getConstraints(label);
                 const previousValue = this.options.values[this.options.labelsToIndex[label]];
@@ -312,7 +306,8 @@ define(['jquery', 'cascade', 'jquery-ui'], function ($, $cascade) {
              * Convert a pixel value position to milliseconds.
              */
             _pixelToValue: function (width) {
-                return Math.round(this.options.toValue(width, this.options.width, this.options.max, this.options.toInternal) * 10) / 4;
+                let step = this.input.attr('step') == undefined ? 1 : this.input.attr('step');
+                return Math.round(this.options.toValue(width, this.options.width, this.options.max, this.options.toInternal) * 10) * step;
             },
 
             /**
