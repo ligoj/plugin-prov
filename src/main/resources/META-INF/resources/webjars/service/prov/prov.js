@@ -3162,6 +3162,9 @@ define(['sparkline', 'd3'], function () {
 					$popup.modal('hide');
 					current.enableCreate($popup);
 
+					//Notify
+					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:updated'])({sample: jsonData.name}));
+
 					// Handle updated cost
 					if (context) {
 						current.reloadAsNeed(newCost, forceUpdateUi);
