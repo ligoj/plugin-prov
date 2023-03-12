@@ -3,16 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.quote.upload;
 
-import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_ENCODING;
-import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_SEPARATOR;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,18 +11,20 @@ import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.QuoteVo;
-import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataIntegrityViolationException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_ENCODING;
+import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_SEPARATOR;
 
 /**
  * Test class of {@link ProvQuoteUploadResource}
@@ -50,7 +43,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void upload() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
+				new String[]{"\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description"},
 				false, "Full Time 12 month", null, null, 1);
 		checkUpload();
 	}
@@ -58,7 +51,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadNormalizedName() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
+				new String[]{"\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description"},
 				false, "full time 12 MONTH", "DEPT1", "COST", 1);
 		checkUpload();
 	}
@@ -66,7 +59,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadCreateAsNeed() throws IOException {
 		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload.csv").getInputStream(),
-				new String[] { "\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description" },
+				new String[]{"\"name\"", "cpu", "gpu", "ram", "disk", "latency", "os", "workload", "description"},
 				false, "Usage Will be created", "Budget Will be created", "Optimizer Will be created", MergeMode.INSERT,
 				1, false, DEFAULT_ENCODING, true, true, true, DEFAULT_SEPARATOR);
 		final var configuration = getConfiguration();
@@ -128,7 +121,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadFixedInstanceType() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;instance10;true"),
-				new String[] { "name", "cpu", "ram", "os", "type", "ephemeral" }, false, "Full Time 12 month", null,
+				new String[]{"name", "cpu", "ram", "os", "type", "ephemeral"}, false, "Full Time 12 month", null,
 				null, 1);
 		var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -152,7 +145,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	void uploadEmptyRow() throws IOException {
 		Assertions.assertEquals(7, getConfiguration().getInstances().size());
 		em.clear();
-		qiuResource.upload(subscription, newStream(";;;;"), new String[] { "name", "cpu", "ram", "os" }, false,
+		qiuResource.upload(subscription, newStream(";;;;"), new String[]{"name", "cpu", "ram", "os"}, false,
 				"Full Time 12 month", null, null, 1);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4704.758, 7154.358, false);
@@ -162,7 +155,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadMax() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;0.2;2;4;500;300;LINUX;100;80"),
-				new String[] { "name", "cpu", "cpu_max", "gpu", "gpu_max", "ram", "ram-MAX", "os", "disk", "disk_Max" },
+				new String[]{"name", "cpu", "cpu_max", "gpu", "gpu_max", "ram", "ram-MAX", "os", "disk", "disk_Max"},
 				false, "Full Time 12 month", null, null, 1);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4945.358, 7394.958, false);
@@ -185,14 +178,14 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadDatabase() throws IOException {
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class }, DEFAULT_ENCODING);
+		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class}, DEFAULT_ENCODING);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
 		em.clear();
 
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;MySQL"),
-				new String[] { "name", "cpu", "ram", "engine" }, false, "Full Time 12 month", null, null, 1);
+				new String[]{"name", "cpu", "ram", "engine"}, false, "Full Time 12 month", null, null, 1);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4794.258, 7243.858, false);
 		configuration = getConfiguration();
@@ -208,8 +201,8 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadDatabaseUpdate() throws IOException {
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class }, DEFAULT_ENCODING);
+		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class}, DEFAULT_ENCODING);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
 		Assertions.assertEquals("STANDARD ONE", getConfiguration().getDatabases().stream()
@@ -218,7 +211,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 		qiuResource.upload(subscription,
 				newStream("database4;0.5;1000;oracle;standard two\ndatabaseNEW;0.4;800;mysql;"),
-				new String[] { "name", "cpu", "ram", "engine", "edition" }, false, "Full Time 12 month", null, null,
+				new String[]{"name", "cpu", "ram", "engine", "edition"}, false, "Full Time 12 month", null, null,
 				MergeMode.UPDATE, 1, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 		var configuration = getConfiguration();
 		checkCost(configuration.getCost(), 4905.058, 7354.658, false);
@@ -247,8 +240,8 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadBoundQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1000;true"), new String[] { "name", "cpu", "ram",
-						"os", "disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1000;true"), new String[]{"name", "cpu", "ram",
+						"os", "disk", "workload", "minQuantity", "maxQuantity", "ephemeral"},
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -268,8 +261,8 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadMaxQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1;true"), new String[] { "name", "cpu", "ram", "os",
-						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;1;true"), new String[]{"name", "cpu", "ram", "os",
+						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral"},
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -286,7 +279,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadMultipleDisks() throws IOException {
 		qiuResource.upload(subscription, newStream("MYINSTANCE;0.5;500;LINUX;1,0,10;100;true"),
-				new String[] { "name", "cpu", "ram", "os", "disk", "workload", "ephemeral" }, false,
+				new String[]{"name", "cpu", "ram", "os", "disk", "workload", "ephemeral"}, false,
 				"Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -306,8 +299,8 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadUnBoundQuantities() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;0;true"), new String[] { "name", "cpu", "ram", "os",
-						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral" },
+				subscription, newStream("ANY;0.5;500;LINUX;1;100;1;0;true"), new String[]{"name", "cpu", "ram", "os",
+						"disk", "workload", "minQuantity", "maxQuantity", "ephemeral"},
 				false, "Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -324,7 +317,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadInternetAccess() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;instance10;PUBLIC;true"),
-				new String[] { "name", "cpu", "ram", "os", "type", "internet", "ephemeral" }, false,
+				new String[]{"name", "cpu", "ram", "os", "type", "internet", "ephemeral"}, false,
 				"Full Time 12 month", null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -333,7 +326,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadDefaultUsage() throws IOException {
-		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX"), new String[] { "name", "cpu", "ram", "os" },
+		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX"), new String[]{"name", "cpu", "ram", "os"},
 				false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -344,8 +337,8 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadRate() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("ANY;0.5;500;LINUX;LOW;BEST;BEST;MEDIUM;WORST"), new String[] { "name", "cpu",
-						"ram", "os", "cpuRate", "gpuRate", "ramRate", "networkrate", "storageRate" },
+				subscription, newStream("ANY;0.5;500;LINUX;LOW;BEST;BEST;MEDIUM;WORST"), new String[]{"name", "cpu",
+						"ram", "os", "cpuRate", "gpuRate", "ramRate", "networkrate", "storageRate"},
 				false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
@@ -362,7 +355,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadProcessor() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;Intel Xeon"),
-				new String[] { "name", "cpu", "ram", "os", "processor" }, false, null, null, null, 1);
+				new String[]{"name", "cpu", "ram", "os", "processor"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance11", configuration.getInstances().get(7).getPrice().getType().getName());
@@ -373,7 +366,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadTags() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
-				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, null, null, 1);
+				new String[]{"name", "cpu", "ram", "os", "tags", "disk"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
@@ -392,11 +385,11 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
 		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&".equals(t.getName())));
 	}
-	
+
 	@Test
 	void uploadWithI18FR() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
-				new String[] { "Nom", "cpu", "ram", "os", "Etiquette", "Disque" }, false, null, null, null, 1);
+				new String[]{"Nom", "cpu", "ram", "os", "Etiquette", "Disque"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
@@ -415,11 +408,11 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 				tags.stream().anyMatch(t -> "app".equals(t.getName()) && "TAG2 seç+-=._/@#&".equals(t.getValue())));
 		Assertions.assertTrue(tags.stream().noneMatch(t -> "seç+-=._/@#&".equals(t.getName())));
 	}
-	
+
 	@Test
 	void uploadi18AL() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX;app:TAG1,app:TAG2 seç+-=._/@#&;8"),
-				new String[] { "name", "cpu", "ram", "os", "Etikett", "Scheibe" }, false, null, null, null, 1);
+				new String[]{"name", "cpu", "ram", "os", "Etikett", "Scheibe"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance2", configuration.getInstances().get(7).getPrice().getType().getName());
@@ -443,20 +436,20 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	void uploadTagsInvalidTagName() {
 		final var input = newStream("ANY;0.5;500;LINUX;app:!!;8");
 		Assertions.assertThrows(ValidationJsonException.class, () -> qiuResource.upload(subscription, input,
-				new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false, null, null, null, 1));
+				new String[]{"name", "cpu", "ram", "os", "tags", "disk"}, false, null, null, null, 1));
 	}
 
 	@Test
 	void uploadTagsInvalidTagNameContinue() throws IOException {
 		final var input = newStream("ANY;0.5;500;LINUX;app:!!;8");
-		qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os", "tags", "disk" }, false,
+		qiuResource.upload(subscription, input, new String[]{"name", "cpu", "ram", "os", "tags", "disk"}, false,
 				null, null, null, MergeMode.UPDATE, 1, true, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 	}
 
 	@Test
 	void uploadUpdate() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX"),
-				new String[] { "name", "cpu", "ram", "os" }, false, null, null, null, MergeMode.UPDATE, 1, false,
+				new String[]{"name", "cpu", "ram", "os"}, false, null, null, null, MergeMode.UPDATE, 1, false,
 				DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(9, configuration.getInstances().size());
@@ -469,7 +462,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadNoConflictName() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX\nANY 1;1;2000;LINUX\nANY;2;1000;LINUX"),
-				new String[] { "name", "cpu", "ram", "os" }, false, null, null, null, 1);
+				new String[]{"name", "cpu", "ram", "os"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(10, configuration.getInstances().size());
 		Assertions.assertEquals("ANY", configuration.getInstances().get(7).getName());
@@ -492,7 +485,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadConflictNameContinue() throws IOException {
 		final var input = newStream("ANY;0.5;500;LINUX\nANY;2;1000;LINUX");
-		qiuResource.upload(subscription, input, new String[] { "name", "cpu", "ram", "os" }, false, null, null, null,
+		qiuResource.upload(subscription, input, new String[]{"name", "cpu", "ram", "os"}, false, null, null, null,
 				MergeMode.INSERT, 1, true, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 	}
 
@@ -554,9 +547,9 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 		final var input = newStream("ANY;0.5;500;LINUX;region-3");
 		Assertions.assertEquals("region-3",
 				Assertions.assertThrows(EntityNotFoundException.class,
-						() -> qiuResource.upload(subscription, input,
-								new String[] { "name", "cpu", "ram", "os", "location" }, false, "Full Time 12 month",
-								null, null, 1))
+								() -> qiuResource.upload(subscription, input,
+										new String[]{"name", "cpu", "ram", "os", "location"}, false, "Full Time 12 month",
+										null, null, 1))
 						.getMessage());
 	}
 
@@ -592,7 +585,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	void uploadInstanceNotFound() {
 		final var input = newStream("ANY;999;6;WINDOWS");
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
-				() -> qiuResource.upload(subscription, input, null, false, "Full Time 12 month", null, null, 1024)),
+						() -> qiuResource.upload(subscription, input, null, false, "Full Time 12 month", null, null, 1024)),
 				"csv-file.instance", "no-match-instance");
 	}
 
@@ -629,7 +622,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 				.assertThrows(
 						Assertions
 								.assertThrows(ValidationJsonException.class,
-										() -> qiuResource.upload(subscription, input, new String[] { "vcpu", "core" },
+										() -> qiuResource.upload(subscription, input, new String[]{"vcpu", "core"},
 												false, "Full Time 12 month", null, null, 1)),
 						"csv-file", "ambiguous-header");
 	}
@@ -637,29 +630,29 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadIgnoredInvalidHeader() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;ignored value1;0.5;500;any-value2;LINUX"),
-				new String[] { "name", "ignore", "cpu", "ram", "ignore", "os" }, false, null, null, null, 1);
+				new String[]{"name", "ignore", "cpu", "ram", "ignore", "os"}, false, null, null, null, 1);
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
 
 	@Test
 	void uploadAlternativeHeader() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX"),
-				new String[] { "name", "vCPU", "memory", "system" }, false, null, null, null, 1);
+				new String[]{"name", "vCPU", "memory", "system"}, false, null, null, null, 1);
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
 
 	@Test
 	void uploadWildcardHeader() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;LINUX"),
-				new String[] { "instance_name", "cpu #", "instance ram (GB)", " os " }, false, null, null, null, 1);
+				new String[]{"instance_name", "cpu #", "instance ram (GB)", " os "}, false, null, null, null, 1);
 		checkCost(resource.getConfiguration(subscription).getCost(), 4840.178, 7289.778, false);
 	}
 
 	@Test
 	void uploadPriorizedHeader() throws IOException {
 		qiuResource.upload(
-				subscription, newStream("real name;alt. name;2,4;0.5;500;info;LINUX"), new String[] { "\" name  \"",
-						"instance_name", "frequency cpu", "cpus", "instance ram (GB)", "   os(1)", "\"os\"" },
+				subscription, newStream("real name;alt. name;2,4;0.5;500;info;LINUX"), new String[]{"\" name  \"",
+						"instance_name", "frequency cpu", "cpus", "instance ram (GB)", "   os(1)", "\"os\""},
 				false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals("real name", configuration.getInstances().get(7).getName());
@@ -669,7 +662,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadSoftware() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;WINDOWS;SQL WEB"),
-				new String[] { "name", "cpu", "ram", "os", "software" }, false, "Full Time 12 month", null, null, 1);
+				new String[]{"name", "cpu", "ram", "os", "software"}, false, "Full Time 12 month", null, null, 1);
 		var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("C121", configuration.getInstances().get(7).getPrice().getCode());
@@ -679,7 +672,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadLicense() throws IOException {
 		qiuResource.upload(subscription, newStream("ANY;0.5;500;WINDOWS;BYOL"),
-				new String[] { "name", "cpu", "ram", "os", "license" }, false, "Full Time 12 month", null, null, 1);
+				new String[]{"name", "cpu", "ram", "os", "license"}, false, "Full Time 12 month", null, null, 1);
 		var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("C120", configuration.getInstances().get(7).getPrice().getCode());
