@@ -257,14 +257,20 @@ define(['d3'], function (d3) {
 					animateWave();
 				}
 
-				var transition = function (from, to, riseWave, animateText) {
+				var transition = function (from, to, riseWave, animateText,textPixels, radius) {
 					// Update texts and animate
 					if (animateText) {
 						var textTween = function () {
 							var that = d3.select(this);
 							let int = d3.interpolate(from, to);
 							return function (t) {
-								that.text(textRounder(int(t)) + percentText);
+								if (int(t) >= 99) {
+									that.text("✓");
+									$('.liquidFillGaugeText').attr("font-size", "30px").attr("transform", `translate(${radius},35.5625)`).attr("style", "fill: rgb(250, 250, 250);")
+								} else {
+									that.text(textRounder(int(t)) + percentText);
+									$('.liquidFillGaugeText').attr("font-size", `${textPixels}px`).attr("transform", `translate(${radius},${textRiseScaleY(config.get("textVertPosition"))})`).attr("style", `fill: ${config.get("waveTextColor")};`)
+								}
 							};
 						};
 						text1.transition()
@@ -296,14 +302,16 @@ define(['d3'], function (d3) {
 					textStartValue,
 					textFinalValue,
 					config.get("waveRise") && config.get("waveRiseAtStart"),
-					config.get("valueCountUp") && config.get("valueCountUpAtStart")
+					config.get("valueCountUp") && config.get("valueCountUpAtStart"),
+					textPixels,
+					radius
 				);
 
 				// Event to update the value
 				gauge.on("valueChanged", function (newValue) {
 					waveGroup.interrupt().transition();
 					wave.interrupt().transition();
-					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"));
+					transition(value, newValue, config.get("waveRise"), config.get("valueCountUp"),textPixels,radius);
 					value = newValue;
 					config.set("counter", 0);
 					if (config.get("waveAnimateTimeInit")) {
