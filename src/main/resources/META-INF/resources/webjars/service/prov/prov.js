@@ -2546,8 +2546,13 @@ define(['sparkline', 'd3'], function () {
 			current[type + 'Table'] = $table.dataTable(oSettings);
 		},
 
+		reinitializeFileinput: function (){
+			$(".is-fileinput").removeClass("has-error").attr("data-error-property","").attr("title","").removeAttr("data-toggle").attr("data-original-title","");
+		},
+
 		initializeUpload: function () {
 			const $popup = _('popup-prov-instance-import');
+			const fileinput = $(".is-fileinput");
 			_('csv-headers-included').on('change', function () {
 				if ($(this).is(':checked')) {
 					// Useless input headers
@@ -2575,9 +2580,15 @@ define(['sparkline', 'd3'], function () {
 				id: 'UTF-8',
 				text: 'UTF-8'
 			});
+			$(".is-fileinput .input-group").on('change', function(){
+				current.reinitializeFileinput()
+			})
 			$popup.on('shown.bs.modal', () => _('csv-file').trigger('focus')
-			).on('show.bs.modal', () => $('.import-summary').addClass('hidden')
-			).on('submit', function (e) {
+			).on('show.bs.modal', function () {
+				current.reinitializeFileinput()
+				$(".is-fileinput .form-control").val('')
+				$('.import-summary').addClass('hidden')
+			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
 				_('instance-encoding-upload').val((_('csv-upload-encoding').select2('data') || {}).id || null);
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
@@ -2610,6 +2621,7 @@ define(['sparkline', 'd3'], function () {
 						current.reload();
 					},
 					complete: function () {
+						fileinput.attr("data-original-title",fileinput.attr("title"));
 						$('.loader-wrapper').addClass('hidden');
 						$('.import-summary').html('').addClass('hidden');
 						// Restore the optional inputs
