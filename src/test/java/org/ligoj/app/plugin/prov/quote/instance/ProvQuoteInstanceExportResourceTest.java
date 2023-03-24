@@ -3,15 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.quote.instance;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
 import jakarta.ws.rs.core.StreamingOutput;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.jupiter.api.Assertions;
@@ -22,36 +14,21 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
-import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvOptimizer;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
-import org.ligoj.app.plugin.prov.model.ProvSupportType;
-import org.ligoj.app.plugin.prov.model.ProvTag;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.*;
+import org.ligoj.app.plugin.prov.quote.upload.MergeMode;
 import org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_ENCODING;
+import static org.ligoj.app.plugin.prov.quote.upload.ProvQuoteUploadResource.DEFAULT_SEPARATOR;
 
 /**
  * Test class of {@link ProvQuoteInstanceExportResource}
@@ -70,18 +47,18 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class[]{Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvSupportType.class, ProvSupportPrice.class,
-						ProvQuoteSupport.class },
+						ProvQuoteSupport.class},
 				StandardCharsets.UTF_8.name());
-		csvForJpa.insert("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
-		csvForJpa.insert("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class,
-				ProvQuoteContainer.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
-		csvForJpa.insert("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class,
-				ProvQuoteFunction.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+		csvForJpa.insert("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
+		csvForJpa.insert("csv/container", new Class[]{ProvContainerType.class, ProvContainerPrice.class,
+				ProvQuoteContainer.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
+		csvForJpa.insert("csv/function", new Class[]{ProvFunctionType.class, ProvFunctionPrice.class,
+				ProvQuoteFunction.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
 
 		preparePostData();
 
@@ -181,8 +158,8 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, export().size());
 
 		// Import
-		qiuResource.upload(subscription, new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(),
-				null, true, "Full Time 12 month", null, null, 1);
+		qiuResource.upload(subscription, IOUtils.toString(new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(), StandardCharsets.UTF_8),
+				null, true, "Full Time 12 month", null, null, MergeMode.KEEP, 1, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 		em.flush();
 		em.clear();
 		resource.refresh(subscription);
@@ -209,8 +186,8 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		checkCost(configuration.getCost(), 0, 0, false);
 
 		// Import
-		qiuResource.upload(subscription, IOUtils.toInputStream(String.join("\n", lines), "UTF-8"), null, true,
-				"Full Time 12 month", null, null, 1);
+		qiuResource.upload(subscription, String.join("\n", lines), null, true,
+				"Full Time 12 month", null, null, MergeMode.KEEP, 1, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 		configuration = getConfiguration();
 
 		// Check backup restore succeed
