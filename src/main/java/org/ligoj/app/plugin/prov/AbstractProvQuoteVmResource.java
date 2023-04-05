@@ -3,45 +3,18 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.dao.BasePovInstanceBehavior;
-import org.ligoj.app.plugin.prov.dao.BaseProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.BaseProvTermPriceRepository;
-import org.ligoj.app.plugin.prov.dao.Optimizer;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.AbstractInstanceType;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
-import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvOptimizer;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.QuoteVm;
-import org.ligoj.app.plugin.prov.model.ReservationMode;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.dao.*;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceLookup;
 import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.resource.ServicePluginLocator;
@@ -52,7 +25,9 @@ import org.ligoj.bootstrap.core.json.datatable.DataTableAttributes;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * The resource part of the provisioning of a VM like type.
@@ -94,9 +69,6 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 	@Autowired
 	protected ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	protected ProvUsageRepository usageRepository;
 
 	@Autowired
 	protected ProvBudgetResource budgetResource;
@@ -272,7 +244,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param configuration Configuration containing the default values and defined usages.
 	 * @param name          The usage name to resolve.
 	 * @return The resolved usage entity. Never <code>null</code> since the configuration's usage or else
-	 *         {@link #USAGE_DEFAULT} is used as default value.
+	 * {@link #USAGE_DEFAULT} is used as default value.
 	 */
 	protected ProvUsage getUsage(final ProvQuote configuration, final String name) {
 		return getProfileByName(configuration.getUsage(), name, configuration.getUsages(), USAGE_DEFAULT);
@@ -284,7 +256,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param configuration Configuration containing the default values.
 	 * @param name          The budget name to resolve.
 	 * @return The resolved b entity. Never <code>null</code> since the configuration's budget or else
-	 *         {@link #BUDGET_DEFAULT} is used as default value.
+	 * {@link #BUDGET_DEFAULT} is used as default value.
 	 */
 	protected ProvBudget getBudget(final ProvQuote configuration, final String name) {
 		return getProfileByName(configuration.getBudget(), name, configuration.getBudgets(), BUDGET_DEFAULT);
@@ -296,7 +268,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param configuration Configuration containing the default values.
 	 * @param name          The optimizer name to resolve.
 	 * @return The resolved b entity. Never <code>null</code> since the configuration's optimizer or else
-	 *         {@link #OPTIMIZER_DEFAULT} is used as default value.
+	 * {@link #OPTIMIZER_DEFAULT} is used as default value.
 	 */
 	protected ProvOptimizer getOptimizer(final ProvQuote configuration, final String name) {
 		return getProfileByName(configuration.getOptimizer(), name, configuration.getOptimizers(), OPTIMIZER_DEFAULT);
@@ -310,7 +282,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param allProfiles    All defined profiles for this quote.
 	 * @param defaultProfile Default profile.
 	 * @return The resolved b entity. Never <code>null</code> since the configuration's profile or else the given
-	 *         default value.
+	 * default value.
 	 */
 	private <G extends INamableBean<?>> G getProfileByName(final G quoteProfile, final String name, List<G> allProfiles,
 			G defaultProfile) {
@@ -428,16 +400,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 
 	/**
 	 * Return the computed cost from a resolved price.
+	 *
+	 * @param qi The query context.
+	 * @param ip The resource price configuration.
+	 * @return The updated cost of this resource.
 	 */
-	private Floating getCost(final C qi, final P ip) {
+	protected Floating getCost(final C qi, final P ip) {
 		// Fixed price + custom price
-		final double rate;
-		if (ip.getTerm().getPeriod() == 0) {
-			// Related term has a period lesser than the month, rate can be applied
-			rate = getRate(qi) / 100d;
-		} else {
-			rate = 1d;
-		}
+		final double rate = getRate(qi, ip);
 		final var workload = Workload.from(qi.getWorkload());
 		return computeFloat(
 				rate * (ip.getCost()
@@ -445,7 +415,22 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 				rate * getCo2(qi, ip, workload), ip.getInitialCost(), qi);
 	}
 
-	private double getCo2_(final double co2b100, final String co2b10, final Workload workload) {
+	/**
+	 * Return the rate associated to  the related term. When on demand, the effective usage is considered.
+	 *
+	 * @param qi The query context.
+	 * @param ip The resource price configuration.
+	 * @return The rate associated to  the related term.
+	 */
+	protected double getRate(final C qi, final P ip) {
+		if (ip.getTerm().getPeriod() == 0) {
+			// Related term has a period lesser than the month, rate can be applied
+			return getRate(qi) / 100d;
+		}
+		return 1d;
+	}
+
+	private double getCo2Base10(final double co2b100, final String co2b10, final Workload workload) {
 		final var baseline = workload.getBaseline();
 		if (baseline < 100 && StringUtils.isNotEmpty(co2b10)) {
 			final var co2Values = StringUtils.split(co2b10, ',');
@@ -465,27 +450,27 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	/**
 	 * Update the CO2 based on the baseline distributions.
 	 */
-	private double getCo2(final C qi, final P ip, final Workload workload) {
+	protected double getCo2(final C qi, final P ip, final Workload workload) {
 		var co2 = 0d;
-		co2 += getCo2_(ip.getCo2(), ip.getCo210(), workload);
+		co2 += getCo2Base10(ip.getCo2(), ip.getCo210(), workload);
 		if (ip.getType().isCustom()) {
 			final var qCpu = getQuantity(qi.getCpu(), ip.getMinCpu(), ip.getIncrementCpu(), 1);
 			final var qRam = getQuantity(qi.getRam(), ip.getMinRam(), ip.getIncrementRam(), 1024);
 			final var qGpu = getQuantity(qi.getGpu(), ip.getMinGpu(), ip.getIncrementGpu(), 1);
-			co2 += getCo2_(ip.getCo2Cpu(), ip.getCo2Cpu10(), workload) * qCpu;
-			co2 += getCo2_(ip.getCo2Ram(), ip.getCo2Ram10(), workload) * qRam;
-			co2 += getCo2_(ip.getCo2Gpu(), ip.getCo2Gpu10(), workload) * qGpu;
+			co2 += getCo2Base10(ip.getCo2Cpu(), ip.getCo2Cpu10(), workload) * qCpu;
+			co2 += getCo2Base10(ip.getCo2Ram(), ip.getCo2Ram10(), workload) * qRam;
+			co2 += getCo2Base10(ip.getCo2Gpu(), ip.getCo2Gpu10(), workload) * qGpu;
 		}
 		return co2;
 	}
 
 	/**
 	 * Return the rate from the given resource, using first the local, then the global, then the default rate.
-	 * 
+	 *
 	 * @param qi The resource to inspect.
 	 * @return The effective rate.
 	 */
-	private int getRate(final C qi) {
+	protected int getRate(final C qi) {
 		return Optional.ofNullable(qi.getResolvedUsage()).map(ProvUsage::getRate).orElse(ProvUsage.MAX_RATE);
 	}
 
@@ -712,7 +697,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
 				if (dLookup != null && lookup == null || (dLookup != null
 						&& ((optimizer == Optimizer.COST && toTotalCost(dLookup) < toTotalCost(lookup))
-								|| (optimizer == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
+						|| (optimizer == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
 					// Keep the best one
 					lookup = dLookup;
 				}

@@ -117,6 +117,39 @@ public class Floating implements Serializable {
 	}
 
 	/**
+	 * Add another detailed cost. This operation updates the current object.
+	 *
+	 * @param cost Another cost.
+	 * @param co2 Another co2.
+	 * @return This object.
+	 */
+	public Floating add(final double cost, final double co2) {
+		min += cost;
+		max += cost;
+		minCo2 += co2;
+		maxCo2 += co2;
+		return this;
+	}
+
+	/**
+	 * Multiply this cost by a given rate. This operation updates the current object.
+	 *
+	 * @param rate Rate to apply.
+	 * @return This object.
+	 */
+	public Floating multiply(final double rate) {
+		min *= rate;
+		max *= rate;
+		initial *= rate;
+		maxInitial *= rate;
+
+		minCo2 *= rate;
+		maxCo2 *= rate;
+		return this;
+	}
+
+
+	/**
 	 * Return a new instance with round values.
 	 *
 	 * @return A new instance with round values.
