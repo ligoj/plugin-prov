@@ -301,7 +301,7 @@ define(['d3', 'jquery'], function (d3) {
                     }
                     svg.selectAll('.limit').remove();
                     if (params.hover && !sameCost) {
-                        params.hover();
+                        params.hover(d,params.chosen.cluster);
                     }
                 })
                 .on('mouseenter', (_e, d) => {
@@ -322,7 +322,7 @@ define(['d3', 'jquery'], function (d3) {
                         .attr('x2', width - params.canvas.margin.right)
                         .attr('y2', total);
                     if (params.hover) {
-                        params.hover(d, bars);
+                        params.hover(d,params.chosen.cluster);
                     }
                 })
                 .on('mouseover', (e, d) => {
@@ -470,13 +470,13 @@ define(['d3', 'jquery'], function (d3) {
 
         function initializeLegend(svg, margin, chosen) {
             // initialize legend
-            chosen.cluster = null;
             let legend = params.legend = svg.selectAll('.legend')
                 .data(params.filteredClusterNames)
                 .enter().append('g')
                 .attr('class', 'legend')
                 .on('click', function (_e, d) {
                     chosen.cluster = chosen.cluster === d ? null : d;
+                    params.hover(0,params.chosen.cluster);
                     refresh();
                 });
 
