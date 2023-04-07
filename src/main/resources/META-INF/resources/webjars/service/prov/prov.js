@@ -3999,6 +3999,11 @@ define(['sparkline', 'd3'], function () {
 					return current.sunburstComputeTooltip(conf, data, 'instance');
 				case 'container':
 					return current.sunburstComputeTooltip(conf, data, 'container');
+				case 'function':
+					const func = conf.functionsById[data.name]
+					return current.title('name') + func.name
+					+ '<br>' + current.title('storage-type') + func.price.type.name
+					+ current.sunburstVmTooltip(func);
 				case 'storage':
 					const storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -4383,8 +4388,27 @@ define(['sparkline', 'd3'], function () {
 			});
 		},
 		functionToD3: function (data, stats, aggregateMode) {
+			let allRuntimes = {};
 			stats.function.filtered.forEach(qi => {
+				let runtimes = allRuntimes[qi.runtime];
+				if (typeof runtimes === 'undefined') {
+					// First runtime
+					runtimes = {
+						name: qi.runtime,
+						type: 'runtime',
+						value: 0,
+						children: []
+					};
+					allRuntimes[qi.runtime] = runtimes;
+					data.children.push(runtimes);
+				}
+				runtimes.value += qi[aggregateMode];
 				data.value += qi[aggregateMode];
+				runtimes.children.push({
+					name: qi.id,
+					type: 'function',
+					size: qi[aggregateMode]
+				});
 			});
 		},
 		storageToD3: function (data, stats, aggregateMode) {
