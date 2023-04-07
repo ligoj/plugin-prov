@@ -327,7 +327,7 @@ define(['d3', 'jquery'], function (d3) {
                 })
                 .on('mouseover', (e, d) => {
                     if (typeof params.tooltip === 'function') {
-                        tooltip().html(params.tooltip(e, blockData.filter(f => f.x === d.x), d)).style('visibility', 'visible');
+                        tooltip().html(params.tooltip(e, blockData.filter(f => f.x === d.x), d, params.chosen.cluster)).style('visibility', 'visible');
                     }
                 })
                 .on('mousemove', e => tooltip().style('top', (e.pageY - 10) + 'px').style('left', (e.pageX + 10) + 'px'))
