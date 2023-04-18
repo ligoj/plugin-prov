@@ -3,18 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
-
-import org.ligoj.bootstrap.core.model.AbstractPersistable;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 /**
  * Resource price context.
@@ -25,7 +22,7 @@ import lombok.ToString;
 @Setter
 @MappedSuperclass
 @ToString(of = { "cost", "type", "location" })
-public abstract class AbstractPrice<T extends ProvType> extends AbstractPersistable<Integer> {
+public abstract class AbstractPrice<T extends AbstractCodedEntity> extends AbstractPersistable<Integer> {
 
 	/**
 	 * The internal offer code.
@@ -54,7 +51,7 @@ public abstract class AbstractPrice<T extends ProvType> extends AbstractPersista
 	/**
 	 * Indicates the consumption of carbon(co2) for this instance.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2 = 0;
 
 	/**

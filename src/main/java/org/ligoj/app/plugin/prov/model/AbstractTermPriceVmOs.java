@@ -3,11 +3,11 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +25,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = { "os" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPriceVmOs<T extends ProvType> extends AbstractTermPriceVm<T> {
+public abstract class AbstractTermPriceVmOs<T extends AbstractCodedEntity> extends AbstractTermPriceVm<T> {
 
 	/**
 	 * SID

@@ -67,6 +67,6 @@ public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends Res
 	 * @return Used price codes among the quotes relate to a given node.
 	 */
 	@Query("SELECT DISTINCT p.code FROM #{#entityName} c INNER JOIN c.price p WHERE p.type.node.id = :node")
-	Collection<String> finUsedPrices(String node);
+	Collection<String> findUsedPrices(String node);
 
 }

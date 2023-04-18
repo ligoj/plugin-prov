@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -283,7 +283,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
 
 		Mockito.doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository)
-				.finUsedPrices("service:prov:some");
+				.findUsedPrices("service:prov:some");
 
 		purgePrices(newContext, previous, pRepository, qRepository);
 

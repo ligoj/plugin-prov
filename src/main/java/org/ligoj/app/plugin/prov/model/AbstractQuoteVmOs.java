@@ -3,9 +3,9 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -290,7 +290,7 @@ public class ProvQuoteSupportResource
 		final var seats = entity.getSeats();
 		return new Floating(getCost(seats, quote.getCostNoSupport(), price, rates, limits),
 				getCost(seats, quote.getMaxCostNoSupport(), price, rates, limits), quote.getInitialCost(),
-				quote.getMaxInitialCost(), quote.isUnboundCost(), quote.getCo2(), quote.getMaxCo2()).round();
+				quote.getMaxInitialCost(), quote.isUnboundCost(), 0, 0).round();
 	}
 
 	private Double getCost(final Integer seats, final double cost, final ProvSupportPrice price, final int[] rates,

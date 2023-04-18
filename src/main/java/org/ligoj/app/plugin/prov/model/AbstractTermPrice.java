@@ -3,16 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
-
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.io.Serializable;
 
 /**
  * A priced term based resource with billing configuration. <br>
@@ -26,7 +25,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = { "term" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPrice<T> implements Serializable {
+public abstract class AbstractTermPrice<T extends AbstractCodedEntity> extends AbstractPrice<T> implements Serializable {
 
 	/**
 	 * SID
@@ -46,7 +45,7 @@ public abstract class AbstractTermPrice<T extends ProvType> extends AbstractPric
 	/**
 	 * The CO2 for the whole period defined in the term.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2Period;
 
 	/**

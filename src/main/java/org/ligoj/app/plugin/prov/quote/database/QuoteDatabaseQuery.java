@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.quote.database;
 
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.AbstractQuoteInstanceQuery;
 import org.ligoj.app.plugin.prov.model.QuoteDatabase;

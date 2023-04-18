@@ -92,8 +92,8 @@ define(['sparkline'], function () {
 	}
 
 	/**
- * Location html renderer.
- */
+     * Location html renderer.
+     */
 	function locationToHtml(location, map, short) {
 		const id = location.name;
 		const subRegion = location.subRegion && (current.$messages[location.subRegion] || location.subRegion);
@@ -263,9 +263,7 @@ define(['sparkline'], function () {
 						}
 					});
 				},
-				rowCallback: function (row, data) {
-					$(row).attr('data-node', data.node.id);
-				},
+				rowCallback: (row, data) => $(row).attr('data-node', data.node.id),
 				columns: [{
 					data: 'node.id',
 					width: '100px',
@@ -277,11 +275,8 @@ define(['sparkline'], function () {
 					class: 'hidden-xs',
 				}, {
 					data: 'status.lastSuccess',
-					render: function (date, mode) {
-						if (mode === 'sort') {
-							return date;
-						}
-						return formatManager.formatDateTime(date);
+					render: {
+						display: value => formatManager.formatDateTime(value)
 					},
 					class: 'hidden-xs hidden-sm',
 					type: 'num'
@@ -294,18 +289,12 @@ define(['sparkline'], function () {
 					type: 'num',
 					width: '16px',
 				}, {
-					data: 'preferredLocation' || null,
+					data: 'preferredLocation',
 					className: 'hidden-xs hidden-sm preferredLocation',
 					width: '16px',
 					type: 'string',
-					render: function (data, mode) {
-						if (data) {
-							if (mode === 'display') {
-								return locationToHtml(data, false, true);
-							}
-							return data;
-						}
-						return "";
+					render: {
+					    display: value => value ? locationToHtml(value, false, true) : ''
 					}
 				}, {
 					data: 'status.nbTypes',
@@ -319,25 +308,17 @@ define(['sparkline'], function () {
 					data: 'status.nbCo2Prices',
 					type: 'num',
 					width: '32px',
-					render: function (data, mode, object) {
-						if (data && object?.status?.nbPrices) {
-							const percent = data / object.status.nbPrices
-							if (mode === 'display') {
-								return `${Math.round(percent * 1_000) / 10}%`;
-							}
-							return percent;
-						}
-						return "";
+					render: {
+					    display: (data, mode, object) => data && object?.status?.nbPrices ? `${Math.round(data / object.status.nbPrices * 1_000) / 10}%` : '',
+                        _: (data, mode, object) => data && object?.status?.nbPrices ? data / object.status.nbPrices : 0
 					}
 				}, {
 					data: 'status.end',
 					width: '16px',
-					type: 'num',
-					render: function (_i, mode, object) {
-						if (mode === 'display') {
-							return `<div class="catalog-status" data-toggle="tooltip" title="${current.toStatusText(object)}">${current.toStatus(object)}</div>`;
-						}
-						return current.toStatus(object);
+					type: 'str',
+					render: {
+					    display: (_i, mode, object) => `<div class="catalog-status" data-toggle="tooltip" title="${current.toStatusText(object)}">${current.toStatus(object)}</div>`,
+					    filter: (_i, mode, object) => `${object?.failed}/${object?.done || 0}`
 					}
 				}, {
 					data: null,
@@ -521,7 +502,7 @@ define(['sparkline'], function () {
 			current.synchronizeUploadStep(node);
 		},
 
-		unscheduleUploadStep: function (node) {
+		unScheduleUploadStep: function (node) {
 			current.polling[node] && clearInterval(current.polling[node]);
 			delete current.polling[node];
 		},
@@ -533,7 +514,7 @@ define(['sparkline'], function () {
 		},
 
 		synchronizeUploadStep: function (node) {
-			current.unscheduleUploadStep(node);
+			current.unScheduleUploadStep(node);
 			current.polling[node] = '-';
 			$.ajax({
 				dataType: 'json',
@@ -543,17 +524,17 @@ define(['sparkline'], function () {
 					if (current.$cascade.isSameTransaction(current.$transaction)) {
 						current.updateStatus(status, node);
 						if (status.end) {
-							current.unscheduleUploadStep(node);
+							current.unScheduleUploadStep(node);
 						} else {
 							// Continue polling for this catalog
 							current.scheduleUploadStep(node);
 						}
 					} else {
-						current.unscheduleUploadStep(node);
+						current.unScheduleUploadStep(node);
 					}
 				},
 				error: function () {
-					current.unscheduleUploadStep(node);
+					current.unScheduleUploadStep(node);
 				}
 			});
 		},

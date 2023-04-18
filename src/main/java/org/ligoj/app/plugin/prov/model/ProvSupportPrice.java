@@ -5,10 +5,10 @@ package org.ligoj.app.plugin.prov.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import lombok.Getter;
 import lombok.Setter;

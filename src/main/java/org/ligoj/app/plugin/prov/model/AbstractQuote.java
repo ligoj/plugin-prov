@@ -3,14 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.Column;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -118,7 +119,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2 = 0d;
 
 	/**
@@ -127,7 +128,7 @@ public abstract class AbstractQuote<P extends AbstractPrice<?>> extends Abstract
 	 */
 	@NotNull
 	@PositiveOrZero
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double maxCo2 = 0d;
 
 }

@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.ligoj.app.plugin.prov.model.ResourceType;
 

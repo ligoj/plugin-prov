@@ -17,12 +17,12 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 
 	String DYNAMIC_QUERY = """
 			SELECT  ip,
-			    (  CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
+			    (  CASE WHEN ip.period = 0 THEN CAST(:globalRate AS Double) ELSE (ip.period * CEIL(:duration / ip.period)) END
 			     * (  ip.cost
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			           * ip.incrementCpu
 			           * ip.costCpu
-			           * :reservedConcurrency
+			           * CAST(:reservedConcurrency AS Double)
 			          )
 			       )
 			    )
@@ -30,8 +30,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.incrementRam
 			     * (
 			         (  ip.costRam
-			          * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
-			          * :reservedConcurrency
+			          * CASE WHEN ip.period = 0 THEN CAST(:globalRate AS Double) ELSE (ip.period * CEIL(:duration / ip.period)) END
+			          * CAST(:reservedConcurrency AS Double)
 			         )
 			       + (  CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			          * (
@@ -40,7 +40,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                    * :nbRequests
 			                    / :concurrencyMonth,
 			                      :realConcurrency
-			                    * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                    * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			                 )
 			            * ip.costRamRequestConcurrency
 			           )
@@ -49,7 +49,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                    * :nbRequests
 			                    / :concurrencyMonth
 			                  -   :realConcurrency
-			                    * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                    * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END,
 			                    0.0
 			                 )
 			            * ip.costRamRequest
@@ -63,12 +63,12 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  	  * CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			 ) AS totalCost,
 
-			    (  CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			    (  CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			     * (  ip.cost
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			           * ip.incrementCpu
 			           * ip.costCpu
-			           * :reservedConcurrency
+			           * CAST(:reservedConcurrency AS Double)
 			          )
 			       )
 			    )
@@ -76,8 +76,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.incrementRam
 			     * (
 			         (  ip.costRam
-			          * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
-			          * :reservedConcurrency
+			          * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
+			          * CAST(:reservedConcurrency AS Double)
 			         )
 			       + (
 			           (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
@@ -85,7 +85,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                 * :nbRequests
 			                 / :concurrencyMonth,
 			                   :realConcurrency
-			                 * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                 * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			              )
 			         * ip.costRamRequestConcurrency
 			        )
@@ -94,7 +94,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                 * :nbRequests
 			                 / :concurrencyMonth
 			               -   :realConcurrency
-			                 * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                 * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END,
 			                 0.0
 			               )
 			         * ip.costRamRequest
@@ -104,12 +104,12 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			    )
 			  + ( :nbRequests * ip.costRequests ) AS monthlyCost,
 
-			    (  CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
+			    (  CASE WHEN ip.period = 0 THEN CAST(:globalRate AS Double) ELSE (ip.period * CEIL(:duration / ip.period)) END
 			     * (  ip.co2
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			           * ip.incrementCpu
 			           * ip.co2Cpu
-			           * :reservedConcurrency
+			           * CAST(:reservedConcurrency AS Double)
 			          )
 			       )
 			    )
@@ -117,8 +117,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.incrementRam
 			     * (
 			         (  ip.co2Ram
-			          * CASE WHEN ip.period = 0 THEN :globalRate ELSE (ip.period * CEIL(:duration / ip.period)) END
-			          * :reservedConcurrency
+			          * CASE WHEN ip.period = 0 THEN CAST(:globalRate AS Double) ELSE (ip.period * CEIL(:duration / ip.period)) END
+			          * CAST(:reservedConcurrency AS Double)
 			         )
 			       + (  CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			          * (
@@ -127,7 +127,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                    * :nbRequests
 			                    / :concurrencyMonth,
 			                      :realConcurrency
-			                    * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                    * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			                 )
 			            * ip.co2RamRequestConcurrency
 			           )
@@ -136,7 +136,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                    * :nbRequests
 			                    / :concurrencyMonth
 			                  -   :realConcurrency
-			                    * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                    * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END,
 			                    0.0
 			                 )
 			            * ip.co2RamRequest
@@ -150,12 +150,12 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  	  * CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			 ) AS totalCo2,
 
-			    (  CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			    (  CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			     * (  ip.co2
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
 			           * ip.incrementCpu
 			           * ip.co2Cpu
-			           * :reservedConcurrency
+			           * CAST(:reservedConcurrency AS Double)
 			          )
 			       )
 			    )
@@ -163,8 +163,8 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.incrementRam
 			     * (
 			         (  ip.co2Ram
-			          * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
-			          * :reservedConcurrency
+			          * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
+			          * CAST(:reservedConcurrency AS Double)
 			         )
 			       + (
 			           (  LEAST(CEIL(GREATEST(ip.minDuration, :requestDuration) / ip.incrementDuration)
@@ -172,7 +172,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                 * :nbRequests
 			                 / :concurrencyMonth,
 			                   :realConcurrency
-			                 * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END
+			                 * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			              )
 			         * ip.co2RamRequestConcurrency
 			        )
@@ -181,7 +181,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			                 * :nbRequests
 			                 / :concurrencyMonth
 			               -   :realConcurrency
-			                 * CASE WHEN ip.period = 0 THEN (:rate*1.0) ELSE :rateFull END,
+			                 * CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END,
 			                 0.0
 			               )
 			         * ip.co2RamRequest

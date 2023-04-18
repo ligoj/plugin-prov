@@ -18,7 +18,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @param <T> The instance type's type.
  */
 @NoRepositoryBean
-public interface BaseProvTypeRepository<T extends AbstractCodedEntity & ProvType> extends RestRepository<T, Integer> {
+public interface BaseProvTypeRepository<T extends AbstractCodedEntity> extends RestRepository<T, Integer> {
 
 	/**
 	 * Return all {@link ProvType} related to given subscription identifier.

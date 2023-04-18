@@ -3,9 +3,9 @@
  */
 package org.ligoj.app.plugin.prov.quote.storage;
 
-import javax.validation.constraints.Positive;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.validation.constraints.Positive;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
 import org.ligoj.app.plugin.prov.model.QuoteStorage;
@@ -69,7 +69,7 @@ public class QuoteStorageQuery implements QuoteStorage {
 	 * The optional requested quote function to be associated. Cannot be not <code>null</code> with {@link #instance} or
 	 * {@link #database} or {@link #container}.
 	 */
-	@QueryParam("container")
+	@QueryParam("function")
 	private Integer function;
 
 	/**

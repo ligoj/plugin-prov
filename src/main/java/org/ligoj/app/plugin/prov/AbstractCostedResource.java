@@ -6,10 +6,7 @@ package org.ligoj.app.plugin.prov;
 import java.util.function.Consumer;
 
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuote;
-import org.ligoj.app.plugin.prov.model.Costed;
-import org.ligoj.app.plugin.prov.model.ProvType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.core.json.PaginationJson;
@@ -25,7 +22,7 @@ import lombok.Getter;
  * @param <P> Quoted resource price type.
  * @param <T> Quoted resource price type's type.
  */
-public abstract class AbstractCostedResource<T extends ProvType, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
+public abstract class AbstractCostedResource<T extends AbstractCodedEntity, P extends AbstractPrice<T>, C extends AbstractQuote<P>>
 		implements QuoteRelated<C> {
 
 	@Autowired

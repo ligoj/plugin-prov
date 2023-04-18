@@ -1,8 +1,5 @@
 # :link: Ligoj Provisioning plugin [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-prov/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-prov)
 
-[![Build Status](https://app.travis-ci.com/github/ligoj/plugin-prov.svg?branch=master)](https://app.travis-ci.com/github/ligoj/plugin-prov)
-[![Build Status](https://circleci.com/gh/ligoj/plugin-prov.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-prov)
-[![Build Status](https://ci.appveyor.com/api/projects/status/u6i3563iv6f0omm7/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-prov/branch/master)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-prov&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-prov)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?metric=alert_status&project=org.ligoj.plugin:plugin-prov)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-prov)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c815531da2f40dea89a57999ad7e5ca)](https://www.codacy.com/gh/ligoj/plugin-prov?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ligoj/plugin-prov&amp;utm_campaign=Badge_Grade)

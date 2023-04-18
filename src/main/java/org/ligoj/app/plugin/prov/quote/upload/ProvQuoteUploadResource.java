@@ -3,41 +3,12 @@
  */
 package org.ligoj.app.plugin.prov.quote.upload;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.SequenceInputStream;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.ObjIntConsumer;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import javax.validation.ConstraintViolationException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -45,29 +16,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
-import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
-import org.ligoj.app.plugin.prov.AbstractQuoteVmEditionVo;
-import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.ProvTagResource;
-import org.ligoj.app.plugin.prov.TagEditionVo;
-import org.ligoj.app.plugin.prov.dao.BaseMultiScopedRepository;
-import org.ligoj.app.plugin.prov.dao.Optimizer;
-import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
-import org.ligoj.app.plugin.prov.dao.ProvOptimizerRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.AbstractMultiScoped;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvOptimizer;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.*;
+import org.ligoj.app.plugin.prov.dao.*;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseEditionVo;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
@@ -80,7 +32,16 @@ import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The instance part of the provisioning from upload CSV file.
@@ -292,10 +253,10 @@ public class ProvQuoteUploadResource {
 
 		// Check the mandatory headers
 		CollectionUtils.removeAll(MINIMAL_HEADERS_INSTANCE, mapped.keySet()).stream().findFirst()
-				.ifPresent(hi -> CollectionUtils.removeAll(MINIMAL_HEADERS_DATABASE, mapped.keySet()).stream()
-						.findFirst().ifPresent(hd -> {
-							throw new ValidationJsonException(CSV_FILE, "missing-header", "header", hd);
-						}));
+				.flatMap(hi -> CollectionUtils.removeAll(MINIMAL_HEADERS_DATABASE, mapped.keySet()).stream()
+						.findFirst()).ifPresent(hd -> {
+					throw new ValidationJsonException(CSV_FILE, "missing-header", "header", hd);
+				});
 
 		// Return validated header and dropped ones : empty string = ""
 		return Arrays.stream(headers).map(MapUtils.invertMap(mapped)::get).map(StringUtils::trimToEmpty)
@@ -304,31 +265,6 @@ public class ProvQuoteUploadResource {
 
 	private boolean match(final Function<String[], String> c, final String[] namePattern, final String value) {
 		return Pattern.compile(c.apply(namePattern), Pattern.CASE_INSENSITIVE).matcher(value.trim()).matches();
-	}
-
-	/**
-	 * Upload a file of quote in keep mode.
-	 *
-	 * @param subscription    The subscription identifier, will be used to filter the locations from the associated
-	 *                        provider.
-	 * @param uploadedFile    Instance entries files to import. Currently, support only CSV format.
-	 * @param headers         the CSV header names. When <code>null</code> or empty, the default headers are used.
-	 * @param headersIncluded When <code>true</code>, the first line is the headers and the given <code>headers</code>
-	 *                        parameter is ignored. Otherwise, the <code>headers</code> parameter is used.
-	 * @param usage           The optional usage name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this usage.
-	 * @param budget          The optional budget name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this budget.
-	 * @param optimizer       The optional optimizer name. When not <code>null</code>, each quote instance will be
-	 *                        associated to this optimizer.
-	 * @param ramMultiplier   The multiplier for imported RAM values. Default is 1.
-	 * @throws IOException When the CSV stream cannot be written.
-	 */
-	public void upload(final int subscription, final InputStream uploadedFile, final String[] headers,
-			final boolean headersIncluded, final String usage, final String budget, final String optimizer,
-			final Integer ramMultiplier) throws IOException {
-		upload(subscription, uploadedFile, headers, headersIncluded, usage, budget, optimizer, MergeMode.KEEP,
-				ramMultiplier, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
 	}
 
 	/**
@@ -360,20 +296,21 @@ public class ProvQuoteUploadResource {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription,
-			@Multipart(value = CSV_FILE) final InputStream uploadedFile,
-			@Multipart(value = "headers", required = false) final String[] headers,
-			@Multipart(value = "headers-included", required = false) final Boolean headersIncluded,
-			@Multipart(value = "usage", required = false) final String defaultUsage,
-			@Multipart(value = "budget", required = false) final String defaultBudget,
-			@Multipart(value = "optimizer", required = false) final String defaultOptimizer,
-			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
-			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "errorContinue", required = false) final Boolean errorContinue,
-			@Multipart(value = "encoding", required = false) final String encoding,
-			@Multipart(value = "createMissingUsage", required = false) final Boolean createUsage,
-			@Multipart(value = "createMissingBudget", required = false) final Boolean createBudget,
-			@Multipart(value = "createMissingOptimizer", required = false) final Boolean createOptimizer,
-			@Multipart(value = "separator", required = false) final String separator) throws IOException {
+			@FormParam(value = CSV_FILE) final String uploadedFile,
+			@FormParam(value = "headers") final String[] headers,
+			@FormParam(value = "headers-included") final Boolean headersIncluded,
+			@FormParam(value = "usage") final String defaultUsage,
+			@FormParam(value = "budget") final String defaultBudget,
+			@FormParam(value = "optimizer") final String defaultOptimizer,
+			@FormParam(value = "mergeUpload") final MergeMode mode,
+			@FormParam(value = "memoryUnit") final Integer ramMultiplier,
+			@FormParam(value = "errorContinue") final Boolean errorContinue,
+			@FormParam(value = "encoding") final String encoding,
+			@FormParam(value = "createMissingUsage") final Boolean createUsage,
+			@FormParam(value = "createMissingBudget") final Boolean createBudget,
+			@FormParam(value = "createMissingOptimizer") final Boolean createOptimizer,
+			@FormParam(value = "separator") final String separator) throws IOException {
+
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
@@ -384,14 +321,14 @@ public class ProvQuoteUploadResource {
 		final InputStream fileNoHeader;
 		if (headersIncluded == null || headersIncluded) {
 			// Header at first line
-			final var br = new BufferedReader(new StringReader(IOUtils.toString(uploadedFile, safeEncoding)));
+			final var br = new BufferedReader(new StringReader(uploadedFile));
 			headersArray = StringUtils.defaultString(br.readLine()).split(separator);
 			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
 
 		} else {
 			// Headers are provided separately
 			headersArray = ArrayUtils.isEmpty(headers) ? DEFAULT_HEADERS : headers;
-			fileNoHeader = uploadedFile;
+			fileNoHeader = new ByteArrayInputStream(uploadedFile.getBytes(safeEncoding));
 		}
 
 		final var headersArray2 = checkHeaders(headersArray);

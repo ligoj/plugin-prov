@@ -81,23 +81,24 @@
 .prov-slider .progress-bar {
   position: absolute;
   overflow: visible;
-  height: 25px;
+  height: 31px;
   margin-top: 3px;
 }
 
 .prov-slider .progress-bar .ui-resizable-e {
   right: -4px;
   cursor: ew-resize;
-  height: 30px;
+  height: 40px;
 }
 .prov-slider .progress-bar span.end {
   float: right;
   margin-right: -4px;
   color: #0000005e;
-  bottom: -18px;
+  bottom: -24px;
   position: relative;
 }
 .prov-slider .progress-bar span.end:hover {
-  cursor: pointer;
+  cursor: ew-resize;
+  height: 1px;
   color: #000000;
 }

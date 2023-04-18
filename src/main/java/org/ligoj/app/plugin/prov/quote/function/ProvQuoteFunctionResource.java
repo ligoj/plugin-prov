@@ -4,43 +4,28 @@
 
 package org.ligoj.app.plugin.prov.quote.function;
 
-import java.util.List;
-
-import javax.transaction.Transactional;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
+import lombok.Getter;
 import org.apache.commons.lang3.time.DateUtils;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
+import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
 import org.ligoj.app.plugin.prov.dao.Optimizer;
 import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
 import org.ligoj.app.plugin.prov.dao.ProvFunctionTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
-import org.ligoj.app.plugin.prov.model.QuoteFunction;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.core.json.TableItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
+import java.util.List;
 
 /**
  * The function part of the provisioning.
@@ -208,4 +193,20 @@ public class ProvQuoteFunctionResource extends
 		entity.setDuration(vo.getDuration());
 		entity.setNbRequests(vo.getNbRequests());
 	}
+
+	@Override
+	protected Floating getCost(final ProvQuoteFunction qi, final ProvFunctionPrice ip) {
+		// Fixed price
+		final var reservedConcurrencyCost = super.getCost(qi, ip).multiply(qi.getConcurrency());
+
+		// Add per request cost
+		final var perReqDuration = Math.ceil(Math.max(ip.getMinDuration(), qi.getDuration()) / ip.getIncrementDuration()) * ip.getIncrementDuration();
+		final var billedReqDuration = perReqDuration * qi.getNbRequests();
+
+		final double rate = getRate(qi, ip);
+		final var costRamConcurrency = Math.min(qi.getConcurrency() * rate, billedReqDuration / CONCURRENCY_PER_MONTH) * ip.getCostRamRequestConcurrency();
+		final var costRam = Math.max(0, billedReqDuration / CONCURRENCY_PER_MONTH - qi.getConcurrency() * rate) * ip.getCostRamRequest();
+		return reservedConcurrencyCost.add(costRam, 0).add(costRamConcurrency, 0);
+	}
+
 }

@@ -3,7 +3,7 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 import org.ligoj.bootstrap.core.model.AbstractNamedAuditedEntity;
 

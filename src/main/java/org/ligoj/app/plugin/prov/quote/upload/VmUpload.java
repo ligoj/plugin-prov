@@ -6,8 +6,8 @@ package org.ligoj.app.plugin.prov.quote.upload;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import org.ligoj.app.plugin.prov.model.AbstractProvTag;
 import org.ligoj.app.plugin.prov.model.InternetAccess;

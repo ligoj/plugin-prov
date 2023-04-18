@@ -3,10 +3,10 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.MappedSuperclass;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class AbstractInstanceType extends AbstractCodedEntity implements ProvType {
+public abstract class AbstractInstanceType extends AbstractCodedEntity {
 
 	/**
 	 * SID

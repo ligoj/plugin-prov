@@ -194,7 +194,7 @@ define(['sparkline', 'd3'], function () {
 			|| location.countryM49 && matcher(term, current.$messages.m49[parseInt(location.countryM49, 10)])
 			|| location.countryA2 && (matcher(term, location.countryA2) ?? (location.countryA2 === 'UK' && matcher(term, 'GB')));
 	}
-	function newProcessorOpts(type) {
+	function newProcessorOpts(filteredType) {
 		return {
 			placeholder: current.$messages['service:prov:processor-default'],
 			allowClear: true,
@@ -202,8 +202,8 @@ define(['sparkline', 'd3'], function () {
 				if (current.model) {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
-					// Must be found in all resource types
-					if (computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					const type = typeof filteredType === 'function' ? filteredType() : null;
+					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
@@ -213,7 +213,8 @@ define(['sparkline', 'd3'], function () {
 			data: () => {
 				if (current.model) {
 					const processors = current.model.configuration.processors;
-					return { results: (typeof type === 'function' ? processors[type()] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					const type = typeof filteredType === 'function' ? filteredType() : null;
+					return { results: (type ? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -239,6 +240,49 @@ define(['sparkline', 'd3'], function () {
 			return false;
 		}
 		return null;
+	}
+
+	function applyStorageEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-disk', price.type.minimal, formatStorageEfficiency);
+		} else {
+			// Remove gauges
+			_('popup-prov-storage').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
+	}
+
+	function formatStorageEfficiency(valueGB, minGB, noText) {
+		return formatEfficiency(valueGB, minGB, value => formatManager.formatSize(value * 1024 * 1024 * 1024, 3), noText);
+	}
+
+	function formatRamEfficiency(valueMB, maxMB, noText) {
+		return formatEfficiency(valueMB, maxMB, value => formatManager.formatSize(value * 1024 * 1024, 3), noText)
+	}
+
+	function applyEfficiency(inputId, weight, max, formatter) {
+		const $input = _(inputId);
+		const value = parseFloat($input.val() || '0', 10) * weight;
+		const html = formatter ? formatter(value, max, true) : formatEfficiency(value, max, null, true);
+		const $wrapper = $input.closest('.input-group').next('.input-help');
+		$wrapper.find('.efficiency').remove();
+		$wrapper.addClass('has-gauge').append(html);
+	}
+
+	function applyComputeEfficiency() {
+		let price = _('instance-price').select2('data');
+		price = price?.price || price;
+		if (price?.type) {
+			// Update gauges
+			applyEfficiency('instance-cpu', 1, price.type.cpu);
+			applyEfficiency('instance-ram', getRamUnitWeight(), price.type.ram, formatRamEfficiency);
+			applyEfficiency('instance-gpu', 1, price.type.gpu);
+		} else {
+			// Remove gauges
+			_('popup-prov-generic').find('.has-gauge').removeClass('has-gauge').find('.efficiency').remove();
+		}
 	}
 
 	/**
@@ -281,10 +325,11 @@ define(['sparkline', 'd3'], function () {
 	 * Format the efficiency of a data depending on the rate against the maximum value.
 	 * @param value {number} Current value.
 	 * @param max {number} Maximal value.
-	 * @param formatter {function} Option formatter function of the value. 
+	 * @param formatter {function} Option formatter function of the value.
+	 * @param noText {number} When true, only graphic is displayed.
 	 * @returns {string} The value to display containing the rate.
 	 */
-	function formatEfficiency(value, max, formatter) {
+	function formatEfficiency(value, max, formatter, noText) {
 		let fullClass = null
 		if (typeof max === 'undefined') {
 			max = value;
@@ -308,10 +353,10 @@ define(['sparkline', 'd3'], function () {
 		let formatValue;
 		let formatParams;
 		if (formatter) {
-			formatValue = formatter(value);
+			formatValue = noText ? '' : formatter(value);
 			formatParams = [formatter(value), formatter(max), rate];
 		} else {
-			formatValue = value;
+			formatValue = noText ? '' : value;
 			formatParams = [value, max, rate];
 		}
 		return formatValue + (fullClass ? '<span class="efficiency pull-right"><i class="' + fullClass + '" data-toggle="tooltip" title="' +
@@ -353,9 +398,7 @@ define(['sparkline', 'd3'], function () {
 			return sizeMB;
 		}
 		if (instance) {
-			return formatEfficiency(sizeMB, instance.price.type.ram, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024, 3);
-			});
+			return formatRamEfficiency(sizeMB, instance.price.type.ram);
 		}
 		return formatManager.formatSize(sizeMB * 1024 * 1024, 3);
 	}
@@ -553,7 +596,7 @@ define(['sparkline', 'd3'], function () {
 	 * @param {boolean} noRichText When true, the cost will be in plain text, no HTML markup.
 	 * @return The formatted cost.
 	 */
-	function formatFloat(cost, mode, obj, noRichText, type = 'cost') {
+	function formatFloat(cost, mode, obj, noRichText, type) {
 		if (mode === 'sort' || mode === 'filter') {
 			return cost;
 		}
@@ -661,9 +704,7 @@ define(['sparkline', 'd3'], function () {
 		}
 		if (data?.price.type.minimal > sizeGB) {
 			// Enable efficiency display
-			return formatEfficiency(sizeGB, data.price.type.minimal, function (value) {
-				return formatManager.formatSize(value * 1024 * 1024 * 1024, 3);
-			});
+			return formatStorageEfficiency(sizeGB, data.price.type.minimal);
 		}
 
 		// No efficiency rendering can be done
@@ -871,14 +912,78 @@ define(['sparkline', 'd3'], function () {
 	}
 
 	/**
-	 * Return the HTML markup from the quote resource.
-	 */
-	function formatName(name, mode, resource) {
-		if (mode !== 'display') {
-			return name
-		}
-		return `<a class="update" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`;
-	}
+     * Return the HTML markup from the quote resource.
+     */
+    function formatName(name, mode, resource) {
+        if (mode !== 'display') {
+            return name
+        }
+        let details;
+        // cost
+        details = formatCost(resource.cost);
+        // co2  
+        if (resource.co2) {
+            details += '<br><i class=\'fas fa-leaf\'></i> ';
+            details += formatCo2(resource.co2);
+        }
+        // cpu
+        if (resource.cpu) {
+            details += '<br><i class=\'fas fa-bolt\'></i> ';
+            details += formatCpu(resource.cpu);
+        }
+        // ram
+        if (resource.ram) {
+            details += '<br><i class=\'fas fa-memory\'></i> ';
+            details += formatRam(resource.ram);
+        }
+        // gpu
+        if (resource.gpu) {
+            details += '<br><i class=\'icon mdi-expansion-card\'></i> ';
+            details += formatGpu(resource.gpu);
+        }
+        // currency
+        if (resource.currency) {
+            details += '<br><i class=\'fas fa-stream\'></i> ';
+            details += resource.currency ? `${resource.currency}` : '';
+        }
+        // duration
+        if (resource.duration) {
+            details += '<br><i class=\'fas fa-stopwatch\'></i> ';
+            details += resource.duration ? `${resource.duration}` : ''; 
+        }
+        // engine
+        if (resource.engine) {
+            details += '<br>Moteur : ';
+            details += formatDatabaseEngine(resource.engine);
+        }
+        // latency 
+        if (resource.latency) {
+            details += '<br>latency :  ';
+            details += resource.latency ? `${resource.latency}` : '';
+        }
+        // internet
+        if (resource.internet) {
+            details += '<br>Internet : ';
+            details += formatInternet(resource.internet);
+        }
+        // localisationName
+        if (resource.localisationName) {
+            details += '<br><i class=\'fas fa-map-marker-alt fa-fw\'></i> ';
+            details += resource.localisationName ? `${resource.localisationName}` : '';
+        }
+        // os
+        if (resource.os) {
+            details += '<br>OS : ';
+            details += formatOs(resource.os);
+        }
+        // optimized
+        if (resource.optimized) {
+            details += '<br>Optimized : ';
+            details += resource.optimized ? `${resource.optimized}` : '';
+        }
+        var link = `<a class="update details-help" data-toggle="modal" data-target="#popup-prov-${toModalDataTarget(resource.resourceType)}">${name}</a>`
+        return `<u class="details-help" data-toggle="popover" title="${toHtmlAttribute(name)}" data-content="${toHtmlAttribute(details)}" >${link}</u>`;
+    }
 
 	/**
 	 * Return the HTML markup from the support level.
@@ -1261,6 +1366,9 @@ define(['sparkline', 'd3'], function () {
 			}
 		}).on('change', '#instance-workload', function (e) {
 			calculate_input_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
+		}).on('change', '#instance-os', function (e) {
+			$("#instance-software").select2('val',"")
 		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
@@ -1277,7 +1385,7 @@ define(['sparkline', 'd3'], function () {
 						const data = workload[i].split('@');
 						if (data.length == 2) {
 							durationTotal = durationTotal + parseInt(data[0]);
-							if (durationTotal <= 100 && data[0] != ("" || 0) && data[1] != "") {
+							if (data[0] > 0) {
 								html_workload(data[0], data[1]);
 							}
 						}
@@ -1305,7 +1413,7 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value
 			}
-			if (durationTotal <= 100 && $(e.target).val() != 0 && $(e.target).val() != '') {
+			if ($(e.target).val() != 0 && $(e.target).val() != '') {
 				if ($(e.target).val() > 100) {
 					$(e.target).val(100);
 				}
@@ -1329,6 +1437,9 @@ define(['sparkline', 'd3'], function () {
 		}).on('click', '.btn.btn-success.addon-workload', function () {
 			let index = 0;
 			let durationTotal = 0;
+			const duration = $('#instance-workload-duration').val()
+			const cpu = $('#instance-workload-cpu').val()
+			html_workload(duration, cpu);
 			if (($('.instance-workload-dataDuration').length >= 2)) {
 				while (index < ($('.instance-workload-dataDuration').length)) {
 					durationTotal = durationTotal + parseInt($('.instance-workload-dataDuration')[index].value);
@@ -1337,14 +1448,8 @@ define(['sparkline', 'd3'], function () {
 			} else if ($('.instance-workload-dataDuration')[0]) {
 				durationTotal = $('.instance-workload-dataDuration')[0].value;
 			}
-
-			let duration = $('#instance-workload-duration').val()
-			let cpu = $('#instance-workload-cpu').val()
-			if (parseInt(durationTotal) + parseInt(duration) <= 100) {
-				html_workload(duration, cpu);
-				calculate_list_and_createSparkline();
-				$.proxy(current.checkResource, $popup)();
-			}
+			calculate_list_and_createSparkline();
+			$.proxy(current.checkResource, $popup)();
 			$('#instance-workload-duration').val('');
 			$('#instance-workload-cpu').val('');
 			$('#create-workload').addClass('disabled');
@@ -1354,14 +1459,21 @@ define(['sparkline', 'd3'], function () {
 			$.proxy(current.checkResource, $popup)();
 		}).on('show.bs.modal', function (event) {
 			const $source = $(event.relatedTarget);
-			const dType = $source.provType();
+			let dType = $source.provType();
 			const $tr = $source.closest('tr');
 			const $table = $tr.closest('table');
-			let quote = ($tr.length && $table.dataTable().fnGetData($tr[0])) || {};
+			let quote = ($tr.length && Object.assign({}, $table.dataTable().fnGetData($tr[0]))) || {};
+			if ($source.hasClass('copy')) {
+                delete quote.id;
+                delete quote.name;
+            };
 			if (dType !== quote.resourceType && quote.resourceType !== undefined) {
 				// Display sub resource
 				if ($source.attr('data-id')) {
 					quote = current.model.configuration[dType + 'sById'][$source.attr('data-id')];
+				} else if (quote.quoteInstance || quote.quoteFunction || quote.quoteContainer || quote.quoteDatabase) {
+					dType = quote.quoteInstance ? "instance" : quote.quoteFunction ? "function" : quote.quoteDatabase ? "database" : "container";
+					quote = quote.quoteInstance || quote.quoteFunction || quote.quoteContainer || quote.quoteDatabase;
 				} else {
 					quote = quote['quote' + dType.capitalize()];
 				}
@@ -1414,6 +1526,16 @@ define(['sparkline', 'd3'], function () {
 							</div>`));
 	}
 
+	function workloadWarning(durationTotal) {
+		if (durationTotal <= 100) {
+			$('.workload-warning').addClass('hidden');
+			$('.part-workload').removeClass('has-error');
+		} else {
+			$('.workload-warning').removeClass('hidden');
+			$('.part-workload').addClass('has-error');
+		}
+	}
+
 	function calculate_list_and_createSparkline() {
 		$('.svg-workload').addClass("hidden");
 		const $detailsDuration = $('.instance-workload-dataDuration');
@@ -1434,12 +1556,13 @@ define(['sparkline', 'd3'], function () {
 		}
 
 		let sparklinePoints = create_points(dataPoints, totalDuration, workload);
+		workloadWarning(totalDuration);
 
 		if (workload == 0) {
 			_('instance-workload').val('');
 			$('#sparkline-workload').addClass('hidden');
 		} else {
-			_('instance-workload').val(`${workload}${details}`);
+			_('instance-workload').val(formatInputWorkload(workload, details));
 			if ($('.instance-workload-dataDuration').length > 1) {
 				$('#sparkline-workload').removeClass('hidden');
 			} else {
@@ -1457,21 +1580,21 @@ define(['sparkline', 'd3'], function () {
 		let totalDuration = 0;
 		let dataPoints = [];
 		if (input_workload.length > 1) {
-			for (let i = 1; i < input_workload.length; i++) {
+			for (let i = 0; i < input_workload.length; i++) {
 				let data = input_workload[i].split('@');
-				if (data.length == 2) {
+				if (data.length == 2 && data[0] > 0) {
 					totalDuration = totalDuration + parseInt(data[0]);
-					if (totalDuration <= 100 && data[0] != ("" || 0) && data[1] != "") {
+					if (data[1] !== "") {
 						workload = workload + (data[0] * data[1] / 100);
 						details = details + `,${data[0]}@${data[1]}`
 						dataPoints.push({ "duration": data[0], "cpu": data[1] });
 					}
 				}
 			}
-			if (workload != 0) {
-				_('instance-workload').val(workload + details);
-			} else {
+			if (workload == 0) {
 				_('instance-workload').val(input_workload[0]);
+			} else {
+				_('instance-workload').val(formatInputWorkload(workload, details));
 			}
 
 			let sparklinePoints = create_points(dataPoints, totalDuration, workload);
@@ -1480,10 +1603,12 @@ define(['sparkline', 'd3'], function () {
 			$('.svg-workload').addClass("hidden");
 			const val_input = _('instance-workload').val().replace(/[^0-9]+/g, '');
 			_('instance-workload').val(val_input);
-			if (_('instance-workload').val() > 100) {
-				_('instance-workload').val('');
-			}
 		}
+		workloadWarning(totalDuration);
+	}
+
+	function formatInputWorkload(workload, details) {
+		return Math.round(workload) + details
 	}
 
 	function create_points(dataPoints, totalDuration, workload) {
@@ -1505,7 +1630,7 @@ define(['sparkline', 'd3'], function () {
 		require(['d3'], function (d3, d3Bar) {
 			$('.svg-workload').removeClass("hidden");
 			$('.workload-line').remove();
-			const WIDTH = 250;
+			const WIDTH = 240;
 			const HEIGHT = 40;
 			const MARGIN = { top: 5, right: 0, bottom: 4, left: 2 };
 			const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
@@ -1949,9 +2074,9 @@ define(['sparkline', 'd3'], function () {
 			_('quote-support').select2('data', conf.supports);
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
-			update3States(_('quote-physical'), conf.physical);
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
+			update3States(_('quote-physical'), conf.physical);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -2182,7 +2307,7 @@ define(['sparkline', 'd3'], function () {
 				type: 'GET',
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
-					if (suggest && (suggest.price || ($.isArray(suggest) && suggest.length))) {
+					if (suggest?.price || ($.isArray(suggest) && suggest.length)) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$("#separator-database-engine").removeClass("hidden")
@@ -2232,14 +2357,18 @@ define(['sparkline', 'd3'], function () {
 			const suggests = current.toSuggests(quote);
 			if (suggests) {
 				const suggest = suggests[0];
+				if (!current.model.quote.name &&  current.model.quote.id ){
+					delete suggest['id']
+				}
 				_('storage-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: formatStoragePriceHtml,
 					formatResult: formatStoragePriceHtml
-				}).select2('data', suggest);
+				}).on('change', applyStorageEfficiency).select2('data', suggest);
 			} else {
 				_('storage-price').select2('data', null);
 			}
+			applyStorageEfficiency();
 		},
 
 		/**
@@ -2265,6 +2394,9 @@ define(['sparkline', 'd3'], function () {
 			} else {
 				_('instance-price').select2('data', null);
 			}
+
+			// Update the efficiency
+			applyComputeEfficiency();
 		},
 
 		/**
@@ -2274,6 +2406,9 @@ define(['sparkline', 'd3'], function () {
 			const suggests = current.toSuggests(quote);
 			if (suggests) {
 				const suggest = suggests[0];
+				if (!current.model.quote.name &&  current.model.quote.id ){
+					delete suggest['id']
+				}
 				_('support-price').select2('destroy').select2({
 					data: suggests,
 					formatSelection: function (qi) {
@@ -2394,12 +2529,13 @@ define(['sparkline', 'd3'], function () {
 			}
 			oSettings.columns.push({
 				data: null,
-				width: '51px',
+				width: '65px',
 				orderable: false,
 				searchable: false,
 				type: 'string',
 				render: function () {
 					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
+						+ `<a class="copy" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-copy" data-toggle="tooltip" title="${current.$messages['service:prov:message-copy']}"></i></a>`
 						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></a>`
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
@@ -2412,8 +2548,13 @@ define(['sparkline', 'd3'], function () {
 			current[type + 'Table'] = $table.dataTable(oSettings);
 		},
 
+		reinitializeFileinput: function (){
+			$(".is-fileinput").removeClass("has-error").attr("data-error-property","").attr("title","").removeAttr("data-toggle").attr("data-original-title","");
+		},
+
 		initializeUpload: function () {
 			const $popup = _('popup-prov-instance-import');
+			const fileinput = $(".is-fileinput");
 			_('csv-headers-included').on('change', function () {
 				if ($(this).is(':checked')) {
 					// Useless input headers
@@ -2441,9 +2582,15 @@ define(['sparkline', 'd3'], function () {
 				id: 'UTF-8',
 				text: 'UTF-8'
 			});
+			$(".is-fileinput .input-group").on('change', function(){
+				current.reinitializeFileinput()
+			})
 			$popup.on('shown.bs.modal', () => _('csv-file').trigger('focus')
-			).on('show.bs.modal', () => $('.import-summary').addClass('hidden')
-			).on('submit', function (e) {
+			).on('show.bs.modal', function () {
+				current.reinitializeFileinput()
+				$(".is-fileinput .form-control").val('')
+				$('.import-summary').addClass('hidden')
+			}).on('submit', function (e) {
 				// Avoid useless empty optional inputs
 				_('instance-encoding-upload').val((_('csv-upload-encoding').select2('data') || {}).id || null);
 				_('instance-usage-upload-name').val((_('instance-usage-upload').select2('data') || {}).name || null);
@@ -2453,6 +2600,7 @@ define(['sparkline', 'd3'], function () {
 				_('csv-error-continue').val(_('csv-headers-included').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-usage').val(_('csv-create-missing-usage').is(':checked') ? 'true' : 'false');
 				_('csv-create-missing-optimizer').val(_('csv-create-missing-optimizer').is(':checked') ? 'true' : 'false');
+				_('csv-create-missing-budget').val(_('csv-create-missing-budget').is(':checked') ? 'true' : 'false');
 				$popup.find('input[type="text"]').not('[readonly]').not('.select2-focusser').not('[disabled]').filter(function () {
 					return $(this).val() === '';
 				}).attr('disabled', 'disabled').attr('readonly', 'readonly').addClass('temp-disabled').closest('.select2-container').select2('enable', false);
@@ -2475,6 +2623,7 @@ define(['sparkline', 'd3'], function () {
 						current.reload();
 					},
 					complete: function () {
+						fileinput.attr("data-original-title",fileinput.attr("title"));
 						$('.loader-wrapper').addClass('hidden');
 						$('.import-summary').html('').addClass('hidden');
 						// Restore the optional inputs
@@ -3027,6 +3176,9 @@ define(['sparkline', 'd3'], function () {
 					$popup.modal('hide');
 					current.enableCreate($popup);
 
+					//Notify
+					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:updated'])({sample: jsonData.name}));
+
 					// Handle updated cost
 					if (context) {
 						current.reloadAsNeed(newCost, forceUpdateUi);
@@ -3187,7 +3339,7 @@ define(['sparkline', 'd3'], function () {
 			const id = resourceOrId?.id || resourceOrId;
 			if (id) {
 				// The instance is valid
-				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === id).invalidate().draw(false);
+				_('prov-' + type + 's').DataTable().rows((_, data) => data.id === parseInt(id)).invalidate().draw(false);
 			}
 		},
 
@@ -3223,6 +3375,7 @@ define(['sparkline', 'd3'], function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.physical = data.physical;
+			model.processor = data.processor;
 		},
 		computeCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
@@ -3356,7 +3509,7 @@ define(['sparkline', 'd3'], function () {
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
-			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
+			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128.0 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-gpu').val(quote.gpu || 0);
 			_('instance-workload').val(quote.workload || null);
@@ -3535,6 +3688,7 @@ define(['sparkline', 'd3'], function () {
 						current.enableCreate($popup);
 						_(inputType + '-name').val(current.findNewName(current.model.configuration[type + 's'], type));
 						$(_(inputType + '-name')).focus();
+						delete current.model.quote.id
 					} else {
 						$popup.modal('hide');
 					}
@@ -3618,15 +3772,35 @@ define(['sparkline', 'd3'], function () {
 								height: 150,
 								data,
 								aggregateMode,
-								tooltip: (_event, _bars, d) => current.tooltipStacked(_event, _bars, d, data),
-								hover: d => {
-									// Hover of barchart -> update sunburst and global cost
-									current.updateUiCost(d?.['x-index']);
+								tooltip: (_event, _bars, d, chosen) => {
+                                    // Tooltip of barchart for each resource type
+                                    let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+
+                                    // For each contributor add its value
+                                    let barData = data[d['x-index']];
+                                    let totalCost = 0;
+                                    let totalCo2 = 0;
+                                    types.forEach(type => {
+                                        const value = barData[type]
+                                        if ((chosen == d.cluster && type == d.cluster || chosen == null) && (value?.cost || value?.co2)) {
+                                            totalCost += value.cost || 0;
+                                            totalCo2 += value.co2 || 0;
+                                            tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster == type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+                                        }
+                                    });
+
+									// Append total
+									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
+									return `<span class="tooltip-text">${tooltip}</span>`;
 								},
-								click: (d, _bars, clicked) => {
-									// Hover of barchart -> update sunburst and global cost
-									current.updateUiCost(clicked && d?.['x-index']);
-								}, axisY: formatByAggregationMode,
+								hover: (d,chosen) => {
+                                    // Hover of barchart -> update sunburst and global cost
+                                    current.updateUiCost(d?.['x-index'],chosen);
+                                },
+                                click: (d, _bars, clicked, chosen) => {
+                                    // Hover of barchart -> update sunburst and global cost
+                                    current.updateUiCost(clicked && d?.['x-index'], chosen);
+                                }, axisY: formatByAggregationMode,
 								sort: (a, b) => types.indexOf(a) - types.indexOf(b)
 							});
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
@@ -3694,12 +3868,12 @@ define(['sparkline', 'd3'], function () {
 		/**
 		 * Update the total cost of the quote.
 		 */
-		updateUiCost: function (filterDate) {
-			const conf = current.model.configuration;
-			const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
+		updateUiCost: function (filterDate, filtreInstance) {
+            const conf = current.model.configuration;
+            const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
-			// Compute the new capacity and costs
-			const stats = current.computeStats(filterDate);
+            // Compute the new capacity and costs
+            const stats = current.computeStats(filterDate, filtreInstance);
 
 			// Update the global counts
 			const formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
@@ -3913,32 +4087,34 @@ define(['sparkline', 'd3'], function () {
 			}
 		},
 
-		getFilteredData: function (type, filterDate) {
-			let result = [];
-			if (current[type + 'Table']) {
-				const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
-				for (let index = 0; index < data.length; index++) {
-					result.push(data[index]);
-				}
-			} else {
-				result = current.model.configuration[type + 's'] || [];
-			}
-			if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
-				let usage = current.model.configuration.usage || {};
-				return result.filter(qi => {
-					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
-					const start = rUsage.start || 0;
-					const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
-					return start <= filterDate && filterDate < duration + start;
-				});
-			}
-			return result;
-		},
+		getFilteredData: function (type, filterDate, filtreInstance) {
+            let result = [];
+            if (filtreInstance == type || filtreInstance == (undefined || null)) {
+                if (current[type + 'Table']) {
+                    const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
+                    for (let index = 0; index < data.length; index++) {
+                        result.push(data[index]);
+                    }
+                } else {
+                    result = current.model.configuration[type + 's'] || [];
+                }
+                if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
+                    let usage = current.model.configuration.usage || {};
+                    return result.filter(qi => {
+                        const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
+                        const start = rUsage.start || 0;
+                        const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
+                        return start <= filterDate && filterDate < duration + start;
+                    });
+                }
+            }
+            return result;
+        },
 
-		computeStatsType: function (conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
+		computeStatsType: function (conf, filterDate, filtreInstance, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
 			let ramAdjustedRate = conf.ramAdjustedRate / 100;
 			let publicAccess = 0;
-			let instances = current.getFilteredData(type, filterDate);
+			let instances = current.getFilteredData(type, filterDate,filtreInstance);
 			let ramAvailable = 0;
 			let ramReserved = 0;
 			let cpuAvailable = 0;
@@ -4003,40 +4179,40 @@ define(['sparkline', 'd3'], function () {
 		 * Compute the global resource stats of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		computeStats: function (filterDate) {
-			const conf = current.model.configuration;
-			let i, t, start, end;
-			let reservationModeMax = conf.reservationMode === 'max';
+		computeStats: function (filterDate, filtreInstance) {
+            const conf = current.model.configuration;
+            let i, t, start, end;
+            let reservationModeMax = conf.reservationMode === 'max';
 
-			// Timeline
-			let timeline = [];
-			let defaultUsage = conf.usage || { rate: 100, start: 0, duration: DEFAULT_DURATION };
-			let duration = BARCHART_DURATION;
-			let date = moment().startOf('month');
-			for (i = 0; i < duration; i++) {
-				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				types.forEach(type => monthData[`${type}Cost`] = 0);
-				types.forEach(type => monthData[`${type}Co2`] = 0);
-				timeline.push(monthData);
-				date.add(1, 'months');
-			}
+            // Timeline
+            let timeline = [];
+            let defaultUsage = conf.usage || { rate: 100, start: 0, duration: DEFAULT_DURATION };
+            let duration = BARCHART_DURATION;
+            let date = moment().startOf('month');
+            for (i = 0; i < duration; i++) {
+                const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+                types.forEach(type => monthData[`${type}Cost`] = 0);
+                types.forEach(type => monthData[`${type}Co2`] = 0);
+                timeline.push(monthData);
+                date.add(1, 'months');
+            }
 
-			let result = {};
-			// Instance statistics
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
-				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
-				r.engines[engine] = (r.engines[engine] || 0) + 1;
-			});
+            let result = {};
+            // Instance statistics
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
+                let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
+                r.engines[engine] = (r.engines[engine] || 0) + 1;
+            });
 
 			// Storage statistics
 			let storageAvailable = 0;
 			let storageReserved = 0;
 			let storageCost = 0;
 			let storageCo2 = 0;
-			const storages = current.getFilteredData('storage', filterDate);
+			const storages = current.getFilteredData('storage', filterDate, filtreInstance);
 			let nb = 0;
 			storages.forEach(qs => {
 				if (qs.quoteInstance) {
@@ -4077,7 +4253,7 @@ define(['sparkline', 'd3'], function () {
 			});
 
 			// Support statistics
-			let supports = current.getFilteredData('support', filterDate);
+			let supports = current.getFilteredData('support', filterDate,filtreInstance );
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;
@@ -4664,6 +4840,30 @@ define(['sparkline', 'd3'], function () {
 				return
 			}
 
+			// Update the current object
+			if (resource) {
+				current.updateCost(conf, type, updatedCost.cost, resource);
+
+				if (conf[type + 'sById'][updatedCost.id]) {
+					// Update : Redraw the row
+					nbUpdated++;
+					updatedSample = resource.name;
+					current.redrawResource(type, updatedCost.id);
+				} else {
+					// Create
+					conf[type + 's'].push(resource);
+					conf[type + 'sById'][updatedCost.id] = resource;
+					resource.id = updatedCost.id;
+					nbCreated++;
+					createdSample = resource.name;
+					_('prov-' + type + 's').DataTable().row.add(resource).draw(false);
+				}
+			} else if (updatedCost.id) {
+				// Delete this object
+				nbDeleted++;
+				deletedSample = current.delete(type, updatedCost.id).name;
+			}
+
 			// Look the deleted resources
 			Object.keys(deleted).forEach(t => {
 				// For each deleted resource of this type, update the UI and the cost in the model
@@ -4689,29 +4889,6 @@ define(['sparkline', 'd3'], function () {
 				});
 			});
 
-			// Update the current object
-			if (resource) {
-				current.updateCost(conf, type, updatedCost.cost, resource);
-
-				if (conf[type + 'sById'][updatedCost.id]) {
-					// Update : Redraw the row
-					nbUpdated++;
-					updatedSample = resource.name;
-					current.redrawResource(type, updatedCost.id);
-				} else {
-					// Create
-					conf[type + 's'].push(resource);
-					conf[type + 'sById'][updatedCost.id] = resource;
-					resource.id = updatedCost.id;
-					nbCreated++;
-					createdSample = resource.name;
-					_('prov-' + type + 's').DataTable().row.add(resource).draw(false);
-				}
-			} else if (updatedCost.id) {
-				// Delete this object
-				nbDeleted++;
-				deletedSample = current.delete(type, updatedCost.id).name;
-			}
 
 			if (conf.cost.min !== updatedCost.total.min || conf.cost.max !== updatedCost.total.max || conf.cost.unbound !== updatedCost.total.unbound) {
 				console.log('Need to readjust the computed cost: min=' + (updatedCost.total.min - conf.cost.min)

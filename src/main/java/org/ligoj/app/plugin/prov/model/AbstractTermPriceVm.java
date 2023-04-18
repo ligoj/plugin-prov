@@ -3,12 +3,13 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
 
 /**
  * A priced instance with billing configuration. <br>
@@ -22,7 +23,7 @@ import lombok.ToString;
 @Setter
 @ToString(of = { "license" }, callSuper = true)
 @MappedSuperclass
-public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTermPrice<T> {
+public abstract class AbstractTermPriceVm<T extends AbstractCodedEntity> extends AbstractTermPrice<T> {
 
 	/**
 	 * SID
@@ -110,21 +111,21 @@ public abstract class AbstractTermPriceVm<T extends ProvType> extends AbstractTe
 	 * The optional monthly CO2 consumption of one requested CPU with 100% workload usage. Required for dynamic instance
 	 * type.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2Cpu = 0d;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GPU with 100% workload usage. Required for dynamic instance
 	 * type.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2Gpu = 0d;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GiB memory with 100% workload usage. Required for dynamic
 	 * instance type.
 	 */
-	@Column(columnDefinition = "double default 0")
+	@ColumnDefault("0")
 	private double co2Ram = 0d;
 
 	/**
