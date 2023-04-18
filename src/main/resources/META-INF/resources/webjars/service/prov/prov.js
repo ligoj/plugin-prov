@@ -24,7 +24,7 @@ define(['sparkline', 'd3'], function () {
 		database: 'fas fa-database',
 		container: 'fab fa-docker',
 		function: 'fas fa-code',
-		storage: 'far fa-hdd',
+		storage: 'far fa-hdd fa-fw',
 		support: 'fas fa-ambulance'
 	};
 
@@ -1482,7 +1482,7 @@ define(['sparkline', 'd3'], function () {
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
-			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
+			$('#generic-modal-title ,#qs-modal-title ,#qss-modal-title ').html(`<i class="${typeIcons[dType]}" style = "display: contents">  </i>` + current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
