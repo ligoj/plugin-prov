@@ -1367,6 +1367,8 @@ define(['sparkline', 'd3'], function () {
 		}).on('change', '#instance-workload', function (e) {
 			calculate_input_and_createSparkline();
 			$.proxy(current.checkResource, $popup)();
+		}).on('change', '#instance-os', function (e) {
+			$("#instance-software").select2('val',"")
 		}).on('switchChange.bootstrapSwitch', '#mode-workload-details', function (e) {
 			if (e.currentTarget.checked) {
 				$popup.addClass('detailWorkload');
