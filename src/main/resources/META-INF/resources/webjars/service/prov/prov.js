@@ -3767,22 +3767,22 @@ define(['sparkline', 'd3'], function () {
 								height: 150,
 								data,
 								aggregateMode,
-								tooltip: (_event, _bars, d) => {
-									// Tooltip of barchart for each resource type
-									let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+								tooltip: (_event, _bars, d, chosen) => {
+                                    // Tooltip of barchart for each resource type
+                                    let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
 
-									// For each contributor add its value
-									let barData = data[d['x-index']];
-									let totalCost = 0;
-									let totalCo2 = 0;
-									types.forEach(type => {
-										const value = barData[type]
-										if (value?.cost || value?.co2) {
-											totalCost += value.cost || 0;
-											totalCo2 += value.co2 || 0;
-											tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster === type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
-										}
-									});
+                                    // For each contributor add its value
+                                    let barData = data[d['x-index']];
+                                    let totalCost = 0;
+                                    let totalCo2 = 0;
+                                    types.forEach(type => {
+                                        const value = barData[type]
+                                        if ((chosen == d.cluster && type == d.cluster || chosen == null) && (value?.cost || value?.co2)) {
+                                            totalCost += value.cost || 0;
+                                            totalCo2 += value.co2 || 0;
+                                            tooltip += `<br/><i class="${typeIcons[type]}"></i><span${d.cluster == type ? ' class="strong">' : '>'} ${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+                                        }
+                                    });
 
 									// Append total
 									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
