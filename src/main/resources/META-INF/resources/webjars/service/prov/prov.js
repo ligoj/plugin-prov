@@ -4726,7 +4726,7 @@ define(['sparkline', 'd3'], function () {
 				},
 				{
 					data: 'price.term',
-					className: 'hidden-xs hidden-sm price-term',
+					className: 'truncate hidden-xs hidden-sm price-term',
 					type: 'string',
 					render: formatInstanceTerm
 				}, {
@@ -4736,25 +4736,25 @@ define(['sparkline', 'd3'], function () {
 					render: formatInstanceType
 				}, {
 					data: 'usage',
-					className: 'hidden-xs hidden-sm usage',
+					className: 'truncate hidden-xs hidden-sm usage',
 					type: 'string',
 					render: formatUsage,
 					filter: filterMultiScoped('usage')
 				}, {
 					data: 'budget',
-					className: 'hidden-xs hidden-sm budget',
+					className: 'truncate hidden-xs hidden-sm budget',
 					type: 'string',
 					render: formatBudget,
 					filter: filterMultiScoped('budget')
 				}, {
 					data: 'optimizer',
-					className: 'hidden-xs hidden-sm optimizer',
+					className: 'truncate hidden-xs hidden-sm optimizer',
 					type: 'string',
 					render: formatOptimizer,
 					filter: filterMultiScoped('optimizer')
 				}, {
 					data: 'location',
-					className: 'hidden-xs hidden-sm location',
+					className: 'truncate hidden-xs hidden-sm location',
 					width: '24px',
 					type: 'string',
 					render: formatLocation
