@@ -3788,14 +3788,14 @@ define(['sparkline', 'd3'], function () {
 									tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
 									return `<span class="tooltip-text">${tooltip}</span>`;
 								},
-								hover: d => {
-									// Hover of barchart -> update sunburst and global cost
-									current.updateUiCost(d?.['x-index']);
-								},
-								click: (d, _bars, clicked) => {
-									// Hover of barchart -> update sunburst and global cost
-									current.updateUiCost(clicked && d?.['x-index']);
-								}, axisY: formatByAggregationMode,
+								hover: (d,chosen) => {
+                                    // Hover of barchart -> update sunburst and global cost
+                                    current.updateUiCost(d?.['x-index'],chosen);
+                                },
+                                click: (d, _bars, clicked, chosen) => {
+                                    // Hover of barchart -> update sunburst and global cost
+                                    current.updateUiCost(clicked && d?.['x-index'], chosen);
+                                }, axisY: formatByAggregationMode,
 								sort: (a, b) => types.indexOf(a) - types.indexOf(b)
 							});
 						$(window).off('resize.barchart').resize('resize.barchart', e => current.d3Bar
@@ -3838,12 +3838,12 @@ define(['sparkline', 'd3'], function () {
 		/**
 		 * Update the total cost of the quote.
 		 */
-		updateUiCost: function (filterDate) {
-			const conf = current.model.configuration;
-			const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
+		updateUiCost: function (filterDate, filtreInstance) {
+            const conf = current.model.configuration;
+            const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
-			// Compute the new capacity and costs
-			const stats = current.computeStats(filterDate);
+            // Compute the new capacity and costs
+            const stats = current.computeStats(filterDate, filtreInstance);
 
 			// Update the global counts
 			const formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
@@ -4057,32 +4057,34 @@ define(['sparkline', 'd3'], function () {
 			}
 		},
 
-		getFilteredData: function (type, filterDate) {
-			let result = [];
-			if (current[type + 'Table']) {
-				const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
-				for (let index = 0; index < data.length; index++) {
-					result.push(data[index]);
-				}
-			} else {
-				result = current.model.configuration[type + 's'] || [];
-			}
-			if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
-				let usage = current.model.configuration.usage || {};
-				return result.filter(qi => {
-					const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
-					const start = rUsage.start || 0;
-					const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
-					return start <= filterDate && filterDate < duration + start;
-				});
-			}
-			return result;
-		},
+		getFilteredData: function (type, filterDate, filtreInstance) {
+            let result = [];
+            if (filtreInstance == type || filtreInstance == (undefined || null)) {
+                if (current[type + 'Table']) {
+                    const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
+                    for (let index = 0; index < data.length; index++) {
+                        result.push(data[index]);
+                    }
+                } else {
+                    result = current.model.configuration[type + 's'] || [];
+                }
+                if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
+                    let usage = current.model.configuration.usage || {};
+                    return result.filter(qi => {
+                        const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
+                        const start = rUsage.start || 0;
+                        const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
+                        return start <= filterDate && filterDate < duration + start;
+                    });
+                }
+            }
+            return result;
+        },
 
-		computeStatsType: function (conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
+		computeStatsType: function (conf, filterDate, filtreInstance, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
 			let ramAdjustedRate = conf.ramAdjustedRate / 100;
 			let publicAccess = 0;
-			let instances = current.getFilteredData(type, filterDate);
+			let instances = current.getFilteredData(type, filterDate,filtreInstance);
 			let ramAvailable = 0;
 			let ramReserved = 0;
 			let cpuAvailable = 0;
@@ -4147,40 +4149,40 @@ define(['sparkline', 'd3'], function () {
 		 * Compute the global resource stats of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		computeStats: function (filterDate) {
-			const conf = current.model.configuration;
-			let i, t, start, end;
-			let reservationModeMax = conf.reservationMode === 'max';
+		computeStats: function (filterDate, filtreInstance) {
+            const conf = current.model.configuration;
+            let i, t, start, end;
+            let reservationModeMax = conf.reservationMode === 'max';
 
-			// Timeline
-			let timeline = [];
-			let defaultUsage = conf.usage || { rate: 100, start: 0, duration: DEFAULT_DURATION };
-			let duration = BARCHART_DURATION;
-			let date = moment().startOf('month');
-			for (i = 0; i < duration; i++) {
-				const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
-				types.forEach(type => monthData[`${type}Cost`] = 0);
-				types.forEach(type => monthData[`${type}Co2`] = 0);
-				timeline.push(monthData);
-				date.add(1, 'months');
-			}
+            // Timeline
+            let timeline = [];
+            let defaultUsage = conf.usage || { rate: 100, start: 0, duration: DEFAULT_DURATION };
+            let duration = BARCHART_DURATION;
+            let date = moment().startOf('month');
+            for (i = 0; i < duration; i++) {
+                const monthData = { cost: 0, co2: 0, month: date.month(), year: date.year(), date: date.format('MM/YYYY'), storage: 0, support: 0 };
+                types.forEach(type => monthData[`${type}Cost`] = 0);
+                types.forEach(type => monthData[`${type}Co2`] = 0);
+                timeline.push(monthData);
+                date.add(1, 'months');
+            }
 
-			let result = {};
-			// Instance statistics
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
-			current.computeStatsType(conf, filterDate, reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
-				let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
-				r.engines[engine] = (r.engines[engine] || 0) + 1;
-			});
+            let result = {};
+            // Instance statistics
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
+            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
+                let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
+                r.engines[engine] = (r.engines[engine] || 0) + 1;
+            });
 
 			// Storage statistics
 			let storageAvailable = 0;
 			let storageReserved = 0;
 			let storageCost = 0;
 			let storageCo2 = 0;
-			const storages = current.getFilteredData('storage', filterDate);
+			const storages = current.getFilteredData('storage', filterDate, filtreInstance);
 			let nb = 0;
 			storages.forEach(qs => {
 				if (qs.quoteInstance) {
@@ -4221,7 +4223,7 @@ define(['sparkline', 'd3'], function () {
 			});
 
 			// Support statistics
-			let supports = current.getFilteredData('support', filterDate);
+			let supports = current.getFilteredData('support', filterDate,filtreInstance );
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;
