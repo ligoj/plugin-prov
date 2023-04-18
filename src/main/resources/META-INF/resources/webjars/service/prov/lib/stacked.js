@@ -134,11 +134,11 @@ define(['d3', 'jquery'], function (d3) {
             }
         }
 
-        function update(data, aggregateMode) {
+        function update({ data, aggregateMode, tooltip }) {
             params.input.data = data;
             params.input.aggregateMode = aggregateMode;
             updateData();
-            refresh();
+            refresh(tooltip);
         }
 
         function tooltip() {
@@ -151,7 +151,7 @@ define(['d3', 'jquery'], function (d3) {
             }
         }
 
-        function refresh() {
+        function refresh(hint) {
 
             // retrieving params to avoid putting params.x everywhere
             let svg = params.canvas.svg,
@@ -167,6 +167,10 @@ define(['d3', 'jquery'], function (d3) {
                 binNames = params.binNames,
                 legend = params.legend,
                 maxPerBin = params.maxPerBin;
+
+            if (hint) {
+                params.tooltip = hint;
+            }
 
             let transDuration = 700;
 

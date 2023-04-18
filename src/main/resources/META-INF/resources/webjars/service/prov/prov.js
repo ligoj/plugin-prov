@@ -3808,12 +3808,37 @@ define(['sparkline', 'd3'], function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
-						d3Bar.update(data, aggregateMode);
+						d3Bar.update({
+							data,
+							aggregateMode,
+							tooltip: (_event, _bars, d) => current.tooltipStacked(_event, _bars, d, data)
+						})
 					}
 				} else {
 					$("#prov-barchart").addClass('hidden');
 				}
 			});
+		},
+
+		tooltipStacked : function (_event, _bars, d, data){
+				// Tooltip of barchart for each resource type
+				let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+
+				// For each contributor add its value
+				let barData = data[d['x-index']];
+				let totalCost = 0;
+				let totalCo2 = 0;
+				types.forEach(type => {
+					const value = barData[type]
+					if (value?.cost || value?.co2) {
+						totalCost += value.cost || 0;
+						totalCo2 += value.co2 || 0;
+						tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+					}
+				});
+				// Append total
+				tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
+				return `<span class="tooltip-text">${tooltip}</span>`;
 		},
 
 		updateComputeUiConst: function (stats, type) {
