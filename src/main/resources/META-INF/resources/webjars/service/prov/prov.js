@@ -4029,6 +4029,11 @@ define(['sparkline', 'd3'], function () {
 					return current.sunburstComputeTooltip(conf, data, 'instance');
 				case 'container':
 					return current.sunburstComputeTooltip(conf, data, 'container');
+				case 'function':
+					const func = conf.functionsById[data.name]
+					return current.title('name') + func.name
+						+ '<br>' + current.title('function-type') + func.price.type.name
+						+ current.sunburstVmTooltip(func);
 				case 'storage':
 					const storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -4415,10 +4420,29 @@ define(['sparkline', 'd3'], function () {
 			});
 		},
 		functionToD3: function (data, stats, aggregateMode) {
-			stats.function.filtered.forEach(qi => {
-				data.value += qi[aggregateMode];
-			});
-		},
+            let allProcessors = {};
+            stats.function.filtered.forEach(qi => {
+                let Processors = allProcessors[qi.price.type.name];
+                if (typeof Processors === 'undefined') {
+                    // First runtime
+                    Processors = {
+                        name: qi.price.type.name,
+                        type: 'processors',
+                        value: 0,
+                        children: []
+                    };
+                    allProcessors[qi.price.type.name] = Processors;
+                    data.children.push(Processors);
+                }
+                Processors.value += qi[aggregateMode];
+                data.value += qi[aggregateMode];
+                Processors.children.push({
+                    name: qi.id,
+                    type: 'function',
+                    size: qi[aggregateMode]
+                });
+            });
+        },
 		storageToD3: function (data, stats, aggregateMode) {
 			data.name = current.$messages['service:prov:storages-block'];
 			let allOptimizations = {};

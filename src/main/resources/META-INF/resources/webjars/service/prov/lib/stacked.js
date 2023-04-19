@@ -5,6 +5,14 @@
 define(['d3', 'jquery'], function (d3) {
     return (function () {
         const params = {};
+        params.typeIcons = {
+            instance: 'fas fa-server',
+            database: 'fas fa-database',
+            container: 'fab fa-docker',
+            function: 'fas fa-code',
+            storage: 'far fa-hdd',
+            support: 'fas fa-ambulance'
+        };
         const LEGEND_WIDTH = 20;
         const MARGIN = { top: 10, left: LEGEND_WIDTH + 20, bottom: 20, right: 0 };
         const LEGEND_MARGIN_TOP = MARGIN.top + 10;
@@ -167,6 +175,7 @@ define(['d3', 'jquery'], function (d3) {
                 binNames = params.binNames,
                 legend = params.legend,
                 maxPerBin = params.maxPerBin;
+                typeIcons = params.typeIcons;
 
             if (hint) {
                 params.tooltip = hint;
@@ -490,14 +499,14 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('height', 18)
                 .attr('width', 18)
                 .attr('fill', d => params.color(d))
-
+            
             legend.append("svg:foreignObject")
                 .attr('x', margin.left - 63)
                 .attr('y', getLegendY)
                 .attr('height', 18)
                 .attr('width', 18)
                 .style('color', 'white')
-                .html(d => `<i class="${d === 'instance' ? "fas fa-server fa-fw" : d === 'database' ? "fa fa-database fa-fw" : d === 'container' ? "fab fa-docker fa-fw" : d === 'storage' ? "far fa-hdd fa-fw" : "fas fa-ambulance fa-fw"}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
+                .html(d => `<i class="${params.typeIcons[d]}" data-toggle="tooltip" data-placement="left" title="${d.capitalize()}"></i>`);
         }
 
         // Exports

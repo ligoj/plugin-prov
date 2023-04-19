@@ -103,6 +103,7 @@ define({
         'service:prov:container-size': 'Size',
         'service:prov:containers-block': 'Containers',
         'service:prov:function': 'Function',
+        'service:prov:function-type': 'Processor type',
         'service:prov:function-requests-help': 'Amount of invocations (in million) of this function during one month',
         'service:prov:function-duration-help': 'Maximal execution duration (in ms) of this function',
         'service:prov:function-concurrency-help': 'The average concurrency of this function. This parameter is hard to provides, and should correspond to a p99 value and not the actual average. Can be lesser than 1',
