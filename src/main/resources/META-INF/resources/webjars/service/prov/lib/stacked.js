@@ -269,9 +269,11 @@ define(['d3', 'jquery'], function (d3) {
                         } else {
                             // Change the current selection
                             params.clicked = true;
+                            params.dataSelect = d 
                             bars.each(o => o.clicked = true)
                                 .attr('class', 'clicked')
                                 .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
+                            params.hover(d,params.chosen.cluster);
                         }
                         params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
                     }
@@ -304,8 +306,10 @@ define(['d3', 'jquery'], function (d3) {
                             .attr('fill', o => params.color(o.cluster));
                     }
                     svg.selectAll('.limit').remove();
-                    if (params.hover && !sameCost) {
-                        params.hover(d,params.chosen.cluster);
+                    if (params.hover && !sameCost && (params.clicked == null || params.clicked == false)) {
+                        params.hover(null, chosen.cluster);
+                    }else if (params.clicked == true){
+                        params.hover(params.dataSelect,chosen.cluster);
                     }
                 })
                 .on('mouseenter', (_e, d) => {
@@ -479,8 +483,14 @@ define(['d3', 'jquery'], function (d3) {
                 .enter().append('g')
                 .attr('class', 'legend')
                 .on('click', function (_e, d) {
+                    params.bar.selectAll('rect')
+                                .filter(o => o.clicked)
+                                .each(o => o.clicked = false)
+                                .attr('class', '')
+                                .attr('fill', o => params.color(o.cluster));
                     chosen.cluster = chosen.cluster === d ? null : d;
-                    params.hover(0,params.chosen.cluster);
+                    params.clicked = false;
+                    params.hover(0, params.chosen.cluster);
                     refresh();
                 });
 
