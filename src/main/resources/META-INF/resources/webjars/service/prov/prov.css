@@ -524,7 +524,7 @@ img.flag-icon.prov-location-flag {
 #instance-gpu{
   width: 6em;
 }
-#subscribe-configuration-prov foreignObject i {
+#subscribe-configuration-prov .prov-barchart-svg g.legend  i {
   font-size: 13px;
   margin-left: 1px;
   opacity: 0.5;
