@@ -4106,6 +4106,9 @@ define(['sparkline', 'd3'], function () {
                 if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
                     let usage = current.model.configuration.usage || {};
                     return result.filter(qi => {
+                        if (qi.resourceType == "storage") {
+                            qi.usage = qi?.usage ? qi.usage : {}
+                        }
                         const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
                         const start = rUsage.start || 0;
                         const duration = rUsage.duration > 1 && rUsage.duration || DEFAULT_DURATION;
