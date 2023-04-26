@@ -4,7 +4,7 @@
 		<form class="form-horizontal tab-pane active tab-resources" role="tabpanel" autocomplete="off">
 			<fieldset>
 				<div class="row nav-dashboard">
-					<div class="prov-global-summary col-lg-5 col-md-6 col-xs-7">
+					<div class="prov-global-summary col-lg-5 col-md-6 col-sm-6 col-xs-12">
 						<h1 class="prov-project">
 							<i class="service-icon"></i>
 							<span class="quote-name"></span>
@@ -16,7 +16,7 @@
 							<span data-toggle="tooltip" title="{{service:prov:co2-help}}" class="summary-co2 d-co2"></span>
 							<span class="cost-period">/m</span>
 							<button type="button" data-toggle="tooltip" title="{{service:prov:cost-refresh-help}}" class="btn btn-link btn-mini cost-refresh hidden-xs hidden-sm hidden-md"><i class="fas fa-sync-alt"></i></button>
-							<span class="gauge-wrapper"><svg id="prov-gauge" title="{{service:prov:efficiency-help}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
+							<span class="gauge-wrapper hidden-xs"><svg id="prov-gauge" title="{{service:prov:efficiency-help}}" data-toggle="tooltip" data-placement="bottom"></svg></span>
 							<div class="form-group form-switch optimizer-view-mode">
 								<div class="col-sm-12 ">
 									<input type="checkbox" id="optimizer-view-mode" class="form-control ui-only" />
@@ -33,7 +33,7 @@
 					<div id="prov-dashboard" class="col-lg-7 col-md-6 hidden-xs ">
 						<div class="svg-wrapper row">
 							<div id="prov-sunburst" class="col-lg-4 col-md-12"></div>
-							<div id="prov-barchart" class="col-lg-8 hidden-md hidden">
+							<div id="prov-barchart" class="col-lg-8 hidden-md hidden-sm hidden-xs hidden">
 								<svg class="prov-barchart-svg pull-right"></svg>
 							</div>
 						</div>
