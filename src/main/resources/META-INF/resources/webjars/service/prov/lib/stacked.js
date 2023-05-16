@@ -272,16 +272,15 @@ define(['d3', 'jquery'], function (d3) {
                         params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
                     }
                 })
-                .on('mouseleave', function (e, d) {
+                .on('mouseleave', function (e, previousData) {
                     let sameCost = false;
-                    if (e.relatedTarget && e.relatedTarget.__data__) {
-                        let data1 = d;
-                        let data2 = e.relatedTarget.__data__;
-                        if (data1.x === data2.x) {
+                    const targetData = e.relatedTarget?.__data__;
+                    if (targetData) {
+                        if (targetData.x === previousData.x) {
                             return;
                         }
-                        let bars1 = bar.selectAll('rect').filter(f => f.x === data1.x);
-                        let bars2 = bar.selectAll('rect').filter(f => f.x === data2.x);
+                        let bars1 = bar.selectAll('rect').filter(f => f.x === targetData.x);
+                        let bars2 = bar.selectAll('rect').filter(f => f.x === previousData.x);
                         sameCost = clusterNames.filter(cluster => {
                             let cost1 = bars1.filter(o => o.cluster === cluster);
                             let cost2 = bars2.filter(o => o.cluster === cluster);
@@ -289,8 +288,8 @@ define(['d3', 'jquery'], function (d3) {
                         }).length === clusterNames.length;
                     }
 
-                    let bars = bar.selectAll('rect').filter(f => f.x === d.x);
-                    if (d.clicked) {
+                    let bars = bar.selectAll('rect').filter(f => f.x === previousData.x);
+                    if (previousData.clicked) {
                         // Restore the clicked state of the full bar
                         bars.attr('class', 'clicked')
                             .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
@@ -301,7 +300,7 @@ define(['d3', 'jquery'], function (d3) {
                     }
                     svg.selectAll('.limit').remove();
                     if (params.hover && !sameCost) {
-                        params.hover(d,params.chosen.cluster);
+                        params.hover(targetData, params.chosen.cluster);
                     }
                 })
                 .on('mouseenter', (_e, d) => {
