@@ -175,7 +175,7 @@ define(['d3', 'jquery'], function (d3) {
                 binNames = params.binNames,
                 legend = params.legend,
                 maxPerBin = params.maxPerBin;
-                typeIcons = params.typeIcons;
+            typeIcons = params.typeIcons;
 
             if (hint) {
                 params.tooltip = hint;
@@ -266,23 +266,24 @@ define(['d3', 'jquery'], function (d3) {
                             // Unselect the previous selection
                             bar.selectAll('rect')
                                 .filter(o => o.clicked)
-                                .each(o => o.clicked = false)
+                                .each(o => o.clicked = null)
                                 .attr('class', '')
                                 .attr('fill', o => params.color(o.cluster));
                         }
                         let bars = bar.selectAll('rect').filter(f => f.x === d.x);
                         if (isClicked) {
-                            params.clicked = false;
+                            params.clicked = null;
                             bars.attr('class', 'selected')
                                 .attr('fill', o => d3.rgb(params.color(o.cluster)).brighter());
                         } else {
                             // Change the current selection
-                            params.clicked = true;
-                            bars.each(o => o.clicked = true)
+                            params.clicked = d;
+                            bars.each(o => o.clicked = d)
                                 .attr('class', 'clicked')
                                 .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
+                            params.hover(d,params.chosen.cluster);
                         }
-                        params.click(d, blockData.filter(f => f.x === d.x), params.clicked);
+                        params.click(d, blockData.filter(f => f.x === d.x), params.clicked && true || false);
                     }
                 })
                 .on('mouseleave', function (e, previousData) {
@@ -313,7 +314,7 @@ define(['d3', 'jquery'], function (d3) {
                     }
                     svg.selectAll('.limit').remove();
                     if (params.hover && !sameCost) {
-                        params.hover(targetData, params.chosen.cluster);
+                        params.hover(params.clicked || targetData , params.chosen.cluster);
                     }
                 })
                 .on('mouseenter', (_e, d) => {
@@ -334,7 +335,7 @@ define(['d3', 'jquery'], function (d3) {
                         .attr('x2', width - params.canvas.margin.right)
                         .attr('y2', total);
                     if (params.hover) {
-                        params.hover(d,params.chosen.cluster);
+                        params.hover(d, params.chosen.cluster);
                     }
                 })
                 .on('mouseover', (e, d) => {
@@ -488,7 +489,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('class', 'legend')
                 .on('click', function (_e, d) {
                     chosen.cluster = chosen.cluster === d ? null : d;
-                    params.hover(0,params.chosen.cluster);
+                    params.hover(params.clicked  || null, params.chosen.cluster);
                     refresh();
                 });
 
@@ -498,7 +499,7 @@ define(['d3', 'jquery'], function (d3) {
                 .attr('height', 18)
                 .attr('width', 18)
                 .attr('fill', d => params.color(d))
-            
+
             legend.append("svg:foreignObject")
                 .attr('x', margin.left - 63)
                 .attr('y', getLegendY)
