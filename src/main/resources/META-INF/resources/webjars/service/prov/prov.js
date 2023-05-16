@@ -3876,8 +3876,8 @@ define(['sparkline', 'd3'], function () {
             const stats = current.computeStats(filterDate, filtreInstance);
 
 			// Update the global counts
-			const formatCostParam = filterDate ? { minCost: stats.cost, maxCost: stats.cost, unbound: stats.unbound > 0 } : conf.cost;
-			const formatCo2Param = filterDate ? { minCo2: stats.co2, maxCo2: stats.co2, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCostParam = filterDate >=0 ? { minCost: stats.cost, maxCost: stats.costMax, unbound: stats.unbound > 0 } : conf.cost;
+			const formatCo2Param = filterDate >= 0 ? { minCo2: stats.co2, maxCo2: stats.co2Max, unbound: stats.unbound > 0 } : conf.cost;
 			formatCost(formatCostParam, $('.summary-cost'));
 			formatCo2(formatCo2Param, $('.summary-co2'));
 
@@ -4126,7 +4126,7 @@ define(['sparkline', 'd3'], function () {
 			let ramReserved = 0;
 			let cpuAvailable = 0;
 			let cpuReserved = 0;
-			let totalCost = 0, totalCo2 = 0;
+			let totalCost = 0, totalCo2 = 0, totalCostMax = 0, totalCo2Max = 0;
 			let typeCost = `${type}Cost`;
 			let typeCo2 = `${type}Co2`;
 			let minInstances = 0;
@@ -4138,7 +4138,9 @@ define(['sparkline', 'd3'], function () {
 			}
 			instances.forEach(qi => {
 				let cost = qi.cost.min || qi.cost || 0;
+				let costMax = qi.cost.max || qi.maxCost || 0;
 				let co2 = qi.co2.min || qi.co2 || 0;
+				let co2Max = qi.co2.max || qi.maxCo2 || 0;
 				let nb = qi.minQuantity || 1;
 				minInstances += nb;
 				maxInstancesUnbound |= (qi.maxQuantity !== nb);
@@ -4147,7 +4149,9 @@ define(['sparkline', 'd3'], function () {
 				ramAvailable += qi.price.type.ram * nb;
 				ramReserved += ((reservationModeMax && qi.ramMax) ? qi.ramMax : qi.ram) * ramAdjustedRate * nb;
 				totalCost += cost;
+				totalCostMax += costMax;
 				totalCo2 += co2;
+				totalCo2Max += co2Max;
 				publicAccess += (qi.internet === 'public') ? 1 : 0;
 				enabledInstances[qi.id] = true;
 				if (typeof callbackQi === 'function') {
@@ -4178,7 +4182,9 @@ define(['sparkline', 'd3'], function () {
 				filtered: instances,
 				enabled: enabledInstances,
 				cost: totalCost,
-				co2: totalCo2
+				costMax: totalCostMax,
+				co2: totalCo2,
+				co2Max: totalCo2Max
 			});
 		},
 
@@ -4267,12 +4273,17 @@ define(['sparkline', 'd3'], function () {
 				timeline[t].supportCo2 = 0;
 				timeline[t].cost += supportCost;
 			}
-
+			
 			let costNoSupport = computeTypes.reduce((total, sType) => total + result[sType].cost, storageCost);
+			let costNoSupportMax = computeTypes.reduce((total, sType) => total + result[sType].costMax, storageCost);
 			let co2NoSupport = computeTypes.reduce((total, sType) => total + result[sType].co2, storageCo2);
+			let co2NoSupportMax = computeTypes.reduce((total, sType) => total + result[sType].co2Max, storageCo2);
+
 			return Object.assign(result, {
 				cost: costNoSupport + supportCost,
+				costMax: costNoSupportMax + supportCost,
 				co2: co2NoSupport,
+				co2Max: co2NoSupportMax,
 				costNoSupport: costNoSupport,
 				co2NoSupport: co2NoSupport,
 				unbound: computeTypes.some(sType => result[sType].maxInstancesUnbound),
