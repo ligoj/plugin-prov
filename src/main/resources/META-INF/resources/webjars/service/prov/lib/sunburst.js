@@ -14,7 +14,7 @@ define(['d3', 'jquery'], function (d3, $) {
 	};
 
 	sunburst.init = function ($element, data, sort, tooltipFunction, colorScheme) {
-		let width = 200;
+		let width = 160;
 		let height = 200;
 		let radius = (Math.min(width, height) / 2) - 10;
 		let x = d3.scaleLinear().range([0, 2 * Math.PI]);

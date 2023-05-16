@@ -3768,7 +3768,7 @@ define(['sparkline', 'd3'], function () {
 								selector: "#prov-barchart .prov-barchart-svg",
 								selectorPercentCB: false,
 								colors: d3[colorScheme],
-								width: parseInt($('#prov-barchart').css('width')),
+								width: 500, //parseInt($('#prov-barchart').css('width')),
 								height: 150,
 								data,
 								aggregateMode,
