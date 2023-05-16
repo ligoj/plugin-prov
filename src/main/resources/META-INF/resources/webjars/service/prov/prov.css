@@ -589,6 +589,10 @@ i.icon.mdi-expansion-card {
   top: 18px;
 }
 
+.tab-content > .tab-pane > .nav-pills > .active > a > .badge{
+  color: #ffffff;
+}
+
 @media (max-width: 1349px) {
   #prov-barchart {
     display: none;
