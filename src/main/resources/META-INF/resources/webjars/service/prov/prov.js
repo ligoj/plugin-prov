@@ -3886,16 +3886,18 @@ define(['sparkline', 'd3'], function () {
 				current.updateInstancesBarChart(stats, aggregateMode);
 			}
 
-			// Separated resource counters
-			types.forEach(type => {
+			// Separated resource counters and attributed colors
+			types.forEach(type => require(['d3'], function (d3) {
 				const $stats = $('.nav-pills [href="#tab-' + type + '"] .prov-resource-counter');
+				const color = d3.scaleOrdinal(d3[colorScheme]).domain(types)
+				$stats.attr('style', `background-color : ${color(type)}`)
 				if (stats[type].nb) {
 					$stats.removeClass('hide').find('.odo-wrapper').text(stats[type].nb);
 					$stats.find('.odo-wrapper-unbound').text((stats[type].min && stats[type].min > stats[type].nb || stats[type].unbound) ? '+' : '');
 				} else {
 					$stats.addClass('hide');
 				}
-			});
+			}));
 
 			// Instance summary
 			current.updateComputeUiConst(stats, 'instance');

@@ -594,3 +594,7 @@ i.icon.mdi-expansion-card {
   left: -14px;
   top: 18px;
 }
+
+.tab-content > .tab-pane > .nav-pills > .active > a > .badge{
+  color: #ffffff;
+}
