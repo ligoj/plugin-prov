@@ -24,7 +24,7 @@ define(['sparkline', 'd3'], function () {
 		database: 'fas fa-database',
 		container: 'fab fa-docker',
 		function: 'fas fa-code',
-		storage: 'far fa-hdd',
+		storage: 'far fa-hdd fa-fw',
 		support: 'fas fa-ambulance'
 	};
 
@@ -1482,7 +1482,7 @@ define(['sparkline', 'd3'], function () {
 				.find('input[type="submit"]')
 				.removeClass('btn-primary btn-success')
 				.addClass(quote.id ? 'btn-primary' : 'btn-success');
-			_('generic-modal-title').html(current.$messages['service:prov:' + dType]);
+			$('#generic-modal-title ,#qs-modal-title ,#qss-modal-title ').html(`<i class="${typeIcons[dType]}" style = "display: contents">  </i>` + current.$messages['service:prov:' + dType]);
 			$popup.find('.old-required').removeClass('old-required').attr('required', 'required');
 			$popup.find('[data-exclusive]').removeClass('hidden').not('[data-exclusive~="' + dType + '"]').addClass('hidden').find(':required').addClass('old-required').removeAttr('required');
 			$popup.find('.create-another input[type=checkbox]:checked').prop("checked", false);
@@ -2536,7 +2536,7 @@ define(['sparkline', 'd3'], function () {
 				render: function () {
 					return `<a class="update" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="${current.$messages.update}"></i></a>`
 						+ `<a class="copy" data-toggle="modal" data-target="#popup-prov-${popupType}"><i class="fas fa-copy" data-toggle="tooltip" title="${current.$messages['service:prov:message-copy']}"></i></a>`
-						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:delete-workload']}"></i></a>`
+						+ `<a class="network" data-toggle="modal-ajax" data-cascade="true" data-ajax="/main/home/project/network" data-plugins="css,i18n,html,js" data-target="#popup-prov-network"><i class="fas fa-link" data-toggle="tooltip" title="${current.$messages['service:prov:network']}"></i></a>`
 						+ `<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="${current.$messages.delete}"></i></a>`;
 				}
 			});
@@ -3176,6 +3176,9 @@ define(['sparkline', 'd3'], function () {
 					$popup.modal('hide');
 					current.enableCreate($popup);
 
+					//Notify
+					notifyManager.notify(Handlebars.compile(current.$messages['service:prov:updated'])({sample: jsonData.name}));
+
 					// Handle updated cost
 					if (context) {
 						current.reloadAsNeed(newCost, forceUpdateUi);
@@ -3805,12 +3808,37 @@ define(['sparkline', 'd3'], function () {
 							&& $('#prov-barchart').length
 							&& current.d3Bar.resize(parseInt($('#prov-barchart').css('width'))));
 					} else {
-						d3Bar.update(data, aggregateMode);
+						d3Bar.update({
+							data,
+							aggregateMode,
+							tooltip: (_event, _bars, d) => current.tooltipStacked(_event, _bars, d, data)
+						})
 					}
 				} else {
 					$("#prov-barchart").addClass('hidden');
 				}
 			});
+		},
+
+		tooltipStacked : function (_event, _bars, d, data){
+				// Tooltip of barchart for each resource type
+				let tooltip = current.$messages['service:prov:date'] + ': ' + d.x;
+
+				// For each contributor add its value
+				let barData = data[d['x-index']];
+				let totalCost = 0;
+				let totalCo2 = 0;
+				types.forEach(type => {
+					const value = barData[type]
+					if (value?.cost || value?.co2) {
+						totalCost += value.cost || 0;
+						totalCo2 += value.co2 || 0;
+						tooltip += `<br/><span${d.cluster === type ? ' class="strong">' : '>'}${current.$messages['service:prov:' + type]}: ${formatCost(value.cost)}${value.co2 && ` &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(value.co2)}` || ''}</span>`;
+					}
+				});
+				// Append total
+				tooltip += `<br/>${current.$messages['service:prov:total']}: ${formatCost(totalCost)} &equiv; <i class="fas fa-fw fa-leaf"></i> ${formatCo2(totalCo2)}`;
+				return `<span class="tooltip-text">${tooltip}</span>`;
 		},
 
 		updateComputeUiConst: function (stats, type) {
@@ -4001,6 +4029,11 @@ define(['sparkline', 'd3'], function () {
 					return current.sunburstComputeTooltip(conf, data, 'instance');
 				case 'container':
 					return current.sunburstComputeTooltip(conf, data, 'container');
+				case 'function':
+					const func = conf.functionsById[data.name]
+					return current.title('name') + func.name
+						+ '<br>' + current.title('function-type') + func.price.type.name
+						+ current.sunburstVmTooltip(func);
 				case 'storage':
 					const storage = conf.storagesById[data.name];
 					return current.title('name') + storage.name
@@ -4387,10 +4420,29 @@ define(['sparkline', 'd3'], function () {
 			});
 		},
 		functionToD3: function (data, stats, aggregateMode) {
-			stats.function.filtered.forEach(qi => {
-				data.value += qi[aggregateMode];
-			});
-		},
+            let allProcessors = {};
+            stats.function.filtered.forEach(qi => {
+                let Processors = allProcessors[qi.price.type.name];
+                if (typeof Processors === 'undefined') {
+                    // First runtime
+                    Processors = {
+                        name: qi.price.type.name,
+                        type: 'processors',
+                        value: 0,
+                        children: []
+                    };
+                    allProcessors[qi.price.type.name] = Processors;
+                    data.children.push(Processors);
+                }
+                Processors.value += qi[aggregateMode];
+                data.value += qi[aggregateMode];
+                Processors.children.push({
+                    name: qi.id,
+                    type: 'function',
+                    size: qi[aggregateMode]
+                });
+            });
+        },
 		storageToD3: function (data, stats, aggregateMode) {
 			data.name = current.$messages['service:prov:storages-block'];
 			let allOptimizations = {};
@@ -4730,7 +4782,7 @@ define(['sparkline', 'd3'], function () {
 				},
 				{
 					data: 'price.term',
-					className: 'hidden-xs hidden-sm price-term',
+					className: 'truncate hidden-xs hidden-sm price-term',
 					type: 'string',
 					render: formatInstanceTerm
 				}, {
@@ -4740,25 +4792,25 @@ define(['sparkline', 'd3'], function () {
 					render: formatInstanceType
 				}, {
 					data: 'usage',
-					className: 'hidden-xs hidden-sm usage',
+					className: 'truncate hidden-xs hidden-sm usage',
 					type: 'string',
 					render: formatUsage,
 					filter: filterMultiScoped('usage')
 				}, {
 					data: 'budget',
-					className: 'hidden-xs hidden-sm budget',
+					className: 'truncate hidden-xs hidden-sm budget',
 					type: 'string',
 					render: formatBudget,
 					filter: filterMultiScoped('budget')
 				}, {
 					data: 'optimizer',
-					className: 'hidden-xs hidden-sm optimizer',
+					className: 'truncate hidden-xs hidden-sm optimizer',
 					type: 'string',
 					render: formatOptimizer,
 					filter: filterMultiScoped('optimizer')
 				}, {
 					data: 'location',
-					className: 'hidden-xs hidden-sm location',
+					className: 'truncate hidden-xs hidden-sm location',
 					width: '24px',
 					type: 'string',
 					render: formatLocation

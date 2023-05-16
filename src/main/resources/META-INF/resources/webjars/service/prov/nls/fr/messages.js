@@ -102,6 +102,7 @@ define({
 	'service:prov:container-size': 'Taille',
 	'service:prov:containers-block': 'Conteneurs',
 	'service:prov:function': 'Fonction',
+	'service:prov:function-type': 'Processor type',
 	'service:prov:function-requests-help': 'Nombre d\'invocations (en millions)de cette fonctin durant un mois',
 	'service:prov:function-duration-help': 'Durée maximale (en milli secondes) de cette fonction',
 	'service:prov:function-concurrency-help': 'Concurence moyenne de cette fonction. Difficile à renseigner, et devrait correspondre au percentile p99 et non pas à une réelle moyenne. Peut être inférieure à 1',

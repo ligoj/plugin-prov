@@ -69,6 +69,7 @@
   height: 0;
   top: -18px;
   z-index: 1;
+  padding-left: 7px;
 }
 #prov-barchart {
   height: 0;
@@ -524,7 +525,7 @@ img.flag-icon.prov-location-flag {
 #instance-gpu{
   width: 6em;
 }
-#subscribe-configuration-prov foreignObject i {
+#subscribe-configuration-prov .prov-barchart-svg g.legend  i {
   font-size: 13px;
   margin-left: 1px;
   opacity: 0.5;
