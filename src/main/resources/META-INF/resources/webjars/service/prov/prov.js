@@ -3594,7 +3594,7 @@ define(['sparkline', 'd3'], function () {
 			_('support-level').select2('data', current.select2IdentityData(quote.level || null));
 
 			// Access types
-			_('support-access-api').select2('data', quote.accessApi || null);
+			_('support-access-api').select2('data', current.select2IdentityData((quote.accessApi) || null));
 			_('support-access-email').select2('data', quote.accessEmail || null);
 			_('support-access-phone').select2('data', quote.accessPhone || null);
 			_('support-access-chat').select2('data', quote.accessChat || null);
