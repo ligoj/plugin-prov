@@ -281,9 +281,9 @@ define(['d3', 'jquery'], function (d3) {
                             bars.each(o => o.clicked = d)
                                 .attr('class', 'clicked')
                                 .attr('fill', o => d3.rgb(params.color(o.cluster)).darker());
-                            params.hover(d,params.chosen.cluster);
+                            params.hover(null);
                         }
-                        params.click(d, blockData.filter(f => f.x === d.x), params.clicked && true || false);
+                        params.click(d, blockData.filter(f => f.x === d.x), params.clicked && true || false, params.chosen.cluster|| null);
                     }
                 })
                 .on('mouseleave', function (e, previousData) {
