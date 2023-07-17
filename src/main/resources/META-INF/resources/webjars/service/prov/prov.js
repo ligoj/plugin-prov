@@ -203,6 +203,7 @@ define(['sparkline', 'd3'], function () {
 					term = term.toLowerCase();
 					const processors = current.model.configuration.processors;
 					const type = typeof filteredType === 'function' ? filteredType() : null;
+					// Filter intersection of all compute types
 					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
@@ -2158,16 +2159,16 @@ define(['sparkline', 'd3'], function () {
 			const quote = subscription.data.quote;
 			const resources = [];
 			if (quote.nbInstances) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + ' VM</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('server', 'service:prov:nb-instances') + quote.nbInstances + '</span>');
 			}
 			if (quote.nbDatabases) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + ' DB</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('database', 'service:prov:nb-databases') + quote.nbDatabases + '</span>');
 			}
 			if (quote.nbFunctions) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('function', 'service:prov:nb-functions') + quote.nbFunctions + ' Function</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('function', 'service:prov:nb-functions') + quote.nbFunctions + '</span>');
 			}
 			if (quote.nbContainers) {
-				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containers') + quote.nbContainers + ' Containers</span>');
+				resources.push('<span class="sub-item">' + current.$super('icon')('fab fa-docker', 'service:prov:nb-containers') + quote.nbContainers + '</span>');
 			}
 			if (quote.nbInstances || quote.nbDatabases || quote.nbContainers || quote.nbFunctions) {
 				resources.push('<span class="sub-item">' + current.$super('icon')('bolt', 'service:prov:total-cpu') + quote.totalCpu + ' ' + current.$messages['service:prov:cpu'] + '</span>');
