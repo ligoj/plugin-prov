@@ -132,7 +132,7 @@ define({
         'service:prov:processor-default': 'Any',
         'service:prov:processor': 'Processor',
         'service:prov:processor-help': 'Required processor type. Only instance type matching to this type will be used. Vendor name are also accepted: "Intel", "AMD",...<br>Case is insensitive, and a contains is used for the match.',
-        'service:prov:default-failed': 'Property "{{name}}" with value "{{value}}" makes some instances unavailable',
+        'service:prov:default-failed': 'Property "{{name}}" with value "{{value}}" makes some resources unavailable',
         'service:prov:storage': 'Storage',
         'service:prov:storage-giga': 'GiB',
         'service:prov:storage-help': 'Block Storage, in GiB',
@@ -276,8 +276,11 @@ define({
         'csv-separator-help': 'Separator character of CSV fields',
         'error': {
             'service:prov-no-catalog': 'There is not yet any catalog for the provider "{{[0]}}" ({{[1]}}). It could be imported. <a class="btn btn-success btn-raised" href="#/prov/catalog">Import ...</button>',
-            'no-match-instance': 'Update failed, at least the resource ({{resource}}) does not support all your requirements',
-            'not-compatible-storage-instance': 'The storage {{[0]}} cannot be attached to the resource {{[1]}}'
+            'no-match-instance': 'At least <i class=\'fas fa-server\'></i> {{resource}} does not support all your requirements',
+            'no-match-database': 'At least <i class=\'fa fa-database\'></i> {{resource}} does not support all your requirements',
+            'no-match-function': 'At least <i class=\'fas fa-code\'></i> {{resource}} does not support all your requirements',
+            'no-match-container': 'At least <i class=\'fab fa-docker\'></i> {resource}} does not support all your requirements',
+            'not-compatible-storage-instance': 'The storage {{[0]}} cannot be attached to the resource {{[1]}}',
         },
         'm49': {
             '2': 'Africa',

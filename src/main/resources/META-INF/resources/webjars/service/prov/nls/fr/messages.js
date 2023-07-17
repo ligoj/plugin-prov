@@ -270,7 +270,10 @@ define({
 	'csv-separator-help': 'Caractère de séparation des champs du CSV',
 	'error': {
 		'service:prov-no-catalog': 'Il n\'y a pas encore de catalogue pour le provider "{{[0]}}" ({{[1]}}). il peut être importé. <a class="btn btn-success btn-raised" href="#/prov/catalog">Importer ...</button>',
-		'no-match-instance': 'Mise à jour échouées, au moins la resource ({{resource}}) ne supporte pas toutes les exigences',
+		'no-match-instance': 'Au moins <i class=\'fas fa-server\'></i> {{resource}} ne supporte pas toutes les exigences',
+        'no-match-database': 'Au moins <i class=\'fa fa-database\'></i> {{resource}} ne supporte pas toutes les exigences',
+        'no-match-function': 'Au moins <i class=\'fas fa-code\'></i> {{resource}} ne supporte pas toutes les exigences',
+        'no-match-container': 'Au moins <i class=\'fab fa-docker\'></i> {{resource}} ne supporte pas toutes les exigences',
 		'not-compatible-storage-instance': 'Le stockage {{[0]}} ne peut être attaché à la ressource {{[1]}}'
 	},
 	'm49': {

@@ -3187,12 +3187,13 @@ define(['sparkline', 'd3'], function () {
 						current.updateUiCost();
 					}
 				},
-				error: function () {
+				error: function (xhr) {
 					if (context) {
 						const eMsg = current.$messages['service:prov:' + context.name + '-failed'];
 						const value = data[context.name] ? data[context.name].name || data[context.name].text || data[context.name].id || data[context.name] : null;
 						if (eMsg) {
-							notifyManager.notifyDanger(Handlebars.compile(eMsg)(value));
+							const title = Handlebars.compile(eMsg)(value);
+							notifyManager.notifyDanger(errorManager.manageBadRequestError(xhr.responseText, false, false), title);
 						} else {
 							// Unmanaged UI error
 							notifyManager.notifyDanger(Handlebars.compile(current.$messages['service:prov:default-failed'])({ name: context.name, value: value }));
