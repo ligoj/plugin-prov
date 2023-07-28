@@ -149,6 +149,7 @@
   }
   #prov-instances thead > tr > th.quantity,
   #prov-databases thead > tr > th.quantity,
+  #prov-containers thead > tr > th.quantity,
   #prov-storages thead > tr > th.quantity {
     width: 24px;
   }
