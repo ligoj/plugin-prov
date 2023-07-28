@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.*;
 import org.ligoj.app.plugin.prov.dao.*;
@@ -296,20 +297,20 @@ public class ProvQuoteUploadResource {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription,
-			@FormParam(value = CSV_FILE) final String uploadedFile,
-			@FormParam(value = "headers") final String[] headers,
-			@FormParam(value = "headers-included") final Boolean headersIncluded,
-			@FormParam(value = "usage") final String defaultUsage,
-			@FormParam(value = "budget") final String defaultBudget,
-			@FormParam(value = "optimizer") final String defaultOptimizer,
-			@FormParam(value = "mergeUpload") final MergeMode mode,
-			@FormParam(value = "memoryUnit") final Integer ramMultiplier,
-			@FormParam(value = "errorContinue") final Boolean errorContinue,
-			@FormParam(value = "encoding") final String encoding,
-			@FormParam(value = "createMissingUsage") final Boolean createUsage,
-			@FormParam(value = "createMissingBudget") final Boolean createBudget,
-			@FormParam(value = "createMissingOptimizer") final Boolean createOptimizer,
-			@FormParam(value = "separator") final String separator) throws IOException {
+			@Multipart(value = CSV_FILE) final String uploadedFile,
+			@Multipart(value = "headers", required = false) final String[] headers,
+			@Multipart(value = "headers-included", required = false) final Boolean headersIncluded,
+			@Multipart(value = "usage", required = false) final String defaultUsage,
+			@Multipart(value = "budget", required = false) final String defaultBudget,
+			@Multipart(value = "optimizer", required = false) final String defaultOptimizer,
+			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
+			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
+			@Multipart(value = "errorContinue", required = false) final Boolean errorContinue,
+			@Multipart(value = "encoding", required = false) final String encoding,
+			@Multipart(value = "createMissingUsage", required = false) final Boolean createUsage,
+			@Multipart(value = "createMissingBudget", required = false) final Boolean createBudget,
+			@Multipart(value = "createMissingOptimizer", required = false) final Boolean createOptimizer,
+			@Multipart(value = "separator", required = false) final String separator) throws IOException {
 
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
@@ -577,7 +578,7 @@ public class ProvQuoteUploadResource {
 				}).toList();
 
 		// Tags part
-		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;"))
+		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;|"))
 				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
 					// Instance tags
 					final var tag = new TagEditionVo();
