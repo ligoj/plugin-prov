@@ -74,8 +74,15 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @param subscription The subscription identifier linking the quote.
 	 * @return The computed quote details : Quote, instance details and price details.
 	 */
-	@Query("FROM #{#entityName} AS q LEFT JOIN FETCH q.instances AS qi LEFT JOIN FETCH qi.price AS ip "
-			+ " LEFT JOIN FETCH ip.type AS i LEFT JOIN FETCH ip.term LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription")
+	@Query("""
+			FROM #{#entityName} AS q
+			LEFT JOIN FETCH q.instances AS qi
+			LEFT JOIN FETCH qi.price AS ip
+			LEFT JOIN FETCH ip.type AS i
+			LEFT JOIN FETCH ip.location AS il
+			LEFT JOIN FETCH ip.term
+			LEFT JOIN FETCH q.usage WHERE q.subscription.id = :subscription
+			""")
 	ProvQuote getCompute(int subscription);
 
 	/**

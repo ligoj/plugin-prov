@@ -37,8 +37,15 @@ public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends Res
 	 * @param quote The filtered quote.
 	 * @return The instance quote details with the optional linked instance.
 	 */
-	@Query("FROM #{#entityName} AS qi INNER JOIN FETCH qi.price qsp INNER JOIN FETCH qsp.type"
-			+ " WHERE qi.configuration = :quote")
+	@Query("""
+			FROM #{#entityName} AS qi
+			INNER JOIN FETCH qi.price qsp
+			INNER JOIN FETCH qsp.type
+			INNER JOIN FETCH qsp.location
+			INNER JOIN FETCH qi.configuration c
+			INNER JOIN FETCH c.location l
+			WHERE qi.configuration = :quote
+			""")
 	List<C> findAll(ProvQuote quote);
 
 	/**
