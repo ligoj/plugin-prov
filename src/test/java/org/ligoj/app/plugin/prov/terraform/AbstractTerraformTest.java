@@ -68,7 +68,7 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 						ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class,
 						ProvQuoteStorage.class, SystemConfiguration.class },
 				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		cacheManager.getCache("terraform-version-latest").clear();
 		cacheManager.getCache("terraform-version").clear();
 	}

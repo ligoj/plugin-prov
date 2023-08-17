@@ -100,8 +100,8 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+				StandardCharsets.UTF_8);
+		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		clearAllCache();
 		resource.refresh(subscription);

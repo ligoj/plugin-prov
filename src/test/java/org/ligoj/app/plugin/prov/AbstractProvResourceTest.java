@@ -181,12 +181,12 @@ public abstract class AbstractProvResourceTest extends AbstractAppTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		preparePostData();
 	}
 
 	protected void preparePostData() {
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		clearAllCache();
 		// Set the default budget

@@ -62,14 +62,14 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
 		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
-				StandardCharsets.UTF_8.name());
-		subscription = getSubscription("gStack", ProvResource.SERVICE_KEY);
+				StandardCharsets.UTF_8);
+		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		clearAllCache();
 		updateCost();
 	}

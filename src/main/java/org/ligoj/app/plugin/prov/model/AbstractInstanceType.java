@@ -51,6 +51,11 @@ public abstract class AbstractInstanceType extends AbstractCodedEntity {
 	 */
 	private String processor;
 
+		/**
+	 * Optional processor architecture. May be <code>null</code>.
+	 */
+	private String architecture;
+
 	/**
 	 * When <code>true</code>, this instance type is physical, not virtual.
 	 */
