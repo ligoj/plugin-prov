@@ -323,7 +323,7 @@ public class ProvQuoteUploadResource {
 		if (headersIncluded == null || headersIncluded) {
 			// Header at first line
 			final var br = new BufferedReader(new StringReader(uploadedFile));
-			headersArray = StringUtils.defaultString(br.readLine()).split(separator);
+			headersArray = Objects.toString(br.readLine()).split(separator);
 			fileNoHeader = new ByteArrayInputStream(IOUtils.toByteArray(br, safeEncoding));
 
 		} else {
@@ -391,7 +391,7 @@ public class ProvQuoteUploadResource {
 		vo.setProcessor(u.getProcessor());
 		vo.setLicense(Optional.ofNullable(u.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(u.getInternet());
-		vo.setMaxQuantity(Optional.ofNullable(u.getMaxQuantity()).filter(q -> q > 0).orElse(null));
+		vo.setMaxQuantity(Optional.of(u.getMaxQuantity()).filter(q -> q > 0).orElse(null));
 		vo.setMinQuantity(u.getMinQuantity());
 		vo.setLocation(u.getLocation());
 		vo.setCpuRate(u.getCpuRate());

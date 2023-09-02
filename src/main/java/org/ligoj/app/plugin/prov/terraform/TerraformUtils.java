@@ -3,29 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import javax.cache.annotation.CacheResult;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +16,17 @@ import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.cache.annotation.CacheResult;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Terraform utilities.
@@ -246,7 +234,7 @@ public class TerraformUtils {
 	public String getLatestVersion() {
 		try (var curl = new CurlProcessor()) {
 			final var matcher = VERSION_PATTERN
-					.matcher(StringUtils.defaultString(curl.get(configuration.get(CONF_REPO, BASE_REPO)), ""));
+					.matcher(Objects.toString(curl.get(configuration.get(CONF_REPO, BASE_REPO)), ""));
 			if (matcher.find()) {
 				// Version has been found
 				return matcher.group(1);

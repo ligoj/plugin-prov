@@ -183,7 +183,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected Rate getRate(final String type, final String name) {
 		final var map = mapRate.get(type);
-		final var fragments = StringUtils.split(StringUtils.defaultString(name, "__"), ".-");
+		final var fragments = StringUtils.split(Objects.toString(name, "__"), ".-");
 		final var size = fragments[0];
 		final var model = StringUtils.rightPad(size, 2, '_').substring(0, 2);
 		return Arrays.stream(new String[] { name, size, model, model.substring(0, 1), "default" }).map(map::get)
