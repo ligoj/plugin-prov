@@ -2308,7 +2308,7 @@ define(['sparkline', 'd3'], function () {
 				type: 'GET',
 				success: function (suggest) {
 					current[popupType + 'SetUiPrice'](suggest);
-					if (suggest?.price || ($.isArray(suggest) && suggest.length)) {
+					if (suggest?.price || (Array.isArray(suggest) && suggest.length)) {
 						if (suggest.price?.edition) {
 							$("#s2id_database-edition").removeClass("hidden")
 							$("#separator-database-engine").removeClass("hidden")
@@ -2430,9 +2430,9 @@ define(['sparkline', 'd3'], function () {
 		 * @returns The  suggests array. May be null when the quote parameter is not accepted.
 		 */
 		toSuggests: function (quote) {
-			if (quote && (($.isArray(quote) && quote.length) || quote.price)) {
+			if (quote && ((Array.isArray(quote) && quote.length) || quote.price)) {
 				let suggests = quote;
-				if (!$.isArray(quote)) {
+				if (!Array.isArray(quote)) {
 					// Single price
 					suggests = [quote];
 				}
@@ -4352,7 +4352,7 @@ define(['sparkline', 'd3'], function () {
 
 			// Update the model
 			if (resource) {
-				if ($.isArray(resource.storages)) {
+				if (Array.isArray(resource.storages)) {
 					resource.storages.push(storage);
 				} else {
 					resource.storages = [storage];
