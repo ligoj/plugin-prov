@@ -3,26 +3,11 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.ProvResource;
@@ -42,8 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Catalog update task runner.
@@ -108,12 +98,14 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		});
 		final var user = securityHelper.getLogin();
 		// The import execution will be done into another thread
-		Executors.newSingleThreadExecutor().submit(() -> {
-			Thread.sleep(50);
-			securityHelper.setUserName(user);
-			updateCatalog(catalogService, entity.getId(), force);
-			return null;
-		});
+		try (var executor = Executors.newSingleThreadExecutor()) {
+			executor.submit(() -> {
+				Thread.sleep(50);
+				securityHelper.setUserName(user);
+				updateCatalog(catalogService, entity.getId(), force);
+				return null;
+			});
+		}
 		return task;
 	}
 
@@ -198,8 +190,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	}
 
 	private void updateResourceStats(final ImportCatalogStatus task, final String node, ResourceType t) {
-		@SuppressWarnings("rawtypes")
-		final AbstractProvQuoteResource resource = this.resource.getResource(t);
+		@SuppressWarnings("rawtypes") final AbstractProvQuoteResource resource = this.resource.getResource(t);
 		task.setNbPrices(task.getNbPrices() + (int) resource.getIpRepository().countBy("type.node.id", node));
 		if (t.isCo2()) {
 			// Update CO2 prices
@@ -236,7 +227,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			vo.setNode(NodeResource.toVo(n));
 			vo.setCanImport(locator.getResource(n.getId(), ImportCatalogService.class) != null);
 			vo.setNbQuotes((int) repository.countByNode(n.getId()));
-			vo.setPreferredLocation(locationRepository.findBy("node", n, new String[] { "preferred" }, true));
+			vo.setPreferredLocation(locationRepository.findBy("node", n, new String[]{"preferred"}, true));
 			return vo;
 		}).toList();
 	}
