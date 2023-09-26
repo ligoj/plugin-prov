@@ -3,8 +3,8 @@
  */
 define(['jquery'], function ($) {
 	return (function () {
-		var cacheFilter = {};
-		var operators = {
+		const cacheFilter = {};
+		const operators = {
 			'num': {
 				'=': function (search) {
 					search = parseInt(search, 10);
@@ -103,7 +103,7 @@ define(['jquery'], function ($) {
 			}
 		}
 
-		var propertyMatchers = ['filterName', 'data'];
+		const propertyMatchers = ['filterName', 'data'];
 
 		function newCustomFilter(settings, property, operator, value) {
 			for (let propertyMatcher of propertyMatchers) {
@@ -128,13 +128,13 @@ define(['jquery'], function ($) {
 		}
 
 		function buildJoin(join) {
-			var specificKeys = [];
+			const specificKeys = [];
 			(join.filters || []).forEach(filter => {
-				var property = filter.property;
+				const property = filter.property;
 				if (filter.table) {
 					// There is a provide table, use ' IN ' condition
-					var collection = filter.table.api().rows({ filter: 'applied' }).data();
-					var collectionById = {};
+					const collection = filter.table.api().rows({ filter: 'applied' }).data();
+					const collectionById = {};
 					for (let index = collection.length; index-- > 0;) {
 						collectionById[collection[index].id] = true;
 					}
@@ -145,18 +145,18 @@ define(['jquery'], function ($) {
 		}
 
 		function buildKeys(settings, global, filters) {
-			var specificKeys = [];
+			const specificKeys = [];
 			for (let filter0 of filters) {
 				let filter = filter0.trim();
 				if (filter.length === 0) {
 					continue;
 				}
-				var filterParts = filter.split('|');
-				var operator;
-				var value;
+				const filterParts = filter.split('|');
+				let operator = null;
+				let value = null;
 				if (filterParts.length === 3) {
 					// Specific filter
-					var property = filterParts[0];
+					const property = filterParts[0];
 					operator = filterParts[1];
 					value = filterParts[2];
 					specificKeys.push({ property: property, filter: newCustomFilter(settings, property, operator, value) });
@@ -184,8 +184,8 @@ define(['jquery'], function ($) {
 			}
 
 			// Need to build the cache configuration for this filter
-			var filters = search.split(',');
-			var global = [];
+			const filters = search.split(',');
+			const global = [];
 
 			// Update the cache
 			cacheFilter[type] = {
@@ -201,7 +201,7 @@ define(['jquery'], function ($) {
 		}
 
 		function accept(settings, type, dataFilter, data, search, join) {
-			var filter = build(settings, type, search, join);
+			const filter = build(settings, type, search, join);
 			// Expect at least one match among the OR conditions 
 			// and all AND conditions
 			// and all globals must match

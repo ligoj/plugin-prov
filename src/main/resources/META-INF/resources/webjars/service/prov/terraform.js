@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define([], function () {
-    var current = {
+    const current = {
         template: '<div class="progress-bar" data-toggle="tooltip" title=""></div>',
 
         reset: function (status, $status, $messages) {
@@ -15,12 +15,12 @@ define([], function () {
 		 */
         update: function (status, $status, $messages) {
             $status.removeClass('invisible');
-            var sequence = (status.sequence || '').split(',');
-            var commandIndex = typeof status.commandIndex === 'undefined' ? -1 : status.commandIndex;
+            const sequence = (status.sequence || '').split(',');
+            const commandIndex = typeof status.commandIndex === 'undefined' ? -1 : status.commandIndex;
             status.command = commandIndex === -1 ? '?' : sequence[commandIndex];
 
             // Compute the progress percentage since "init" and "apply" commands are optional
-            var configuration = {
+            const configuration = {
                 generate: { width: 2 },
                 clean: { width: 2 },
                 secrets: { width: 2 },
@@ -32,7 +32,7 @@ define([], function () {
                 destroy: { width: 20, classes: 'progress-bar-warning', details: true }
             };
 
-            var sum = 0;
+            let sum = 0;
             $.each(configuration, function (command, confI) {
                 if ($.inArray(command, sequence) === -1) {
                     confI.width = 0;
@@ -42,19 +42,19 @@ define([], function () {
             });
 
             // Complement to 100%
-            var ratio = 100 / (sum || 0.01);
+            const ratio = 100 / (sum || 0.01);
             $.each(configuration, function (command, confI) {
                 confI.width *= ratio;
             });
 
             // Update the progress tooltips and width
-            var $progress = $status.find('.progress');
-            var finished = typeof status.end !== 'undefined';
-            for (var i = 0; i <= commandIndex; i++) {
-                var commandI = sequence[i];
-                var active = i === commandIndex;
-                var configurationI = configuration[commandI];
-                var $progressI = $progress.find('.status-' + commandI);
+            const $progress = $status.find('.progress');
+            const finished = typeof status.end !== 'undefined';
+            for (let i = 0; i <= commandIndex; i++) {
+                const commandI = sequence[i];
+                const active = i === commandIndex;
+                const configurationI = configuration[commandI];
+                let $progressI = $progress.find('.status-' + commandI);
                 if ($progressI.length === 0 && (configurationI.width || configurationI.details)) {
                     // Not yet progress for this command
                     $progressI = $(current.template).addClass('status-' + commandI);
@@ -80,15 +80,15 @@ define([], function () {
                     $progressI.html('').removeClass('active');
                 }
 
-                var widthI = configurationI.width;
-                var text = '';
+                const widthI = configurationI.width;
+                let text = '';
                 if (configurationI.details) {
                     if (active) {
                         // Update 2 progress bars: each one has a part of the reserved width
-                        var total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
-                        var full = total === 0 || status.end && !status.failed;
-                        var completed = full ? configurationI.width : (configurationI.width * status.completed / total);
-                        var completing = full ? 0 : (configurationI.width * status.completing / total);
+                        const total = status.toAdd + status.toDestroy + status.toUpdate + status.toReplace * 2;
+                        const full = total === 0 || status.end && !status.failed;
+                        const completed = full ? configurationI.width : (configurationI.width * status.completed / total);
+                        const completing = full ? 0 : (configurationI.width * status.completing / total);
 
                         // Add percent text only for the apply
                         text = '&nbsp;' + (full ? '100' : Math.round(status.completed * 100 / total)) + '%&nbsp;';
@@ -126,7 +126,7 @@ define([], function () {
                 }
             }
 
-            var $lastProgress = $progress.find('.progress-bar:last-child').filter(':not(.completed)');
+            const $lastProgress = $progress.find('.progress-bar:last-child').filter(':not(.completed)');
             if (status.failed) {
                 // The completing part failed
                 $lastProgress.removeClass('active')
@@ -149,8 +149,8 @@ define([], function () {
 
             // Update the error style of progress bars
             if (status.failed && $progress.find('.status-error').length === 0) {
-                var notExecuted = 100;
-                for (var j = 0; j <= commandIndex; j++) {
+                let notExecuted = 100;
+                for (let j = 0; j <= commandIndex; j++) {
                     notExecuted -= configuration[sequence[j]].width;
                 }
                 $progress.append($(current.template).addClass('status-error').addClass('progress-bar-danger').css('width', notExecuted + '%'));
@@ -158,8 +158,8 @@ define([], function () {
         },
 
         toWidth: function ($element) {
-            var width = $element.width();
-            var parent = $element.parent().width();
+            const width = $element.width();
+            const parent = $element.parent().width();
             if (width && parent) {
                 return width * 100 / parent;
             }

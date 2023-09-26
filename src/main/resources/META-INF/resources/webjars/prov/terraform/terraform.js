@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define(['cascade'], function ($cascade) {
-	var current = {
+	const current = {
 		model: null,
 		
 		initialize: function () {
@@ -17,7 +17,7 @@ define(['cascade'], function ($cascade) {
 		 * Get the current Terraform version
 		 */
 		getInfo: function () {
-			var $form = $('.terraform-details');
+			const $form = $('.terraform-details');
 			$cascade.appendSpin($form, 'fa-4x');
 			validationManager.reset($form);
 			$.ajax({
@@ -32,7 +32,7 @@ define(['cascade'], function ($cascade) {
 		
 		updateTerraformInformation: function(model) {
 			current.model = model;
-			var $form = $('.terraform-details');
+			const $form = $('.terraform-details');
 			validationManager.reset($form);
 			if (model.installed) {
 				if (model.version) {
@@ -69,7 +69,7 @@ define(['cascade'], function ($cascade) {
 		 * Request a Terraform binary install.
 		 */
 		install: function (version) {
-			var $form = $('.terraform-details');
+			const $form = $('.terraform-details');
 			$cascade.appendSpin($form, 'fa-4x');
 			validationManager.reset($form);
 			$.ajax({

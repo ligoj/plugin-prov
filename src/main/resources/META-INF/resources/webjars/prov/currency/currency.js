@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define(function () {
-	var current = {
+	const current = {
 
 		table: null,
 		currentId: null,
@@ -13,9 +13,9 @@ define(function () {
 			_('popup').on('shown.bs.modal', function () {
 				_('name').focus();
 			}).on('show.bs.modal', function (event) {
-				var $source = $(event.relatedTarget);
-				var $tr = $source.closest('tr');
-				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
+				const $source = $(event.relatedTarget);
+				const $tr = $source.closest('tr');
+				const uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
 				current.currentId = uc.id;
 				_('name').val(uc.name || '');
 				_('description').val(uc.description || '');
@@ -74,7 +74,7 @@ define(function () {
 					width: '32px',
 					orderable: false,
 					render: function (_i, _j, data) {
-						var result = '';
+						let result = '';
 						// Edit button
 						result += '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
 						if (data.nbQuotes === 0) {
@@ -103,8 +103,8 @@ define(function () {
 		},
 
 		delete: function () {
-			var tr = $(this).parents('tr');
-			var uc = current.table.fnGetData(tr[0]);
+			const tr = $(this).parents('tr');
+			const uc = current.table.fnGetData(tr[0]);
 			bootbox.confirmDelete(function (confirmed) {
 				confirmed && current.deleteEntity(uc.id);
 			}, uc.name);
@@ -123,7 +123,7 @@ define(function () {
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(id));
 					// Refresh the table
-					current.table && current.table.api().ajax.reload();
+					current.table?.api().ajax.reload();
 				},
 				error: function () {
 					notifyManager.notifyDanger(Handlebars.compile(current.$messages.notDeleted)(id));
@@ -132,7 +132,7 @@ define(function () {
 		},
 
 		saveOrUpdate: function () {
-			var data = current.formToJSON();
+			const data = current.formToJSON();
 			$.ajax({
 				type: data.id ? 'PUT' : 'POST',
 				url: REST_PATH + 'service/prov/currency',
@@ -142,7 +142,7 @@ define(function () {
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(data.name));
 					_('popup').modal('hide');
-					current.table && current.table.api().ajax.reload();
+					current.table?.api().ajax.reload();
 				}
 			});
 		}

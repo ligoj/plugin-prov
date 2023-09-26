@@ -3,14 +3,14 @@
  */
 define(['jquery'], function ($) {
 	return (function () {
-		var current;
+		let current = null;
 		function build(newCurrent) {
 			current = newCurrent;
 			return this;
 		}
 
 		function toTags(resource) {
-			return (current.model && current.model.configuration.tags[resource.resourceType] || {})[resource.id] || [];
+			return (current.model?.configuration.tags[resource.resourceType] || {})[resource.id] || [];
 		}
 
 		function formatResult(tag) {
@@ -33,10 +33,10 @@ define(['jquery'], function ($) {
 
 		function suggest(term, resource) {
 			// Get tags of current resource
-			var tags = toTagsString(resource);
-			var keys = {};
-			var keyValues = {};
-			Object.keys((current.model && current.model.configuration.tags) || {}).forEach(type => Object.keys(current.model.configuration.tags[type] || {}).forEach(rId =>
+			const tags = toTagsString(resource);
+			let keys = {};
+			let keyValues = {};
+			Object.keys((current.model?.configuration.tags) || {}).forEach(type => Object.keys(current.model.configuration.tags[type] || {}).forEach(rId =>
 				current.model.configuration.tags[type][rId].forEach(
 					t => {
 						keys[t.name] = true;
@@ -47,10 +47,10 @@ define(['jquery'], function ($) {
 			keys = Object.keys(keys);
 			keyValues = Object.keys(keyValues);
 
-			var parts = term.split(':');
-			var key = parts[0];
-			var value = parts.length > 1 ? parts[1] : null;
-			var suggests = [];
+			const parts = term.split(':');
+			const key = parts[0];
+			const value = parts.length > 1 ? parts[1] : null;
+			const suggests = [];
 			if (value === null) {
 				// Key mode
 				// First add the term itself
@@ -114,13 +114,13 @@ define(['jquery'], function ($) {
 					};
 				}
 			}).select2('data', toTags(resource)).off('change').on('change', function (event) {
-				var uType = resource.resourceType;
-				var tag;
+				const uType = resource.resourceType;
+				let tag = null;
 				if (event.added) {
 					// New tag
 					tag = event.added;
-					var parts = tag.text ? tag.text.split(':') : [tag.name, tag.value]
-					var data = {
+					const parts = tag.text ? tag.text.split(':') : [tag.name, tag.value]
+					const data = {
 						name: parts[0],
 						value: parts[1],
 						type: resource.resourceType,
@@ -143,15 +143,15 @@ define(['jquery'], function ($) {
 						success: function (id) {
 							data.id = id;
 							tag.id = id;
-							if (current.model && current.model.configuration && current.model.configuration.tags) {
+							if (current.model?.configuration?.tags) {
 								// Update the model
-								var tags = current.model.configuration.tags;
-								var tTags = tags[uType];
+								const tags = current.model.configuration.tags;
+								let tTags = tags[uType];
 								if (typeof tTags === 'undefined') {
 									tTags = {};
 									tags[uType] = tTags;
 								}
-								var rTags = tTags[data.resource];
+								let rTags = tTags[data.resource];
 								if (typeof rTags === 'undefined') {
 									rTags = [];
 									tTags[data.resource] = rTags;
@@ -164,14 +164,14 @@ define(['jquery'], function ($) {
 				} else if (event.removed) {
 					// Tag to delete
 					tag = event.removed.tag || event.removed;
-					var $this = $(this);
+					const $this = $(this);
 					$.ajax({
 						type: 'DELETE',
 						url: REST_PATH + 'service/prov/' + current.model.subscription + '/tag/' + tag.id,
 						success: function () {
 							notifyManager.notify(Handlebars.compile(current.$messages['deleted'])(format(tag)));
-							var tModel = current.model && current.model.configuration && current.model.configuration.tags;
-							var i;
+							const tModel = current.model?.configuration?.tags;
+							let i = 0;
 							if (tModel) {
 								// Update the model
 								tModel = tModel[tag.type][resource.id];
@@ -184,7 +184,7 @@ define(['jquery'], function ($) {
 							}
 
 							// Update the Select2 model
-							var sModel = ($this.val() || '').split(',');
+							const sModel = ($this.val() || '').split(',');
 							for (i = 0; i < sModel.length; i++) {
 								if (sModel[i] === tag.text) {
 									sModel.splice(i, 1);
@@ -199,7 +199,7 @@ define(['jquery'], function ($) {
 			}).on('select2-selecting', function (e) {
 				if (e.val.endsWith(':')) {
 					$(function () {
-						var $input = $('.select2-dropdown-open.resource-tags').find('input.select2-input');
+						const $input = $('.select2-dropdown-open.resource-tags').find('input.select2-input');
 						$input.val(e.val).focus();
 						$input.trigger('input');
 					})
