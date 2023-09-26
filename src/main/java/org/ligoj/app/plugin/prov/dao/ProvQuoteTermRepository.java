@@ -6,8 +6,6 @@ package org.ligoj.app.plugin.prov.dao;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.AbstractTermPriceVm;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -34,10 +32,10 @@ public interface ProvQuoteTermRepository<C extends AbstractQuote<? extends Abstr
 			FROM #{#entityName} AS qi
 			INNER JOIN FETCH qi.price qsp
 			INNER JOIN FETCH qsp.type
-			INNER JOIN FETCH qsp.location
+			LEFT JOIN FETCH qsp.location
 			INNER JOIN FETCH qsp.term
 			INNER JOIN FETCH qi.configuration c
-			INNER JOIN FETCH c.location l
+			LEFT JOIN FETCH c.location l
 			WHERE qi.configuration = :quote
 			""")
 	List<C> findAll(ProvQuote quote);

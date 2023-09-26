@@ -67,13 +67,13 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 
 		preparePostData();
 
@@ -173,7 +173,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		});
 
 		configuration.put("service:prov:log", "true");
-		checkCost(resource.refresh(subscription), 6163.92, 7477.42, false);
+		checkCost(resource.refresh(subscription), 6166.887, 7481.487, false);
 		assertTermCount("1y", 6); // 4 Instances +0 Databases +2 Containers
 		Assertions.assertEquals(6324.48, getBudget().getRequiredInitialCost());
 		Assertions.assertEquals(2635.2, budgetRepository.findByName(subscription, "Dept2").getRequiredInitialCost());
@@ -181,7 +181,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Increase the budget
 		budget2.setInitialCost(5000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6100.52, 7387.22, false);
+		checkCost(resource.refresh(subscription), 6103.487, 7391.287, false);
 		assertTermCount("1y", 8); // 4 Instances +0 Databases +4 Containers
 
 		// Increase the budget to enable databases
@@ -203,17 +203,17 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 
 	private void addDatabases() throws IOException {
 		persistEntities("csv/database", new Class[] { ProvQuoteDatabase.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 	}
 
 	private void addContainers() throws IOException {
 		persistEntities("csv/container", new Class[] { ProvQuoteContainer.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 	}
 
 	private void addFunctions() throws IOException {
 		persistEntities("csv/function", new Class[] { ProvQuoteFunction.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 	}
 
 	private void assertTermCount(final String name, final int count) {

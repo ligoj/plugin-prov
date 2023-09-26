@@ -3,11 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.quote.storage;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,35 +13,14 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
-import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test class of {@link ProvQuoteStorageResource}
@@ -64,7 +39,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8);
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
 		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
 				StandardCharsets.UTF_8);
 		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
@@ -379,7 +354,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	/**
 	 * Change the given instance name from bound to unbound type.
 	 */
-	private ProvQuoteInstance setUnboundInstance(final String name) {
+	private void setUnboundInstance(final String name) {
 		final var quoteInstance = qiRepository.findByNameExpected(name);
 
 		// Precondition
@@ -393,7 +368,6 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		em.clear();
 		resource.updateCost(subscription);
 		em.flush();
-		return quoteInstance;
 	}
 
 	@Test
@@ -750,7 +724,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim().readValue("{\"size\":1,\"latency\":\"GOOD\","
 				+ "\"instance\":2,\"database\":2,\"optimized\":\"IOPS\"," + "\"location\":\"L\"}",
 				QuoteStorageQuery.class);
-		QuoteStorageQuery.builder().toString();
+		Assertions.assertNotNull(QuoteStorageQuery.builder().toString());
 	}
 
 	/**
@@ -822,13 +796,12 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(215.04, lookup.getCost(), DELTA);
 	}
 
-	private QuoteStorageLookup assertCSP(final QuoteStorageLookup price) {
+	private void assertCSP(final QuoteStorageLookup price) {
 		final var sp = price.getPrice();
 		final var st = sp.getType();
 		Assertions.assertNotNull(sp.getId());
 		Assertions.assertNotNull(st.getId());
 		Assertions.assertEquals("storage1", st.getName());
-		return price;
 	}
 
 	/**

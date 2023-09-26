@@ -129,12 +129,12 @@ public class ProvQuoteFunctionResource extends
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
 			final Optimizer optimizer) {
-		var result1 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
+		var result1 = findLowestDynamicPrice(configuration, query, types, terms, cpu, ram, location, rate,
 				duration, initialCost, optimizer, Math.floor(query.getConcurrency()),
 				Math.floor(query.getConcurrency()));
 		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
 			// Try the greater concurrency level and keeping the original concurrency assumption
-			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, gpu, ram, location, rate,
+			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, ram, location, rate,
 					duration, initialCost, optimizer, query.getConcurrency(), Math.ceil(query.getConcurrency()));
 			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
 				// The second concurrency configuration is cheaper
@@ -145,7 +145,7 @@ public class ProvQuoteFunctionResource extends
 	}
 
 	private List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
-			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
+			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
 			final Optimizer optimizer, final double realConcurrency, final double reservedConcurrency) {
 		if (optimizer == Optimizer.CO2) {
@@ -197,16 +197,22 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected Floating getCost(final ProvQuoteFunction qi, final ProvFunctionPrice ip) {
 		// Fixed price
-		final var reservedConcurrencyCost = super.getCost(qi, ip).multiply(qi.getConcurrency());
+		final var baseCost = super.getCost(qi, ip).multiply(Math.max(1,qi.getConcurrency()));
 
 		// Add per request cost
-		final var perReqDuration = Math.ceil(Math.max(ip.getMinDuration(), qi.getDuration()) / ip.getIncrementDuration()) * ip.getIncrementDuration();
-		final var billedReqDuration = perReqDuration * qi.getNbRequests();
-
 		final double rate = getRate(qi, ip);
+		final var duration = Math.ceil(Math.max(ip.getMinDuration(), qi.getDuration()) / ip.getIncrementDuration()) * ip.getIncrementDuration();
+		final var billedReqDuration = duration * qi.getNbRequests();
 		final var costRamConcurrency = Math.min(qi.getConcurrency() * rate, billedReqDuration / CONCURRENCY_PER_MONTH) * ip.getCostRamRequestConcurrency();
-		final var costRam = Math.max(0, billedReqDuration / CONCURRENCY_PER_MONTH - qi.getConcurrency() * rate) * ip.getCostRamRequest();
-		return reservedConcurrencyCost.add(costRam, 0).add(costRamConcurrency, 0);
+		final var costRamRequest = Math.max(0, billedReqDuration / CONCURRENCY_PER_MONTH - qi.getConcurrency() * rate) * ip.getCostRamRequest();
+		final var costRequest = ip.getCostRequests() * qi.getNbRequests();
+		final var co2Request = ip.getCo2Requests() * qi.getNbRequests();
+
+		// Sum costs
+		return baseCost
+				.add(computeFloat(costRamRequest,0d,0d,qi))
+				.add(computeFloat(costRamConcurrency,0d,0d,qi))
+				.add(computeFloat(costRequest,co2Request,0d,qi));
 	}
 
 }

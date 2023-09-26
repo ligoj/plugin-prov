@@ -47,12 +47,12 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[]{Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[]{Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvSupportType.class, ProvSupportPrice.class,
 						ProvQuoteSupport.class},
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		csvForJpa.insert("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
 		csvForJpa.insert("csv/container", new Class[]{ProvContainerType.class, ProvContainerPrice.class,
@@ -134,7 +134,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Database
 		Assertions.assertEquals(
-				"DATABASE;database1;0,5;;0;;2000;;;;;;on-demand1;;1;2;;100;;;;database1;MYSQL;;PUBLIC;;116,3;key2"
+				"DATABASE;database1;0,5;;0;;2000;;;;;;on-demand1;;1;2;;100;;;;database1;MYSQL;;PUBLIC;;117,4;key2"
 						+ ";20;19;storage5-database;GOOD;IOPS;30;",
 				lines.get(8));
 	}
@@ -226,7 +226,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				lines.get(8));
 
 		// Function data
-		Assertions.assertEquals("function2;0,25;;0;;1000;;Python;;;;1y;;1.0;;;;;;false;function1;PUBLIC;;89,5;",
+		Assertions.assertEquals("function2;0,25;;0;;1000;;Python;;;;1y;;1.0;;;;;;false;function1;PUBLIC;;90,7;",
 				lines.get(16));
 
 		// Database data
@@ -241,7 +241,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				lines.get(25));
 
 		// Support data
-		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;;;;;;;support2;;;640,789;;;;;;;;;1", lines.get(37));
+		Assertions.assertEquals("support-name1;;;;;;;;;;;;;;;;;;;;support2;;;640,904;;;;;;;;;1", lines.get(37));
 	}
 
 	private List<String> export() throws IOException {
@@ -257,8 +257,8 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
-		checkCost(cost, 9016.567, 12221.692, false);
-		checkCost(subscription, 9016.567, 12221.692, false);
+		checkCost(cost, 9018.982, 12225.262, false);
+		checkCost(subscription, 9018.982, 12225.262, false);
 		em.flush();
 		em.clear();
 		return cost;

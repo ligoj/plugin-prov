@@ -51,7 +51,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
 				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
-		QuoteInstanceQuery.builder().toString();
+		Assertions.assertNotNull(QuoteInstanceQuery.builder().toString());
 	}
 
 	/**
@@ -585,7 +585,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void deleteAllInstancesWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "shared-data");
 		resource.refresh(subscription);
 		checkCost(subscription, 3500.937, 6114.884, false);

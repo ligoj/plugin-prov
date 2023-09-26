@@ -3,25 +3,19 @@
  */
 package org.ligoj.app.plugin.prov.quote.support;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
-import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
-import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
-import org.ligoj.app.plugin.prov.model.ProvSupportType;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.model.SupportType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test class of {@link ProvQuoteSupportResource}
@@ -33,7 +27,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	protected void prepareData() throws IOException {
 		super.prepareData();
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 	}
 
@@ -389,13 +383,12 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(376.54, lookup.getCost(), DELTA);
 	}
 
-	private QuoteSupportLookup assertCSP(final QuoteSupportLookup price) {
+	private void assertCSP(final QuoteSupportLookup price) {
 		final var sp = price.getPrice();
 		final var st = sp.getType();
 		Assertions.assertNotNull(sp.getId());
 		Assertions.assertNotNull(st.getId());
 		Assertions.assertEquals("support1", st.getName());
-		return price;
 	}
 
 	/**

@@ -41,9 +41,9 @@ public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends Res
 			FROM #{#entityName} AS qi
 			INNER JOIN FETCH qi.price qsp
 			INNER JOIN FETCH qsp.type
-			INNER JOIN FETCH qsp.location
-			INNER JOIN FETCH qi.configuration c
-			INNER JOIN FETCH c.location l
+			LEFT JOIN FETCH qsp.location
+			LEFT JOIN FETCH qi.configuration c
+			LEFT JOIN FETCH c.location l
 			WHERE qi.configuration = :quote
 			""")
 	List<C> findAll(ProvQuote quote);

@@ -61,9 +61,9 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class,ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
 		preparePostData();
 	}
 
@@ -176,7 +176,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
 				+ "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);
-		builder().toString();
+		Assertions.assertNotNull(builder().toString());
 	}
 
 	/**
@@ -332,7 +332,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	@Test
 	void deleteAllWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "shared-data");
 		resource.refresh(subscription);
 		checkCost(subscription, 6113.414, 8839.109, false);

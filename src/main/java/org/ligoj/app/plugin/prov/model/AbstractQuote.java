@@ -3,23 +3,19 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import jakarta.persistence.Column;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-
-import org.hibernate.annotations.ColumnDefault;
-import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 /**
  * A resource with floating cost.

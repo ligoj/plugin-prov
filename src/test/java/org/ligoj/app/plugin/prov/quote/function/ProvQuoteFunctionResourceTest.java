@@ -54,13 +54,13 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class[]{Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
-						ProvInstancePrice.class, ProvQuoteInstance.class },
-				StandardCharsets.UTF_8.name());
-		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class,
-				ProvQuoteFunction.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+						ProvInstancePrice.class, ProvQuoteInstance.class},
+				StandardCharsets.UTF_8);
+		persistEntities("csv/function", new Class[]{ProvFunctionType.class, ProvFunctionPrice.class,
+				ProvQuoteFunction.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8);
 		preparePostData();
 	}
 
@@ -73,7 +73,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void refresh() {
 		final var refresh = resource.refresh(subscription);
-		checkCost(refresh, 3048.3, 4422.0, false);
+		checkCost(refresh, 3051.267, 4426.067, false);
 	}
 
 	/**
@@ -321,11 +321,11 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteAllWithSupport() throws IOException {
-		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
-				StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class[]{ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class},
+				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "function1-shared-data");
 		resource.refresh(subscription);
-		checkCost(subscription, 3372.127, 4862.234, false);
+		checkCost(subscription, 3375.391, 4866.504, false);
 		em.flush();
 		em.clear();
 
@@ -350,10 +350,10 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 
-		checkCost(qfResource.delete(id), 4474.658, 5645.858, false);
+		checkCost(qfResource.delete(id), 4475.858, 5647.058, false);
 
 		// Check the exact new cost
-		checkCost(subscription, 4474.658, 5645.858, false);
+		checkCost(subscription, 4475.858, 5647.058, false);
 		Assertions.assertEquals(0,
 				repository.findBy("subscription.id", subscription).getUnboundCostCounter().intValue());
 		Assertions.assertNull(qfRepository.findOne(id));
@@ -393,14 +393,15 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost, same as initial
-		checkCost(updatedCost.getTotal(), 4702.958, 6102.458, false);
-		checkCost(updatedCost.getCost(), 116.3, 232.6, false);
+		checkCost(updatedCost.getTotal(), 4831.458, 6358.258, false);
+		checkCost(updatedCost.getCost(), 243.6, 487.2, false);
 
 		// Check the related storage prices: only one attached function storage
 		Assertions.assertEquals(3, updatedCost.getRelated().get(ResourceType.STORAGE).size());
 
 		// Check the cost is the same
-		updateCost();
+		final var cost = resource.updateCost(subscription);
+		checkCost(cost, 4831.458, 6358.258, false);
 
 		final var qi = qfRepository.findOneExpected(vo.getId());
 		Assertions.assertEquals("Node", qi.getRuntime());
@@ -433,9 +434,9 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(updatedCost.getId(), vo.getId());
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 4702.958, 10211.858, false);
-		checkCost(updatedCost.getCost(), 116.3, 2326.0, false);
-		checkCost(subscription, 4702.958, 10211.858, false);
+		checkCost(updatedCost.getTotal(), 4715.158, 10433.058, false);
+		checkCost(subscription, 4715.158, 10433.058, false);
+		checkCost(updatedCost.getCost(), 127.3, 2546.0, false);
 
 		// Check the related storage prices: only one attached storage
 		Assertions.assertEquals(3, updatedCost.getRelated().get(ResourceType.STORAGE).size());
@@ -445,15 +446,15 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1024, instance.getRam());
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals(0, instance.getGpu(), DELTA);
-		Assertions.assertEquals(116.3, instance.getCost(), DELTA);
-		Assertions.assertEquals(2326.0, instance.getMaxCost(), DELTA);
+		Assertions.assertEquals(127.3, instance.getCost(), DELTA);
+		Assertions.assertEquals(2546.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("region-1", instance.getLocation().getName());
 
 		// Change the usage of this instance to 50%
 		vo.setUsage("Dev");
 		final var updatedCost2 = qfResource.update(vo);
-		checkCost(updatedCost2.getTotal(), 4644.808, 9048.858, false);
-		checkCost(updatedCost2.getCost(), 58.15, 1163.0, false);
+		checkCost(updatedCost2.getTotal(), 4657.008, 9270.058, false);
+		checkCost(updatedCost2.getCost(), 69.15, 1383.0, false);
 
 		// Change the region of this instance, storage is also
 		vo.setLocation("region-2");
@@ -479,11 +480,11 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		final var updatedCost = qfResource.create(vo);
 
 		// Check the exact new cost
-		checkCost(updatedCost.getTotal(), 5865.958, 7846.958, false);
-		checkCost(updatedCost.getCost(), 1163.0, 1744.5, false);
+		checkCost(updatedCost.getTotal(), 121115.258, 180720.858, false);
+		checkCost(updatedCost.getCost(), 116410.0, 174615.0, false);
 		Assertions.assertEquals(1, updatedCost.getRelated().size());
 		Assertions.assertTrue(updatedCost.getRelated().get(ResourceType.STORAGE).isEmpty());
-		checkCost(subscription, 5865.958, 7846.958, false);
+		checkCost(subscription, 121115.258, 180720.858, false);
 		final var instance = qfRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals("serverZ", instance.getName());
 		Assertions.assertEquals("serverZD", instance.getDescription());
@@ -494,8 +495,8 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(0.5, instance.getCpu(), DELTA);
 		Assertions.assertEquals(0, instance.getGpu(), DELTA);
 		Assertions.assertEquals(10, instance.getNbRequests());
-		Assertions.assertEquals(1163.0, instance.getCost(), DELTA);
-		Assertions.assertEquals(1744.5, instance.getMaxCost(), DELTA);
+		Assertions.assertEquals(116410.0, instance.getCost(), DELTA);
+		Assertions.assertEquals(174615.0, instance.getMaxCost(), DELTA);
 		Assertions.assertEquals("100", instance.getWorkload());
 		Assertions.assertEquals(10, instance.getMinQuantity());
 		Assertions.assertEquals(15, instance.getMaxQuantity().intValue());
@@ -512,7 +513,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		vo.setProcessor("Intel");
 		final var updatedCost = qfResource.create(vo);
 
-		checkCost(updatedCost.getCost(), 168.0, 168.0, true);
+		checkCost(updatedCost.getCost(), 183.0, 183.0, true);
 		final var instance = qfRepository.findOneExpected(updatedCost.getId());
 		Assertions.assertEquals(10, instance.getNbRequests());
 		Assertions.assertEquals("Intel", instance.getProcessor());
@@ -584,10 +585,8 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	protected Floating updateCost() {
 		// Check the cost fully updated and exact actual cost
 		final var cost = resource.updateCost(subscription);
-		Assertions.assertEquals(4702.958, cost.getMin(), DELTA);
-		Assertions.assertEquals(6102.458, cost.getMax(), DELTA);
-		Assertions.assertFalse(cost.isUnbound());
-		checkCost(subscription, 4702.958, 6102.458, false);
+		checkCost(cost, 4705.258, 6105.858, false);
+		checkCost(subscription, 4705.258, 6105.858, false);
 		em.flush();
 		em.clear();
 		return cost;
@@ -599,7 +598,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("quote1", status.getName());
 		Assertions.assertEquals("quoteD1", status.getDescription());
 		Assertions.assertNotNull(status.getId());
-		checkCost(status.getCost(), 4702.958, 6102.458, false);
+		checkCost(status.getCost(), 4705.258, 6105.858, false);
 		Assertions.assertEquals(7, status.getNbInstances());
 		Assertions.assertEquals(2, status.getNbFunctions());
 		Assertions.assertEquals(10.75d, status.getTotalCpu(), 0.0001); // 10.75 + 0 (Function)

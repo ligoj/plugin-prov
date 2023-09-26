@@ -31,6 +31,7 @@ import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.csv.CsvForBean;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -143,6 +144,9 @@ public class ProvQuoteUploadResource {
 	private Integer modeInsert(final QuoteInstanceEditionVo vo, final UploadContext context) {
 		// Reserve this name
 		var qi = new ProvQuoteInstance();
+		if (context.previousQi.containsKey(vo.getName())) {
+			throw new DataIntegrityViolationException("name");
+		}
 		context.previousQi.put(vo.getName(), qi);
 		qi.setId(qiResource.saveOrUpdate(context.quote, qi, vo).getId());
 		vo.setId(qi.getId());

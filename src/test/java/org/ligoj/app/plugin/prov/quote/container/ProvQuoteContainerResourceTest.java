@@ -59,9 +59,9 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class,
-				ProvQuoteContainer.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8.name());
+				ProvQuoteContainer.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
 		preparePostData();
 	}
 
@@ -149,7 +149,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim()
 				.readValue("{\"os\":\"LINUX\"," + "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteContainerQuery.class);
-		builder().toString();
+		Assertions.assertNotNull(builder().toString());
 	}
 
 	private void checkInstance(final QuoteContainerLookup lookup) {
@@ -203,7 +203,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void deleteAllWithSupport() throws IOException {
 		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "container1-shared-data");
 		resource.refresh(subscription);
 		checkCost(subscription, 4293.179, 5741.42, false);

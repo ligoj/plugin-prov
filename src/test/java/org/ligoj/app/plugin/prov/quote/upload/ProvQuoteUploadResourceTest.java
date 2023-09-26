@@ -180,7 +180,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadDatabase() throws IOException {
 		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class}, DEFAULT_ENCODING);
+				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
 		em.clear();
@@ -203,7 +203,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadDatabaseUpdate() throws IOException {
 		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
-				ProvQuoteDatabase.class, ProvQuoteStorage.class}, DEFAULT_ENCODING);
+				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
 		Assertions.assertEquals("STANDARD ONE", getConfiguration().getDatabases().stream()
@@ -477,8 +477,9 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	@Test
 	void uploadConflictName() {
 		final var input = "ANY;0.5;500;LINUX\nANY;2;1000;LINUX";
+		final var headers = new String[]{"name", "cpu", "ram", "os"};
 		Assertions.assertThrows(DataIntegrityViolationException.class,
-				() -> qiuResource.upload(subscription, input, new String[]{"name", "cpu", "ram", "os"}, false, null,
+				() -> qiuResource.upload(subscription, input, headers, false, null,
 						null, null, MergeMode.INSERT, 1, false, DEFAULT_ENCODING, false, false, false,
 						DEFAULT_SEPARATOR));
 	}
@@ -583,11 +584,12 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void uploadInstanceNotFound() {
-		final var input = newStream("ANY;999;6;WINDOWS");
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
-						() -> upload(subscription, input, null, false, "Full Time 12 month", null, null, 1024)),
-				"csv-file.instance", "no-match-instance");
+	void uploadInstanceNotFound() throws IOException {
+		try (var input = newStream("ANY;999;6;WINDOWS")) {
+			MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
+							() -> upload(subscription, input, null, false, "Full Time 12 month", null, null, 1024)),
+					"csv-file.instance", "no-match-instance");
+		}
 	}
 
 	@Test

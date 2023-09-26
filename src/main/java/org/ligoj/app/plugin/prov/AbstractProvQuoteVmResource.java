@@ -335,8 +335,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The adjusted required RAM from the original one and the RAM configuration.
 	 */
 	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
-		return Math.max(128, Math.round(ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100))
-				* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
+		return Math.max(128, ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100)
+						* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
 	}
 
 	/**

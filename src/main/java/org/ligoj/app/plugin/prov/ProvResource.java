@@ -574,7 +574,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Refresh the cost of the support for the whole whole quote related to a resource.
+	 * Refresh the cost of the support for the whole quote related to a resource.
 	 *
 	 * @param cost   The target cost object to update.
 	 * @param entity A recently updated resource.
