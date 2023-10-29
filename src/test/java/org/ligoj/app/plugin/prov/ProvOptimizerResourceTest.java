@@ -49,13 +49,13 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8.name());
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
+		persistEntities("csv/database", new Class<?>[] { ProvDatabaseType.class, ProvDatabasePrice.class },
+				StandardCharsets.UTF_8);
 		preparePostData();
 	}
 

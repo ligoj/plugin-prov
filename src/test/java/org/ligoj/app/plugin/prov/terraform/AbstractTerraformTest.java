@@ -63,11 +63,11 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvStorageType.class, ProvStoragePrice.class, ProvInstancePriceTerm.class,
 						ProvInstanceType.class, ProvInstancePrice.class, ProvQuoteInstance.class,
 						ProvQuoteStorage.class, SystemConfiguration.class },
-				StandardCharsets.UTF_8.name());
+				StandardCharsets.UTF_8);
 		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		cacheManager.getCache("terraform-version-latest").clear();
 		cacheManager.getCache("terraform-version").clear();

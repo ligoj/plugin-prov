@@ -584,7 +584,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteAllInstancesWithSupport() throws IOException {
-		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
+		persistEntities("csv", new Class<?>[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "shared-data");
 		resource.refresh(subscription);

@@ -55,12 +55,12 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvOptimizer.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class,
+		persistEntities("csv/container", new Class<?>[] { ProvContainerType.class, ProvContainerPrice.class,
 				ProvQuoteContainer.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
 		preparePostData();
 	}
@@ -202,7 +202,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteAllWithSupport() throws IOException {
-		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
+		persistEntities("csv", new Class<?>[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
 				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "container1-shared-data");
 		resource.refresh(subscription);

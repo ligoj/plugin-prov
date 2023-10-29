@@ -53,11 +53,11 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvSupportType.class, ProvSupportPrice.class,
 						ProvQuoteSupport.class},
 				StandardCharsets.UTF_8);
-		csvForJpa.insert("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+		csvForJpa.insert("csv/database", new Class<?>[]{ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
-		csvForJpa.insert("csv/container", new Class[]{ProvContainerType.class, ProvContainerPrice.class,
+		csvForJpa.insert("csv/container", new Class<?>[]{ProvContainerType.class, ProvContainerPrice.class,
 				ProvQuoteContainer.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
-		csvForJpa.insert("csv/function", new Class[]{ProvFunctionType.class, ProvFunctionPrice.class,
+		csvForJpa.insert("csv/function", new Class<?>[]{ProvFunctionType.class, ProvFunctionPrice.class,
 				ProvQuoteFunction.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8.name());
 
 		preparePostData();

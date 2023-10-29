@@ -63,16 +63,16 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class },
+		persistEntities("csv/database", new Class<?>[] { ProvDatabaseType.class, ProvDatabasePrice.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
+		persistEntities("csv/container", new Class<?>[] { ProvContainerType.class, ProvContainerPrice.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
+		persistEntities("csv/function", new Class<?>[] { ProvFunctionType.class, ProvFunctionPrice.class },
 				StandardCharsets.UTF_8);
 
 		preparePostData();
@@ -202,17 +202,17 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 	}
 
 	private void addDatabases() throws IOException {
-		persistEntities("csv/database", new Class[] { ProvQuoteDatabase.class, ProvQuoteStorage.class },
+		persistEntities("csv/database", new Class<?>[] { ProvQuoteDatabase.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8);
 	}
 
 	private void addContainers() throws IOException {
-		persistEntities("csv/container", new Class[] { ProvQuoteContainer.class, ProvQuoteStorage.class },
+		persistEntities("csv/container", new Class<?>[] { ProvQuoteContainer.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8);
 	}
 
 	private void addFunctions() throws IOException {
-		persistEntities("csv/function", new Class[] { ProvQuoteFunction.class, ProvQuoteStorage.class },
+		persistEntities("csv/function", new Class<?>[] { ProvQuoteFunction.class, ProvQuoteStorage.class },
 				StandardCharsets.UTF_8);
 	}
 

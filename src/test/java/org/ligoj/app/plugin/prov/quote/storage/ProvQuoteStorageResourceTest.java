@@ -33,16 +33,16 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		// Only with Spring context
 		persistSystemEntities();
 		persistEntities("csv",
-				new Class[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
+				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
 						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
 						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
 						ProvInstancePrice.class, ProvQuoteInstance.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/database", new Class[] { ProvDatabaseType.class, ProvDatabasePrice.class,
+		persistEntities("csv/database", new Class<?>[] { ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
-		persistEntities("csv/container", new Class[] { ProvContainerType.class, ProvContainerPrice.class },
+		persistEntities("csv/container", new Class<?>[] { ProvContainerType.class, ProvContainerPrice.class },
 				StandardCharsets.UTF_8);
-		persistEntities("csv/function", new Class[] { ProvFunctionType.class, ProvFunctionPrice.class },
+		persistEntities("csv/function", new Class<?>[] { ProvFunctionType.class, ProvFunctionPrice.class },
 				StandardCharsets.UTF_8);
 		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
 		clearAllCache();

@@ -179,7 +179,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadDatabase() throws IOException {
-		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+		persistEntities("csv/database", new Class<?>[]{ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());
@@ -202,7 +202,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadDatabaseUpdate() throws IOException {
-		persistEntities("csv/database", new Class[]{ProvDatabaseType.class, ProvDatabasePrice.class,
+		persistEntities("csv/database", new Class<?>[]{ProvDatabaseType.class, ProvDatabasePrice.class,
 				ProvQuoteDatabase.class, ProvQuoteStorage.class}, StandardCharsets.UTF_8);
 		configuration.put(ProvResource.USE_PARALLEL, "0");
 		Assertions.assertEquals(7, getConfiguration().getDatabases().size());

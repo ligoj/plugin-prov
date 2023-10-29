@@ -954,12 +954,12 @@ define(['sparkline', 'd3'], function () {
         }
         // engine
         if (resource.engine) {
-            details += '<br>Moteur : ';
+            details += '<br>Engine : ';
             details += formatDatabaseEngine(resource.engine);
         }
         // latency 
         if (resource.latency) {
-            details += '<br>latency :  ';
+            details += '<br>Latency :  ';
             details += resource.latency ? `${resource.latency}` : '';
         }
         // internet
@@ -1809,7 +1809,10 @@ define(['sparkline', 'd3'], function () {
 	 * Configure multi-scoped resource type: modal behavior
 	 */
 	function initializeMultiScoped(type, onShowModal, defaultData = {}) {
-		;
+	    if (!current.$cascade.isSameTransaction(current.$transaction)) {
+	    console.log("Ignore stale transaction");
+            return;
+        }
 		let $popup = _(`popup-prov-${type}`);
 		$popup.on('show.bs.modal', function (event) {
 			onShowModal(event);
@@ -3870,12 +3873,12 @@ define(['sparkline', 'd3'], function () {
 		/**
 		 * Update the total cost of the quote.
 		 */
-		updateUiCost: function (filterDate, filtreInstance) {
+		updateUiCost: function (filterDate, filterInstance) {
             const conf = current.model.configuration;
             const aggregateMode = localStorage.getItem(SETTINGS_OPTIMIZER_VIEW) || 'cost';
 
             // Compute the new capacity and costs
-            const stats = current.computeStats(filterDate, filtreInstance);
+            const stats = current.computeStats(filterDate, filterInstance);
 
 			// Update the global counts
 			const formatCostParam = filterDate >=0 ? { minCost: stats.cost, maxCost: stats.costMax, unbound: stats.unbound > 0 } : conf.cost;
@@ -4096,9 +4099,9 @@ define(['sparkline', 'd3'], function () {
 			}
 		},
 
-		getFilteredData: function (type, filterDate, filtreInstance) {
+		getFilteredData: function (type, filterDate, filterInstance) {
             let result = [];
-            if (filtreInstance == type || filtreInstance == (undefined || null)) {
+            if (filterInstance == type || filterInstance == (undefined || null)) {
                 if (current[type + 'Table']) {
                     const data = _('prov-' + type + 's').DataTable().rows({ filter: 'applied' }).data();
                     for (let index = 0; index < data.length; index++) {
@@ -4123,10 +4126,10 @@ define(['sparkline', 'd3'], function () {
             return result;
         },
 
-		computeStatsType: function (conf, filterDate, filtreInstance, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
+		computeStatsType: function (conf, filterDate, filterInstance, reservationModeMax, defaultUsage, duration, timeline, type, result, callback, callbackQi) {
 			let ramAdjustedRate = conf.ramAdjustedRate / 100;
 			let publicAccess = 0;
-			let instances = current.getFilteredData(type, filterDate,filtreInstance);
+			let instances = current.getFilteredData(type, filterDate,filterInstance);
 			let ramAvailable = 0;
 			let ramReserved = 0;
 			let cpuAvailable = 0;
@@ -4197,7 +4200,7 @@ define(['sparkline', 'd3'], function () {
 		 * Compute the global resource stats of this quote and the available capacity. Only minimal quantities are considered and with minimal to 1.
 		 * Maximal quantities is currently ignored.
 		 */
-		computeStats: function (filterDate, filtreInstance) {
+		computeStats: function (filterDate, filterInstance) {
             const conf = current.model.configuration;
             let i, t, start, end;
             let reservationModeMax = conf.reservationMode === 'max';
@@ -4217,10 +4220,10 @@ define(['sparkline', 'd3'], function () {
 
             let result = {};
             // Instance statistics
-            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
-            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
-            current.computeStatsType(conf, filterDate, filtreInstance,reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
+            current.computeStatsType(conf, filterDate, filterInstance,reservationModeMax, defaultUsage, duration, timeline, 'instance', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filterInstance,reservationModeMax, defaultUsage, duration, timeline, 'container', result, r => r.oss = {}, (r, qi) => r.oss[qi.os] = (r.oss[qi.os] || 0) + 1);
+            current.computeStatsType(conf, filterDate, filterInstance,reservationModeMax, defaultUsage, duration, timeline, 'function', result, r => r.nbRequests = 0, (r, qi) => r.nbRequests += qi.nbRequests);
+            current.computeStatsType(conf, filterDate, filterInstance,reservationModeMax, defaultUsage, duration, timeline, 'database', result, r => r.engines = {}, (r, qi) => {
                 let engine = qi.engine.replace(/AURORA .*/, 'AURORA');
                 r.engines[engine] = (r.engines[engine] || 0) + 1;
             });
@@ -4230,7 +4233,7 @@ define(['sparkline', 'd3'], function () {
 			let storageReserved = 0;
 			let storageCost = 0;
 			let storageCo2 = 0;
-			const storages = current.getFilteredData('storage', filterDate, filtreInstance);
+			const storages = current.getFilteredData('storage', filterDate, filterInstance);
 			let nb = 0;
 			storages.forEach(qs => {
 				if (qs.quoteInstance) {
@@ -4271,7 +4274,7 @@ define(['sparkline', 'd3'], function () {
 			});
 
 			// Support statistics
-			let supports = current.getFilteredData('support', filterDate,filtreInstance );
+			let supports = current.getFilteredData('support', filterDate,filterInstance );
 			let supportCost = supports.reduce((agg, s) => agg + s.cost, 0);
 			for (t = 0; t < duration; t++) {
 				timeline[t].supportCost = supportCost;

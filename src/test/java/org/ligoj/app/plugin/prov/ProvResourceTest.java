@@ -61,7 +61,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		super.prepareData();
-		persistEntities("csv", new Class[] { Parameter.class, ParameterValue.class }, StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class<?>[] { Parameter.class, ParameterValue.class }, StandardCharsets.UTF_8);
 	}
 
 	@Test

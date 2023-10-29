@@ -26,7 +26,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	@BeforeEach
 	protected void prepareData() throws IOException {
 		super.prepareData();
-		persistEntities("csv", new Class[] { ProvSupportType.class, ProvSupportPrice.class },
+		persistEntities("csv", new Class<?>[] { ProvSupportType.class, ProvSupportPrice.class },
 				StandardCharsets.UTF_8);
 		checkCost(resource.refresh(subscription), 3165.4, 5615.0, false);
 	}
