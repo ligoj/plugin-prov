@@ -3,6 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +50,7 @@ public abstract class AbstractProvTag extends AbstractPersistable<Integer> imple
 	 */
 	@Size(max = 1024, min = 1)
 	@Pattern(regexp = AbstractProvTag.PATTERN)
+	@Column(length = 1024)
 	private String value;
 
 	/**
