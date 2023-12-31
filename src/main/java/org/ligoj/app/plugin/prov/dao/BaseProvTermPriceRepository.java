@@ -25,18 +25,18 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 
 	String LOWEST_QUERY_TERM = """
 			SELECT ip,
-			 CASE
+			 (CASE
 			  WHEN ip.period = 0 THEN (ip.cost * :rate * :duration)
-			  ELSE (ip.costPeriod * CEIL(:duration/ip.period)) END AS totalCost,
-			 CASE
+			  ELSE (ip.costPeriod * ceil(:duration/ip.period)) END) AS totalCost,
+			 (CASE
 			  WHEN ip.period = 0 THEN (ip.cost * :rate)
-			  ELSE ip.cost END AS monthlyCost,
-			 CASE
+			  ELSE ip.cost END) AS monthlyCost,
+			 (CASE
 			  WHEN ip.period = 0 THEN (ip.co2 * :rate * :duration)
-			  ELSE (ip.co2Period * CEIL(:duration/ip.period)) END AS totalCo2,
-			 CASE
+			  ELSE (ip.co2Period * ceil(:duration/ip.period)) END) AS totalCo2,
+			 (CASE
 			  WHEN ip.period = 0 THEN (ip.co2 * :rate)
-			  ELSE ip.co2 END AS monthlyCo2
+			  ELSE ip.co2 END) AS monthlyCo2
 			 FROM #{#entityName} ip WHERE
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL

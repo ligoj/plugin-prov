@@ -22,7 +22,7 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 	 * @param subscription The subscription identifier to match.
 	 * @return All {@link ProvNetwork} related to given subscription identifier.
 	 */
-	@Query("FROM #{#entityName} WHERE configuration.subscription.id = :subscription")
+	@Query("FROM ProvNetwork WHERE configuration.subscription.id = :subscription")
 	List<ProvNetwork> findAll(int subscription);
 
 	/**
@@ -31,6 +31,6 @@ public interface ProvNetworkRepository extends RestRepository<ProvNetwork, Integ
 	 * @param configuration The configuration identifier.
 	 */
 	@Modifying
-	@Query("DELETE FROM #{#entityName} WHERE configuration.id = :configuration")
+	@Query("DELETE FROM ProvNetwork WHERE configuration.id = :configuration")
 	void deleteAll(int configuration);
 }

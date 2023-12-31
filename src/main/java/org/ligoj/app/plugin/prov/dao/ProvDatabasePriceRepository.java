@@ -37,7 +37,7 @@ public interface ProvDatabasePriceRepository
 	 * @return The filtered licenses.
 	 */
 	@CacheResult(cacheName = "prov-database-license")
-	@Query("SELECT DISTINCT(ip.license) FROM #{#entityName} ip INNER JOIN ip.type AS i "
+	@Query("SELECT DISTINCT(ip.license) FROM ProvDatabasePrice ip INNER JOIN ip.type AS i "
 			+ "  WHERE :node = i.node.id AND ip.engine=:engine ORDER BY ip.license")
 	List<String> findAllLicenses(@CacheKey String node, @CacheKey String engine);
 
@@ -49,7 +49,7 @@ public interface ProvDatabasePriceRepository
 	 * @return The filtered database editions.
 	 */
 	@CacheResult(cacheName = "prov-database-edition")
-	@Query("SELECT DISTINCT(ip.edition) FROM #{#entityName} ip INNER JOIN ip.type AS i " + "  WHERE :node = i.node.id"
+	@Query("SELECT DISTINCT(ip.edition) FROM ProvDatabasePrice ip INNER JOIN ip.type AS i " + "  WHERE :node = i.node.id"
 			+ "   AND ip.engine=:engine AND ip.edition IS NOT NULL ORDER BY ip.edition")
 	List<String> findAllEditions(@CacheKey String node, @CacheKey String engine);
 
@@ -60,7 +60,7 @@ public interface ProvDatabasePriceRepository
 	 * @return The filtered database engines.
 	 */
 	@CacheResult(cacheName = "prov-database-engine")
-	@Query("SELECT DISTINCT(ip.engine) FROM #{#entityName} ip INNER JOIN ip.type AS i "
+	@Query("SELECT DISTINCT(ip.engine) FROM ProvDatabasePrice ip INNER JOIN ip.type AS i "
 			+ "  WHERE :node = i.node.id ORDER BY ip.engine")
 	List<String> findAllEngines(@CacheKey String node);
 

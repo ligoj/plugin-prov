@@ -25,7 +25,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
-	@Query("FROM #{#entityName} WHERE location.name = :location AND type.node.id = :node")
+	@Query("FROM ProvStoragePrice WHERE location.name = :location AND type.node.id = :node")
 	List<ProvStoragePrice> findAll(String node, String location);
 
 	/**
@@ -60,7 +60,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 			             END) * sp.costGb) AS cost,
 			 st.latency AS latency,
 			 st.code AS code
-			 FROM #{#entityName} AS sp INNER JOIN sp.type st
+			 FROM ProvStoragePrice AS sp INNER JOIN sp.type st
 			 WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%'))
 			 AND (sp.location.id = :location AND (:qLocation = 0 OR (sp.location.id = :qLocation)))
 			 AND (st.latency >= :latency)
@@ -93,7 +93,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 *
 	 * @return The entity or <code>null</code>.
 	 */
-	@Query("SELECT sp FROM #{#entityName} sp, Subscription s INNER JOIN s.node AS sn INNER JOIN sp.location AS loc INNER JOIN sp.type AS st"
+	@Query("SELECT sp FROM ProvStoragePrice sp, Subscription s INNER JOIN s.node AS sn INNER JOIN sp.location AS loc INNER JOIN sp.type AS st"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(st.node.id, ':%') AND st.code = :type "
 			+ " AND loc.id = :location")
 	ProvStoragePrice findByTypeCode(int subscription, String type, int location);
@@ -105,7 +105,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
-	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
+	@Query("FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
 			+ " (:location = '' OR l.name = :location) AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByLocation(String node, String location);
 
@@ -116,7 +116,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param type The expected type code. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
-	@Query("FROM #{#entityName} e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
+	@Query("FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
 			+ " t.code = :type AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByTypeName(String node, String type);
 }

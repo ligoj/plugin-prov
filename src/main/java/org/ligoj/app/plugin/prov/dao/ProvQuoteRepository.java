@@ -75,7 +75,7 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @return The computed quote details : Quote, instance details and price details.
 	 */
 	@Query("""
-			FROM #{#entityName} AS q
+			FROM ProvQuote AS q
 			LEFT JOIN FETCH q.instances AS qi
 			LEFT JOIN FETCH qi.price AS ip
 			LEFT JOIN FETCH ip.type AS i
@@ -91,6 +91,6 @@ public interface ProvQuoteRepository extends RestRepository<ProvQuote, Integer> 
 	 * @param node The node identifier. Sub nodes are also involved.
 	 * @return The amount of quotes based on the related node.
 	 */
-	@Query("SELECT COUNT (q) FROM #{#entityName} AS q INNER JOIN q.subscription AS s WHERE s.node.id = :node OR s.node.id LIKE CONCAT(:node, ':%')")
+	@Query("SELECT COUNT (q) FROM ProvQuote AS q INNER JOIN q.subscription AS s WHERE s.node.id = :node OR s.node.id LIKE CONCAT(:node, ':%')")
 	long countByNode(String node);
 }

@@ -50,7 +50,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 */
 	@CacheResult(cacheName = "prov-instance-term")
 	@Query("""
-			SELECT id FROM #{#entityName} WHERE
+			SELECT id FROM ProvInstancePriceTerm WHERE
 			      :node = node.id
 			  AND (:convOs = FALSE OR :convOs = convertibleOs)
 			  AND (:convEngine = FALSE OR :convEngine = convertibleEngine)
@@ -76,7 +76,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 	 * @return The filtered {@link ProvInstancePriceTerm}.
 	 */
 	@Query("""
-			FROM #{#entityName} e WHERE e.node.id = :node
+			FROM ProvInstancePriceTerm e WHERE e.node.id = :node
 			 AND (e.name LIKE CONCAT(:term1, '%') OR e.name LIKE CONCAT(:term2, '%'))
 			""")
 	List<ProvInstancePriceTerm> findByName(String node, final String term1, final String term2);

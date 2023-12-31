@@ -22,6 +22,6 @@ public interface ProvTagRepository extends RestRepository<ProvTag, Integer> {
 	 * @param quote The quote identifier to match.
 	 * @return All {@link ProvTag} related to given quote identifier.
 	 */
-	@Query("FROM #{#entityName} WHERE configuration = :quote")
+	@Query("FROM ProvTag WHERE configuration = :quote")
 	List<ProvTag> findAll(ProvQuote quote);
 }

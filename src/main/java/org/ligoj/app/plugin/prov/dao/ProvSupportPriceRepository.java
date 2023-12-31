@@ -20,7 +20,7 @@ public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPr
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return The cheapest support or <code>null</code>.
 	 */
-	@Query("SELECT sp FROM #{#entityName} AS sp INNER JOIN sp.type st "
+	@Query("SELECT sp FROM ProvSupportPrice AS sp INNER JOIN sp.type st "
 			+ " WHERE (:node = st.node.id OR :node LIKE CONCAT(st.node.id,'%')) ")
 	List<ProvSupportPrice> findAll(String node);
 
@@ -32,7 +32,7 @@ public interface ProvSupportPriceRepository extends RestRepository<ProvSupportPr
 	 *
 	 * @return The entity or <code>null</code>.
 	 */
-	@Query("SELECT sp FROM #{#entityName} sp, Subscription s INNER JOIN s.node AS sn INNER JOIN sp.type AS st"
+	@Query("SELECT sp FROM ProvSupportPrice sp, Subscription s INNER JOIN s.node AS sn INNER JOIN sp.type AS st"
 			+ " WHERE s.id = :subscription AND sn.id LIKE CONCAT(st.node.id, ':%') AND UPPER(st.name) = UPPER(:type)")
 	ProvSupportPrice findByTypeName(int subscription, String type);
 

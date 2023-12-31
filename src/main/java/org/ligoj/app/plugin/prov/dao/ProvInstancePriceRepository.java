@@ -44,7 +44,7 @@ public interface ProvInstancePriceRepository
 	 */
 	@CacheResult(cacheName = "prov-instance-software")
 	@Query("""
-			SELECT DISTINCT(ip.software) FROM #{#entityName} ip INNER JOIN ip.type AS i
+			SELECT DISTINCT(ip.software) FROM ProvInstancePrice ip INNER JOIN ip.type AS i
 			WHERE :node = i.node.id
 			   AND ip.os=:os AND ip.software IS NOT NULL
 			ORDER BY ip.software

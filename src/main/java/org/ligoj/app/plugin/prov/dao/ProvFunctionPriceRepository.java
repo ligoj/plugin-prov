@@ -309,6 +309,6 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			double initialCost, double requestDuration, Pageable pageable);
 
 	@Override
-	@Query("SELECT COUNT(id) FROM #{#entityName} WHERE type.node.id = :node AND (co2 > 0 OR co2Requests > 0 OR co2Cpu > 0)")
+	@Query("SELECT COUNT(id) FROM ProvFunctionPrice WHERE type.node.id = :node AND (co2 > 0 OR co2Requests > 0 OR co2Cpu > 0)")
 	int countCo2DataByNode(String node);
 }
