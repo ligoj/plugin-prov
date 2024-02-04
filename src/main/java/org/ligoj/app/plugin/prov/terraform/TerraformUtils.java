@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.cache.annotation.CacheResult;
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -312,7 +312,7 @@ public class TerraformUtils {
 	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String url) throws IOException {
-		try (var openStream = new URL(url).openStream()) {
+		try (var openStream = URI.create(url).toURL().openStream()) {
 			unzip(openStream, toDir).forEach(f -> f.setExecutable(true));
 		}
 	}
