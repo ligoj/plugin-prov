@@ -13,25 +13,25 @@ Provides the following features :
 
 ## Supported requirements
 
-| Name      | Note                                                                                                                               |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------|
-| Term      | A contract, defining the constraints: reservation, conversion options and sometimes a location                                     |
-| Location  | A geographical place (variable GPS coordinates precision). May be a coutry, or sometimes a city                                    |
-| Processor | The underlying physical processor. The vendor can be used instead of the full product code.                                        |
-| Physical  | A boolean constraint to expet a physical (bar metal) instance instead of a virtual one                                             |
-| Tenancy   | Shared or dedicated, to handle the noisy neighborhood issue                                                                        |
-| OS        | Operating system. Currently, only the type name is suppoted: Windows, Linux, RHEL,...                                              |
-| Software  | The pre-installed sofware                                                                                                          |
-| Engine    | Database engine name. Can be MySQL, Oracle, .. or even cutom one like Aurora. Depens on the availability in the catalog.           |
-| Edition   | Database edition valid for a specifi engine. For sample: Oracle Standard Edition 1                                                 |
-| License   | BYOL or included mode. Depens on the availability in the catalog.                                                                  |
-| Optimized | Storage expected optimization: durability, IOPS, throughput                                                                        |
-| CPU/RAM   | Expected vCPU/RAM(MiB) to match. Note that some providers support custom (eleastic) settings for these valeus. Ligoj handles this. |
-| Ephemeral | A boolean to accept a shutdown of a instance. Would be plugged to Spot/Batch like services                                         |
-| Usage     | Utilization profile including up-time, commitment, conversion, reservation and forecasted start.                                   |
-| Size      | Storage size in GiB. The required value is checked against provider limits.                                                        |
-| Latency   | IO latency access rating from WORST to BEST                                                                                        |
-| Optimized | Optimization profile: durability, throughput and IOPS                                                                              |
+| Name      | Note                                                                                                                              |
+|-----------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Term      | A contract, defining the constraints: reservation, conversion options and sometimes a location                                    |
+| Location  | A geographical place (variable GPS coordinates precision). May be a country, or sometimes a city                                  |
+| Processor | The underlying physical processor. The vendor can be used instead of the full product code.                                       |
+| Physical  | A boolean constraint to expect a physical (bar metal) instance instead of a virtual one                                           |
+| Tenancy   | Shared or dedicated, to handle the noisy neighborhood issue                                                                       |
+| OS        | Operating system. Currently, only the type name is supported: Windows, Linux, RHEL,...                                            |
+| Software  | The pre-installed software                                                                                                        |
+| Engine    | Database engine name. Can be MySQL, Oracle, .. or even custom one like Aurora. Depends on the availability in the catalog.        |
+| Edition   | Database edition valid for a specific engine. For sample: Oracle Standard Edition 1                                               |
+| License   | BYOL or included mode. Depends on the availability in the catalog.                                                                |
+| Optimized | Storage expected optimization: durability, IOPS, throughput                                                                       |
+| CPU/RAM   | Expected vCPU/RAM(MiB) to match. Note that some providers support custom (elastic) settings for these values. Ligoj handles this. |
+| Ephemeral | A boolean to accept a shutdown of a instance. Would be plugged to Spot/Batch like services                                        |
+| Usage     | Utilization profile including up-time, commitment, conversion, reservation and forecasted start.                                  |
+| Size      | Storage size in GiB. The required value is checked against provider limits.                                                       |
+| Latency   | IO latency access rating from WORST to BEST                                                                                       |
+| Optimized | Optimization profile: durability, throughput and IOPS                                                                             |
 
 
 ## Covered requirements per resource

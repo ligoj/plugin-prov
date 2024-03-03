@@ -204,7 +204,7 @@ public class ProvQuoteSupportResource
 	}
 
 	/**
-	 * Return the available support types from the provider linked to the given subscription..
+	 * Return the available support types from the provider linked to the given subscription.
 	 *
 	 * @param subscription The subscription identifier, will be used to filter the support types from the associated
 	 *                     provider.

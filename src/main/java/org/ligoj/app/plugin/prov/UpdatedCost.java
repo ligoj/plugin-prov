@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
- * The updated cost of an updated resource..
+ * The updated cost of an updated resource.
  */
 @Getter
 @Setter

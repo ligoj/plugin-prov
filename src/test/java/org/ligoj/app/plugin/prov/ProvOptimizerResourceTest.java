@@ -130,7 +130,7 @@ class ProvOptimizerResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(585.6, instance.getCo2());
 		Assertions.assertEquals(585.6, instance.getCost());
 
-		// Delete all CO2 data from instance types to sitch to COST mode when there is no CO2 data
+		// Delete all CO2 data from instance types to switch to COST mode when there is no CO2 data
 		em.createQuery("UPDATE ProvInstanceType SET watt=0").executeUpdate();
 		em.flush();
 		clearAllCache();
