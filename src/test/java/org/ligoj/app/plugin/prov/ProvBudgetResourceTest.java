@@ -187,7 +187,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Increase the budget to enable databases
 		budget2.setInitialCost(8000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6017.52, 7331.02, false);
+		checkCost(resource.refresh(subscription), 6020.487, 7335.087, false);
 		assertTermCount("1y", 10); // 4 Instances +2 Databases +4 Containers
 
 		// Reduce the budget

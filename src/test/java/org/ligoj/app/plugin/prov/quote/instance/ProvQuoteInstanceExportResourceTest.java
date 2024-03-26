@@ -129,7 +129,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Function
 		Assertions.assertEquals("FUNCTION;function1;0,5;;0;;2000;;Python;;;;on-demand1;;1.0;;;100;;;false;function1;;;"
-				+ "PUBLIC;;116,3;;20;;storage1;GOOD;IOPS;4,2;;51;;storage2;MEDIUM;THROUGHPUT;"
+				+ "PUBLIC;;117,4;;20;;storage1;GOOD;IOPS;4,2;;51;;storage2;MEDIUM;THROUGHPUT;"
 				+ "77,8;;20;19;storage5-database;GOOD;IOPS;30;", lines.get(22));
 
 		// Database
