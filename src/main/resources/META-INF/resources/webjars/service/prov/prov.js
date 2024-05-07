@@ -2552,7 +2552,7 @@ define(['sparkline', 'd3'], function () {
 			current[type + 'Table'] = $table.dataTable(oSettings);
 		},
 
-		reinitializeFileinput: function (){
+		reinitializeFileInput: function (){
 			$(".is-fileinput").removeClass("has-error").attr("data-error-property","").attr("title","").removeAttr("data-toggle").attr("data-original-title","");
 		},
 
@@ -2587,11 +2587,11 @@ define(['sparkline', 'd3'], function () {
 				text: 'UTF-8'
 			});
 			$(".is-fileinput .input-group").on('change', function(){
-				current.reinitializeFileinput()
+				current.reinitializeFileInput()
 			})
 			$popup.on('shown.bs.modal', () => _('csv-file').trigger('focus')
 			).on('show.bs.modal', function () {
-				current.reinitializeFileinput()
+				current.reinitializeFileInput()
 				$(".is-fileinput .form-control").val('')
 				$('.import-summary').addClass('hidden')
 			}).on('submit', function (e) {

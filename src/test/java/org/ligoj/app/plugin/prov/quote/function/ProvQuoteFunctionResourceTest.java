@@ -3,8 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.quote.function;
 
-import static org.ligoj.app.plugin.prov.quote.function.QuoteFunctionQuery.builder;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -81,7 +79,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookup() {
-		final var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).build();
+		final var build = QuoteFunctionQuery.builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).build();
 		final var lookup = qfResource.lookup(subscription, build);
 		Assertions.assertEquals("Node", build.getRuntime());
 		checkFunction(lookup);
@@ -92,10 +90,10 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupEdge() {
-		var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(false).build();
+		var build = QuoteFunctionQuery.builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(false).build();
 		var lookup = qfResource.lookup(subscription, build);
 		checkFunction(lookup);
-		build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(true).build();
+		build = QuoteFunctionQuery.builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).edge(true).build();
 		lookup = qfResource.lookup(subscription, build);
 		Assertions.assertEquals("functionD0", lookup.getPrice().getType().getName());
 	}
@@ -105,7 +103,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupCo2() {
-		final var build = builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).optimizer("CO2")
+		final var build = QuoteFunctionQuery.builder().runtime("Node").usage("Full Time 12 month").nbRequests(200).optimizer("CO2")
 				.build();
 		final var lookup = qfResource.lookup(subscription, build);
 		Assertions.assertEquals("Node", build.getRuntime());
@@ -125,7 +123,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	void lookupDynamicalOptimizedConcurrencyOk() {
 		// Check with optimized concurrency discovery: succeed, use 2
 		var lookup = qfResource.lookup(subscription,
-				builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1.9).build());
+				QuoteFunctionQuery.builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1.9).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
 		Assertions.assertEquals(43.8d, pi.getCostRamRequest());
@@ -144,7 +142,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	void lookupDynamicalOverDuration() {
 		// Check with optimized concurrency discovery: failed, keep 1
 		var lookup = qfResource.lookup(subscription,
-				builder().usage("Dev").nbRequests(20).duration(2000000).ram(128).build());
+				QuoteFunctionQuery.builder().usage("Dev").nbRequests(20).duration(2000000).ram(128).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTION3", pi.getCode());
 		Assertions.assertEquals(84.0, lookup.getCost(), DELTA);
@@ -157,7 +155,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	void lookupDynamicalOptimizedConcurrencyKo() {
 		// Check with optimized concurrency discovery: failed, keep 1
 		var lookup = qfResource.lookup(subscription,
-				builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1.4).build());
+				QuoteFunctionQuery.builder().usage("Dev").nbRequests(20).duration(200).ram(2048).concurrency(1.4).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
 		Assertions.assertEquals(130.033, lookup.getCost(), DELTA);
@@ -169,7 +167,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamicalNoConcurrency() {
 		var lookup = qfResource.lookup(subscription,
-				builder().usage("Full Time").nbRequests(20).duration(200).ram(2048).build());
+				QuoteFunctionQuery.builder().usage("Full Time").nbRequests(20).duration(200).ram(2048).build());
 		// Check the instance result
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND0", pi.getCode());
@@ -205,7 +203,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 
 	private void testConcurrency(final String usage, final double cost, final int concurrency) {
 		var lookup = qfResource.lookup(subscription,
-				builder().usage(usage).nbRequests(20).duration(200).ram(2048).concurrency(concurrency).build());
+				QuoteFunctionQuery.builder().usage(usage).nbRequests(20).duration(200).ram(2048).concurrency(concurrency).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND1", pi.getCode());
 		Assertions.assertEquals(cost, lookup.getCost(), DELTA);
@@ -217,21 +215,21 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamicalIncrement() {
 		// Check the instance with partial resources
-		var lookup = qfResource.lookup(subscription, builder().usage("Full Time").type("functiond2").nbRequests(20)
+		var lookup = qfResource.lookup(subscription, QuoteFunctionQuery.builder().usage("Full Time").type("functiond2").nbRequests(20)
 				.concurrency(1).duration(75 + 1).ram(2048 - 128 + 1).build());
 		var pi = lookup.getPrice();
 		Assertions.assertEquals("FUNCTIOND2", pi.getCode());
 		Assertions.assertEquals(89.4, lookup.getCost(), DELTA);
 
-		lookup = qfResource.lookup(subscription, builder().usage("Full Time").type("functiond2").nbRequests(20)
+		lookup = qfResource.lookup(subscription, QuoteFunctionQuery.builder().usage("Full Time").type("functiond2").nbRequests(20)
 				.concurrency(1).duration(150).ram(2048).build());
 		Assertions.assertEquals(89.4, lookup.getCost(), DELTA);
 
-		lookup = qfResource.lookup(subscription, builder().usage("Full Time").type("functiond2").nbRequests(20)
+		lookup = qfResource.lookup(subscription, QuoteFunctionQuery.builder().usage("Full Time").type("functiond2").nbRequests(20)
 				.concurrency(1).duration(151).ram(100).build());
 		Assertions.assertEquals(12.462, lookup.getCost(), DELTA);
 
-		lookup = qfResource.lookup(subscription, builder().usage("Full Time").type("functiond2").nbRequests(20)
+		lookup = qfResource.lookup(subscription, QuoteFunctionQuery.builder().usage("Full Time").type("functiond2").nbRequests(20)
 				.concurrency(1).duration(150 + 75 - 1).ram(127).build());
 		Assertions.assertEquals(12.462, lookup.getCost(), DELTA);
 	}
@@ -242,7 +240,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupNoMatchDynamical() {
 		fpRepository.deleteAllBy("code", "FUNCTIOND0");
-		Assertions.assertNull(qfResource.lookup(subscription, builder().cpu(100).build()));
+		Assertions.assertNull(qfResource.lookup(subscription, QuoteFunctionQuery.builder().cpu(100).build()));
 	}
 
 	/**
@@ -263,7 +261,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 				"{\"cpu\":2,\"ram\":3000,\"nbRequests\":20,\"runtime\":\"Java\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\",\"concurrency\":10,\"duration\":200}",
 				QuoteFunctionQuery.class);
-		Assertions.assertTrue(builder().toString().contains("nbRequests"));
+		Assertions.assertTrue(QuoteFunctionQuery.builder().toString().contains("nbRequests"));
 	}
 
 	private void checkFunction(final QuoteFunctionLookup lookup) {
@@ -292,7 +290,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatch() {
-		Assertions.assertNull(qfResource.lookup(subscription, builder().cpu(999).build()));
+		Assertions.assertNull(qfResource.lookup(subscription, QuoteFunctionQuery.builder().cpu(999).build()));
 	}
 
 	@Test
@@ -525,7 +523,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	void findInstanceTerms() {
 		final var tableItem = qfResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(5, tableItem.getRecordsTotal());
-		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("on-demand1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
@@ -552,14 +550,14 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	void findAllTypes() {
 		final var tableItem = qfResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(7, tableItem.getRecordsTotal());
-		Assertions.assertEquals("function1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("function1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
 	void findInstanceCriteria() {
 		final var tableItem = qfResource.findAllTypes(subscription, newUriInfo("unction1"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
-		Assertions.assertEquals("function1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("function1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test

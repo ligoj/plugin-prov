@@ -6,8 +6,9 @@ package org.ligoj.app.plugin.prov.model;
 import lombok.Getter;
 
 /**
- * A quote resource type.
+ * Quote resource type.
  */
+@Getter
 public enum ResourceType {
 
 	/**
@@ -43,13 +44,11 @@ public enum ResourceType {
 	/**
 	 * When <code>true</code>, has network capability.
 	 */
-	@Getter
 	private final boolean network;
 
 	/**
 	 * When <code>true</code>, has CO2 capability.
 	 */
-	@Getter
 	private final boolean co2;
 
 	ResourceType(boolean network, boolean co2) {

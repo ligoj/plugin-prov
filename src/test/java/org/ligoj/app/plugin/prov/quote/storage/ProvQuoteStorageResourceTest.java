@@ -684,7 +684,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	void findType() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(6, tableItem.getRecordsTotal());
-		Assertions.assertEquals("storage1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("storage1", tableItem.getData().getFirst().getName());
 		Assertions.assertNull(tableItem.getData().get(0).getDatabaseType());
 		Assertions.assertEquals("storage7-database", tableItem.getData().get(5).getName());
 		Assertions.assertEquals("%", tableItem.getData().get(5).getDatabaseType());
@@ -734,7 +734,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	void lookupStorage() {
 		final var price = qsResource
 				.lookup(subscription, QuoteStorageQuery.builder().size(2).optimized(ProvStorageOptimized.IOPS).build())
-				.get(0);
+				.getFirst();
 
 		// Check the storage result
 		assertCSP(price);
@@ -748,10 +748,10 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupStorageIncrement() {
 		var lookups = qsResource.lookup(subscription, QuoteStorageQuery.builder().size(1024).build());
-		var lookup = lookups.get(0);
+		var lookup = lookups.getFirst();
 		var price = lookup.getPrice();
 		Assertions.assertEquals("S3", price.getCode());
-		Assertions.assertEquals(155.6d, lookups.get(0).getCost(), DELTA);
+		Assertions.assertEquals(155.6d, lookups.getFirst().getCost(), DELTA);
 		Assertions.assertNull(price.getType().getIncrement());
 
 		// Change the increment for this type
@@ -765,7 +765,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNull(price.getType().getIncrement());
 
 		lookups = qsResource.lookup(subscription, QuoteStorageQuery.builder().size(1024).build());
-		lookup = lookups.get(0);
+		lookup = lookups.getFirst();
 		price = lookup.getPrice();
 		Assertions.assertEquals("S1", price.getCode());
 		Assertions.assertEquals(215.04d, lookup.getCost(), DELTA);
@@ -784,7 +784,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupStorageHighConstraints() throws IOException {
 		final var lookup = qsResource
-				.lookup(subscription, QuoteStorageQuery.builder().size(1024).latency(Rate.GOOD).build()).get(0);
+				.lookup(subscription, QuoteStorageQuery.builder().size(1024).latency(Rate.GOOD).build()).getFirst();
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":215.04,"));
 		Assertions.assertTrue(asJson.contains("\"cost\":0.0,"));
@@ -810,19 +810,19 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupStorageNoMatch() {
 		Assertions.assertEquals("storage1",
-				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(512).latency(Rate.GOOD).build()).get(0)
+				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(512).latency(Rate.GOOD).build()).getFirst()
 						.getPrice().getType().getName());
 		Assertions.assertEquals("storage1",
-				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(999).latency(Rate.GOOD).build()).get(0)
+				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(999).latency(Rate.GOOD).build()).getFirst()
 						.getPrice().getType().getName());
 		Assertions.assertEquals("storage2",
 				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(512).latency(Rate.MEDIUM).build())
-						.get(0).getPrice().getType().getName());
+						.getFirst().getPrice().getType().getName());
 
 		// Out of limits
 		Assertions.assertEquals("storage1",
 				qsResource.lookup(subscription, QuoteStorageQuery.builder().size(999).latency(Rate.MEDIUM).build())
-						.get(0).getPrice().getType().getName());
+						.getFirst().getPrice().getType().getName());
 	}
 
 	/**
@@ -844,23 +844,23 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		var server1Type = server1.getPrice().getType();
 		Assertions.assertEquals("instance1", server1Type.getCode());
 
-		var lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		var lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).getFirst();
 		Assertions.assertEquals("storage1", lookup.getPrice().getType().getCode());
 		
 		lookup.getPrice().getType().setInstanceType("-not-match-");
-		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).getFirst();
 		Assertions.assertEquals("storage4", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setNotInstanceType("-not-match-");
-		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).getFirst();
 		Assertions.assertEquals("storage4", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setNotInstanceType("%ance1");
-		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).getFirst();
 		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setInstanceType("%ance1");
-		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).get(0);
+		lookup = qsResource.lookup(subscription, QuoteStorageQuery.builder().instance(serverId).build()).getFirst();
 		Assertions.assertEquals("storage2", lookup.getPrice().getType().getCode());
 
 		lookup.getPrice().getType().setNotInstanceType("%ance_");
@@ -875,16 +875,16 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	void lookupStorageContainer() {
 		final var entity = container1();
 		final var query = QuoteStorageQuery.builder().container(entity).build();
-		Assertions.assertEquals("S1", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		Assertions.assertEquals("S1", qsResource.lookup(subscription, query).getFirst().getPrice().getCode());
 		Assertions.assertEquals("container1", qcRepository.findOneExpected(entity).getPrice().getType().getCode());
 		final var st5 = "storage1";
 		final var type = stRepository.findByCode(subscription, st5);
-		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 		type.setNotContainerType("%tainerX");
-		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 		type.setNotContainerType("%tainer1");
 		Assertions.assertEquals("storage2",
-				qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+				qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 	}
 
 	/**
@@ -895,16 +895,16 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		final var entity = function1();
 		final var query = QuoteStorageQuery.builder().function(entity).build();
 		Assertions.assertEquals(2, qsResource.lookup(subscription, query).size());
-		Assertions.assertEquals("S1", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		Assertions.assertEquals("S1", qsResource.lookup(subscription, query).getFirst().getPrice().getCode());
 		Assertions.assertEquals("function1", qfRepository.findOneExpected(entity).getPrice().getType().getCode());
 		final var st5 = "storage1";
 		final var type = stRepository.findByCode(subscription, st5);
-		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 		type.setNotFunctionType("%unctionX");
-		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 		type.setNotFunctionType("%unction1");
 		Assertions.assertEquals("storage2",
-				qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+				qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 	}
 
 	/**
@@ -944,12 +944,12 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupStorageDatabase() {
 		final var query = QuoteStorageQuery.builder().database(database1()).build();
-		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).getFirst().getPrice().getCode());
 		final var st5 = "storage5-database";
 		final var type = stRepository.findByCode(subscription, st5);
-		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).get(0).getPrice().getType().getCode());
+		Assertions.assertEquals(st5, qsResource.lookup(subscription, query).getFirst().getPrice().getType().getCode());
 		type.setNotDatabaseType("%base2");
-		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).get(0).getPrice().getCode());
+		Assertions.assertEquals("S5", qsResource.lookup(subscription, query).getFirst().getPrice().getCode());
 
 		// Add database instance type constraint to the storage
 		type.setNotDatabaseType("%base1");

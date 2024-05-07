@@ -136,7 +136,7 @@ public class ProvQuoteFunctionResource extends
 			// Try the greater concurrency level and keeping the original concurrency assumption
 			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, ram, location, rate,
 					duration, initialCost, optimizer, query.getConcurrency(), Math.ceil(query.getConcurrency()));
-			if (toTotalCost(result1.get(0)) > toTotalCost(result2.get(0))) {
+			if (toTotalCost(result1.getFirst()) > toTotalCost(result2.getFirst())) {
 				// The second concurrency configuration is cheaper
 				return result2;
 			}

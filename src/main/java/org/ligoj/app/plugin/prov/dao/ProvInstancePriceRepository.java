@@ -48,7 +48,7 @@ public interface ProvInstancePriceRepository
 			WHERE :node = i.node.id
 			   AND ip.os=:os AND ip.software IS NOT NULL
 			ORDER BY ip.software
-			 """)
+			""")
 	List<String> findAllSoftwareNames(@CacheKey String node, @CacheKey VmOs os);
 
 	/**

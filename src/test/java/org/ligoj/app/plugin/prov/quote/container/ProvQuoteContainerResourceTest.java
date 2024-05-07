@@ -3,8 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.quote.container;
 
-import static org.ligoj.app.plugin.prov.quote.container.QuoteContainerQuery.builder;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -82,7 +80,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookup() {
-		final var lookup = qcResource.lookup(subscription, builder().usage("Full Time 12 month").build());
+		final var lookup = qcResource.lookup(subscription, QuoteContainerQuery.builder().usage("Full Time 12 month").build());
 		checkInstance(lookup);
 	}
 
@@ -92,7 +90,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupCo2() {
 		final var lookup = qcResource.lookup(subscription,
-				builder().usage("Full Time 12 month").optimizer("CO2").build());
+				QuoteContainerQuery.builder().usage("Full Time 12 month").optimizer("CO2").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertEquals("LINUXD0", pi.getCode());
 		Assertions.assertEquals(0.0, pi.getCost(), DELTA);
@@ -106,7 +104,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupDynamical() {
 		final var lookup = qcResource.lookup(subscription,
-				builder().usage("Full Time 12 month").os(VmOs.LINUX).cpu(8).ram(2048).build());
+				QuoteContainerQuery.builder().usage("Full Time 12 month").os(VmOs.LINUX).cpu(8).ram(2048).build());
 		// Check the instance result
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
@@ -129,7 +127,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupNoMatchDynamical() {
 		cpRepository.deleteAllBy("code", "LINUXD0");
-		Assertions.assertNull(qcResource.lookup(subscription, builder().cpu(100).build()));
+		Assertions.assertNull(qcResource.lookup(subscription, QuoteContainerQuery.builder().cpu(100).build()));
 	}
 
 	/**
@@ -149,7 +147,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 		new ObjectMapperTrim()
 				.readValue("{\"os\":\"LINUX\"," + "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteContainerQuery.class);
-		Assertions.assertNotNull(builder().toString());
+		Assertions.assertNotNull(QuoteContainerQuery.builder().toString());
 	}
 
 	private void checkInstance(final QuoteContainerLookup lookup) {
@@ -174,7 +172,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupNoMatch() {
-		Assertions.assertNull(qcResource.lookup(subscription, builder().cpu(999).build()));
+		Assertions.assertNull(qcResource.lookup(subscription, QuoteContainerQuery.builder().cpu(999).build()));
 	}
 
 	@Test
@@ -388,7 +386,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void findInstanceTerms() {
 		final var tableItem = qcResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(5, tableItem.getRecordsTotal());
-		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("on-demand1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
@@ -415,7 +413,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void findLicenses() {
 		final var tableItem = qcResource.findLicenses(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(2, tableItem.size());
-		Assertions.assertEquals("INCLUDED", tableItem.get(0));
+		Assertions.assertEquals("INCLUDED", tableItem.getFirst());
 		Assertions.assertEquals("BYOL", tableItem.get(1));
 	}
 
@@ -429,14 +427,14 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void findAllTypes() {
 		final var tableItem = qcResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(4, tableItem.getRecordsTotal());
-		Assertions.assertEquals("container1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("container1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
 	void findInstanceCriteria() {
 		final var tableItem = qcResource.findAllTypes(subscription, newUriInfo("tainer1"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
-		Assertions.assertEquals("container1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("container1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
@@ -492,7 +490,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	void findContainerOs() {
 		final var tableItem = qcResource.findOs(subscription);
 		Assertions.assertEquals(2, tableItem.size());
-		Assertions.assertEquals("LINUX", tableItem.get(0));
+		Assertions.assertEquals("LINUX", tableItem.getFirst());
 	}
 
 	@Test

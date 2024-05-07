@@ -14,7 +14,7 @@ define({
 	'actions': 'Fonctionnalités disponibles pour ce fournisseur',
 	'status': 'État du Catalogue',
 	'status-updating': '{{[0]}}% ({{[1]}}/{{[2]}})<br>Démarré {{[3]}} par {{[4]}}<br>Étape actuelle : {{[5]}}<br>Dernière mise à jour : {{[6]}}',
-	'status-initializing': '{{[0]}}% ({{[1]}}/{{[2]}})<br>Démarré {{[3]}} par {{[4]}}<br>Etape actuelle : {{[5]}}<br>Dernière mise à jour : premier import',
+	'status-initializing': '{{[0]}}% ({{[1]}}/{{[2]}})<br>Démarré {{[3]}} par {{[4]}}<br>Étape actuelle : {{[5]}}<br>Dernière mise à jour : premier import',
 	'status-finished-ok': 'Mise à jour le {{[0]}} par {{[1]}} et a pris {{[2]}}',
 	'status-canceled': 'Annulation demandée par {{this}}',
 	'status-finished-ko': 'Démarré {{[0]}} par {{[1]}} et échoué {{[2]}}<br>Dernier état : {{[3]}} {{[4]}}% ({{[5]}}/{{[6]}})<br>Dernière mise à jour : {{[7]}}',

@@ -73,7 +73,7 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 		upload(subscription, new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(),
 				null, true, "Full Time 12 month", null, null, 1);
 		final var configuration = checkUpload();
-		Assertions.assertEquals(10.1d, configuration.getInstances().get(0).getMaxVariableCost(), DELTA);
+		Assertions.assertEquals(10.1d, configuration.getInstances().getFirst().getMaxVariableCost(), DELTA);
 	}
 
 	private QuoteVo checkUpload() {
@@ -292,9 +292,9 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 		final var storagesFloating = toStoragesFloating("MYINSTANCE");
 		Assertions.assertEquals(2, storagesFloating.size()); // 1GB and 10GB disks
 		checkCost(storagesFloating.get("MYINSTANCE"), 0.21, 0.21, false);
-		Assertions.assertEquals("MYINSTANCE", qsRepository.findAllBy("cost", .21d).get(0).getName());
+		Assertions.assertEquals("MYINSTANCE", qsRepository.findAllBy("cost", .21d).getFirst().getName());
 		checkCost(storagesFloating.get("MYINSTANCE2"), 2.1, 2.1, false);
-		Assertions.assertEquals("MYINSTANCE2", qsRepository.findAllBy("cost", 2.1d).get(0).getName());
+		Assertions.assertEquals("MYINSTANCE2", qsRepository.findAllBy("cost", 2.1d).getFirst().getName());
 	}
 
 	@Test

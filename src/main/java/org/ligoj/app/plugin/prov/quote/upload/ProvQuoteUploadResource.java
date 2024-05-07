@@ -370,7 +370,7 @@ public class ProvQuoteUploadResource {
 			} catch (final ConstraintViolationException e) {
 				handleUploadError(BooleanUtils.isTrue(errorContinue), handleValidationError(i, new ValidationJsonException(e)));
 			} catch (final RuntimeException e) {
-				log.error("Unmanaged error during import of " + i.getName(), e);
+				log.error("Unmanaged error during import of {}", i.getName(), e);
 				handleUploadError(BooleanUtils.isTrue(errorContinue), e);
 			}
 		});

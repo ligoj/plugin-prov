@@ -3,35 +3,23 @@
  */
 package org.ligoj.app.plugin.prov.quote.instance;
 
-import static org.ligoj.app.plugin.prov.quote.instance.QuoteInstanceQuery.builder;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.AbstractProvResourceTest;
 import org.ligoj.app.plugin.prov.Floating;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
-import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvQuoteSupport;
-import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
-import org.ligoj.app.plugin.prov.model.ProvSupportType;
-import org.ligoj.app.plugin.prov.model.ProvTenancy;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.ReservationMode;
-import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.MatcherUtil;
 import org.ligoj.bootstrap.core.json.ObjectMapperTrim;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Test class of {@link ProvQuoteInstanceResource}
@@ -59,7 +47,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookup() {
-		final var lookup = qiResource.lookup(subscription, builder().ram(2000).ephemeral(true).usage(FULL).build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().ram(2000).ephemeral(true).usage(FULL).build());
 		checkInstance(lookup);
 	}
 
@@ -69,7 +57,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupLicenseIncluded() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("INCLUDED").build());
+				QuoteInstanceQuery.builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("INCLUDED").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -83,14 +71,14 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupRate() {
-		var build = builder().cpuRate(Rate.BEST).build();
+		var build = QuoteInstanceQuery.builder().cpuRate(Rate.BEST).build();
 		Assertions.assertEquals("instance2",
-				qiResource.lookup(subscription, builder().cpuRate(Rate.BEST).build()).getPrice().getType().getCode());
+				qiResource.lookup(subscription, QuoteInstanceQuery.builder().cpuRate(Rate.BEST).build()).getPrice().getType().getCode());
 		Assertions.assertEquals("instance2",
-				qiResource.lookup(subscription, builder().gpuRate(Rate.BEST).build()).getPrice().getType().getCode());
+				qiResource.lookup(subscription, QuoteInstanceQuery.builder().gpuRate(Rate.BEST).build()).getPrice().getType().getCode());
 		Assertions.assertEquals("instance2",
-				qiResource.lookup(subscription, builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
-		build = builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST)
+				qiResource.lookup(subscription, QuoteInstanceQuery.builder().ramRate(Rate.GOOD).build()).getPrice().getType().getCode());
+		build = QuoteInstanceQuery.builder().storageRate(Rate.BEST).networkRate(Rate.BEST).ramRate(Rate.BEST).cpuRate(Rate.BEST)
 				.gpuRate(Rate.BEST).build();
 		build.setCpuRate(Rate.BEST); // Coverage only
 		build.setGpuRate(Rate.BEST); // Coverage only
@@ -105,10 +93,10 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupAutoScale() {
-		var build = builder().autoScale(true).build();
+		var build = QuoteInstanceQuery.builder().autoScale(true).build();
 		build.setAutoScale(true); // Coverage only
 		Assertions.assertEquals("instance2", qiResource.lookup(subscription, build).getPrice().getType().getCode());
-		Assertions.assertNull(qiResource.lookup(subscription, builder().autoScale(true).cpu(2).build()));
+		Assertions.assertNull(qiResource.lookup(subscription, QuoteInstanceQuery.builder().autoScale(true).cpu(2).build()));
 	}
 
 	/**
@@ -116,10 +104,10 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupEdge() {
-		var build = builder().edge(true).build();
+		var build = QuoteInstanceQuery.builder().edge(true).build();
 		build.setEdge(true); // Coverage only
 		Assertions.assertEquals("instance2", qiResource.lookup(subscription, build).getPrice().getType().getCode());
-		Assertions.assertNull(qiResource.lookup(subscription, builder().edge(true).cpu(2).build()));
+		Assertions.assertNull(qiResource.lookup(subscription, QuoteInstanceQuery.builder().edge(true).cpu(2).build()));
 	}
 
 	/**
@@ -128,7 +116,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupLicenseByol() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("BYOL").build());
+				QuoteInstanceQuery.builder().ram(2000).os(VmOs.WINDOWS).usage(FULL).license("BYOL").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -143,7 +131,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupSoftware() {
-		final var lookup = qiResource.lookup(subscription, builder().os(VmOs.WINDOWS).software("SQL Web").build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().os(VmOs.WINDOWS).software("SQL Web").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -159,7 +147,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupMax() {
 		repository.findByName("quote1").setReservationMode(ReservationMode.MAX);
-		final var build = builder().ramMax(2000).cpuMax(2d).gpuMax(0d).build();
+		final var build = QuoteInstanceQuery.builder().ramMax(2000).cpuMax(2d).gpuMax(0d).build();
 		build.setCpuMax(2d); // Only for coverage
 		build.setGpuMax(0d); // Only for coverage
 		build.setRamMax(2000); // Only for coverage
@@ -178,7 +166,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupProcessor() {
-		final var build = builder().processor("Intel Xeon").build();
+		final var build = QuoteInstanceQuery.builder().processor("Intel Xeon").build();
 		build.setProcessor("Intel Xeon"); // Coverage only
 		final var lookup = qiResource.lookup(subscription, build);
 
@@ -194,7 +182,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupPhysical() {
-		final var build = builder().physical(true).build();
+		final var build = QuoteInstanceQuery.builder().physical(true).build();
 		build.setPhysical(true); // Coverage only
 		final var lookup = qiResource.lookup(subscription, build);
 
@@ -210,7 +198,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupProcessorContains() {
-		final var lookup = qiResource.lookup(subscription, builder().processor("epyc 7571").build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().processor("epyc 7571").build());
 
 		// Check the instance result
 		final var pi = lookup.getPrice();
@@ -225,7 +213,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupLocation() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).location("region-1").usage(FULL).build());
+				QuoteInstanceQuery.builder().ram(2000).location("region-1").usage(FULL).build());
 		checkInstance(lookup);
 	}
 
@@ -235,7 +223,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupNoMatchAtLocation() {
 		Assertions.assertEquals("instance2",
-				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-1").build()).getPrice()
+				qiResource.lookup(subscription, QuoteInstanceQuery.builder().ram(2000).usage(FULL).location("region-1").build()).getPrice()
 						.getType().getName());
 
 		final var location = locationRepository.findByName("region-1");
@@ -248,7 +236,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 		// Instance 2 is not available in this region
 		Assertions.assertEquals("instance5",
-				qiResource.lookup(subscription, builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
+				qiResource.lookup(subscription, QuoteInstanceQuery.builder().ram(2000).usage(FULL).location("region-2").build()).getPrice()
 						.getType().getName());
 	}
 
@@ -257,7 +245,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupLocationNotFound() {
-		final var vo = builder().location("region-xxx").build();
+		final var vo = QuoteInstanceQuery.builder().location("region-xxx").build();
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
@@ -282,7 +270,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupHighConstraints() throws IOException {
-		final var build = builder().cpu(3).ram(9).workload("100").tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
+		final var build = QuoteInstanceQuery.builder().cpu(3).ram(9).workload("100").tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
 				.usage(FULL).build();
 		build.setTenancy(ProvTenancy.SHARED); // Coverage only
 		final var lookupObj = qiResource.lookup(subscription, build);
@@ -312,7 +300,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleKo() {
 		Assertions.assertNull(qiResource.lookup(subscription,
-				builder().cpu(1).usage("Full Time Global").location("region-1").build()));
+				QuoteInstanceQuery.builder().cpu(1).usage("Full Time Global").location("region-1").build()));
 	}
 
 	/**
@@ -321,7 +309,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleLocation() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).usage("Full Time Global").location("region-5").build());
+				QuoteInstanceQuery.builder().cpu(1).usage("Full Time Global").location("region-5").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance5", pi.getType().getName());
@@ -341,7 +329,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleOs() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).os(VmOs.LINUX).usage("Full Time Convertible").build());
+				QuoteInstanceQuery.builder().cpu(1).os(VmOs.LINUX).usage("Full Time Convertible").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -356,7 +344,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupConvertibleLocationOnGlobal() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().cpu(1).usage("Full Time 12 month").location("region-1").build());
+				QuoteInstanceQuery.builder().cpu(1).usage("Full Time 12 month").location("region-1").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -370,7 +358,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupNoMatch() {
 		Assertions
-				.assertNull(qiResource.lookup(subscription, builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
+				.assertNull(qiResource.lookup(subscription, QuoteInstanceQuery.builder().cpu(999).os(VmOs.SUSE).ephemeral(true).build()));
 	}
 
 	/**
@@ -378,7 +366,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupUsageNotFound() {
-		final var vo = builder().os(VmOs.LINUX).usage("any").build();
+		final var vo = QuoteInstanceQuery.builder().os(VmOs.LINUX).usage("any").build();
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
@@ -387,23 +375,24 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupBudgetNotFound() {
-		final var vo = builder().os(VmOs.LINUX).budget("any").build();
+		final var vo = QuoteInstanceQuery.builder().os(VmOs.LINUX).budget("any").build();
 		vo.setBudget("any"); // Coverage only
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
+
 	/**
 	 * No such budget name.
 	 */
 	@Test
 	void lookupOptimizerNotFound() {
-		final var vo = builder().os(VmOs.LINUX).optimizer("any").build();
+		final var vo = QuoteInstanceQuery.builder().os(VmOs.LINUX).optimizer("any").build();
 		vo.setOptimizer("any"); // Coverage only
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
 	@Test
 	void lookupTypeNotFound() {
-		final var vo = builder().type("any").build();
+		final var vo = QuoteInstanceQuery.builder().type("any").build();
 		Assertions.assertThrows(EntityNotFoundException.class, () -> qiResource.lookup(subscription, vo));
 	}
 
@@ -412,7 +401,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupOnlyCustom() {
-		final var lookup = qiResource.lookup(subscription, builder().cpu(999).build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().cpu(999).build());
 
 		// Check the custom instance
 		final var pi = lookup.getPrice();
@@ -435,7 +424,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupCustomIsCheaper() {
-		assertPrice(qiResource.lookup(subscription, builder().ram(15360).usage("Dev").build()), "C74", "dynamic",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ram(15360).usage("Dev").build()), "C74", "dynamic",
 				145.825d, "on-demand1");
 	}
 
@@ -444,43 +433,43 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 */
 	@Test
 	void lookupVariableDuration() {
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev").build()), "C9", "instance2",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev").build()), "C9", "instance2",
 				58.56, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 11 month").build()),
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Full Time 11 month").build()),
 				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage(FULL).build()), "C11", "instance2",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage(FULL).build()), "C11", "instance2",
 				102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 13 month").build()),
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Full Time 13 month").build()),
 				"C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 23 month").build()),
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Full Time 23 month").build()),
 				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 24 month").build()),
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Full Time 24 month").build()),
 				"C11", "instance2", 102.48, "1y");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Full Time 25 month").build()),
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Full Time 25 month").build()),
 				"C9", "instance2", 117.12, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
 				"instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 12 month").build()), "C9",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev 12 month").build()), "C9",
 				"instance2", 29.28, "on-demand2");
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 13 month").build()), "C9",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev 13 month").build()), "C9",
 				"instance2", 29.28, "on-demand2");
 
 		var usage = usageRepository.findByName("Dev 11 month");
 		usage.setRate(90);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev 11 month").build()), "C9",
 				"instance2", 105.408, "on-demand2");
 
 		usage.setRate(98);
 		usageRepository.saveAndFlush(usage);
-		assertPrice(qiResource.lookup(subscription, builder().ephemeral(true).usage("Dev 11 month").build()), "C11",
+		assertPrice(qiResource.lookup(subscription, QuoteInstanceQuery.builder().ephemeral(true).usage("Dev 11 month").build()), "C11",
 				"instance2", 102.48, "1y");
 
 	}
 
 	@Test
 	void lookupGpu() {
-		final var lookup = qiResource.lookup(subscription, builder().gpu(2).build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().gpu(2).build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals(2.0, pi.getType().getGpu());
@@ -499,7 +488,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void lookupGpu0() {
-		final var lookup = qiResource.lookup(subscription, builder().gpu(0.0).build());
+		final var lookup = qiResource.lookup(subscription, QuoteInstanceQuery.builder().gpu(0.0).build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("instance2", pi.getType().getName());
@@ -568,7 +557,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(deletedS.contains(storage1));
 
 		// The remaining storage for this subscription is not related to a deleted instance
-		Assertions.assertNull(qsRepository.findAll(getQuote()).get(0).getQuoteInstance());
+		Assertions.assertNull(qsRepository.findAll(getQuote()).getFirst().getQuoteInstance());
 
 		// Check the exact new cost
 		checkCost(subscription, 2.73, 2.73, false);
@@ -584,7 +573,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void deleteAllInstancesWithSupport() throws IOException {
-		persistEntities("csv", new Class<?>[] { ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class },
+		persistEntities("csv", new Class<?>[]{ProvSupportType.class, ProvSupportPrice.class, ProvQuoteSupport.class},
 				StandardCharsets.UTF_8);
 		qsRepository.deleteAllBy("name", "shared-data");
 		resource.refresh(subscription);
@@ -916,10 +905,8 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 
 	private void logQuote() {
 		final var vo3 = resource.getConfiguration(subscription);
-		vo3.getInstances().forEach(q -> log.info(q.getName() + " -cost " + q.getCost() + " -type "
-				+ q.getPrice().getType().getName() + " -code " + q.getPrice().getCode()));
-		vo3.getStorages().forEach(
-				q -> log.info(q.getName() + " -cost " + q.getCost() + " - type " + q.getPrice().getType().getName()));
+		vo3.getInstances().forEach(q -> log.info("{} -cost {} -type {} -code {}", q.getName(), q.getCost(), q.getPrice().getType().getName(), q.getPrice().getCode()));
+		vo3.getStorages().forEach(q -> log.info("{} -cost {} - type {}", q.getName(), q.getCost(), q.getPrice().getType().getName()));
 	}
 
 	@Test
@@ -1208,14 +1195,14 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findInstanceTerms() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo());
 		Assertions.assertEquals(5, tableItem.getRecordsTotal());
-		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("on-demand1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
 	void findInstancePriceTermsCriteria() {
 		final var tableItem = qiResource.findPriceTerms(subscription, newUriInfo("deMand"));
 		Assertions.assertEquals(4, tableItem.getRecordsTotal());
-		Assertions.assertEquals("on-demand1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("on-demand1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
@@ -1241,7 +1228,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findLicenses() {
 		final var tableItem = qiResource.findLicenses(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(2, tableItem.size());
-		Assertions.assertEquals("INCLUDED", tableItem.get(0));
+		Assertions.assertEquals("INCLUDED", tableItem.getFirst());
 		Assertions.assertEquals("BYOL", tableItem.get(1));
 	}
 
@@ -1256,7 +1243,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findSoftwareNames() {
 		final var tableItem = qiResource.findSoftwareNames(subscription, VmOs.WINDOWS);
 		Assertions.assertEquals(1, tableItem.size());
-		Assertions.assertEquals("SQL WEB", tableItem.get(0));
+		Assertions.assertEquals("SQL WEB", tableItem.getFirst());
 	}
 
 	@Test
@@ -1270,14 +1257,14 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findInstance() {
 		final var tableItem = qiResource.findAllTypes(subscription, newUriInfo());
 		Assertions.assertEquals(13, tableItem.getRecordsTotal());
-		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("instance1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
 	void findInstanceCriteria() {
 		final var tableItem = qiResource.findAllTypes(subscription, newUriInfo("sTance1"));
 		Assertions.assertEquals(4, tableItem.getRecordsTotal());
-		Assertions.assertEquals("instance1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("instance1", tableItem.getData().getFirst().getName());
 		Assertions.assertEquals("instance10", tableItem.getData().get(1).getName());
 	}
 
@@ -1304,7 +1291,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	void findOs() {
 		final var tableItem = qiResource.findOs(subscription);
 		Assertions.assertEquals(3, tableItem.size());
-		Assertions.assertEquals("LINUX", tableItem.get(0));
+		Assertions.assertEquals("LINUX", tableItem.getFirst());
 	}
 
 	@Test
@@ -1319,7 +1306,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	@Test
 	void lookupCo2() {
 		final var lookup = qiResource.lookup(subscription,
-				builder().ram(2000).ephemeral(true).usage(FULL).optimizer("CO2").build());
+				QuoteInstanceQuery.builder().ram(2000).ephemeral(true).usage(FULL).optimizer("CO2").build());
 		final var pi = lookup.getPrice();
 		Assertions.assertNotNull(pi.getId());
 		Assertions.assertEquals("C9", pi.getCode());

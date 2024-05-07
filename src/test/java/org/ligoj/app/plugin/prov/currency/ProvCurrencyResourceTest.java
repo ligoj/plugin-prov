@@ -53,17 +53,17 @@ class ProvCurrencyResourceTest extends AbstractAppTest {
 		final var uriInfo = newUriInfo();
 		final var result = resource.findAll(uriInfo);
 		Assertions.assertEquals(1, result.getData().size());
-		Assertions.assertEquals("$", result.getData().get(0).getUnit());
-		Assertions.assertEquals("USD", result.getData().get(0).getName());
-		Assertions.assertEquals(1, result.getData().get(0).getRate());
-		Assertions.assertEquals(1, result.getData().get(0).getNbQuotes());
+		Assertions.assertEquals("$", result.getData().getFirst().getUnit());
+		Assertions.assertEquals("USD", result.getData().getFirst().getName());
+		Assertions.assertEquals(1, result.getData().getFirst().getRate());
+		Assertions.assertEquals(1, result.getData().getFirst().getNbQuotes());
 	}
 
 	@Test
 	void create() {
 		resource.create(newCurrency());
 		Assertions.assertEquals(.8, repository.findByName("EURO").getRate());
-		Assertions.assertEquals(0, resource.findAll(newUriInfo("EURO")).getData().get(0).getNbQuotes());
+		Assertions.assertEquals(0, resource.findAll(newUriInfo("EURO")).getData().getFirst().getNbQuotes());
 	}
 
 	@Test

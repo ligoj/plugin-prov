@@ -136,7 +136,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertNotNull(vo.getLastModifiedDate());
 		Assertions.assertEquals("region-1", vo.getLocation().getName());
 		Assertions.assertEquals(3, vo.getLocations().size());
-		Assertions.assertEquals("region-1", vo.getLocations().get(0).getName());
+		Assertions.assertEquals("region-1", vo.getLocations().getFirst().getName());
 		Assertions.assertEquals("region-2", vo.getLocations().get(1).getName());
 		Assertions.assertEquals("region-5", vo.getLocations().get(2).getName());
 
@@ -150,7 +150,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		// Check compute
 		final var instances = vo.getInstances();
 		Assertions.assertEquals(7, instances.size());
-		final var quoteInstance = instances.get(0);
+		final var quoteInstance = instances.getFirst();
 		Assertions.assertNotNull(quoteInstance.getId());
 		Assertions.assertEquals("server1", quoteInstance.getName());
 		Assertions.assertEquals("serverD1", quoteInstance.getDescription());
@@ -182,19 +182,19 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, instances.get(3).getMaxQuantity().intValue());
 
 		// Check the constant CPU requirement
-		Assertions.assertEquals("100",instances.get(0).getWorkload());
+		Assertions.assertEquals("100",instances.getFirst().getWorkload());
 		Assertions.assertNull(instances.get(1).getWorkload());
 		Assertions.assertEquals("15",instances.get(3).getWorkload());
 
 		// Check the network requirement
-		Assertions.assertEquals(InternetAccess.PUBLIC, instances.get(0).getInternet());
+		Assertions.assertEquals(InternetAccess.PUBLIC, instances.getFirst().getInternet());
 		Assertions.assertEquals(InternetAccess.PRIVATE, instances.get(1).getInternet());
 		Assertions.assertEquals(InternetAccess.PRIVATE_NAT, instances.get(2).getInternet());
 
 		// Check storage
 		final var storages = vo.getStorages();
 		Assertions.assertEquals(4, storages.size());
-		final var quoteStorage = storages.get(0);
+		final var quoteStorage = storages.getFirst();
 		Assertions.assertNotNull(quoteStorage.getId());
 		Assertions.assertEquals("server1-root", quoteStorage.getName());
 		Assertions.assertEquals("server1-rootD", quoteStorage.getDescription());
@@ -222,7 +222,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(0.000000072, storages.get(1).getPrice().getCostTransaction(), 0.000000001);
 
 		// Check the related instance and price for the next comparison
-		Assertions.assertEquals("instance1", instances.get(0).getPrice().getType().getName());
+		Assertions.assertEquals("instance1", instances.getFirst().getPrice().getType().getName());
 		Assertions.assertEquals("instance1", instances.get(1).getPrice().getType().getName());
 		Assertions.assertEquals("instance1", instances.get(2).getPrice().getType().getName());
 		Assertions.assertEquals("instance3", instances.get(3).getPrice().getType().getName());
@@ -230,7 +230,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("instance10", instances.get(5).getPrice().getType().getName());
 		Assertions.assertEquals("dynamic", instances.get(6).getPrice().getType().getName());
 
-		Assertions.assertEquals("on-demand1", instances.get(0).getPrice().getTerm().getName());
+		Assertions.assertEquals("on-demand1", instances.getFirst().getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand2", instances.get(1).getPrice().getTerm().getName());
 		Assertions.assertEquals("1y", instances.get(2).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand1", instances.get(3).getPrice().getTerm().getName());
@@ -254,7 +254,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(7, instances2.size());
 
 		// Same instance
-		Assertions.assertEquals("instance1", instances2.get(0).getPrice().getType().getName());
+		Assertions.assertEquals("instance1", instances2.getFirst().getPrice().getType().getName());
 		Assertions.assertEquals("dynamic", instances2.get(5).getPrice().getType().getName());
 		Assertions.assertEquals("dynamic", instances2.get(4).getPrice().getType().getName());
 
@@ -265,7 +265,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("dynamic", instances2.get(6).getPrice().getType().getName());
 
 		// Check the contracts are the same but for 2
-		Assertions.assertEquals("on-demand1", instances2.get(0).getPrice().getTerm().getName());
+		Assertions.assertEquals("on-demand1", instances2.getFirst().getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand2", instances2.get(1).getPrice().getTerm().getName());
 		Assertions.assertEquals("on-demand1", instances2.get(2).getPrice().getTerm().getName()); // Updated
 		Assertions.assertEquals("on-demand1", instances2.get(3).getPrice().getTerm().getName());
@@ -372,7 +372,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		configuration.setSubscription(subscription);
 		configuration.setName("new");
 		final var provider = subscription.getNode().getRefined();
-		configuration.setLocation(locationRepository.findAllBy("node.id", provider.getId()).get(0));
+		configuration.setLocation(locationRepository.findAllBy("node.id", provider.getId()).getFirst());
 		em.persist(configuration);
 
 		final var usage = new ProvUsage();
@@ -412,7 +412,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		// Check the configuration before the update
 		checkCost(resource.refresh(subscription.getId()), 175.68, 175.68, false);
-		final var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C12", instanceGet.getPrice().getCode());
 
 		return configuration;
@@ -461,17 +461,17 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setUsage("usage");
 		quote.setRamAdjustedRate(100);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C12", instanceGet2.getPrice().getCode());
 
 		quote.setRamAdjustedRate(50);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setRamAdjustedRate(150);
 		checkCost(resource.update(subscription.getId(), quote), 702.72, 702.72, false);
-		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C36", instanceGet4.getPrice().getCode());
 		Assertions.assertEquals(150, resource.getConfiguration(subscription.getId()).getRamAdjustedRate());
 	}
@@ -483,7 +483,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void updateResourceMode() {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
-		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet.setCpu(2);
 		instanceGet.setGpu(0D);
 		instanceGet.setRam(4000);
@@ -501,7 +501,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 1405.44, 1405.44, false);
 		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.RESERVED, quoteVo.getReservationMode());
-		final var instanceGet2 = quoteVo.getInstances().get(0);
+		final var instanceGet2 = quoteVo.getInstances().getFirst();
 		Assertions.assertEquals("C48", instanceGet2.getPrice().getCode());
 
 		quote.setRefresh(false);
@@ -509,11 +509,11 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 366.0, 366.0, false);
 		quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals(ReservationMode.MAX, quoteVo.getReservationMode());
-		final var instanceGet3 = quoteVo.getInstances().get(0);
+		final var instanceGet3 = quoteVo.getInstances().getFirst();
 		// Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 		Assertions.assertEquals("C18", instanceGet3.getPrice().getCode());
 
-		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		instanceGet = resource.getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet.setCpuMax(null);
 		instanceGet.setGpuMax(null);
 		instanceGet.setRamMax(null);
@@ -530,7 +530,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void updateProcessor() {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
-		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet.setProcessor("Intel Xeon");
 		instanceGet.setOs(VmOs.LINUX);
 		em.flush();
@@ -545,7 +545,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
 		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertEquals("AMD", quoteVo.getProcessor());
-		final var instanceGet0 = quoteVo.getInstances().get(0);
+		final var instanceGet0 = quoteVo.getInstances().getFirst();
 		Assertions.assertEquals("C65", instanceGet0.getPrice().getCode());
 		Assertions.assertEquals("Intel Xeon Platinum 8175 (Skylake)", instanceGet0.getPrice().getType().getProcessor());
 
@@ -554,13 +554,13 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 3513.6, 3513.6, false);
 
 		// Remove local requirement
-		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet1.setProcessor(null);
 		em.flush();
 		em.clear();
 		checkCost(resource.refresh(configuration), 249.343, 249.343, false);
 		var quoteVo2 = getConfiguration(subscription.getId());
-		final var instanceGet2 = quoteVo2.getInstances().get(0);
+		final var instanceGet2 = quoteVo2.getInstances().getFirst();
 		Assertions.assertEquals("C74", instanceGet2.getPrice().getCode());
 		Assertions.assertEquals("AMD EPYC 7571", instanceGet2.getPrice().getType().getProcessor());
 		em.flush();
@@ -579,7 +579,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 	void updatePhysical() {
 		final var configuration = newProvQuote();
 		final var subscription = configuration.getSubscription();
-		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet = resource.getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet.setPhysical(true);
 		instanceGet.setOs(VmOs.LINUX);
 		em.flush();
@@ -595,12 +595,12 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		checkCost(resource.update(subscription.getId(), quote), 878.4, 878.4, false);
 		var quoteVo = getConfiguration(subscription.getId());
 		Assertions.assertTrue(quoteVo.getPhysical());
-		final var instanceGet0 = quoteVo.getInstances().get(0);
+		final var instanceGet0 = quoteVo.getInstances().getFirst();
 		Assertions.assertEquals("C41", instanceGet0.getPrice().getCode());
 		Assertions.assertTrue(instanceGet0.getPrice().getType().getPhysical());
 
 		// Remove local requirement -> no change because of global requirement
-		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().get(0);
+		var instanceGet1 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		instanceGet1.setPhysical(null);
 		em.flush();
 		em.clear();
@@ -611,7 +611,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setPhysical(null);
 		checkCost(resource.update(subscription.getId(), quote), 102.48, 102.48, false);
 		var quoteVo2 = getConfiguration(subscription.getId());
-		final var instanceGet2 = quoteVo2.getInstances().get(0);
+		final var instanceGet2 = quoteVo2.getInstances().getFirst();
 		Assertions.assertEquals("C11", instanceGet2.getPrice().getCode());
 		Assertions.assertFalse(instanceGet2.getPrice().getType().getPhysical());
 	}
@@ -630,17 +630,17 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		quote.setLicense("BYOL");
 		quote.setUsage("usage");
 		checkCost(resource.update(subscription.getId(), quote), 102.49, 102.49, false);
-		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet2 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C120", instanceGet2.getPrice().getCode());
 
 		quote.setLicense("INCLUDED");
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet3 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C12", instanceGet3.getPrice().getCode());
 
 		quote.setLicense(null);
 		checkCost(resource.update(subscription.getId(), quote), 175.68, 175.68, false);
-		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().get(0);
+		final var instanceGet4 = getConfiguration(subscription.getId()).getInstances().getFirst();
 		Assertions.assertEquals("C12", instanceGet4.getPrice().getCode());
 	}
 
@@ -800,7 +800,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 
 		// 3 regions, but only 2 have associated prices
 		Assertions.assertEquals(3, locations.size());
-		Assertions.assertEquals("region-1", locations.get(0).getName());
+		Assertions.assertEquals("region-1", locations.getFirst().getName());
 		Assertions.assertEquals("region-2", locations.get(1).getName());
 		Assertions.assertEquals("service:prov:test", locations.get(1).getNode().getId());
 	}

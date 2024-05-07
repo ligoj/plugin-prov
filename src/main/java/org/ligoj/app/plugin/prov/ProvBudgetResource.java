@@ -303,7 +303,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 				new ArrayList<>(entries.stream().sorted(priceOrder(prices)).map(Entry::getKey).toList()),
 				new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
 				new ArrayList<>(List.of(Double.MAX_VALUE)));
-		final var bin = bins.get(0);
+		final var bin = bins.getFirst();
 		bin.getPieces().stream().map(packToQr::get).forEach(i -> {
 			if (i.getResourceType() == ResourceType.INSTANCE) {
 				validatedQi.add((ProvQuoteInstance) i);
@@ -316,7 +316,7 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 			}
 		});
 		logLean(b -> {
-			log.info("Packing result: {}", b.get(0).getPieces().stream().map(packToQr::get)
+			log.info("Packing result: {}", b.getFirst().getPieces().stream().map(packToQr::get)
 					.map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList());
 			log.info("Packing result: {}", b);
 		}, bins);

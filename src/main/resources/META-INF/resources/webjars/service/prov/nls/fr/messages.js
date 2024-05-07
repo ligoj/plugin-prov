@@ -110,7 +110,7 @@ define({
 	'service:prov:function-millions': 'Millions',
 	'service:prov:function-milliseconds': 'Millisecondes',
 	'service:prov:function-duration': 'Durée',
-	'service:prov:function-concurrency': 'Concurence',
+	'service:prov:function-concurrency': 'Concurrence',
 	'service:prov:functions-block': 'Fonctions',
 	'service:prov:database': 'Bases de données',
 	'service:prov:database-type': 'Type',

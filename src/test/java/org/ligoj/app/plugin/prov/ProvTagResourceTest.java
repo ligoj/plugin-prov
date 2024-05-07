@@ -158,7 +158,7 @@ class ProvTagResourceTest extends AbstractAppTest {
 
 		// Check the tag from the configuration view
 		final var tag = resource.getConfiguration(subscription).getTags().get(ResourceType.INSTANCE).get(instance)
-				.get(0);
+				.getFirst();
 		Assertions.assertEquals("key", tag.getName());
 		Assertions.assertEquals("value", tag.getValue());
 		Assertions.assertEquals(id, tag.getId());

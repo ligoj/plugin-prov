@@ -366,11 +366,11 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	 */
 	public QuoteLightVo getSubscriptionStatus(final int subscription) {
 		final var vo = new QuoteLightVo();
-		final var compute = repository.getComputeSummary(subscription).get(0);
-		final var database = repository.getDatabaseSummary(subscription).get(0);
-		final var container = repository.getContainerSummary(subscription).get(0);
-		final var function = repository.getFunctionSummary(subscription).get(0);
-		final var storage = repository.getStorageSummary(subscription).get(0);
+		final var compute = repository.getComputeSummary(subscription).getFirst();
+		final var database = repository.getDatabaseSummary(subscription).getFirst();
+		final var container = repository.getContainerSummary(subscription).getFirst();
+		final var function = repository.getFunctionSummary(subscription).getFirst();
+		final var storage = repository.getStorageSummary(subscription).getFirst();
 		final var entity = (ProvQuote) compute[0];
 		DescribedBean.copy(entity, vo);
 		vo.setCost(entity.toFloating());
@@ -629,7 +629,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		}
 		final var location = locationRepository.findBy("node.id", provider.getId(), new String[] { "preferred" }, true);
 		if (location == null) {
-			quote.setLocation(locations.get(0));
+			quote.setLocation(locations.getFirst());
 		} else {
 			quote.setLocation(location);
 		}

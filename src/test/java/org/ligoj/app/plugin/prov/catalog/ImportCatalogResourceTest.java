@@ -299,7 +299,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		// Initialize and update catalog
 		var catalogs = resource.findAll();
 		Assertions.assertEquals(3, catalogs.size());
-		Assertions.assertNull(catalogs.get(0).getPreferredLocation());
+		Assertions.assertNull(catalogs.getFirst().getPreferredLocation());
 		Assertions.assertNull(catalogs.get(1).getPreferredLocation());
 		Assertions.assertNull(catalogs.get(2).getPreferredLocation());
 		var node = catalogs.get(2).getNode().getId();
@@ -310,13 +310,13 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals(location, catalogs.get(2).getPreferredLocation().getId());
 
 		// This provider does not support catalog update
-		Assertions.assertEquals(0, catalogs.get(0).getStatus().getNbPrices().intValue());
-		Assertions.assertNull(catalogs.get(0).getStatus().getEnd());
-		Assertions.assertNull(catalogs.get(0).getStatus().getStart());
-		Assertions.assertEquals("service:prov:any", catalogs.get(0).getNode().getId());
-		Assertions.assertFalse(catalogs.get(0).isCanImport());
-		Assertions.assertEquals(0, catalogs.get(0).getNbQuotes());
-		Assertions.assertNull(catalogs.get(0).getPreferredLocation());
+		Assertions.assertEquals(0, catalogs.getFirst().getStatus().getNbPrices().intValue());
+		Assertions.assertNull(catalogs.getFirst().getStatus().getEnd());
+		Assertions.assertNull(catalogs.getFirst().getStatus().getStart());
+		Assertions.assertEquals("service:prov:any", catalogs.getFirst().getNode().getId());
+		Assertions.assertFalse(catalogs.getFirst().isCanImport());
+		Assertions.assertEquals(0, catalogs.getFirst().getNbQuotes());
+		Assertions.assertNull(catalogs.getFirst().getPreferredLocation());
 
 		// This provider supports catalog update
 		Assertions.assertNotNull(catalogs.get(1).getStatus());

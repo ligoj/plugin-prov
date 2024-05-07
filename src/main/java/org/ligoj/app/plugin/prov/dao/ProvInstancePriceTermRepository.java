@@ -61,7 +61,7 @@ public interface ProvInstancePriceTermRepository extends RestRepository<ProvInst
 			  AND (:ephemeral = TRUE OR ephemeral = FALSE)
 			  AND (:initialCost = TRUE OR initialCost = FALSE OR initialCost IS NULL)
 			  AND :maxPeriod >= period
-			  """)
+			""")
 	List<Integer> findValidTerms(@CacheKey String node, @CacheKey boolean convOs, @CacheKey boolean convEngine,
 			@CacheKey boolean convType, @CacheKey boolean convFamily, @CacheKey boolean convLocation,
 			@CacheKey boolean reservation, @CacheKey double maxPeriod, @CacheKey boolean ephemeral,

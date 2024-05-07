@@ -100,8 +100,8 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 		final int id = cost.getId();
 		Assertions.assertEquals(1, quoteVo.getSupports().size());
-		Assertions.assertEquals(id, quoteVo.getSupports().get(0).getId().intValue());
-		Assertions.assertEquals("support1", quoteVo.getSupports().get(0).getPrice().getType().getName());
+		Assertions.assertEquals(id, quoteVo.getSupports().getFirst().getId().intValue());
+		Assertions.assertEquals("support1", quoteVo.getSupports().getFirst().getPrice().getType().getName());
 
 		em.flush();
 		em.clear();
@@ -317,14 +317,14 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	void findSupportType() {
 		final var tableItem = qs2Resource.findType(subscription, newUriInfo());
 		Assertions.assertEquals(3, tableItem.getRecordsTotal());
-		Assertions.assertEquals("support1", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("support1", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
 	void findSupportTypeCriteria() {
 		final var tableItem = qs2Resource.findType(subscription, newUriInfo("rt2"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
-		Assertions.assertEquals("support2", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("support2", tableItem.getData().getFirst().getName());
 	}
 
 	@Test
@@ -354,7 +354,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		final var prices = qs2Resource.lookup(subscription, 3, null, null, null, null, null);
 
 		// Lowest price first
-		final var priceS2 = prices.get(0);
+		final var priceS2 = prices.getFirst();
 		Assertions.assertEquals(338.54, priceS2.getCost(), DELTA);
 		Assertions.assertEquals(3, priceS2.getSeats().intValue());
 		Assertions.assertEquals("support2", priceS2.getPrice().getType().getName());
@@ -399,7 +399,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 		// Support1 is now unlimited seats
 		sp2Repository.findBy("type.name", "support1").getType().setSeats(null);
 
-		final var lookup = qs2Resource.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).get(0);
+		final var lookup = qs2Resource.lookup(subscription, null, null, SupportType.TECHNICAL, null, null, null).getFirst();
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"co2\":0.0,\"price\":{\"id\":"));
 		Assertions.assertTrue(asJson.contains("\"cost\":5.0,"));
@@ -418,12 +418,12 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 
 		// Both support1 and support2 are valid, but support2 is cheaper
 		Assertions.assertEquals("support2",
-				qs2Resource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(0).getPrice()
+				qs2Resource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).getFirst().getPrice()
 						.getType().getName());
 
 		// Only support1 provides chat access
 		Assertions.assertEquals("support1",
-				qs2Resource.lookup(subscription, 0, null, null, SupportType.TECHNICAL, null, null).get(0).getPrice()
+				qs2Resource.lookup(subscription, 0, null, null, SupportType.TECHNICAL, null, null).getFirst().getPrice()
 						.getType().getName());
 	}
 
