@@ -190,14 +190,14 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	}
 
 	private void updateResourceStats(final ImportCatalogStatus task, final String node, ResourceType t) {
-		@SuppressWarnings("rawtypes") final AbstractProvQuoteResource resource = this.resource.getResource(t);
-		task.setNbPrices(task.getNbPrices() + (int) resource.getIpRepository().countBy("type.node.id", node));
+		@SuppressWarnings("rawtypes") final AbstractProvQuoteResource qResource = this.resource.getResource(t);
+		task.setNbPrices(task.getNbPrices() + (int) qResource.getIpRepository().countBy("type.node.id", node));
 		if (t.isCo2()) {
 			// Update CO2 prices
 			task.setNbCo2Prices(
-					task.getNbCo2Prices() + ((Co2Price) resource.getIpRepository()).countCo2DataByNode(node));
+					task.getNbCo2Prices() + ((Co2Price) qResource.getIpRepository()).countCo2DataByNode(node));
 		}
-		task.setNbTypes(task.getNbTypes() + (int) resource.getItRepository().countBy(BY_NODE, node));
+		task.setNbTypes(task.getNbTypes() + (int) qResource.getItRepository().countBy(BY_NODE, node));
 	}
 
 	/**

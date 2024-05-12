@@ -34,10 +34,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.ObjDoubleConsumer;
+import java.util.function.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -573,7 +570,7 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	private double setCo2(final AbstractUpdateContext context, final double conversion, final double watt100,
-			final double base, final Consumer<Double> setCo2, final Consumer<String> setCo2100, final double[] data10) {
+			final double base, final DoubleConsumer setCo2, final Consumer<String> setCo2100, final double[] data10) {
 		if (watt100 == 0) {
 			// No available data
 			return 0d;

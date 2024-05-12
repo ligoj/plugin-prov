@@ -17,6 +17,7 @@ import lombok.Setter;
  * Floating cost configuration.
  */
 @AllArgsConstructor
+@Getter
 public class Floating implements Serializable {
 
 	/**
@@ -29,7 +30,6 @@ public class Floating implements Serializable {
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	@Setter
-	@Getter
 	private double min;
 
 	/**
@@ -38,27 +38,23 @@ public class Floating implements Serializable {
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	@Setter
-	@Getter
 	private double max;
 
 	/**
 	 * Minimal initial cost.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
-	@Getter
 	private double initial = 0d;
 
 	/**
 	 * Maximal initial cost.
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
-	@Getter
 	private double maxInitial = 0d;
 
 	/**
 	 * When <code>true</code>, the maximal cost is not fully determined.
 	 */
-	@Getter
 	private boolean unbound;
 
 	/**
@@ -66,7 +62,6 @@ public class Floating implements Serializable {
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	@Setter
-	@Getter
 	private double minCo2;
 
 	/**
@@ -75,7 +70,6 @@ public class Floating implements Serializable {
 	 */
 	@JsonSerialize(using = RoundSerializer.class)
 	@Setter
-	@Getter
 	private double maxCo2;
 
 	/**
@@ -90,6 +84,7 @@ public class Floating implements Serializable {
 	 * Constructor to define a fixed float.
 	 *
 	 * @param base The minimal and maximal value.
+	 * @param baseCo2 The minimal and maximal CO2 value.
 	 */
 	public Floating(final double base, final double baseCo2) {
 		min = base;
