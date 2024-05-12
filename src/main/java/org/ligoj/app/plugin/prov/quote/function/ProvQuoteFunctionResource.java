@@ -34,6 +34,7 @@ import java.util.List;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Getter
 public class ProvQuoteFunctionResource extends
 		AbstractProvQuoteVmResource<ProvFunctionType, ProvFunctionPrice, ProvQuoteFunction, QuoteFunctionEditionVo, QuoteFunctionLookup, QuoteFunction> {
 
@@ -48,15 +49,12 @@ public class ProvQuoteFunctionResource extends
 	 */
 	private static final double CONCURRENCY_PER_MONTH = MILLIS_PER_MONTH / 1000000d /* Million requests */;
 
-	@Getter
 	@Autowired
 	private ProvFunctionPriceRepository ipRepository;
 
-	@Getter
 	@Autowired
 	private ProvQuoteFunctionRepository qiRepository;
 
-	@Getter
 	@Autowired
 	private ProvFunctionTypeRepository itRepository;
 
@@ -129,12 +127,12 @@ public class ProvQuoteFunctionResource extends
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
 			final Optimizer optimizer) {
-		var result1 = findLowestDynamicPrice(configuration, query, types, terms, cpu, ram, location, rate,
+		var result1 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate,
 				duration, initialCost, optimizer, Math.floor(query.getConcurrency()),
 				Math.floor(query.getConcurrency()));
 		if (!result1.isEmpty() && query.getConcurrency() != Math.floor(query.getConcurrency())) {
 			// Try the greater concurrency level and keeping the original concurrency assumption
-			var result2 = findLowestDynamicPrice(configuration, query, types, terms, cpu, ram, location, rate,
+			var result2 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate,
 					duration, initialCost, optimizer, query.getConcurrency(), Math.ceil(query.getConcurrency()));
 			if (toTotalCost(result1.getFirst()) > toTotalCost(result2.getFirst())) {
 				// The second concurrency configuration is cheaper
@@ -144,7 +142,7 @@ public class ProvQuoteFunctionResource extends
 		return result1;
 	}
 
-	private List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
+	private List<Object[]> findLowestDynamicPrice(final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
 			final Optimizer optimizer, final double realConcurrency, final double reservedConcurrency) {
@@ -197,7 +195,7 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected Floating getCost(final ProvQuoteFunction qi, final ProvFunctionPrice ip) {
 		// Fixed price
-		final var baseCost = super.getCost(qi, ip).multiply(Math.max(1,qi.getConcurrency()));
+		final var baseCost = super.getCost(qi, ip).multiply(Math.max(1, qi.getConcurrency()));
 
 		// Add per request cost
 		final double rate = getRate(qi, ip);
@@ -210,9 +208,9 @@ public class ProvQuoteFunctionResource extends
 
 		// Sum costs
 		return baseCost
-				.add(computeFloat(costRamRequest,0d,0d,qi))
-				.add(computeFloat(costRamConcurrency,0d,0d,qi))
-				.add(computeFloat(costRequest,co2Request,0d,qi));
+				.add(computeFloat(costRamRequest, 0d, 0d, qi))
+				.add(computeFloat(costRamConcurrency, 0d, 0d, qi))
+				.add(computeFloat(costRequest, co2Request, 0d, qi));
 	}
 
 }
