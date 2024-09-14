@@ -3,52 +3,25 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.ligoj.app.AbstractAppTest;
-import org.ligoj.app.model.Node;
-import org.ligoj.app.model.Project;
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvNetworkRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvStoragePriceRepository;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvNetwork;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
-import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
-import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Test class of {@link ProvNetworkResource}
@@ -57,55 +30,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-class ProvNetworkResourceTest extends AbstractAppTest {
-
-	@Autowired
-	private ProvResource resource;
-
-	@Autowired
-	private ProvQuoteInstanceResource qiResource;
-
-	@Autowired
-	private ProvQuoteStorageResource qsResource;
-
-	@Autowired
-	private ProvQuoteDatabaseResource qbResource;
+class ProvNetworkResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvNetworkResource networkResource;
 
-	private int subscription;
-
 	@Autowired
 	private ProvNetworkRepository networkRepository;
-
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ProvStoragePriceRepository spRepository;
-
-	@Autowired
-	private ConfigurationResource configuration;
-
-	@BeforeEach
-	void prepareData() throws IOException {
-		// Only with Spring context
-		persistSystemEntities();
-		persistEntities("csv",
-				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
-						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8);
-		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
-		configuration.put(ProvResource.USE_PARALLEL, "0");
-		clearAllCache();
-		resource.refresh(subscription);
-	}
 
 	private NetworkVo newVo(final boolean inbound, final int peer, final ResourceType type) {
 		final var vo = new NetworkVo();
@@ -152,6 +83,7 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 		io.add(newVo(true, server2, ResourceType.INSTANCE));
 		io.add(newVo(false, storage1, ResourceType.STORAGE));
 		networkResource.update(subscription, ResourceType.INSTANCE, server1, io);
+		em.flush();
 		return io;
 	}
 
@@ -380,6 +312,7 @@ class ProvNetworkResourceTest extends AbstractAppTest {
 	@Test
 	void deleteAllInstance() {
 		prepare();
+		em.clear();
 
 		// Check the cascaded deleteAll of a related resource type
 		qiResource.deleteAll(subscription);

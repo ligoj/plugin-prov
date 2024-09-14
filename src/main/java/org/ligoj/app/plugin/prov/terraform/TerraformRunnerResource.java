@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TerraformRunnerResource implements LongTaskRunnerNode<TerraformStatus, TerraformStatusRepository> {
 
-	private static final Pattern PATTERN_APPLY = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)\\.|([A-Za-z]+) complete)()");
+	private static final Pattern PATTERN_APPLY = Pattern.compile("^[^\\s:]+: (([A-Za-z]+)\\.|([A-Za-z]+) complete)(.*)");
 	private static final Pattern PATTERN_DESTROY = Pattern
 			.compile("^(.+: (Destroying)\\.|.+: (Destruction) complete|data\\.[^:]+:+ (Refreshing))");
 

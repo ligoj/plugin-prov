@@ -3,20 +3,13 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 /**
  * A configured instance inside a quote. Name is unique inside a quote. The instance cost does not include the
@@ -40,7 +33,7 @@ public class ProvQuoteInstance extends AbstractQuoteVmOs<ProvInstancePrice> impl
 	private String software;
 
 	@JsonIgnore
-	@OneToMany(mappedBy = "quoteInstance", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "quoteInstance")
 	private List<ProvQuoteStorage> storages;
 
 	/**

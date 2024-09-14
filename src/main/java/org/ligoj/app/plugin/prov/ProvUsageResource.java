@@ -24,10 +24,10 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL + "/{subscription:\\d+}/usage")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Getter
 public class ProvUsageResource extends AbstractMultiScopedResource<ProvUsage, ProvUsageRepository, UsageEditionVo> {
 
 	@Autowired
-	@Getter
 	private ProvUsageRepository repository;
 
 	/**

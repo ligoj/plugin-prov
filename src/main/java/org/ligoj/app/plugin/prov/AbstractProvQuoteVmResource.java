@@ -199,14 +199,22 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	@Override
 	protected UpdatedCost deleteAll(final int subscription) {
 		final var quote = resource.getQuoteFromSubscription(subscription);
-		// Delete all resources with cascaded delete for storages
+
+		// Get all storage instances' identifiers associated to this ressource type
 		final var sIds = ((BasePovInstanceBehavior) getQiRepository()).findAllStorageIdentifiers(quote);
+
+		// Delete these associated storage instances
 		((BasePovInstanceBehavior) getQiRepository()).deleteAllStorages(quote);
+
+		// Notify this deletion to observers
 		tagResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
 		networkResource.onDelete(ResourceType.STORAGE, sIds.toArray(new Integer[0]));
 		qsRepository.flush();
 
+		// Delete all ressources of this type with cascade
 		final var cost = super.deleteAll(subscription);
+
+		// Recompute actual cost
 		cost.getDeleted().put(ResourceType.STORAGE, sIds);
 		budgetResource.lean(quote, cost.getRelated());
 		return cost;

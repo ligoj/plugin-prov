@@ -53,20 +53,18 @@ import lombok.extern.slf4j.Slf4j;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @Slf4j
+@Getter
 public class ProvQuoteDatabaseResource extends
 		AbstractProvQuoteVmResource<ProvDatabaseType, ProvDatabasePrice, ProvQuoteDatabase, QuoteDatabaseEditionVo, QuoteDatabaseLookup, QuoteDatabase> {
 
 	private static final String ENGINE_ORACLE = "ORACLE";
 
-	@Getter
 	@Autowired
 	private ProvDatabasePriceRepository ipRepository;
 
-	@Getter
 	@Autowired
 	private ProvQuoteDatabaseRepository qiRepository;
 
-	@Getter
 	@Autowired
 	private ProvDatabaseTypeRepository itRepository;
 

@@ -509,25 +509,24 @@ public class ProvQuoteUploadResource {
 			final BaseMultiScopedRepository<G> repository, final List<G> allProfiles,
 			final Function<String, G> creator) {
 		final var name = Optional.ofNullable(uploadName).orElse(defaultProfile);
-		if (name != null) {
-			var profile = allProfiles.stream().filter(u -> u.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
-
-			// Normalize the usage
-			if (profile == null) {
-				if (createProfile) {
-					// Create the missing usage
-					profile = creator.apply(name);
-					profile.setName(name);
-					profile.setConfiguration(context.quote);
-					repository.saveAndFlush(profile);
-					allProfiles.add(profile);
-				} else {
-					throw new EntityNotFoundException(name);
-				}
-			}
-			return profile.getName();
+		if (name == null) {
+			return null;
 		}
-		return name;
+		var profile = allProfiles.stream().filter(u -> u.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+
+		// Normalize the usage
+		if (profile == null) {
+			if (!createProfile) {
+				throw new EntityNotFoundException(name);
+			}
+			// Create the missing usage
+			profile = creator.apply(name);
+			profile.setName(name);
+			profile.setConfiguration(context.quote);
+			repository.saveAndFlush(profile);
+			allProfiles.add(profile);
+		}
+		return profile.getName();
 	}
 
 	/**

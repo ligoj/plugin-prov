@@ -694,7 +694,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	void findTypeCriteria() {
 		final var tableItem = qsResource.findType(subscription, newUriInfo("rAge2"));
 		Assertions.assertEquals(1, tableItem.getRecordsTotal());
-		Assertions.assertEquals("storage2", tableItem.getData().get(0).getName());
+		Assertions.assertEquals("storage2", tableItem.getData().getFirst().getName());
 	}
 
 	@Test

@@ -52,18 +52,16 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL)
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Getter
 public class ProvQuoteInstanceResource extends
 		AbstractProvQuoteInstanceOsResource<ProvInstanceType, ProvInstancePrice, ProvQuoteInstance, QuoteInstanceEditionVo, QuoteInstanceLookup, QuoteInstance> {
 
-	@Getter
 	@Autowired
 	private ProvInstancePriceRepository ipRepository;
 
-	@Getter
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
 
-	@Getter
 	@Autowired
 	private ProvInstanceTypeRepository itRepository;
 

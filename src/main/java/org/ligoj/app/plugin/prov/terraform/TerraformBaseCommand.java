@@ -3,14 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
@@ -18,7 +11,13 @@ import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A Terraform action corresponding to a real Terraform command.
@@ -68,15 +67,11 @@ public class TerraformBaseCommand implements TerraformAction {
 		try (var stream = Files.lines(utils.toFile(subscription, "show.log").toPath())) {
 			stream.map(SHOW_CHANGE::matcher).filter(Matcher::find).forEach(matcher -> {
 				// Detect the type of this change
-				final var type = matcher.group(1);
-				if ("+".equals(type)) {
-					added.incrementAndGet();
-				} else if ("-".equals(type)) {
-					deleted.incrementAndGet();
-				} else if ("-/+".equals(type)) {
-					replaced.incrementAndGet();
-				} else {
-					updated.incrementAndGet();
+				switch (matcher.group(1)) {
+					case "+" -> added.incrementAndGet();
+					case "-" -> deleted.incrementAndGet();
+					case "-/+" -> replaced.incrementAndGet();
+					default -> updated.incrementAndGet();
 				}
 			});
 		} catch (final IOException e) {
@@ -134,7 +129,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	 * @param out       The target log outputs.
 	 * @param arguments The Terraform arguments passed to the executable.
 	 * @return the exit value of the process represented by this {@code Process} object. By convention, the value
-	 *         {@code 0} indicates normal termination.
+	 * {@code 0} indicates normal termination.
 	 * @throws InterruptedException When the execution is interrupted.
 	 * @throws IOException          When logs cannot be written.
 	 */

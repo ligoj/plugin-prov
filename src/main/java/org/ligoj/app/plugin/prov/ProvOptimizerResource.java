@@ -24,10 +24,10 @@ import lombok.Getter;
 @Path(ProvResource.SERVICE_URL + "/{subscription:\\d+}/optimizer")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
+@Getter
 public class ProvOptimizerResource extends AbstractMultiScopedResource<ProvOptimizer, ProvOptimizerRepository, OptimizerEditionVo> {
 
 	@Autowired
-	@Getter
 	private ProvOptimizerRepository repository;
 
 	/**

@@ -38,211 +38,181 @@ import lombok.Setter;
  * Base context used to perform catalog update.
  */
 @NoArgsConstructor
+@Getter
 public abstract class AbstractUpdateContext {
 	/**
 	 * The related AWS {@link Node}
 	 */
-	@Getter
 	@Setter
 	protected Node node;
 
 	/**
 	 * When <code>true</code>, all cost attributes are update.
 	 */
-	@Getter
 	@Setter
 	private boolean force;
 
 	/**
 	 * Mapping from API region identifier to region definition.
 	 */
-	@Getter
 	private Map<String, ProvLocation> mapRegionById = new HashMap<>();
 
 	/**
 	 * The previously installed instance types. Key is the instance code.
 	 */
-	@Getter
 	@Setter
 	protected Map<String, ProvInstanceType> instanceTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed container types. Key is the container code.
 	 */
-	@Getter
 	@Setter
 	protected Map<String, ProvContainerType> containerTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed function types. Key is the function code.
 	 */
-	@Getter
 	@Setter
 	protected Map<String, ProvFunctionType> functionTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed support types. Key is the support name.
 	 */
-	@Getter
 	@Setter
 	private Map<String, ProvSupportType> supportTypes = new HashMap<>();
 
 	/**
 	 * The previously installed database types. Key is the database code.
 	 */
-	@Getter
 	@Setter
 	protected Map<String, ProvDatabaseType> databaseTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * The previously installed price term's codes.
 	 */
-	@Getter
 	@Setter
 	protected Map<String, ProvInstancePriceTerm> priceTerms = new ConcurrentHashMap<>();
 
 	/**
 	 * The previous installed instance prices. Key is the code.
 	 */
-	@Getter
 	private Map<String, ProvInstancePrice> previous = new HashMap<>();
 
 	/**
 	 * The read catalog price codes: codes having been read from the catalog and persisted.
 	 */
-	@Getter
 	private final Set<String> prices = new HashSet<>();
 
 	/**
 	 * The previous installed Database prices. Key is the code.
 	 */
-	@Getter
 	private Map<String, ProvDatabasePrice> previousDatabase = new HashMap<>();
 
 	/**
 	 * The previous installed container prices. Key is the code.
 	 */
-	@Getter
 	private Map<String, ProvContainerPrice> previousContainer = new HashMap<>();
 
 	/**
 	 * The previous installed function prices. Key is the code.
 	 */
-	@Getter
 	private Map<String, ProvFunctionPrice> previousFunction = new HashMap<>();
 
 	/**
 	 * The previous installed storage prices. Key is the code.
 	 */
-	@Getter
 	@Setter
 	private Map<String, ProvStoragePrice> previousStorage = new HashMap<>();
 
 	/**
 	 * The previous installed support prices. Key is the name.
 	 */
-	@Getter
 	@Setter
 	private Map<String, ProvSupportPrice> previousSupport = new HashMap<>();
 
 	/**
 	 * The available regions. Key is the name.
 	 */
-	@Getter
 	@Setter
 	private Map<String, ProvLocation> regions = Collections.synchronizedMap(new HashMap<>());
 
 	/**
 	 * The merged type's codes.
 	 */
-	@Getter
 	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * The merged term's codes.
 	 */
-	@Getter
 	private Set<String> mergedTerms = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * The merged location's codes.
 	 */
-	@Getter
 	private Set<String> mergedLocations = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * The accepted and existing storage type. Key is the code.
 	 */
-	@Getter
 	@Setter
 	private Map<String, ProvStorageType> storageTypes = new ConcurrentHashMap<>();
 
 	/**
 	 * Valid OS pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validOs;
 
 	/**
 	 * Valid instance type pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validInstanceType;
 
 	/**
 	 * Valid database type pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validDatabaseType;
 
 	/**
 	 * Valid database type pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validContainerType;
 
 	/**
 	 * Valid database engine pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validDatabaseEngine;
 
 	/**
 	 * Valid instance region pattern.
 	 */
-	@Getter
 	@Setter
 	private Pattern validRegion;
 
 	/**
 	 * Base URL of catalog.
 	 */
-	@Getter
 	@Setter
 	private String baseUrl;
 
 	/**
 	 * Hours per month.
 	 */
-	@Getter
 	@Setter
 	private double hoursMonth = ProvResource.DEFAULT_HOURS_MONTH;
 
 	/**
 	 * Instance CO2 data set.
 	 */
-	@Getter
 	private Map<String, Co2Data> co2DataSet = new ConcurrentHashMap<>();
 
 	/**
 	 * Regional CO2 data set.
 	 */
-	@Getter
 	private Map<String, Co2RegionData> co2RegionDataSet = new ConcurrentHashMap<>();
 
 	protected AbstractUpdateContext(AbstractUpdateContext parent) {

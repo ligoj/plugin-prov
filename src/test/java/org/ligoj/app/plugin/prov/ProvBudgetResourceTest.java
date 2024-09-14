@@ -193,7 +193,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		// Reduce the budget
 		budget2.setInitialCost(2000);
 		budgetRepository.save(budget2);
-		checkCost(resource.refresh(subscription), 6200.52, 7514.02, false);
+		checkCost(resource.refresh(subscription), 6203.487, 7518.087, false);
 		assertTermCount("1y", 5); // Only one Database and containers fits to the budget with 1y term
 
 		bResource.delete(subscription, budget2.getId()); // Fallback the default budget

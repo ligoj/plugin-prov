@@ -3,39 +3,13 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.ligoj.app.AbstractAppTest;
-import org.ligoj.app.model.Node;
-import org.ligoj.app.model.Project;
-import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
 import org.ligoj.app.plugin.prov.dao.ProvTagRepository;
-import org.ligoj.app.plugin.prov.model.ProvBudget;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.ProvUsage;
 import org.ligoj.app.plugin.prov.model.ResourceType;
-import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
-import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
-import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.annotation.Rollback;
@@ -49,49 +23,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-class ProvTagResourceTest extends AbstractAppTest {
-
-	@Autowired
-	private ProvResource resource;
-
-	@Autowired
-	private ProvQuoteInstanceResource qiResource;
-
-	@Autowired
-	private ProvQuoteStorageResource qsResource;
+class ProvTagResourceTest extends AbstractProvResourceTest {
 
 	@Autowired
 	private ProvTagResource tagResource;
 
-	private int subscription;
-
 	@Autowired
 	private ProvTagRepository tagRepository;
-
-	@Autowired
-	private ProvQuoteInstanceRepository qiRepository;
-
-	@Autowired
-	private ProvQuoteStorageRepository qsRepository;
-
-	@Autowired
-	private ConfigurationResource configuration;
-
-	@BeforeEach
-	void prepareData() throws IOException {
-		// Only with Spring context
-		persistSystemEntities();
-		persistEntities("csv",
-				new Class<?>[] { Node.class, Project.class, Subscription.class, ProvLocation.class, ProvCurrency.class,
-						ProvQuote.class, ProvUsage.class, ProvBudget.class, ProvStorageType.class,
-						ProvStoragePrice.class, ProvInstancePriceTerm.class, ProvInstanceType.class,
-						ProvInstancePrice.class, ProvQuoteInstance.class, ProvQuoteStorage.class },
-				StandardCharsets.UTF_8);
-		subscription = getSubscription("Jupiter", ProvResource.SERVICE_KEY);
-		configuration.put(ProvResource.USE_PARALLEL, "0");
-		clearAllCache();
-		resource.refresh(subscription);
-	}
 
 	@Test
 	void update() {

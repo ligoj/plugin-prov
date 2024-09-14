@@ -3,22 +3,18 @@
  */
 package org.ligoj.app.plugin.prov.quote.storage;
 
-import java.util.List;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import org.ligoj.app.plugin.prov.TagVo;
 import org.ligoj.app.plugin.prov.quote.support.QuoteTagSupport;
 import org.ligoj.bootstrap.core.IDescribableBean;
 import org.ligoj.bootstrap.core.validation.SafeHtml;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import lombok.Getter;
-import lombok.Setter;
+import java.util.List;
 
 /**
  * Storage configuration edition.
@@ -76,9 +72,4 @@ public class QuoteStorageEditionVo extends QuoteStorageQuery implements IDescrib
 	 */
 	private List<TagVo> tags;
 
-	@Override
-	@JsonIgnore
-	public String getLocationName() {
-		return getLocation();
-	}
 }

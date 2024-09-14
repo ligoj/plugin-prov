@@ -31,6 +31,6 @@ class BinPackerTest {
 		final var existingBins = new ArrayList<>(List.of(new LinearBin(1600d)));
 		final var bins = packer.packAll(values, existingBins, new ArrayList<>(List.of(Double.MAX_VALUE)));
 		System.out.println(bins);
-		bins.get(0).getPieces().forEach(p -> System.out.println(piecesToItems.get(p)));
+		bins.getFirst().getPieces().forEach(p -> System.out.println(piecesToItems.get(p)));
 	}
 }

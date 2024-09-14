@@ -134,7 +134,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Database
 		Assertions.assertEquals(
-				"DATABASE;database1;0,5;;0;;2000;;;;;;on-demand1;;1;2;;100;;;;database1;MYSQL;;PUBLIC;;117,4;key2"
+				"DATABASE;database1;0,5;;0;;2000;;;;;;on-demand1;;1;2;;100;;;;database1;MYSQL;;PUBLIC;;116,3;key2"
 						+ ";20;19;storage5-database;GOOD;IOPS;30;",
 				lines.get(8));
 	}
