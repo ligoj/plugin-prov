@@ -19,6 +19,7 @@ import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
+import org.ligoj.app.resource.node.NodeHelper;
 import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
@@ -224,7 +225,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 				updateStats(status, n.getId());
 				return status;
 			}));
-			vo.setNode(NodeResource.toVo(n));
+			vo.setNode(NodeHelper.toVo(n));
 			vo.setCanImport(locator.getResource(n.getId(), ImportCatalogService.class) != null);
 			vo.setNbQuotes((int) repository.countByNode(n.getId()));
 			vo.setPreferredLocation(locationRepository.findBy("node", n, new String[]{"preferred"}, true));
