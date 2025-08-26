@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
@@ -261,7 +262,7 @@ public class TerraformResource {
 	protected void clean(final Subscription subscription) throws IOException {
 		final var parent = utils.toFile(subscription).toPath();
 		try (var files = Files.walk(parent)) {
-			files.filter(path -> !StringUtils.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
+			files.filter(path -> !Strings.CS.endsWithAny(path.toString(), ".tfstate", ".tfstate.backup", ".keep.tf",
 					".keep.auto.tfvars")).filter(path -> !path.toFile().isDirectory())
 					.filter(path -> !path.toString().contains(".terraform")).map(java.nio.file.Path::toFile)
 					.forEach(FileUtils::deleteQuietly);

@@ -303,7 +303,7 @@ public class ProvQuoteSupportResource
 	}
 
 	private int[] toIntArray(String rawString) {
-		return Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(rawString, ""), ","))
+		return Arrays.stream(StringUtils.split(ObjectUtils.getIfNull(rawString, ""), ","))
 				.mapToInt(Integer::parseInt).toArray();
 	}
 

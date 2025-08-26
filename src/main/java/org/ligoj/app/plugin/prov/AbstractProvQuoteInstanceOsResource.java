@@ -63,7 +63,7 @@ public abstract class AbstractProvQuoteInstanceOsResource<T extends AbstractInst
 
 	@Override
 	protected void saveOrUpdateSpec(final C entity, final E vo) {
-		entity.setOs(ObjectUtils.defaultIfNull(vo.getOs(), entity.getPrice().getOs()));
+		entity.setOs(ObjectUtils.getIfNull(vo.getOs(), entity.getPrice().getOs()));
 		entity.setEphemeral(vo.isEphemeral());
 		entity.setMaxVariableCost(vo.getMaxVariableCost());
 		entity.setInternet(vo.getInternet());

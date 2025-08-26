@@ -333,7 +333,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setOptimizer(quote.getOptimizer());
 		vo.setLicense(quote.getLicense());
 		vo.setUiSettings(quote.getUiSettings());
-		vo.setRamAdjustedRate(ObjectUtils.defaultIfNull(quote.getRamAdjustedRate(), 100));
+		vo.setRamAdjustedRate(ObjectUtils.getIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
 		vo.setPhysical(quote.getPhysical());
@@ -415,8 +415,8 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldUsage = entity.getUsage();
 		var oldBudget = entity.getBudget();
 		var oldOptimizer = entity.getOptimizer();
-		var oldRamAdjusted = ObjectUtils.defaultIfNull(entity.getRamAdjustedRate(), 100);
-		var oldReservationMode = ObjectUtils.defaultIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
+		var oldRamAdjusted = ObjectUtils.getIfNull(entity.getRamAdjustedRate(), 100);
+		var oldReservationMode = ObjectUtils.getIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
 		var oldPhysical = entity.getPhysical();
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
@@ -427,7 +427,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setOptimizer(Optional.ofNullable(vo.getOptimizer())
 				.map(u -> findConfiguredByName(optimizerRepository, u, subscription)).orElse(null));
 		entity.setLicense(vo.getLicense());
-		entity.setRamAdjustedRate(ObjectUtils.defaultIfNull(vo.getRamAdjustedRate(), 100));
+		entity.setRamAdjustedRate(ObjectUtils.getIfNull(vo.getRamAdjustedRate(), 100));
 		entity.setReservationMode(vo.getReservationMode());
 		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
 		entity.setPhysical(vo.getPhysical());

@@ -295,7 +295,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	private <G extends INamableBean<?>> G getProfileByName(final G quoteProfile, final String name, List<G> allProfiles,
 			G defaultProfile) {
 		if (name == null) {
-			return ObjectUtils.defaultIfNull(quoteProfile, defaultProfile);
+			return ObjectUtils.getIfNull(quoteProfile, defaultProfile);
 		}
 		return allProfiles.stream().filter(u -> u.getName().equals(name)).findFirst()
 				.orElseThrow(() -> new EntityNotFoundException(name));
@@ -309,7 +309,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The resolved processor requirement. May be <code>null</code>.
 	 */
 	protected String getProcessor(final ProvQuote configuration, final String processor) {
-		return ObjectUtils.defaultIfNull(processor, ObjectUtils.defaultIfNull(configuration.getProcessor(), ""));
+		return ObjectUtils.getIfNull(processor, ObjectUtils.getIfNull(configuration.getProcessor(), ""));
 	}
 
 	/**
@@ -343,7 +343,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @return The adjusted required RAM from the original one and the RAM configuration.
 	 */
 	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
-		return Math.max(128, ObjectUtils.defaultIfNull(configuration.getRamAdjustedRate(), 100)
+		return Math.max(128, ObjectUtils.getIfNull(configuration.getRamAdjustedRate(), 100)
 						* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
 	}
 

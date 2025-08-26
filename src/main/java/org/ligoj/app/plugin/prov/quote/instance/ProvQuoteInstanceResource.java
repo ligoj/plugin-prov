@@ -89,7 +89,7 @@ public class ProvQuoteInstanceResource extends
 	@Override
 	protected void saveOrUpdateSpec(final ProvQuoteInstance entity, final QuoteInstanceEditionVo vo) {
 		entity.setSoftware(StringUtils.trimToNull(vo.getSoftware()));
-		entity.setTenancy(ObjectUtils.defaultIfNull(vo.getTenancy(), ProvTenancy.SHARED));
+		entity.setTenancy(ObjectUtils.getIfNull(vo.getTenancy(), ProvTenancy.SHARED));
 		super.saveOrUpdateSpec(entity, vo);
 		checkOs(entity);
 	}
@@ -135,7 +135,7 @@ public class ProvQuoteInstanceResource extends
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
-		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
+		final var tenancyR = ObjectUtils.getIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, softwareR,
 					initialCost, tenancyR, PageRequest.of(0, 1));
@@ -155,7 +155,7 @@ public class ProvQuoteInstanceResource extends
 		// Resolve the right license model
 		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
 		final var softwareR = normalize(query.getSoftware());
-		final var tenancyR = ObjectUtils.defaultIfNull(query.getTenancy(), ProvTenancy.SHARED);
+		final var tenancyR = ObjectUtils.getIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
 					Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,

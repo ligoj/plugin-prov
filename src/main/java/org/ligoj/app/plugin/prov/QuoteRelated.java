@@ -87,13 +87,13 @@ public interface QuoteRelated<C extends Costed> {
 	 */
 	default <T extends Costed> Floating addCost(final T entity, final Function<T, Floating> costUpdater) {
 		// Save the previous costs
-		final double oldCost = ObjectUtils.defaultIfNull(entity.getCost(), 0d);
-		final double oldMaxCost = ObjectUtils.defaultIfNull(entity.getMaxCost(), 0d);
-		final double oldCo2 = ObjectUtils.defaultIfNull(entity.getCo2(), 0d);
-		final double oldMaxCo2 = ObjectUtils.defaultIfNull(entity.getMaxCo2(), 0d);
+		final double oldCost = ObjectUtils.getIfNull(entity.getCost(), 0d);
+		final double oldMaxCost = ObjectUtils.getIfNull(entity.getMaxCost(), 0d);
+		final double oldCo2 = ObjectUtils.getIfNull(entity.getCo2(), 0d);
+		final double oldMaxCo2 = ObjectUtils.getIfNull(entity.getMaxCo2(), 0d);
 
-		final double oldInitial = ObjectUtils.defaultIfNull(entity.getInitialCost(), 0d);
-		final double oldMaxInitial = ObjectUtils.defaultIfNull(entity.getMaxInitialCost(), 0d);
+		final double oldInitial = ObjectUtils.getIfNull(entity.getInitialCost(), 0d);
+		final double oldMaxInitial = ObjectUtils.getIfNull(entity.getMaxInitialCost(), 0d);
 
 		// Process the update of this entity
 		final var newCost = costUpdater.apply(entity);

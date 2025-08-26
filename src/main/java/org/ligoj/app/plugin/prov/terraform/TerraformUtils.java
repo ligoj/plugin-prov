@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.SystemUtils;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
@@ -295,7 +296,7 @@ public class TerraformUtils {
 	 * @throws IOException When unzip fails : download, unzip, write file,...
 	 */
 	private void install(final File toDir, final String repository, final String version) throws IOException {
-		install(toDir, StringUtils.appendIfMissing(repository, "/") + version + "/terraform_" + version + "_"
+		install(toDir, Strings.CS.appendIfMissing(repository, "/") + version + "/terraform_" + version + "_"
 				+ getOsValue(distributions) + ".zip");
 	}
 
@@ -343,7 +344,7 @@ public class TerraformUtils {
 		try (var zs = new ZipOutputStream(out); var stream = Files.walk(fromDir)) {
 			return stream.filter(path -> !Files.isDirectory(path))
 					// Excludes ".terraform", secrets, and "*.ptf" files
-					.filter(path -> !StringUtils.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
+					.filter(path -> !Strings.CS.endsWithAny(path.toString(), ".ptf", "secrets.auto.tfvars"))
 					.filter(path -> !path.toString().contains(".terraform")).map(path -> addEntry(fromDir, path, zs))
 					.toList();
 		}

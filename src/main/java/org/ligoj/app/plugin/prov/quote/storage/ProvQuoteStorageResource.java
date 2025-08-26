@@ -151,7 +151,7 @@ public class ProvQuoteStorageResource
 		entity.setLatency(vo.getLatency());
 		entity.setOptimized(vo.getOptimized());
 		entity.setSize(vo.getSize());
-		entity.setQuantity(ObjectUtils.defaultIfNull(vo.getQuantity(), 1));
+		entity.setQuantity(ObjectUtils.getIfNull(vo.getQuantity(), 1));
 		entity.setSizeMax(vo.getSizeMax());
 		entity.setQuoteInstance(checkInstance(subscription, vo.getInstance()));
 		entity.setQuoteDatabase(checkDatabase(subscription, vo.getDatabase()));
@@ -367,7 +367,7 @@ public class ProvQuoteStorageResource
 		// Sample Instance1, minQuantity=1, maxQuantity=5
 		// qs1: quantity=4, price=5$ -> displayed quantity=[4,20], price=[20$-100$]
 		// qs2: quantity=3, price=10$ -> displayed quantity=[3,15], price=[30$-150$]
-		final var quantity = (double) ObjectUtils.defaultIfNull(qs.getQuantity(), 1);
+		final var quantity = (double) ObjectUtils.getIfNull(qs.getQuantity(), 1);
 		final var base = getCost(qs.getPrice(), qs.getSize()) * quantity;
 		final var baseCo2 = getCo2(qs.getPrice(), qs.getSize()) * quantity;
 		return Optional.ofNullable(qs.getQuoteResource())
@@ -383,7 +383,7 @@ public class ProvQuoteStorageResource
 	 * @return The cost of this storage.
 	 */
 	private double getCost(final ProvStoragePrice storagePrice, final int size) {
-		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
+		final double increment = ObjectUtils.getIfNull(storagePrice.getType().getIncrement(), 1d);
 		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment
 				* storagePrice.getCostGb() + storagePrice.getCost());
 	}
@@ -396,7 +396,7 @@ public class ProvQuoteStorageResource
 	 * @return The cost of this storage.
 	 */
 	private double getCo2(final ProvStoragePrice storagePrice, final int size) {
-		final double increment = ObjectUtils.defaultIfNull(storagePrice.getType().getIncrement(), 1d);
+		final double increment = ObjectUtils.getIfNull(storagePrice.getType().getIncrement(), 1d);
 		return round(Math.ceil(round(Math.max(size, storagePrice.getType().getMinimal()) / increment)) * increment * 0
 				+ storagePrice.getCo2());
 	}

@@ -80,6 +80,6 @@ public enum VmOs {
 	 * @return the related pricing OS.
 	 */
 	public VmOs toPricingOs() {
-		return ObjectUtils.defaultIfNull(pricingOs, this);
+		return ObjectUtils.getIfNull(pricingOs, this);
 	}
 }

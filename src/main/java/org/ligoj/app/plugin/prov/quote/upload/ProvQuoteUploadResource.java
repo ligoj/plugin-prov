@@ -319,7 +319,7 @@ public class ProvQuoteUploadResource {
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
 		final var quote = resource.getRepository().findBy("subscription.id", subscription);
-		final var safeEncoding = ObjectUtils.defaultIfNull(encoding, DEFAULT_ENCODING);
+		final var safeEncoding = ObjectUtils.getIfNull(encoding, DEFAULT_ENCODING);
 
 		// Check headers validity
 		final String[] headersArray;
@@ -390,7 +390,7 @@ public class ProvQuoteUploadResource {
 		// Validate the upload object
 		vo.setName(u.getName());
 		vo.setDescription(u.getDescription());
-		vo.setCpu(qiResource.round(ObjectUtils.defaultIfNull(u.getCpu(), 0d)));
+		vo.setCpu(qiResource.round(ObjectUtils.getIfNull(u.getCpu(), 0d)));
 		vo.setGpu(u.getGpu());
 		vo.setProcessor(u.getProcessor());
 		vo.setLicense(Optional.ofNullable(u.getLicense()).map(StringUtils::upperCase).orElse(null));
@@ -405,13 +405,13 @@ public class ProvQuoteUploadResource {
 		vo.setStorageRate(u.getStorageRate());
 		vo.setWorkload(u.getWorkload());
 		vo.setPhysical(u.getPhysical());
-		vo.setRam(ObjectUtils.defaultIfNull(ramMultiplier, 1) * ObjectUtils.defaultIfNull(u.getRam(), 0).intValue());
+		vo.setRam(ObjectUtils.getIfNull(ramMultiplier, 1) * ObjectUtils.getIfNull(u.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
 		vo.setType(u.getType());
 		vo.setCpuMax(u.getCpuMax());
 		vo.setGpuMax(u.getGpuMax());
 		vo.setRamMax(
-				u.getRamMax() == null ? null : ObjectUtils.defaultIfNull(ramMultiplier, 1) * u.getRamMax().intValue());
+				u.getRamMax() == null ? null : ObjectUtils.getIfNull(ramMultiplier, 1) * u.getRamMax().intValue());
 		completeUsage(context, defaultUsage, createUsage, u, vo);
 		completeBudget(context, defaultBudget, createBudget, u, vo);
 		completeOptimizer(context, defaultOptimizer, createOptimizer, u, vo);
@@ -419,7 +419,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private ValidationJsonException handleValidationError(final VmUpload i, final ValidationJsonException e) {
-		final var failedEntry = ObjectUtils.defaultIfNull(i.getName(), "<unknown>");
+		final var failedEntry = ObjectUtils.getIfNull(i.getName(), "<unknown>");
 		log.info("Upload provisioning failed for entry {}", failedEntry, e);
 		final var errors = e.getErrors();
 		new ArrayList<>(errors.keySet()).stream().peek(p -> errors.put("csv-file." + p, errors.get(p)))
@@ -454,7 +454,7 @@ public class ProvQuoteUploadResource {
 
 		if (StringUtils.isNotEmpty(i.getEngine())) {
 			// Database case
-			final var merger = mergersDatabase.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var merger = mergersDatabase.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
 					createUsage, createBudget, createOptimizer, i, newDatabaseVo(i));
 			vo.setPrice(
@@ -462,7 +462,7 @@ public class ProvQuoteUploadResource {
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
 			// Instance/Container case
-			final var merger = mergersInstance.get(ObjectUtils.defaultIfNull(mode, MergeMode.KEEP));
+			final var merger = mergersInstance.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
 					createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
 			vo.setPrice(
@@ -581,7 +581,7 @@ public class ProvQuoteUploadResource {
 				}).toList();
 
 		// Tags part
-		Arrays.stream(StringUtils.split(ObjectUtils.defaultIfNull(upload.getTags(), ""), ",;|"))
+		Arrays.stream(StringUtils.split(ObjectUtils.getIfNull(upload.getTags(), ""), ",;|"))
 				.map(StringUtils::trimToNull).filter(Objects::nonNull).forEach(t -> {
 					// Instance tags
 					final var tag = new TagEditionVo();

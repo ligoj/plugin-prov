@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteVmResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.UpdatedCost;
@@ -105,7 +106,7 @@ public class ProvQuoteDatabaseResource extends
 	 * @param vPrice The price attribute value.
 	 */
 	protected void checkAttribute(final String name, final String pQuote, final String vPrice) {
-		if (!StringUtils.equalsIgnoreCase(pQuote, vPrice)) {
+		if (!Strings.CI.equals(pQuote, vPrice)) {
 			// Incompatible, hack attempt?
 			log.warn("Attempt to create a database with an incompatible {} {} with catalog {} {}", name, pQuote, name,
 					vPrice);

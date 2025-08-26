@@ -3,36 +3,18 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.ligoj.app.model.Node;
-import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
-import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
-import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
-import org.ligoj.app.plugin.prov.model.ProvSupportType;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.time.DateUtils;
+import org.ligoj.app.model.Node;
+import org.ligoj.app.plugin.prov.ProvResource;
+import org.ligoj.app.plugin.prov.model.*;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * Base context used to perform catalog update.
@@ -310,6 +292,6 @@ public abstract class AbstractUpdateContext {
 	 * @return The full URL based on the base URL of this context.
 	 */
 	public String getUrl(final String relative) {
-		return baseUrl + StringUtils.prependIfMissing(relative, "/");
+		return baseUrl + Strings.CS.prependIfMissing(relative, "/");
 	}
 }

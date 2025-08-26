@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.Floating;
@@ -229,7 +230,7 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	protected Double toPercent(String raw) {
-		if (StringUtils.endsWith(raw, "%")) {
+		if (Strings.CS.endsWith(raw, "%")) {
 			return Double.valueOf(raw.substring(0, raw.length() - 1));
 		}
 
@@ -365,7 +366,7 @@ public abstract class AbstractImportCatalogResource {
 			r.setLatitude(regionStats.getLatitude());
 			r.setLongitude(regionStats.getLongitude());
 			r.setPreferred(regionStats.isPreferred());
-			r.setDescription(ObjectUtils.defaultIfNull(description, regionStats.getName()));
+			r.setDescription(ObjectUtils.getIfNull(description, regionStats.getName()));
 		});
 	}
 
@@ -618,7 +619,7 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	private Pattern toPattern(final String regular) {
-		return Pattern.compile(StringUtils.replace(regular, ".", "\\.") + ".*");
+		return Pattern.compile(Strings.CS.replace(regular, ".", "\\.") + ".*");
 	}
 
 	/**
