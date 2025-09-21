@@ -31,7 +31,8 @@ public abstract class AbstractProvTag extends AbstractPersistable<Integer> imple
 	/**
 	 * Tag key name and value pattern.
 	 */
-	public static final String PATTERN = "[\\p{L}\\d\\s+-=._/@&#']+";
+	public static final String PATTERN_KEY = "[\\p{L}\\d\\s+-=._/@&#']+";
+	public static final String PATTERN_VALUE = "[()\\p{L}\\d\\s+-=._/@&#']+";
 
 	/**
 	 * SID
@@ -42,14 +43,14 @@ public abstract class AbstractProvTag extends AbstractPersistable<Integer> imple
 	 * Object name
 	 */
 	@NotBlank
-	@Pattern(regexp = AbstractProvTag.PATTERN)
+	@Pattern(regexp = AbstractProvTag.PATTERN_KEY)
 	private String name;
 
 	/**
 	 * Value as string.
 	 */
 	@Size(max = 1024, min = 1)
-	@Pattern(regexp = AbstractProvTag.PATTERN)
+	@Pattern(regexp = AbstractProvTag.PATTERN_VALUE)
 	@Column(length = 1024)
 	private String value;
 
