@@ -82,15 +82,16 @@ public interface ProvDatabasePriceRepository
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
-	 * @return The cheapest database price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest database or empty result.
 	 */
 	@Query(DYNAMIC_QUERY + """
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
 			String engine, String edition, int location, double rate, double globalRate, double duration,
-			String license, double initialCost, Pageable pageable);
+			String license, double initialCost, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest database CP2 configuration from the minimal requirements.
@@ -110,15 +111,16 @@ public interface ProvDatabasePriceRepository
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
 	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
-	 * @return The cheapest database price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest database or empty result.
 	 */
 	@Query(DYNAMIC_QUERY + """
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
 			String engine, String edition, int location, double rate, double globalRate, double duration,
-			String license, double initialCost, Pageable pageable);
+			String license, double initialCost, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance price configuration from the minimal requirements.
@@ -134,14 +136,15 @@ public interface ProvDatabasePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(LOWEST_QUERY + """
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCost(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			String license, String engine, String edition, double initialCost, Pageable pageable);
+			String license, String engine, String edition, double initialCost, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest database instance CO2 configuration from the minimal requirements.
@@ -157,13 +160,14 @@ public interface ProvDatabasePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param initialCost The maximal initial cost.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(LOWEST_QUERY + """
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			String license, String engine, String edition, double initialCost, Pageable pageable);
+			String license, String engine, String edition, double initialCost, boolean p1TypeOnly,  Pageable pageable);
 
 }

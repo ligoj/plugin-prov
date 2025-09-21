@@ -521,17 +521,28 @@
 								<div class="input-group">
 									<input type="text" id="instance-processor" class="resource-query form-control" />
 									<div class="input-group-btn resource-query" id="instance-physical">
-										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding-left: 8px;padding-right: 8px; margin-bottom: 0px">
 											<span><i class="fas fa-ellipsis-h"></i></span>
 											<span class="caret"></span>
 										</button>
 										<ul class="dropdown-menu">
 											<li class="active"><a><i class="fas fa-ellipsis-h fa-fw"></i> {{service:prov:physical-null}}</a></li>
 											<li data-value="false"><a><i class="fas fa-grip-horizontal fa-fw"></i> {{service:prov:physical-false}}</a></li>
-											<li data-value="true"><a><i class="fas fa-grip-lines fa-fw"></i> {{service:prov:physical-true}}</a></li>
+											<li data-value="true"><a><i class="fas fa-server fa-fw"></i> {{service:prov:physical-true}}</a></li>
 										</ul>
 									</div>
-								</div>
+                                    <div class="input-group-btn resource-query" id="instance-p1TypeOnly">
+                                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding-left: 8px;padding-right: 8px; margin-bottom: 0px">
+                                            <span><i class="fas fa-ellipsis-h"></i></span>
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li class="active"><a><i class="fas fa-dollar-sign fa-fw"></i> {{service:prov:p1TypeOnly-null}}</a></li>
+                                            <li data-value="false"><a><i class="fas fa-dollar-sign fa-fw"></i> / <i class="fas fa-leaf fa-fw"></i> {{service:prov:p1TypeOnly-false}}</a></li>
+                                            <li data-value="true" data-toggle="tooltip" title="{{service:prov:p1TypeOnly-help}}"><a><i class="fas fa-ranking-star fa-fw"></i> {{service:prov:p1TypeOnly-true}}</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
 								<span class="input-help"><i class="fas fa-question-circle" data-toggle="tooltip" title="{{service:prov:processor-help}}"></i></span>
 							</div>
 						</div>
@@ -833,7 +844,7 @@
 							<label class="control-label col-sm-3" for="csv-file">CSV File</label>
 							<div class="col-sm-9">
 								<div class="input-group">
-									<input type="text" class="form-control" readonly>
+									<input type="text" class="form-control" readonly id="csv-file-readonly">
 									<div class="input-group-btn"> <span class="btn btn-default btn-file" role="button">&hellip; <input type="file" name="csv-file" id="csv-file" required> </span>
 									</div>
 								</div>

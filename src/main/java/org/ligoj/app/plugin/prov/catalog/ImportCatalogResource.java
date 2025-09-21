@@ -76,7 +76,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	private ProvQuoteRepository repository;
 
 	/**
-	 * Update the catalog prices of related provider. Asynchronous operation.
+	 * Update the catalog prices of the related provider. Asynchronous operation.
 	 *
 	 * @param node  The node (provider) to update.
 	 * @param force When <code>true</code>, all cost attributes are update.
@@ -111,7 +111,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	}
 
 	/**
-	 * Update the catalog of given node. Synchronous operation.
+	 * Update the catalog of the given node. Synchronous operation.
 	 *
 	 * @param catalogService The catalog service related to the provider.
 	 * @param node           The node to update.
@@ -121,7 +121,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	}
 
 	/**
-	 * Update the catalog of given node. Synchronous operation.
+	 * Update the catalog of the given node. Synchronous operation.
 	 *
 	 * @param catalogService The catalog service related to the provider.
 	 * @param force          When <code>true</code>, all cost attributes are update.
@@ -129,7 +129,7 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 	 */
 	protected void updateCatalog(final ImportCatalogService catalogService, final String node, final boolean force) {
 		// Restore the context
-		log.info("Catalog update for {}", node);
+		log.info("Catalog update for {}, force={}", node,force);
 		var failed = true;
 		try {
 			catalogService.updateCatalog(node, force);

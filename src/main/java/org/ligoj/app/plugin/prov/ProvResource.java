@@ -359,7 +359,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
-	 * Return the quote status linked to given subscription.
+	 * Return the quote status linked to the given subscription.
 	 *
 	 * @param subscription The parent subscription identifier.
 	 * @return The quote status (summary only) linked to given subscription.
@@ -419,6 +419,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldReservationMode = ObjectUtils.getIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
 		var oldPhysical = entity.getPhysical();
+		var oldP1TypeOnly = entity.getP1TypeOnly();
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
@@ -431,12 +432,14 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setReservationMode(vo.getReservationMode());
 		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
 		entity.setPhysical(vo.getPhysical());
+		entity.setP1TypeOnly(vo.getP1TypeOnly());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !Objects.equals(oldOptimizer, entity.getOptimizer())
 				|| !Objects.equals(oldBudget, entity.getBudget()) || !oldRamAdjusted.equals(entity.getRamAdjustedRate())
 				|| oldReservationMode != entity.getReservationMode() || !Objects.equals(oldLicense, entity.getLicense())
 				|| !Objects.equals(oldProcessor, entity.getProcessor())
-				|| !Objects.equals(oldPhysical, entity.getPhysical())) {
+				|| !Objects.equals(oldPhysical, entity.getPhysical())
+				|| !Objects.equals(oldP1TypeOnly, entity.getP1TypeOnly())) {
 			return refresh(entity);
 		}
 

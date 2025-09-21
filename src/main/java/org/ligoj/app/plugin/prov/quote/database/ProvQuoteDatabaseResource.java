@@ -148,35 +148,35 @@ public class ProvQuoteDatabaseResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final double duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer, final boolean p1TypeOnly) {
 		// Resolve the right license model
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, location, rate, duration, licenseR, engineR, editionR,
-					initialCost, PageRequest.of(0, 1));
+					initialCost, p1TypeOnly, PageRequest.of(0, 1));
 		}
 		return ipRepository.findLowestCost(types, terms, location, rate, duration, licenseR, engineR, editionR,
-				initialCost, PageRequest.of(0, 1));
+				initialCost, p1TypeOnly, PageRequest.of(0, 1));
 	}
 
 	@Override
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteDatabase query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
-			final Optimizer optimizer) {
+			final Optimizer optimizer, final boolean p1TypeOnly) {
 		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
 					engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
-					PageRequest.of(0, 1));
+					p1TypeOnly, PageRequest.of(0, 1));
 		}
 		return ipRepository.findLowestDynamicCost(types, terms, Math.ceil(cpu), gpu, Math.ceil(round(ram / 1024)),
 				engineR, editionR, location, rate, round(rate * duration), duration, licenseR, initialCost,
-				PageRequest.of(0, 1));
+				p1TypeOnly, PageRequest.of(0, 1));
 	}
 
 	private boolean canByol(final String engine) {

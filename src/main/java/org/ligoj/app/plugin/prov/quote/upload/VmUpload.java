@@ -27,7 +27,7 @@ import lombok.Setter;
 public class VmUpload {
 
 	private static final String SEPARATOR = ",\\s;";
-	private static final String FULL_TAG = SEPARATOR + AbstractProvTag.PATTERN + "(:" + AbstractProvTag.PATTERN + ")?";
+	private static final String FULL_TAG = SEPARATOR + AbstractProvTag.PATTERN_KEY + "(:" + AbstractProvTag.PATTERN_VALUE + ")?";
 
 	private String name;
 	private String description;

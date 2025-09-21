@@ -110,7 +110,12 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private Boolean edge;
 
 	/**
-	 * The Internet access : Internet facing, etc.
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly;
+
+	/**
+	 * The Internet access: Internet facing, etc.
 	 */
 	@NotNull
 	private InternetAccess internet = InternetAccess.PRIVATE;

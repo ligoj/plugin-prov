@@ -105,7 +105,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param location The expected location name. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
-	@Query("FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
+	@Query("SELECT e FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN e.location l WHERE                      "
 			+ " (:location = '' OR l.name = :location) AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByLocation(String node, String location);
 
@@ -116,7 +116,7 @@ public interface ProvStoragePriceRepository extends RestRepository<ProvStoragePr
 	 * @param type The expected type code. Case-sensitive.
 	 * @return The filtered {@link ProvStoragePrice}.
 	 */
-	@Query("FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
+	@Query("SELECT e FROM ProvStoragePrice e INNER JOIN FETCH e.type t INNER JOIN FETCH e.location l WHERE                      "
 			+ " t.code = :type AND t.node.id = :node             ")
 	List<ProvStoragePrice> findByTypeName(String node, String type);
 }

@@ -344,7 +344,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	protected double getRam(final ProvQuote configuration, final QuoteVm qi) {
 		return Math.max(128, ObjectUtils.getIfNull(configuration.getRamAdjustedRate(), 100)
-						* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
+				* getReserved(configuration, qi.getRam(), qi.getRamMax()) / 100d);
 	}
 
 	/**
@@ -586,7 +586,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	/**
 	 * Return a {@link QuoteInstanceLookup} corresponding to the best price.
 	 *
-	 * @param subscription The subscription identifier, will be used to filter the instances from the associated
+	 * @param subscription The subscription identifier will be used to filter the instances from the associated
 	 *                     provider.
 	 * @param query        The query parameters.
 	 * @return The lowest price matching to the required parameters. May be <code>null</code>.
@@ -647,6 +647,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var gpuR = getGpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
 		final var physR = normalize(configuration.getPhysical(), query.getPhysical());
+		final var p1TypeOnly = normalize(configuration.getP1TypeOnly(), query.getP1TypeOnly());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -690,7 +691,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		if (!types.isEmpty()) {
 			// Get the best template instance price
 			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost,
-					optimizer).stream().findFirst().orElse(null);
+					optimizer, p1TypeOnly).stream().findFirst().orElse(null);
 		}
 
 		// Dynamic type lookup
@@ -702,7 +703,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dLookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
-						rate, duration, initialCost, optimizer).stream().findFirst().orElse(null);
+						rate, duration, initialCost, optimizer, p1TypeOnly).stream().findFirst().orElse(null);
 				if (dLookup != null && lookup == null || (dLookup != null
 						&& ((optimizer == Optimizer.COST && toTotalCost(dLookup) < toTotalCost(lookup))
 						|| (optimizer == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
@@ -741,11 +742,12 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param duration      The committed duration.
 	 * @param initialCost   The maximal initial cost.
 	 * @param optimizer     The optimizer mode.
+	 * @param p1TypeOnly    P1 type only (latest available) is requested.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestPrice(ProvQuote configuration, Q query, List<Integer> types,
 			List<Integer> terms, int location, double rate, double duration, final double initialCost,
-			final Optimizer optimizer);
+			final Optimizer optimizer, final boolean p1TypeOnly);
 
 	/**
 	 * Return the lowest price matching all requirements for dynamic types.
@@ -761,12 +763,13 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 * @param rate          Usage rate within the duration, from 0 (stopped) to 1 (full time).
 	 * @param duration      Committed duration.
 	 * @param initialCost   The maximal initial cost.
+	 * @param p1TypeOnly    P1 type only (latest available) is requested.
 	 * @param optimizer     The optimizer mode.
 	 * @return The valid prices result.
 	 */
 	protected abstract List<Object[]> findLowestDynamicPrice(ProvQuote configuration, Q query, List<Integer> types,
 			List<Integer> terms, double cpu, double gpu, double ram, int location, double rate, int duration,
-			double initialCost, final Optimizer optimizer);
+			double initialCost, final Optimizer optimizer, final boolean p1TypeOnly);
 
 	@Override
 	public Floating refresh(final C qi) {

@@ -2081,6 +2081,7 @@ define(['sparkline', 'd3'], function () {
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
 			update3States(_('quote-physical'), conf.physical);
+			update3States(_('quote-p1TypeOnly'), conf.p1TypeOnly);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -2533,7 +2534,7 @@ define(['sparkline', 'd3'], function () {
 			}
 			oSettings.columns.push({
 				data: null,
-				width: '65px',
+				width: '85px',
 				orderable: false,
 				searchable: false,
 				type: 'string',
@@ -2589,7 +2590,11 @@ define(['sparkline', 'd3'], function () {
 			$(".is-fileinput .input-group").on('change', function(){
 				current.reinitializeFileInput()
 			})
-			$popup.on('shown.bs.modal', () => _('csv-file').trigger('focus')
+			$popup.on('shown.bs.modal', () => {
+                 _('csv-file').val(null);
+                 _("csv-file-readonly").val(null);
+                _('csv-file').trigger('focus');
+			}
 			).on('show.bs.modal', function () {
 				current.reinitializeFileInput()
 				$(".is-fileinput .form-control").val('')
@@ -2790,7 +2795,12 @@ define(['sparkline', 'd3'], function () {
 					physical: toQueryValue3States($(this))
 				}, { name: 'physical', ui: 'quote-physical', previous: current.model.configuration.physical }, true);
 			});
-
+	        _('quote-p1TypeOnly').on('click', 'li', function () {
+                $.proxy(synchronizeDropdownText, $(this))();
+				current.updateQuote({
+					p1TypeOnly: toQueryValue3States($(this))
+				}, { name: 'p1TypeOnly', ui: 'quote-p1TypeOnly', previous: current.model.configuration.p1TypeOnly }, true);
+			});
 			require(['jquery-ui'], function () {
 				const handle = $('#quote-ram-adjust-handle');
 				$('#quote-ram-adjust').slider({
@@ -3119,6 +3129,7 @@ define(['sparkline', 'd3'], function () {
 				license: conf.license,
 				processor: conf.processor,
 				physical: conf.physical,
+				p1TypeOnly: conf.p1TypeOnly,
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage,
@@ -3143,6 +3154,7 @@ define(['sparkline', 'd3'], function () {
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
 				&& conf.physical === jsonData.physical
+				&& conf.p1TypeOnly === jsonData.p1TypeOnly
 				&& conf.reservationMode === jsonData.reservationMode
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
@@ -3173,6 +3185,7 @@ define(['sparkline', 'd3'], function () {
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
 					conf.physical = jsonData.physical;
+					conf.p1TypeOnly = jsonData.p1TypeOnly;
 					conf.reservationMode = jsonData.reservationMode;
 					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 
@@ -3380,6 +3393,7 @@ define(['sparkline', 'd3'], function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.physical = data.physical;
+			model.p1TypeOnly = data.p1TypeOnly;
 			model.processor = data.processor;
 		},
 		computeCommitToModel: function (data, model) {
@@ -3454,6 +3468,7 @@ define(['sparkline', 'd3'], function () {
 			data.license = _('instance-license').val().toLowerCase() || null;
 			data.constant = toQueryValue3States(_('instance-constant'));
 			data.physical = toQueryValue3States(_('instance-physical'));
+			data.p1TypeOnly = toQueryValue3States(_('instance-p1TypeOnly'));
 			data.price = _('instance-price').select2('data').price.id;
 		},
 
@@ -3534,6 +3549,7 @@ define(['sparkline', 'd3'], function () {
 			// Update the CPU constraint
 			update3States(_('instance-constant'), quote.constant);
 			update3States(_('instance-physical'), quote.physical);
+			update3States(_('instance-p1TypeOnly'), quote.p1TypeOnly);
 		},
 
 		/**

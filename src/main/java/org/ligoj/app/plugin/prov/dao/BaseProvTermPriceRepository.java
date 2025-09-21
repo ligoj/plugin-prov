@@ -41,6 +41,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 			      ip.location.id = :location
 			  AND ip.incrementCpu IS NULL
 			  AND (ip.type.id IN :types)
+			  AND (ip.p1Type IS NULL OR :p1TypeOnly = FALSE)
 			  AND (ip.term.id IN :terms)
 			  AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			""";
@@ -64,7 +65,7 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	 * @param term2    The expected term name prefix alternative 2.
 	 * @return The filtered {@link ProvInstancePrice}.
 	 */
-	@Query("FROM #{#entityName} e INNER JOIN e.term tm WHERE e.location.name = :location AND e.type.node.id = :node"
+	@Query("SELECT e FROM #{#entityName} e INNER JOIN e.term tm WHERE e.location.name = :location AND e.type.node.id = :node"
 			+ " AND (tm.name LIKE CONCAT(:term1, '%') OR tm.name LIKE CONCAT(:term2, '%'))")
 	List<P> findByLocation(String node, String location, final String term1, final String term2);
 }

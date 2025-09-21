@@ -142,6 +142,13 @@ public interface QuoteVm {
 	boolean isAutoScale();
 
 	/**
+	 * Return optional P1 type only (latest available) is requested.
+	 *
+	 * @return Optional P1 type only (latest available) is requested. Default is <code>false</code
+	 */
+	Boolean getP1TypeOnly();
+
+	/**
 	 * Minimal required CPU rate
 	 *
 	 * @return CPU rate

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.*;
@@ -70,9 +71,9 @@ public class ProvQuoteUploadResource {
 			"tags"};
 
 	/**
-	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. Pattern part is optional.
+	 * Accepted headers. An array of string having this pattern: <code>name(:pattern)?</code>. The pattern part is optional.
 	 */
-	private static final List<String> ACCEPTED_HEADERS = List.of("name:host(name)?|nom", "cpu:(vcpu|core|processor)s?",
+	private static final List<String> ACCEPTED_HEADERS = List.of("name:(host(name)?|nom)", "cpu:(vcpu|core|process(o|eu)r)s?",
 			"gpu:gpu", "ram:memory", "workload:workload", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size|disque|scheibe)", "latency:(disk|storage|disque|scheibe)latency", "optimized:(disk|storage|disque|scheibe)?optimized",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
@@ -224,7 +225,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	/**
-	 * Check column's name, tying to match to valid headers. All rejected columns are dropped and replaced by an empty
+	 * Check the column's name, tying to match to valid headers. All rejected columns are dropped and replaced by an empty
 	 * string <code>""</code>.
 	 *
 	 * @param headers The given headers.
@@ -275,18 +276,18 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Upload a file of quote.
 	 *
-	 * @param subscription     The subscription identifier, will be used to filter the locations from the associated
+	 * @param subscription     The subscription identifier will be used to filter the locations from the associated
 	 *                         provider.
 	 * @param uploadedFile     Instance entries files to import. Currently, support only CSV format.
 	 * @param headers          the CSV header names. When <code>null</code> or empty, the default headers are used.
 	 * @param headersIncluded  When <code>true</code>, the first line is the headers and the given <code>headers</code>
 	 *                         parameter is ignored. Otherwise, the <code>headers</code> parameter is used.
 	 * @param defaultUsage     The optional usage name. When not <code>null</code>, each quote instance without defined
-	 *                         usage will be associated to this usage.
+	 *                         usage will be associated with this usage.
 	 * @param defaultBudget    The optional budget name. When not <code>null</code>, each quote instance without defined
-	 *                         budget will be associated to this budget.
+	 *                         budget will be associated with this budget.
 	 * @param defaultOptimizer The optional optimizer name. When not <code>null</code>, each quote instance without
-	 *                         defined usage will be associated to this optimizer.
+	 *                         defined usage will be associated with this optimizer.
 	 * @param mode             The merge option indicates how the entries are inserted.
 	 * @param ramMultiplier    The multiplier for imported RAM values. Default is 1.
 	 * @param encoding         CSV encoding. Default is UTF-8.
@@ -302,19 +303,76 @@ public class ProvQuoteUploadResource {
 	@Path("{subscription:\\d+}/upload")
 	public void upload(@PathParam("subscription") final int subscription,
 			@Multipart(value = CSV_FILE) final String uploadedFile,
-			@Multipart(value = "headers", required = false) final String[] headers,
-			@Multipart(value = "headers-included", required = false) final Boolean headersIncluded,
+			@Multipart(value = "headers", required = false) final String headers,
+			@Multipart(value = "headers-included", required = false) final String headersIncluded,
 			@Multipart(value = "usage", required = false) final String defaultUsage,
 			@Multipart(value = "budget", required = false) final String defaultBudget,
 			@Multipart(value = "optimizer", required = false) final String defaultOptimizer,
-			@Multipart(value = "mergeUpload", required = false) final MergeMode mode,
-			@Multipart(value = "memoryUnit", required = false) final Integer ramMultiplier,
-			@Multipart(value = "errorContinue", required = false) final Boolean errorContinue,
+			@Multipart(value = "mergeUpload", required = false) final String mode,
+			@Multipart(value = "memoryUnit", required = false) final String ramMultiplier,
+			@Multipart(value = "errorContinue", required = false) final String errorContinue,
 			@Multipart(value = "encoding", required = false) final String encoding,
-			@Multipart(value = "createMissingUsage", required = false) final Boolean createUsage,
-			@Multipart(value = "createMissingBudget", required = false) final Boolean createBudget,
-			@Multipart(value = "createMissingOptimizer", required = false) final Boolean createOptimizer,
+			@Multipart(value = "createMissingUsage", required = false) final String createUsage,
+			@Multipart(value = "createMissingBudget", required = false) final String createBudget,
+			@Multipart(value = "createMissingOptimizer", required = false) final String createOptimizer,
 			@Multipart(value = "separator", required = false) final String separator) throws IOException {
+		upload(subscription,
+				uploadedFile,
+				StringUtils.trimToEmpty(headers).split(";,"),
+				headersIncluded == null || BooleanUtils.toBoolean(headersIncluded),
+				defaultUsage,
+				defaultBudget,
+				defaultOptimizer,
+				MergeMode.valueOf(ObjectUtils.getIfNull(mode, MergeMode.KEEP.name())),
+				Math.max(1, NumberUtils.toInt(ramMultiplier)),
+				BooleanUtils.toBoolean(errorContinue),
+				encoding,
+				BooleanUtils.toBoolean(createUsage),
+				BooleanUtils.toBoolean(createBudget),
+				BooleanUtils.toBoolean(createOptimizer),
+				separator);
+	}
+
+	/**
+	 * Upload a file of quote.
+	 *
+	 * @param subscription     The subscription identifier will be used to filter the locations from the associated
+	 *                         provider.
+	 * @param uploadedFile     Instance entries files to import. Currently, support only CSV format.
+	 * @param headers          the CSV header names. When <code>null</code> or empty, the default headers are used.
+	 * @param headersIncluded  When <code>true</code>, the first line is the headers and the given <code>headers</code>
+	 *                         parameter is ignored. Otherwise, the <code>headers</code> parameter is used.
+	 * @param defaultUsage     The optional usage name. When not <code>null</code>, each quote instance without defined
+	 *                         usage will be associated with this usage.
+	 * @param defaultBudget    The optional budget name. When not <code>null</code>, each quote instance without defined
+	 *                         budget will be associated with this budget.
+	 * @param defaultOptimizer The optional optimizer name. When not <code>null</code>, each quote instance without
+	 *                         defined usage will be associated with this optimizer.
+	 * @param mode             The merge option indicates how the entries are inserted.
+	 * @param ramMultiplier    The multiplier for imported RAM values. Default is 1.
+	 * @param encoding         CSV encoding. Default is UTF-8.
+	 * @param errorContinue    When <code>true</code> errors do not block the upload.
+	 * @param createUsage      When <code>true</code>, missing usage are automatically created.
+	 * @param createBudget     When <code>true</code>, missing budget are automatically created.
+	 * @param createOptimizer  When <code>true</code>, missing optimizer are automatically created.
+	 * @param separator        CSV separator. Default is ";".
+	 * @throws IOException When the CSV stream cannot be written.
+	 */
+	public void upload(final int subscription,
+			final String uploadedFile,
+			final String[] headers,
+			final boolean headersIncluded,
+			final String defaultUsage,
+			final String defaultBudget,
+			final String defaultOptimizer,
+			final MergeMode mode,
+			final Integer ramMultiplier,
+			final boolean errorContinue,
+			final String encoding,
+			final boolean createUsage,
+			final boolean createBudget,
+			final boolean createOptimizer,
+			final String separator) throws IOException {
 
 		log.info("Upload provisioning requested...");
 		subscriptionResource.checkVisible(subscription);
@@ -324,7 +382,7 @@ public class ProvQuoteUploadResource {
 		// Check headers validity
 		final String[] headersArray;
 		final InputStream fileNoHeader;
-		if (headersIncluded == null || headersIncluded) {
+		if (headersIncluded) {
 			// Header at first line
 			final var br = new BufferedReader(new StringReader(uploadedFile));
 			headersArray = Objects.toString(br.readLine()).split(separator);
@@ -353,7 +411,7 @@ public class ProvQuoteUploadResource {
 		final var previousQb = qbRepository.findAll(quote).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteDatabase::getName, Function.identity()));
 
-		// Initialization for parallel process
+		// Initialization for parallel processes
 		Hibernate.initialize(quote.getUsages());
 		Hibernate.initialize(quote.getBudgets());
 		Hibernate.initialize(quote.getOptimizers());
@@ -364,7 +422,7 @@ public class ProvQuoteUploadResource {
 		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
 				persist(subscription, defaultUsage, defaultBudget, defaultOptimizer, mode, ramMultiplier, list.size(),
-						cursor, context, BooleanUtils.isTrue(createUsage), BooleanUtils.isTrue(createBudget), BooleanUtils.isTrue(createOptimizer), i);
+						cursor, context, createUsage, createBudget, createOptimizer, i);
 			} catch (final ValidationJsonException e) {
 				handleUploadError(BooleanUtils.isTrue(errorContinue), handleValidationError(i, e));
 			} catch (final ConstraintViolationException e) {
@@ -385,7 +443,7 @@ public class ProvQuoteUploadResource {
 
 	private <V extends AbstractQuoteVmEditionVo> V copy(final int subscription, final UploadContext context,
 			final String defaultUsage, final String defaultBudget, final String defaultOptimizer,
-			final Integer ramMultiplier, final boolean createUsage, final boolean createBudget,
+			final int ramMultiplier, final boolean createUsage, final boolean createBudget,
 			final boolean createOptimizer, final VmUpload u, final V vo) {
 		// Validate the upload object
 		vo.setName(u.getName());
@@ -405,13 +463,13 @@ public class ProvQuoteUploadResource {
 		vo.setStorageRate(u.getStorageRate());
 		vo.setWorkload(u.getWorkload());
 		vo.setPhysical(u.getPhysical());
-		vo.setRam(ObjectUtils.getIfNull(ramMultiplier, 1) * ObjectUtils.getIfNull(u.getRam(), 0).intValue());
+		vo.setRam(ramMultiplier * ObjectUtils.getIfNull(u.getRam(), 0).intValue());
 		vo.setSubscription(subscription);
 		vo.setType(u.getType());
 		vo.setCpuMax(u.getCpuMax());
 		vo.setGpuMax(u.getGpuMax());
 		vo.setRamMax(
-				u.getRamMax() == null ? null : ObjectUtils.getIfNull(ramMultiplier, 1) * u.getRamMax().intValue());
+				u.getRamMax() == null ? null : ramMultiplier * u.getRamMax().intValue());
 		completeUsage(context, defaultUsage, createUsage, u, vo);
 		completeBudget(context, defaultBudget, createBudget, u, vo);
 		completeOptimizer(context, defaultOptimizer, createOptimizer, u, vo);
@@ -448,7 +506,7 @@ public class ProvQuoteUploadResource {
 	}
 
 	private void persist(final int subscription, final String defaultUsage, final String defaultBudget,
-			final String defaultOptimizer, final MergeMode mode, final Integer ramMultiplier, final int size,
+			final String defaultOptimizer, final MergeMode mode, final int ramMultiplier, final int size,
 			final AtomicInteger cursor, final UploadContext context, final boolean createUsage,
 			final boolean createBudget, final boolean createOptimizer, final VmUpload i) {
 

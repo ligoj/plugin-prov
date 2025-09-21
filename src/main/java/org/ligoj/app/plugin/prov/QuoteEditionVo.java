@@ -83,6 +83,11 @@ public class QuoteEditionVo extends DescribedBean<Integer> {
 	private Boolean physical;
 
 	/**
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly;
+
+	/**
 	 * When <code>true</code>, the cost is always refreshed, otherwise, only when at least one pricing dependency is
 	 * updated.
 	 */

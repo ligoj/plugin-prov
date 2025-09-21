@@ -32,7 +32,7 @@ public interface BaseProvTermPriceOsRepository<T extends AbstractInstanceType, P
 			""";
 
 	/**
-	 * Return all licenses related to given node identifier.
+	 * Return all licenses related to the given node identifier.
 	 *
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @param os   The filtered OS.
@@ -45,7 +45,7 @@ public interface BaseProvTermPriceOsRepository<T extends AbstractInstanceType, P
 	List<String> findAllLicenses(String node, VmOs os);
 
 	/**
-	 * Return all OS related to given node identifier.
+	 * Return all OS related to the given node identifier.
 	 *
 	 * @param node The node linked to the subscription. Is a node identifier within a provider.
 	 * @return The filtered OS.

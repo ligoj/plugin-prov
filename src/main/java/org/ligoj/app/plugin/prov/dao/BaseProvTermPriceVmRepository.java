@@ -51,6 +51,7 @@ public interface BaseProvTermPriceVmRepository<T extends AbstractInstanceType, P
 			  AND (ip.license IS NULL OR :license = ip.license)
 			  AND (ip.type.id IN :types)
 			  AND (ip.term.id IN :terms)
+			  AND (ip.p1Type IS NULL OR :p1TypeOnly = FALSE)
 			  AND (ip.maxCpu  IS NULL OR ip.maxCpu >=:cpu)
 			  AND (ip.maxGpu  IS NULL OR ip.maxGpu >=:gpu)
 			  AND (ip.maxRam  IS NULL OR ip.maxRam >=:ram)

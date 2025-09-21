@@ -113,7 +113,7 @@ public class ProvQuoteFunctionResource extends
 	@Override
 	protected List<Object[]> findLowestPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
-			final double duration, final double initialCost, final Optimizer optimizer) {
+			final double duration, final double initialCost, final Optimizer optimizer, final boolean p1TypeOnly) {
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, location, rate, duration, initialCost, query.getDuration(),
 					PageRequest.of(0, 1));
@@ -126,7 +126,7 @@ public class ProvQuoteFunctionResource extends
 	protected List<Object[]> findLowestDynamicPrice(final ProvQuote configuration, final QuoteFunction query,
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
-			final Optimizer optimizer) {
+			final Optimizer optimizer, final boolean p1TypeOnly) {
 		var result1 = findLowestDynamicPrice(query, types, terms, cpu, ram, location, rate,
 				duration, initialCost, optimizer, Math.floor(query.getConcurrency()),
 				Math.floor(query.getConcurrency()));

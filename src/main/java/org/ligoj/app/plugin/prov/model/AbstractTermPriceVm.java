@@ -31,52 +31,52 @@ public abstract class AbstractTermPriceVm<T extends AbstractCodedEntity> extends
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The optional monthly cost of one requested CPU. Required for dynamic instance type.
+	 * The optional monthly cost of one requested CPU. Required for the dynamic instance types.
 	 */
 	private Double costCpu;
 
 	/**
-	 * The optional monthly cost of one requested GPU. Required for dynamic instance type.
+	 * The optional monthly cost of one requested GPU. Required for the dynamic instance types.
 	 */
 	private Double costGpu;
 
 	/**
-	 * The optional monthly cost of one requested GiB memory. Required for dynamic instance type.
+	 * The optional monthly cost of one requested GiB memory. Required for the dynamic instance types.
 	 */
 	private Double costRam;
 
 	/**
-	 * Increment CPU step. Required for dynamic instance type.
+	 * Increment CPU step. Required for the dynamic instance types.
 	 */
 	private Double incrementCpu;
 
 	/**
-	 * Increment CPU step. Required for dynamic instance type.
+	 * Increment CPU step. Required for the dynamic instance types.
 	 */
 	private Double incrementGpu;
 
 	/**
-	 * Increment RAM step (GiB). Required for dynamic instance type.
+	 * Increment RAM step (GiB). Required for the dynamic instance types.
 	 */
 	private Double incrementRam;
 
 	/**
-	 * Minimal CPU. Required for dynamic instance type.
+	 * Minimal CPU. Required for the dynamic instance types.
 	 */
 	private Double minCpu;
 
 	/**
-	 * Maximal CPU. Only valid for dynamic instance type.
+	 * Maximal CPU. Only valid for the dynamic instance types.
 	 */
 	private Double maxCpu;
 
 	/**
-	 * Minimal GPU. Required for dynamic instance type.
+	 * Minimal GPU. Required for the dynamic instance types.
 	 */
 	private Double minGpu;
 
 	/**
-	 * Maximal GPU. Only valid for dynamic instance type.
+	 * Maximal GPU. Only valid for the dynamic instance types.
 	 */
 	private Double maxGpu;
 
@@ -91,12 +91,12 @@ public abstract class AbstractTermPriceVm<T extends AbstractCodedEntity> extends
 	private Double maxRamRatio;
 
 	/**
-	 * Minimal memory in "GiB" = "Gigi Bytes". Required for dynamic instance type.
+	 * Minimal memory in "GiB" = "Gigi Bytes". Required for the dynamic instance types.
 	 */
 	private Double minRam;
 
 	/**
-	 * Maximal memory in "GiB" = "Gigi Bytes". Only valid for dynamic instance type.
+	 * Maximal memory in "GiB" = "Gigi Bytes". Only valid for the dynamic instance types.
 	 */
 	private Double maxRam;
 
@@ -108,41 +108,41 @@ public abstract class AbstractTermPriceVm<T extends AbstractCodedEntity> extends
 	private String license;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested CPU with 100% workload usage. Required for dynamic instance
+	 * The optional monthly CO2 consumption of one requested CPU with 100% workload usage. Required for the dynamic instance
 	 * type.
 	 */
 	@ColumnDefault("0")
 	private double co2Cpu = 0d;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested GPU with 100% workload usage. Required for dynamic instance
-	 * type.
+	 * The optional monthly CO2 consumption of one requested GPU with 100% workload usage. Required for the dynamic instance
+	 * types.
 	 */
 	@ColumnDefault("0")
 	private double co2Gpu = 0d;
 
 	/**
-	 * The optional monthly CO2 consumption of one requested GiB memory with 100% workload usage. Required for dynamic
-	 * instance type.
+	 * The optional monthly CO2 consumption of one requested GiB memory with 100% workload usage. Required for the dynamic
+	 * instance types.
 	 */
 	@ColumnDefault("0")
 	private double co2Ram = 0d;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested CPU with an array of 10% workload usage, from idle to 90%.
-	 * Required for dynamic instance type.
+	 * Required for the dynamic instance types.
 	 */
 	private String co2Cpu10 = null;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GPU with an array of 10% workload usage, from idle to 90%.
-	 * Required for dynamic instance type.
+	 * Required for the dynamic instance types.
 	 */
 	private String co2Gpu10 = null;
 
 	/**
 	 * The optional monthly CO2 consumption of one requested GiB memory with an array of 10% workload usage, from idle
-	 * to 90%. Required for dynamic instance type.
+	 * to 90%. Required for the dynamic instance types.
 	 */
 	private String co2Ram10 = null;
 

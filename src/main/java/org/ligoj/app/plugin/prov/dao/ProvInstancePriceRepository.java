@@ -70,15 +70,16 @@ public interface ProvInstancePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(DYNAMIC_QUERY + """
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
 			VmOs os, int location, double rate, double globalRate, double duration, String license, String software,
-			double initialCost, ProvTenancy tenancy, Pageable pageable);
+			double initialCost, ProvTenancy tenancy, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest instance CO2 configuration from the minimal requirements.
@@ -99,15 +100,16 @@ public interface ProvInstancePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(DYNAMIC_QUERY + """
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double gpu, double ram,
 			VmOs os, int location, double rate, double globalRate, double duration, String license, String software,
-			double initialCost, ProvTenancy tenancy, Pageable pageable);
+			double initialCost, ProvTenancy tenancy, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -124,14 +126,15 @@ public interface ProvInstancePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(LOWEST_QUERY + """
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestCost(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
-			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
+			double duration, String license, String software, double initialCost, ProvTenancy tenancy, boolean p1TypeOnly,
 			Pageable pageable);
 
 	/**
@@ -149,14 +152,15 @@ public interface ProvInstancePriceRepository
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
-	 * @param pageable    The page control to return few item.
-	 * @return The minimum instance price or empty result.
+	 * @param p1TypeOnly  P1 type only (latest available) is requested.
+	 * @param pageable    The page controls to return few items.
+	 * @return The cheapest instance or empty result.
 	 */
 	@Query(LOWEST_QUERY + """
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC, ip.maxCpu ASC
 			""")
 	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, VmOs os, int location, double rate,
-			double duration, String license, String software, double initialCost, ProvTenancy tenancy,
+			double duration, String license, String software, double initialCost, ProvTenancy tenancy, boolean p1TypeOnly,
 			Pageable pageable);
 
 	@CacheResult(cacheName = "prov-instance-os")

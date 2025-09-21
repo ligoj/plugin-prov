@@ -38,7 +38,7 @@ public interface BaseProvQuoteRepository<C extends AbstractQuote<?>> extends Res
 	 * @return The instance quote details with the optional linked instance.
 	 */
 	@Query("""
-			FROM #{#entityName} AS qi
+			SELECT qi FROM #{#entityName} AS qi
 			INNER JOIN FETCH qi.price qsp
 			INNER JOIN FETCH qsp.type
 			LEFT JOIN FETCH qsp.location

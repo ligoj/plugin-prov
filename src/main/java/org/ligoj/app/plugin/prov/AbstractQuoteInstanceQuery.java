@@ -119,6 +119,12 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	private boolean ephemeral;
 
 	/**
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	@QueryParam("p1TypeOnly")
+	private Boolean p1TypeOnly;
+
+	/**
 	 * Optional auto-scaling capability requirement.
 	 */
 	@QueryParam("autoScale")

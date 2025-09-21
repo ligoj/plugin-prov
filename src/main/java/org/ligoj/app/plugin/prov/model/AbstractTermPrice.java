@@ -14,7 +14,7 @@ import org.hibernate.annotations.ColumnDefault;
 import java.io.Serializable;
 
 /**
- * A priced term based resource with billing configuration. <br>
+ * A priced term-based resource with billing configuration. <br>
  * The cost attribute is the corresponding effective monthly cost of this resource. Includes the initial cost to allow
  * quick sort. To compute the remaining monthly cost reduced by the initial cost, the formula is :
  * <code>cost - (initialCost / 24 / 365)</code>.
@@ -23,7 +23,7 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
-@ToString(of = { "term" }, callSuper = true)
+@ToString(of = {"term"}, callSuper = true)
 @MappedSuperclass
 public abstract class AbstractTermPrice<T extends AbstractCodedEntity> extends AbstractPrice<T> implements Serializable {
 
@@ -49,7 +49,7 @@ public abstract class AbstractTermPrice<T extends AbstractCodedEntity> extends A
 	private double co2Period;
 
 	/**
-	 * Billing period duration in month. Any started period is due. When <code>0</code>, this assumes there is a billing
+	 * Billing period duration in month. Any started periods are due. When <code>0</code>, this assumes there is a billing
 	 * period below 1 month. This value is a copy of {@link org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm}}
 	 * <code>period</code> value for performance purpose.
 	 */
@@ -58,5 +58,11 @@ public abstract class AbstractTermPrice<T extends AbstractCodedEntity> extends A
 	@NotNull
 	@ManyToOne
 	private ProvInstancePriceTerm term;
+
+	/**
+	 * Type of the most recent and compatible configuration: same term, and other specific condition properties of this price.
+	 */
+	@ManyToOne
+	private T p1Type;
 
 }

@@ -91,7 +91,7 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 
 	/**
 	 * Efficient baseline CPU workload details.
-	 * 
+	 *
 	 * @see Workload#from(String)
 	 */
 	private String workload;
@@ -112,7 +112,12 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private Boolean edge;
 
 	/**
-	 * The Internet access : Internet facing, etc.
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly;
+
+	/**
+	 * The Internet access: Internet facing, etc.
 	 */
 	@NotNull
 	private InternetAccess internet = InternetAccess.PUBLIC;

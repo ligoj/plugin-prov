@@ -243,10 +243,10 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The update context.
 	 * @param type    The instance type to test.
-	 * @return <code>true</code> when the configuration enable the given instance type.
+	 * @return <code>true</code> when the configuration enables the given instance type.
 	 */
 	protected boolean isEnabledType(final AbstractUpdateContext context, final String type) {
-		return context.getValidInstanceType().matcher(type).matches();
+		return type!= null && context.getValidInstanceType().matcher(type).matches();
 	}
 
 	/**
@@ -265,7 +265,7 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The update context.
 	 * @param type    The database type to test.
-	 * @return <code>true</code> when the configuration enable the given database type.
+	 * @return <code>true</code> when the configuration enables the given database type.
 	 */
 	protected boolean isEnabledDatabaseType(final AbstractUpdateContext context, final String type) {
 		return type != null && context.getValidDatabaseType().matcher(type).matches();
@@ -297,10 +297,10 @@ public abstract class AbstractImportCatalogResource {
 	 *
 	 * @param context The update context.
 	 * @param engine  The engine to test.
-	 * @return <code>true</code> when the configuration enable the given engine.
+	 * @return <code>true</code> when the configuration enables the given engine.
 	 */
 	protected boolean isEnabledEngine(final AbstractUpdateContext context, final String engine) {
-		return context.getValidDatabaseEngine().matcher(engine).matches();
+		return engine != null && context.getValidDatabaseEngine().matcher(engine).matches();
 	}
 
 	/**
@@ -409,7 +409,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param context  The update context.
 	 * @param phase    The new import phase.
 	 * @param location The current region API name.
-	 * @param step     The step counter increment. May be <code>0</code>.
+	 * @param step     The step increment. May be <code>0</code>.
 	 */
 	protected void nextStep(final AbstractUpdateContext context, final String phase, final String location,
 			final int step) {
@@ -422,7 +422,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param node     The node provider.
 	 * @param phase    The new import phase.
 	 * @param location The current region API name.
-	 * @param step     The step counter increment. May be <code>0</code>.
+	 * @param step     The step increment. May be <code>0</code>.
 	 */
 	private void nextStep(final Node node, final String phase, final String location, final int step) {
 		log.info("Next step node={}, phase={}, region={}, step={}", node.getId(), phase, location, step);

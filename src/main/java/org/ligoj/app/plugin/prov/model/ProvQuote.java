@@ -249,6 +249,12 @@ public class ProvQuote extends AbstractDescribedAuditedEntity<Integer>
 	 */
 	private Boolean physical;
 
+
+	/**
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly;
+
 	@Override
 	@JsonIgnore
 	public boolean isUnboundCost() {

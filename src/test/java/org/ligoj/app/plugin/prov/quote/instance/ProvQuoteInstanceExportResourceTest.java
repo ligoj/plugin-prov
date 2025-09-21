@@ -159,7 +159,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 
 		// Import
 		qiuResource.upload(subscription, IOUtils.toString(new ClassPathResource("csv/upload/upload-with-headers.csv").getInputStream(), StandardCharsets.UTF_8),
-				null, true, "Full Time 12 month", null, null, MergeMode.KEEP, 1, false, DEFAULT_ENCODING, false, false, false, DEFAULT_SEPARATOR);
+				null, "true", "Full Time 12 month", null, null, "KEEP", "1", "false", DEFAULT_ENCODING, "false", "false", "false", DEFAULT_SEPARATOR);
 		em.flush();
 		em.clear();
 		resource.refresh(subscription);
