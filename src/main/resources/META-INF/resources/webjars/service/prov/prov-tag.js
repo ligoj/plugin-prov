@@ -174,10 +174,10 @@ define(['jquery'], function ($) {
 							let i = 0;
 							if (tModel) {
 								// Update the model
-								tModel = tModel[tag.type][resource.id];
-								for (i = 0; i < tModel.length; i++) {
-									if (tModel[i].id === tag.id) {
-										tModel.splice(i, 1);
+								const ttModel = tModel[uType][resource.id];
+								for (i = 0; i < ttModel.length; i++) {
+									if (ttModel[i].id === tag.id) {
+										ttModel.splice(i, 1);
 										break;
 									}
 								}
