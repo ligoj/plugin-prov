@@ -4802,7 +4802,7 @@ define(['sparkline', 'd3'], function () {
 				},
 				columns: columns.concat([{
 					className: 'truncate',
-					width: '48px',
+					width: '64px',
 					type: 'num',
 					render: formatCpu
 				}, {
