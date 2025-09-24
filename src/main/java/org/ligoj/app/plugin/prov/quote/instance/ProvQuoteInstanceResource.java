@@ -133,7 +133,7 @@ public class ProvQuoteInstanceResource extends
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), canByol(os)));
 		final var softwareR = normalize(query.getSoftware());
 		final var tenancyR = ObjectUtils.getIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		if (optimizer == Optimizer.CO2) {
@@ -153,7 +153,7 @@ public class ProvQuoteInstanceResource extends
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), canByol(os)));
 		final var softwareR = normalize(query.getSoftware());
 		final var tenancyR = ObjectUtils.getIfNull(query.getTenancy(), ProvTenancy.SHARED);
 		if (optimizer == Optimizer.CO2) {

@@ -523,9 +523,15 @@ public class ProvQuoteUploadResource {
 			final var merger = mergersInstance.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
 					createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
-			vo.setPrice(
-					qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
-			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
+			if (i.getCpu() > 0) {
+				vo.setPrice(
+						qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
+				persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
+			} else if (!i.getDisk().isEmpty()) {
+				persist(i, subscription, null, context, vo, null, null);
+			} else {
+				log.warn("Ignored entry {}, unable to guess the type", i.getName());
+			}
 		}
 
 		// Update the cursor
@@ -606,9 +612,9 @@ public class ProvQuoteUploadResource {
 			final ObjIntConsumer<QuoteStorageEditionVo> diskConsumer, final ResourceType resourceType) {
 
 		// Create the quote instance from the validated inputs
-		final var id = merger.apply(vo, context);
+		final var id = merger == null ? null : merger.apply(vo, context);
 
-		if (id == null) {
+		if (merger != null && id == null) {
 			// Do not continue
 			return;
 		}
@@ -622,7 +628,10 @@ public class ProvQuoteUploadResource {
 					// Size is provided, propagate the upload properties
 					final var svo = new QuoteStorageEditionVo();
 					svo.setName(vo.getName() + (index == 0 ? "" : index));
-					diskConsumer.accept(svo, id);
+
+					if (id != null) {
+						diskConsumer.accept(svo, id);
+					}
 					svo.setSize(size);
 					svo.setSizeMax(sizeMax);
 					svo.setLatency(getItem(upload.getLatency(), index));
@@ -646,9 +655,12 @@ public class ProvQuoteUploadResource {
 					final var parts = StringUtils.splitPreserveAllTokens(t + ":", ':');
 					tag.setName(parts[0].trim());
 					tag.setValue(StringUtils.trimToNull(parts[1]));
-					tag.setResource(id);
-					tag.setType(resourceType);
-					tagResource.create(subscription, tag);
+
+					if (id != null) {
+						tag.setResource(id);
+						tag.setType(resourceType);
+						tagResource.create(subscription, tag);
+					}
 
 					// Storage tags
 					tag.setType(ResourceType.STORAGE);

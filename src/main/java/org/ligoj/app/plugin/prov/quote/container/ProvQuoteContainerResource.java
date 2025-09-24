@@ -122,7 +122,7 @@ public class ProvQuoteContainerResource extends
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), canByol(os)));
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestCo2(types, terms, os, location, rate, duration, licenseR, initialCost, p1TypeOnly,
 					PageRequest.of(0, 1));
@@ -140,7 +140,7 @@ public class ProvQuoteContainerResource extends
 		// Resolve the right OS
 		final var os = service.getCatalogOs(query.getOs());
 		// Resolve the right license model
-		final var licenseR = normalize(getLicense(configuration, query.getLicense(), os, this::canByol));
+		final var licenseR = normalize(getLicense(configuration, query.getLicense(), canByol(os)));
 		if (optimizer == Optimizer.CO2) {
 			return ipRepository.findLowestDynamicCo2(types, terms, Math.ceil(Math.max(1, cpu)), gpu,
 					Math.ceil(round(ram / 1024)), os, location, rate, round(rate * duration), duration, licenseR,

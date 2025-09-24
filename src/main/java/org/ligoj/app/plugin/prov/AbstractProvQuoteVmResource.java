@@ -562,15 +562,12 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 *
 	 * @param configuration Configuration containing the default values.
 	 * @param license       The quote license value. May be <code>null</code>.
-	 * @param key           The criteria used to evaluate the license <code>null</code> value.
-	 * @param canByol       The predicate evaluating the key when the given license is <code>null</code>
-	 * @param <K>           The key type.
+	 * @param canByol       The criteria used to evaluate the license <code>null</code> value.
 	 * @return The human-readable license value.
 	 */
-	protected <K> String getLicense(final ProvQuote configuration, final String license, final K key,
-			Predicate<K> canByol) {
+	protected String getLicense(final ProvQuote configuration, final String license, final boolean canByol) {
 		var licenseR = license;
-		if (license == null && canByol.test(key)) {
+		if (license == null && canByol) {
 			// Dual license modes are managed only for WINDOWS OS for now
 			licenseR = configuration.getLicense();
 		}

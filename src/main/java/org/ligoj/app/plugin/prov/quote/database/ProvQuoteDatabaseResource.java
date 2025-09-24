@@ -150,7 +150,7 @@ public class ProvQuoteDatabaseResource extends
 			final List<Integer> types, final List<Integer> terms, final int location, final double rate,
 			final double duration, final double initialCost, final Optimizer optimizer, final boolean p1TypeOnly) {
 		// Resolve the right license model
-		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final var licenseR = getLicense(configuration, query.getLicense(), canByol(query.getEngine()));
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		if (optimizer == Optimizer.CO2) {
@@ -166,7 +166,7 @@ public class ProvQuoteDatabaseResource extends
 			final List<Integer> types, final List<Integer> terms, final double cpu, final double gpu, final double ram,
 			final int location, final double rate, final int duration, final double initialCost,
 			final Optimizer optimizer, final boolean p1TypeOnly) {
-		final var licenseR = getLicense(configuration, query.getLicense(), query.getEngine(), this::canByol);
+		final var licenseR = getLicense(configuration, query.getLicense(), canByol(query.getEngine()));
 		final var engineR = normalize(query.getEngine());
 		final var editionR = normalize(query.getEdition());
 		if (optimizer == Optimizer.CO2) {
