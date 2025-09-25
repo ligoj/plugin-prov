@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * The resource part of the provisioning of a VM like type.
