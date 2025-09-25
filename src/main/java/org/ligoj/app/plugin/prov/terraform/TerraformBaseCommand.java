@@ -34,7 +34,7 @@ public class TerraformBaseCommand implements TerraformAction {
 	/**
 	 * Pattern filtering the row corresponding to a state entry.
 	 */
-	private static final Pattern STATE_CHANGE = Pattern.compile("^[^\\s]+$");
+	private static final Pattern STATE_CHANGE = Pattern.compile("^\\S+$");
 
 	@Autowired
 	protected TerraformUtils utils;
