@@ -78,6 +78,7 @@ public class ProvQuoteUploadResource {
 	private static final List<String> ACCEPTED_HEADERS = List.of("name:(host(name)?|nom)", "cpu:(vcpu|core|process(o|eu)r)s?",
 			"gpu:gpu", "ram:memory", "workload:workload", "physical:metal", "os:(system|operating[ -_]?system)",
 			"disk:(storage|size|disque|scheibe)", "latency:(disk|storage|disque|scheibe)latency", "optimized:(disk|storage|disque|scheibe)?optimized",
+			"resourceType:resourceType",
 			"type:(instance|vm)[-_ ]?type", "internet:public", "minQuantity:(min[-_ ]?(quantity)?|quantity[-_ ]?min)",
 			"maxQuantity:(max[-_ ]?(quantity)?|quantity[-_ ]?max)", "maxVariableCost:max[-_ ]?(variable)?[-_ ]?cost",
 			"ephemeral:preemptive", "location:region", "usage:(use|env|environment)", "budget:(finops|capex|upfront)",
@@ -127,6 +128,10 @@ public class ProvQuoteUploadResource {
 
 	@Autowired
 	private ProvQuoteInstanceRepository qiRepository;
+
+	@Autowired
+	private ProvQuoteContainerRepository qcRepository;
+
 	@Autowired
 	private ProvQuoteDatabaseRepository qbRepository;
 
@@ -456,8 +461,11 @@ public class ProvQuoteUploadResource {
 		final var cursor = new AtomicInteger(0);
 		final var previousQi = qiRepository.findAll(quote).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteInstance::getName, Function.identity()));
+		final var previousQc = qcRepository.findAll(quote).stream()
+				.collect(Collectors.toConcurrentMap(ProvQuoteContainer::getName, Function.identity()));
 		final var previousQb = qbRepository.findAll(quote).stream()
 				.collect(Collectors.toConcurrentMap(ProvQuoteDatabase::getName, Function.identity()));
+
 
 		// Initialization for parallel processes
 		Hibernate.initialize(quote.getUsages());
@@ -467,6 +475,7 @@ public class ProvQuoteUploadResource {
 		context.quote = quote;
 		context.previousQi = previousQi;
 		context.previousQb = previousQb;
+		context.previousQc = previousQc;
 		list.stream().filter(Objects::nonNull).filter(i -> i.getName() != null).forEach(i -> {
 			try {
 				persist(subscription, defaultUsage, defaultBudget, defaultOptimizer, mode, ramMultiplier, list.size(),
