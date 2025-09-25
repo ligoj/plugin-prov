@@ -49,6 +49,14 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	public static final ProvUsage USAGE_DEFAULT = new ProvUsage();
 
 	/**
+	 * This factor determines the maximum ratio between the requested resources and the maximal eligible resources.
+	 * For sample, if the request is '3 vCPU/1GiB RAM', then subset of types will be below '30 vCPU/10 GiB RAM'.
+	 * <p>
+	 * This a performance option: Increased factor reduces the performance and the risk of having fewer valid instance types for exotic requests like '32 vCPU/1 GiB RAM'
+	 */
+	public static final int MAX_FACTOR = 5;
+
+	/**
 	 * The default budget : no initial cost.
 	 */
 	protected static final ProvBudget BUDGET_DEFAULT = new ProvBudget();
@@ -615,7 +623,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var start = System.currentTimeMillis();
 		var moreExecution = false;
 
-		var lookup = this.lookup(configuration, query, maxPeriod, 10);
+		var lookup = this.lookup(configuration, query, maxPeriod, MAX_FACTOR);
 		if (lookup == null) {
 			// Another wider lookup
 			moreExecution = true;
@@ -792,7 +800,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	@SuppressWarnings("unchecked")
 	private P validateLookup(final C qi) {
-		return validateLookup(getType().name().toLowerCase(), lookup(qi.getConfiguration(), (Q) qi), qi.getName());
+		return validateLookup(getType(), lookup(qi.getConfiguration(), (Q) qi), qi.getName());
 	}
 
 	/**

@@ -122,7 +122,9 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	 * Optional P1 type only (latest available) is requested.
 	 */
 	@QueryParam("p1TypeOnly")
-	private Boolean p1TypeOnly;
+	@DefaultValue(value = "0")
+	@Builder.Default
+	private Boolean p1TypeOnly = false;
 
 	/**
 	 * Optional auto-scaling capability requirement.

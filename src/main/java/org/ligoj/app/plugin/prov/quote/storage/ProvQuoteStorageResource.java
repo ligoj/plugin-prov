@@ -118,7 +118,7 @@ public class ProvQuoteStorageResource
 		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
-		qs.setPrice(validateLookup("storage", lookup(quote, qs).stream().findFirst().orElse(null), qs.getName()));
+		qs.setPrice(validateLookup(ResourceType.STORAGE, lookup(quote, qs).stream().findFirst().orElse(null), qs.getName()));
 		return updateCost(qs);
 	}
 

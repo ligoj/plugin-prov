@@ -74,9 +74,8 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 	 * @return The matching instance types.
 	 */
 	@Query(BASE_CRITERIA + """
-			  AND (cpu BETWEEN :cpu AND :limitCpu)
-			  AND (ram BETWEEN :ram AND :limitRam)
-			  AND (:gpu=0.0 OR (gpu IS NOT NULL AND (gpu BETWEEN :gpu AND :limitGpu) AND gpuRate >= :gpuRate))
+			  AND (cpu >= :cpu AND ram >= :ram AND (:gpu=0.0 OR (gpu IS NOT NULL AND gpu >= :gpu AND gpuRate >= :gpuRate))) 
+			  AND ((cpu <= :limitCpu OR ram <= :limitRam) AND (:gpu=0.0 OR (gpu IS NOT NULL AND gpu <= :limitGpu)))
 			""")
 	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu, double limitRam,
 			double limitGpu, double baseline, boolean physical, int type, String processor, boolean autoScale,

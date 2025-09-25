@@ -98,7 +98,7 @@ public class ProvQuoteSupportResource
 		final var quote = qs.getConfiguration();
 
 		// Find the lowest price
-		qs.setPrice(validateLookup("support-plan", lookup(quote, qs.getSeats(), qs.getAccessApi(), qs.getAccessEmail(),
+		qs.setPrice(validateLookup(ResourceType.SUPPORT, lookup(quote, qs.getSeats(), qs.getAccessApi(), qs.getAccessEmail(),
 				qs.getAccessChat(), qs.getAccessPhone(), qs.getLevel()).stream().findFirst().orElse(null),
 				qs.getName()));
 		return updateCost(qs).round();

@@ -9,12 +9,7 @@ import java.util.List;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 
-import org.ligoj.app.plugin.prov.model.AbstractProvTag;
-import org.ligoj.app.plugin.prov.model.InternetAccess;
-import org.ligoj.app.plugin.prov.model.ProvStorageOptimized;
-import org.ligoj.app.plugin.prov.model.ProvTenancy;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.model.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -222,4 +217,9 @@ public class VmUpload {
 	 */
 	@Pattern(regexp = "^(" + FULL_TAG + ")*$")
 	private String tags;
+
+	/**
+	 * Imported resource type. By default, the type is guess from the presence of disk and or engine properties.
+	 */
+	private ResourceType resourceType;
 }

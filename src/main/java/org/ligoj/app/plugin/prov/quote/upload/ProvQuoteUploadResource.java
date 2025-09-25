@@ -22,6 +22,8 @@ import org.hibernate.Hibernate;
 import org.ligoj.app.plugin.prov.*;
 import org.ligoj.app.plugin.prov.dao.*;
 import org.ligoj.app.plugin.prov.model.*;
+import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
+import org.ligoj.app.plugin.prov.quote.container.QuoteContainerEditionVo;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
 import org.ligoj.app.plugin.prov.quote.database.QuoteDatabaseEditionVo;
 import org.ligoj.app.plugin.prov.quote.instance.ProvQuoteInstanceResource;
@@ -115,6 +117,9 @@ public class ProvQuoteUploadResource {
 	private ProvQuoteInstanceResource qiResource;
 
 	@Autowired
+	private ProvQuoteContainerResource qcResource;
+
+	@Autowired
 	private ProvQuoteDatabaseResource qbResource;
 
 	@Autowired
@@ -129,12 +134,18 @@ public class ProvQuoteUploadResource {
 	private final Map<MergeMode, BiFunction<QuoteInstanceEditionVo, UploadContext, Integer>> mergersInstance = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
 
+	// Container merger
+	private final Map<MergeMode, BiFunction<QuoteContainerEditionVo, UploadContext, Integer>> mergersContainer = Map
+			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
+
 	// Database merger
 	private final Map<MergeMode, BiFunction<QuoteDatabaseEditionVo, UploadContext, Integer>> mergersDatabase = Map
 			.of(MergeMode.INSERT, this::modeInsert, MergeMode.KEEP, this::modeKeep, MergeMode.UPDATE, this::modeUpdate);
 
+
 	private static class UploadContext {
 		private Map<String, ProvQuoteInstance> previousQi;
+		private Map<String, ProvQuoteContainer> previousQc;
 		private Map<String, ProvQuoteDatabase> previousQb;
 		private ProvQuote quote;
 	}
@@ -152,6 +163,21 @@ public class ProvQuoteUploadResource {
 		qi.setId(qiResource.saveOrUpdate(context.quote, qi, vo).getId());
 		vo.setId(qi.getId());
 		return qi.getId();
+	}
+
+	/**
+	 * Insert mode.
+	 */
+	private Integer modeInsert(final QuoteContainerEditionVo vo, final UploadContext context) {
+		// Reserve this name
+		var qc = new ProvQuoteContainer();
+		if (context.previousQc.containsKey(vo.getName())) {
+			throw new DataIntegrityViolationException("name");
+		}
+		context.previousQc.put(vo.getName(), qc);
+		qc.setId(qcResource.saveOrUpdate(context.quote, qc, vo).getId());
+		vo.setId(qc.getId());
+		return qc.getId();
 	}
 
 	/**
@@ -187,6 +213,14 @@ public class ProvQuoteUploadResource {
 	/**
 	 * Keep mode.
 	 */
+	private Integer modeKeep(final QuoteContainerEditionVo vo, final UploadContext context) {
+		nextName(vo, context.previousQc);
+		return modeInsert(vo, context);
+	}
+
+	/**
+	 * Keep mode.
+	 */
 	private Integer modeKeep(final QuoteDatabaseEditionVo vo, final UploadContext context) {
 		nextName(vo, context.previousQb);
 		return modeInsert(vo, context);
@@ -203,6 +237,20 @@ public class ProvQuoteUploadResource {
 		// Update the previous entity
 		vo.setId(qi.getId());
 		qiResource.saveOrUpdate(context.quote, qi, vo);
+		return null;
+	}
+
+	/**
+	 * Update mode.
+	 */
+	private Integer modeUpdate(final QuoteContainerEditionVo vo, final UploadContext context) {
+		final var qc = context.previousQc.get(vo.getName());
+		if (qc == null) {
+			return modeInsert(vo, context);
+		}
+		// Update the previous entity
+		vo.setId(qc.getId());
+		qcResource.saveOrUpdate(context.quote, qc, vo);
 		return null;
 	}
 
@@ -489,13 +537,21 @@ public class ProvQuoteUploadResource {
 
 	private QuoteInstanceEditionVo newInstanceVo(final VmUpload upload) {
 		final var vo = new QuoteInstanceEditionVo();
-		vo.setMaxVariableCost(upload.getMaxVariableCost());
-		vo.setOs(upload.getOs());
-		vo.setLicense(Optional.ofNullable(upload.getLicense()).map(StringUtils::upperCase).orElse(null));
+		copy(upload, vo);
 		vo.setSoftware(upload.getSoftware());
 		vo.setTenancy(upload.getTenancy());
-		vo.setEphemeral(upload.isEphemeral());
 		return vo;
+	}
+
+	private QuoteContainerEditionVo newContainerVo(final VmUpload upload) {
+		final var vo = new QuoteContainerEditionVo();
+		copy(upload, vo);
+		return vo;
+	}
+
+	private void copy(final VmUpload upload, final AbstractQuoteInstanceOsEditionVo vo) {
+		vo.setMaxVariableCost(upload.getMaxVariableCost());
+		vo.setOs(upload.getOs());
 	}
 
 	private QuoteDatabaseEditionVo newDatabaseVo(final VmUpload upload) {
@@ -510,24 +566,36 @@ public class ProvQuoteUploadResource {
 			final AtomicInteger cursor, final UploadContext context, final boolean createUsage,
 			final boolean createBudget, final boolean createOptimizer, final VmUpload i) {
 
-		if (StringUtils.isNotEmpty(i.getEngine())) {
+		if (StringUtils.isNotEmpty(i.getEngine()) || i.getResourceType() == ResourceType.DATABASE) {
 			// Database case
 			final var merger = mergersDatabase.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
 			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
 					createUsage, createBudget, createOptimizer, i, newDatabaseVo(i));
 			vo.setPrice(
-					qbResource.validateLookup("database", qbResource.lookup(context.quote, vo), vo.getName()).getId());
+					qbResource.validateLookup(ResourceType.DATABASE, qbResource.lookup(context.quote, vo), vo.getName()).getId());
 			persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setDatabase, ResourceType.DATABASE);
 		} else {
-			// Instance/Container case
-			final var merger = mergersInstance.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
-			final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
-					createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
+			// Instance/Container case with optionally disks
 			if (i.getCpu() > 0) {
-				vo.setPrice(
-						qiResource.validateLookup("instance", qiResource.lookup(context.quote, vo), vo.getName()).getId());
-				persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
+				if (i.getResourceType() == ResourceType.CONTAINER) {
+					final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
+							createUsage, createBudget, createOptimizer, i, newContainerVo(i));
+					final var merger = mergersContainer.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
+					vo.setPrice(
+							qcResource.validateLookup(ResourceType.CONTAINER, qcResource.lookup(context.quote, vo), vo.getName()).getId());
+					persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setContainer, ResourceType.CONTAINER);
+				} else {
+					final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
+							createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
+					final var merger = mergersInstance.get(ObjectUtils.getIfNull(mode, MergeMode.KEEP));
+					vo.setPrice(
+							qiResource.validateLookup(ResourceType.INSTANCE, qiResource.lookup(context.quote, vo), vo.getName()).getId());
+					persist(i, subscription, merger, context, vo, QuoteStorageEditionVo::setInstance, ResourceType.INSTANCE);
+				}
 			} else if (!i.getDisk().isEmpty()) {
+				// Disk only
+				final var vo = copy(subscription, context, defaultUsage, defaultBudget, defaultOptimizer, ramMultiplier,
+						createUsage, createBudget, createOptimizer, i, newInstanceVo(i));
 				persist(i, subscription, null, context, vo, null, null);
 			} else {
 				log.warn("Ignored entry {}, unable to guess the type", i.getName());

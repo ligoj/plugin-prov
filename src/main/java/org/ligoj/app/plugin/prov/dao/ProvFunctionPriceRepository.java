@@ -62,7 +62,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.costRequests
 			  	  * CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			 ) AS totalCost,
-
+			
 			    (  CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			     * (  ip.cost
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
@@ -103,7 +103,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			    )
 			    )
 			  + ( :nbRequests * ip.costRequests ) AS monthlyCost,
-
+			
 			    (  CASE WHEN ip.period = 0 THEN CAST(:globalRate AS Double) ELSE (ip.period * CEIL(:duration / ip.period)) END
 			     * (  ip.co2
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
@@ -149,7 +149,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			     * ip.co2Requests
 			  	  * CASE WHEN ip.period = 0 THEN :duration ELSE (ip.period * CEIL(:duration / ip.period)) END
 			 ) AS totalCo2,
-
+			
 			    (  CASE WHEN ip.period = 0 THEN CAST(:rate AS Double) ELSE CAST(:rateFull AS Double) END
 			     * (  ip.co2
 			        + (  CEIL(GREATEST(ip.minCpu, :cpu) / ip.incrementCpu)
@@ -190,7 +190,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			    )
 			    )
 			  + ( :nbRequests * ip.co2Requests ) AS monthlyCo2
-
+			
 			FROM ProvFunctionPrice ip WHERE
 			     ip.location.id = :location
 			 AND ip.incrementCpu IS NOT NULL
@@ -202,6 +202,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			 AND (ip.costRamRequestConcurrency = 0.0 AND :reservedConcurrency = 0.0 OR ip.costRamRequestConcurrency > 0.0 AND :reservedConcurrency > 0.0)
 			 AND (ip.initialCost IS NULL OR :initialCost >= ip.initialCost)
 			 AND (ip.type.id IN :types) AND (ip.term.id IN :terms)
+			 AND (ip.p1Type IS NULL OR :p1TypeOnly = FALSE)
 			""";
 
 	String LOWEST_QUERY = BaseProvTermPriceRepository.LOWEST_QUERY_TERM + """
@@ -227,6 +228,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param requestDuration     Average duration of a single request in milliseconds.
 	 * @param concurrencyMonth    Constant value. Milliseconds per month per million requests.
 	 * @param rateFull            Rate corresponding to full usage. Usually <code>1.0</code>.
+	 * @param p1TypeOnly          P1 type only (latest available) is requested.
 	 * @param pageable            The page control to return few item.
 	 * @return The cheapest price or empty result.
 	 */
@@ -236,7 +238,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	List<Object[]> findLowestDynamicCost(List<Integer> types, List<Integer> terms, double cpu, double ram, int location,
 			double rate, double globalRate, double duration, double initialCost, double nbRequests,
 			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
-			double rateFull, Pageable pageable);
+			double rateFull, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest instance CO2 configuration from the minimal requirements.
@@ -257,6 +259,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param requestDuration     Average duration of a single request in milliseconds.
 	 * @param concurrencyMonth    Constant value. Milliseconds per month per million requests.
 	 * @param rateFull            Rate corresponding to full usage. Usually <code>1.0</code>.
+	 * @param p1TypeOnly          P1 type only (latest available) is requested.
 	 * @param pageable            The page control to return few item.
 	 * @return The cheapest price or empty result.
 	 */
@@ -266,7 +269,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	List<Object[]> findLowestDynamicCo2(List<Integer> types, List<Integer> terms, double cpu, double ram, int location,
 			double rate, double globalRate, double duration, double initialCost, double nbRequests,
 			double realConcurrency, double reservedConcurrency, double requestDuration, double concurrencyMonth,
-			double rateFull, Pageable pageable);
+			double rateFull, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -279,6 +282,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
+	 * @param p1TypeOnly      P1 type only (latest available) is requested.
 	 * @param pageable        The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -286,7 +290,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  ORDER BY totalCost ASC, totalCo2 ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCost(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable);
+			double initialCost, double requestDuration, boolean p1TypeOnly, Pageable pageable);
 
 	/**
 	 * Return the lowest instance price configuration from the minimal requirements.
@@ -299,6 +303,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 	 * @param duration        The duration in month. Minimum is 1.
 	 * @param initialCost     The maximal initial cost.
 	 * @param requestDuration Average duration of a single request in milliseconds.
+	 * @param p1TypeOnly      P1 type only (latest available) is requested.
 	 * @param pageable        The page control to return few item.
 	 * @return The minimum instance price or empty result.
 	 */
@@ -306,7 +311,7 @@ public interface ProvFunctionPriceRepository extends BaseProvTermPriceRepository
 			  ORDER BY totalCo2 ASC, totalCost ASC, ip.type.id DESC
 			""")
 	List<Object[]> findLowestCo2(List<Integer> types, List<Integer> terms, int location, double rate, double duration,
-			double initialCost, double requestDuration, Pageable pageable);
+			double initialCost, double requestDuration, boolean p1TypeOnly, Pageable pageable);
 
 	@Override
 	@Query("SELECT COUNT(id) FROM ProvFunctionPrice WHERE type.node.id = :node AND (co2 > 0 OR co2Requests > 0 OR co2Cpu > 0)")

@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -17,16 +18,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
@@ -116,4 +108,24 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 		utils.configuration = configuration;
 		return utils;
 	}
+
+	/**
+	 * Return a new runner without internal transaction.
+	 */
+	protected TerraformRunnerResource newRunnerSync() {
+		return new TerraformRunnerResource() {
+
+			@Override
+			public TerraformStatus nextStep(final String lockedId, final Consumer<TerraformStatus> stepper) {
+				return nextStepInternal(lockedId, stepper);
+			}
+
+			@Override
+			public TerraformStatus startTask(final String lockedId, final Consumer<TerraformStatus> initializer) {
+				return startTaskInternal(lockedId, initializer);
+			}
+		};
+
+	}
+
 }
