@@ -47,9 +47,9 @@ public abstract class AbstractCostedResource<T extends AbstractCodedEntity, P ex
 	 * @param context      The key identifier of the lookup. Will be used to generate the error when not found.
 	 * @return The price of the not <code>null</code> lookup. Never <code>null</code>.
 	 */
-	public P validateLookup(final String resourceType, final AbstractLookup<P> lookup, final String context) {
+	public P validateLookup(final ResourceType resourceType, final AbstractLookup<P> lookup, final String context) {
 		if (lookup == null) {
-			throw new ValidationJsonException(resourceType, "no-match-" + resourceType, "resource", context);
+			throw new ValidationJsonException(resourceType.name().toLowerCase(), "no-match-" + resourceType, "resource", context);
 		}
 		return lookup.getPrice();
 	}
@@ -80,7 +80,9 @@ public abstract class AbstractCostedResource<T extends AbstractCodedEntity, P ex
 		});
 
 		// Callback before the deletion
-		callback.accept(entity);
+		if (callback != null) {
+			callback.accept(entity);
+		}
 
 		// Delete the entity
 		repository.deleteById(id);

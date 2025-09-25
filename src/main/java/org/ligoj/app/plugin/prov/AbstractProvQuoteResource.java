@@ -13,8 +13,6 @@ import org.ligoj.bootstrap.core.IDescribableBean;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.function.Function;
-
 /**
  * The resource part of the provisioning.
  *
@@ -114,8 +112,7 @@ public abstract class AbstractProvQuoteResource<T extends AbstractCodedEntity, P
 	protected UpdatedCost delete(final int id) {
 		tagResource.onDelete(getType(), id);
 		networkResource.onDelete(getType(), id);
-		return resource.refreshSupportCost(new UpdatedCost(id),
-				deleteAndUpdateCost(getQiRepository(), id, Function.identity()::apply));
+		return resource.refreshSupportCost(new UpdatedCost(id), deleteAndUpdateCost(getQiRepository(), id, null));
 	}
 
 	/**
