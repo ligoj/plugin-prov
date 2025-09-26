@@ -237,7 +237,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				lines.get(20));
 
 		// Storage data
-		Assertions.assertEquals("server1-data;;;;;;;;;;;;;;;;;;;;storage2;;;155,6;;10;;server1;;MEDIUM;THROUGHPUT",
+		Assertions.assertEquals("server1-data;;;;;;;;;;;;;2;10;;;;;;storage2;;;155,6;;10;;server1;;MEDIUM;THROUGHPUT",
 				lines.get(25));
 
 		// Support data

@@ -234,8 +234,11 @@ public class ProvQuoteInstanceExportResource {
 
 				// Write quote storages
 				final var sTags = vo.getTags().get(ResourceType.STORAGE);
-				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;%s;;;;;;;%s;;" + ";%s".repeat(8),
-						toString(qs), toString(qs.getLocation()), toType(qs), toString(qs.getCost()),
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;%s;%s;;;;;;%s;;" + ";%s".repeat(8),
+						toString(qs), toString(qs.getLocation()),
+						toString(qs.getQuoteResource() == null ? "" : qs.getQuoteResource().getMinQuantity()),
+						toString(qs.getQuoteResource() == null ? "" : qs.getQuoteResource().getMaxQuantity()),
+						toType(qs), toString(qs.getCost()),
 						toString(qs, sTags), qs.getSize(), toString(qs.getSizeMax()), toString(qs.getQuoteInstance()),
 						toString(qs.getQuoteDatabase()), toString(qs.getLatency()), toString(qs.getOptimized())));
 
