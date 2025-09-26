@@ -49,7 +49,7 @@ public abstract class AbstractCostedResource<T extends AbstractCodedEntity, P ex
 	 */
 	public P validateLookup(final ResourceType resourceType, final AbstractLookup<P> lookup, final String context) {
 		if (lookup == null) {
-			throw new ValidationJsonException(resourceType.name().toLowerCase(), "no-match-" + resourceType, "resource", context);
+			throw new ValidationJsonException(resourceType.name().toLowerCase(), "no-match-" + resourceType.name().toLowerCase(), "resource", context);
 		}
 		return lookup.getPrice();
 	}
