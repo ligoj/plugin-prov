@@ -59,7 +59,7 @@ define(function () {
 					class: 'hidden-sm',
 					data: 'description'
 				}, {
-					width: '32px',
+					width: '48px',
 					data: 'unit',
 				}, {
 					width: '32px',
@@ -71,7 +71,7 @@ define(function () {
 					width: '16px'
 				}, {
 					data: null,
-					width: '32px',
+					width: '48px',
 					orderable: false,
 					render: function (_i, _j, data) {
 						let result = '';

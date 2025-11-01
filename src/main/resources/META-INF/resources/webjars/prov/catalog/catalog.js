@@ -307,7 +307,7 @@ define(['sparkline'], function () {
 				}, {
 					data: 'status.nbCo2Prices',
 					type: 'num',
-					width: '32px',
+					width: '48px',
 					render: {
 					    display: (data, mode, object) => data && object?.status?.nbPrices ? `${Math.round(data / object.status.nbPrices * 1_000) / 10}%` : '',
                         _: (data, mode, object) => data && object?.status?.nbPrices ? data / object.status.nbPrices : 0
@@ -322,7 +322,7 @@ define(['sparkline'], function () {
 					}
 				}, {
 					data: null,
-					width: '32px',
+					width: '48px',
 					orderable: false,
 					render: function (_i, _j, catalog) {
 						if (catalog.canImport) {
