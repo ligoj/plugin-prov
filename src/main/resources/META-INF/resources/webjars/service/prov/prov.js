@@ -2863,7 +2863,7 @@ define(['sparkline', 'd3'], function () {
 			})
 
 			// render the dashboard
-			current.$super('requireTool')(current.$parent, current.model.node.id, function ($tool) {
+			current.$main.requireTool(current.$parent, current.model.node.id, function ($tool) {
 				const $dashboard = _('prov-terraform-status').find('.terraform-dashboard');
 				if ($tool?.dashboardLink) {
 					$dashboard.removeClass('hidden').find('a').attr('href', $tool.dashboardLink(current.model));
