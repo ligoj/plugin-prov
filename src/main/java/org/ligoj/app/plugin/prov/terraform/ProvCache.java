@@ -45,7 +45,7 @@ public class ProvCache implements CacheManagerAware {
 				"prov-function-type", "prov-function-type-dyn", "prov-function-type-has-dyn", "prov-function-has-co2");
 		createCache(cacheManager, provider, "prov-processor", "prov-instance-software", "prov-instance-license",
 				"prov-instance-os", "prov-database-engine", "prov-database-edition", "prov-database-license",
-				"prov-container-license", "prov-container-os");
+				"prov-container-license", "prov-container-os", "prov-architecture");
 
 	}
 

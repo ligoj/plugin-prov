@@ -274,17 +274,14 @@ img.flag-icon.prov-location-flag {
 }
 .select2-addon {
   position: absolute;
-  top: 9px;
-  right: 14px;
-  width: 24px;
+  top: 2px;
+  right: 9px;
   text-align: center;
 }
 .select2-addon .btn {
   padding-left: 8px;
   padding-right: 8px;
   margin: 0;
-  top: -8px;
-  left: 5px;
 }
 
 #prov-terraform-status .progress {
@@ -586,7 +583,7 @@ i.icon.mdi-expansion-card {
 	top: -44px;
 }
 .input-help .efficiency {
-  left: -14px;
+  left: -17px;
   top: 18px;
 }
 

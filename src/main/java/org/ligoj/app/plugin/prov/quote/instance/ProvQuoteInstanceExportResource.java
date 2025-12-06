@@ -89,9 +89,9 @@ public class ProvQuoteInstanceExportResource {
 						.mapToInt(qsBy -> qsBy.values().stream().mapToInt(List::size).max().orElse(0)).max().orElse(0);
 
 				// Minimal headers
-				writer.format("%s" + ";%s".repeat(34), "resource-type", "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram",
+				writer.format("%s" + ";%s".repeat(35), "resource-type", "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram",
 						"ramMax", "os", "usage", "budget", "optimizer", "term", "location", "min", "max",
-						"maxVariableCost", "workload", "processor", "physical", "ephemeral", "type", "engine",
+						"maxVariableCost", "workload", "processor", "architecture", "physical", "ephemeral", "type", "engine",
 						"edition", "internet", "license", "cost", "tags", "disk", "diskMax", "diskType", "diskLatency",
 						"diskOptimized", "diskCost", "diskTags");
 
@@ -102,12 +102,13 @@ public class ProvQuoteInstanceExportResource {
 								i, i, i, i, i, i));
 				vo.getInstances().forEach(qi -> {
 					// Write quote instance
-					writer.format("\n%s" + ";%s".repeat(27), ResourceType.INSTANCE, toString(qi), toString(qi.getCpu()),
+					writer.format("\n%s" + ";%s".repeat(28), ResourceType.INSTANCE, toString(qi), toString(qi.getCpu()),
 							toString(qi.getCpuMax()), toString(qi.getGpu()), toString(qi.getGpuMax()),
 							toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(), toString(qi.getUsage()),
 							toString(qi.getBudget()), toString(qi.getOptimizer()), toString(qi.getPrice().getTerm()),
 							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()),
 							toString(qi.getMaxVariableCost()), toString(qi.getWorkload()), toString(qi.getProcessor()),
+							toString(qi.getArchitecture()),
 							toString(qi.getPhysical()), qi.isEphemeral(), toType(qi), "", "", qi.getInternet(),
 							toString(qi.getLicense()), toString(qi.getCost()), toString(qi, itags));
 					writeStorage(writer, qsByQi, stags, qi.getId());
@@ -115,12 +116,13 @@ public class ProvQuoteInstanceExportResource {
 
 				vo.getDatabases().forEach(qi -> {
 					// Write quote database
-					writer.format("\n%s" + ";%s".repeat(27), ResourceType.DATABASE, toString(qi), toString(qi.getCpu()),
+					writer.format("\n%s" + ";%s".repeat(28), ResourceType.DATABASE, toString(qi), toString(qi.getCpu()),
 							toString(qi.getCpuMax()), toString(qi.getGpu()), toString(qi.getGpuMax()),
 							toString(qi.getRam()), toString(qi.getRamMax()), "", toString(qi.getUsage()),
 							toString(qi.getBudget()), toString(qi.getOptimizer()), toString(qi.getPrice().getTerm()),
 							toString(qi.getLocation()), qi.getMinQuantity(), toString(qi.getMaxQuantity()), "",
-							toString(qi.getWorkload()), toString(qi.getProcessor()), toString(qi.getPhysical()), "",
+							toString(qi.getWorkload()), toString(qi.getProcessor()), toString(qi.getArchitecture()),
+							toString(qi.getPhysical()), "",
 							toType(qi), qi.getEngine(), toString(qi.getEdition()), qi.getInternet(),
 							toString(qi.getLicense()), toString(qi.getCost()), toString(qi, dtags));
 					writeStorage(writer, qsByQb, stags, qi.getId());
@@ -128,13 +130,14 @@ public class ProvQuoteInstanceExportResource {
 
 				vo.getContainers().forEach(qc -> {
 					// Write quote container
-					writer.format("\n%s" + ";%s".repeat(27), ResourceType.CONTAINER, toString(qc),
+					writer.format("\n%s" + ";%s".repeat(28), ResourceType.CONTAINER, toString(qc),
 							toString(qc.getCpu()), toString(qc.getCpuMax()), toString(qc.getGpu()),
 							toString(qc.getGpuMax()), toString(qc.getRam()), toString(qc.getRamMax()), qc.getOs(),
 							toString(qc.getUsage()), toString(qc.getBudget()), toString(qc.getOptimizer()),
 							toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
 							toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()),
-							toString(qc.getWorkload()), toString(qc.getProcessor()), toString(qc.getPhysical()),
+							toString(qc.getWorkload()), toString(qc.getProcessor()), qc.getArchitecture(),
+							toString(qc.getPhysical()),
 							qc.isEphemeral(), toType(qc), "", "", qc.getInternet(), toString(qc.getLicense()),
 							toString(qc.getCost()), toString(qc, ctags));
 					writeStorage(writer, qsByQc, stags, qc.getId());
@@ -142,12 +145,13 @@ public class ProvQuoteInstanceExportResource {
 
 				vo.getFunctions().forEach(qf -> {
 					// Write quote function
-					writer.format("\n%s" + ";%s".repeat(27), ResourceType.FUNCTION, toString(qf), toString(qf.getCpu()),
+					writer.format("\n%s" + ";%s".repeat(28), ResourceType.FUNCTION, toString(qf), toString(qf.getCpu()),
 							toString(qf.getCpuMax()), toString(qf.getGpu()), toString(qf.getGpuMax()),
 							toString(qf.getRam()), toString(qf.getRamMax()), qf.getRuntime(), toString(qf.getUsage()),
 							toString(qf.getBudget()), toString(qf.getOptimizer()), toString(qf.getPrice().getTerm()),
 							toString(qf.getLocation()), qf.getNbRequests(), "", "", toString(qf.getWorkload()),
-							toString(qf.getProcessor()), toString(qf.getPhysical()), qf.isEphemeral(), toType(qf), "",
+							toString(qf.getProcessor()), toString(qf.getArchitecture()), toString(qf.getPhysical()),
+							qf.isEphemeral(), toType(qf), "",
 							"", qf.getInternet(), "", toString(qf.getCost()), toString(qf, ftags));
 					writeStorage(writer, qsByQf, stags, qf.getId());
 				});
@@ -183,58 +187,62 @@ public class ProvQuoteInstanceExportResource {
 		final var vo = resource.getConfiguration(subscriptionResource.checkVisible(subscription));
 		return AbstractToolPluginResource.download(output -> {
 			try (var writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-				writer.format("%s" + ";%s".repeat(33), "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram", "ramMax", "os",
+				writer.format("%s" + ";%s".repeat(34), "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram", "ramMax", "os",
 						"usage", "budget", "optimizer", "term", "location", "min", "max", "maxVariableCost", "workload",
-						"processor", "physical", "ephemeral", "type", "internet", "license", "cost", "tags", "disk",
-						"diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
+						"processor", "architecture", "physical", "ephemeral", "type", "internet", "license", "cost",
+						"tags", "disk","diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
 
 				// Write quote instances
 				final var iTags = vo.getTags().get(ResourceType.INSTANCE);
-				vo.getInstances().forEach(qi -> writer.format("\n%s" + ";%s".repeat(24), toString(qi),
+				vo.getInstances().forEach(qi -> writer.format("\n%s" + ";%s".repeat(25), toString(qi),
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getGpu()),
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), qi.getOs(),
 						toString(qi.getUsage()), toString(qi.getBudget()), toString(qi.getOptimizer()),
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
 						toString(qi.getMaxQuantity()), toString(qi.getMaxVariableCost()), toString(qi.getWorkload()),
-						toString(qi.getProcessor()), toString(qi.getPhysical()), qi.isEphemeral(), toType(qi),
+						toString(qi.getProcessor()), toString(qi.getArchitecture()), toString(qi.getPhysical()),
+						qi.isEphemeral(), toType(qi),
 						qi.getInternet(), toString(qi.getLicense()), toString(qi.getCost()), toString(qi, iTags)));
 
 				// Write quote containers
 				final var cTags = vo.getTags().get(ResourceType.CONTAINER);
-				vo.getContainers().forEach(qc -> writer.format("\n%s" + ";%s".repeat(24), toString(qc),
+				vo.getContainers().forEach(qc -> writer.format("\n%s" + ";%s".repeat(25), toString(qc),
 						toString(qc.getCpu()), toString(qc.getCpuMax()), toString(qc.getGpu()),
 						toString(qc.getGpuMax()), toString(qc.getRam()), toString(qc.getRamMax()), qc.getOs(),
 						toString(qc.getUsage()), toString(qc.getBudget()), toString(qc.getOptimizer()),
 						toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
 						toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()), toString(qc.getWorkload()),
-						toString(qc.getProcessor()), toString(qc.getPhysical()), qc.isEphemeral(), toType(qc),
+						toString(qc.getProcessor()), toString(qc.getArchitecture()), toString(qc.getPhysical()),
+						qc.isEphemeral(), toType(qc),
 						qc.getInternet(), toString(qc.getLicense()), toString(qc.getCost()), toString(qc, cTags)));
 				// Write quote functions
 				final var fTags = vo.getTags().get(ResourceType.FUNCTION);
 				vo.getFunctions()
-						.forEach(qf -> writer.format("\n%s" + ";%s".repeat(24), toString(qf), toString(qf.getCpu()),
+						.forEach(qf -> writer.format("\n%s" + ";%s".repeat(25), toString(qf), toString(qf.getCpu()),
 								toString(qf.getCpuMax()), toString(qf.getGpu()), toString(qf.getGpuMax()),
 								toString(qf.getRam()), toString(qf.getRamMax()), qf.getRuntime(),
 								toString(qf.getUsage()), toString(qf.getBudget()), toString(qf.getOptimizer()),
 								toString(qf.getPrice().getTerm()), toString(qf.getLocation()), qf.getNbRequests(), "",
-								"", toString(qf.getWorkload()), toString(qf.getProcessor()), toString(qf.getPhysical()),
+								"", toString(qf.getWorkload()), toString(qf.getProcessor()),
+								toString(qf.getArchitecture()), toString(qf.getPhysical()),
 								qf.isEphemeral(), toType(qf), qf.getInternet(), "", toString(qf.getCost()),
 								toString(qf, fTags)));
 
 				// Write quote databases
 				final var dTags = vo.getTags().get(ResourceType.DATABASE);
-				vo.getDatabases().forEach(qi -> writer.format("\n%s" + ";%s".repeat(24) + ";;;;;;%s;%s", toString(qi),
+				vo.getDatabases().forEach(qi -> writer.format("\n%s" + ";%s".repeat(25) + ";;;;;;;%s;%s", toString(qi),
 						toString(qi.getCpu()), toString(qi.getCpuMax()), toString(qi.getGpu()),
 						toString(qi.getGpuMax()), toString(qi.getRam()), toString(qi.getRamMax()), "",
 						toString(qi.getUsage()), toString(qi.getBudget()), toString(qi.getOptimizer()),
 						toString(qi.getPrice().getTerm()), toString(qi.getLocation()), qi.getMinQuantity(),
 						toString(qi.getMaxQuantity()), "", toString(qi.getWorkload()), toString(qi.getProcessor()),
+						toString(qi.getArchitecture()),
 						toString(qi.getPhysical()), "", toType(qi), "", toString(qi.getLicense()),
 						toString(qi.getCost()), toString(qi, dTags), qi.getEngine(), toString(qi.getEdition())));
 
 				// Write quote storages
 				final var sTags = vo.getTags().get(ResourceType.STORAGE);
-				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;%s;%s;;;;;;%s;;" + ";%s".repeat(8),
+				vo.getStorages().forEach(qs -> writer.format("\n%s;;;;;;;;;;;;%s;%s;%s;;;;;;;%s;;" + ";%s".repeat(8),
 						toString(qs), toString(qs.getLocation()),
 						toString(qs.getQuoteResource() == null ? "" : qs.getQuoteResource().getMinQuantity()),
 						toString(qs.getQuoteResource() == null ? "" : qs.getQuoteResource().getMaxQuantity()),
@@ -245,7 +253,7 @@ public class ProvQuoteInstanceExportResource {
 				// Write quote support
 				final var s2Tags = vo.getTags().get(ResourceType.SUPPORT);
 				vo.getSupports()
-						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
+						.forEach(qs -> writer.format("\n%s;;;;;;;;;;;;;;;;;;;;;%s;;;%s;%s;;;;;;;;%s", toString(qs),
 								toType(qs), toString(qs.getCost()), toString(qs, s2Tags), toString(qs.getSeats())));
 				writer.flush();
 			}

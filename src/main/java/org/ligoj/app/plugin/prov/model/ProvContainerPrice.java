@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "LIGOJ_PROV_CONTAINER_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = "code") }, indexes = {
-		@Index(name = "lookup_c_index", columnList = "location,type,term,os,increment_cpu,license") })
+		@Index(name = "lookup_c_index", columnList = "location,type,term,os") })
 public class ProvContainerPrice extends AbstractTermPriceVmOs<ProvContainerType> {
 
 	/**

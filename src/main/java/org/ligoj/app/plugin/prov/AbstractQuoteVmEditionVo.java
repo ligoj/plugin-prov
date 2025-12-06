@@ -100,6 +100,11 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private String processor;
 
 	/**
+	 * Optional physical processor architecture such as 'x86' and 'ARM'. Case-insensitive..
+	 */
+	private String architecture;
+
+	/**
 	 * When <code>true</code>, this instance type is physical, not virtual.
 	 */
 	private Boolean physical;

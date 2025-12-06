@@ -41,6 +41,7 @@ public class ProvOptimizerResource extends AbstractMultiScopedResource<ProvOptim
 	protected UpdatedCost saveOrUpdate(final ProvOptimizer entity, final OptimizerEditionVo vo) {
 		// Check the associations and copy attributes to the entity
 		entity.setMode(vo.getMode());
+		entity.setP1TypeOnly(vo.getP1TypeOnly());
 		return super.saveOrUpdateInternal(entity, vo);
 
 	}

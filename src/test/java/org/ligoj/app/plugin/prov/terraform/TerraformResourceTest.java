@@ -14,10 +14,6 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.core.StreamingOutput;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.awaitility.Awaitility;
@@ -35,6 +31,10 @@ import org.mockito.Mockito;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.StreamingOutput;
 
 /**
  * Test class of {@link TerraformResource}
@@ -63,8 +63,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	void createNotSupported() {
 		final var resource = newResource(null);
 		final var context = new TerraformContext();
-		Assertions.assertEquals("terraform-no-supported", Assertions
-				.assertThrows(BusinessException.class, () -> resource.create(subscription, context)).getMessage());
+		Assertions.assertEquals("terraform-no-supported",
+				Assertions.assertThrows(BusinessException.class, () -> resource.create(subscription, context)).getMessage());
 	}
 
 	@Test
@@ -95,12 +95,9 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		Assertions.assertTrue(files.stream().noneMatch(f -> f.getName().contains("secret")));
 		Assertions.assertFalse((new File(target, "plan.ptf").exists()));
 		Assertions.assertFalse((new File(target, "secrets.auto.tfvars").exists()));
-		Assertions.assertEquals("old-main.",
-				FileUtils.readFileToString(new File(target, "main.tf"), StandardCharsets.UTF_8));
-		Assertions.assertEquals("old-init.",
-				FileUtils.readFileToString(new File(target, "init.log"), StandardCharsets.UTF_8));
-		Assertions.assertEquals("module.",
-				FileUtils.readFileToString(new File(target, "module/some.tf"), StandardCharsets.UTF_8));
+		Assertions.assertEquals("old-main.", FileUtils.readFileToString(new File(target, "main.tf"), StandardCharsets.UTF_8));
+		Assertions.assertEquals("old-init.", FileUtils.readFileToString(new File(target, "init.log"), StandardCharsets.UTF_8));
+		Assertions.assertEquals("module.", FileUtils.readFileToString(new File(target, "module/some.tf"), StandardCharsets.UTF_8));
 
 	}
 
@@ -126,8 +123,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		resource.locator = locator;
 		resource.runner = new TerraformRunnerResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
-		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class))
-				.thenReturn(Mockito.mock(Terraforming.class));
+		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(Mockito.mock(Terraforming.class));
 		final var context = new TerraformContext();
 		context.add("key", "  value  ");
 		resource.create(subscription, context);
@@ -163,8 +159,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		// Check the log file is well handled
 		try (final var bos = new ByteArrayOutputStream()) {
 			((StreamingOutput) resource.getLog(subscription).getEntity()).write(bos);
-			Assertions.assertEquals("---- init ----\nold-init.\n---- plan ----\nold-plan.\n---- show ----\nold-show.\n",
-					bos.toString(StandardCharsets.UTF_8));
+			Assertions.assertEquals("---- init ----\nold-init.\n---- plan ----\nold-plan.\n---- show ----\nold-show.\n", bos.toString(StandardCharsets.UTF_8));
 		}
 	}
 
@@ -177,8 +172,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
-		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
-				new TerraformResource()).getAction("clean").execute(context, null);
+		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), new TerraformResource()).getAction("clean")
+				.execute(context, null);
 
 		Assertions.assertFalse(tf.exists());
 		Assertions.assertTrue(terraformDir.exists());
@@ -195,16 +190,16 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	void secrets() throws IOException, InterruptedException {
 		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
-		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
-				new TerraformResource()).getAction("secrets").execute(context, null);
+		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), new TerraformResource()).getAction("secrets")
+				.execute(context, null);
 	}
 
 	@Test
 	void generate() throws IOException, InterruptedException {
 		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
-		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
-				new TerraformResource()).getAction("generate").execute(context, null);
+		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), new TerraformResource()).getAction("generate")
+				.execute(context, null);
 	}
 
 	@Test
@@ -262,8 +257,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	void sequenceNewTransactionIOE() throws IOException, InterruptedException {
 		final var resource = new TerraformResource();
 		mockResource(newTerraforming(), (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), resource);
-		Mockito.doThrow(new IOException()).when(resource.executableCommand).execute(ArgumentMatchers.any(TerraformContext.class),
-				ArgumentMatchers.any(), ArgumentMatchers.any());
+		Mockito.doThrow(new IOException()).when(resource.executableCommand).execute(ArgumentMatchers.any(TerraformContext.class), ArgumentMatchers.any(),
+				ArgumentMatchers.any());
 		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
 		context.setSequence(Collections.singletonList(new String[] { "any" }));
@@ -358,8 +353,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		Mockito.doAnswer(i -> {
 			((OutputStream) i.getArgument(1)).write("Terraform v0.0.1\nAny".getBytes());
 			return 0;
-		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(),
-				ArgumentMatchers.any());
+		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var version = resource.getVersion();
 		Assertions.assertEquals("0.0.1", version.getVersion());
 		Assertions.assertTrue(version.isInstalled());
@@ -371,13 +365,10 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=0");
 		resource.executableCommand = Mockito.mock(TerraformBaseCommand.class);
 		Mockito.doAnswer(i -> {
-			((OutputStream) i.getArgument(1))
-					.write(("Terraform v0.0.1\n\nYour version of Terraform is out of date! The latest version\n"
-							+ "is 0.11.7. You can update by downloading from www.terraform.io/downloads.html")
-									.getBytes());
+			((OutputStream) i.getArgument(1)).write(("Terraform v0.0.1\n\nYour version of Terraform is out of date! The latest version\n"
+					+ "is 0.11.7. You can update by downloading from www.terraform.io/downloads.html").getBytes());
 			return 0;
-		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(),
-				ArgumentMatchers.any());
+		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var version = resource.getVersion();
 		Assertions.assertEquals("0.0.1", version.getVersion());
 		Assertions.assertTrue(version.isInstalled());
@@ -391,8 +382,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		Mockito.doAnswer(i -> {
 			((OutputStream) i.getArgument(1)).write("not_a_version".getBytes());
 			return null;
-		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(),
-				ArgumentMatchers.any());
+		}).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var version = resource.getVersion();
 		Assertions.assertNull(version.getVersion());
 		Assertions.assertTrue(version.isInstalled());
@@ -454,8 +444,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	void getVersionExit1() throws Exception {
 		final var resource = newResource(Mockito.mock(Terraforming.class), "error=1");
 		resource.executableCommand = Mockito.mock(TerraformBaseCommand.class);
-		Mockito.doReturn(1).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class),
-				ArgumentMatchers.any(), ArgumentMatchers.any());
+		Mockito.doReturn(1).when(resource.executableCommand).execute(ArgumentMatchers.any(File.class), ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var version = resource.getVersion();
 		Assertions.assertNull(version.getVersion());
 		Assertions.assertTrue(version.isInstalled());
@@ -463,12 +452,11 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	private TerraformResource newResource(final Terraforming providerResource, final String... customArgs) {
-		return newResource(providerResource, (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]),
-				customArgs);
+		return newResource(providerResource, (s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), customArgs);
 	}
 
-	private TerraformResource newResource(final Terraforming providerResource,
-			final BiFunction<Subscription, String[], File> toFile, final String... customArgs) {
+	private TerraformResource newResource(final Terraforming providerResource, final BiFunction<Subscription, String[], File> toFile,
+			final String... customArgs) {
 		final var action = Mockito.mock(TerraformAction.class);
 		final TerraformResource resource = new TerraformResource() {
 
@@ -480,9 +468,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		return mockResource(providerResource, toFile, resource, customArgs);
 	}
 
-	private TerraformResource mockResource(final Terraforming providerResource,
-			final BiFunction<Subscription, String[], File> toFile, final TerraformResource resource,
-			final String... customArgs) {
+	private TerraformResource mockResource(final Terraforming providerResource, final BiFunction<Subscription, String[], File> toFile,
+			final TerraformResource resource, final String... customArgs) {
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.self = resource;
 		resource.resource = new ProvResource();
@@ -493,7 +480,8 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		resource.locator = locator;
 
 		// Replace the runner
-		resource.runner = new TerraformRunnerResource();
+		resource.runner = newRunnerSync();
+
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(providerResource);
@@ -508,8 +496,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	void testBusiness() {
 		// Coverage only
-		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(),
-				InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
+		Assertions.assertEquals(InternetAccess.PUBLIC.ordinal(), InternetAccess.valueOf(InternetAccess.values()[0].name()).ordinal());
 		Assertions.assertNotNull(runner.getNodeRepository());
 		Assertions.assertNotNull(runner.getTaskRepository());
 	}
@@ -557,8 +544,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	@Test
 	void getTaskUnfinishedStateTasks() throws IOException {
 		final var resource = newResource(newTerraforming());
-		Files.copy(TEST_LOGS.toPath().resolve("destroy-not-completed.log"),
-				new File(MOCK_PATH, "destroy.log").toPath());
+		Files.copy(TEST_LOGS.toPath().resolve("destroy-not-completed.log"), new File(MOCK_PATH, "destroy.log").toPath());
 		startTask(resource, subscription, "destroy");
 		final var task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
@@ -581,8 +567,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 		final var resource = newResource(newTerraforming());
 		startTask(resource, subscription);
 		resource.runner.utils = Mockito.mock(TerraformUtils.class);
-		Mockito.doThrow(new IOException()).when(resource.runner.utils).toFile(ArgumentMatchers.any(),
-				ArgumentMatchers.any());
+		Mockito.doThrow(new IOException()).when(resource.runner.utils).toFile(ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var task = resource.runner.getTask(getSubscription().getId());
 		Assertions.assertEquals(subscription, task.getSubscription());
 		Assertions.assertEquals(0, task.getCompleted());
@@ -606,7 +591,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 	}
 
 	private void startTask(final TerraformResource resource, final int subscription, final String sequence) {
-		resource.runner.startTask("service:prov:test:account", t -> {
+		resource.runner.startTaskInternal("service:prov:test:account", t -> {
 			t.setToAdd(0);
 			t.setToDestroy(0);
 			t.setToUpdate(0);

@@ -86,7 +86,8 @@ public class ProvQuoteUploadResource {
 			"tags:(tag|label|labels|etiquette|etikett)", "cpuMax:(max[-_ ]?cpu|cpu[-_ ]?max)", "gpuMax:(max[-_ ]?gpu|gpu[-_ ]?max)",
 			"ramRate:ramRate", "cpuRate:cpuRate", "gpuRate:gpuRate", "networkRate:networkRate",
 			"storageRate:storageRate", "ramMax:(max[-_ ]?(ram|memory)|(ram|memory)[-_ ]?max)",
-			"diskMax:(max[-_ ]?(size|disk|storage|disque|scheibe)|(size|disk|storage|disque|scheibe)[-_ ]?max)", "processor:proc", "engine:db",
+			"diskMax:(max[-_ ]?(size|disk|storage|disque|scheibe)|(size|disk|storage|disque|scheibe)[-_ ]?max)",
+			"processor:proc", "architecture:arch", "engine:db",
 			"edition:version", "tenancy:tenancy");
 
 	/**
@@ -508,6 +509,7 @@ public class ProvQuoteUploadResource {
 		vo.setCpu(qiResource.round(ObjectUtils.getIfNull(u.getCpu(), 0d)));
 		vo.setGpu(u.getGpu());
 		vo.setProcessor(u.getProcessor());
+		vo.setArchitecture(u.getArchitecture());
 		vo.setLicense(Optional.ofNullable(u.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(u.getInternet());
 		vo.setMaxQuantity(Optional.of(u.getMaxQuantity()).filter(q -> q > 0).orElse(null));

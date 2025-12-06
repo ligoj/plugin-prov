@@ -195,27 +195,36 @@ define(['sparkline', 'd3'], function () {
 			|| location.countryA2 && (matcher(term, location.countryA2) ?? (location.countryA2 === 'UK' && matcher(term, 'GB')));
 	}
 	function newProcessorOpts(filteredType) {
+		return newSelectSimpleOpts(filteredType, 'processor', '70%');
+	}
+
+	function newArchitectureOpts(filteredType) {
+		return newSelectSimpleOpts(filteredType, 'architecture', '30%');
+	}
+
+	function newSelectSimpleOpts(filteredType, property, width) {
 		return {
-			placeholder: current.$messages['service:prov:processor-default'],
+			placeholder: current.$messages[`service:prov:${property}-default`],
 			allowClear: true,
+            width,
 			createSearchChoice: term => {
 				if (current.model) {
 					term = term.toLowerCase();
-					const processors = current.model.configuration.processors;
+					const data = current.model.configuration[property];
 					const type = typeof filteredType === 'function' ? filteredType() : null;
 					// Filter intersection of all compute types
-					if (type || computeTypes.every(sType => processors[sType].filter(p => p.toLowerCase().includes(term)).length)) {
+					if (type || computeTypes.every(sType => data[sType].filter(p => p.toLowerCase().includes(term)).length)) {
 						return { id: term, text: '[' + term + ']' };
 					}
 				}
-				// Invalid processor
+				// Invalid value
 				return null;
 			},
 			data: () => {
 				if (current.model) {
-					const processors = current.model.configuration.processors;
+					const data = current.model.configuration[`${property}s`];
 					const type = typeof filteredType === 'function' ? filteredType() : null;
-					return { results: (type ? processors[type] || [] : computeTypes.map(sType => processors[sType]).flat()).map(p => ({ id: p, text: p })) };
+					return { results: (type ? data[type] || [] : computeTypes.map(sType => data[sType]).flat()).map(p => ({ id: p, text: p })) };
 				}
 				return { results: [] };
 			}
@@ -1198,10 +1207,11 @@ define(['sparkline', 'd3'], function () {
 		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('.modal').on('change', 'input.resource-query:not([type="number"])', current.checkResource);
 		$('.modal').on('input', 'input.resource-query[type="number"]', current.checkResource);
-		_('instance-usage').select2(current.usageModalSelect2(current.$messages['service:prov:default']));
+		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
 		_('instance-budget').select2(current.budgetSelect2(current.$messages['service:prov:default']));
 		_('instance-optimizer').select2(current.optimizerSelect2(current.$messages['service:prov:default']));
 		_('instance-processor').select2(newProcessorOpts(() => _('popup-prov-generic').provType()));
+		_('instance-architecture').select2(newArchitectureOpts(() => _('popup-prov-generic').provType()));
 		_('instance-license').select2(genericSelect2(current.$messages['service:prov:default'], formatLicense, function () {
 			if (_('instance-license').provType() === 'instance') {
 				return 'instance-license/' + _('instance-os').val();
@@ -1505,6 +1515,7 @@ define(['sparkline', 'd3'], function () {
 			_('instance-optimizer').select2Placeholder(select2Placeholder('optimizer'));
 			_('instance-budget').select2Placeholder(select2Placeholder('budget'));
 			_('instance-processor').select2Placeholder(current.model.configuration.processor || null);
+			_('instance-architecture').select2Placeholder(current.model.configuration.architecture || null);
 			_('instance-license').select2Placeholder(formatLicense(current.model.configuration.license) || current.$messages['service:prov:license-included']);
 			$popup.find('.mode-workload-details input[type=checkbox]').prop("checked", false);
 			$('li.list-group-item.col-sm-offset-3.col-sm-9.workload-data').remove();
@@ -1765,11 +1776,17 @@ define(['sparkline', 'd3'], function () {
 	function initializeOptimizerInnerEvents() {
 		initializeMultiScopedInnerEvents('optimizer', () => ({
 			mode: _('optimizer-mode').is(':checked') ? 'co2' : 'cost',
+			p1TypeOnly: _('optimizer-p1TypeOnly').is(':checked') ? true : false,
 		}));
 		_('optimizer-mode').bootstrapSwitch({ onText: '<i class="fas fa-fw fa-leaf"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
 		_('optimizer-mode').on('switchChange.bootstrapSwitch', function (_event, state) {
 			// See https://bttstrp.github.io/bootstrap-switch/events.html#
 			$('.optimizer-mode-helper').addClass('hidden').filter(`.mode-${state ? 'co2' : 'cost'}`).removeClass('hidden');
+		});
+
+		_('optimizer-p1TypeOnly').bootstrapSwitch({ onText: '<i class="fas fa-ranking-star fa-fw"></i>', offText: '<i class="fas fa-fw fa-dollar-sign"></i>' });
+		_('optimizer-p1TypeOnly').on('switchChange.bootstrapSwitch', function (_event, state) {
+			$('.optimizer-p1TypeOnly-helper').addClass('hidden').filter(`.p1TypeOnly-${state ? 'true' : 'false'}`).removeClass('hidden');
 		});
 	}
 
@@ -1832,7 +1849,7 @@ define(['sparkline', 'd3'], function () {
 		});
 		_(`instance-${type}-upload`).select2(current[`${type}Select2`](current.$messages['service:prov:default']));
 		let $quote = _(`quote-${type}`);
-		$quote.select2(current[`${type}Select2`](current.$messages[`service:prov:${type}-null`]))
+		$quote.select2(current[`${type}Select2`](current.$messages[`service:prov:${type}-null`], true))
 			.on('change', function (event) {
 				current.updateQuote({ [type]: event.added || null }, { name: type, ui: `quote-${type}`, previous: event.removed }, true);
 			});
@@ -1881,7 +1898,9 @@ define(['sparkline', 'd3'], function () {
 				}
 				const co2Mode = event.relatedTarget?.mode === 'co2';
 				$('#optimizer-mode').bootstrapSwitch('state', co2Mode, true).trigger('switchChange.bootstrapSwitch', co2Mode);
-			}, { mode: 'cost' });
+				const p1TypeOnly = event.relatedTarget?.p1TypeOnly === true;
+				$('#optimizer-p1TypeOnly').bootstrapSwitch('state', p1TypeOnly, true).trigger('switchChange.bootstrapSwitch', p1TypeOnly);
+			}, { mode: 'cost', p1TypeOnly: false });
 			initializeOptimizerView();
 		})
 	}
@@ -2079,9 +2098,9 @@ define(['sparkline', 'd3'], function () {
 			conf.reservationMode = conf.reservationMode || 'reserved';
 			_('quote-reservation-mode').select2('data', { id: conf.reservationMode, text: formatReservationMode(conf.reservationMode) });
 			_('quote-processor').select2('data', conf.processor ? { id: conf.processor, text: conf.processor } : null);
+			_('quote-architecture').select2('data', conf.architecture ? { id: conf.architecture, text: conf.architecture } : null);
 			_('quote-license').select2('data', conf.license ? { id: conf.license, text: formatLicense(conf.license) } : null);
 			update3States(_('quote-physical'), conf.physical);
-			update3States(_('quote-p1TypeOnly'), conf.p1TypeOnly);
 			require(['jquery-ui'], function () {
 				$('#quote-ram-adjust').slider({
 					value: conf.ramAdjustedRate,
@@ -2788,18 +2807,16 @@ define(['sparkline', 'd3'], function () {
 					processor: event.added || null
 				}, { name: 'processor', ui: 'quote-processor', previous: event.removed }, true);
 			});
-
+			_('quote-architecture').select2(newArchitectureOpts()).on('change', function (event) {
+				current.updateQuote({
+					architecture: event.added || null
+				}, { name: 'architecture', ui: 'quote-architecture', previous: event.removed }, true);
+			});
 			_('quote-physical').on('click', 'li', function () {
 				$.proxy(synchronizeDropdownText, $(this))();
 				current.updateQuote({
 					physical: toQueryValue3States($(this))
 				}, { name: 'physical', ui: 'quote-physical', previous: current.model.configuration.physical }, true);
-			});
-	        _('quote-p1TypeOnly').on('click', 'li', function () {
-                $.proxy(synchronizeDropdownText, $(this))();
-				current.updateQuote({
-					p1TypeOnly: toQueryValue3States($(this))
-				}, { name: 'p1TypeOnly', ui: 'quote-p1TypeOnly', previous: current.model.configuration.p1TypeOnly }, true);
 			});
 			require(['jquery-ui'], function () {
 				const handle = $('#quote-ram-adjust-handle');
@@ -2923,36 +2940,30 @@ define(['sparkline', 'd3'], function () {
 		/**
 		 * Usage Select2 configuration.
 		 */
-		usageSelect2: function (placeholder) {
+		usageSelect2: function (placeholder, allowUpdate) {
 			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return `<a class="update prov-usage-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a>` + usage.text;
-			});
-		},
-
-		/**
-		 * Usage Modal Select2 configuration.
-		 */
-		usageModalSelect2: function (placeholder) {
-			return genericSelect2(placeholder, current.usageToText, 'usage', function (usage) {
-				return usage.text;
-			});
-		},
-
-		/**
-		 * Optimizer Modal Select2 configuration.
-		 */
-		optimizerModalSelect2: function (placeholder) {
-			return genericSelect2(placeholder, current.optimizerToText, 'optimizer', function (optimizer) {
-				return optimizer.text;
+				return `${allowUpdate ? `
+				<a class="update prov-usage-select2-action pull-right">
+				    <i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i>
+                </a>`:''}
+                ${usage.text}`;
 			});
 		},
 
 		/**
 		 * Optimizer Select2 configuration.
 		 */
-		optimizerSelect2: function (placeholder) {
+		optimizerSelect2: function (placeholder, allowUpdate) {
 			return genericSelect2(placeholder, current.optimizerToText, 'optimizer', function (optimizer) {
-				return `${optimizer.name}<span class="select2-optimizer-summary pull-right"><i class="fas fa-fw fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i><a class="update prov-optimizer-select2-action pull-right"><i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i></a></span>`;
+				return `${optimizer.name}
+				<span class="select2-optimizer-summary pull-right">
+                    <i class="fas fa-fw fa-${optimizer.mode === 'co2' ? 'leaf' : 'dollar-sign'}"></i> /
+                    <i class="fas fa-fw fa-${optimizer.p1TypeOnly ? 'ranking-star' : 'dollar-sign'}"></i>
+                    ${allowUpdate ? `
+                    <a class="update prov-optimizer-select2-action pull-right">
+                        <i data-toggle="tooltip" title="${current.$messages.update}" class="fas fa-fw fa-pencil-alt"></i>
+                    </a>`:''}
+                </span>`;
 			});
 		},
 
@@ -3128,8 +3139,8 @@ define(['sparkline', 'd3'], function () {
 				location: conf.location,
 				license: conf.license,
 				processor: conf.processor,
+				architecture: conf.architecture,
 				physical: conf.physical,
-				p1TypeOnly: conf.p1TypeOnly,
 				reservationMode: conf.reservationMode,
 				ramAdjustedRate: conf.ramAdjustedRate || 100,
 				usage: conf.usage,
@@ -3138,6 +3149,7 @@ define(['sparkline', 'd3'], function () {
 			}, data || {});
 			replaceId(jsonData, 'location', 'name');
 			replaceId(jsonData, 'processor', 'id');
+			replaceId(jsonData, 'architecture', 'id');
 			replaceId(jsonData, 'reservationMode', 'id');
 			replaceId(jsonData, 'license', 'id');
 			replaceId(jsonData, 'usage', 'name');
@@ -3153,8 +3165,8 @@ define(['sparkline', 'd3'], function () {
 				&& conf.budget?.name === jsonData.budget
 				&& conf.license === jsonData.license
 				&& conf.processor === jsonData.processor
+				&& conf.architecture === jsonData.architecture
 				&& conf.physical === jsonData.physical
-				&& conf.p1TypeOnly === jsonData.p1TypeOnly
 				&& conf.reservationMode === jsonData.reservationMode
 				&& conf.ramAdjustedRate === jsonData.ramAdjustedRate) {
 				// No change
@@ -3184,8 +3196,8 @@ define(['sparkline', 'd3'], function () {
 					conf.budget = data.budget === null ? null : (data.budget || conf.budget);
 					conf.license = jsonData.license;
 					conf.processor = jsonData.processor;
+					conf.architecture = jsonData.architecture;
 					conf.physical = jsonData.physical;
-					conf.p1TypeOnly = jsonData.p1TypeOnly;
 					conf.reservationMode = jsonData.reservationMode;
 					conf.ramAdjustedRate = jsonData.ramAdjustedRate;
 
@@ -3393,8 +3405,8 @@ define(['sparkline', 'd3'], function () {
 			model.maxQuantity = data.maxQuantity ? parseInt(data.maxQuantity, 10) : null;
 			model.constant = data.constant;
 			model.physical = data.physical;
-			model.p1TypeOnly = data.p1TypeOnly;
 			model.processor = data.processor;
+			model.architecture = data.architecture;
 		},
 		computeCommitToModel: function (data, model) {
 			current.genericCommitToModel(data, model);
@@ -3463,12 +3475,12 @@ define(['sparkline', 'd3'], function () {
 			data.storageRate = _('instance-storageRate').val();
 			data.internet = _('instance-internet').val().toLowerCase();
 			data.processor = _('instance-processor').val().toLowerCase();
+			data.architecture = _('instance-architecture').val().toLowerCase();
 			data.minQuantity = cleanInt(_('instance-min-quantity').val()) || 0;
 			data.maxQuantity = cleanInt(_('instance-max-quantity').val()) || null;
 			data.license = _('instance-license').val().toLowerCase() || null;
 			data.constant = toQueryValue3States(_('instance-constant'));
 			data.physical = toQueryValue3States(_('instance-physical'));
-			data.p1TypeOnly = toQueryValue3States(_('instance-p1TypeOnly'));
 			data.price = _('instance-price').select2('data').price.id;
 		},
 
@@ -3529,6 +3541,7 @@ define(['sparkline', 'd3'], function () {
 		genericToUi: function (quote) {
 			current.adaptRamUnit(quote.ram || 2048);
 			_('instance-processor').select2('data', current.select2IdentityData(quote.processor || null));
+			_('instance-architecture').select2('data', current.select2IdentityData(quote.architecture || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128.0 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
 			_('instance-gpu').val(quote.gpu || 0);
@@ -3549,7 +3562,6 @@ define(['sparkline', 'd3'], function () {
 			// Update the CPU constraint
 			update3States(_('instance-constant'), quote.constant);
 			update3States(_('instance-physical'), quote.physical);
-			update3States(_('instance-p1TypeOnly'), quote.p1TypeOnly);
 		},
 
 		/**
@@ -4457,23 +4469,23 @@ define(['sparkline', 'd3'], function () {
 			});
 		},
 		functionToD3: function (data, stats, aggregateMode) {
-            let allProcessors = {};
+            let allTypes = {};
             stats.function.filtered.forEach(qi => {
-                let Processors = allProcessors[qi.price.type.name];
-                if (typeof Processors === 'undefined') {
+                let types = allTypes[qi.price.type.name];
+                if (typeof types === 'undefined') {
                     // First runtime
-                    Processors = {
+                    types = {
                         name: qi.price.type.name,
-                        type: 'processors',
+                        type: 'types',
                         value: 0,
                         children: []
                     };
-                    allProcessors[qi.price.type.name] = Processors;
-                    data.children.push(Processors);
+                    allTypes[qi.price.type.name] = types;
+                    data.children.push(types);
                 }
-                Processors.value += qi[aggregateMode];
+                types.value += qi[aggregateMode];
                 data.value += qi[aggregateMode];
-                Processors.children.push({
+                types.children.push({
                     name: qi.id,
                     type: 'function',
                     size: qi[aggregateMode]

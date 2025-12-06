@@ -24,7 +24,7 @@ import lombok.ToString;
 @Entity
 @ToString(of = { "engine", "edition" }, callSuper = true)
 @Table(name = "LIGOJ_PROV_DATABASE_PRICE", uniqueConstraints = { @UniqueConstraint(columnNames = "code") }, indexes = {
-		@Index(name = "lookup_d_index", columnList = "location,type,term,engine,edition,increment_cpu,license") })
+		@Index(name = "lookup_d_index", columnList = "location,type,term,engine") })
 public class ProvDatabasePrice extends AbstractTermPriceVm<ProvDatabaseType> {
 
 	/**

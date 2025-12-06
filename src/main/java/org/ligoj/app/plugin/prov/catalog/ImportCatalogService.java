@@ -23,6 +23,7 @@ public interface ImportCatalogService {
 			"prov-container-type-has-dyn", "prov-location", "prov-database-type", "prov-database-type-dyn",
 			"prov-database-type-has-dyn", "prov-database-engine", "prov-database-edition", "prov-database-license",
 			"prov-instance-term", "prov-function-type", "prov-function-type-dyn", "prov-function-type-has-dyn",
-			"prov-instance-has-co2", "prov-function-has-co2", "prov-container-has-co2", "prov-database-has-co2", })
+			"prov-instance-has-co2", "prov-function-has-co2", "prov-container-has-co2", "prov-database-has-co2",
+			"prov-architecture"})
 	void updateCatalog(String node, boolean force) throws Exception;
 }

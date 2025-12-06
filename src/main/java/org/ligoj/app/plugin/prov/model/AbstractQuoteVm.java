@@ -102,6 +102,11 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	private String processor;
 
 	/**
+	 * Optional physical processor's architecture.
+	 */
+	private String architecture;
+
+	/**
 	 * When <code>true</code>, this instance type is physical, not virtual.
 	 */
 	private Boolean physical;
@@ -110,11 +115,6 @@ public abstract class AbstractQuoteVm<P extends AbstractTermPriceVm<?>> extends 
 	 * When <code>true</code>, this instance type must be executed at edge location.
 	 */
 	private Boolean edge;
-
-	/**
-	 * Optional P1 type only (latest available) is requested.
-	 */
-	private Boolean p1TypeOnly;
 
 	/**
 	 * The Internet access: Internet facing, etc.

@@ -75,6 +75,11 @@ public class VmUpload {
 	private String processor;
 
 	/**
+	 * Optional physical processor's architecture. Case-insensitive.
+	 */
+	private String architecture;
+
+	/**
 	 * The typical workload of this resource using repeated CPU baseline and patterns data points. Default is full-time 100%.
 	 */
 	private String workload;

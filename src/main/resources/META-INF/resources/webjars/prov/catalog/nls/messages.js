@@ -11,7 +11,7 @@ define({
 		'locationPreferred': 'Preferred location',
 		'nbTypes': 'Number of available types for this provider',
 		'nbPrices': 'Number of available price combinations for this provider',
-        'percentCo2Prices': 'Percent of prices having equivalent CO2 data',
+        'percentCo2Prices': 'CO2 equivalent data coverage of prices',
 		'actions': 'Enabled features for this provider',
 		'status': 'Catalog status',
 		'status-updating': '{{[0]}}% ({{[1]}}/{{[2]}})<br>Started {{[3]}} by {{[4]}}<br>Current step : {{[5]}}<br>Last success : {{[6]}}',

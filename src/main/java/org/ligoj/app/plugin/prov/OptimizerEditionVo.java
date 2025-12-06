@@ -28,4 +28,9 @@ public class OptimizerEditionVo extends NamedBean<Integer> {
 	@NotNull
 	private Optimizer mode;
 
+	/**
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly = false;
+
 }

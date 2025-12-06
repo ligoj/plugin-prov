@@ -62,14 +62,11 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="control-label col-xs-1" for="quote-processor">
-								<span data-toggle="tooltip" title="{{service:prov:processor-help}}" class="fa-stack fa-stack-cpu">
-									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
-									<i class="fas fa-stack-1x fa-microchip fa-fw"></i>
-								</span></label>
+							<label class="control-label col-xs-1" for="quote-processor"><i class="fas fa-microchip fa-fw" data-toggle="tooltip" title="{{service:prov:processor-help}}"></i></label>
 							<div class="col-xs-10">
 								<div class="input-group">
 									<input type="text" id="quote-processor" class="form-control" />
+                                    <input type="text" id="quote-architecture" class="form-control" />
 									<div class="input-group-btn" id="quote-physical">
 										<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding-left: 8px;padding-right: 8px; margin-bottom: 0px">
 											<span><i class="fas fa-ellipsis-h"></i></span>
@@ -81,16 +78,6 @@
 											<li data-value="true"><a><i class="fas fa-server fa-fw"></i> {{service:prov:physical-true}}</a></li>
 										</ul>
 									</div>
-                                    <div class="input-group-btn" id="quote-p1TypeOnly">
-                                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding-left: 8px;padding-right: 8px; margin-bottom: 0px">
-                                            <span><i class="fas fa-ellipsis-h"></i></span>
-                                            <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li class="active" data-value="false"><a><i class="fas fa-dollar-sign fa-fw"></i> / <i class="fas fa-leaf fa-fw"></i> {{service:prov:p1TypeOnly-false}}</a></li>
-                                            <li data-value="true" data-toggle="tooltip" title="{{service:prov:p1TypeOnly-help}}"><a><i class="fas fa-ranking-star fa-fw"></i> {{service:prov:p1TypeOnly-true}}</a></li>
-                                        </ul>
-                                    </div>
 								</div>
 							</div>
 						</div>

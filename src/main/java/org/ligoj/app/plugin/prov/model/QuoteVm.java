@@ -61,11 +61,18 @@ public interface QuoteVm {
 	String getWorkload();
 
 	/**
-	 * Optional physical processor. Return Optional physical processor.
+	 * Return Optional physical processor.
 	 *
 	 * @return Optional physical processor.
 	 */
 	String getProcessor();
+
+	/**
+	 * Return Optional physical processor's architecture.
+	 *
+	 * @return Optional physical processor's architecture.
+	 */
+	String getArchitecture();
 
 	/**
 	 * Optional physical constraint. When <code>true</code>, this instance type is physical, not virtual.
@@ -140,13 +147,6 @@ public interface QuoteVm {
 	 * @return Optional auto-scaling capability requirement.
 	 */
 	boolean isAutoScale();
-
-	/**
-	 * Return optional P1 type only (latest available) is requested.
-	 *
-	 * @return Optional P1 type only (latest available) is requested. Default is <code>false</code
-	 */
-	Boolean getP1TypeOnly();
 
 	/**
 	 * Minimal required CPU rate

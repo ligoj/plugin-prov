@@ -355,12 +355,13 @@ class ProvQuoteUploadResourceTest extends AbstractProvResourceTest {
 
 	@Test
 	void uploadProcessor() throws IOException {
-		upload(subscription, newStream("ANY;0.5;500;LINUX;Intel Xeon"),
-				new String[]{"name", "cpu", "ram", "os", "processor"}, false, null, null, null, 1);
+		upload(subscription, newStream("ANY;0.5;500;LINUX;Intel Xeon;x86"),
+				new String[]{"name", "cpu", "ram", "os", "processor", "architecture"}, false, null, null, null, 1);
 		final var configuration = getConfiguration();
 		Assertions.assertEquals(8, configuration.getInstances().size());
 		Assertions.assertEquals("instance11", configuration.getInstances().get(7).getPrice().getType().getName());
 		Assertions.assertEquals("Intel Xeon", configuration.getInstances().get(7).getProcessor());
+		Assertions.assertEquals("X86", configuration.getInstances().get(7).getArchitecture());
 		checkCost(configuration.getCost(), 9389.558, 11839.158, false);
 	}
 

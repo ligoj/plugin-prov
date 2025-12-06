@@ -101,6 +101,12 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	private String processor;
 
 	/**
+	 * Optional physical processor's architecture.
+	 */
+	@QueryParam("architecture")
+	private String architecture;
+
+	/**
 	 * When <code>true</code>, this instance type is physical, not virtual.
 	 */
 	@QueryParam("physical")
@@ -117,14 +123,6 @@ public abstract class AbstractQuoteInstanceQuery implements QuoteVm {
 	 */
 	@QueryParam("ephemeral")
 	private boolean ephemeral;
-
-	/**
-	 * Optional P1 type only (latest available) is requested.
-	 */
-	@QueryParam("p1TypeOnly")
-	@DefaultValue(value = "0")
-	@Builder.Default
-	private Boolean p1TypeOnly = false;
 
 	/**
 	 * Optional auto-scaling capability requirement.

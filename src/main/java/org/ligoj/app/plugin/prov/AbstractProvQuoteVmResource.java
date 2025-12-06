@@ -139,6 +139,7 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		entity.setCpu(vo.getCpu());
 		entity.setGpu(vo.getGpu());
 		entity.setProcessor(vo.getProcessor());
+		entity.setArchitecture(vo.getArchitecture());
 		entity.setWorkload(vo.getWorkload());
 		entity.setPhysical(vo.getPhysical());
 		entity.setMinQuantity(vo.getMinQuantity());
@@ -317,6 +318,16 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 	 */
 	protected String getProcessor(final ProvQuote configuration, final String processor) {
 		return ObjectUtils.getIfNull(processor, ObjectUtils.getIfNull(configuration.getProcessor(), ""));
+	}
+	/**
+	 * Return the resolved architecture requirement.
+	 *
+	 * @param configuration Configuration containing the default values.
+	 * @param architecture     The local architecture requirement
+	 * @return The resolved processor requirement. May be <code>null</code>.
+	 */
+	protected String getArchitecture(final ProvQuote configuration, final String architecture) {
+		return ObjectUtils.getIfNull(architecture, ObjectUtils.getIfNull(configuration.getArchitecture(), ""));
 	}
 
 	/**
@@ -650,8 +661,8 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var cpuR = getCpu(configuration, query);
 		final var gpuR = getGpu(configuration, query);
 		final var procR = getProcessor(configuration, query.getProcessor());
+		final var archR = getArchitecture(configuration, query.getArchitecture());
 		final var physR = normalize(configuration.getPhysical(), query.getPhysical());
-		final var p1TypeOnly = normalize(configuration.getP1TypeOnly(), query.getP1TypeOnly());
 
 		// Resolve the location to use
 		final var locationR = getLocation(configuration, query.getLocationName());
@@ -673,15 +684,16 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		final var baselineR = (double) Math.round(baseline / 5d) * 5; // Round for cache hit improvement
 
 		// Override the optimizer depending on the capabilities of the catalog
-		var optimizer = getOptimizer(configuration, query.getOptimizerName()).getMode();
-		optimizer = (optimizer == Optimizer.CO2 && getItRepository().hasCo2Data(node)) ? optimizer : Optimizer.COST;
+		final var optimizer = getOptimizer(configuration, query.getOptimizerName());
+		final var optimizerMode = (optimizer.getMode() == Optimizer.CO2 && getItRepository().hasCo2Data(node)) ? optimizer.getMode() : Optimizer.COST;
+		final var p1TypeOnly = BooleanUtils.toBoolean(optimizer.getP1TypeOnly());
 
 		// Resolve the required instance type
 		final var typeId = getType(subscription, query.getType());
 		final var types = getItRepository().findValidTypes(node, cpuR, gpuR, ramR, cpuR * maxFactor, gpuR * maxFactor,
-				ramR * maxFactor, baselineR, physR, typeId, procR, query.isAutoScale(), normalize(query.getCpuRate()),
+				ramR * maxFactor, baselineR, physR, typeId, procR, archR, query.isAutoScale(), normalize(query.getCpuRate()),
 				normalize(query.getGpuRate()), normalize(query.getRamRate()), normalize(query.getNetworkRate()),
-				normalize(query.getStorageRate()), normalize(query.getEdge()), optimizer == Optimizer.CO2);
+				normalize(query.getStorageRate()), normalize(query.getEdge()), optimizerMode == Optimizer.CO2);
 
 		// Resolve the valid terms
 		final var terms = iptRepository.findValidTerms(node,
@@ -695,22 +707,22 @@ public abstract class AbstractProvQuoteVmResource<T extends AbstractInstanceType
 		if (!types.isEmpty()) {
 			// Get the best template instance price
 			lookup = findLowestPrice(configuration, query, types, terms, locationR, rate, duration, initialCost,
-					optimizer, p1TypeOnly).stream().findFirst().orElse(null);
+					optimizerMode, p1TypeOnly).stream().findFirst().orElse(null);
 		}
 
 		// Dynamic type lookup
 		if (getItRepository().hasDynamicalTypes(node) && gpuR == 0) {
-			final var dTypes = getItRepository().findDynamicTypes(node, baselineR, physR, typeId, procR,
+			final var dTypes = getItRepository().findDynamicTypes(node, baselineR, physR, typeId, procR, archR,
 					query.isAutoScale(), normalize(query.getCpuRate()), normalize(query.getGpuRate()),
 					normalize(query.getRamRate()), normalize(query.getNetworkRate()), normalize(query.getStorageRate()),
-					normalize(query.getEdge()), optimizer == Optimizer.CO2);
+					normalize(query.getEdge()), optimizerMode == Optimizer.CO2);
 			if (!dTypes.isEmpty()) {
 				// Get the best dynamic instance price
 				var dLookup = findLowestDynamicPrice(configuration, query, dTypes, terms, cpuR, gpuR, ramR, locationR,
-						rate, duration, initialCost, optimizer, p1TypeOnly).stream().findFirst().orElse(null);
+						rate, duration, initialCost, optimizerMode, p1TypeOnly).stream().findFirst().orElse(null);
 				if (dLookup != null && lookup == null || (dLookup != null
-						&& ((optimizer == Optimizer.COST && toTotalCost(dLookup) < toTotalCost(lookup))
-						|| (optimizer == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
+						&& ((optimizerMode == Optimizer.COST && toTotalCost(dLookup) < toTotalCost(lookup))
+						|| (optimizerMode == Optimizer.CO2 && toTotalCo2(dLookup) < toTotalCo2(lookup))))) {
 					// Keep the best one
 					lookup = dLookup;
 				}

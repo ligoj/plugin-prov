@@ -285,6 +285,22 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	/**
+	 * Return the available architectures for a subscription.
+	 *
+	 * @param node The node identifier, will be used to filter the processor architectures from the associated provider.
+	 * @return The available processor architectures for the given subscription.
+	 */
+	@CacheResult(cacheName = "prov-architecture")
+	protected Map<String, List<String>> findArchitectures(@CacheKey final String node) {
+		final var listC = new HashMap<String, List<String>>();
+		listC.put("instance", itRepository.findArchitectures(node));
+		listC.put("database", btRepository.findArchitectures(node));
+		listC.put("container", ctRepository.findArchitectures(node));
+		listC.put("function", ftRepository.findArchitectures(node));
+		return listC;
+	}
+
+	/**
 	 * Check and return the expected location within the given subscription. The subscription is used to determinate the
 	 * related node (provider). Return <code>null</code> when the given name is <code>null</code> or empty. In other
 	 * cases, the name must be found.
@@ -336,6 +352,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setRamAdjustedRate(ObjectUtils.getIfNull(quote.getRamAdjustedRate(), 100));
 		vo.setReservationMode(quote.getReservationMode());
 		vo.setProcessor(quote.getProcessor());
+		vo.setArchitecture(quote.getArchitecture());
 		vo.setPhysical(quote.getPhysical());
 		vo.setTerraformStatus(runner.getTaskInternal(subscription));
 		vo.setSupports(qs2Repository.findAll(quote));
@@ -346,6 +363,7 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		vo.setBudgets(budgetRepository.findAll(quote));
 		vo.setOptimizers(optimizerRepository.findAll(quote));
 		vo.setProcessors(self.findProcessors(subscription.getNode().getTool().getId()));
+		vo.setArchitectures(self.findArchitectures(subscription.getNode().getTool().getId()));
 
 		// Also copy the costs
 		final var unbound = quote.isUnboundCost();
@@ -419,7 +437,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		var oldReservationMode = ObjectUtils.getIfNull(entity.getReservationMode(), ReservationMode.RESERVED);
 		var oldProcessor = StringUtils.trimToNull(entity.getProcessor());
 		var oldPhysical = entity.getPhysical();
-		var oldP1TypeOnly = entity.getP1TypeOnly();
 		entity.setLocation(findLocation(entity.getSubscription().getNode().getId(), vo.getLocation()));
 		entity.setUsage(Optional.ofNullable(vo.getUsage())
 				.map(u -> findConfiguredByName(usageRepository, u, subscription)).orElse(null));
@@ -432,14 +449,12 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 		entity.setReservationMode(vo.getReservationMode());
 		entity.setProcessor(StringUtils.trimToNull(vo.getProcessor()));
 		entity.setPhysical(vo.getPhysical());
-		entity.setP1TypeOnly(vo.getP1TypeOnly());
 		if (vo.isRefresh() || !oldLocation.equals(entity.getLocation()) || !Objects.equals(oldUsage, entity.getUsage())
 				|| !Objects.equals(oldOptimizer, entity.getOptimizer())
 				|| !Objects.equals(oldBudget, entity.getBudget()) || !oldRamAdjusted.equals(entity.getRamAdjustedRate())
 				|| oldReservationMode != entity.getReservationMode() || !Objects.equals(oldLicense, entity.getLicense())
 				|| !Objects.equals(oldProcessor, entity.getProcessor())
-				|| !Objects.equals(oldPhysical, entity.getPhysical())
-				|| !Objects.equals(oldP1TypeOnly, entity.getP1TypeOnly())) {
+				|| !Objects.equals(oldPhysical, entity.getPhysical())) {
 			return refresh(entity);
 		}
 
@@ -617,16 +632,20 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 	}
 
 	public void duplicate(int source, final int destination) {
+		var quote = getQuoteFromSubscription(destination);
+		// Copy quote usage
+		var usages = usageRepository.findAll(quote);
+
+		// Copy quote optimizer
+
 		// Copy quote instances
 		// Copy quote databases
 		// Copy quote functions
 		// Copy quote containers
 		// Copy quote storages
 		// Copy quote support
-		// Copy quote usage
 		// Copy quote tags
 		// Copy quote network
-		// Copy quote optimizer
 
 	}
 

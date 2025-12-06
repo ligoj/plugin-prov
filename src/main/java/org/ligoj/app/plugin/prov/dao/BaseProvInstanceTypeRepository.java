@@ -29,8 +29,18 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 	 * @return All distinct processors.
 	 */
 	@Query("SELECT DISTINCT processor FROM #{#entityName} AS t WHERE processor IS NOT NULL "
-			+ " AND t.node.id = :node ORDER BY processor           ")
+			+ " AND t.node.id = :node ORDER BY processor")
 	List<String> findProcessors(String node);
+
+	/**
+	 * Return all distinct architectures.
+	 *
+	 * @param node The node linked to the subscription. Is a node identifier within a provider.
+	 * @return All distinct processors.
+	 */
+	@Query("SELECT DISTINCT architecture FROM #{#entityName} AS t WHERE architecture IS NOT NULL "
+			+ " AND t.node.id = :node ORDER BY architecture")
+	List<String> findArchitectures(String node);
 
 	String BASE_CRITERIA = """
 			SELECT id FROM #{#entityName} WHERE
@@ -47,57 +57,60 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 			  AND (:co2Mode = FALSE OR watt > 0)
 			  AND (:processor = ''
 			   OR (processor IS NOT NULL AND UPPER(processor) LIKE CONCAT('%', CONCAT(UPPER(:processor), '%'))))
+			  AND (:architecture = '' OR (architecture IS NOT NULL AND UPPER(architecture) = UPPER(:architecture)))
 			""";
 
 	/**
 	 * Return the valid instance types matching the requirements.
 	 *
-	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
-	 * @param cpu         The minimum CPU.
-	 * @param gpu         The minimum GPU.
-	 * @param ram         The minimum RAM in MB.
-	 * @param limitCpu    The maximum CPU. Used only to reduce initial lookup potential result.
-	 * @param limitGpu    The maximum GPU. Used only to reduce initial lookup potential result.
-	 * @param limitRam    The maximum RAM in MB. Used only to reduce initial lookup potential result.
-	 * @param baseline    The baseline CPU usage from 0 to 100.
-	 * @param physical    The optional physical (not virtual) instance type constraint.
-	 * @param type        The optional instance type identifier. May be <code>null</code>.
-	 * @param processor   Optional processor requirement. A <code>LIKE</code> will be used.
-	 * @param autoScale   Optional auto-scaling capability requirement.
-	 * @param cpuRate     Optional minimal CPU rate.
-	 * @param gpuRate     Optional minimal GPU rate.
-	 * @param ramRate     Optional minimal RAM rate.
-	 * @param networkRate Optional minimal network rate.
-	 * @param storageRate Optional minimal storage rate.
-	 * @param edge        Optional edge location constraint.
-	 * @param co2Mode     When <code>true</code> only types having CO2 data are returned.
+	 * @param node         The node linked to the subscription. Is a node identifier within a provider.
+	 * @param cpu          The minimum CPU.
+	 * @param gpu          The minimum GPU.
+	 * @param ram          The minimum RAM in MB.
+	 * @param limitCpu     The maximum CPU. Used only to reduce initial lookup potential result.
+	 * @param limitGpu     The maximum GPU. Used only to reduce initial lookup potential result.
+	 * @param limitRam     The maximum RAM in MB. Used only to reduce initial lookup potential result.
+	 * @param baseline     The baseline CPU usage from 0 to 100.
+	 * @param physical     The optional physical (not virtual) instance type constraint.
+	 * @param type         The optional instance type identifier. May be <code>null</code>.
+	 * @param processor    Optional processor architecture requirement. A <code>LIKE</code> will be used.
+	 * @param architecture Optional processor requirement. Case is insensitive.
+	 * @param autoScale    Optional auto-scaling capability requirement.
+	 * @param cpuRate      Optional minimal CPU rate.
+	 * @param gpuRate      Optional minimal GPU rate.
+	 * @param ramRate      Optional minimal RAM rate.
+	 * @param networkRate  Optional minimal network rate.
+	 * @param storageRate  Optional minimal storage rate.
+	 * @param edge         Optional edge location constraint.
+	 * @param co2Mode      When <code>true</code> only types having CO2 data are returned.
 	 * @return The matching instance types.
 	 */
 	@Query(BASE_CRITERIA + """
-			  AND (cpu >= :cpu AND ram >= :ram AND (:gpu=0.0 OR (gpu IS NOT NULL AND gpu >= :gpu AND gpuRate >= :gpuRate))) 
+			  AND (cpu >= :cpu AND ram >= :ram AND (:gpu=0.0 OR (gpu IS NOT NULL AND gpu >= :gpu AND gpuRate >= :gpuRate)))
 			  AND ((cpu <= :limitCpu OR ram <= :limitRam) AND (:gpu=0.0 OR (gpu IS NOT NULL AND gpu <= :limitGpu)))
 			""")
 	List<Integer> findValidTypes(String node, double cpu, double gpu, double ram, double limitCpu, double limitRam,
-			double limitGpu, double baseline, boolean physical, int type, String processor, boolean autoScale,
-			Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate, boolean edge,
-			boolean co2Mode);
+			double limitGpu, double baseline, boolean physical, int type, String processor, String architecture,
+			boolean autoScale, Rate cpuRate, Rate gpuRate, Rate ramRate, Rate networkRate, Rate storageRate,
+			boolean edge, boolean co2Mode);
 
 	/**
 	 * Return the valid instance types matching the requirements.
 	 *
-	 * @param node        The node linked to the subscription. Is a node identifier within a provider.
-	 * @param baseline    The minial baseline CPU percentage, from 1 to 100.
-	 * @param physical    The optional physical (not virtual) instance type constraint.
-	 * @param type        The optional instance type identifier. May be <code>null</code>.
-	 * @param processor   Optional processor requirement. A <code>LIKE</code> will be used.
-	 * @param autoScale   Optional auto-scaling capability requirement.
-	 * @param cpuRate     Optional minimal CPU rate.
-	 * @param gpuRate     Optional minimal GPU rate.
-	 * @param ramRate     Optional minimal RAM rate.
-	 * @param networkRate Optional minimal network rate.
-	 * @param storageRate Optional minimal storage rate.
-	 * @param edge        Optional edge location constraint.
-	 * @param co2Mode     When <code>true</code> only types having CO2 data are returned.
+	 * @param node         The node linked to the subscription. Is a node identifier within a provider.
+	 * @param baseline     The minial baseline CPU percentage, from 1 to 100.
+	 * @param physical     The optional physical (not virtual) instance type constraint.
+	 * @param type         The optional instance type identifier. May be <code>null</code>.
+	 * @param processor    Optional processor requirement. A <code>LIKE</code> will be used.
+	 * @param architecture Optional processor's architecture requirement. A <code>LIKE</code> will be used.
+	 * @param autoScale    Optional auto-scaling capability requirement.
+	 * @param cpuRate      Optional minimal CPU rate.
+	 * @param gpuRate      Optional minimal GPU rate.
+	 * @param ramRate      Optional minimal RAM rate.
+	 * @param networkRate  Optional minimal network rate.
+	 * @param storageRate  Optional minimal storage rate.
+	 * @param edge         Optional edge location constraint.
+	 * @param co2Mode      When <code>true</code> only types having CO2 data are returned.
 	 * @return The matching dynamic instance types.
 	 */
 	@Query(BASE_CRITERIA + """
@@ -105,9 +118,9 @@ public interface BaseProvInstanceTypeRepository<T extends AbstractInstanceType>
 			  AND (gpuRate IS NULL OR gpuRate >= :gpuRate)
 			""")
 	List<Integer> findDynamicTypes(@CacheKey String node, @CacheKey double baseline, @CacheKey boolean physical,
-			@CacheKey int type, @CacheKey String processor, @CacheKey boolean autoScale, @CacheKey Rate cpuRate,
-			@CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate, @CacheKey Rate storageRate,
-			boolean edge, boolean co2Mode);
+			@CacheKey int type, @CacheKey String processor, @CacheKey String architecture, @CacheKey boolean autoScale,
+			@CacheKey Rate cpuRate, @CacheKey Rate gpuRate, @CacheKey Rate ramRate, @CacheKey Rate networkRate,
+			@CacheKey Rate storageRate, boolean edge, boolean co2Mode);
 
 	/**
 	 * Return <code>true</code> when there is at least one dynamic type in this repository.

@@ -148,6 +148,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	private String processor;
 
 	/**
+	 * Optional physical processor's architecture. May be <code>null</code>.
+	 */
+	private String architecture;
+
+	/**
 	 * Optional physical host requirement. May be <code>null</code>. When <code>true</code>, this instance type is
 	 * physical, not virtual.
 	 */
@@ -177,6 +182,11 @@ public class QuoteVo extends DescribedAuditedBean<SimpleUserOrg, Integer> {
 	 * All valid processors for this subscription.
 	 */
 	private Map<String, List<String>> processors;
+
+	/**
+	 * All valid processor architectures for this subscription.
+	 */
+	private Map<String, List<String>> architectures;
 
 	/**
 	 * UI settings. Properties are:

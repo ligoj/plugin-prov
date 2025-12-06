@@ -10,8 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.function.BiFunction;
 
-import jakarta.transaction.Transactional;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,6 +22,8 @@ import org.mockito.Mockito;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import jakarta.transaction.Transactional;
 
 /**
  * Test class of {@link TerraformBaseCommand}
@@ -95,13 +95,10 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 	@Test
 	void executeExit1() {
 		Assertions.assertEquals("aborted",
-				Assertions
-						.assertThrows(BusinessException.class, () -> executeExit(1, "Terraform exit code 1 -> aborted"))
-						.getMessage());
+				Assertions.assertThrows(BusinessException.class, () -> executeExit(1, "Terraform exit code 1 -> aborted")).getMessage());
 	}
 
-	private String execute(final TerraformBaseCommand resource, String... arguments)
-			throws IOException, InterruptedException {
+	private String execute(final TerraformBaseCommand resource, String... arguments) throws IOException, InterruptedException {
 		final var sequence = utils.getTerraformCommands(TerraformSequence.CREATE);
 		final var context = new TerraformContext();
 		context.setSubscription(getSubscription());
@@ -127,13 +124,12 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 		return newResource((s, f) -> f.length == 0 ? MOCK_PATH : new File(MOCK_PATH, f[0]), dryRun, customArgs);
 	}
 
-	private TerraformBaseCommand newResource(final BiFunction<Subscription, String[], File> toFile,
-			final boolean dryRun, final String... customArgs) {
+	private TerraformBaseCommand newResource(final BiFunction<Subscription, String[], File> toFile, final boolean dryRun, final String... customArgs) {
 		final var resource = new TerraformBaseCommand();
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
 		// Replace the runner
-		resource.runner = new TerraformRunnerResource();
+		resource.runner = newRunnerSync();
 		super.applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 
 		resource.utils = newTerraformUtils(toFile, customArgs);
@@ -187,7 +183,7 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 	}
 
 	private void startTask(final TerraformBaseCommand resource, final int subscription, final String sequence) {
-		resource.runner.startTask("service:prov:test:account", t -> {
+		resource.runner.startTaskInternal("service:prov:test:account", t -> {
 			t.setToAdd(0);
 			t.setToDestroy(0);
 			t.setToUpdate(0);

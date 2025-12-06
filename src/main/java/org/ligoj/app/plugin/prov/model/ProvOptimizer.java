@@ -36,4 +36,9 @@ public class ProvOptimizer extends AbstractMultiScoped {
 	@Enumerated(EnumType.STRING)
 	private Optimizer mode = Optimizer.COST;
 
+	/**
+	 * Optional P1 type only (latest available) is requested.
+	 */
+	private Boolean p1TypeOnly = false;
+
 }
