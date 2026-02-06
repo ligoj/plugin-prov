@@ -2028,7 +2028,7 @@ define(['sparkline', 'd3'], function () {
 			$('.loader-wrapper').addClass('hidden');
 			require(['text!../main/service/prov/menu.html', '../main/service/prov/prov-tag', '../main/service/prov/prov-filter', '../main/service/prov/prov-slider', '../main/service/prov/lib/checkbox3'], function (menu, tagManager, filterManager) {
 				_('service-prov-menu').empty().remove();
-				current.$cascade.trigger('html', _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))));
+				current.$cascade.trigger('html:after', {target: _('extra-menu').append($(Handlebars.compile(menu)(current.$messages))), content: []});
 				if (typeof current.$super('getRestrictedHash')() === 'string') {
 					$('.prov-menu-separator').remove();
 				}
