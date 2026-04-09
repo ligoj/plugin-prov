@@ -43,7 +43,7 @@ define(function () {
 		 */
 		initializeDataTable: function () {
 			current.table = _('table').dataTable({
-				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				serverSide: true,
 				processing: true,
 				searching: true,

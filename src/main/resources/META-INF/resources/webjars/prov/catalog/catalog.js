@@ -249,7 +249,7 @@ define(['sparkline'], function () {
 		initializeDataTable: function () {
 			current.$table = _('table').on('click', '.import', current.importCatalog).on('click', '.cancel', current.cancelImportCatalog).on('click', '.update', current.locationSelect2);
 			current.table = current.$table.dataTable({
-				dom: 'rt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: 'rt<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				serverSide: false,
 				searching: true,
 				ajax: {

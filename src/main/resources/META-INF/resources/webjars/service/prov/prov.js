@@ -2475,7 +2475,7 @@ define(['sparkline', 'd3'], function () {
 			$.extend(oSettings, {
 				provType: type,
 				data: current.model.configuration[type + 's'] || [],
-				dom: 'Brt<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: 'rt<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				destroy: true,
 				stateSave: true,
 				deferRender: true,
