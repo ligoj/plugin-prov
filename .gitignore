@@ -12,3 +12,4 @@
 *.log
 /bin/
 /.apt_generated_tests/
+src/main/resources/META-INF/resources/webjars/prov/vue/*

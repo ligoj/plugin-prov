@@ -599,7 +599,7 @@ define(['sparkline', 'd3'], function () {
 
 	/**
 	 * Format the floating value.
-	 * @param {number} value The cost value. May contains "min", "max" and "currency" attributes.
+	 * @param {number} cost The cost value. May contains "min", "max" and "currency" attributes.
 	 * @param {String|jQuery} mode Either 'sort' for a raw value, either a JQuery container for advanced format with "odometer". Otherwise will be simple format.
 	 * @param {number} type TODO 'co2' of 'cost'
 	 * @param {object} obj The optional cost object taking precedence over the cost parameter. May contains "min" and "max" attributes.
@@ -1111,7 +1111,6 @@ define(['sparkline', 'd3'], function () {
 
 	/**
 	 * Generic Ajax Select2 configuration.
-	 * @param path {string|function} Either a string, either a function returning a relative path suffix to 'service/prov/$subscription/$path'
 	 */
 	function genericSelect2(placeholder, formatSelection, path, formatResult, customComparator, matcherFn) {
 		const pageSize = 15;
@@ -1189,6 +1188,7 @@ define(['sparkline', 'd3'], function () {
 	 * Return the memory weight: 1 or 1024.
 	 */
 	function getRamUnitWeight() {
+		debugger;
 		return parseInt(_('instance-ram-unit').find('li.active').data('value'), 10);
 	}
 
@@ -1204,7 +1204,6 @@ define(['sparkline', 'd3'], function () {
 			current.updateAutoScale();
 			$.proxy(current.checkResource, $('#popup-prov-generic'))();
 		});
-		$('#instance-min-quantity, #instance-max-quantity').on('change', current.updateAutoScale);
 		$('.modal').on('change', 'input.resource-query:not([type="number"])', current.checkResource);
 		$('.modal').on('input', 'input.resource-query[type="number"]', current.checkResource);
 		_('instance-usage').select2(current.usageSelect2(current.$messages['service:prov:default']));
@@ -3544,6 +3543,8 @@ define(['sparkline', 'd3'], function () {
 			_('instance-architecture').select2('data', current.select2IdentityData(quote.architecture || null));
 			_('instance-cpu').provSlider($.extend(maxOpts, { format: formatCpu, max: 128.0 })).provSlider('value', [quote.cpuMax || false, quote.cpu || 1]);
 			_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / 1024))]);
+			//_('instance-ram').provSlider($.extend(maxOpts, { format: v => formatRam(v * getRamUnitWeight()), max: 1024 })).provSlider('value', [quote.ramMax ? Math.max(1, Math.round(quote.ramMax / 1024)) : false, Math.max(1, Math.round((quote.ram || 1024) / ((quote.ram/1024/1024)%1)===0 ?1024/1024:  1024))]);
+
 			_('instance-gpu').val(quote.gpu || 0);
 			_('instance-workload').val(quote.workload || null);
 			_('instance-cpuRate').select2('data', current.select2IdentityData((quote.cpuRate) || null));
@@ -3648,9 +3649,10 @@ define(['sparkline', 'd3'], function () {
 
 		/**
 		 * Auto select the right RAM unit depending on the RAM amount.
-		 * @param {int} ram, the RAM value in MB.
+		 * @param {int} ram the RAM value in MB.
 		 */
 		adaptRamUnit: function (ram) {
+			debugger;
 			_('instance-ram-unit').find('li.active').removeClass('active');
 			if (ram >= 1048576 && (ram / 1048576) % 1 === 0) {
 				// Auto select TB
@@ -4141,7 +4143,7 @@ define(['sparkline', 'd3'], function () {
                 if (typeof filterDate === 'number' && (computeTypes.includes(type) || type === 'storage')) {
                     let usage = current.model.configuration.usage || {};
                     return result.filter(qi => {
-                        if (qi.resourceType == "storage") {
+                        if (qi.resourceType === "storage") {
                             qi.usage = qi.usage || {}
                         }
                         const rUsage = (qi.quoteInstance || qi.quoteDatabase || qi.quoteContainer || qi.quoteFunction || qi).usage || usage;
