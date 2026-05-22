@@ -207,7 +207,10 @@ export default {
   'prov.quote.compute.networkRate': 'Pondération réseau',
   'prov.quote.compute.storageRate': 'Pondération E/S stockage',
   'prov.quote.compute.workload': 'Profil de charge',
-  'prov.quote.compute.workloadHint': 'Pic% puis paires « durée@cpu » séparées par des virgules (ex. 100,40@20,80@30)',
+  // `@` est réservé par vue-i18n pour les messages liés — chaque `@`
+  // littéral doit être encapsulé dans `{'@'}` pour que le compilateur
+  // le traite comme du texte brut.
+  'prov.quote.compute.workloadHint': "Pic% puis paires « durée{'@'}cpu » séparées par des virgules (ex. 100,40{'@'}20,80{'@'}30)",
   'prov.quote.fields.processor': 'Processeur',
   'prov.quote.fields.architecture': 'Architecture',
   'prov.quote.storage.advanced': 'Exigences avancées',

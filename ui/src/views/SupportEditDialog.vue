@@ -30,7 +30,7 @@
                cheapest plan that supports the desired channels comes
                back. -->
           <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
-            <v-expansion-panel :title="t('prov.quote.support.access')">
+            <v-expansion-panel :title="t('prov.quote.support.access')" eager>
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="6" md="3">
@@ -150,7 +150,7 @@ const form = reactive({
   accessChat: null,
 })
 
-const advancedOpen = ref(undefined)
+const advancedOpen = ref(null)
 
 // Common enum used by every provider catalog — the legacy view shows
 // each value with an i18n'd label, but the enum itself is stable.

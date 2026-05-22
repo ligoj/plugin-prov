@@ -37,7 +37,7 @@
                these inline; in the Vue port they live behind an
                expansion so the simple case stays compact. -->
           <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
-            <v-expansion-panel :title="t('prov.quote.storage.advanced')">
+            <v-expansion-panel :title="t('prov.quote.storage.advanced')" eager>
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="12" md="6">
@@ -149,7 +149,7 @@ const form = reactive({
   optimized: null,
 })
 
-const advancedOpen = ref(undefined)
+const advancedOpen = ref(null)
 
 // Same enums the legacy `prov-rate-full` / `prov-rate` slider buttons
 // surfaced — kept here so the dialog has no dependency on the catalog

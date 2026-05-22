@@ -74,17 +74,26 @@
 
           <!-- Advanced fields, collapsed by default. They all feed the
                lookup query but stay out of the way for typical
-               requirements. -->
+               requirements.
+               `eager` pre-renders the body so inputs mount once on
+               dialog open, NOT during the expand transition — that
+               combination triggered "Maximum recursive updates" in
+               Vuetify 4 when v-form revalidated each transition frame. -->
           <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
-            <v-expansion-panel :title="t('prov.quote.compute.advanced')">
+            <v-expansion-panel :title="t('prov.quote.compute.advanced')" eager>
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="12" md="6">
-                    <v-combobox v-model="form.processor" :items="processorOptions" :label="t('prov.quote.fields.processor')"
+                    <!-- Free-text inputs (was v-combobox). Vuetify 4's
+                         v-combobox with a computed `:items` array +
+                         clearable inside an expanding panel reliably
+                         triggers "Maximum recursive updates" — the
+                         catalog suggestions weren't worth the cost. -->
+                    <v-text-field v-model="form.processor" :label="t('prov.quote.fields.processor')"
                       variant="outlined" density="compact" clearable :hint="t('prov.quote.compute.processorHint')" persistent-hint />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-combobox v-model="form.architecture" :items="architectureOptions" :label="t('prov.quote.fields.architecture')"
+                    <v-text-field v-model="form.architecture" :label="t('prov.quote.fields.architecture')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
@@ -318,27 +327,11 @@ function workloadRule(v) {
 // `.prov-rate` button groups and by storage's latency.
 const RATE_OPTIONS = ['BEST', 'GOOD', 'MEDIUM', 'LOW', 'WORST']
 
-const advancedOpen = ref(undefined)
+const advancedOpen = ref(null)
 
 const hasGpu = computed(() => props.type === 'instance' || props.type === 'container')
 const hasEphemeral = computed(() => props.type === 'instance' || props.type === 'container')
 
-/**
- * Per-resource-type processor / architecture lists come from the
- * configuration payload's `processors[type]` / `architectures[type]`
- * maps. `v-combobox` keeps the values free-text-able for catalogs the
- * payload doesn't enumerate.
- */
-const processorOptions = computed(() => {
-  const src = props.config?.processors
-  if (!src) return []
-  return Array.isArray(src) ? src : (src[props.type] || [])
-})
-const architectureOptions = computed(() => {
-  const src = props.config?.architectures
-  if (!src) return []
-  return Array.isArray(src) ? src : (src[props.type] || [])
-})
 const physicalOptions = computed(() => [
   { value: true,  title: t('prov.quote.fields.physical.true') },
   { value: false, title: t('prov.quote.fields.physical.false') },

@@ -210,7 +210,10 @@ export default {
   'prov.quote.compute.networkRate': 'Network rate',
   'prov.quote.compute.storageRate': 'Storage I/O rate',
   'prov.quote.compute.workload': 'Workload profile',
-  'prov.quote.compute.workloadHint': 'Comma-separated peak% then "duration@cpu" pairs (e.g. 100,40@20,80@30)',
+  // `@` is reserved by vue-i18n for linked messages — escape every
+  // literal `@` with `{'@'}` so the message compiler treats it as
+  // plain text instead of trying to parse a link reference.
+  'prov.quote.compute.workloadHint': "Comma-separated peak% then \"duration{'@'}cpu\" pairs (e.g. 100,40{'@'}20,80{'@'}30)",
   'prov.quote.fields.processor': 'Processor',
   'prov.quote.fields.architecture': 'Architecture',
   'prov.quote.storage.advanced': 'Advanced requirements',
