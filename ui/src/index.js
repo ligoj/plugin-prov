@@ -51,6 +51,10 @@ import service from './service.js'
 const features = {
   requestCatalogUpdate: service.requestCatalogUpdate,
   scheduleTaskPoll: service.scheduleTaskPoll,
+  // Host's PluginFeatures slot calls this for each subscription row.
+  renderFeatures: service.renderFeatures,
+  // Plugin-rendered details column on subscription rows.
+  renderDetailsKey: service.renderDetailsKey,
 }
 
 const routes = [

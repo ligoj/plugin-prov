@@ -11,6 +11,19 @@ export default {
   'prov.terraform': 'Terraform',
   'prov.network': 'Network',
   'prov.quote': 'Quote',
+  // Subscription row action contributed via renderFeatures.
+  'prov.renderFeatures.quote': 'Open quote',
+  // Subscription row details contributed via renderDetailsKey.
+  'prov.renderDetailsKey.instances': 'Instances',
+  'prov.renderDetailsKey.databases': 'Databases',
+  'prov.renderDetailsKey.functions': 'Functions',
+  'prov.renderDetailsKey.containers': 'Containers',
+  'prov.renderDetailsKey.cpu': 'Total CPU',
+  'prov.renderDetailsKey.cpuUnit': 'vCPU',
+  'prov.renderDetailsKey.ram': 'Total RAM',
+  'prov.renderDetailsKey.publicAccess': 'Public access',
+  'prov.renderDetailsKey.storage': 'Total storage',
+  'prov.renderDetailsKey.location': 'Preferred location',
 
   // ---- Currency CRUD (happy path) ----
   'currency.title': 'Currency',

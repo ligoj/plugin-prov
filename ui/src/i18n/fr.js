@@ -10,6 +10,19 @@ export default {
   'prov.terraform': 'Terraform',
   'prov.network': 'Réseau',
   'prov.quote': 'Devis',
+  // Action de ligne d'abonnement, contribué via renderFeatures.
+  'prov.renderFeatures.quote': 'Ouvrir le devis',
+  // Détail de ligne d'abonnement, contribué via renderDetailsKey.
+  'prov.renderDetailsKey.instances': 'Instances',
+  'prov.renderDetailsKey.databases': 'Bases de données',
+  'prov.renderDetailsKey.functions': 'Fonctions',
+  'prov.renderDetailsKey.containers': 'Conteneurs',
+  'prov.renderDetailsKey.cpu': 'CPU total',
+  'prov.renderDetailsKey.cpuUnit': 'vCPU',
+  'prov.renderDetailsKey.ram': 'RAM totale',
+  'prov.renderDetailsKey.publicAccess': 'Accès public',
+  'prov.renderDetailsKey.storage': 'Stockage total',
+  'prov.renderDetailsKey.location': 'Localisation préférée',
 
   // ---- CRUD Devise (chemin heureux) ----
   'currency.title': 'Devise',
