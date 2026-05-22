@@ -19,11 +19,35 @@
         <div class="text-h6 d-flex align-center">
           <span class="text-medium-emphasis text-body-2 mr-2">{{ t('prov.quote.totalCost') }}:</span>
           <v-icon size="small" class="mr-1">mdi-currency-usd</v-icon>
-          {{ formatCostRange(config.cost, config.currency) }}
-          <span class="text-caption text-medium-emphasis ml-1">/mo</span>
+          {{ formatCostRange(scaledCost(config.cost), config.currency) }}
+          <span class="text-caption text-medium-emphasis ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
         </div>
+        <!-- Cost-period selector. Pure display — the backend stores
+             monthly numbers; we just scale at render time. -->
+        <v-menu>
+          <template #activator="{ props: actProps }">
+            <v-btn v-bind="actProps" size="small" variant="text" :title="t('prov.quote.period.title')">
+              <v-icon size="small">mdi-clock-outline</v-icon>
+              <span class="text-caption ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
+            </v-btn>
+          </template>
+          <v-list density="compact" min-width="160">
+            <v-list-item v-for="p in COST_PERIODS" :key="p" :title="t(`prov.quote.period.${p}`)" @click="costPeriod = p">
+              <template v-if="costPeriod === p" #append>
+                <v-icon size="x-small">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-menu>
         <v-btn icon size="small" variant="text" :loading="refreshing" :title="t('prov.quote.refresh')" @click="reload">
           <v-icon>mdi-refresh</v-icon>
+        </v-btn>
+        <!-- Recomputes prices against the latest provider catalog —
+             the legacy `refreshCost` action. Distinct from "reload",
+             which only re-fetches the configuration as-is. -->
+        <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')"
+          @click="refreshPrices">
+          <v-icon>mdi-cash-sync</v-icon>
         </v-btn>
         <!-- Exports — three pre-built backend endpoints. The path
              segment itself is the suggested filename so the backend
@@ -99,6 +123,13 @@
                  compute types; storage + support each have their own. -->
             <v-btn size="small" color="primary" variant="elevated" prepend-icon="mdi-plus" @click="openResourceCreate(tab.key)">
               {{ t(`prov.quote.${tab.key}.new`) }}
+            </v-btn>
+            <!-- Instance-only: CSV bulk import. Stays out of the other
+                 tabs since the import endpoint is instance-specific
+                 (per the legacy `popup-prov-instance-import`). -->
+            <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload"
+              @click="importDialog = true">
+              {{ t('prov.quote.import.title') }}
             </v-btn>
             <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" prepend-icon="mdi-delete-sweep"
               @click="askDeleteAll(tab.key)">
@@ -291,6 +322,7 @@
       @saved="onResourceSaved"
       @tags-changed="onResourceSaved"
     />
+    <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
 
     <LigojConfirmDialog
       v-model="deleteAllDialog"
@@ -336,12 +368,17 @@ import {
   formatCpu,
   formatRam,
   formatStorage,
+  scaleCost,
+  COST_PERIODS,
+  rowMatches,
+  maxOfField,
   TAB_TYPES,
 } from '../quoteFormatters.js'
 import QuoteBreakdown from './QuoteBreakdown.vue'
 import ComputeEditDialog from './ComputeEditDialog.vue'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
+import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 
 const route = useRoute()
@@ -353,7 +390,28 @@ const t = i18n.t
 
 const loading = ref(false)
 const refreshing = ref(false)
+const refreshingPrices = ref(false)
 const error = ref(null)
+
+/* Cost period selector — persisted so the user's preference survives
+ * a reload. The scaling math lives in `scaleCost` (quoteFormatters)
+ * so it's covered by unit tests. */
+const COST_PERIOD_KEY = 'ligoj-prov-quote-cost-period'
+function readPersistedCostPeriod() {
+  if (typeof localStorage === 'undefined') return 'month'
+  const stored = localStorage.getItem(COST_PERIOD_KEY)
+  return COST_PERIODS.includes(stored) ? stored : 'month'
+}
+const costPeriod = ref(readPersistedCostPeriod())
+watch(costPeriod, (v) => {
+  if (typeof localStorage !== 'undefined' && COST_PERIODS.includes(v)) {
+    localStorage.setItem(COST_PERIOD_KEY, v)
+  }
+})
+
+function scaledCost(cost) {
+  return scaleCost(cost, costPeriod.value)
+}
 // `config` is the inner quote (the `configuration` block of the API
 // response). Top-level fields from the response (subscription id,
 // project, node) live in `meta` so the header can render the provider
@@ -447,6 +505,9 @@ const deleting = ref(false)
 // --- Per-tab selection (drives the bulk-delete toolbar) ---
 const selectedByType = reactive(Object.fromEntries(TAB_TYPES.map((t) => [t.key, []])))
 
+// --- Instance CSV import dialog state ---
+const importDialog = ref(false)
+
 // --- Per-type create/edit dialog state ---
 // Compute types (instance/container/function/database) share
 // ComputeEditDialog; storage and support each have their own. A single
@@ -512,30 +573,8 @@ const counts = computed(() => {
   return out
 })
 
-/**
- * Search predicate — case-insensitive substring match across the
- * fields the user typically searches by. Pulls values lazily so a
- * row missing some fields just contributes empty strings.
- */
-function rowMatches(row, query) {
-  if (!query) return true
-  const q = query.toLowerCase()
-  const haystack = [
-    row.name,
-    row.description,
-    row.os || row.price?.os,
-    row.engine || row.price?.engine,
-    row.level || row.price?.level,
-    row.price?.type?.name,
-    row.price?.type?.code,
-    row.location?.name || row.price?.location?.name,
-    row.id != null ? String(row.id) : '',
-  ]
-  for (const v of haystack) {
-    if (v && String(v).toLowerCase().includes(q)) return true
-  }
-  return false
-}
+/* `rowMatches` lives in quoteFormatters.js so the predicate is covered
+ * by unit tests (and reusable if another view needs a similar filter). */
 
 const filteredRowsByType = computed(() => {
   const out = {}
@@ -568,24 +607,17 @@ function tagsFor(type, id) {
   return Array.isArray(list) ? list : []
 }
 
-/* ---------- Per-tab CPU / RAM max for micro-bars ---------- */
-
-function maxOf(rows, get) {
-  let m = 0
-  for (const r of rows) {
-    const v = Number(get(r)) || 0
-    if (v > m) m = v
-  }
-  return m
-}
+/* ---------- Per-tab CPU / RAM max for micro-bars ---------- *
+ * Storage/support don't carry CPU/RAM, so we early-return 0 to skip
+ * the bar entirely. */
+const COMPUTE_KEYS = new Set(['instance', 'container', 'function', 'database'])
 function cpuMax(type) {
-  // Bars only render for compute types. Storage/support don't carry CPU.
-  if (!['instance', 'container', 'function', 'database'].includes(type)) return 0
-  return maxOf(rowsByType.value[type] || [], (r) => r.cpu ?? r.price?.type?.cpu)
+  if (!COMPUTE_KEYS.has(type)) return 0
+  return maxOfField(rowsByType.value[type] || [], (r) => r.cpu ?? r.price?.type?.cpu)
 }
 function ramMax(type) {
-  if (!['instance', 'container', 'function', 'database'].includes(type)) return 0
-  return maxOf(rowsByType.value[type] || [], (r) => r.ram ?? r.price?.type?.ram)
+  if (!COMPUTE_KEYS.has(type)) return 0
+  return maxOfField(rowsByType.value[type] || [], (r) => r.ram ?? r.price?.type?.ram)
 }
 
 /**
@@ -675,6 +707,37 @@ async function reload() {
     await loadConfig()
   } finally {
     refreshing.value = false
+  }
+}
+
+/**
+ * Calls the legacy `PUT service/prov/<sub>/refresh` which re-runs the
+ * price discovery against the current provider catalog. The response
+ * is the new aggregate cost. If anything moved we reload the whole
+ * configuration to pick up the new per-resource costs; otherwise we
+ * just inform the user nothing changed (matches legacy
+ * `reloadAsNeed`). Reloading is the simplest path — the response
+ * doesn't carry per-resource deltas. */
+async function refreshPrices() {
+  if (!subscriptionId.value) return
+  refreshingPrices.value = true
+  try {
+    const newCost = await api.put(`rest/service/prov/${subscriptionId.value}/refresh`, null)
+    if (newCost == null) return
+    const conf = config.value
+    const changed =
+      !conf?.cost
+      || newCost.min !== conf.cost.min
+      || newCost.max !== conf.cost.max
+      || newCost.unbound !== conf.cost.unbound
+    if (changed) {
+      errorStore.success(t('prov.quote.refreshPrices.changed'))
+      await loadConfig()
+    } else {
+      errorStore.push({ message: t('prov.quote.refreshPrices.noChange'), status: 0 })
+    }
+  } finally {
+    refreshingPrices.value = false
   }
 }
 

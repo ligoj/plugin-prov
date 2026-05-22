@@ -227,4 +227,41 @@ export default {
 
   // Iteration 8: per-row duplicate action.
   'prov.quote.duplicate': 'Duplicate',
+
+  // Iteration 9: refresh-prices action + cost period selector.
+  'prov.quote.refreshPrices': 'Refresh prices against the provider catalog',
+  'prov.quote.refreshPrices.changed': 'Catalog moved — quote prices updated.',
+  'prov.quote.refreshPrices.noChange': 'Catalog unchanged — quote prices stable.',
+  'prov.quote.period.title': 'Cost period',
+  'prov.quote.period.hour': 'Hourly',
+  'prov.quote.period.day': 'Daily',
+  'prov.quote.period.month': 'Monthly',
+  'prov.quote.period.year': 'Yearly',
+  'prov.quote.period.hourSuffix': 'h',
+  'prov.quote.period.daySuffix': 'd',
+  'prov.quote.period.monthSuffix': 'mo',
+  'prov.quote.period.yearSuffix': 'y',
+
+  // Iteration 10: CSV bulk import for instances.
+  'prov.quote.import.title': 'Import CSV',
+  'prov.quote.import.intro': 'Bulk-create instances from a CSV file. Headers are optional but recommended.',
+  'prov.quote.import.headers.title': 'CSV header reference',
+  'prov.quote.import.headers.implicit': 'Implicit (no headers needed):',
+  'prov.quote.import.headers.valid': 'Valid headers in any order:',
+  'prov.quote.import.file': 'CSV file',
+  'prov.quote.import.separator': 'Separator',
+  'prov.quote.import.encoding': 'Encoding',
+  'prov.quote.import.encodingHint': 'auto-detect',
+  'prov.quote.import.merge': 'Merge mode',
+  'prov.quote.import.merge.update': 'Update (overwrite by name)',
+  'prov.quote.import.merge.keep': 'Keep (skip existing)',
+  'prov.quote.import.merge.insert': 'Insert (always create)',
+  'prov.quote.import.memoryUnit': 'Memory unit',
+  'prov.quote.import.memoryUnit.mb': 'MB',
+  'prov.quote.import.memoryUnit.gb': 'GB',
+  'prov.quote.import.headersIncluded': 'First row is headers',
+  'prov.quote.import.errorContinue': 'Continue on error',
+  'prov.quote.import.upload': 'Upload',
+  'prov.quote.import.done': 'Import succeeded.',
+  'prov.quote.import.failed': 'Import failed — check the file format.',
 }

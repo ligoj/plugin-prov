@@ -224,4 +224,41 @@ export default {
 
   // Itération 8 : action « dupliquer » par ligne.
   'prov.quote.duplicate': 'Dupliquer',
+
+  // Itération 9 : actualisation des prix + sélecteur de période.
+  'prov.quote.refreshPrices': 'Actualiser les prix depuis le catalogue fournisseur',
+  'prov.quote.refreshPrices.changed': 'Le catalogue a évolué — prix du devis mis à jour.',
+  'prov.quote.refreshPrices.noChange': 'Catalogue inchangé — prix du devis stables.',
+  'prov.quote.period.title': 'Période',
+  'prov.quote.period.hour': 'Horaire',
+  'prov.quote.period.day': 'Journalier',
+  'prov.quote.period.month': 'Mensuel',
+  'prov.quote.period.year': 'Annuel',
+  'prov.quote.period.hourSuffix': 'h',
+  'prov.quote.period.daySuffix': 'j',
+  'prov.quote.period.monthSuffix': 'mois',
+  'prov.quote.period.yearSuffix': 'an',
+
+  // Itération 10 : import CSV groupé d'instances.
+  'prov.quote.import.title': 'Importer un CSV',
+  'prov.quote.import.intro': 'Créer plusieurs instances depuis un fichier CSV. Les en-têtes sont optionnels mais recommandés.',
+  'prov.quote.import.headers.title': 'Référence des en-têtes CSV',
+  'prov.quote.import.headers.implicit': 'Implicites (sans en-tête) :',
+  'prov.quote.import.headers.valid': 'En-têtes valides (ordre libre) :',
+  'prov.quote.import.file': 'Fichier CSV',
+  'prov.quote.import.separator': 'Séparateur',
+  'prov.quote.import.encoding': 'Encodage',
+  'prov.quote.import.encodingHint': 'auto',
+  'prov.quote.import.merge': 'Mode de fusion',
+  'prov.quote.import.merge.update': 'Mise à jour (écrase par nom)',
+  'prov.quote.import.merge.keep': 'Conserver (ignore l\'existant)',
+  'prov.quote.import.merge.insert': 'Insertion (toujours créer)',
+  'prov.quote.import.memoryUnit': 'Unité mémoire',
+  'prov.quote.import.memoryUnit.mb': 'Mo',
+  'prov.quote.import.memoryUnit.gb': 'Go',
+  'prov.quote.import.headersIncluded': 'Première ligne = en-têtes',
+  'prov.quote.import.errorContinue': 'Continuer en cas d\'erreur',
+  'prov.quote.import.upload': 'Téléverser',
+  'prov.quote.import.done': 'Import réussi.',
+  'prov.quote.import.failed': 'Import échoué — vérifiez le format du fichier.',
 }

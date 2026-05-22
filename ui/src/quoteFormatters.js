@@ -60,6 +60,37 @@ export function formatCo2(grams) {
 }
 
 /**
+ * Cost-period factors. The backend stores everything in monthly units;
+ * the view scales at render time. The hourly ratio of 730 h/month and
+ * the daily ratio of 30 d/month match the legacy conventions.
+ */
+export const COST_PERIOD_FACTORS = Object.freeze({
+  hour: 1 / 730,
+  day:  1 / 30,
+  month: 1,
+  year:  12,
+})
+
+/** Period keys in display order. */
+export const COST_PERIODS = Object.freeze(['hour', 'day', 'month', 'year'])
+
+/**
+ * Scales the legacy `{ min, max, unbound }` cost shape by the active
+ * period factor. Plain numbers and `null` pass through. Unknown periods
+ * fall back to monthly (factor = 1).
+ */
+export function scaleCost(cost, period) {
+  if (cost == null) return cost
+  const f = COST_PERIOD_FACTORS[period] ?? 1
+  if (typeof cost === 'number') return cost * f
+  return {
+    ...cost,
+    min: cost.min != null ? cost.min * f : cost.min,
+    max: cost.max != null ? cost.max * f : cost.max,
+  }
+}
+
+/**
  * Tab metadata — drives the v-tabs/v-window structure of QuoteView AND
  * the cost-breakdown donut. The colour is a fixed hex picked from
  * Vuetify's default palette so plugin-prov stays theme-agnostic (the
@@ -94,6 +125,49 @@ export function donutPath(cx, cy, r, ri, start, end) {
   const siy = cy + ri * Math.sin(start)
   const large = (end - start) > Math.PI ? 1 : 0
   return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey} L ${eix} ${eiy} A ${ri} ${ri} 0 ${large} 0 ${six} ${siy} Z`
+}
+
+/**
+ * Case-insensitive substring match across the fields a user typically
+ * searches by in the quote tables. Returns true when the query is
+ * empty so callers don't need to short-circuit themselves.
+ */
+export function rowMatches(row, query) {
+  if (!query) return true
+  if (!row) return false
+  const q = String(query).toLowerCase()
+  const haystack = [
+    row.name,
+    row.description,
+    row.os || row.price?.os,
+    row.engine || row.price?.engine,
+    row.level || row.price?.level,
+    row.price?.type?.name,
+    row.price?.type?.code,
+    row.location?.name || row.price?.location?.name,
+    row.id != null ? String(row.id) : '',
+  ]
+  for (const v of haystack) {
+    if (v && String(v).toLowerCase().includes(q)) return true
+  }
+  return false
+}
+
+/**
+ * Highest value of a numeric field across a list of rows. Used to
+ * normalise the efficiency micro-bars in the quote table — each row's
+ * CPU/RAM cell shows `value / max(column)`. Missing rows contribute 0;
+ * non-numeric values are coerced to 0.
+ */
+export function maxOfField(rows, get) {
+  if (!Array.isArray(rows) || rows.length === 0) return 0
+  let m = 0
+  for (const r of rows) {
+    if (!r) continue
+    const v = Number(get(r)) || 0
+    if (v > m) m = v
+  }
+  return m
 }
 
 /** A complete annulus, used when a single resource type carries 100% of the cost. */
