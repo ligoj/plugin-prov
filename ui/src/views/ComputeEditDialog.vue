@@ -6,20 +6,20 @@
       </v-card-title>
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-row dense>
+          <v-row density="comfortable">
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="[required]" maxlength="50"
+              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                 variant="outlined" density="compact" autofocus />
             </v-col>
 
             <v-col v-if="hasOs" cols="12" md="6">
-              <v-autocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="[required]"
+              <v-autocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES"
                 variant="outlined" density="compact" />
             </v-col>
 
             <v-col v-if="type === 'database'" cols="12" md="6">
               <v-autocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')"
-                :rules="[required]" variant="outlined" density="compact" />
+                :rules="REQUIRED_RULES" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="type === 'database'" cols="12" md="6">
               <v-text-field v-model="form.edition" :label="t('prov.quote.compute.edition')" variant="outlined"
@@ -32,11 +32,11 @@
             </v-col>
 
             <v-col cols="6" md="3">
-              <v-text-field v-model.number="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="[required, positive]"
+              <v-text-field v-model.number="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
                 type="number" min="0" step="0.25" variant="outlined" density="compact" />
             </v-col>
             <v-col cols="6" md="3">
-              <v-text-field v-model.number="form.ramGb" :label="ramLabel" :rules="[required, positive]" type="number"
+              <v-text-field v-model.number="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES" type="number"
                 min="0" step="0.5" variant="outlined" density="compact" />
             </v-col>
 
@@ -51,11 +51,11 @@
 
             <v-col v-if="type === 'function'" cols="12" md="4">
               <v-text-field v-model.number="form.nbRequests" :label="t('prov.quote.function.nbRequests')"
-                :rules="[required, positive]" type="number" min="1" max="10000" variant="outlined" density="compact" />
+                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="10000" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
               <v-text-field v-model.number="form.duration" :label="t('prov.quote.function.duration')"
-                :rules="[required, positive]" type="number" min="1" max="7200000" variant="outlined" density="compact" />
+                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="7200000" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
               <v-text-field v-model.number="form.concurrency" :label="t('prov.quote.function.concurrency')"
@@ -71,6 +71,77 @@
                 :label="t('prov.quote.fields.usage')" variant="outlined" density="compact" clearable />
             </v-col>
           </v-row>
+
+          <!-- Advanced fields, collapsed by default. They all feed the
+               lookup query but stay out of the way for typical
+               requirements. -->
+          <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
+            <v-expansion-panel :title="t('prov.quote.compute.advanced')">
+              <template #text>
+                <v-row density="comfortable">
+                  <v-col cols="12" md="6">
+                    <v-combobox v-model="form.processor" :items="processorOptions" :label="t('prov.quote.fields.processor')"
+                      variant="outlined" density="compact" clearable :hint="t('prov.quote.compute.processorHint')" persistent-hint />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-combobox v-model="form.architecture" :items="architectureOptions" :label="t('prov.quote.fields.architecture')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field v-model="form.license" :label="t('prov.quote.compute.license')" variant="outlined"
+                      density="compact" clearable />
+                  </v-col>
+                  <v-col v-if="props.type === 'instance'" cols="12" md="6">
+                    <v-text-field v-model="form.software" :label="t('prov.quote.compute.software')" variant="outlined"
+                      density="compact" clearable :hint="t('prov.quote.compute.softwareHint')" persistent-hint />
+                  </v-col>
+                  <v-col v-if="hasGpu" cols="12" md="6">
+                    <v-text-field v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8"
+                      variant="outlined" density="compact" />
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-select v-model="form.cpuRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.cpuRate')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-select v-model="form.ramRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.ramRate')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-select v-model="form.networkRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.networkRate')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-select v-model="form.storageRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.storageRate')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-text-field v-model="form.workload" :label="t('prov.quote.compute.workload')" :rules="WORKLOAD_RULES"
+                      :hint="t('prov.quote.compute.workloadHint')" persistent-hint variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col v-if="hasEphemeral" cols="12" md="6">
+                    <v-switch v-model="form.ephemeral" :label="t('prov.quote.compute.ephemeral')" color="primary"
+                      density="compact" hide-details />
+                  </v-col>
+                  <v-col v-if="hasEphemeral" cols="12" md="6">
+                    <v-text-field v-model.number="form.maxVariableCost" :label="t('prov.quote.compute.maxVariableCost')"
+                      type="number" min="0" variant="outlined" density="compact" clearable />
+                  </v-col>
+                </v-row>
+              </template>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
+          <!-- Tag editor — edit mode only. Tags ride their own REST
+               endpoint, so the editor mutates the model immediately
+               without waiting for Save. -->
+          <QuoteTagsEditor v-if="isEdit && props.resource?.id" :subscription-id="props.subscriptionId" :type="props.type"
+            :resource-id="props.resource.id" :model-value="resourceTags" :all-tags-by-type="props.config?.tags || {}"
+            @update:model-value="(v) => emit('tags-changed', v)" />
 
           <!-- Lookup result — auto-debounced. Save commits only on the explicit button. -->
           <div class="mt-4 d-flex align-center ga-3 flex-wrap">
@@ -121,6 +192,7 @@
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
+import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources
@@ -142,13 +214,22 @@ const props = defineProps({
   /** Existing resource row when editing; `null` switches to create. */
   resource: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'saved'])
+const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed'])
 
 const api = useApi()
 const errorStore = useErrorStore()
 const { t } = useI18nStore()
 
 const isEdit = computed(() => !!props.resource?.id)
+
+const resourceTags = computed(() => {
+  const tagsByType = props.config?.tags
+  if (!tagsByType || !props.resource?.id) return []
+  const byId = tagsByType[props.type] || tagsByType[String(props.type).toLowerCase()]
+  if (!byId) return []
+  const list = byId[props.resource.id]
+  return Array.isArray(list) ? list : []
+})
 
 // Per-type field visibility predicates.
 const hasOs = computed(() => props.type === 'instance' || props.type === 'container')
@@ -200,10 +281,81 @@ const form = reactive({
   nbRequests: 1,
   duration: 100,
   concurrency: 0,
+  // Advanced ↓
+  processor: null,
+  architecture: null,
+  physical: null,
+  license: null,
+  software: null,
+  gpu: 0,
+  ephemeral: false,
+  maxVariableCost: null,
+  cpuRate: null,
+  ramRate: null,
+  networkRate: null,
+  storageRate: null,
+  /** Comma-separated CPU profile string, e.g. `100,40@20,80@30`.
+   *  Legacy format: peak%[,duration@cpu]* — kept as raw text. */
+  workload: '',
 })
+
+/**
+ * Loose validator for the workload string. Empty is allowed; otherwise
+ * each segment must be either a single percent (0–100) or `dur@cpu`
+ * with both fractions in 0..100. Doesn't try to be exhaustive — the
+ * backend re-validates and reports per-token errors.
+ */
+function workloadRule(v) {
+  if (!v) return true
+  const parts = String(v).split(',').map((s) => s.trim()).filter(Boolean)
+  for (const p of parts) {
+    if (!/^\d{1,3}(@\d{1,3})?$/.test(p)) return t('prov.quote.compute.workloadHint')
+  }
+  return true
+}
+
+// Weighted-rate selector — same enum used by the legacy
+// `.prov-rate` button groups and by storage's latency.
+const RATE_OPTIONS = ['BEST', 'GOOD', 'MEDIUM', 'LOW', 'WORST']
+
+const advancedOpen = ref(undefined)
+
+const hasGpu = computed(() => props.type === 'instance' || props.type === 'container')
+const hasEphemeral = computed(() => props.type === 'instance' || props.type === 'container')
+
+/**
+ * Per-resource-type processor / architecture lists come from the
+ * configuration payload's `processors[type]` / `architectures[type]`
+ * maps. `v-combobox` keeps the values free-text-able for catalogs the
+ * payload doesn't enumerate.
+ */
+const processorOptions = computed(() => {
+  const src = props.config?.processors
+  if (!src) return []
+  return Array.isArray(src) ? src : (src[props.type] || [])
+})
+const architectureOptions = computed(() => {
+  const src = props.config?.architectures
+  if (!src) return []
+  return Array.isArray(src) ? src : (src[props.type] || [])
+})
+const physicalOptions = computed(() => [
+  { value: true,  title: t('prov.quote.fields.physical.true') },
+  { value: false, title: t('prov.quote.fields.physical.false') },
+])
 
 const required = (v) => (v != null && v !== '') || (t('common.required') || 'Required')
 const positive = (v) => (typeof v === 'number' && v > 0) || (t('common.positive') || 'Must be positive')
+
+/* Stable rule arrays. Vuetify 4's v-form re-runs validation whenever
+ * `:rules` changes by reference — inline `:rules="REQUIRED_RULES"` creates
+ * a fresh array each render, which when combined with v-form's
+ * mount-time validation re-runs forever inside `v-expansion-panel-text`
+ * transitions ("Maximum recursive updates exceeded"). Hoisting these
+ * to stable refs sidesteps the cycle. */
+const REQUIRED_RULES = [required]
+const REQUIRED_POSITIVE_RULES = [required, positive]
+const WORKLOAD_RULES = [workloadRule]
 
 const canLookup = computed(() => {
   if (typeof form.cpu !== 'number' || form.cpu <= 0) return false
@@ -240,12 +392,28 @@ watch(() => props.modelValue, (open) => {
     form.nbRequests    = it.nbRequests ?? 1
     form.duration      = it.duration ?? 100
     form.concurrency   = it.concurrency ?? 0
+    form.processor     = it.processor ?? it.price?.type?.processor ?? null
+    form.architecture  = it.architecture ?? it.price?.type?.architecture ?? null
+    form.physical      = it.physical ?? null
+    form.license       = it.license ?? it.price?.license ?? null
+    form.software      = it.software ?? it.price?.software ?? null
+    form.gpu           = it.gpu ?? 0
+    form.ephemeral     = it.ephemeral === true
+    form.maxVariableCost = it.maxVariableCost ?? null
+    form.cpuRate       = it.cpuRate ?? null
+    form.ramRate       = it.ramRate ?? null
+    form.networkRate   = it.networkRate ?? null
+    form.storageRate   = it.storageRate ?? null
+    form.workload      = it.workload ?? ''
   } else {
     Object.assign(form, {
       id: null, name: '', description: '', os: 'LINUX', engine: 'MYSQL', edition: '',
       cpu: 1, ramGb: 1, minQuantity: 1, maxQuantity: null,
       location: null, usage: null,
       nbRequests: 1, duration: 100, concurrency: 0,
+      processor: null, architecture: null, physical: null, license: null, software: null,
+      gpu: 0, ephemeral: false, maxVariableCost: null,
+      cpuRate: null, ramRate: null, networkRate: null, storageRate: null, workload: '',
     })
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
@@ -284,6 +452,8 @@ watch(
     form.cpu, form.ramGb,
     form.nbRequests, form.duration, form.concurrency,
     form.location, form.usage,
+    form.processor, form.architecture, form.physical, form.license, form.software, form.gpu,
+    form.cpuRate, form.ramRate, form.networkRate, form.storageRate,
   ],
   () => scheduleLookup(),
 )
@@ -311,6 +481,16 @@ async function runLookup() {
     }
     if (form.location) qs.set('location', form.location)
     if (form.usage) qs.set('usage', form.usage)
+    if (form.processor) qs.set('processor', String(form.processor).toLowerCase())
+    if (form.architecture) qs.set('architecture', String(form.architecture).toLowerCase())
+    if (form.physical === true || form.physical === false) qs.set('physical', String(form.physical))
+    if (form.license) qs.set('license', String(form.license).toLowerCase())
+    if (props.type === 'instance' && form.software) qs.set('software', String(form.software).toLowerCase())
+    if (hasGpu.value && form.gpu > 0) qs.set('gpu', String(form.gpu))
+    if (form.cpuRate) qs.set('cpuRate', form.cpuRate)
+    if (form.ramRate) qs.set('ramRate', form.ramRate)
+    if (form.networkRate) qs.set('networkRate', form.networkRate)
+    if (form.storageRate) qs.set('storageRate', form.storageRate)
     const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/${props.type}-lookup/?${qs}`
     const resp = await fetch(url, { credentials: 'include' })
     if (seq !== lookupSeq) return
@@ -368,6 +548,25 @@ async function save() {
     if (hasQuantity.value) {
       payload.minQuantity = form.minQuantity ?? 0
       payload.maxQuantity = form.maxQuantity ?? null
+    }
+    // Advanced fields — normalised the same way the legacy
+    // `genericUiToData` did (lowercase strings; tri-state physical).
+    if (form.processor) payload.processor = String(form.processor).toLowerCase()
+    if (form.architecture) payload.architecture = String(form.architecture).toLowerCase()
+    if (form.physical === true || form.physical === false) payload.physical = form.physical
+    if (form.license) payload.license = String(form.license).toLowerCase()
+    if (props.type === 'instance' && form.software) payload.software = String(form.software).toLowerCase()
+    if (hasGpu.value && form.gpu > 0) payload.gpu = form.gpu
+    if (form.cpuRate) payload.cpuRate = form.cpuRate
+    if (form.ramRate) payload.ramRate = form.ramRate
+    if (form.networkRate) payload.networkRate = form.networkRate
+    if (form.storageRate) payload.storageRate = form.storageRate
+    if (form.workload) payload.workload = form.workload
+    if (hasEphemeral.value) {
+      payload.ephemeral = !!form.ephemeral
+      if (typeof form.maxVariableCost === 'number' && form.maxVariableCost > 0) {
+        payload.maxVariableCost = form.maxVariableCost
+      }
     }
     const url = `rest/service/prov/${props.type}`
     const result = form.id ? await api.put(url, payload) : await api.post(url, payload)

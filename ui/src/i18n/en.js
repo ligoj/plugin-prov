@@ -105,6 +105,9 @@ export default {
   'prov.quote.delete.all.body': 'Remove every {type} ({count}) from this quote? This cannot be undone.',
   'prov.quote.delete.all.label': 'Delete all',
   'prov.quote.delete.all.done': 'All {type} resources deleted ({count})',
+  'prov.quote.delete.bulk.title': 'Delete selected resources',
+  'prov.quote.delete.bulk.body': 'Delete the {count} selected {type} resources? This cannot be undone.',
+  'prov.quote.delete.bulk.done': 'Deleted {count} {type} resources',
 
   // Iteration 3: header cost-breakdown donut.
   'prov.quote.breakdown.title': 'Cost breakdown',
@@ -182,10 +185,43 @@ export default {
   'prov.quote.support.new': 'New support',
   'prov.quote.support.edit': 'Edit support',
   'prov.quote.support.levelHint': 'Provider-specific (e.g. Basic, Developer, Business, Enterprise)',
-  'prov.quote.support.accessNote': 'Access channels (API / chat / email / phone) land with a polish iteration.',
+  'prov.quote.support.access': 'Access channels',
+  'prov.quote.support.accessApi': 'API',
+  'prov.quote.support.accessEmail': 'Email',
+  'prov.quote.support.accessPhone': 'Phone',
+  'prov.quote.support.accessChat': 'Chat',
   'prov.quote.support.lookupNeedsFields': 'No constraints — the cheapest plan will be suggested.',
   'prov.quote.support.lookupFailed': 'Lookup failed — no matching support plan for these requirements.',
   'prov.quote.support.noMatch': 'No support plan matches these requirements.',
   'prov.quote.support.created': 'Support "{name}" created',
   'prov.quote.support.updated': 'Support "{name}" updated',
+
+  // Iteration 6: advanced fields.
+  'prov.quote.compute.advanced': 'Advanced requirements',
+  'prov.quote.compute.processorHint': 'Free-text — must match a value reported by the provider catalog',
+  'prov.quote.compute.license': 'License',
+  'prov.quote.compute.gpu': 'GPU count',
+  'prov.quote.compute.ephemeral': 'Ephemeral (spot)',
+  'prov.quote.compute.maxVariableCost': 'Max variable cost / mo',
+  'prov.quote.compute.software': 'Software',
+  'prov.quote.compute.softwareHint': 'e.g. SQL_SERVER_ENT — see provider catalog',
+  'prov.quote.compute.cpuRate': 'CPU rate',
+  'prov.quote.compute.ramRate': 'RAM rate',
+  'prov.quote.compute.networkRate': 'Network rate',
+  'prov.quote.compute.storageRate': 'Storage I/O rate',
+  'prov.quote.compute.workload': 'Workload profile',
+  'prov.quote.compute.workloadHint': 'Comma-separated peak% then "duration@cpu" pairs (e.g. 100,40@20,80@30)',
+  'prov.quote.fields.processor': 'Processor',
+  'prov.quote.fields.architecture': 'Architecture',
+  'prov.quote.storage.advanced': 'Advanced requirements',
+  'prov.quote.storage.latency': 'Latency rate',
+  'prov.quote.storage.optimized': 'Optimised for',
+
+  // Iteration 7: tag editor.
+  'prov.quote.tags.title': 'Tags',
+  'prov.quote.tags.addHint': 'name or name:value',
+  'prov.quote.tags.removed': 'Tag "{name}" removed',
+
+  // Iteration 8: per-row duplicate action.
+  'prov.quote.duplicate': 'Duplicate',
 }

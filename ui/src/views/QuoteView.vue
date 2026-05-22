@@ -108,8 +108,24 @@
           <v-alert v-if="!rowsByType[tab.key].length" type="info" variant="tonal" density="compact">
             {{ t('prov.quote.empty') }}
           </v-alert>
+          <!-- Bulk-action bar. Appears only when something is selected
+               on the current tab — keeps the toolbar quiet otherwise. -->
+          <v-slide-y-transition>
+            <v-toolbar v-if="selectedByType[tab.key]?.length" density="compact" color="primary" rounded class="mb-2">
+              <v-toolbar-title>
+                {{ selectedByType[tab.key].length }} {{ t('common.selected') }}
+              </v-toolbar-title>
+              <v-spacer />
+              <v-btn variant="elevated" color="error" prepend-icon="mdi-delete" @click="askDeleteBulk(tab.key)">
+                {{ t('common.delete') }}
+              </v-btn>
+            </v-toolbar>
+          </v-slide-y-transition>
+
           <LigojDataTable
-            v-else
+            v-if="rowsByType[tab.key].length"
+            v-model="selectedByType[tab.key]"
+            show-select
             :filename="`prov-${tab.key}.csv`"
             :headers="headersByType[tab.key]"
             :items="filteredRowsByType[tab.key]"
@@ -118,6 +134,19 @@
             density="compact"
             item-value="id"
           >
+            <template #item.name="{ item }">
+              <span>{{ item.name }}</span>
+              <!-- Tags inherited from the legacy `conf.tags` map. Each
+                   tag carries an optional value, rendered as
+                   `name:value` when present. The lookup map is
+                   case-folded once in `tagsByTypeAndId` so we never
+                   re-create the lookup key per cell. -->
+              <span v-if="tagsFor(tab.key, item.id).length" class="d-inline-flex flex-wrap ga-1 ml-1">
+                <v-chip v-for="tag in tagsFor(tab.key, item.id)" :key="tag.name" size="x-small" variant="tonal">
+                  {{ tag.value ? `${tag.name}:${tag.value}` : tag.name }}
+                </v-chip>
+              </span>
+            </template>
             <template #item.cpu="{ item }">
               <ResourceMicroBar v-if="cpuMax(tab.key)" :value="item.cpu ?? item.price?.type?.cpu" :max="cpuMax(tab.key)"
                 :label="formatCpu(item.cpu ?? item.price?.type?.cpu)" color="rgb(var(--v-theme-primary))" />
@@ -148,6 +177,10 @@
               <v-btn icon size="small" variant="text" :title="t('common.edit')" @click="openResourceEdit(tab.key, item)">
                 <v-icon size="small">mdi-pencil</v-icon>
               </v-btn>
+              <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')"
+                @click="openResourceDuplicate(tab.key, item)">
+                <v-icon size="small">mdi-content-duplicate</v-icon>
+              </v-btn>
               <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')"
                 @click="askDeleteRow(tab.key, item)">
                 <v-icon size="small">mdi-delete</v-icon>
@@ -166,9 +199,9 @@
         <v-card-title>{{ t('prov.quote.edit') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="saveEdit">
-            <v-row dense>
+            <v-row density="comfortable">
               <v-col cols="12" md="6">
-                <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="[rules.required]" maxlength="50"
+                <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                   variant="outlined" density="compact" autofocus />
               </v-col>
               <v-col cols="12" md="6">
@@ -240,6 +273,7 @@
       :config="config"
       :resource="editTarget"
       @saved="onResourceSaved"
+      @tags-changed="onResourceSaved"
     />
     <StorageEditDialog
       v-model="storageDialog"
@@ -247,6 +281,7 @@
       :config="config"
       :resource="editTarget"
       @saved="onResourceSaved"
+      @tags-changed="onResourceSaved"
     />
     <SupportEditDialog
       v-model="supportDialog"
@@ -254,6 +289,7 @@
       :config="config"
       :resource="editTarget"
       @saved="onResourceSaved"
+      @tags-changed="onResourceSaved"
     />
 
     <LigojConfirmDialog
@@ -265,6 +301,17 @@
       @confirm="confirmDeleteAll"
     >
       {{ t('prov.quote.delete.all.body', { type: deleteAllType ? tabLabel(deleteAllType) : '', count: deleteAllType ? rowsByType[deleteAllType].length : 0 }) }}
+    </LigojConfirmDialog>
+
+    <LigojConfirmDialog
+      v-model="deleteBulkDialog"
+      :title="t('prov.quote.delete.bulk.title')"
+      :confirm-label="t('common.delete')"
+      confirm-color="error"
+      :loading="deleting"
+      @confirm="confirmDeleteBulk"
+    >
+      {{ t('prov.quote.delete.bulk.body', { type: deleteBulkType ? tabLabel(deleteBulkType) : '', count: deleteBulkType ? selectedByType[deleteBulkType].length : 0 }) }}
     </LigojConfirmDialog>
   </div>
 </template>
@@ -313,7 +360,21 @@ const error = ref(null)
 // icon without a second round-trip.
 const config = ref(null)
 const meta = ref(null)
-const activeTab = ref('instance')
+/* Active tab persisted in localStorage so reloading or following an
+ * external link to this view keeps the user where they were. */
+const ACTIVE_TAB_STORAGE_KEY = 'ligoj-prov-quote-active-tab'
+const VALID_TAB_KEYS = new Set(TAB_TYPES.map((t) => t.key))
+function readPersistedTab() {
+  if (typeof localStorage === 'undefined') return 'instance'
+  const stored = localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)
+  return VALID_TAB_KEYS.has(stored) ? stored : 'instance'
+}
+const activeTab = ref(readPersistedTab())
+watch(activeTab, (v) => {
+  if (typeof localStorage !== 'undefined' && VALID_TAB_KEYS.has(v)) {
+    localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, v)
+  }
+})
 
 /* ---------- View mode (cost ↔ CO₂) ----------
  * Persisted in localStorage so the choice survives reloads — matches
@@ -360,6 +421,10 @@ const editForm = reactive({
 const rules = {
   required: (v) => (v != null && v !== '') || (t('common.required') || 'Required'),
 }
+// Stable rule array for the quote-edit modal — Vuetify 4 re-validates
+// whenever `:rules` changes by reference, and inline arrays in templates
+// cause a recursive-update loop inside transitioned panels.
+const REQUIRED_RULES = [rules.required]
 
 const reservationOptions = computed(() => [
   { value: 'reserved', title: t('prov.quote.fields.reservation.reserved') },
@@ -375,7 +440,12 @@ const deleteRowDialog = ref(false)
 const deleteRowTarget = ref(null)         // { type, row }
 const deleteAllDialog = ref(false)
 const deleteAllType = ref(null)            // tab key
+const deleteBulkDialog = ref(false)
+const deleteBulkType = ref(null)
 const deleting = ref(false)
+
+// --- Per-tab selection (drives the bulk-delete toolbar) ---
+const selectedByType = reactive(Object.fromEntries(TAB_TYPES.map((t) => [t.key, []])))
 
 // --- Per-type create/edit dialog state ---
 // Compute types (instance/container/function/database) share
@@ -477,6 +547,27 @@ const filteredRowsByType = computed(() => {
   return out
 })
 
+/* ---------- Tags ---------- *
+ * The configuration's `tags` map is keyed by resource type (the legacy
+ * lower-cases it once on load — same trick here) and then by resource
+ * id. Each entry is an array of `{ name, value }`. */
+const tagsByTypeAndId = computed(() => {
+  const src = config.value?.tags
+  if (!src || typeof src !== 'object') return {}
+  const out = {}
+  for (const [type, byId] of Object.entries(src)) {
+    out[type.toLowerCase()] = byId || {}
+  }
+  return out
+})
+
+function tagsFor(type, id) {
+  const byId = tagsByTypeAndId.value[type]
+  if (!byId) return []
+  const list = byId[id]
+  return Array.isArray(list) ? list : []
+}
+
 /* ---------- Per-tab CPU / RAM max for micro-bars ---------- */
 
 function maxOf(rows, get) {
@@ -508,8 +599,8 @@ const headersByType = computed(() => {
   const type = { title: t('prov.quote.cols.type'),     key: 'type',     sortable: true }
   const loc  = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
   const cost = { title: t('prov.quote.cols.cost'),     key: 'cost',     sortable: true, width: '140px', align: 'end' }
-  // Every tab now shows edit + delete icons, so size the column accordingly.
-  const actions = { title: '', key: 'actions', sortable: false, width: '110px', align: 'center' }
+  // Every tab shows edit + duplicate + delete icons, so size the column accordingly.
+  const actions = { title: '', key: 'actions', sortable: false, width: '150px', align: 'center' }
   const compute = [
     name,
     { title: t('prov.quote.cols.quantity'), key: 'minQuantity', sortable: true, width: '70px', align: 'end' },
@@ -674,6 +765,42 @@ function askDeleteAll(type) {
   deleteAllDialog.value = true
 }
 
+function askDeleteBulk(type) {
+  if (!selectedByType[type]?.length) return
+  deleteBulkType.value = type
+  deleteBulkDialog.value = true
+}
+
+/**
+ * Fans out per-id DELETEs. The backend has no bulk endpoint for
+ * partial subsets, so we serialise the calls one at a time — keeps
+ * the error surface clean and lets the host's error store toast any
+ * individual failure without aborting the rest.
+ */
+async function confirmDeleteBulk() {
+  const type = deleteBulkType.value
+  if (!type) return
+  const ids = [...(selectedByType[type] || [])]
+  if (ids.length === 0) {
+    deleteBulkDialog.value = false
+    deleteBulkType.value = null
+    return
+  }
+  deleting.value = true
+  try {
+    for (const id of ids) {
+      await api.del(`rest/service/prov/${type}/${id}`)
+    }
+    errorStore.success(t('prov.quote.delete.bulk.done', { type: tabLabel(type), count: ids.length }))
+    deleteBulkDialog.value = false
+    deleteBulkType.value = null
+    selectedByType[type] = []
+    await reload()
+  } finally {
+    deleting.value = false
+  }
+}
+
 /* ----------------- Per-type create / edit ---------------- */
 
 const COMPUTE_TYPES = new Set(['instance', 'container', 'function', 'database'])
@@ -689,6 +816,22 @@ function openResourceCreate(type) {
 function openResourceEdit(type, row) {
   editType.value = type
   editTarget.value = row
+  if (type === 'storage') storageDialog.value = true
+  else if (type === 'support') supportDialog.value = true
+  else if (COMPUTE_TYPES.has(type)) computeDialog.value = true
+}
+
+/**
+ * Opens the create dialog pre-populated from `row`. The dialog
+ * detects `id == null` as "create mode" and skips the PUT path, so
+ * stripping `id` is enough to turn an edit into a duplicate. Name
+ * suffixed with " (copy)" to avoid a duplicate-name validation
+ * collision; user can rename freely before saving.
+ */
+function openResourceDuplicate(type, row) {
+  if (!row) return
+  editType.value = type
+  editTarget.value = { ...row, id: null, name: `${row.name || ''} (copy)`.trim() }
   if (type === 'storage') storageDialog.value = true
   else if (type === 'support') supportDialog.value = true
   else if (COMPUTE_TYPES.has(type)) computeDialog.value = true

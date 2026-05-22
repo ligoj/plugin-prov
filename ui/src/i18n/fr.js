@@ -104,6 +104,9 @@ export default {
   'prov.quote.delete.all.body': 'Retirer toutes les ressources de type {type} ({count}) du devis ? Cette action est irréversible.',
   'prov.quote.delete.all.label': 'Tout supprimer',
   'prov.quote.delete.all.done': 'Toutes les ressources « {type} » supprimées ({count})',
+  'prov.quote.delete.bulk.title': 'Supprimer les ressources sélectionnées',
+  'prov.quote.delete.bulk.body': 'Supprimer les {count} ressources « {type} » sélectionnées ? Cette action est irréversible.',
+  'prov.quote.delete.bulk.done': '{count} ressources « {type} » supprimées',
 
   // Itération 3 : donut de répartition des coûts.
   'prov.quote.breakdown.title': 'Répartition des coûts',
@@ -179,10 +182,43 @@ export default {
   'prov.quote.support.new': 'Nouveau support',
   'prov.quote.support.edit': 'Modifier le support',
   'prov.quote.support.levelHint': 'Spécifique au fournisseur (ex. Basic, Developer, Business, Enterprise)',
-  'prov.quote.support.accessNote': 'Les canaux d\'accès (API / chat / email / téléphone) arriveront en finition.',
+  'prov.quote.support.access': 'Canaux d\'accès',
+  'prov.quote.support.accessApi': 'API',
+  'prov.quote.support.accessEmail': 'Email',
+  'prov.quote.support.accessPhone': 'Téléphone',
+  'prov.quote.support.accessChat': 'Chat',
   'prov.quote.support.lookupNeedsFields': 'Aucun critère — l\'offre la plus économique sera suggérée.',
   'prov.quote.support.lookupFailed': 'Recherche échouée — aucun plan de support ne correspond à ces critères.',
   'prov.quote.support.noMatch': 'Aucun plan de support ne correspond à ces critères.',
   'prov.quote.support.created': 'Support « {name} » créé',
   'prov.quote.support.updated': 'Support « {name} » mis à jour',
+
+  // Itération 6 : champs avancés.
+  'prov.quote.compute.advanced': 'Exigences avancées',
+  'prov.quote.compute.processorHint': 'Texte libre — doit correspondre à une valeur du catalogue fournisseur',
+  'prov.quote.compute.license': 'Licence',
+  'prov.quote.compute.gpu': 'Nombre de GPU',
+  'prov.quote.compute.ephemeral': 'Éphémère (spot)',
+  'prov.quote.compute.maxVariableCost': 'Coût variable max / mois',
+  'prov.quote.compute.software': 'Logiciel',
+  'prov.quote.compute.softwareHint': 'ex. SQL_SERVER_ENT — voir catalogue fournisseur',
+  'prov.quote.compute.cpuRate': 'Pondération CPU',
+  'prov.quote.compute.ramRate': 'Pondération RAM',
+  'prov.quote.compute.networkRate': 'Pondération réseau',
+  'prov.quote.compute.storageRate': 'Pondération E/S stockage',
+  'prov.quote.compute.workload': 'Profil de charge',
+  'prov.quote.compute.workloadHint': 'Pic% puis paires « durée@cpu » séparées par des virgules (ex. 100,40@20,80@30)',
+  'prov.quote.fields.processor': 'Processeur',
+  'prov.quote.fields.architecture': 'Architecture',
+  'prov.quote.storage.advanced': 'Exigences avancées',
+  'prov.quote.storage.latency': 'Latence',
+  'prov.quote.storage.optimized': 'Optimisé pour',
+
+  // Itération 7 : éditeur d\'étiquettes.
+  'prov.quote.tags.title': 'Étiquettes',
+  'prov.quote.tags.addHint': 'nom ou nom:valeur',
+  'prov.quote.tags.removed': 'Étiquette « {name} » supprimée',
+
+  // Itération 8 : action « dupliquer » par ligne.
+  'prov.quote.duplicate': 'Dupliquer',
 }

@@ -6,14 +6,14 @@
       </v-card-title>
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-row dense>
+          <v-row density="comfortable">
             <v-col cols="12" md="8">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="[required]" maxlength="50"
+              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                 variant="outlined" density="compact" autofocus />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field v-model.number="form.sizeGb" :label="t('prov.quote.cols.size') + ' (GB)'"
-                :rules="[required, positive]" type="number" min="1" variant="outlined" density="compact" />
+                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" variant="outlined" density="compact" />
             </v-col>
             <v-col cols="12">
               <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
@@ -32,6 +32,30 @@
                 :disabled="!!form.attached" />
             </v-col>
           </v-row>
+
+          <!-- Advanced storage requirements. The legacy view shows
+               these inline; in the Vue port they live behind an
+               expansion so the simple case stays compact. -->
+          <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
+            <v-expansion-panel :title="t('prov.quote.storage.advanced')">
+              <template #text>
+                <v-row density="comfortable">
+                  <v-col cols="12" md="6">
+                    <v-select v-model="form.latency" :items="RATE_OPTIONS" :label="t('prov.quote.storage.latency')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select v-model="form.optimized" :items="OPTIMIZED_OPTIONS" :label="t('prov.quote.storage.optimized')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                </v-row>
+              </template>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
+          <QuoteTagsEditor v-if="isEdit && props.resource?.id" :subscription-id="props.subscriptionId" type="storage"
+            :resource-id="props.resource.id" :model-value="resourceTags" :all-tags-by-type="props.config?.tags || {}"
+            @update:model-value="(v) => emit('tags-changed', v)" />
 
           <div class="mt-4 d-flex align-center ga-3 flex-wrap">
             <div class="lookup-status">
@@ -80,6 +104,7 @@
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
 import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
+import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -88,13 +113,22 @@ const props = defineProps({
   /** Existing storage row when editing; `null` switches to create. */
   resource: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'saved'])
+const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed'])
 
 const api = useApi()
 const errorStore = useErrorStore()
 const { t } = useI18nStore()
 
 const isEdit = computed(() => !!props.resource?.id)
+
+const resourceTags = computed(() => {
+  const tagsByType = props.config?.tags
+  if (!tagsByType || !props.resource?.id) return []
+  const byId = tagsByType.storage || tagsByType.STORAGE
+  if (!byId) return []
+  const list = byId[props.resource.id]
+  return Array.isArray(list) ? list : []
+})
 
 const formRef = ref(null)
 const saving = ref(false)
@@ -110,10 +144,24 @@ const form = reactive({
   location: null,
   /** `{ id, name, resourceType }` or `null`. */
   attached: null,
+  // Advanced ↓
+  latency: null,
+  optimized: null,
 })
+
+const advancedOpen = ref(undefined)
+
+// Same enums the legacy `prov-rate-full` / `prov-rate` slider buttons
+// surfaced — kept here so the dialog has no dependency on the catalog
+// endpoint.
+const RATE_OPTIONS = ['BEST', 'GOOD', 'MEDIUM', 'LOW', 'WORST']
+const OPTIMIZED_OPTIONS = ['IOPS', 'THROUGHPUT', 'DURABILITY']
 
 const required = (v) => (v != null && v !== '') || (t('common.required') || 'Required')
 const positive = (v) => (typeof v === 'number' && v > 0) || (t('common.positive') || 'Must be positive')
+// Stable rule arrays — see ComputeEditDialog for the rationale.
+const REQUIRED_RULES = [required]
+const REQUIRED_POSITIVE_RULES = [required, positive]
 
 const canLookup = computed(() => typeof form.sizeGb === 'number' && form.sizeGb > 0)
 
@@ -164,8 +212,13 @@ watch(() => props.modelValue, (open) => {
       })
       .find(Boolean)
     form.attached = fromQuote || null
+    form.latency = it.latency || null
+    form.optimized = it.optimized || null
   } else {
-    Object.assign(form, { id: null, name: '', description: '', sizeGb: 10, location: null, attached: null })
+    Object.assign(form, {
+      id: null, name: '', description: '', sizeGb: 10, location: null, attached: null,
+      latency: null, optimized: null,
+    })
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
   lookupError.value = null
@@ -195,7 +248,10 @@ function scheduleLookup() {
   lookupTimer = setTimeout(runLookup, LOOKUP_DEBOUNCE_MS)
 }
 
-watch(() => [form.sizeGb, form.location, form.attached?.id, form.attached?.resourceType], () => scheduleLookup())
+watch(
+  () => [form.sizeGb, form.location, form.attached?.id, form.attached?.resourceType, form.latency, form.optimized],
+  () => scheduleLookup(),
+)
 onBeforeUnmount(clearLookupTimer)
 
 async function runLookup() {
@@ -211,6 +267,8 @@ async function runLookup() {
     } else if (form.location) {
       qs.set('location', form.location)
     }
+    if (form.latency) qs.set('latency', form.latency)
+    if (form.optimized) qs.set('optimized', form.optimized)
     const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/storage-lookup/?${qs}`
     const resp = await fetch(url, { credentials: 'include' })
     if (seq !== lookupSeq) return
@@ -258,6 +316,8 @@ async function save() {
     if (form.attached?.resourceType && form.attached?.id) {
       payload[form.attached.resourceType] = form.attached.id
     }
+    if (form.latency) payload.latency = form.latency
+    if (form.optimized) payload.optimized = form.optimized
     const url = 'rest/service/prov/storage'
     const result = form.id ? await api.put(url, payload) : await api.post(url, payload)
     if (result === null) return

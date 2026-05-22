@@ -6,9 +6,9 @@
       </v-card-title>
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-row dense>
+          <v-row density="comfortable">
             <v-col cols="12" md="8">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="[required]" maxlength="50"
+              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                 variant="outlined" density="compact" autofocus />
             </v-col>
             <v-col cols="12" md="4">
@@ -25,9 +25,38 @@
             </v-col>
           </v-row>
 
-          <p class="text-caption text-medium-emphasis mt-2 mb-0">
-            {{ t('prov.quote.support.accessNote') }}
-          </p>
+          <!-- Access channels: per-channel enum (NONE/CHAT/TECHNICAL/
+               BILLING/ALL). Drives the support-lookup query so the
+               cheapest plan that supports the desired channels comes
+               back. -->
+          <v-expansion-panels v-model="advancedOpen" variant="accordion" class="mt-3">
+            <v-expansion-panel :title="t('prov.quote.support.access')">
+              <template #text>
+                <v-row density="comfortable">
+                  <v-col cols="6" md="3">
+                    <v-select v-model="form.accessApi" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessApi')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-select v-model="form.accessEmail" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessEmail')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-select v-model="form.accessPhone" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessPhone')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-select v-model="form.accessChat" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessChat')"
+                      variant="outlined" density="compact" clearable />
+                  </v-col>
+                </v-row>
+              </template>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
+          <QuoteTagsEditor v-if="isEdit && props.resource?.id" :subscription-id="props.subscriptionId" type="support"
+            :resource-id="props.resource.id" :model-value="resourceTags" :all-tags-by-type="props.config?.tags || {}"
+            @update:model-value="(v) => emit('tags-changed', v)" />
 
           <div class="mt-4 d-flex align-center ga-3 flex-wrap">
             <div class="lookup-status">
@@ -76,6 +105,7 @@
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
+import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -84,13 +114,22 @@ const props = defineProps({
   /** Existing support row when editing; `null` switches to create. */
   resource: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'saved'])
+const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed'])
 
 const api = useApi()
 const errorStore = useErrorStore()
 const { t } = useI18nStore()
 
 const isEdit = computed(() => !!props.resource?.id)
+
+const resourceTags = computed(() => {
+  const tagsByType = props.config?.tags
+  if (!tagsByType || !props.resource?.id) return []
+  const byId = tagsByType.support || tagsByType.SUPPORT
+  if (!byId) return []
+  const list = byId[props.resource.id]
+  return Array.isArray(list) ? list : []
+})
 
 const formRef = ref(null)
 const saving = ref(false)
@@ -104,9 +143,22 @@ const form = reactive({
   description: '',
   level: '',
   seats: null,
+  // Access channels — each is one of the ACCESS_OPTIONS enum or null.
+  accessApi: null,
+  accessEmail: null,
+  accessPhone: null,
+  accessChat: null,
 })
 
+const advancedOpen = ref(undefined)
+
+// Common enum used by every provider catalog — the legacy view shows
+// each value with an i18n'd label, but the enum itself is stable.
+const ACCESS_OPTIONS = ['NONE', 'CHAT', 'TECHNICAL', 'BILLING', 'ALL']
+
 const required = (v) => (v != null && v !== '') || (t('common.required') || 'Required')
+// Stable rule array — see ComputeEditDialog for the rationale.
+const REQUIRED_RULES = [required]
 
 /**
  * Support lookup accepts any combination of level/seats — the cheapest
@@ -129,8 +181,15 @@ watch(() => props.modelValue, (open) => {
     form.description = it.description || ''
     form.level       = it.level || it.price?.level || ''
     form.seats       = it.seats ?? null
+    form.accessApi   = it.accessApi || null
+    form.accessEmail = it.accessEmail || null
+    form.accessPhone = it.accessPhone || null
+    form.accessChat  = it.accessChat || null
   } else {
-    Object.assign(form, { id: null, name: '', description: '', level: '', seats: null })
+    Object.assign(form, {
+      id: null, name: '', description: '', level: '', seats: null,
+      accessApi: null, accessEmail: null, accessPhone: null, accessChat: null,
+    })
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
   lookupError.value = null
@@ -156,7 +215,10 @@ function scheduleLookup() {
   lookupTimer = setTimeout(runLookup, LOOKUP_DEBOUNCE_MS)
 }
 
-watch(() => [form.level, form.seats], () => scheduleLookup())
+watch(
+  () => [form.level, form.seats, form.accessApi, form.accessEmail, form.accessPhone, form.accessChat],
+  () => scheduleLookup(),
+)
 onBeforeUnmount(clearLookupTimer)
 
 async function runLookup() {
@@ -167,6 +229,10 @@ async function runLookup() {
     const qs = new URLSearchParams()
     if (form.level) qs.set('level', form.level)
     if (typeof form.seats === 'number' && form.seats > 0) qs.set('seats', String(form.seats))
+    if (form.accessApi) qs.set('accessApi', form.accessApi)
+    if (form.accessEmail) qs.set('accessEmail', form.accessEmail)
+    if (form.accessPhone) qs.set('accessPhone', form.accessPhone)
+    if (form.accessChat) qs.set('accessChat', form.accessChat)
     const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/support-lookup/?${qs}`
     const resp = await fetch(url, { credentials: 'include' })
     if (seq !== lookupSeq) return
@@ -209,6 +275,10 @@ async function save() {
       type: suggest.value.price.type?.code || suggest.value.price.type?.name,
       level: form.level || null,
       seats: form.seats ?? null,
+      accessApi: form.accessApi || null,
+      accessEmail: form.accessEmail || null,
+      accessPhone: form.accessPhone || null,
+      accessChat: form.accessChat || null,
     }
     const url = 'rest/service/prov/support'
     const result = form.id ? await api.put(url, payload) : await api.post(url, payload)
