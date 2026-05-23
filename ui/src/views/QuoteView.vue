@@ -346,6 +346,33 @@ const refreshing = ref(false)
 const refreshingPrices = ref(false)
 const error = ref(null)
 
+/* ---------- Items-per-page (client-side pagination) ----------
+ * Each tab's data table now paginates in the browser to keep render
+ * cost bounded even for quotes with hundreds of resources. The
+ * default of 15 mirrors Ligoj's other paginated views; `-1` shows
+ * everything for users who want the legacy "all on one page" view.
+ * Persisted globally — switching tabs keeps the same page size. */
+const ITEMS_PER_PAGE_KEY = 'ligoj-prov-quote-items-per-page'
+const ITEMS_PER_PAGE_OPTIONS = [
+  { value: 15, title: '15' },
+  { value: 30, title: '30' },
+  { value: 50, title: '50' },
+  { value: 100, title: '100' },
+  { value: -1, title: '∞' },
+]
+const VALID_PAGE_SIZES = new Set(ITEMS_PER_PAGE_OPTIONS.map((o) => o.value))
+function readPersistedItemsPerPage() {
+  if (typeof localStorage === 'undefined') return 15
+  const stored = Number(localStorage.getItem(ITEMS_PER_PAGE_KEY))
+  return VALID_PAGE_SIZES.has(stored) ? stored : 15
+}
+const itemsPerPage = ref(readPersistedItemsPerPage())
+watch(itemsPerPage, (v) => {
+  if (typeof localStorage !== 'undefined' && VALID_PAGE_SIZES.has(v)) {
+    localStorage.setItem(ITEMS_PER_PAGE_KEY, String(v))
+  }
+})
+
 /* Cost period selector — persisted so the user's preference survives
  * a reload. The scaling math lives in `scaleCost` (quoteFormatters)
  * so it's covered by unit tests. */
