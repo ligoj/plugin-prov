@@ -86,7 +86,6 @@ export default {
   'prov.quote.refresh': 'Refresh cost',
   'prov.quote.totalCost': 'Total monthly cost',
   'prov.quote.empty': 'No resources of this kind in the quote yet.',
-  'prov.quote.notMigrated': 'Editing the quote is not migrated yet — use the legacy interface for changes.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Databases',
   'prov.quote.tabs.container': 'Containers',

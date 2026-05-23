@@ -85,7 +85,6 @@ export default {
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',
   'prov.quote.empty': 'Aucune ressource de ce type dans le devis pour le moment.',
-  'prov.quote.notMigrated': 'L\'édition du devis n\'est pas encore migrée — utilisez l\'interface héritée pour les modifications.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Bases de données',
   'prov.quote.tabs.container': 'Conteneurs',

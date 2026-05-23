@@ -45,8 +45,7 @@
         <!-- Recomputes prices against the latest provider catalog —
              the legacy `refreshCost` action. Distinct from "reload",
              which only re-fetches the configuration as-is. -->
-        <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')"
-          @click="refreshPrices">
+        <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
           <v-icon>mdi-cash-sync</v-icon>
         </v-btn>
         <!-- Exports — three pre-built backend endpoints. The path
@@ -60,8 +59,8 @@
           </template>
           <v-list density="compact" min-width="260">
             <v-list-item :href="exportUrl.inline" prepend-icon="mdi-file-table" :title="t('prov.quote.exports.inline')" />
-            <v-list-item :href="exportUrl.split"  prepend-icon="mdi-file-table-outline" :title="t('prov.quote.exports.split')" />
-            <v-list-item :href="exportUrl.json"   :download="jsonDownloadName" prepend-icon="mdi-code-json" :title="t('prov.quote.exports.json')" />
+            <v-list-item :href="exportUrl.split" prepend-icon="mdi-file-table-outline" :title="t('prov.quote.exports.split')" />
+            <v-list-item :href="exportUrl.json" :download="jsonDownloadName" prepend-icon="mdi-code-json" :title="t('prov.quote.exports.json')" />
           </v-list>
         </v-menu>
       </div>
@@ -91,10 +90,6 @@
         </v-card-text>
       </v-card>
 
-      <v-alert type="info" variant="tonal" density="compact" class="mb-4">
-        {{ t('prov.quote.notMigrated') }}
-      </v-alert>
-
       <!-- Tabs — one per resource type. Counts come from the loaded config. -->
       <v-tabs v-model="activeTab" density="compact" show-arrows class="mb-2">
         <v-tab v-for="t in TAB_TYPES" :key="t.key" :value="t.key">
@@ -116,9 +111,8 @@
                  `.subscribe-configuration-prov-search` input; one
                  query per tab so a search on Instances doesn't bleed
                  into Storage. -->
-            <v-text-field v-if="rowsByType[tab.key].length" :model-value="searchByType[tab.key]" :label="t('common.search')"
-              prepend-inner-icon="mdi-magnify" density="compact" hide-details variant="outlined" clearable
-              class="quote-search" @update:model-value="(v) => onSearch(tab.key, v)" />
+            <v-text-field v-if="rowsByType[tab.key].length" :model-value="searchByType[tab.key]" :label="t('common.search')" prepend-inner-icon="mdi-magnify" density="compact" hide-details
+              variant="outlined" clearable class="quote-search" @update:model-value="(v) => onSearch(tab.key, v)" />
             <!-- Per-type create button. ComputeEditDialog covers all 4
                  compute types; storage + support each have their own. -->
             <v-btn size="small" color="primary" variant="elevated" prepend-icon="mdi-plus" @click="openResourceCreate(tab.key)">
@@ -127,12 +121,10 @@
             <!-- Instance-only: CSV bulk import. Stays out of the other
                  tabs since the import endpoint is instance-specific
                  (per the legacy `popup-prov-instance-import`). -->
-            <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload"
-              @click="importDialog = true">
+            <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload" @click="importDialog = true">
               {{ t('prov.quote.import.title') }}
             </v-btn>
-            <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" prepend-icon="mdi-delete-sweep"
-              @click="askDeleteAll(tab.key)">
+            <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" prepend-icon="mdi-delete-sweep" @click="askDeleteAll(tab.key)">
               {{ t('prov.quote.delete.all.label') }}
             </v-btn>
             <!-- Column-visibility menu. `name` and `actions` are pinned
@@ -170,18 +162,8 @@
             </v-toolbar>
           </v-slide-y-transition>
 
-          <LigojDataTable
-            v-if="rowsByType[tab.key].length"
-            v-model="selectedByType[tab.key]"
-            show-select
-            :filename="`prov-${tab.key}.csv`"
-            :headers="visibleHeadersByType[tab.key]"
-            :items="filteredRowsByType[tab.key]"
-            :items-per-page="-1"
-            hide-default-footer
-            density="compact"
-            item-value="id"
-          >
+          <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select :filename="`prov-${tab.key}.csv`" :headers="visibleHeadersByType[tab.key]"
+            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="compact" item-value="id">
             <template #item.name="{ item }">
               <span>{{ item.name }}</span>
               <!-- Tags inherited from the legacy `conf.tags` map. Each
@@ -196,13 +178,13 @@
               </span>
             </template>
             <template #item.cpu="{ item }">
-              <ResourceMicroBar v-if="cpuMax(tab.key)" :value="item.cpu ?? item.price?.type?.cpu" :max="cpuMax(tab.key)"
-                :label="formatCpu(item.cpu ?? item.price?.type?.cpu)" color="rgb(var(--v-theme-primary))" />
+              <ResourceMicroBar v-if="cpuMax(tab.key)" :value="item.cpu ?? item.price?.type?.cpu" :max="cpuMax(tab.key)" :label="formatCpu(item.cpu ?? item.price?.type?.cpu)"
+                color="rgb(var(--v-theme-primary))" />
               <template v-else>{{ formatCpu(item.cpu ?? item.price?.type?.cpu) }}</template>
             </template>
             <template #item.ram="{ item }">
-              <ResourceMicroBar v-if="ramMax(tab.key)" :value="(item.ram ?? item.price?.type?.ram)" :max="ramMax(tab.key)"
-                :label="formatRam(item.ram ?? item.price?.type?.ram)" color="rgb(var(--v-theme-success))" />
+              <ResourceMicroBar v-if="ramMax(tab.key)" :value="(item.ram ?? item.price?.type?.ram)" :max="ramMax(tab.key)" :label="formatRam(item.ram ?? item.price?.type?.ram)"
+                color="rgb(var(--v-theme-success))" />
               <template v-else>{{ formatRam(item.ram ?? item.price?.type?.ram) }}</template>
             </template>
             <template #item.size="{ item }">{{ formatStorage(item.size) }}</template>
@@ -225,12 +207,10 @@
               <v-btn icon size="small" variant="text" :title="t('common.edit')" @click="openResourceEdit(tab.key, item)">
                 <v-icon size="small">mdi-pencil</v-icon>
               </v-btn>
-              <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')"
-                @click="openResourceDuplicate(tab.key, item)">
+              <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')" @click="openResourceDuplicate(tab.key, item)">
                 <v-icon size="small">mdi-content-duplicate</v-icon>
               </v-btn>
-              <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')"
-                @click="askDeleteRow(tab.key, item)">
+              <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="askDeleteRow(tab.key, item)">
                 <v-icon size="small">mdi-delete</v-icon>
               </v-btn>
             </template>
@@ -249,36 +229,32 @@
           <v-form ref="formRef" @submit.prevent="saveEdit">
             <v-row density="comfortable">
               <v-col cols="12" md="6">
-                <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
-                  variant="outlined" density="compact" autofocus />
+                <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.location" :items="config?.locations || []" item-title="name" item-value="name"
-                  :label="t('prov.quote.cols.location')" variant="outlined" density="compact" clearable />
+                <v-autocomplete v-model="editForm.location" :items="config?.locations || []" item-title="name" item-value="name" :label="t('prov.quote.cols.location')" variant="outlined"
+                  density="compact" clearable />
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250"
-                  variant="outlined" density="compact" />
+                <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.usage" :items="config?.usages || []" item-title="name" item-value="name"
-                  :label="t('prov.quote.fields.usage')" variant="outlined" density="compact" clearable />
+                <v-autocomplete v-model="editForm.usage" :items="config?.usages || []" item-title="name" item-value="name" :label="t('prov.quote.fields.usage')" variant="outlined" density="compact"
+                  clearable />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.budget" :items="config?.budgets || []" item-title="name" item-value="name"
-                  :label="t('prov.quote.fields.budget')" variant="outlined" density="compact" clearable />
+                <v-autocomplete v-model="editForm.budget" :items="config?.budgets || []" item-title="name" item-value="name" :label="t('prov.quote.fields.budget')" variant="outlined" density="compact"
+                  clearable />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.optimizer" :items="config?.optimizers || []" item-title="name" item-value="name"
-                  :label="t('prov.quote.fields.optimizer')" variant="outlined" density="compact" clearable />
+                <v-autocomplete v-model="editForm.optimizer" :items="config?.optimizers || []" item-title="name" item-value="name" :label="t('prov.quote.fields.optimizer')" variant="outlined"
+                  density="compact" clearable />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-model="editForm.reservationMode" :items="reservationOptions"
-                  :label="t('prov.quote.fields.reservationMode')" variant="outlined" density="compact" />
+                <v-select v-model="editForm.reservationMode" :items="reservationOptions" :label="t('prov.quote.fields.reservationMode')" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-model="editForm.physical" :items="physicalOptions"
-                  :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
+                <v-select v-model="editForm.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
               </v-col>
               <v-col cols="12" md="6">
                 <div class="text-caption text-medium-emphasis mb-1">
@@ -300,66 +276,26 @@
       </v-card>
     </v-dialog>
 
-    <LigojConfirmDialog
-      v-model="deleteRowDialog"
-      :title="t('prov.quote.delete.row.title')"
-      :confirm-label="t('common.delete')"
-      confirm-color="error"
-      :loading="deleting"
-      @confirm="confirmDeleteRow"
-    >
+    <LigojConfirmDialog v-model="deleteRowDialog" :title="t('prov.quote.delete.row.title')" :confirm-label="t('common.delete')" confirm-color="error" :loading="deleting" @confirm="confirmDeleteRow">
       {{ t('prov.quote.delete.row.body', { name: deleteRowTarget?.row?.name || `#${deleteRowTarget?.row?.id}` }) }}
     </LigojConfirmDialog>
 
     <!-- Compute dialog handles instance / container / function / database;
          storage and support have their own modals because their lookup
          and save shapes are too different to share a form. -->
-    <ComputeEditDialog
-      v-model="computeDialog"
-      :type="editType && COMPUTE_TYPES.has(editType) ? editType : 'instance'"
-      :subscription-id="subscriptionId"
-      :config="config"
-      :resource="editTarget"
-      @saved="onResourceSaved"
-      @tags-changed="onResourceSaved"
-    />
-    <StorageEditDialog
-      v-model="storageDialog"
-      :subscription-id="subscriptionId"
-      :config="config"
-      :resource="editTarget"
-      @saved="onResourceSaved"
-      @tags-changed="onResourceSaved"
-    />
-    <SupportEditDialog
-      v-model="supportDialog"
-      :subscription-id="subscriptionId"
-      :config="config"
-      :resource="editTarget"
-      @saved="onResourceSaved"
-      @tags-changed="onResourceSaved"
-    />
+    <ComputeEditDialog v-model="computeDialog" :type="editType && COMPUTE_TYPES.has(editType) ? editType : 'instance'" :subscription-id="subscriptionId" :config="config" :resource="editTarget"
+      @saved="onResourceSaved" @tags-changed="onResourceSaved" />
+    <StorageEditDialog v-model="storageDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
+    <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
 
-    <LigojConfirmDialog
-      v-model="deleteAllDialog"
-      :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })"
-      :confirm-label="t('prov.quote.delete.all.label')"
-      confirm-color="error"
-      :loading="deleting"
-      @confirm="confirmDeleteAll"
-    >
+    <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
+      confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
       {{ t('prov.quote.delete.all.body', { type: deleteAllType ? tabLabel(deleteAllType) : '', count: deleteAllType ? rowsByType[deleteAllType].length : 0 }) }}
     </LigojConfirmDialog>
 
-    <LigojConfirmDialog
-      v-model="deleteBulkDialog"
-      :title="t('prov.quote.delete.bulk.title')"
-      :confirm-label="t('common.delete')"
-      confirm-color="error"
-      :loading="deleting"
-      @confirm="confirmDeleteBulk"
-    >
+    <LigojConfirmDialog v-model="deleteBulkDialog" :title="t('prov.quote.delete.bulk.title')" :confirm-label="t('common.delete')" confirm-color="error" :loading="deleting"
+      @confirm="confirmDeleteBulk">
       {{ t('prov.quote.delete.bulk.body', { type: deleteBulkType ? tabLabel(deleteBulkType) : '', count: deleteBulkType ? selectedByType[deleteBulkType].length : 0 }) }}
     </LigojConfirmDialog>
   </div>
@@ -503,10 +439,10 @@ const REQUIRED_RULES = [rules.required]
 
 const reservationOptions = computed(() => [
   { value: 'reserved', title: t('prov.quote.fields.reservation.reserved') },
-  { value: 'max',      title: t('prov.quote.fields.reservation.max') },
+  { value: 'max', title: t('prov.quote.fields.reservation.max') },
 ])
 const physicalOptions = computed(() => [
-  { value: true,  title: t('prov.quote.fields.physical.true') },
+  { value: true, title: t('prov.quote.fields.physical.true') },
   { value: false, title: t('prov.quote.fields.physical.false') },
 ])
 
@@ -622,8 +558,8 @@ const exportUrl = computed(() => {
   if (!id) return { inline: '#', split: '#', json: '#' }
   return {
     inline: `${APP_BASE}rest/service/prov/${id}/ligoj-prov-instances-inline-storage-${id}-${d}.csv`,
-    split:  `${APP_BASE}rest/service/prov/${id}/ligoj-prov-split-${id}-${d}.csv`,
-    json:   `${APP_BASE}rest/subscription/${id}/configuration`,
+    split: `${APP_BASE}rest/service/prov/${id}/ligoj-prov-split-${id}-${d}.csv`,
+    json: `${APP_BASE}rest/subscription/${id}/configuration`,
   }
 })
 const jsonDownloadName = computed(() =>
@@ -711,12 +647,12 @@ function ramMax(type) {
  * affordances land in iteration 2 once the modal flow is migrated.
  */
 const headersByType = computed(() => {
-  const name = { title: t('prov.quote.cols.name'),     key: 'name',     sortable: true }
-  const cpu  = { title: t('prov.quote.cols.cpu'),      key: 'cpu',      sortable: true, width: '90px',  align: 'end' }
-  const ram  = { title: t('prov.quote.cols.ram'),      key: 'ram',      sortable: true, width: '110px', align: 'end' }
-  const type = { title: t('prov.quote.cols.type'),     key: 'type',     sortable: true }
-  const loc  = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
-  const cost = { title: t('prov.quote.cols.cost'),     key: 'cost',     sortable: true, width: '140px', align: 'end' }
+  const name = { title: t('prov.quote.cols.name'), key: 'name', sortable: true }
+  const cpu = { title: t('prov.quote.cols.cpu'), key: 'cpu', sortable: true, width: '90px', align: 'end' }
+  const ram = { title: t('prov.quote.cols.ram'), key: 'ram', sortable: true, width: '110px', align: 'end' }
+  const type = { title: t('prov.quote.cols.type'), key: 'type', sortable: true }
+  const loc = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
+  const cost = { title: t('prov.quote.cols.cost'), key: 'cost', sortable: true, width: '140px', align: 'end' }
   // Every tab shows edit + duplicate + delete icons (3 × ~36 px + gaps).
   // `minWidth` keeps Vuetify from collapsing the column when other
   // columns try to claim the space — `width` alone is just a hint.
@@ -734,18 +670,18 @@ const headersByType = computed(() => {
   ]
 
   return {
-    instance:  [...compute.slice(0, 4), { title: t('prov.quote.cols.os'), key: 'os', sortable: true }, ...compute.slice(4), actions],
+    instance: [...compute.slice(0, 4), { title: t('prov.quote.cols.os'), key: 'os', sortable: true }, ...compute.slice(4), actions],
     container: [...compute, actions],
-    function:  [...compute, actions],
-    database:  [name, cpu, ram,
+    function: [...compute, actions],
+    database: [name, cpu, ram,
       { title: t('prov.quote.cols.engine'), key: 'engine', sortable: true },
       type, loc, cost, actions],
-    storage:   [name,
+    storage: [name,
       { title: t('prov.quote.cols.size'), key: 'size', sortable: true, width: '110px', align: 'end' },
       type, loc,
       { title: t('prov.quote.cols.attachedTo'), key: 'attachedTo', sortable: false },
       cost, actions],
-    support:   [name,
+    support: [name,
       { title: t('prov.quote.cols.level'), key: 'level', sortable: true },
       { title: t('prov.quote.cols.seats'), key: 'seats', sortable: true, width: '90px', align: 'end' },
       type, cost, actions],
@@ -839,14 +775,14 @@ async function refreshPrices() {
 
 function openEdit() {
   const conf = config.value || {}
-  editForm.name            = conf.name || ''
-  editForm.description     = conf.description || ''
-  editForm.location        = conf.location?.name ?? null
-  editForm.usage           = conf.usage?.name ?? null
-  editForm.budget          = conf.budget?.name ?? null
-  editForm.optimizer       = conf.optimizer?.name ?? null
+  editForm.name = conf.name || ''
+  editForm.description = conf.description || ''
+  editForm.location = conf.location?.name ?? null
+  editForm.usage = conf.usage?.name ?? null
+  editForm.budget = conf.budget?.name ?? null
+  editForm.optimizer = conf.optimizer?.name ?? null
   editForm.reservationMode = conf.reservationMode || 'reserved'
-  editForm.physical        = conf.physical ?? null
+  editForm.physical = conf.physical ?? null
   editForm.ramAdjustedRate = conf.ramAdjustedRate || 100
   editDialog.value = true
 }
@@ -1056,6 +992,7 @@ onMounted(async () => {
 .quote-view {
   padding: 0.5rem;
 }
+
 .quote-search {
   max-width: 320px;
 }
