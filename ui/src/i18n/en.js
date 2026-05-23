@@ -58,6 +58,21 @@ export default {
   'catalog.updateStandardHelp': 'Update the prices from the provider pricing list',
   'catalog.updateForce': 'Full update',
   'catalog.updateForceHelp': 'Update the prices and the type configurations from the provider pricing list. Slower than standard mode.',
+  'catalog.cancel': 'Cancel update',
+  'catalog.empty': 'No catalogs registered.',
+  'catalog.loadFailed': 'Failed to load catalogs.',
+  'catalog.statusStarted': 'Catalog update requested for {name}.',
+  'catalog.statusCanceled': 'Catalog update cancelled for {name}.',
+  'catalog.cols.provider': 'Provider',
+  'catalog.cols.quotes': 'Quotes',
+  'catalog.cols.locations': 'Locations',
+  'catalog.cols.types': 'Types',
+  'catalog.cols.prices': 'Prices',
+  'catalog.status.unknown': 'Unknown',
+  'catalog.status.running': 'Updating…',
+  'catalog.status.failed': 'Failed',
+  'catalog.status.ok': 'Up to date',
+  'catalog.status.never': 'Never updated',
 
   // ---- Terraform / Network / Quote (stub views) ----
   'terraform.title': 'Terraform',
@@ -114,6 +129,12 @@ export default {
   'prov.quote.breakdown.titleCo2': 'CO₂ breakdown',
   'prov.quote.breakdown.total': 'total / mo',
   'prov.quote.breakdown.totalCo2': 'CO₂ / mo',
+  'prov.quote.breakdown.back': 'Back to overview',
+  'prov.quote.breakdown.drillTitle': '{type} by {by}',
+  'prov.quote.breakdown.drill.os': 'OS',
+  'prov.quote.breakdown.drill.engine': 'engine',
+  'prov.quote.breakdown.drill.runtime': 'runtime',
+  'prov.quote.breakdown.drill.type': 'type',
   // Iteration 5: cost ↔ CO₂ view-mode toggle.
   'prov.quote.viewMode.cost': 'Cost',
   'prov.quote.viewMode.co2': 'CO₂',
@@ -227,6 +248,7 @@ export default {
 
   // Iteration 8: per-row duplicate action.
   'prov.quote.duplicate': 'Duplicate',
+  'prov.quote.columns': 'Columns',
 
   // Iteration 9: refresh-prices action + cost period selector.
   'prov.quote.refreshPrices': 'Refresh prices against the provider catalog',

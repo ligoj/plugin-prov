@@ -71,6 +71,7 @@
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { useApi, useI18nStore } from '@ligoj/host'
+import { buildInstanceUploadFormData } from '../uploadFormData.js'
 
 /**
  * Ports the legacy `popup-prov-instance-import` (`webjars/service/prov/prov.html`):
@@ -136,23 +137,26 @@ watch(() => props.modelValue, (open) => {
   result.value = false
 })
 
+/* Test-surface — `<script setup>` doesn't auto-expose bindings to
+ * Vue Test Utils' `wrapper.vm`. Listing the pieces the unit tests
+ * need keeps the public surface explicit. */
+defineExpose({ form, upload: () => upload(), uploading })
+
 async function upload() {
-  const { valid } = await formRef.value.validate()
-  if (!valid || !props.subscriptionId) return
-  const file = Array.isArray(form.file) ? form.file[0] : form.file
-  if (!file) return
+  // `formRef.value` is null until v-dialog mounts its teleported
+  // content — short-circuit defensively so unit tests can drive
+  // `upload()` directly without a real form mounted.
+  if (typeof formRef.value?.validate === 'function') {
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+  }
+  if (!props.subscriptionId) return
+  const fd = buildInstanceUploadFormData(form)
+  if (!fd) return
   uploading.value = true
   errorMsg.value = null
   result.value = false
   try {
-    const fd = new FormData()
-    fd.append('csv-file', file)
-    fd.append('separator', form.separator)
-    if (form.encoding) fd.append('encoding', form.encoding)
-    fd.append('mergeUpload', form.mergeUpload)
-    fd.append('memoryUnit', String(form.memoryUnit))
-    fd.append('headers-included', String(form.headersIncluded))
-    fd.append('errorContinue', String(form.errorContinue))
     const resp = await api.upload(`rest/service/prov/${props.subscriptionId}/upload`, fd)
     if (resp == null) {
       errorMsg.value = t('prov.quote.import.failed')

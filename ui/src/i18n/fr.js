@@ -57,6 +57,21 @@ export default {
   'catalog.updateStandardHelp': 'Mise à jour des prix depuis le catalogue fournisseur',
   'catalog.updateForce': 'Mise à jour complète',
   'catalog.updateForceHelp': 'Mise à jour des prix et des types depuis le catalogue fournisseur. Plus lent que le mode standard.',
+  'catalog.cancel': 'Annuler la mise à jour',
+  'catalog.empty': 'Aucun catalogue enregistré.',
+  'catalog.loadFailed': 'Chargement des catalogues échoué.',
+  'catalog.statusStarted': 'Mise à jour du catalogue demandée pour {name}.',
+  'catalog.statusCanceled': 'Mise à jour du catalogue annulée pour {name}.',
+  'catalog.cols.provider': 'Fournisseur',
+  'catalog.cols.quotes': 'Devis',
+  'catalog.cols.locations': 'Localisations',
+  'catalog.cols.types': 'Types',
+  'catalog.cols.prices': 'Prix',
+  'catalog.status.unknown': 'Inconnu',
+  'catalog.status.running': 'Mise à jour…',
+  'catalog.status.failed': 'Échec',
+  'catalog.status.ok': 'À jour',
+  'catalog.status.never': 'Jamais mis à jour',
 
   // ---- Terraform / Réseau / Devis (vues stub) ----
   'terraform.title': 'Terraform',
@@ -113,6 +128,12 @@ export default {
   'prov.quote.breakdown.titleCo2': 'Répartition CO₂',
   'prov.quote.breakdown.total': 'total / mois',
   'prov.quote.breakdown.totalCo2': 'CO₂ / mois',
+  'prov.quote.breakdown.back': 'Retour à l\'ensemble',
+  'prov.quote.breakdown.drillTitle': '{type} par {by}',
+  'prov.quote.breakdown.drill.os': 'OS',
+  'prov.quote.breakdown.drill.engine': 'moteur',
+  'prov.quote.breakdown.drill.runtime': 'runtime',
+  'prov.quote.breakdown.drill.type': 'type',
   // Itération 5 : bascule coût ↔ CO₂.
   'prov.quote.viewMode.cost': 'Coût',
   'prov.quote.viewMode.co2': 'CO₂',
@@ -224,6 +245,7 @@ export default {
 
   // Itération 8 : action « dupliquer » par ligne.
   'prov.quote.duplicate': 'Dupliquer',
+  'prov.quote.columns': 'Colonnes',
 
   // Itération 9 : actualisation des prix + sélecteur de période.
   'prov.quote.refreshPrices': 'Actualiser les prix depuis le catalogue fournisseur',

@@ -135,6 +135,23 @@
               @click="askDeleteAll(tab.key)">
               {{ t('prov.quote.delete.all.label') }}
             </v-btn>
+            <!-- Column-visibility menu. `name` and `actions` are pinned
+                 so the user can always identify a row and act on it. -->
+            <v-menu v-if="rowsByType[tab.key].length" :close-on-content-click="false">
+              <template #activator="{ props: actProps }">
+                <v-btn v-bind="actProps" icon size="small" variant="text" :title="t('prov.quote.columns')">
+                  <v-icon size="small">mdi-view-column-outline</v-icon>
+                </v-btn>
+              </template>
+              <v-list density="compact" min-width="220">
+                <v-list-item v-for="h in togglableHeaders(tab.key)" :key="h.key" @click="toggleColumn(tab.key, h.key)">
+                  <template #prepend>
+                    <v-icon size="small">{{ isColumnVisible(tab.key, h.key) ? 'mdi-eye' : 'mdi-eye-off-outline' }}</v-icon>
+                  </template>
+                  <v-list-item-title>{{ h.title || h.key }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
           <v-alert v-if="!rowsByType[tab.key].length" type="info" variant="tonal" density="compact">
             {{ t('prov.quote.empty') }}
@@ -158,7 +175,7 @@
             v-model="selectedByType[tab.key]"
             show-select
             :filename="`prov-${tab.key}.csv`"
-            :headers="headersByType[tab.key]"
+            :headers="visibleHeadersByType[tab.key]"
             :items="filteredRowsByType[tab.key]"
             :items-per-page="-1"
             hide-default-footer
@@ -507,6 +524,75 @@ const selectedByType = reactive(Object.fromEntries(TAB_TYPES.map((t) => [t.key, 
 
 // --- Instance CSV import dialog state ---
 const importDialog = ref(false)
+
+/* ----- Column visibility per tab -----
+ * `name` and `actions` are pinned — the user always needs to identify
+ * a row and act on it. Everything else is opt-in/opt-out.
+ *
+ * State is persisted as a per-tab array of HIDDEN column keys (smaller
+ * to serialise than the full visible set, and forward-compatible —
+ * newly added columns default to visible). Stale keys are ignored. */
+const HIDDEN_COLUMNS_KEY = 'ligoj-prov-quote-hidden-cols'
+const PINNED_COLUMNS = new Set(['name', 'actions'])
+
+function loadHiddenColumns() {
+  if (typeof localStorage === 'undefined') return {}
+  try {
+    const raw = localStorage.getItem(HIDDEN_COLUMNS_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return {}
+    // Coerce every entry into a Set for O(1) lookup at render time.
+    const out = {}
+    for (const [k, list] of Object.entries(parsed)) {
+      if (Array.isArray(list)) out[k] = new Set(list.map(String))
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+const hiddenColumnsByType = reactive(loadHiddenColumns())
+
+function persistHiddenColumns() {
+  if (typeof localStorage === 'undefined') return
+  const out = {}
+  for (const [k, set] of Object.entries(hiddenColumnsByType)) {
+    if (set?.size) out[k] = [...set]
+  }
+  localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify(out))
+}
+
+function isColumnVisible(type, key) {
+  if (PINNED_COLUMNS.has(key)) return true
+  return !hiddenColumnsByType[type]?.has(key)
+}
+
+function toggleColumn(type, key) {
+  if (PINNED_COLUMNS.has(key)) return
+  if (!hiddenColumnsByType[type]) hiddenColumnsByType[type] = new Set()
+  const set = hiddenColumnsByType[type]
+  if (set.has(key)) set.delete(key)
+  else set.add(key)
+  // Replace with a fresh Set so the reactive proxy notices.
+  hiddenColumnsByType[type] = new Set(set)
+  persistHiddenColumns()
+}
+
+/** Column entries the user can toggle (everything except the pinned ones). */
+function togglableHeaders(type) {
+  return (headersByType.value[type] || []).filter((h) => !PINNED_COLUMNS.has(h.key))
+}
+
+/** Headers filtered by the visibility map — drives the data table. */
+const visibleHeadersByType = computed(() => {
+  const out = {}
+  for (const tab of TAB_TYPES) {
+    const all = headersByType.value[tab.key] || []
+    out[tab.key] = all.filter((h) => isColumnVisible(tab.key, h.key))
+  }
+  return out
+})
 
 // --- Per-type create/edit dialog state ---
 // Compute types (instance/container/function/database) share
