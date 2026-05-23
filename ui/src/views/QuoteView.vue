@@ -717,8 +717,16 @@ const headersByType = computed(() => {
   const type = { title: t('prov.quote.cols.type'),     key: 'type',     sortable: true }
   const loc  = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
   const cost = { title: t('prov.quote.cols.cost'),     key: 'cost',     sortable: true, width: '140px', align: 'end' }
-  // Every tab shows edit + duplicate + delete icons, so size the column accordingly.
-  const actions = { title: '', key: 'actions', sortable: false, width: '150px', align: 'center' }
+  // Every tab shows edit + duplicate + delete icons (3 × ~36 px + gaps).
+  // `minWidth` keeps Vuetify from collapsing the column when other
+  // columns try to claim the space — `width` alone is just a hint.
+  // `cellProps` adds the no-wrap class on the cell itself so the
+  // buttons stay on one line even if the table compresses.
+  const actions = {
+    title: '', key: 'actions', sortable: false, align: 'center',
+    width: '160px', minWidth: '160px',
+    cellProps: { class: 'actions-cell' },
+  }
   const compute = [
     name,
     { title: t('prov.quote.cols.quantity'), key: 'minQuantity', sortable: true, width: '70px', align: 'end' },
@@ -1009,17 +1017,33 @@ async function confirmDeleteAll() {
 
 function setBreadcrumbs() {
   const id = subscriptionId.value
-  app.setBreadcrumbs(
-    [
-      { title: t('nav.home'), to: '/' },
-      { title: t('prov.title') },
-      { title: config.value?.name || `#${id}` },
-    ],
-    { refresh: reload },
-  )
+  const project = meta.value?.project
+  /* Full path: Home → Projects → <project name> → Provisioning → <quote>.
+   * The project segment is only emitted once the configuration has
+   * landed (we read it from `meta.value.project`, populated by
+   * loadConfig); without it the link target would be missing. */
+  const crumbs = [
+    { title: t('nav.home'), to: '/' },
+    { title: t('nav.projects'), to: '/home/project' },
+  ]
+  if (project?.id) {
+    crumbs.push({
+      title: project.name || `#${project.id}`,
+      to: `/home/project/${project.id}`,
+    })
+  }
+  crumbs.push({ title: t('prov.title') })
+  crumbs.push({ title: config.value?.name || `#${id}` })
+  app.setBreadcrumbs(crumbs, { refresh: reload })
 }
 
-watch([() => config.value?.name, subscriptionId], setBreadcrumbs)
+// Re-run when the quote name, the subscription id, or the parent
+// project (id + name) change. The watch fires once for the empty
+// initial state and once more after `loadConfig` lands.
+watch(
+  [() => config.value?.name, subscriptionId, () => meta.value?.project?.id, () => meta.value?.project?.name],
+  setBreadcrumbs,
+)
 
 onMounted(async () => {
   setBreadcrumbs()
@@ -1034,5 +1058,16 @@ onMounted(async () => {
 }
 .quote-search {
   max-width: 320px;
+}
+</style>
+
+<!--
+  Unscoped: the v-data-table renders cells via a render function, so
+  `<td>` elements live outside this component's scoped class. The
+  selector is unique enough not to bleed into other tables.
+-->
+<style>
+.v-data-table td.actions-cell {
+  white-space: nowrap;
 }
 </style>
