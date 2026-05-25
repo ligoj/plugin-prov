@@ -1,24 +1,33 @@
 {
   "name": "ligoj-plugin-prov",
   "version": "0.1.0",
+  "description": "Provisioning plugin for the Ligoj Vue UI host — cloud quote editor, terraform / network views, catalog manager.",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "author": "kloudy.io",
-  "description": "Ligoj Provisioning plugin",
-  "homepage": "https://github.com/ligoj/plugin-prov",
   "contributors": [
-    "fabrice.daugan@gmail.com"
+    "Fabrice Daugan <fabrice.daugan@gmail.com>"
   ],
+  "homepage": "https://github.com/ligoj/plugin-prov#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ligoj/plugin-prov"
+    "url": "git+https://github.com/ligoj/plugin-prov.git"
   },
-  "bugs": "https://github.com/ligoj/plugin-prov/issues",
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ligoj/plugin-prov/issues"
+  },
   "keywords": [
-    "Ligoj",
-    "plugin"
+    "ligoj",
+    "plugin",
+    "provisioning",
+    "cloud",
+    "vue",
+    "vite"
   ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
