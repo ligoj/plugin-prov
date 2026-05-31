@@ -3,17 +3,15 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.validation.constraints.NotNull;
-
-import org.ligoj.app.api.NodeScoped;
 import org.ligoj.app.model.Node;
 import org.ligoj.bootstrap.core.model.AbstractDescribedEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +24,7 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractCodedEntity extends AbstractDescribedEntity<Integer> implements NodeScoped<Integer>, ProvType {
+public abstract class AbstractCodedEntity extends AbstractDescribedEntity<Integer> implements ProvType {
 
 	/**
 	 * SID

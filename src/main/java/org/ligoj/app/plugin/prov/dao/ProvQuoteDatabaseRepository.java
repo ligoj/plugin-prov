@@ -13,8 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 /**
  * {@link ProvQuoteDatabase} repository.
  */
-public interface ProvQuoteDatabaseRepository
-		extends ProvQuoteTermRepository<ProvQuoteDatabase>, BasePovInstanceBehavior {
+public interface ProvQuoteDatabaseRepository extends ProvQuoteTermRepository<ProvQuoteDatabase> {
 
 	@Override
 	@Modifying
