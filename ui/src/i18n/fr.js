@@ -73,9 +73,21 @@ export default {
   'catalog.status.ok': 'À jour',
   'catalog.status.never': 'Jamais mis à jour',
 
-  // ---- Terraform / Réseau / Devis (vues stub) ----
+  // ---- Terraform (administration : version du binaire côté serveur) ----
   'terraform.title': 'Terraform',
-  'terraform.notMigrated': 'La vue Terraform n\'est pas encore portée vers Vue. Utilisez l\'interface héritée pour le moment.',
+  'terraform.intro': 'Gérez la version du binaire Terraform utilisé côté serveur pour provisionner l\'infrastructure.',
+  'terraform.installedVersion': 'Version installée',
+  'terraform.latestVersion': 'Dernière version disponible',
+  'terraform.notInstalled': 'Terraform n\'est pas installé sur le serveur.',
+  'terraform.cmdError': 'Impossible de lire la version de Terraform installée.',
+  'terraform.latestUnavailable': 'La dernière version n\'a pas pu être récupérée.',
+  'terraform.changelog': 'Journal des modifications',
+  'terraform.install': 'Installer',
+  'terraform.reinstall': 'Réinstaller',
+  'terraform.upToDate': 'À jour',
+  'terraform.installed': 'Terraform {version} installé',
+
+  // ---- Réseau / Devis (vues stub) ----
   'network.title': 'Réseau',
   'network.notMigrated': 'L\'éditeur Réseau n\'est pas encore porté vers Vue. Utilisez l\'interface héritée pour le moment.',
   'quote.title': 'Devis',

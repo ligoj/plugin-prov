@@ -1,5 +1,5 @@
 import { h } from 'vue'
-import { VBtn, VChip, VIcon, useI18nStore } from '@ligoj/host'
+import { VBtn, VChip, VIcon, VListItem, useI18nStore } from '@ligoj/host'
 
 const REST = '/rest/'
 
@@ -95,6 +95,27 @@ const service = {
 
     if (chips.length === 0) return null
     return h('div', { class: 'd-inline-flex flex-wrap align-center' }, chips)
+  },
+
+  /**
+   * Administration-menu contribution. The host's `AdminNavExtras` polls
+   * every loaded plugin for this `renderAdmin` feature and mounts the
+   * returned `<v-list-item>` VNodes at the bottom of the Administration
+   * ("System") menu, behind a divider it paints itself.
+   *
+   * Provisioning contributes its three admin screens — catalog, currency
+   * and terraform — whose routes are already registered in `install()`.
+   * These were the legacy `service/prov/*` administration pages; they
+   * have no per-subscription context, so the Administration menu (not a
+   * subscription row) is their natural home.
+   */
+  renderAdmin() {
+    const { t } = useI18nStore()
+    return [
+      h(VListItem, { prependIcon: 'mdi-database-search', title: t('catalog.title'), to: '/prov/catalog' }),
+      h(VListItem, { prependIcon: 'mdi-cash-multiple', title: t('currency.title'), to: '/prov/currency' }),
+      h(VListItem, { prependIcon: 'mdi-terraform', title: t('terraform.title'), to: '/prov/terraform' }),
+    ]
   },
 
   /**

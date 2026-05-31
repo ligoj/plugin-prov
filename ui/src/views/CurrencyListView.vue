@@ -18,6 +18,19 @@
     <LigojDataTableServer filename="currencies.csv" :fetch-all="dt.loadAll" v-if="!dt.error.value" v-show="dt.items.value.length > 0 || !dt.loading.value"
       :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="id" hover
       v-model:items-per-page="itemsPerPage" @update:options="loadData" @click:row="(_, { item }) => openEdit(item)">
+      <!-- "Number of quotes using this currency" is a long label, so the
+           header shows an icon only; the full text is the tooltip. The
+           column stays sortable — the slot toggles sort on click and
+           renders the sort indicator, mirroring LigojDataTable's own
+           tooltip-header markup. The header `title` is kept (empty cell
+           text aside) so CSV export still carries a meaningful label. -->
+      <template #header.nbQuotes="{ column, getSortIcon, toggleSort }">
+        <span class="currency-quotes-header" @click="column.sortable && toggleSort?.(column)">
+          <v-icon size="small">mdi-file-document-multiple-outline</v-icon>
+          <v-icon v-if="column.sortable && getSortIcon" :icon="getSortIcon(column)" size="x-small" class="ml-1" />
+          <v-tooltip activator="parent" location="top" :text="t('currency.quotes')" />
+        </span>
+      </template>
       <template #item.rate="{ item }">
         {{ formatRate(item.rate) }}
       </template>
@@ -216,5 +229,11 @@ onMounted(() => {
   min-width: 200px;
   max-width: 300px;
   flex: 1 1 200px;
+}
+.currency-quotes-header {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
 }
 </style>

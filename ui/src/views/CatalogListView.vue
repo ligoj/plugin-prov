@@ -8,8 +8,9 @@
       <h1 class="text-h5 mb-0">{{ t('catalog.title') }}</h1>
       <v-chip v-if="catalogs.length" size="small" variant="tonal" class="ml-1">{{ catalogs.length }}</v-chip>
       <v-spacer />
-      <v-btn icon size="small" variant="text" :loading="loading" :title="t('common.search')" @click="reload">
+      <v-btn icon size="small" variant="text" :loading="loading" @click="reload">
         <v-icon>mdi-refresh</v-icon>
+        <v-tooltip activator="parent" location="top" :text="t('nav.refresh')" />
       </v-btn>
     </div>
 
@@ -31,6 +32,35 @@
       density="compact"
       item-value="node.id"
     >
+      <!-- Header icons. Catalog columns are non-sortable, so a custom
+           header slot fully owns the cell; each shows a relevant mdi icon
+           next to the column title. -->
+      <template #header.node="{ column }">
+        <v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}
+      </template>
+      <template #header.lastSuccess="{ column }">
+        <v-icon size="small" class="mr-1">mdi-calendar-clock</v-icon>{{ column.title }}
+      </template>
+      <template #header.nbQuotes="{ column }">
+        <v-icon size="small">mdi-file-document-multiple-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbLocations="{ column }">
+        <v-icon size="small">mdi-map-marker-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbTypes="{ column }">
+        <v-icon size="small">mdi-shape-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbPrices="{ column }">
+        <v-icon size="small">mdi-currency-usd</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.status="{ column }">
+        <v-icon size="small" class="mr-1">mdi-progress-check</v-icon>{{ column.title }}
+      </template>
+
       <template #item.node="{ item }">
         <div class="d-flex align-center ga-2">
           <NodeIcon :node="item.node" />
@@ -52,17 +82,19 @@
       </template>
       <template #item.actions="{ item }">
         <template v-if="isRunning(item)">
-          <v-btn icon size="small" variant="text" color="error" :title="t('catalog.cancel')"
-            @click="cancelImport(item)">
+          <v-btn icon size="small" variant="text" color="error" @click="cancelImport(item)">
             <v-icon size="small">mdi-cancel</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.cancel')" />
           </v-btn>
         </template>
         <template v-else>
-          <v-btn icon size="small" variant="text" :title="t('catalog.updateStandard')" @click="runImport(item, false)">
+          <v-btn icon size="small" variant="text" @click="runImport(item, false)">
             <v-icon size="small">mdi-download</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.updateStandard')" />
           </v-btn>
-          <v-btn icon size="small" variant="text" :title="t('catalog.updateForce')" @click="runImport(item, true)">
+          <v-btn icon size="small" variant="text" @click="runImport(item, true)">
             <v-icon size="small">mdi-download-multiple</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.updateForce')" />
           </v-btn>
         </template>
       </template>

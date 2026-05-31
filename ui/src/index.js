@@ -55,6 +55,9 @@ const features = {
   renderFeatures: service.renderFeatures,
   // Plugin-rendered details column on subscription rows.
   renderDetailsKey: service.renderDetailsKey,
+  // Host's AdminNavExtras polls this to add the catalog / currency /
+  // terraform screens to the shared Administration menu.
+  renderAdmin: service.renderAdmin,
 }
 
 const routes = [

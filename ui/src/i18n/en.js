@@ -74,9 +74,21 @@ export default {
   'catalog.status.ok': 'Up to date',
   'catalog.status.never': 'Never updated',
 
-  // ---- Terraform / Network / Quote (stub views) ----
+  // ---- Terraform (administration: server-side binary version) ----
   'terraform.title': 'Terraform',
-  'terraform.notMigrated': 'The Terraform view is not yet ported to Vue. Use the legacy interface in the meantime.',
+  'terraform.intro': 'Manage the Terraform binary version used server-side to provision infrastructure.',
+  'terraform.installedVersion': 'Installed version',
+  'terraform.latestVersion': 'Latest available version',
+  'terraform.notInstalled': 'Terraform is not installed on the server.',
+  'terraform.cmdError': 'Unable to read the installed Terraform version.',
+  'terraform.latestUnavailable': 'The latest version could not be retrieved.',
+  'terraform.changelog': 'Changelog',
+  'terraform.install': 'Install',
+  'terraform.reinstall': 'Reinstall',
+  'terraform.upToDate': 'Up to date',
+  'terraform.installed': 'Terraform {version} installed',
+
+  // ---- Network / Quote (stub views) ----
   'network.title': 'Network',
   'network.notMigrated': 'The Network editor is not yet ported to Vue. Use the legacy interface in the meantime.',
   'quote.title': 'Quote',
