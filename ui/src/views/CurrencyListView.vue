@@ -37,9 +37,11 @@
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click.stop="openEdit(item)">
           <v-icon size="small">mdi-pencil</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('common.edit')" />
         </v-btn>
         <v-btn v-if="!item.nbQuotes" icon size="small" variant="text" color="error" @click.stop="startDelete(item)">
           <v-icon size="small">mdi-delete</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('common.delete')" />
         </v-btn>
       </template>
     </LigojDataTableServer>
@@ -57,10 +59,10 @@
             {{ t('currency.editingUsed') }}
           </v-alert>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="form.name" :label="t('currency.name')" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
-            <v-textarea v-model="form.description" :label="t('currency.description')" variant="outlined" rows="3" class="mb-2" />
-            <v-text-field v-model="form.unit" :label="t('currency.unit')" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-text-field v-model.number="form.rate" :label="t('currency.rate')" :rules="[rules.required, rules.positive]" type="number" step="0.01" variant="outlined" />
+            <v-text-field v-model="form.name" prepend-inner-icon="mdi-cash-multiple" :label="t('currency.name')" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
+            <v-textarea v-model="form.description" prepend-inner-icon="mdi-text-long" :label="t('currency.description')" variant="outlined" rows="3" class="mb-2" />
+            <v-text-field v-model="form.unit" prepend-inner-icon="mdi-tag-outline" :label="t('currency.unit')" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <v-text-field v-model.number="form.rate" prepend-inner-icon="mdi-currency-usd" :label="t('currency.rate')" :rules="[rules.required, rules.positive]" type="number" step="0.01" variant="outlined" />
           </v-form>
         </v-card-text>
         <v-card-actions>

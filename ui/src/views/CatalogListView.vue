@@ -35,12 +35,8 @@
       <!-- Header icons. Catalog columns are non-sortable, so a custom
            header slot fully owns the cell; each shows a relevant mdi icon
            next to the column title. -->
-      <template #header.node="{ column }">
-        <v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}
-      </template>
-      <template #header.lastSuccess="{ column }">
-        <v-icon size="small" class="mr-1">mdi-calendar-clock</v-icon>{{ column.title }}
-      </template>
+      <template #header.node="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.lastSuccess="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-calendar-clock</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #header.nbQuotes="{ column }">
         <v-icon size="small">mdi-file-document-multiple-outline</v-icon>
         <v-tooltip activator="parent" location="top" :text="column.title" />
@@ -57,9 +53,7 @@
         <v-icon size="small">mdi-currency-usd</v-icon>
         <v-tooltip activator="parent" location="top" :text="column.title" />
       </template>
-      <template #header.status="{ column }">
-        <v-icon size="small" class="mr-1">mdi-progress-check</v-icon>{{ column.title }}
-      </template>
+      <template #header.status="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-progress-check</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
 
       <template #item.node="{ item }">
         <div class="d-flex align-center ga-2">
