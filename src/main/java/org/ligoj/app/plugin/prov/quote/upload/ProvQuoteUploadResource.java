@@ -509,7 +509,7 @@ public class ProvQuoteUploadResource {
 		vo.setCpu(qiResource.round(ObjectUtils.getIfNull(u.getCpu(), 0d)));
 		vo.setGpu(u.getGpu());
 		vo.setProcessor(u.getProcessor());
-		vo.setArchitecture(u.getArchitecture());
+		vo.setArchitecture(Optional.ofNullable(u.getArchitecture()).map(StringUtils::upperCase).orElse(null));
 		vo.setLicense(Optional.ofNullable(u.getLicense()).map(StringUtils::upperCase).orElse(null));
 		vo.setInternet(u.getInternet());
 		vo.setMaxQuantity(Optional.of(u.getMaxQuantity()).filter(q -> q > 0).orElse(null));
