@@ -170,7 +170,7 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 		final var lines = export();
 		Assertions.assertEquals(12, lines.size());
 		Assertions.assertEquals(
-				"INSTANCE;JIRA;4;;0;;6000;;LINUX;Full Time 12 month;;;on-demand1;;1;1;10,1;100;;false;false;dynamic;;;"
+				"INSTANCE;JIRA;4;;0;;6000;;LINUX;Full Time 12 month;;;on-demand1;;1;1;10,1;100;;;false;false;dynamic;;;"
 						+ "PRIVATE;;990,862;;270;;storage1;GOOD;;56,7;",
 				lines.get(1));
 		configuration = getConfiguration();
@@ -230,10 +230,10 @@ class ProvQuoteInstanceExportResourceTest extends AbstractProvResourceTest {
 				lines.get(16));
 
 		// Database data
-		Assertions.assertEquals("database2;0,25;;0;;1000;;;;;;1y;;1;1;;;;;;;database1;;;89,5;;;;;;;MYSQL;",
+		Assertions.assertEquals("database2;0,25;;0;;1000;;;;;;1y;;1;1;;;;;;;database1;;;89,5;;;;;;;;MYSQL;",
 				lines.get(18));
 		Assertions.assertEquals(
-				"database4;0,5;;0;;2000;;;;;;on-demand1;;1;1;;;;;;;database2;;;135,42;;;;;;;ORACLE;STANDARD ONE",
+				"database4;0,5;;0;;2000;;;;;;on-demand1;;1;1;;;;;;;database2;;;135,42;;;;;;;;ORACLE;STANDARD ONE",
 				lines.get(20));
 
 		// Storage data
