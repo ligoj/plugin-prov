@@ -9,7 +9,11 @@ if (typeof document !== 'undefined') {
     const link = document.createElement('link')
     link.id = id
     link.rel = 'stylesheet'
-    link.href = new URL(/* @vite-ignore */ './index.css', import.meta.url).href
+    const cssUrl = new URL(/* @vite-ignore */ './index.css', import.meta.url)
+    // Carry over the loader's `?v=<digest>` token (URL resolution drops the
+    // query) so the stylesheet is long-cached and busted with the bundle.
+    cssUrl.search = new URL(import.meta.url).search
+    link.href = cssUrl.href
     document.head.appendChild(link)
   }
 }

@@ -69,7 +69,19 @@
       <template #item.nbTypes="{ item }">{{ item.status?.nbTypes ?? '-' }}</template>
       <template #item.nbPrices="{ item }">{{ item.status?.nbPrices ?? '-' }}</template>
       <template #item.status="{ item }">
-        <v-chip :color="statusColor(item)" size="x-small" variant="tonal">
+        <!-- Live progress while an update runs: determinate once the server
+             reports a `workload`, indeterminate during initialization. The
+             tooltip carries the step detail (phase@location, done/workload,
+             author), mirroring the legacy status text. -->
+        <div v-if="isRunning(item)" class="run-progress">
+          <v-progress-linear :model-value="progressPct(item) ?? 0" :indeterminate="progressPct(item) == null" color="primary" height="6" rounded />
+          <div class="run-caption">
+            <span class="run-pct">{{ progressPct(item) != null ? progressPct(item) + '%' : t('catalog.status.running') }}</span>
+            <span v-if="stepLabel(item)" class="run-phase">{{ stepLabel(item) }}</span>
+          </div>
+          <v-tooltip activator="parent" location="top" :text="progressTooltip(item)" />
+        </div>
+        <v-chip v-else :color="statusColor(item)" size="x-small" variant="tonal">
           <v-icon size="x-small" start>{{ statusIcon(item) }}</v-icon>
           {{ statusLabel(item) }}
         </v-chip>
@@ -171,12 +183,37 @@ function statusIcon(c) {
 function statusLabel(c) {
   if (!c?.status) return t('catalog.status.unknown')
   if (isRunning(c)) {
-    const pct = c.status.total ? Math.round((c.status.done / c.status.total) * 100) : null
+    const pct = progressPct(c)
     return pct != null ? `${pct}%` : t('catalog.status.running')
   }
   if (c.status.end && c.status.failed) return t('catalog.status.failed')
   if (c.status.end) return t('catalog.status.ok')
   return t('catalog.status.never')
+}
+
+/* Progress helpers — mirror the legacy `toProgress` / `toStep`: the API
+ * reports the total step count as `workload` (NOT `total`), the completed
+ * steps as `done`, and the human-readable current step as `phase` (+
+ * optional `location`), e.g. "ec2 (scoring 1/2)@eu-west-3". */
+function progressPct(c) {
+  const s = c?.status
+  return s?.workload ? Math.round((s.done / s.workload) * 100) : null
+}
+
+function stepLabel(c) {
+  const s = c?.status || {}
+  if (s.phase) return s.phase + (s.location ? '@' + s.location : '')
+  return s.location ? '@' + s.location : ''
+}
+
+function progressTooltip(c) {
+  const s = c?.status || {}
+  const pct = progressPct(c)
+  const parts = [pct != null ? `${pct}% (${s.done}/${s.workload})` : t('catalog.status.running')]
+  const step = stepLabel(c)
+  if (step) parts.push(step)
+  if (s.author) parts.push(s.author)
+  return parts.join(' — ')
 }
 
 function formatDate(ms) {
@@ -191,17 +228,20 @@ async function runImport(catalog, force) {
   const id = catalog?.node?.id
   if (!id) return
   const url = `rest/service/prov/catalog/${encodeURIComponent(id)}${force ? '?force=true' : ''}`
-  const ok = await api.post(url)
-  if (ok == null) return
-  errorStore.success(t('catalog.statusStarted', { name: catalog.node.name || id }))
-  // Local optimistic update so the row shows "running" until the next
-  // poll lands.
-  if (catalog.status) {
-    catalog.status.start = Date.now()
-    catalog.status.end = null
-    catalog.status.failed = false
-  } else {
-    catalog.status = { start: Date.now(), end: null }
+  // The update endpoint answers 204 No Content: `api.post` returns the same
+  // `null` for that success as for a failure, which used to bail out here
+  // before polling ever started. Ask for the raw Response and branch on the
+  // real status instead (errors are already toasted by the error store).
+  const res = await api.post(url, null, { raw: true })
+  if (!res?.ok) return
+  errorStore.success(t('catalog.statusStarted', { name: catalog.node.name || id }), { node: catalog.node })
+  // Local optimistic update so the row shows a starting progress until the
+  // next poll lands; reset the previous run's counters so the bar doesn't
+  // briefly show the stale 100%.
+  catalog.status = {
+    ...(catalog.status || {}),
+    start: Date.now(), end: null, failed: false,
+    done: 0, workload: 0, phase: null, location: null,
   }
   ensurePolling(id)
 }
@@ -209,9 +249,10 @@ async function runImport(catalog, force) {
 async function cancelImport(catalog) {
   const id = catalog?.node?.id
   if (!id) return
-  const ok = await api.del(`rest/service/prov/catalog/${encodeURIComponent(id)}`)
-  if (ok == null) return
-  errorStore.success(t('catalog.statusCanceled', { name: catalog.node.name || id }))
+  // Same 204 No Content contract as the start endpoint — see runImport.
+  const res = await api.del(`rest/service/prov/catalog/${encodeURIComponent(id)}`, { raw: true })
+  if (!res?.ok) return
+  errorStore.success(t('catalog.statusCanceled', { name: catalog.node.name || id }), { node: catalog.node })
   await reload()
 }
 
@@ -254,5 +295,33 @@ onBeforeUnmount(stopAllPolling)
 <style scoped>
 .catalog-view {
   padding: 0.5rem;
+}
+
+/* Live update progress (status column while an import runs). */
+.run-progress {
+  min-width: 130px;
+  padding: 2px 0;
+}
+
+.run-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.run-pct {
+  font-weight: 700;
+  color: rgb(var(--v-theme-primary));
+  flex: none;
+}
+
+.run-phase {
+  color: rgba(var(--v-theme-on-surface), .6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
