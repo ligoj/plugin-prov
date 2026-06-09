@@ -135,8 +135,7 @@ async function install() {
 }
 
 onMounted(async () => {
-  app.setBreadcrumbs(
-    [
+  app.setBreadcrumbs(() => [
       { title: t('nav.home'), to: '/' },
       { title: t('prov.title') },
       { title: t('terraform.title') },

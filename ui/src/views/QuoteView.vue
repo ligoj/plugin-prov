@@ -979,25 +979,28 @@ async function confirmDeleteAll() {
 }
 
 function setBreadcrumbs() {
-  const id = subscriptionId.value
-  const project = meta.value?.project
-  /* Full path: Home → Projects → <project name> → Provisioning → <quote>.
-   * The project segment is only emitted once the configuration has
-   * landed (we read it from `meta.value.project`, populated by
-   * loadConfig); without it the link target would be missing. */
-  const crumbs = [
-    { title: t('nav.home'), to: '/' },
-    { title: t('nav.projects'), to: '/home/project' },
-  ]
-  if (project?.id) {
-    crumbs.push({
-      title: project.name || `#${project.id}`,
-      to: `/home/project/${project.id}`,
-    })
-  }
-  crumbs.push({ title: t('prov.title') })
-  crumbs.push({ title: config.value?.name || `#${id}` })
-  app.setBreadcrumbs(crumbs, { refresh: reload })
+  /* Passed as a FACTORY so the host can re-run it on a locale change (the crumb
+   * titles use `t()`); it also re-reads the latest reactive data each call.
+   * Full path: Home → Projects → <project name> → Provisioning → <quote>.
+   * The project segment is only emitted once the configuration has landed
+   * (read from `meta.value.project`, populated by loadConfig). */
+  app.setBreadcrumbs(() => {
+    const id = subscriptionId.value
+    const project = meta.value?.project
+    const crumbs = [
+      { title: t('nav.home'), to: '/' },
+      { title: t('nav.projects'), to: '/home/project' },
+    ]
+    if (project?.id) {
+      crumbs.push({
+        title: project.name || `#${project.id}`,
+        to: `/home/project/${project.id}`,
+      })
+    }
+    crumbs.push({ title: t('prov.title') })
+    crumbs.push({ title: config.value?.name || `#${id}` })
+    return crumbs
+  }, { refresh: reload })
 }
 
 // Re-run when the quote name, the subscription id, or the parent

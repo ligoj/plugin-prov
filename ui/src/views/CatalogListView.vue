@@ -278,8 +278,7 @@ function stopAllPolling() {
 }
 
 onMounted(async () => {
-  app.setBreadcrumbs(
-    [
+  app.setBreadcrumbs(() => [
       { title: t('nav.home'), to: '/' },
       { title: t('prov.title') },
       { title: t('catalog.title') },

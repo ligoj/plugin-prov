@@ -215,8 +215,7 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  appStore.setBreadcrumbs(
-    [
+  appStore.setBreadcrumbs(() => [
       { title: t('nav.home'), to: '/' },
       { title: t('prov.title') },
       { title: t('currency.title') },

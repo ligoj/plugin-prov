@@ -13,7 +13,7 @@ import { useI18nStore, useAppStore } from '@ligoj/host'
 const { t } = useI18nStore()
 const appStore = useAppStore()
 onMounted(() => {
-  appStore.setBreadcrumbs([
+  appStore.setBreadcrumbs(() => [
     { title: t('nav.home'), to: '/' },
     { title: t('prov.title') },
     { title: t('network.title') },
