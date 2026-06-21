@@ -6,9 +6,6 @@
 **/.classpath
 **/dependency-reduced-pom.xml
 /*.exec
-**/node_modules
-**/*.iml
-/package-lock.json
 *.log
-/bin/
-/.apt_generated_tests/
+.apt_generated*
+src/main/resources/META-INF/resources/webjars/prov/vue/*

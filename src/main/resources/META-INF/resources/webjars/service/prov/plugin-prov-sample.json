@@ -1,0 +1,553 @@
+{
+    "subscription": 205,
+    "project": {
+        "id": 2,
+        "name": "Enedis - M2C",
+        "description": ""
+    },
+    "parameters": {
+        "service:prov:aws:access-key-id": "AKIAQR7IZ7V553VXKQ4J",
+        "service:prov:aws:account": "038606077307"
+    },
+    "node": {
+        "id": "service:prov:aws:enedis",
+        "name": "Enedis M2C",
+        "refined": {
+            "id": "service:prov:aws",
+            "name": "Provisioning AWS",
+            "refined": {
+                "id": "service:prov",
+                "name": "Provisioning",
+                "mode": "all",
+                "uiClasses": "fas fa-server"
+            },
+            "mode": "create",
+            "uiClasses": "fab fa-aws"
+        },
+        "mode": "create",
+        "enabled": true
+    },
+    "configuration": {
+        "id": 102,
+        "createdDate": 1761848980321,
+        "lastModifiedDate": 1765447324426,
+        "createdBy": {
+            "firstName": "Admin",
+            "lastName": "Ligoj",
+            "id": "ligoj-admin",
+            "company": "department1",
+            "customAttributes": {},
+            "mails": [
+                "ligoj-admin@sample.com"
+            ],
+            "dn": "uid=ligoj-admin,ou=department1,ou=internal,ou=people,dc=sample,dc=com",
+            "groups": [
+                "sample group"
+            ],
+            "name": "ligoj-admin"
+        },
+        "lastModifiedBy": {
+            "firstName": "Admin",
+            "lastName": "Ligoj",
+            "id": "ligoj-admin",
+            "company": "department1",
+            "customAttributes": {},
+            "mails": [
+                "ligoj-admin@sample.com"
+            ],
+            "dn": "uid=ligoj-admin,ou=department1,ou=internal,ou=people,dc=sample,dc=com",
+            "groups": [
+                "sample group"
+            ],
+            "name": "ligoj-admin"
+        },
+        "name": "Enedis - M2C - Dataops",
+        "description": "enedis-m2c-> Provisioning AWS",
+        "cost": {
+            "min": 17928.369,
+            "max": 17928.369,
+            "initial": 0.0,
+            "maxInitial": 0.0,
+            "unbound": false,
+            "minCo2": 205234.343,
+            "maxCo2": 205234.343
+        },
+        "costNoSupport": {
+            "min": 17928.369,
+            "max": 17928.369,
+            "initial": 0.0,
+            "maxInitial": 0.0,
+            "unbound": false,
+            "minCo2": 205234.343,
+            "maxCo2": 205234.343
+        },
+        "costSupport": {
+            "min": 0.0,
+            "max": 0.0,
+            "initial": 0.0,
+            "maxInitial": 0.0,
+            "unbound": false,
+            "minCo2": 205234.343,
+            "maxCo2": 205234.343
+        },
+        "instances": [
+            {
+                "id": 17554,
+                "name": "powerbi gateway",
+                "cost": 505.014,
+                "maxCost": 505.014,
+                "initialCost": 0.0,
+                "maxInitialCost": 0.0,
+                "co2": 7665.024,
+                "maxCo2": 7665.024,
+                "cpu": 8.0,
+                "gpu": 0.0,
+                "ram": 32768,
+                "internet": "public",
+                "minQuantity": 2,
+                "maxQuantity": 2,
+                "ephemeral": false,
+                "autoScale": false,
+                "os": "windows",
+                "price": {
+                    "id": 207871,
+                    "code": "ZGC49G7XS8QA54BQ.7UDUXY5CTEVRNQAA",
+                    "cost": 252.507,
+                    "type": {
+                        "id": 181,
+                        "name": "t3a.2xlarge",
+                        "description": "{EBS only,Up to 5 Gigabit}",
+                        "code": "t3a.2xlarge",
+                        "cpu": 8.0,
+                        "gpu": 0.0,
+                        "ram": 32768.0,
+                        "baseline": 40.0,
+                        "processor": "AMD EPYC 7571",
+                        "architecture": "X86",
+                        "physical": false,
+                        "edge": false,
+                        "cpuRate": "good",
+                        "gpuRate": "medium",
+                        "ramRate": "good",
+                        "storageRate": "good",
+                        "networkRate": "medium",
+                        "autoScale": true,
+                        "watt": 59.818,
+                        "watt10": "16.938,26.875,31.241,35.533,40.208,44.542,48.655,52.203,55.501,58.508"
+                    },
+                    "co2": 5559.465,
+                    "co210": "3606.17,4058.854,4257.71,4453.218,4666.17,4863.61,5050.952,5212.558,5362.789,5499.774",
+                    "initialCost": 0.0,
+                    "costPeriod": 9090.252,
+                    "co2Period": 200140.736,
+                    "period": 36.0,
+                    "term": {
+                        "id": 7,
+                        "name": "Compute Savings Plan, 3yr, No Upfront",
+                        "description": "3 year No Upfront Compute Savings Plan",
+                        "code": "ZGC49G7XS8QA54BQ",
+                        "period": 36.0,
+                        "variable": false,
+                        "ephemeral": false,
+                        "convertibleOs": true,
+                        "convertibleEngine": false,
+                        "convertibleLocation": true,
+                        "convertibleFamily": true,
+                        "convertibleType": true,
+                        "reservation": false,
+                        "initialCost": false
+                    },
+                    "co2Cpu": 4381.186,
+                    "co2Gpu": 0.0,
+                    "co2Ram": 874.598,
+                    "co2Cpu10": "3010.957,3317.874,3480.29,3639.355,3815.866,3976.865,4105.9,4209.2,4301.124,4379.802",
+                    "co2Ram10": "291.533,437.299,473.741,510.182,546.624,583.066,641.372,699.679,757.985,816.292",
+                    "os": "windows",
+                    "tenancy": "shared"
+                },
+                "tenancy": "shared",
+                "resourceType": "instance",
+                "locationName": "eu-west-3"
+            },
+            {
+                "id": 17552,
+                "name": "databricks workload gpu",
+                "description": "[databricks]-workload GPU sur data plane",
+                "cost": 3548.975,
+                "maxCost": 3548.975,
+                "initialCost": 0.0,
+                "maxInitialCost": 0.0,
+                "co2": 0.0,
+                "maxCo2": 0.0,
+                "cpu": 32.0,
+                "gpu": 4.0,
+                "ram": 249856,
+                "internet": "public",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "ephemeral": false,
+                "autoScale": false,
+                "os": "linux",
+                "price": {
+                    "id": 210671,
+                    "code": "ZGC49G7XS8QA54BQ.J8WQFVCWDUXD4R2D",
+                    "cost": 3548.975,
+                    "type": {
+                        "id": 615,
+                        "name": "g6.24xlarge",
+                        "description": "{4 X 940 GB NVMe SSD,50 Gigabit}",
+                        "code": "g6.24xlarge",
+                        "cpu": 96.0,
+                        "gpu": 4.0,
+                        "ram": 393216.0,
+                        "baseline": 0.0,
+                        "processor": "AMD EPYC 7R13 Processor",
+                        "architecture": "X86",
+                        "physical": false,
+                        "edge": false,
+                        "cpuRate": "good",
+                        "gpuRate": "medium",
+                        "ramRate": "good",
+                        "storageRate": "good",
+                        "networkRate": "medium",
+                        "autoScale": true
+                    },
+                    "co2": 0.0,
+                    "initialCost": 0.0,
+                    "costPeriod": 127763.111,
+                    "co2Period": 0.0,
+                    "period": 36.0,
+                    "term": {
+                        "id": 7,
+                        "name": "Compute Savings Plan, 3yr, No Upfront",
+                        "description": "3 year No Upfront Compute Savings Plan",
+                        "code": "ZGC49G7XS8QA54BQ",
+                        "period": 36.0,
+                        "variable": false,
+                        "ephemeral": false,
+                        "convertibleOs": true,
+                        "convertibleEngine": false,
+                        "convertibleLocation": true,
+                        "convertibleFamily": true,
+                        "convertibleType": true,
+                        "reservation": false,
+                        "initialCost": false
+                    },
+                    "co2Cpu": 0.0,
+                    "co2Gpu": 0.0,
+                    "co2Ram": 0.0,
+                    "os": "linux",
+                    "tenancy": "shared"
+                },
+                "tenancy": "shared",
+                "resourceType": "instance",
+                "locationName": "eu-west-3"
+            },
+            {
+                "id": 17553,
+                "name": "databricks compute",
+                "description": "21 ec2 intel 32vcpu 256GiB RAM + ssd",
+                "cost": 9647.68,
+                "maxCost": 9647.68,
+                "initialCost": 0.0,
+                "maxInitialCost": 0.0,
+                "co2": 155170.029,
+                "maxCo2": 155170.029,
+                "cpu": 32.0,
+                "gpu": 0.0,
+                "ram": 262144,
+                "internet": "public",
+                "minQuantity": 7,
+                "maxQuantity": 7,
+                "usage": 952,
+                "ephemeral": false,
+                "autoScale": false,
+                "ramRate": "low",
+                "os": "linux",
+                "price": {
+                    "id": 114532,
+                    "code": "FCG5YN4UCSM74PSM.JRTCKXETXF.6YS6EN2CT7",
+                    "cost": 1378.24,
+                    "type": {
+                        "id": 548,
+                        "name": "r6g.8xlarge",
+                        "description": "{EBS only,12 Gigabit}",
+                        "code": "r6g.8xlarge",
+                        "cpu": 32.0,
+                        "gpu": 0.0,
+                        "ram": 262144.0,
+                        "baseline": 0.0,
+                        "processor": "AWS Graviton2 Processor",
+                        "architecture": "ARM",
+                        "physical": false,
+                        "edge": false,
+                        "cpuRate": "medium",
+                        "gpuRate": "medium",
+                        "ramRate": "best",
+                        "storageRate": "good",
+                        "networkRate": "medium",
+                        "autoScale": true,
+                        "watt": 244.991,
+                        "watt10": "74.91,115.67,130.092,144.349,159.467,173.82,190.433,205.776,220.556,234.683"
+                    },
+                    "co2": 28986.34,
+                    "co210": "21238.8,23095.494,23752.461,24401.892,25090.573,25744.354,26501.134,27200.012,27873.294,28516.773",
+                    "initialCost": 0.0,
+                    "costPeriod": 1378.24,
+                    "co2Period": 28986.34,
+                    "period": 0.0,
+                    "term": {
+                        "id": 1,
+                        "name": "OnDemand",
+                        "code": "JRTCKXETXF",
+                        "period": 0.0,
+                        "variable": false,
+                        "ephemeral": false,
+                        "convertibleOs": true,
+                        "convertibleEngine": true,
+                        "convertibleLocation": true,
+                        "convertibleFamily": true,
+                        "convertibleType": true,
+                        "reservation": false,
+                        "initialCost": false
+                    },
+                    "p1Type": {
+                        "id": 458,
+                        "name": "r7g.8xlarge",
+                        "description": "{EBS only,15 Gigabit}",
+                        "code": "r7g.8xlarge",
+                        "cpu": 32.0,
+                        "gpu": 0.0,
+                        "ram": 262144.0,
+                        "baseline": 0.0,
+                        "processor": "AWS Graviton3 Processor",
+                        "architecture": "ARM",
+                        "physical": false,
+                        "edge": false,
+                        "cpuRate": "medium",
+                        "gpuRate": "medium",
+                        "ramRate": "best",
+                        "storageRate": "good",
+                        "networkRate": "medium",
+                        "autoScale": true
+                    },
+                    "co2Cpu": 21306.273,
+                    "co2Gpu": 0.0,
+                    "co2Ram": 6996.787,
+                    "co2Cpu10": "18223.257,18913.821,19279.254,19637.153,20034.301,20396.549,20686.877,20919.302,21126.132,21303.158",
+                    "co2Ram10": "2332.262,3498.394,3789.926,4081.459,4372.992,4664.525,5130.977,5597.43,6063.882,6530.335",
+                    "os": "linux",
+                    "tenancy": "shared"
+                },
+                "tenancy": "shared",
+                "resourceType": "instance",
+                "locationName": "eu-west-3"
+            }
+        ],
+        "containers": [],
+        "functions": [],
+        "databases": [
+            {
+                "id": 1702,
+                "name": "powerbi pg",
+                "description": "RDS postgresql 5 noeuds up 100%",
+                "cost": 4226.7,
+                "maxCost": 4226.7,
+                "initialCost": 0.0,
+                "maxInitialCost": 0.0,
+                "co2": 42399.29,
+                "maxCo2": 42399.29,
+                "cpu": 8.0,
+                "gpu": 0.0,
+                "ram": 32768,
+                "internet": "public",
+                "minQuantity": 10,
+                "maxQuantity": 10,
+                "ephemeral": false,
+                "autoScale": false,
+                "engine": "POSTGRESQL",
+                "price": {
+                    "id": 3711,
+                    "code": "TFB26AA6QF92G22J.JRTCKXETXF.6YS6EN2CT7",
+                    "cost": 422.67,
+                    "type": {
+                        "id": 152,
+                        "name": "db.t4g.2xlarge",
+                        "description": "{Up to 5 Gigabit}",
+                        "code": "db.t4g.2xlarge",
+                        "cpu": 8.0,
+                        "gpu": 0.0,
+                        "ram": 32768.0,
+                        "baseline": 40.0,
+                        "processor": "AWS Graviton2",
+                        "physical": false,
+                        "edge": false,
+                        "cpuRate": "medium",
+                        "gpuRate": "medium",
+                        "ramRate": "good",
+                        "storageRate": "best",
+                        "networkRate": "medium",
+                        "autoScale": true,
+                        "watt": 42.048,
+                        "watt10": "12.327,19.317,22.123,24.887,27.867,30.655,33.528,36.084,38.499,40.751"
+                    },
+                    "co2": 5434.545,
+                    "co210": "4080.725,4399.133,4526.933,4652.849,4788.578,4915.581,5046.47,5162.883,5272.897,5375.46",
+                    "initialCost": 0.0,
+                    "costPeriod": 422.67,
+                    "co2Period": 5434.545,
+                    "period": 0.0,
+                    "term": {
+                        "id": 1,
+                        "name": "OnDemand",
+                        "code": "JRTCKXETXF",
+                        "period": 0.0,
+                        "variable": false,
+                        "ephemeral": false,
+                        "convertibleOs": true,
+                        "convertibleEngine": true,
+                        "convertibleLocation": true,
+                        "convertibleFamily": true,
+                        "convertibleType": true,
+                        "reservation": false,
+                        "initialCost": false
+                    },
+                    "co2Cpu": 4389.127,
+                    "co2Gpu": 0.0,
+                    "co2Ram": 874.598,
+                    "co2Cpu10": "3618.373,3791.013,3882.372,3971.846,4071.134,4161.696,4234.278,4292.384,4344.091,4388.348",
+                    "co2Ram10": "291.533,437.299,473.741,510.182,546.624,583.066,641.372,699.679,757.985,816.292",
+                    "engine": "POSTGRESQL"
+                },
+                "resourceType": "database",
+                "locationName": "eu-west-3"
+            }
+        ],
+        "storages": [],
+        "supports": [],
+        "locations": [
+            {
+                "id": 4,
+                "name": "eu-south-2",
+                "preferred": false
+            },
+            {
+                "id": 12,
+                "name": "eu-central-2",
+                "preferred": false
+            },
+            {
+                "id": 16,
+                "name": "eu-west-3",
+                "description": "EU (Paris)",
+                "longitude": 2.2,
+                "latitude": 48.7,
+                "subRegion": "Paris",
+                "countryM49": 250,
+                "countryA2": "FR",
+                "regionM49": 155,
+                "continentM49": 150,
+                "preferred": false
+            },
+            {
+                "id": 19,
+                "name": "eu-west-1",
+                "description": "EU (Ireland)",
+                "longitude": -6.2,
+                "latitude": 53.3,
+                "countryM49": 372,
+                "countryA2": "IE",
+                "regionM49": 154,
+                "continentM49": 150,
+                "preferred": false
+            }
+        ],
+        "tags": {},
+        "networks": [],
+        "location": {
+            "id": 16,
+            "name": "eu-west-3",
+            "description": "EU (Paris)",
+            "longitude": 2.2,
+            "latitude": 48.7,
+            "subRegion": "Paris",
+            "countryM49": 250,
+            "countryA2": "FR",
+            "regionM49": 155,
+            "continentM49": 150,
+            "preferred": false
+        },
+        "usage": {
+            "id": 852,
+            "name": "PRD",
+            "rate": 100,
+            "duration": 36,
+            "start": 0,
+            "convertibleFamily": true,
+            "convertibleType": true,
+            "reservation": false
+        },
+        "ramAdjustedRate": 100,
+        "reservationMode": "reserved",
+        "usages": [
+            {
+                "id": 902,
+                "name": "DEV",
+                "rate": 29,
+                "duration": 1,
+                "start": 0
+            },
+            {
+                "id": 952,
+                "name": "OD",
+                "rate": 100,
+                "duration": 1,
+                "start": 0
+            },
+            {
+                "id": 852,
+                "name": "PRD",
+                "rate": 100,
+                "duration": 36,
+                "start": 0,
+                "convertibleFamily": true,
+                "convertibleType": true,
+                "reservation": false
+            }
+        ],
+        "budgets": [],
+        "optimizers": [],
+        "processors": {
+            "container": [
+                "Graviton2",
+                "Intel"
+            ],
+            "database": [
+                "AWS Graviton2",
+                "AWS Graviton4",
+                "Intel Xeon"
+            ],
+            "instance": [
+                "AMD EPYC 7571",
+                "AWS Graviton4 Processor",
+                "Intel Xeon Platinum 8175"
+            ],
+            "function": [
+                "ARM",
+                "INTEL"
+            ]
+        },
+        "architectures": {
+            "container": [
+                "ARM",
+                "X86"
+            ],
+            "database": [],
+            "instance": [
+                "ARM",
+                "X86"
+            ],
+            "function": []
+        }
+    }
+}

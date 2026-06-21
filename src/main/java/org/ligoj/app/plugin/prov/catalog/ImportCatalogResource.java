@@ -98,14 +98,20 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			t.setPhase(null);
 		});
 		final var user = securityHelper.getLogin();
-		// The import execution will be done into another thread
-		try (var executor = Executors.newSingleThreadExecutor()) {
+		// The import execution will be done into another thread.
+		// NOT try-with-resources: ExecutorService#close() (Java 19+) awaits task termination, which would hold this
+		// request open for the whole import duration (504 upstream) instead of answering with the just-started task.
+		final var executor = Executors.newSingleThreadExecutor();
+		try {
 			executor.submit(() -> {
 				Thread.sleep(50);
 				securityHelper.setUserName(user);
 				updateCatalog(catalogService, entity.getId(), force);
 				return null;
 			});
+		} finally {
+			// Orderly shutdown: the submitted import still runs to completion, no new task is accepted.
+			executor.shutdown();
 		}
 		return task;
 	}

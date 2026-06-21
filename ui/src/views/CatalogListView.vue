@@ -1,0 +1,326 @@
+<template>
+  <div class="catalog-view">
+    <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+      {{ t('catalog.intro') }}
+    </v-alert>
+
+    <div class="d-flex align-center mb-4 ga-2">
+      <h1 class="text-h5 mb-0">{{ t('catalog.title') }}</h1>
+      <v-chip v-if="catalogs.length" size="small" variant="tonal" class="ml-1">{{ catalogs.length }}</v-chip>
+      <v-spacer />
+      <v-btn icon size="small" variant="text" :loading="loading" @click="reload">
+        <v-icon>mdi-refresh</v-icon>
+        <v-tooltip activator="parent" location="top" :text="t('nav.refresh')" />
+      </v-btn>
+    </div>
+
+    <v-skeleton-loader v-if="loading && catalogs.length === 0" type="table" />
+
+    <v-alert v-else-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
+
+    <v-alert v-else-if="!catalogs.length" type="info" variant="tonal" density="compact">
+      {{ t('catalog.empty') }}
+    </v-alert>
+
+    <LigojDataTable
+      v-else
+      filename="catalogs.csv"
+      :headers="headers"
+      :items="catalogs"
+      :items-per-page="-1"
+      hide-default-footer
+      density="compact"
+      item-value="node.id"
+    >
+      <!-- Header icons. Catalog columns are non-sortable, so a custom
+           header slot fully owns the cell; each shows a relevant mdi icon
+           next to the column title. -->
+      <template #header.node="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.lastSuccess="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-calendar-clock</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.nbQuotes="{ column }">
+        <v-icon size="small">mdi-file-document-multiple-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbLocations="{ column }">
+        <v-icon size="small">mdi-map-marker-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbTypes="{ column }">
+        <v-icon size="small">mdi-shape-outline</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.nbPrices="{ column }">
+        <v-icon size="small">mdi-currency-usd</v-icon>
+        <v-tooltip activator="parent" location="top" :text="column.title" />
+      </template>
+      <template #header.status="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-progress-check</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+
+      <template #item.node="{ item }">
+        <div class="d-flex align-center ga-2">
+          <NodeIcon :node="item.node" />
+          <span class="text-body-2">{{ item.node?.name || item.node?.id }}</span>
+        </div>
+      </template>
+      <template #item.lastSuccess="{ item }">
+        {{ formatDate(item.status?.lastSuccess) }}
+      </template>
+      <template #item.nbQuotes="{ item }">{{ item.nbQuotes ?? 0 }}</template>
+      <template #item.nbLocations="{ item }">{{ item.status?.nbLocations ?? '-' }}</template>
+      <template #item.nbTypes="{ item }">{{ item.status?.nbTypes ?? '-' }}</template>
+      <template #item.nbPrices="{ item }">{{ item.status?.nbPrices ?? '-' }}</template>
+      <template #item.status="{ item }">
+        <!-- Live progress while an update runs: determinate once the server
+             reports a `workload`, indeterminate during initialization. The
+             tooltip carries the step detail (phase@location, done/workload,
+             author), mirroring the legacy status text. -->
+        <div v-if="isRunning(item)" class="run-progress">
+          <v-progress-linear :model-value="progressPct(item) ?? 0" :indeterminate="progressPct(item) == null" color="primary" height="6" rounded />
+          <div class="run-caption">
+            <span class="run-pct">{{ progressPct(item) != null ? progressPct(item) + '%' : t('catalog.status.running') }}</span>
+            <span v-if="stepLabel(item)" class="run-phase">{{ stepLabel(item) }}</span>
+          </div>
+          <v-tooltip activator="parent" location="top" :text="progressTooltip(item)" />
+        </div>
+        <v-chip v-else :color="statusColor(item)" size="x-small" variant="tonal">
+          <v-icon size="x-small" start>{{ statusIcon(item) }}</v-icon>
+          {{ statusLabel(item) }}
+        </v-chip>
+      </template>
+      <template #item.actions="{ item }">
+        <template v-if="isRunning(item)">
+          <v-btn icon size="small" variant="text" color="error" @click="cancelImport(item)">
+            <v-icon size="small">mdi-cancel</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.cancel')" />
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-btn icon size="small" variant="text" @click="runImport(item, false)">
+            <v-icon size="small">mdi-download</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.updateStandard')" />
+          </v-btn>
+          <v-btn icon size="small" variant="text" @click="runImport(item, true)">
+            <v-icon size="small">mdi-download-multiple</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('catalog.updateForce')" />
+          </v-btn>
+        </template>
+      </template>
+    </LigojDataTable>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useApi, useAppStore, useErrorStore, useI18nStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+
+const api = useApi()
+const app = useAppStore()
+const errorStore = useErrorStore()
+const i18n = useI18nStore()
+const t = i18n.t
+
+const loading = ref(false)
+const error = ref(null)
+const catalogs = ref([])
+
+/* Per-node polling timers. Catalog updates run server-side; we poll
+ * the catalog list endpoint while any node has `status.start` without
+ * `status.end` so progress shows up live. 5 s mirrors the legacy
+ * `scheduleUploadStep` interval. */
+const POLL_MS = 5000
+const pollingTimers = {}
+
+const headers = computed(() => [
+  { title: t('catalog.cols.provider'), key: 'node', sortable: false },
+  { title: t('catalog.lastSuccess'), key: 'lastSuccess', sortable: false, width: '160px' },
+  { title: t('catalog.cols.quotes'), key: 'nbQuotes', sortable: false, width: '80px', align: 'end' },
+  { title: t('catalog.cols.locations'), key: 'nbLocations', sortable: false, width: '80px', align: 'end' },
+  { title: t('catalog.cols.types'), key: 'nbTypes', sortable: false, width: '80px', align: 'end' },
+  { title: t('catalog.cols.prices'), key: 'nbPrices', sortable: false, width: '90px', align: 'end' },
+  { title: t('catalog.status'), key: 'status', sortable: false, width: '160px' },
+  { title: '', key: 'actions', sortable: false, width: '120px', align: 'center' },
+])
+
+async function reload() {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await api.get('rest/service/prov/catalog')
+    if (!Array.isArray(data)) {
+      error.value = t('catalog.loadFailed') || 'Failed to load catalogs.'
+      return
+    }
+    catalogs.value = data
+    // Re-arm polling for any catalog that's still running.
+    for (const c of data) {
+      if (isRunning(c)) ensurePolling(c.node?.id)
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+function isRunning(c) {
+  if (!c?.status) return false
+  return c.status.start && !c.status.end
+}
+
+function statusColor(c) {
+  if (!c?.status) return 'grey'
+  if (isRunning(c)) return 'primary'
+  if (c.status.end && c.status.failed) return 'error'
+  if (c.status.end) return 'success'
+  return 'grey'
+}
+
+function statusIcon(c) {
+  if (!c?.status) return 'mdi-help-circle-outline'
+  if (isRunning(c)) return 'mdi-progress-clock'
+  if (c.status.end && c.status.failed) return 'mdi-alert'
+  if (c.status.end) return 'mdi-check-circle'
+  return 'mdi-clock-outline'
+}
+
+function statusLabel(c) {
+  if (!c?.status) return t('catalog.status.unknown')
+  if (isRunning(c)) {
+    const pct = progressPct(c)
+    return pct != null ? `${pct}%` : t('catalog.status.running')
+  }
+  if (c.status.end && c.status.failed) return t('catalog.status.failed')
+  if (c.status.end) return t('catalog.status.ok')
+  return t('catalog.status.never')
+}
+
+/* Progress helpers — mirror the legacy `toProgress` / `toStep`: the API
+ * reports the total step count as `workload` (NOT `total`), the completed
+ * steps as `done`, and the human-readable current step as `phase` (+
+ * optional `location`), e.g. "ec2 (scoring 1/2)@eu-west-3". */
+function progressPct(c) {
+  const s = c?.status
+  return s?.workload ? Math.round((s.done / s.workload) * 100) : null
+}
+
+function stepLabel(c) {
+  const s = c?.status || {}
+  if (s.phase) return s.phase + (s.location ? '@' + s.location : '')
+  return s.location ? '@' + s.location : ''
+}
+
+function progressTooltip(c) {
+  const s = c?.status || {}
+  const pct = progressPct(c)
+  const parts = [pct != null ? `${pct}% (${s.done}/${s.workload})` : t('catalog.status.running')]
+  const step = stepLabel(c)
+  if (step) parts.push(step)
+  if (s.author) parts.push(s.author)
+  return parts.join(' — ')
+}
+
+function formatDate(ms) {
+  if (!ms) return ''
+  const d = new Date(ms)
+  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16).replace('T', ' ')
+}
+
+/* ---------- Import / cancel ---------- */
+
+async function runImport(catalog, force) {
+  const id = catalog?.node?.id
+  if (!id) return
+  const url = `rest/service/prov/catalog/${encodeURIComponent(id)}${force ? '?force=true' : ''}`
+  // The update endpoint answers 204 No Content: `api.post` returns the same
+  // `null` for that success as for a failure, which used to bail out here
+  // before polling ever started. Ask for the raw Response and branch on the
+  // real status instead (errors are already toasted by the error store).
+  const res = await api.post(url, null, { raw: true })
+  if (!res?.ok) return
+  errorStore.success(t('catalog.statusStarted', { name: catalog.node.name || id }), { node: catalog.node })
+  // Local optimistic update so the row shows a starting progress until the
+  // next poll lands; reset the previous run's counters so the bar doesn't
+  // briefly show the stale 100%.
+  catalog.status = {
+    ...(catalog.status || {}),
+    start: Date.now(), end: null, failed: false,
+    done: 0, workload: 0, phase: null, location: null,
+  }
+  ensurePolling(id)
+}
+
+async function cancelImport(catalog) {
+  const id = catalog?.node?.id
+  if (!id) return
+  // Same 204 No Content contract as the start endpoint — see runImport.
+  const res = await api.del(`rest/service/prov/catalog/${encodeURIComponent(id)}`, { raw: true })
+  if (!res?.ok) return
+  errorStore.success(t('catalog.statusCanceled', { name: catalog.node.name || id }), { node: catalog.node })
+  await reload()
+}
+
+function ensurePolling(id) {
+  if (!id || pollingTimers[id]) return
+  pollingTimers[id] = setInterval(async () => {
+    const data = await api.get('rest/service/prov/catalog')
+    if (!Array.isArray(data)) return
+    catalogs.value = data
+    const c = data.find((x) => x.node?.id === id)
+    if (!c || !isRunning(c)) {
+      clearInterval(pollingTimers[id])
+      delete pollingTimers[id]
+    }
+  }, POLL_MS)
+}
+
+function stopAllPolling() {
+  for (const id of Object.keys(pollingTimers)) {
+    clearInterval(pollingTimers[id])
+    delete pollingTimers[id]
+  }
+}
+
+onMounted(async () => {
+  app.setBreadcrumbs(() => [
+      { title: t('nav.home'), to: '/' },
+      { title: t('prov.title') },
+      { title: t('catalog.title') },
+    ],
+    { refresh: reload },
+  )
+  await reload()
+})
+
+onBeforeUnmount(stopAllPolling)
+</script>
+
+<style scoped>
+.catalog-view {
+  padding: 0.5rem;
+}
+
+/* Live update progress (status column while an import runs). */
+.run-progress {
+  min-width: 130px;
+  padding: 2px 0;
+}
+
+.run-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.run-pct {
+  font-weight: 700;
+  color: rgb(var(--v-theme-primary));
+  flex: none;
+}
+
+.run-phase {
+  color: rgba(var(--v-theme-on-surface), .6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

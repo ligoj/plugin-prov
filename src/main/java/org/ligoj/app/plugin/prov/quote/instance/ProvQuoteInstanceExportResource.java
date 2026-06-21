@@ -136,7 +136,7 @@ public class ProvQuoteInstanceExportResource {
 							toString(qc.getUsage()), toString(qc.getBudget()), toString(qc.getOptimizer()),
 							toString(qc.getPrice().getTerm()), toString(qc.getLocation()), qc.getMinQuantity(),
 							toString(qc.getMaxQuantity()), toString(qc.getMaxVariableCost()),
-							toString(qc.getWorkload()), toString(qc.getProcessor()), qc.getArchitecture(),
+							toString(qc.getWorkload()), toString(qc.getProcessor()), toString(qc.getArchitecture()),
 							toString(qc.getPhysical()),
 							qc.isEphemeral(), toType(qc), "", "", qc.getInternet(), toString(qc.getLicense()),
 							toString(qc.getCost()), toString(qc, ctags));
@@ -190,7 +190,7 @@ public class ProvQuoteInstanceExportResource {
 				writer.format("%s" + ";%s".repeat(34), "name", "cpu", "cpuMax", "gpu", "gpuMax", "ram", "ramMax", "os",
 						"usage", "budget", "optimizer", "term", "location", "min", "max", "maxVariableCost", "workload",
 						"processor", "architecture", "physical", "ephemeral", "type", "internet", "license", "cost",
-						"tags", "disk","diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
+						"tags", "disk", "diskMax", "instance", "database", "latency", "optimized", "engine", "edition", "seats");
 
 				// Write quote instances
 				final var iTags = vo.getTags().get(ResourceType.INSTANCE);

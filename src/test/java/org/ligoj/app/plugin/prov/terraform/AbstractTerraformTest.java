@@ -124,6 +124,19 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 			public TerraformStatus startTask(final String lockedId, final Consumer<TerraformStatus> initializer) {
 				return startTaskInternal(lockedId, initializer);
 			}
+
+			@Override
+			public TerraformStatus endTask(final String lockedId, final boolean failed) {
+				return endTaskInternal(lockedId, failed, t -> {
+					// Nothing to do by default
+				});
+			}
+
+			@Override
+			public TerraformStatus endTask(final String lockedId, final boolean failed,
+					final Consumer<TerraformStatus> finalizer) {
+				return endTaskInternal(lockedId, failed, finalizer);
+			}
 		};
 
 	}

@@ -121,7 +121,7 @@ class TerraformResourceTest extends AbstractTerraformTest {
 
 		// Replace the plugin locator
 		resource.locator = locator;
-		resource.runner = new TerraformRunnerResource();
+		resource.runner = newRunnerSync();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource.runner);
 		Mockito.when(locator.getResource("service:prov:test:account", Terraforming.class)).thenReturn(Mockito.mock(Terraforming.class));
 		final var context = new TerraformContext();

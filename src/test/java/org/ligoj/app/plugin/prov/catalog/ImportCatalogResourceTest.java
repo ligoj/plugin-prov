@@ -74,9 +74,39 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 				ProvQuoteDatabase.class, ProvQuoteStorage.class }, StandardCharsets.UTF_8);
 	}
 
+	/**
+	 * An {@link ImportCatalogResource} whose task operations run in the current (test) transaction instead of a new
+	 * one, so the uncommitted test data is visible.
+	 */
+	static class TestImportCatalogResource extends ImportCatalogResource {
+
+		@Override
+		public ImportCatalogStatus startTask(final String lockedId, final Consumer<ImportCatalogStatus> initializer) {
+			return startTaskInternal(lockedId, initializer);
+		}
+
+		@Override
+		public ImportCatalogStatus nextStep(final String lockedId, final Consumer<ImportCatalogStatus> stepper) {
+			return nextStepInternal(lockedId, stepper);
+		}
+
+		@Override
+		public ImportCatalogStatus endTask(final String lockedId, final boolean failed) {
+			return endTaskInternal(lockedId, failed, t -> {
+				// Nothing to do by default
+			});
+		}
+
+		@Override
+		public ImportCatalogStatus endTask(final String lockedId, final boolean failed,
+				final Consumer<ImportCatalogStatus> finalizer) {
+			return endTaskInternal(lockedId, failed, finalizer);
+		}
+	}
+
 	@Test
 	void updateCatalog() throws Exception {
-		final ImportCatalogResource resource = new ImportCatalogResource() {
+		final ImportCatalogResource resource = new TestImportCatalogResource() {
 
 			@Override
 			public ImportCatalogStatus getTask(final String node) {
@@ -122,7 +152,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	void cancelNoStartedTask() {
-		final var resource = new ImportCatalogResource();
+		final var resource = new TestImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		final var status = newStatus();
 		status.setEnd(new Date());
@@ -207,7 +237,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	private ImportCatalogResource newResource() {
-		final var resource = new ImportCatalogResource();
+		final var resource = new TestImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		newStatus();
 		return resource;
@@ -229,12 +259,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 
 	@Test
 	void updateCatalogFailed() throws Exception {
-		final ImportCatalogResource resource = new ImportCatalogResource() {
-			@Override
-			public ImportCatalogStatus nextStep(final String node, final Consumer<ImportCatalogStatus> stepper) {
-				return super.nextStep(node, stepper);
-			}
-		};
+		final ImportCatalogResource resource = new TestImportCatalogResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
 		// Replace the locator for the custom provider

@@ -10,15 +10,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,8 +45,6 @@ import org.springframework.stereotype.Service;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.jnellis.binpack.LinearBin;
-import net.jnellis.binpack.LinearBinPacker;
 
 /**
  * Budget part of provisioning.
@@ -236,16 +231,15 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	/**
 	 * Price priority for packing.
 	 */
-	private Comparator<? super Entry<Double, AbstractQuoteVm<?>>> priceOrder(
-			final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices) {
+	private Comparator<AbstractQuoteVm<?>> priceOrder(final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices) {
 		return (e1, e2) -> {
 			// Priority to the most expensive price
-			final var c1 = prices.get(e1.getValue()).getPrice().getCost();
-			final var c2 = prices.get(e2.getValue()).getPrice().getCost();
+			final var c1 = prices.get(e1).getPrice().getCost();
+			final var c2 = prices.get(e2).getPrice().getCost();
 			var compare = (int) (c2 - c1);
 			if (compare == 0) {
 				// Then natural naming order
-				compare = e1.getValue().getName().compareTo(e2.getValue().getName());
+				compare = e1.getName().compareTo(e2.getName());
 			}
 			return compare;
 		};
@@ -267,11 +261,8 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		final var validatedQc = lookup(containers, prices, qcResource, initialCosts);
 		final var validatedQf = lookup(functions, prices, qfResource, initialCosts);
 
-		// Reverse the cost map fot the packer
-		final var packToQrRev = initialCosts.entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey, (a, b) -> b, (Supplier<IdentityHashMap<Double, AbstractQuoteVm<?>>>) IdentityHashMap::new));
-
 		// Pack the prices having an initial cost
-		var init = pack(budget, packToQrRev, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
+		var init = pack(budget, initialCosts, prices, validatedQi, validatedQb, validatedQc, validatedQf, costs);
 		// Commit this pack
 		commitPrices(validatedQi, prices, ResourceType.INSTANCE, costs, qiResource);
 		commitPrices(validatedQb, prices, ResourceType.DATABASE, costs, qbResource);
@@ -288,23 +279,18 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 		return Floating.round(init);
 	}
 
-	private double pack(final ProvBudget budget, final Map<Double, AbstractQuoteVm<?>> packToQr,
+	private double pack(final ProvBudget budget, final Map<AbstractQuoteVm<?>, Double> initialCosts,
 	                    final Map<AbstractQuoteVm<?>, FloatingPrice<?>> prices, final List<ProvQuoteInstance> validatedQi,
 	                    final List<ProvQuoteDatabase> validatedQb, final List<ProvQuoteContainer> validatedQc,
 	                    final List<ProvQuoteFunction> validatedQf, final Map<ResourceType, Map<Integer, Floating>> costs) {
-		if (packToQr.isEmpty()) {
+		if (initialCosts.isEmpty()) {
 			return 0d;
 		}
 		// At least one initial cost is implied, use bin packing strategy
 		final var packStart = System.currentTimeMillis();
-		final var packer = new LinearBinPacker();
-		final var entries = new ArrayList<>(packToQr.entrySet());
-		final var bins = packer.packAll(
-				new ArrayList<>(entries.stream().sorted(priceOrder(prices)).map(Entry::getKey).toList()),
-				new ArrayList<>(List.of(new LinearBin(budget.getRemainingBudget()))),
-				new ArrayList<>(List.of(Double.MAX_VALUE)));
-		final var bin = bins.getFirst();
-		bin.getPieces().stream().map(packToQr::get).forEach(i -> {
+		final var pieces = initialCosts.keySet().stream().sorted(priceOrder(prices)).toList();
+		final var result = BinPacker.pack(pieces, initialCosts::get, budget.getRemainingBudget());
+		result.fitted().forEach(i -> {
 			if (i.getResourceType() == ResourceType.INSTANCE) {
 				validatedQi.add((ProvQuoteInstance) i);
 			} else if (i.getResourceType() == ResourceType.DATABASE) {
@@ -315,21 +301,23 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 				validatedQf.add((ProvQuoteFunction) i);
 			}
 		});
-		logLean(b -> {
-			log.info("Packing result: {}", b.getFirst().getPieces().stream().map(packToQr::get)
-					.map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList());
-			log.info("Packing result: {}", b);
-		}, bins);
-		logPack(packStart, packToQr, budget);
+		logLean(r -> {
+			log.info("Packing result: {}",
+					r.fitted().stream().map(i -> i.getName() + "(" + i.getPrice().getCode() + ")").toList());
+			log.info("Packing result: fitted={}, total={}, overflow={}",
+					r.fitted().stream().map(initialCosts::get).toList(), r.total(),
+					r.overflow().stream().map(initialCosts::get).toList());
+		}, result);
+		logPack(packStart, initialCosts, budget);
 
-		var init = (double) bin.getTotal();
-		if (bins.size() > 1) {
-			// Extra bin needs to make a new pass
-			budget.setRemainingBudget(Floating.round(budget.getRemainingBudget() - bin.getTotal()));
-			final List<ProvQuoteInstance> subQi = newSubPack(packToQr, bins, ResourceType.INSTANCE);
-			final List<ProvQuoteDatabase> subQb = newSubPack(packToQr, bins, ResourceType.DATABASE);
-			final List<ProvQuoteContainer> subQc = newSubPack(packToQr, bins, ResourceType.CONTAINER);
-			final List<ProvQuoteFunction> subQf = newSubPack(packToQr, bins, ResourceType.FUNCTION);
+		var init = result.total();
+		if (!result.overflow().isEmpty()) {
+			// Overflowed pieces need to make a new pass
+			budget.setRemainingBudget(Floating.round(budget.getRemainingBudget() - result.total()));
+			final List<ProvQuoteInstance> subQi = newSubPack(result.overflow(), ResourceType.INSTANCE);
+			final List<ProvQuoteDatabase> subQb = newSubPack(result.overflow(), ResourceType.DATABASE);
+			final List<ProvQuoteContainer> subQc = newSubPack(result.overflow(), ResourceType.CONTAINER);
+			final List<ProvQuoteFunction> subQf = newSubPack(result.overflow(), ResourceType.FUNCTION);
 			init += leanRecursive(budget, subQi, subQb, subQc, subQf, costs);
 		}
 		// ... else pack is completed
@@ -339,26 +327,25 @@ public class ProvBudgetResource extends AbstractMultiScopedResource<ProvBudget, 
 	/**
 	 * Log packing statistics.
 	 *
-	 * @param packStart Starting timestamp.
-	 * @param packToQr  The packed resources.
-	 * @param budget    The related budget.
+	 * @param packStart    Starting timestamp.
+	 * @param initialCosts The packed resources.
+	 * @param budget       The related budget.
 	 */
-	protected void logPack(final long packStart, final Map<Double, AbstractQuoteVm<?>> packToQr,
+	protected void logPack(final long packStart, final Map<AbstractQuoteVm<?>, Double> initialCosts,
 	                       final ProvBudget budget) {
 		// Log packing statistic
 		final var packTime = System.currentTimeMillis() - packStart;
 		if (packTime > 500) {
 			// Enough duration to be logged
-			log.info("Packing of {} resources for subscription {} took {}", packToQr.size(),
+			log.info("Packing of {} resources for subscription {} took {}", initialCosts.size(),
 					budget.getConfiguration().getSubscription().getId(), Duration.ofMillis(packTime));
 		}
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> List<C> newSubPack(
-			final Map<Double, AbstractQuoteVm<?>> packToQr, final List<LinearBin> bins, final ResourceType type) {
-		return (List) bins.get(1).getPieces().stream().map(packToQr::get).filter(i -> i.getResourceType() == type)
-				.toList();
+			final List<AbstractQuoteVm<?>> overflow, final ResourceType type) {
+		return (List) overflow.stream().filter(i -> i.getResourceType() == type).toList();
 	}
 
 	private <T extends AbstractInstanceType, P extends AbstractTermPriceVm<T>, C extends AbstractQuoteVm<P>> void commitPrices(
