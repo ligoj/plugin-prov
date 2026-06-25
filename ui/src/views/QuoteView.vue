@@ -232,22 +232,22 @@
                 <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.location" :items="config?.locations || []" item-title="name" item-value="name" :label="t('prov.quote.cols.location')" variant="outlined"
+                <LigojAutocomplete v-model="editForm.location" :items="config?.locations || []" item-title="name" item-value="name" :label="t('prov.quote.cols.location')" variant="outlined"
                   density="compact" clearable />
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.usage" :items="config?.usages || []" item-title="name" item-value="name" :label="t('prov.quote.fields.usage')" variant="outlined" density="compact"
+                <LigojAutocomplete v-model="editForm.usage" :items="config?.usages || []" item-title="name" item-value="name" :label="t('prov.quote.fields.usage')" variant="outlined" density="compact"
                   clearable />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.budget" :items="config?.budgets || []" item-title="name" item-value="name" :label="t('prov.quote.fields.budget')" variant="outlined" density="compact"
+                <LigojAutocomplete v-model="editForm.budget" :items="config?.budgets || []" item-title="name" item-value="name" :label="t('prov.quote.fields.budget')" variant="outlined" density="compact"
                   clearable />
               </v-col>
               <v-col cols="12" md="6">
-                <v-autocomplete v-model="editForm.optimizer" :items="config?.optimizers || []" item-title="name" item-value="name" :label="t('prov.quote.fields.optimizer')" variant="outlined"
+                <LigojAutocomplete v-model="editForm.optimizer" :items="config?.optimizers || []" item-title="name" item-value="name" :label="t('prov.quote.fields.optimizer')" variant="outlined"
                   density="compact" clearable />
               </v-col>
               <v-col cols="12" md="6">
@@ -311,6 +311,7 @@ import {
   useI18nStore,
   LigojConfirmDialog,
   LigojDataTable,
+  LigojAutocomplete,
   NodeIcon,
   APP_BASE,
 } from '@ligoj/host'

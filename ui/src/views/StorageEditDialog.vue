@@ -23,11 +23,11 @@
                  resource in the quote. Selecting an attached resource
                  implicitly forces the storage location to match it. -->
             <v-col cols="12" md="8">
-              <v-autocomplete v-model="form.attached" :items="attachedOptions" item-title="label" return-object
+              <LigojAutocomplete v-model="form.attached" :items="attachedOptions" item-title="label" return-object
                 :label="t('prov.quote.cols.attachedTo')" variant="outlined" density="compact" clearable />
             </v-col>
             <v-col cols="12" md="4">
-              <v-autocomplete v-model="form.location" :items="config?.locations || []" item-title="name" item-value="name"
+              <LigojAutocomplete v-model="form.location" :items="config?.locations || []" item-title="name" item-value="name"
                 :label="t('prov.quote.cols.location')" variant="outlined" density="compact" clearable
                 :disabled="!!form.attached" />
             </v-col>
@@ -102,7 +102,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
 import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 

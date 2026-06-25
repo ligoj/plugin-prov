@@ -13,12 +13,12 @@
             </v-col>
 
             <v-col v-if="hasOs" cols="12" md="6">
-              <v-autocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES"
+              <LigojAutocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES"
                 variant="outlined" density="compact" />
             </v-col>
 
             <v-col v-if="type === 'database'" cols="12" md="6">
-              <v-autocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')"
+              <LigojAutocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')"
                 :rules="REQUIRED_RULES" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="type === 'database'" cols="12" md="6">
@@ -63,11 +63,11 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-autocomplete v-model="form.location" :items="config?.locations || []" item-title="name"
+              <LigojAutocomplete v-model="form.location" :items="config?.locations || []" item-title="name"
                 item-value="name" :label="t('prov.quote.cols.location')" variant="outlined" density="compact" clearable />
             </v-col>
             <v-col cols="12" md="6">
-              <v-autocomplete v-model="form.usage" :items="config?.usages || []" item-title="name" item-value="name"
+              <LigojAutocomplete v-model="form.usage" :items="config?.usages || []" item-title="name" item-value="name"
                 :label="t('prov.quote.fields.usage')" variant="outlined" density="compact" clearable />
             </v-col>
           </v-row>
@@ -199,7 +199,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
