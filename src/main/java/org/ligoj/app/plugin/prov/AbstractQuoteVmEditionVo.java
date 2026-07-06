@@ -100,7 +100,7 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	private String processor;
 
 	/**
-	 * Optional physical processor architecture such as 'x86' and 'ARM'. Case-insensitive..
+	 * Optional physical processor architecture such as 'x86' and 'ARM'. Case-insensitive.
 	 */
 	private String architecture;
 
@@ -113,11 +113,6 @@ public abstract class AbstractQuoteVmEditionVo extends DescribedBean<Integer> im
 	 * When <code>true</code>, this instance type must be executed at edge location.
 	 */
 	private Boolean edge;
-
-	/**
-	 * Optional P1 type only (latest available) is requested.
-	 */
-	private Boolean p1TypeOnly;
 
 	/**
 	 * The Internet access: Internet facing, etc.
