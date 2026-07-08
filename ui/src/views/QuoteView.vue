@@ -1,81 +1,94 @@
 <template>
-  <div class="quote-view">
+  <div class="quote-view lj-surface">
     <v-skeleton-loader v-if="loading && !config" type="article, table" />
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <template v-if="config">
-      <!-- Header — provider icon + quote name + total cost summary. -->
-      <div class="d-flex align-center flex-wrap mb-4 ga-2">
-        <NodeIcon v-if="providerNode" :node="providerNode" />
-        <h1 class="text-h5 mb-0">{{ config.name || subscriptionId }}</h1>
-        <v-btn icon size="small" variant="text" :title="t('prov.quote.edit')" @click="openEdit">
-          <v-icon size="small">mdi-pencil</v-icon>
-        </v-btn>
-        <v-chip v-if="config.description" size="small" variant="tonal" class="ml-2">
-          {{ config.description }}
-        </v-chip>
-        <v-spacer />
-        <div class="text-h6 d-flex align-center">
-          <span class="text-medium-emphasis text-body-2 mr-2">{{ t('prov.quote.totalCost') }}:</span>
-          <v-icon size="small" class="mr-1">mdi-currency-usd</v-icon>
-          {{ formatCostRange(scaledCost(config.cost), config.currency) }}
-          <span class="text-caption text-medium-emphasis ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
+      <!-- Header — provider tile + quote identity on the left, the
+           total-cost key figure + grouped tools on the right. Same
+           actions as before (edit / period / refresh / refresh-prices /
+           exports), only regrouped. -->
+      <header class="q-head mb-4">
+        <div class="q-head-id">
+          <span v-if="providerNode" class="q-provider">
+            <NodeIcon :node="providerNode" />
+          </span>
+          <div class="q-head-txt">
+            <div class="d-flex align-center ga-1">
+              <h1 class="q-name">{{ config.name || subscriptionId }}</h1>
+              <v-btn icon size="small" variant="text" class="q-edit" :title="t('prov.quote.edit')" @click="openEdit">
+                <v-icon size="small">mdi-pencil</v-icon>
+              </v-btn>
+            </div>
+            <span v-if="config.description" class="q-desc" :title="config.description">{{ config.description }}</span>
+          </div>
         </div>
-        <!-- Cost-period selector. Pure display — the backend stores
-             monthly numbers; we just scale at render time. -->
-        <v-menu>
-          <template #activator="{ props: actProps }">
-            <v-btn v-bind="actProps" size="small" variant="text" :title="t('prov.quote.period.title')">
-              <v-icon size="small">mdi-clock-outline</v-icon>
-              <span class="text-caption ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
-            </v-btn>
-          </template>
-          <v-list density="compact" min-width="160">
-            <v-list-item v-for="p in COST_PERIODS" :key="p" :title="t(`prov.quote.period.${p}`)" @click="costPeriod = p">
-              <template v-if="costPeriod === p" #append>
-                <v-icon size="x-small">mdi-check</v-icon>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <v-btn icon size="small" variant="text" :loading="refreshing" :title="t('prov.quote.refresh')" @click="reload">
-          <v-icon>mdi-refresh</v-icon>
-        </v-btn>
-        <!-- Recomputes prices against the latest provider catalog —
-             the legacy `refreshCost` action. Distinct from "reload",
-             which only re-fetches the configuration as-is. -->
-        <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
-          <v-icon>mdi-cash-sync</v-icon>
-        </v-btn>
-        <!-- Exports — three pre-built backend endpoints. The path
-             segment itself is the suggested filename so the backend
-             can mirror it as Content-Disposition. -->
-        <v-menu>
-          <template #activator="{ props: actProps }">
-            <v-btn v-bind="actProps" icon size="small" variant="text" :title="t('prov.quote.exports')" :disabled="!subscriptionId">
-              <v-icon>mdi-download</v-icon>
-            </v-btn>
-          </template>
-          <v-list density="compact" min-width="260">
-            <v-list-item :href="exportUrl.inline" prepend-icon="mdi-file-table" :title="t('prov.quote.exports.inline')" />
-            <v-list-item :href="exportUrl.split" prepend-icon="mdi-file-table-outline" :title="t('prov.quote.exports.split')" />
-            <v-list-item :href="exportUrl.json" :download="jsonDownloadName" prepend-icon="mdi-code-json" :title="t('prov.quote.exports.json')" />
-          </v-list>
-        </v-menu>
-      </div>
+        <v-spacer />
+        <div class="q-cost">
+          <span class="q-cost-label">{{ t('prov.quote.totalCost') }}</span>
+          <span class="q-cost-value">
+            {{ formatCostRange(scaledCost(config.cost), config.currency) }}
+            <span class="q-cost-suffix">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
+          </span>
+        </div>
+        <div class="q-tools">
+          <!-- Cost-period selector. Pure display — the backend stores
+               monthly numbers; we just scale at render time. -->
+          <v-menu>
+            <template #activator="{ props: actProps }">
+              <v-btn v-bind="actProps" size="small" variant="text" :title="t('prov.quote.period.title')">
+                <v-icon size="small">mdi-clock-outline</v-icon>
+                <span class="text-caption ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
+              </v-btn>
+            </template>
+            <v-list density="compact" min-width="160">
+              <v-list-item v-for="p in COST_PERIODS" :key="p" :title="t(`prov.quote.period.${p}`)" @click="costPeriod = p">
+                <template v-if="costPeriod === p" #append>
+                  <v-icon size="x-small">mdi-check</v-icon>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <v-btn icon size="small" variant="text" :loading="refreshing" :title="t('prov.quote.refresh')" @click="reload">
+            <v-icon>mdi-refresh</v-icon>
+          </v-btn>
+          <!-- Recomputes prices against the latest provider catalog —
+               the legacy `refreshCost` action. Distinct from "reload",
+               which only re-fetches the configuration as-is. -->
+          <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
+            <v-icon>mdi-cash-sync</v-icon>
+          </v-btn>
+          <!-- Exports — three pre-built backend endpoints. The path
+               segment itself is the suggested filename so the backend
+               can mirror it as Content-Disposition. -->
+          <v-menu>
+            <template #activator="{ props: actProps }">
+              <v-btn v-bind="actProps" icon size="small" variant="text" :title="t('prov.quote.exports')" :disabled="!subscriptionId">
+                <v-icon>mdi-download</v-icon>
+              </v-btn>
+            </template>
+            <v-list density="compact" min-width="260">
+              <v-list-item :href="exportUrl.inline" prepend-icon="mdi-file-table" :title="t('prov.quote.exports.inline')" />
+              <v-list-item :href="exportUrl.split" prepend-icon="mdi-file-table-outline" :title="t('prov.quote.exports.split')" />
+              <v-list-item :href="exportUrl.json" :download="jsonDownloadName" prepend-icon="mdi-code-json" :title="t('prov.quote.exports.json')" />
+            </v-list>
+          </v-menu>
+        </div>
+      </header>
 
-      <!-- Cost-breakdown donut. Renders only when something is in the
-           quote (the component itself early-returns on zero total).
-           The metric toggle (cost ↔ CO₂) mirrors the legacy
-           `optimizer-view-mode` switch — see `viewMode` below. -->
-      <v-card variant="tonal" class="mb-4">
+      <!-- Cost-breakdown card — modern ring + a row of stat tiles
+           (already-computed aggregates). The donut renders only when
+           something is in the quote (the component itself early-returns
+           on zero total). The metric toggle (cost ↔ CO₂) mirrors the
+           legacy `optimizer-view-mode` switch — see `viewMode` below. -->
+      <v-card variant="flat" class="q-costcard mb-4">
         <v-card-text class="py-3">
-          <div class="d-flex align-center justify-space-between mb-1">
-            <span class="text-overline text-medium-emphasis">
+          <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
+            <span class="q-card-title">
               {{ viewMode === 'co2' ? t('prov.quote.breakdown.titleCo2') : t('prov.quote.breakdown.title') }}
             </span>
-            <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" divided>
+            <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" divided class="q-mode">
               <v-btn size="small" value="cost" :title="t('prov.quote.viewMode.cost')">
                 <v-icon size="small" start>mdi-currency-usd</v-icon>
                 {{ t('prov.quote.viewMode.cost') }}
@@ -86,25 +99,36 @@
               </v-btn>
             </v-btn-toggle>
           </div>
-          <QuoteBreakdown :config="config" :mode="viewMode" />
+          <div class="q-costcard-body">
+            <QuoteBreakdown :config="config" :mode="viewMode" />
+            <div class="q-stats">
+              <div v-for="s in statTiles" :key="s.key" class="q-stat">
+                <span class="q-stat-ic"><v-icon size="18">{{ s.icon }}</v-icon></span>
+                <div class="q-stat-txt">
+                  <div class="q-stat-num">{{ s.value }}</div>
+                  <div class="q-stat-label">{{ s.label }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </v-card-text>
       </v-card>
 
       <!-- Tabs — one per resource type. Counts come from the loaded config. -->
-      <v-tabs v-model="activeTab" density="compact" show-arrows class="mb-2">
+      <v-tabs v-model="activeTab" density="compact" show-arrows class="q-tabs mb-3" color="primary">
         <v-tab v-for="t in TAB_TYPES" :key="t.key" :value="t.key">
           <v-icon :icon="t.icon" start size="small" />
           {{ tabLabel(t.key) }}
-          <v-chip v-if="counts[t.key]" size="x-small" class="ml-2" variant="tonal">{{ counts[t.key] }}</v-chip>
+          <v-chip v-if="counts[t.key]" size="x-small" class="ml-2 q-count" variant="tonal">{{ counts[t.key] }}</v-chip>
         </v-tab>
       </v-tabs>
 
       <v-window v-model="activeTab">
         <v-window-item v-for="tab in TAB_TYPES" :key="tab.key" :value="tab.key">
-          <div class="d-flex align-center mb-2 ga-2 flex-wrap">
-            <span class="text-subtitle-2 text-medium-emphasis">
+          <div class="q-toolbar d-flex align-center mb-3 ga-2 flex-wrap">
+            <span class="q-tab-count">
               {{ tabLabel(tab.key) }}
-              <span v-if="rowsByType[tab.key].length" class="ml-1">({{ filteredRowsByType[tab.key].length }} / {{ rowsByType[tab.key].length }})</span>
+              <span v-if="rowsByType[tab.key].length" class="q-tab-count-num">{{ filteredRowsByType[tab.key].length }} / {{ rowsByType[tab.key].length }}</span>
             </span>
             <v-spacer />
             <!-- Debounced text filter. Matches the legacy
@@ -124,7 +148,7 @@
             <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload" @click="importDialog = true">
               {{ t('prov.quote.import.title') }}
             </v-btn>
-            <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" prepend-icon="mdi-delete-sweep" @click="askDeleteAll(tab.key)">
+            <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" class="q-danger" prepend-icon="mdi-delete-sweep" @click="askDeleteAll(tab.key)">
               {{ t('prov.quote.delete.all.label') }}
             </v-btn>
             <!-- Column-visibility menu. `name` and `actions` are pinned
@@ -163,9 +187,9 @@
           </v-slide-y-transition>
 
           <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select :filename="`prov-${tab.key}.csv`" :headers="visibleHeadersByType[tab.key]"
-            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="compact" item-value="id">
+            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="comfortable" item-value="id" class="q-table">
             <template #item.name="{ item }">
-              <span>{{ item.name }}</span>
+              <span class="q-cell-name">{{ item.name }}</span>
               <!-- Tags inherited from the legacy `conf.tags` map. Each
                    tag carries an optional value, rendered as
                    `name:value` when present. The lookup map is
@@ -189,13 +213,19 @@
             </template>
             <template #item.size="{ item }">{{ formatStorage(item.size) }}</template>
             <template #item.cost="{ item }">
-              <span v-if="viewMode === 'co2'">{{ formatCo2(item.co2 ?? item.maxCo2) }}</span>
-              <span v-else>{{ formatCost(item.cost, config.currency) }}</span>
+              <span v-if="viewMode === 'co2'" class="q-cell-cost">{{ formatCo2(item.co2 ?? item.maxCo2) }}</span>
+              <span v-else class="q-cell-cost">{{ formatCost(item.cost, config.currency) }}</span>
             </template>
             <template #item.os="{ item }">{{ item.os || item.price?.os || '' }}</template>
             <template #item.engine="{ item }">{{ item.engine || item.price?.engine || '' }}</template>
-            <template #item.type="{ item }">{{ item.price?.type?.name || '' }}</template>
-            <template #item.location="{ item }">{{ item.location?.name || item.price?.location?.name || '' }}</template>
+            <template #item.type="{ item }">
+              <span v-if="item.price?.type?.name" class="q-type">{{ item.price.type.name }}</span>
+            </template>
+            <template #item.location="{ item }">
+              <span v-if="item.location?.name || item.price?.location?.name" class="q-loc">
+                <v-icon size="12">mdi-map-marker-outline</v-icon>{{ item.location?.name || item.price?.location?.name }}
+              </span>
+            </template>
             <template #item.level="{ item }">{{ item.level || item.price?.level || '' }}</template>
             <template #item.seats="{ item }">{{ item.seats ?? item.price?.seats ?? '' }}</template>
             <template #item.attachedTo="{ item }">
@@ -204,15 +234,17 @@
               </span>
             </template>
             <template #item.actions="{ item }">
-              <v-btn icon size="small" variant="text" :title="t('common.edit')" @click="openResourceEdit(tab.key, item)">
-                <v-icon size="small">mdi-pencil</v-icon>
-              </v-btn>
-              <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')" @click="openResourceDuplicate(tab.key, item)">
-                <v-icon size="small">mdi-content-duplicate</v-icon>
-              </v-btn>
-              <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="askDeleteRow(tab.key, item)">
-                <v-icon size="small">mdi-delete</v-icon>
-              </v-btn>
+              <span class="q-row-actions">
+                <v-btn icon size="small" variant="text" :title="t('common.edit')" @click="openResourceEdit(tab.key, item)">
+                  <v-icon size="small">mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')" @click="openResourceDuplicate(tab.key, item)">
+                  <v-icon size="small">mdi-content-duplicate</v-icon>
+                </v-btn>
+                <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="askDeleteRow(tab.key, item)">
+                  <v-icon size="small">mdi-delete</v-icon>
+                </v-btn>
+              </span>
             </template>
           </LigojDataTable>
         </v-window-item>
@@ -622,6 +654,26 @@ const counts = computed(() => {
   return out
 })
 
+/* ---------- Stat tiles (cost card) ----------
+ * Pure presentation aggregates over the rows already loaded: instance
+ * count plus total vCPU / RAM across the compute types. Same fallback
+ * chain as the table cells (own value, else the price type's). */
+const statTiles = computed(() => {
+  let cpu = 0
+  let ram = 0
+  for (const key of COMPUTE_KEYS) {
+    for (const row of rowsByType.value[key]) {
+      cpu += Number(row.cpu ?? row.price?.type?.cpu) || 0
+      ram += Number(row.ram ?? row.price?.type?.ram) || 0
+    }
+  }
+  return [
+    { key: 'instances', icon: 'mdi-server', label: t('prov.quote.tabs.instance'), value: counts.value.instance },
+    { key: 'cpu', icon: 'mdi-chip', label: t('prov.quote.cols.cpu'), value: formatCpu(cpu) || '0' },
+    { key: 'ram', icon: 'mdi-memory', label: t('prov.quote.cols.ram'), value: formatRam(ram) || '0' },
+  ]
+})
+
 /* `rowMatches` lives in quoteFormatters.js so the predicate is covered
  * by unit tests (and reusable if another view needs a similar filter). */
 
@@ -1019,12 +1071,336 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* All colours below come from theme tokens only: Vuetify semantic
+ * variables (rgb/rgba(var(--v-theme-…))) and the shared `.lj-surface`
+ * design variables (--ink / --card / --border / --pill / --accent /
+ * --radius / --mono …) set by the host for the 2026 views. */
 .quote-view {
   padding: 0.5rem;
 }
 
+/* ---------- Header ---------- */
+.q-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.q-head-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.q-provider {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--pill);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+}
+
+.q-provider :deep(img),
+.q-provider :deep(.v-icon) {
+  max-width: 26px;
+  max-height: 26px;
+}
+
+.q-name {
+  font-size: 22px;
+  font-weight: var(--bold);
+  color: var(--ink);
+  line-height: 1.2;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.q-edit {
+  color: var(--ink-3);
+}
+
+.q-desc {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: var(--pill);
+  border-radius: 999px;
+  padding: 2px 10px;
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.q-head-txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.q-cost {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.q-cost-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.q-cost-value {
+  font-size: 25px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  color: var(--ink);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.q-cost-suffix {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-family: var(--font);
+}
+
+.q-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  background: var(--card);
+}
+
+.q-tools .v-btn {
+  color: var(--ink-2);
+}
+
+/* ---------- Cost card ---------- */
+.q-costcard {
+  border-radius: var(--radius);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.q-card-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.q-costcard-body {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.q-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.q-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  background: var(--surface);
+}
+
+.q-stat-ic {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--pill);
+  color: var(--accent);
+}
+
+.q-stat-num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.q-stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* ---------- Tabs ---------- */
+.q-tabs {
+  border-bottom: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+}
+
+.q-tabs :deep(.v-tab) {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.q-tabs :deep(.v-tab__slider) {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+.q-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ---------- Per-tab toolbar ---------- */
+.q-tab-count {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.q-tab-count-num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: var(--pill);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
 .quote-search {
-  max-width: 320px;
+  max-width: 300px;
+}
+
+.quote-search :deep(.v-field) {
+  border-radius: 999px;
+}
+
+.q-danger {
+  opacity: 0.75;
+  transition: opacity 120ms ease;
+}
+
+.q-danger:hover {
+  opacity: 1;
+}
+
+/* ---------- Table ---------- */
+.q-table :deep(.v-table) {
+  background: transparent;
+}
+
+.q-table :deep(thead th) {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3) !important;
+  white-space: nowrap;
+}
+
+.q-table :deep(tbody td) {
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.q-table :deep(tbody tr:hover td) {
+  background: var(--hover);
+}
+
+/* Numeric columns line up on tabular figures. */
+.q-table :deep(td.v-data-table-column--align-end) {
+  font-variant-numeric: tabular-nums;
+}
+
+.q-cell-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.q-cell-cost {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.q-type {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--pill);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.q-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  background: var(--pill);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.q-loc :deep(.v-icon) {
+  color: var(--ink-3);
+}
+
+/* Row actions stay quiet until the row is hovered or focused. Pointer
+ * devices only — touch users keep the always-visible buttons. */
+@media (hover: hover) {
+  .q-table :deep(.q-row-actions .v-btn) {
+    opacity: 0.25;
+    transition: opacity 120ms ease;
+  }
+
+  .q-table :deep(tbody tr:hover .q-row-actions .v-btn),
+  .q-table :deep(tbody tr:focus-within .q-row-actions .v-btn) {
+    opacity: 1;
+  }
 }
 </style>
 
