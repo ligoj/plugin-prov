@@ -1,5 +1,5 @@
 import { h } from 'vue'
-import { VBtn, VChip, VIcon, VListItem, useI18nStore } from '@ligoj/host'
+import { VBtn, VChip, VIcon, useI18nStore } from '@ligoj/host'
 
 const REST = '/rest/'
 
@@ -98,24 +98,28 @@ const service = {
   },
 
   /**
-   * Administration-menu contribution. The host's `AdminNavExtras` polls
-   * every loaded plugin for this `renderAdmin` feature and mounts the
-   * returned `<v-list-item>` VNodes at the bottom of the Administration
-   * ("System") menu, behind a divider it paints itself.
+   * Administration-menu contribution. The host's `mergeNav` engine inserts
+   * these entries into the shared Administration ("System") menu via the
+   * `renderNav` feature — a declarative `{ menu, children }` insert (no VNodes).
+   * They append after the built-in system screens; the `divider` on the first
+   * entry labels the block with the plugin name (its ownership notice).
    *
-   * Provisioning contributes its three admin screens — catalog, currency
-   * and terraform — whose routes are already registered in `install()`.
-   * These were the legacy `service/prov/*` administration pages; they
-   * have no per-subscription context, so the Administration menu (not a
-   * subscription row) is their natural home.
+   * Provisioning contributes its three admin screens — catalog, currency and
+   * terraform — whose routes are already registered in `install()`. These were
+   * the legacy `service/prov/*` administration pages; they have no
+   * per-subscription context, so the Administration menu (not a subscription
+   * row) is their natural home.
    */
-  renderAdmin() {
+  renderNav() {
     const { t } = useI18nStore()
-    return [
-      h(VListItem, { prependIcon: 'mdi-database-search', title: t('catalog.title'), to: '/prov/catalog' }),
-      h(VListItem, { prependIcon: 'mdi-cash-multiple', title: t('currency.title'), to: '/prov/currency' }),
-      h(VListItem, { prependIcon: 'mdi-terraform', title: t('terraform.title'), to: '/prov/terraform' }),
-    ]
+    return {
+      menu: 'nav.system',
+      children: [
+        { id: 'prov-catalog', label: t('catalog.title'), icon: 'mdi-database-search', route: '/prov/catalog', divider: 'Provisioning' },
+        { id: 'prov-currency', label: t('currency.title'), icon: 'mdi-cash-multiple', route: '/prov/currency' },
+        { id: 'prov-terraform', label: t('terraform.title'), icon: 'mdi-terraform', route: '/prov/terraform' },
+      ],
+    }
   },
 
   /**
