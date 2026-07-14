@@ -1,9 +1,9 @@
-// Vitest global setup for the plugin-id-ldap UI test suite.
+// Vitest global setup for the plugin-prov UI test suite.
 //
-// The plugin's tests don't mount Vuetify components today — they just
-// exercise the plugin contract (manifest, feature dispatcher, VNode
-// shape). The stubs below match the host's setup.js so any future
-// component-mount test (LdapXyzView.vue, …) works without extra wiring.
+// Some tests mount Vuetify components (CapacityField, CatalogListView,
+// InstanceImportDialog, …); the stubs below match the host's setup.js so
+// those mounts work without extra wiring. Others just exercise the plugin
+// contract (manifest, feature dispatcher, VNode shape).
 import { vi, beforeEach } from 'vitest'
 
 globalThis.fetch = vi.fn()
