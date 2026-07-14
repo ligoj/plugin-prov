@@ -191,14 +191,17 @@
                 </v-chip>
               </span>
             </template>
+            <!-- Bar fill = the resource's reserved vCPU / RAM against the
+                 capacity the chosen instance type provides (per-row
+                 utilisation), not the column-wide maximum. -->
             <template #item.cpu="{ item }">
-              <ResourceMicroBar v-if="cpuMax(tab.key)" :value="item.cpu ?? item.price?.type?.cpu" :max="cpuMax(tab.key)" :label="formatCpu(item.cpu ?? item.price?.type?.cpu)"
-                color="rgb(var(--v-theme-primary))" />
+              <ResourceMicroBar v-if="item.price?.type?.cpu" :value="item.cpu ?? item.price.type.cpu" :max="item.price.type.cpu"
+                :label="formatCpu(item.cpu ?? item.price.type.cpu)" :tooltip="t('prov.quote.microbar.cpu')" :format="cpuTip" />
               <template v-else>{{ formatCpu(item.cpu ?? item.price?.type?.cpu) }}</template>
             </template>
             <template #item.ram="{ item }">
-              <ResourceMicroBar v-if="ramMax(tab.key)" :value="(item.ram ?? item.price?.type?.ram)" :max="ramMax(tab.key)" :label="formatRam(item.ram ?? item.price?.type?.ram)"
-                color="rgb(var(--v-theme-success))" />
+              <ResourceMicroBar v-if="item.price?.type?.ram" :value="item.ram ?? item.price.type.ram" :max="item.price.type.ram"
+                :label="formatRam(item.ram ?? item.price.type.ram)" :tooltip="t('prov.quote.microbar.ram')" :format="formatRam" />
               <template v-else>{{ formatRam(item.ram ?? item.price?.type?.ram) }}</template>
             </template>
             <template #item.size="{ item }">{{ formatStorage(item.size) }}</template>
@@ -341,7 +344,6 @@ import {
   scaleCost,
   COST_PERIODS,
   rowMatches,
-  maxOfField,
   sumCostRange,
   TAB_TYPES,
 } from '../quoteFormatters.js'
@@ -358,6 +360,11 @@ const app = useAppStore()
 const errorStore = useErrorStore()
 const i18n = useI18nStore()
 const t = i18n.t
+
+/* vCPU tooltip formatter — formatCpu has no unit, so append the column
+ * label ("vCPU") for the micro-bar's requested/provided line. RAM passes
+ * `formatRam` directly (it already carries its unit). */
+const cpuTip = (n) => `${formatCpu(n)} ${t('prov.quote.cols.cpu')}`
 
 const loading = ref(false)
 const refreshing = ref(false)
@@ -689,18 +696,8 @@ function tagsFor(type, id) {
   return Array.isArray(list) ? list : []
 }
 
-/* ---------- Per-tab CPU / RAM max for micro-bars ---------- *
- * Storage/support don't carry CPU/RAM, so we early-return 0 to skip
- * the bar entirely. */
+/* Compute resource types (carry CPU / RAM); used by the stat tiles. */
 const COMPUTE_KEYS = new Set(['instance', 'container', 'function', 'database'])
-function cpuMax(type) {
-  if (!COMPUTE_KEYS.has(type)) return 0
-  return maxOfField(rowsByType.value[type] || [], (r) => r.cpu ?? r.price?.type?.cpu)
-}
-function ramMax(type) {
-  if (!COMPUTE_KEYS.has(type)) return 0
-  return maxOfField(rowsByType.value[type] || [], (r) => r.ram ?? r.price?.type?.ram)
-}
 
 /**
  * Headers per type. Kept small and read-only for iteration 1; CRUD

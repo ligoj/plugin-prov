@@ -32,12 +32,14 @@
             </v-col>
 
             <v-col cols="6" md="3">
-              <v-text-field v-model.number="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
-                type="number" min="0" step="0.25" variant="outlined" density="compact" />
+              <CapacityField v-model="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
+                min="0" step="0.25" kind="cpu" :unit="t('prov.quote.cols.cpu')" :provided="suggest?.price?.type?.cpu || 0"
+                :explanation="t('prov.quote.microbar.cpu')" />
             </v-col>
             <v-col cols="6" md="3">
-              <v-text-field v-model.number="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES" type="number"
-                min="0" step="0.5" variant="outlined" density="compact" />
+              <CapacityField v-model="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES"
+                min="0" step="0.5" kind="ram" :provided="suggest?.price?.type?.ram || 0"
+                :explanation="t('prov.quote.microbar.ram')" />
             </v-col>
 
             <v-col v-if="hasQuantity" cols="6" md="3">
@@ -206,6 +208,7 @@ import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
+import CapacityField from './CapacityField.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources

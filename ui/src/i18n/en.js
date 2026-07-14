@@ -98,6 +98,10 @@ export default {
   'prov.quote.refresh': 'Refresh cost',
   'prov.quote.totalCost': 'Total monthly cost',
   'prov.quote.totalFiltered': 'Filtered — reflects the active search',
+  // Utilisation micro-bar (reserved vs. the selected type's capacity).
+  'prov.quote.microbar.cpu': 'Reserved vCPU vs. the vCPU the selected instance type provides. A fuller, greener bar means a better-sized type; it disappears once the fit is optimal.',
+  'prov.quote.microbar.ram': 'Reserved RAM vs. the RAM the selected instance type provides. A fuller, greener bar means a better-sized type; it disappears once the fit is optimal.',
+  'prov.quote.microbar.storage': 'Requested size vs. the maximum size the selected storage type allows.',
   'prov.quote.empty': 'No resources of this kind in the quote yet.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Databases',

@@ -12,8 +12,9 @@
                 variant="outlined" density="compact" autofocus />
             </v-col>
             <v-col cols="12" md="4">
-              <v-text-field v-model.number="form.sizeGb" :label="t('prov.quote.cols.size') + ' (GB)'"
-                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" variant="outlined" density="compact" />
+              <CapacityField v-model="form.sizeGb" :label="t('prov.quote.cols.size') + ' (GB)'"
+                :rules="REQUIRED_POSITIVE_RULES" min="1" kind="storage" :provided="suggest?.price?.type?.maximal || 0"
+                :explanation="t('prov.quote.microbar.storage')" />
             </v-col>
             <v-col cols="12">
               <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
@@ -108,6 +109,7 @@ import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
 import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
+import CapacityField from './CapacityField.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

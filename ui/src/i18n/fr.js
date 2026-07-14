@@ -97,6 +97,10 @@ export default {
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',
   'prov.quote.totalFiltered': 'Filtré — reflète la recherche active',
+  // Micro-barre d'utilisation (réservé vs capacité du type sélectionné).
+  'prov.quote.microbar.cpu': 'vCPU réservé par rapport au vCPU fourni par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',
+  'prov.quote.microbar.ram': 'RAM réservée par rapport à la RAM fournie par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',
+  'prov.quote.microbar.storage': 'Taille demandée par rapport à la taille maximale autorisée par le type de stockage sélectionné.',
   'prov.quote.empty': 'Aucune ressource de ce type dans le devis pour le moment.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Bases de données',
