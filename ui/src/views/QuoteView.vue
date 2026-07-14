@@ -209,7 +209,14 @@
               <span v-if="viewMode === 'co2'" class="q-cell-cost">{{ formatCo2(item.co2 ?? item.maxCo2) }}</span>
               <span v-else class="q-cell-cost">{{ formatCost(item.cost, config.currency) }}</span>
             </template>
-            <template #item.os="{ item }">{{ item.os || item.price?.os || '' }}</template>
+            <template #item.os="{ item }">
+              <span v-if="item.os || item.price?.os" class="q-os">
+                <OsIcon :os="item.os || item.price?.os" />
+                <v-tooltip activator="parent" location="top">
+                  {{ osTooltip(item.os || item.price?.os) }}
+                </v-tooltip>
+              </span>
+            </template>
             <template #item.engine="{ item }">{{ item.engine || item.price?.engine || '' }}</template>
             <template #item.type="{ item }">
               <span v-if="item.price?.type?.name" class="q-type">{{ item.price.type.name }}</span>
@@ -353,6 +360,8 @@ import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
+import OsIcon from './OsIcon.vue'
+import { osTooltip } from '../osCatalog.js'
 
 const route = useRoute()
 const api = useApi()
@@ -1422,6 +1431,13 @@ onMounted(async () => {
 
 .q-loc :deep(.v-icon) {
   color: var(--ink-3);
+}
+
+.q-os {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 /* Row-click opens the editor, so make the whole row read as clickable. */

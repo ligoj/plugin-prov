@@ -14,7 +14,16 @@
 
             <v-col v-if="hasOs" cols="12" md="6">
               <LigojAutocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES"
-                variant="outlined" density="compact" />
+                variant="outlined" density="compact">
+                <template #item="{ props: itemProps, item }">
+                  <v-list-item v-bind="itemProps">
+                    <template #prepend><OsIcon :os="item" /></template>
+                  </v-list-item>
+                </template>
+                <template #selection="{ item }">
+                  <OsIcon :os="item" class="me-2" />{{ item }}
+                </template>
+              </LigojAutocomplete>
             </v-col>
 
             <v-col v-if="type === 'database'" cols="12" md="6">
@@ -209,6 +218,7 @@ import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from
 import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
+import OsIcon from './OsIcon.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources
