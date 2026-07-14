@@ -12,14 +12,17 @@
     <div class="d-flex align-center flex-wrap ga-3">
       <!-- Donut. Plain SVG, no Vuetify chrome, so it can sit inside the
            header without worrying about table styling. -->
+      <!-- Colours are theme-token expressions (`rgb(var(--v-theme-…))`)
+           so they go through `style` — SVG presentation attributes
+           don't resolve `var()`. -->
       <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" role="img" :aria-label="ariaLabel">
         <template v-if="segments.length === 1">
-          <path :d="fullPath" :fill="segments[0].color" fill-rule="evenodd" :class="{ clickable: !drill && isDrillable(segments[0].key) }"
+          <path :d="fullPath" :style="{ fill: segments[0].color }" fill-rule="evenodd" class="donut-slice" :class="{ clickable: !drill && isDrillable(segments[0].key) }"
             @click="onSliceClick(segments[0])" />
         </template>
         <template v-else>
-          <path v-for="seg in segments" :key="seg.key" :d="seg.path" :fill="seg.color"
-            :class="{ clickable: !drill && isDrillable(seg.key) }" @click="onSliceClick(seg)">
+          <path v-for="seg in segments" :key="seg.key" :d="seg.path" :style="{ fill: seg.color }"
+            class="donut-slice" :class="{ clickable: !drill && isDrillable(seg.key) }" @click="onSliceClick(seg)">
             <title>{{ seg.label }} — {{ mode === 'co2' ? formatCo2(seg.cost) : formatCost(seg.cost, currency) }} ({{ pct(seg.share) }})</title>
           </path>
         </template>
@@ -71,9 +74,11 @@ const props = defineProps({
 
 const { t } = useI18nStore()
 
-const size = 140
-const r = 60
-const ri = 36
+/* Slightly larger donut with a thinner ring — reads as a modern
+ * "annulus + centred KPI" rather than the legacy pie. */
+const size = 168
+const r = 76
+const ri = 57
 const cx = size / 2
 const cy = size / 2
 
@@ -99,13 +104,17 @@ const DRILL_DIMENSIONS = {
   storage:   { field: 'type',   getter: (r) => r.price?.type?.name || r.price?.type?.code },
 }
 
-/* Sub-segment palette. Picked to be distinct against any of the
- * top-level colors so the eye can tell drilled-down from root. */
-const SUB_PALETTE = [
-  '#1976D2', '#0288D1', '#00897B', '#43A047', '#7CB342',
-  '#C0CA33', '#FDD835', '#FFB300', '#FB8C00', '#F4511E',
-  '#E53935', '#D81B60', '#8E24AA', '#5E35B1', '#3949AB',
-]
+/* Sub-segment palette, derived from the theme's semantic tokens so the
+ * drilled view follows the active theme like everything else. The first
+ * pass cycles the 6 semantic colours pure, later passes soften them
+ * towards the surface — enough contrast between neighbours without any
+ * hard-coded colour. */
+const SUB_BASES = ['primary', 'info', 'success', 'warning', 'error', 'secondary']
+const SUB_PALETTE = [100, 70, 45].flatMap((mix) =>
+  SUB_BASES.map((base) => mix === 100
+    ? `rgb(var(--v-theme-${base}))`
+    : `color-mix(in srgb, rgb(var(--v-theme-${base})) ${mix}%, rgb(var(--v-theme-surface)))`),
+)
 
 function isDrillable(key) {
   return !!DRILL_DIMENSIONS[key]
@@ -126,7 +135,7 @@ watch(() => props.config, () => { drill.value = null })
 
 const parentColor = computed(() => {
   const tab = TAB_TYPES.find((t) => t.key === drill.value)
-  return tab ? tab.color : '#888'
+  return tab ? tab.color : 'rgba(var(--v-theme-on-surface), .5)'
 })
 
 const drillTitle = computed(() => {
@@ -235,36 +244,62 @@ defineExpose({ drill, isDrillable, onSliceClick, breakdown, subBreakdown, active
 
 <style scoped>
 .quote-breakdown {
-  /* Aligns the inline display with the surrounding header items. */
-  max-width: 480px;
+  /* Aligns the inline display with the surrounding card content. */
+  max-width: 520px;
 }
 
 .quote-breakdown-legend {
   border-collapse: collapse;
   font-size: 0.85rem;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .quote-breakdown-legend td {
-  padding: 0.1rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   white-space: nowrap;
+  color: rgba(var(--v-theme-on-surface), 0.78);
 }
 
 .quote-breakdown-legend td:first-child {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  font-weight: 500;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.quote-breakdown-legend td:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.quote-breakdown-legend td:last-child {
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--v-theme-on-surface), 0.55);
 }
 
 .quote-breakdown-legend tr.clickable td {
   cursor: pointer;
 }
 
+.quote-breakdown-legend tr.clickable:hover td {
+  background: rgba(var(--v-theme-on-surface), 0.05);
+}
+
+.quote-breakdown-legend tr td:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.quote-breakdown-legend tr td:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
 .dot {
   display: inline-block;
-  width: 0.7rem;
-  height: 0.7rem;
+  width: 0.65rem;
+  height: 0.65rem;
   border-radius: 50%;
+  flex: none;
 }
 
 .text-right {
@@ -272,15 +307,27 @@ defineExpose({ drill, isDrillable, onSliceClick, breakdown, subBreakdown, active
 }
 
 .donut-total-value {
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   fill: rgb(var(--v-theme-on-surface, 0 0 0));
 }
 
 .donut-total-label {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   fill: rgb(var(--v-theme-on-surface, 0 0 0));
-  opacity: 0.6;
+  opacity: 0.55;
+}
+
+/* Hairline gap between slices — the stroke matches the card surface so
+ * slices read as separate segments of a modern ring. */
+.donut-slice {
+  stroke: rgb(var(--v-theme-surface));
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
 
 path.clickable {
@@ -288,22 +335,25 @@ path.clickable {
   transition: opacity 120ms ease;
 }
 path.clickable:hover {
-  opacity: 0.85;
+  opacity: 0.82;
 }
 
 .back-btn {
   background: transparent;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
-  border-radius: 4px;
-  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   color: inherit;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 .back-btn:hover {
-  background: rgba(var(--v-theme-on-surface), 0.04);
+  background: rgba(var(--v-theme-on-surface), 0.05);
+  border-color: rgba(var(--v-theme-on-surface), 0.3);
 }
 </style>

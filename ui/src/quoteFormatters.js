@@ -92,17 +92,19 @@ export function scaleCost(cost, period) {
 
 /**
  * Tab metadata — drives the v-tabs/v-window structure of QuoteView AND
- * the cost-breakdown donut. The colour is a fixed hex picked from
- * Vuetify's default palette so plugin-prov stays theme-agnostic (the
- * donut renders inside its own SVG, outside Vuetify's CSS chrome).
+ * the cost-breakdown donut. Colours are Vuetify semantic theme tokens
+ * (CSS variable expressions) so the donut follows the active theme —
+ * they must be applied through inline `style` bindings (`fill` /
+ * `background-color`), not SVG presentation attributes, because
+ * attribute values don't resolve `var()`.
  */
 export const TAB_TYPES = [
-  { key: 'instance',  icon: 'mdi-server',   listField: 'instances',  color: '#1976D2' },
-  { key: 'database',  icon: 'mdi-database', listField: 'databases',  color: '#388E3C' },
-  { key: 'container', icon: 'mdi-docker',   listField: 'containers', color: '#00ACC1' },
-  { key: 'function',  icon: 'mdi-lambda',   listField: 'functions',  color: '#7B1FA2' },
-  { key: 'storage',   icon: 'mdi-harddisk', listField: 'storages',   color: '#F57C00' },
-  { key: 'support',   icon: 'mdi-lifebuoy', listField: 'supports',   color: '#D32F2F' },
+  { key: 'instance',  icon: 'mdi-server',   listField: 'instances',  color: 'rgb(var(--v-theme-primary))' },
+  { key: 'database',  icon: 'mdi-database', listField: 'databases',  color: 'rgb(var(--v-theme-success))' },
+  { key: 'container', icon: 'mdi-docker',   listField: 'containers', color: 'rgb(var(--v-theme-info))' },
+  { key: 'function',  icon: 'mdi-lambda',   listField: 'functions',  color: 'rgb(var(--v-theme-secondary))' },
+  { key: 'storage',   icon: 'mdi-harddisk', listField: 'storages',   color: 'rgb(var(--v-theme-warning))' },
+  { key: 'support',   icon: 'mdi-lifebuoy', listField: 'supports',   color: 'rgb(var(--v-theme-error))' },
 ]
 
 /**

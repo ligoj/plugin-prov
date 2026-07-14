@@ -319,7 +319,9 @@ describe('quoteFormatters', () => {
       for (const t of TAB_TYPES) {
         expect(t.icon).toMatch(/^mdi-/)
         expect(t.listField).toMatch(/s$/)
-        expect(t.color).toMatch(/^#[0-9A-F]{6}$/i)
+        // Theme-token expression (no hard-coded hex) so the donut and
+        // legend follow the active Vuetify theme.
+        expect(t.color).toMatch(/^rgb\(var\(--v-theme-[a-z-]+\)\)$/)
       }
     })
   })
