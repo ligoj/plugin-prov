@@ -114,22 +114,20 @@
         </v-card-text>
       </v-card>
 
-      <!-- Tabs — one per resource type. Counts come from the loaded config. -->
+      <!-- Tabs — one per resource type. The chip shows the (filtered)
+           resource count; the total is only appended when a search is
+           actively hiding rows (e.g. "3/12"), never as a redundant "12/12". -->
       <v-tabs v-model="activeTab" density="compact" show-arrows class="q-tabs mb-3" color="primary">
         <v-tab v-for="t in TAB_TYPES" :key="t.key" :value="t.key">
           <v-icon :icon="t.icon" start size="small" />
           {{ tabLabel(t.key) }}
-          <v-chip v-if="counts[t.key]" size="x-small" class="ml-2 q-count" variant="tonal">{{ counts[t.key] }}</v-chip>
+          <v-chip v-if="counts[t.key]" size="x-small" class="ml-2 q-count" variant="tonal">{{ tabCountLabel(t.key) }}</v-chip>
         </v-tab>
       </v-tabs>
 
       <v-window v-model="activeTab">
         <v-window-item v-for="tab in TAB_TYPES" :key="tab.key" :value="tab.key">
           <div class="q-toolbar d-flex align-center mb-3 ga-2 flex-wrap">
-            <span class="q-tab-count">
-              {{ tabLabel(tab.key) }}
-              <span v-if="rowsByType[tab.key].length" class="q-tab-count-num">{{ filteredRowsByType[tab.key].length }} / {{ rowsByType[tab.key].length }}</span>
-            </span>
             <v-spacer />
             <!-- Debounced text filter. Matches the legacy
                  `.subscribe-configuration-prov-search` input; one
@@ -689,6 +687,18 @@ function tabLabel(key) {
 }
 
 /**
+ * Count shown in a tab's chip. Renders the filtered count alone when no
+ * search is hiding rows (`12`), and only appends the total when a filter
+ * is active (`3/12`) — so an unfiltered tab never shows a redundant
+ * `12/12`.
+ */
+function tabCountLabel(key) {
+  const total = rowsByType.value[key].length
+  const filtered = filteredRowsByType.value[key].length
+  return filtered === total ? String(total) : `${filtered}/${total}`
+}
+
+/**
  * Storage rows reference their host resource via `quoteInstance`,
  * `quoteDatabase`, etc. Display the attachment name when present.
  */
@@ -1237,26 +1247,6 @@ onMounted(async () => {
 }
 
 /* ---------- Per-tab toolbar ---------- */
-.q-tab-count {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink-2);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.q-tab-count-num {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  background: var(--pill);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-
 .quote-search {
   max-width: 300px;
 }
