@@ -95,29 +95,31 @@
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="12" md="6">
-                    <!-- Free-text inputs (was v-combobox). Vuetify 4's
-                         v-combobox with a computed `:items` array +
-                         clearable inside an expanding panel reliably
-                         triggers "Maximum recursive updates" — the
-                         catalog suggestions weren't worth the cost. -->
-                    <v-text-field v-model="form.processor" :label="t('prov.quote.fields.processor')"
-                      variant="outlined" density="compact" clearable :hint="t('prov.quote.compute.processorHint')" persistent-hint />
+                    <!-- Catalog-backed suggestions. processor/architecture come
+                         from the quote config; license/software are fetched per
+                         OS (or engine) from the provider catalog. v-autocomplete
+                         (not v-combobox) — the latter triggers "Maximum recursive
+                         updates" in Vuetify 4 inside an expansion panel. -->
+                    <LigojAutocomplete v-model="form.processor" :items="processorItems"
+                      :label="t('prov.quote.fields.processor')" variant="outlined" density="compact" clearable
+                      :hint="t('prov.quote.compute.processorHint')" persistent-hint />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-text-field v-model="form.architecture" :label="t('prov.quote.fields.architecture')"
-                      variant="outlined" density="compact" clearable />
+                    <LigojAutocomplete v-model="form.architecture" :items="architectureItems"
+                      :label="t('prov.quote.fields.architecture')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-text-field v-model="form.license" :label="t('prov.quote.compute.license')" variant="outlined"
-                      density="compact" clearable />
+                    <LigojAutocomplete v-model="form.license" :items="licenseItems" :label="t('prov.quote.compute.license')"
+                      variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col v-if="props.type === 'instance'" cols="12" md="6">
-                    <v-text-field v-model="form.software" :label="t('prov.quote.compute.software')" variant="outlined"
-                      density="compact" clearable :hint="t('prov.quote.compute.softwareHint')" persistent-hint />
+                    <LigojAutocomplete v-model="form.software" :items="softwareItems" :label="t('prov.quote.compute.software')"
+                      variant="outlined" density="compact" clearable
+                      :hint="t('prov.quote.compute.softwareHint')" persistent-hint />
                   </v-col>
                   <v-col v-if="hasGpu" cols="12" md="6">
                     <v-text-field v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8"
@@ -360,6 +362,50 @@ const physicalOptions = computed(() => [
   { value: true,  title: t('prov.quote.fields.physical.true') },
   { value: false, title: t('prov.quote.fields.physical.false') },
 ])
+
+/* ---------- Catalog-backed autocomplete suggestions ----------
+ * processor & architecture ship in the quote config as maps keyed by
+ * resource type; license & software are per-OS (per-engine for databases)
+ * lists fetched lazily from the provider catalog. Each list always keeps
+ * the current value so editing an out-of-catalog resource still displays. */
+
+// Ensure the current value is selectable even if it's not in the catalog list.
+function withCurrent(list, current) {
+  const arr = Array.isArray(list) ? list.slice() : []
+  if (current != null && current !== '' && !arr.includes(current)) arr.unshift(current)
+  return arr
+}
+
+const licenseList = ref([])
+const softwareList = ref([])
+
+const processorItems = computed(() => withCurrent(props.config?.processors?.[props.type], form.processor))
+const architectureItems = computed(() => withCurrent(props.config?.architectures?.[props.type], form.architecture))
+const licenseItems = computed(() => withCurrent(licenseList.value, form.license))
+const softwareItems = computed(() => withCurrent(softwareList.value, form.software))
+
+async function fetchLicenses() {
+  // instance/container filter by OS; database by engine; function has none.
+  const key = props.type === 'database' ? form.engine : hasOs.value ? form.os : null
+  if (!key || props.subscriptionId == null) { licenseList.value = []; return }
+  const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/${props.type}-license/${encodeURIComponent(key)}`
+  const data = await api.get(url, { silent: true })
+  licenseList.value = Array.isArray(data) ? data : []
+}
+
+async function fetchSoftware() {
+  if (props.type !== 'instance' || !form.os || props.subscriptionId == null) { softwareList.value = []; return }
+  const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/instance-software/${encodeURIComponent(form.os)}`
+  const data = await api.get(url, { silent: true })
+  softwareList.value = Array.isArray(data) ? data : []
+}
+
+// Refresh the per-OS lists when the dialog opens or its OS/engine changes.
+watch(
+  () => [props.modelValue, props.subscriptionId, props.type, form.os, form.engine],
+  () => { if (props.modelValue) { fetchLicenses(); fetchSoftware() } },
+  { immediate: true },
+)
 
 const required = (v) => (v != null && v !== '') || (t('common.required') || 'Required')
 const positive = (v) => (typeof v === 'number' && v > 0) || (t('common.positive') || 'Must be positive')
