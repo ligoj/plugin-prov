@@ -148,11 +148,9 @@
             <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload" @click="importDialog = true">
               {{ t('prov.quote.import.title') }}
             </v-btn>
-            <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" class="q-danger" prepend-icon="mdi-delete-sweep" @click="askDeleteAll(tab.key)">
-              {{ t('prov.quote.delete.all.label') }}
-            </v-btn>
-            <!-- The column-visibility selector now lives in the table's
-                 header tools cog (a standard LigojDataTable feature). -->
+            <!-- "Delete all" and the column-visibility selector now live in
+                 the table's header tools cog (standard LigojDataTable
+                 features), keeping this toolbar to create/import/search. -->
           </div>
           <v-alert v-if="!rowsByType[tab.key].length" type="info" variant="tonal" density="compact">
             {{ t('prov.quote.empty') }}
@@ -173,8 +171,9 @@
 
           <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
             :pinned-columns="PINNED_COLUMNS" :columns-storage-key="`ligoj-prov-quote-cols-${tab.key}`" :columns-label="t('prov.quote.columns')"
-            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="comfortable" item-value="id" class="q-table"
-            @click:row="(e, { item }) => onRowClick(tab.key, e, item)">
+            :tool-actions="tableToolActions" :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS"
+            density="comfortable" item-value="id" class="q-table"
+            @click:row="(e, { item }) => onRowClick(tab.key, e, item)" @tool-action="(key) => onToolAction(tab.key, key)">
             <template #item.name="{ item }">
               <span class="q-cell-name">{{ item.name }}</span>
               <!-- Tags inherited from the legacy `conf.tags` map. Each
@@ -942,6 +941,16 @@ function onRowAction(type, row, key) {
   else if (key === 'delete') askDeleteRow(type, row)
 }
 
+/* ----- Table-level actions (header tools cog) ----- *
+ * "Delete all" now lives in the table header cog instead of the toolbar. */
+const tableToolActions = computed(() => [
+  { key: 'delete-all', title: t('prov.quote.delete.all.label'), icon: 'mdi-delete-sweep', color: 'error' },
+])
+
+function onToolAction(type, key) {
+  if (key === 'delete-all') askDeleteAll(type)
+}
+
 /**
  * Row-click opens the editor (replacing the old pencil icon). Clicks that
  * land on an interactive control — the selection checkbox, the row-action
@@ -1254,15 +1263,6 @@ onMounted(async () => {
 
 .quote-search :deep(.v-field) {
   border-radius: 999px;
-}
-
-.q-danger {
-  opacity: 0.75;
-  transition: opacity 120ms ease;
-}
-
-.q-danger:hover {
-  opacity: 1;
 }
 
 /* ---------- Table ---------- */
