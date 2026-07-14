@@ -243,6 +243,17 @@ export default {
   'prov.quote.compute.ramRate': 'Pondération RAM',
   'prov.quote.compute.networkRate': 'Pondération réseau',
   'prov.quote.compute.storageRate': 'Pondération E/S stockage',
+  // Niveaux Rate.java — libellé court (champ) + explication (infobulle).
+  'prov.quote.rate.WORST': 'Médiocre',
+  'prov.quote.rate.WORST.desc': 'Performance médiocre',
+  'prov.quote.rate.LOW': 'Faible',
+  'prov.quote.rate.LOW.desc': 'Performance faible',
+  'prov.quote.rate.MEDIUM': 'Moyenne',
+  'prov.quote.rate.MEDIUM.desc': 'Performance moyenne',
+  'prov.quote.rate.GOOD': 'Bonne',
+  'prov.quote.rate.GOOD.desc': 'Bonne performance',
+  'prov.quote.rate.BEST': 'Meilleure',
+  'prov.quote.rate.BEST.desc': 'Meilleure performance',
   'prov.quote.compute.workload': 'Profil de charge',
   // `@` est réservé par vue-i18n pour les messages liés — chaque `@`
   // littéral doit être encapsulé dans `{'@'}` pour que le compilateur

@@ -246,6 +246,17 @@ export default {
   'prov.quote.compute.ramRate': 'RAM rate',
   'prov.quote.compute.networkRate': 'Network rate',
   'prov.quote.compute.storageRate': 'Storage I/O rate',
+  // Rate.java levels — short label (shown in the field) + explanation (tooltip).
+  'prov.quote.rate.WORST': 'Worst',
+  'prov.quote.rate.WORST.desc': 'Worst performance',
+  'prov.quote.rate.LOW': 'Low',
+  'prov.quote.rate.LOW.desc': 'Low performance',
+  'prov.quote.rate.MEDIUM': 'Medium',
+  'prov.quote.rate.MEDIUM.desc': 'Medium performance',
+  'prov.quote.rate.GOOD': 'Good',
+  'prov.quote.rate.GOOD.desc': 'Good performance',
+  'prov.quote.rate.BEST': 'Best',
+  'prov.quote.rate.BEST.desc': 'Best performance',
   'prov.quote.compute.workload': 'Workload profile',
   // `@` is reserved by vue-i18n for linked messages — escape every
   // literal `@` with `{'@'}` so the message compiler treats it as

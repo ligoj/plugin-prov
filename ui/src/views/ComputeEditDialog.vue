@@ -126,20 +126,16 @@
                       variant="outlined" density="compact" />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-select v-model="form.cpuRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.cpuRate')"
-                      variant="outlined" density="compact" clearable />
+                    <RateField v-model="form.cpuRate" :label="t('prov.quote.compute.cpuRate')" />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-select v-model="form.ramRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.ramRate')"
-                      variant="outlined" density="compact" clearable />
+                    <RateField v-model="form.ramRate" :label="t('prov.quote.compute.ramRate')" />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-select v-model="form.networkRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.networkRate')"
-                      variant="outlined" density="compact" clearable />
+                    <RateField v-model="form.networkRate" :label="t('prov.quote.compute.networkRate')" />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-select v-model="form.storageRate" :items="RATE_OPTIONS" :label="t('prov.quote.compute.storageRate')"
-                      variant="outlined" density="compact" clearable />
+                    <RateField v-model="form.storageRate" :label="t('prov.quote.compute.storageRate')" />
                   </v-col>
                   <v-col cols="12">
                     <v-text-field v-model="form.workload" :label="t('prov.quote.compute.workload')" :rules="WORKLOAD_RULES"
@@ -218,6 +214,7 @@ import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import OsIcon from './OsIcon.vue'
+import RateField from './RateField.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources
@@ -345,10 +342,6 @@ function workloadRule(v) {
   }
   return true
 }
-
-// Weighted-rate selector — same enum used by the legacy
-// `.prov-rate` button groups and by storage's latency.
-const RATE_OPTIONS = ['BEST', 'GOOD', 'MEDIUM', 'LOW', 'WORST']
 
 const advancedOpen = ref(null)
 

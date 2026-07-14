@@ -42,8 +42,7 @@
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="12" md="6">
-                    <v-select v-model="form.latency" :items="RATE_OPTIONS" :label="t('prov.quote.storage.latency')"
-                      variant="outlined" density="compact" clearable />
+                    <RateField v-model="form.latency" :label="t('prov.quote.storage.latency')" />
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-select v-model="form.optimized" :items="OPTIMIZED_OPTIONS" :label="t('prov.quote.storage.optimized')"
@@ -110,6 +109,7 @@ import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from
 import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
+import RateField from './RateField.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -161,7 +161,6 @@ const advancedOpen = ref(null)
 // Same enums the legacy `prov-rate-full` / `prov-rate` slider buttons
 // surfaced — kept here so the dialog has no dependency on the catalog
 // endpoint.
-const RATE_OPTIONS = ['BEST', 'GOOD', 'MEDIUM', 'LOW', 'WORST']
 const OPTIMIZED_OPTIONS = ['IOPS', 'THROUGHPUT', 'DURABILITY']
 
 const required = (v) => (v != null && v !== '') || (t('common.required') || 'Required')
