@@ -184,8 +184,10 @@
                    case-folded once in `tagsByTypeAndId` so we never
                    re-create the lookup key per cell. -->
               <span v-if="tagsFor(tab.key, item.id).length" class="d-inline-flex flex-wrap ga-1 ml-1">
-                <v-chip v-for="tag in tagsFor(tab.key, item.id)" :key="tag.name" size="x-small" variant="tonal">
-                  {{ tag.value ? `${tag.name}:${tag.value}` : tag.name }}
+                <!-- `env:TST` renders as a de-emphasised key ("env") next to
+                     the value ("TST"); the ':' separator is dropped. -->
+                <v-chip v-for="tag in tagsFor(tab.key, item.id)" :key="`${tag.name}:${tag.value ?? ''}`" size="x-small" variant="tonal">
+                  <span v-if="tag.value" class="q-tag-key">{{ tag.name }}</span>{{ tag.value || tag.name }}
                 </v-chip>
               </span>
             </template>
@@ -1386,6 +1388,15 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--ink);
   font-size: 12.5px;
+}
+
+/* Tag key ("env" in "env:TST") — de-emphasised prefix before the value.
+ * Thinner + smaller than the value, with a small gap replacing the ':'. */
+.q-tag-key {
+  font-size: 0.82em;
+  font-weight: 400;
+  opacity: 0.65;
+  margin-right: 3px;
 }
 
 .q-type {

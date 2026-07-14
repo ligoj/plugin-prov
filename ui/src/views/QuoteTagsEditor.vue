@@ -2,9 +2,10 @@
   <div class="quote-tags-editor">
     <div class="text-caption text-medium-emphasis mb-1">{{ t('prov.quote.tags.title') }}</div>
     <div class="d-flex flex-wrap align-center ga-1">
+      <!-- `env:TST` → de-emphasised key ("env") + value ("TST"), no ':'. -->
       <v-chip v-for="tag in localTags" :key="tag.id" size="small" variant="tonal" closable
         :disabled="busy" @click:close="remove(tag)">
-        {{ tag.value ? `${tag.name}:${tag.value}` : tag.name }}
+        <span v-if="tag.value" class="q-tag-key">{{ tag.name }}</span>{{ tag.value || tag.name }}
       </v-chip>
       <!-- Autocomplete pre-populated with every known tag in the quote
            (legacy `prov-tag.js#suggest`). `v-combobox` keeps the field
@@ -181,5 +182,13 @@ async function remove(tag) {
 .tag-add {
   flex: 1 1 200px;
   max-width: 260px;
+}
+/* Tag key ("env" in "env:TST") — thinner + smaller than the value, with a
+ * small gap replacing the dropped ':' separator. */
+.q-tag-key {
+  font-size: 0.82em;
+  font-weight: 400;
+  opacity: 0.65;
+  margin-right: 3px;
 }
 </style>

@@ -238,7 +238,11 @@ const isEdit = computed(() => !!props.resource?.id)
 const resourceTags = computed(() => {
   const tagsByType = props.config?.tags
   if (!tagsByType || !props.resource?.id) return []
-  const byId = tagsByType[props.type] || tagsByType[String(props.type).toLowerCase()]
+  // The backend keys this map by the ResourceType enum name (UPPERCASE,
+  // e.g. "INSTANCE"), so a plain lowercase `props.type` lookup misses and
+  // the editor showed no tags. Resolve it case-insensitively.
+  const key = String(props.type)
+  const byId = tagsByType[key.toUpperCase()] || tagsByType[key.toLowerCase()] || tagsByType[key]
   if (!byId) return []
   const list = byId[props.resource.id]
   return Array.isArray(list) ? list : []
