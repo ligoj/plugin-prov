@@ -165,21 +165,10 @@
             :resource-id="props.resource.id" :model-value="resourceTags" :all-tags-by-type="props.config?.tags || {}"
             @update:model-value="(v) => emit('tags-changed', v)" />
 
-          <!-- Lookup result — auto-debounced. Save commits only on the explicit button. -->
-          <div class="mt-4 d-flex align-center ga-3 flex-wrap">
-            <div class="lookup-status">
-              <v-icon v-if="lookingUp" size="small" color="primary" class="mr-1">mdi-progress-clock</v-icon>
-              <v-icon v-else-if="suggest?.price" size="small" color="success" class="mr-1">mdi-check-circle</v-icon>
-              <v-icon v-else-if="lookupError" size="small" color="warning" class="mr-1">mdi-alert</v-icon>
-              <v-icon v-else size="small" class="mr-1">mdi-magnify</v-icon>
-              <span class="text-caption text-medium-emphasis">
-                {{
-                  lookingUp ? t('prov.quote.instance.lookingUp')
-                  : !canLookup ? lookupRequirementsHint
-                  : t('prov.quote.instance.lookupAuto')
-                }}
-              </span>
-            </div>
+          <!-- Lookup result — auto-debounced. Save commits only on the explicit button.
+               The status hint lives in the action bar; here we surface only the
+               error alert or the matched price card. -->
+          <div v-if="(lookupError && !lookingUp) || suggest?.price" class="mt-4 d-flex align-center ga-3 flex-wrap">
             <v-alert v-if="lookupError && !lookingUp" type="warning" variant="tonal" density="compact" class="flex-grow-1">
               {{ lookupError }}
             </v-alert>
@@ -204,6 +193,14 @@
         <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')"
           density="compact" hide-details color="primary" class="ml-2 create-another" />
         <v-spacer />
+        <span class="lookup-notice text-caption text-medium-emphasis font-weight-light mr-3">
+          <v-progress-circular v-if="lookingUp" indeterminate size="12" width="2" color="primary" class="mr-1" />
+          {{
+            lookingUp ? t('prov.quote.instance.lookingUp')
+            : !canLookup ? lookupRequirementsHint
+            : t('prov.quote.instance.lookupAuto')
+          }}
+        </span>
         <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="elevated" :loading="saving" :disabled="!suggest?.price" @click="save">
           <v-icon start>mdi-content-save</v-icon>
@@ -663,10 +660,10 @@ async function save() {
   min-width: 0;
 }
 
-.lookup-status {
+.lookup-notice {
   display: inline-flex;
   align-items: center;
-  min-width: 14rem;
-  white-space: nowrap;
+  text-align: right;
+  line-height: 1.2;
 }
 </style>
