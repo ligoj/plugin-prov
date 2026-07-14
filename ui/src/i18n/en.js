@@ -260,6 +260,8 @@ export default {
   // Iteration 8: per-row duplicate action.
   'prov.quote.duplicate': 'Duplicate',
   'prov.quote.columns': 'Columns',
+  // Redesign: keep the create dialog open for the next resource.
+  'prov.quote.createAnother': 'Create another',
 
   // Iteration 9: refresh-prices action + cost period selector.
   'prov.quote.refreshPrices': 'Refresh prices against the provider catalog',

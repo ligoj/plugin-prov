@@ -8,18 +8,72 @@
  * `app-ui/src/main/webapp/src/plugins/prov/provFormatters.js`.
  */
 
-/** Currency-aware monthly cost. Accepts a number or a min/max object. */
-export function formatCost(value, currency = { unit: '$', rate: 1 }) {
+/**
+ * Reduced-precision number formatting.
+ *
+ * The 2026 redesign asks every unit-bearing figure to drop useless
+ * precision: never more than THREE digits before the decimal separator
+ * and never more than TWO after it. In practice that means ~4 significant
+ * figures, so `8248.6` becomes `8.25` (once scaled to tonnes) and
+ * `163573` becomes `163.6` (once scaled to TB).
+ *
+ * Callers scale the value onto a unit ladder first (so the integer part
+ * already fits in 3 digits); this helper only rounds + renders it,
+ * locale-aware and with trailing zeros trimmed.
+ */
+export function formatReduced(value, locale) {
+  if (!Number.isFinite(value)) return '0'
+  const intDigits = Math.max(1, Math.trunc(Math.abs(value)).toString().length)
+  const decimals = Math.max(0, Math.min(2, 4 - intDigits))
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: decimals }).format(value)
+}
+
+/**
+ * Scales `value` (expressed in `units[0]`) up the ladder until its integer
+ * part fits in three digits, then renders it with `formatReduced`.
+ *   units  ordered unit labels, smallest first (e.g. ['g', 'kg', 't'])
+ *   radix  1000 for SI units, 1024 for binary memory
+ * Returns e.g. `"8.25 t"`.
+ */
+export function scaleUnit(value, units, { radix = 1000, locale } = {}) {
+  let v = value
+  let i = 0
+  while (Math.abs(v) >= radix && i < units.length - 1) {
+    v /= radix
+    i += 1
+  }
+  return `${formatReduced(v, locale)} ${units[i]}`
+}
+
+/** SI magnitude prefixes for money — appended directly to the unit ("M$"). */
+const AMOUNT_PREFIXES = ['', 'k', 'M', 'G', 'T', 'P']
+
+/**
+ * Currency-aware monthly cost. Accepts a number or a min/max object.
+ *
+ * Small amounts keep the familiar money precision (3 decimals below a
+ * unit, cents up to 100, whole units below 1000). Anything larger is
+ * SI-scaled so the header total reads `1.5 M$` instead of `1,500,622 $`
+ * — honouring the "≤3 digits before the separator" rule.
+ */
+export function formatCost(value, currency = { unit: '$', rate: 1 }, locale) {
   if (value == null) return '-'
   const rate = currency.rate || 1
   const unit = currency.unit || '$'
-  const fmt = (n) => {
-    const v = n * rate
-    if (v < 1) return v.toFixed(3)
-    if (v < 100) return v.toFixed(2)
-    return Math.round(v).toLocaleString()
+  const v = value * rate
+  const av = Math.abs(v)
+  if (av < 1) return `${v.toFixed(3)} ${unit}`
+  if (av < 100) return `${v.toFixed(2)} ${unit}`
+  if (av < 1000) {
+    return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(v)} ${unit}`
   }
-  return `${fmt(value)} ${unit}`
+  let scaled = v
+  let i = 0
+  while (Math.abs(scaled) >= 1000 && i < AMOUNT_PREFIXES.length - 1) {
+    scaled /= 1000
+    i += 1
+  }
+  return `${formatReduced(scaled, locale)} ${AMOUNT_PREFIXES[i]}${unit}`
 }
 
 /**
@@ -37,14 +91,16 @@ export function formatCostRange(cost, currency) {
   return `${formatCost(min, currency)} – ${formatCost(max, currency)}${suffix}`
 }
 
-export function formatRam(mb) {
+/** Memory in MB → most readable binary unit (memory is base-1024). */
+export function formatRam(mb, locale) {
   if (mb == null) return ''
-  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`
+  return scaleUnit(mb, ['MB', 'GB', 'TB'], { radix: 1024, locale })
 }
 
-export function formatStorage(gb) {
+/** Disk storage in GB → most readable SI unit (`163573` → `163.6 TB`). */
+export function formatStorage(gb, locale) {
   if (gb == null) return ''
-  return gb >= 1024 ? `${(gb / 1024).toFixed(1)} TB` : `${Math.round(gb)} GB`
+  return scaleUnit(gb, ['GB', 'TB', 'PB'], { locale })
 }
 
 export function formatCpu(value) {
@@ -52,11 +108,10 @@ export function formatCpu(value) {
   return value % 1 === 0 ? `${value}` : value.toFixed(1)
 }
 
-/** CO₂-equivalent emissions; g when below 1 kg, kg above. */
-export function formatCo2(grams) {
+/** CO₂-equivalent emissions in grams → g / kg / t (`8248600` → `8.25 t`). */
+export function formatCo2(grams, locale) {
   if (grams == null) return '-'
-  if (grams >= 1000) return `${(grams / 1000).toFixed(1)} kg`
-  return `${Math.round(grams)} g`
+  return scaleUnit(grams, ['g', 'kg', 't'], { locale })
 }
 
 /**

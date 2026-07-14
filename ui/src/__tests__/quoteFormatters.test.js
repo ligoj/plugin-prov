@@ -6,6 +6,8 @@ import {
   formatCpu,
   formatRam,
   formatStorage,
+  formatReduced,
+  scaleUnit,
   donutPath,
   donutFullPath,
   scaleCost,
@@ -15,6 +17,11 @@ import {
   maxOfField,
   TAB_TYPES,
 } from '../quoteFormatters.js'
+
+// Exact decimal rendering is locale-sensitive (comma vs dot); pin the
+// locale in assertions that check specific separators so the suite is
+// deterministic regardless of the runner's default locale.
+const EN = 'en-US'
 
 describe('quoteFormatters', () => {
   describe('formatCost', () => {
@@ -31,11 +38,20 @@ describe('quoteFormatters', () => {
       expect(formatCost(12.345)).toBe('12.35 $') // toFixed rounds
     })
 
-    it('rounds and locale-formats values ≥ 100', () => {
-      // toLocaleString output varies by env, just assert the integer + unit shape
-      const out = formatCost(1234.7)
-      expect(out).toMatch(/[\d, ]+\s\$$/)
-      expect(out.endsWith('$')).toBe(true)
+    it('renders whole units without scaling between 100 and 1000', () => {
+      expect(formatCost(150, undefined, EN)).toBe('150 $')
+      expect(formatCost(999, undefined, EN)).toBe('999 $')
+    })
+
+    it('SI-scales values ≥ 1000 to reduce useless precision', () => {
+      expect(formatCost(1234.7, undefined, EN)).toBe('1.23 k$')
+      // 1,500,622 $ → 1.5 M$ (the redesign brief's amount example).
+      expect(formatCost(1500622, undefined, EN)).toBe('1.5 M$')
+      expect(formatCost(2_500_000_000, undefined, EN)).toBe('2.5 G$')
+    })
+
+    it('honours the active locale for the separator (fr → comma)', () => {
+      expect(formatCost(1500622, undefined, 'fr-FR')).toBe('1,5 M$')
     })
 
     it('applies currency rate and unit', () => {
@@ -71,15 +87,46 @@ describe('quoteFormatters', () => {
     })
   })
 
+  describe('formatReduced', () => {
+    it('keeps up to 2 decimals for 1-digit integers', () => {
+      expect(formatReduced(8.2486, EN)).toBe('8.25')
+    })
+    it('trims trailing zeros', () => {
+      expect(formatReduced(1.5, EN)).toBe('1.5')
+      expect(formatReduced(2, EN)).toBe('2')
+    })
+    it('drops to 1 decimal for 3-digit integers', () => {
+      expect(formatReduced(163.573, EN)).toBe('163.6')
+    })
+    it('renders comma separators under a comma locale', () => {
+      expect(formatReduced(8.25, 'fr-FR')).toBe('8,25')
+    })
+  })
+
+  describe('scaleUnit', () => {
+    it('scales SI units by 1000', () => {
+      expect(scaleUnit(8248600, ['g', 'kg', 't'], { locale: EN })).toBe('8.25 t')
+    })
+    it('scales memory by 1024', () => {
+      expect(scaleUnit(2048, ['MB', 'GB', 'TB'], { radix: 1024, locale: EN })).toBe('2 GB')
+    })
+    it('stops at the top of the ladder', () => {
+      expect(scaleUnit(5_000_000, ['g', 'kg', 't'], { locale: EN })).toBe('5 t')
+    })
+  })
+
   describe('formatCo2', () => {
     it('returns dash for null', () => {
       expect(formatCo2(null)).toBe('-')
     })
     it('keeps grams below 1 kg', () => {
-      expect(formatCo2(750)).toBe('750 g')
+      expect(formatCo2(750, EN)).toBe('750 g')
     })
-    it('switches to kg with one decimal at 1 kg+', () => {
-      expect(formatCo2(1500)).toBe('1.5 kg')
+    it('switches to kg at 1 kg+', () => {
+      expect(formatCo2(1500, EN)).toBe('1.5 kg')
+    })
+    it('switches to tonnes and reduces precision (8248.6 kg → 8.25 t)', () => {
+      expect(formatCo2(8248600, EN)).toBe('8.25 t')
     })
   })
 
@@ -88,11 +135,12 @@ describe('quoteFormatters', () => {
       expect(formatRam(null)).toBe('')
     })
     it('shows MB below 1 GB', () => {
-      expect(formatRam(512)).toBe('512 MB')
+      expect(formatRam(512, EN)).toBe('512 MB')
     })
-    it('shows GB at 1 GB and above', () => {
-      expect(formatRam(2048)).toBe('2.0 GB')
-      expect(formatRam(8192)).toBe('8.0 GB')
+    it('shows binary GB at 1 GB and above (memory is base-1024)', () => {
+      expect(formatRam(2048, EN)).toBe('2 GB')
+      expect(formatRam(8192, EN)).toBe('8 GB')
+      expect(formatRam(1536, EN)).toBe('1.5 GB')
     })
   })
 
@@ -101,10 +149,11 @@ describe('quoteFormatters', () => {
       expect(formatStorage(null)).toBe('')
     })
     it('shows GB below 1 TB', () => {
-      expect(formatStorage(500)).toBe('500 GB')
+      expect(formatStorage(500, EN)).toBe('500 GB')
     })
-    it('shows TB at 1 TB and above', () => {
-      expect(formatStorage(2048)).toBe('2.0 TB')
+    it('shows SI TB above 1000 GB (163573 GB → 163.6 TB)', () => {
+      expect(formatStorage(2048, EN)).toBe('2.05 TB')
+      expect(formatStorage(163573, EN)).toBe('163.6 TB')
     })
   })
 

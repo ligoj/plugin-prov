@@ -257,6 +257,8 @@ export default {
   // Itération 8 : action « dupliquer » par ligne.
   'prov.quote.duplicate': 'Dupliquer',
   'prov.quote.columns': 'Colonnes',
+  // Refonte : garder la boîte de création ouverte pour la ressource suivante.
+  'prov.quote.createAnother': 'En créer une autre',
 
   // Itération 9 : actualisation des prix + sélecteur de période.
   'prov.quote.refreshPrices': 'Actualiser les prix depuis le catalogue fournisseur',

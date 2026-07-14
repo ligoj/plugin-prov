@@ -151,23 +151,8 @@
             <v-btn v-if="rowsByType[tab.key].length" size="small" variant="text" color="error" class="q-danger" prepend-icon="mdi-delete-sweep" @click="askDeleteAll(tab.key)">
               {{ t('prov.quote.delete.all.label') }}
             </v-btn>
-            <!-- Column-visibility menu. `name` and `actions` are pinned
-                 so the user can always identify a row and act on it. -->
-            <v-menu v-if="rowsByType[tab.key].length" :close-on-content-click="false">
-              <template #activator="{ props: actProps }">
-                <v-btn v-bind="actProps" icon size="small" variant="text" :title="t('prov.quote.columns')">
-                  <v-icon size="small">mdi-view-column-outline</v-icon>
-                </v-btn>
-              </template>
-              <v-list density="compact" min-width="220">
-                <v-list-item v-for="h in togglableHeaders(tab.key)" :key="h.key" @click="toggleColumn(tab.key, h.key)">
-                  <template #prepend>
-                    <v-icon size="small">{{ isColumnVisible(tab.key, h.key) ? 'mdi-eye' : 'mdi-eye-off-outline' }}</v-icon>
-                  </template>
-                  <v-list-item-title>{{ h.title || h.key }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <!-- The column-visibility selector now lives in the table's
+                 header tools cog (a standard LigojDataTable feature). -->
           </div>
           <v-alert v-if="!rowsByType[tab.key].length" type="info" variant="tonal" density="compact">
             {{ t('prov.quote.empty') }}
@@ -186,8 +171,10 @@
             </v-toolbar>
           </v-slide-y-transition>
 
-          <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select :filename="`prov-${tab.key}.csv`" :headers="visibleHeadersByType[tab.key]"
-            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="comfortable" item-value="id" class="q-table">
+          <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
+            :pinned-columns="PINNED_COLUMNS" :columns-storage-key="`ligoj-prov-quote-cols-${tab.key}`" :columns-label="t('prov.quote.columns')"
+            :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS" density="comfortable" item-value="id" class="q-table"
+            @click:row="(e, { item }) => onRowClick(tab.key, e, item)">
             <template #item.name="{ item }">
               <span class="q-cell-name">{{ item.name }}</span>
               <!-- Tags inherited from the legacy `conf.tags` map. Each
@@ -233,18 +220,11 @@
                 {{ attachedLabel(item) }}
               </span>
             </template>
+            <!-- All row actions grouped behind a single cog, mirroring the
+                 header tools menu (standard RowActionsMenu). Edit is also
+                 reachable by clicking anywhere on the row. -->
             <template #item.actions="{ item }">
-              <span class="q-row-actions">
-                <v-btn icon size="small" variant="text" :title="t('common.edit')" @click="openResourceEdit(tab.key, item)">
-                  <v-icon size="small">mdi-pencil</v-icon>
-                </v-btn>
-                <v-btn icon size="small" variant="text" :title="t('prov.quote.duplicate')" @click="openResourceDuplicate(tab.key, item)">
-                  <v-icon size="small">mdi-content-duplicate</v-icon>
-                </v-btn>
-                <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="askDeleteRow(tab.key, item)">
-                  <v-icon size="small">mdi-delete</v-icon>
-                </v-btn>
-              </span>
+              <RowActionsMenu :actions="rowActions" :label="t('common.actions')" @select="(key) => onRowAction(tab.key, item, key)" />
             </template>
           </LigojDataTable>
         </v-window-item>
@@ -344,6 +324,7 @@ import {
   LigojConfirmDialog,
   LigojDataTable,
   LigojAutocomplete,
+  RowActionsMenu,
   NodeIcon,
   APP_BASE,
 } from '@ligoj/host'
@@ -521,74 +502,12 @@ const selectedByType = reactive(Object.fromEntries(TAB_TYPES.map((t) => [t.key, 
 // --- Instance CSV import dialog state ---
 const importDialog = ref(false)
 
-/* ----- Column visibility per tab -----
- * `name` and `actions` are pinned — the user always needs to identify
- * a row and act on it. Everything else is opt-in/opt-out.
- *
- * State is persisted as a per-tab array of HIDDEN column keys (smaller
- * to serialise than the full visible set, and forward-compatible —
- * newly added columns default to visible). Stale keys are ignored. */
-const HIDDEN_COLUMNS_KEY = 'ligoj-prov-quote-hidden-cols'
-const PINNED_COLUMNS = new Set(['name', 'actions'])
-
-function loadHiddenColumns() {
-  if (typeof localStorage === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(HIDDEN_COLUMNS_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object') return {}
-    // Coerce every entry into a Set for O(1) lookup at render time.
-    const out = {}
-    for (const [k, list] of Object.entries(parsed)) {
-      if (Array.isArray(list)) out[k] = new Set(list.map(String))
-    }
-    return out
-  } catch {
-    return {}
-  }
-}
-const hiddenColumnsByType = reactive(loadHiddenColumns())
-
-function persistHiddenColumns() {
-  if (typeof localStorage === 'undefined') return
-  const out = {}
-  for (const [k, set] of Object.entries(hiddenColumnsByType)) {
-    if (set?.size) out[k] = [...set]
-  }
-  localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify(out))
-}
-
-function isColumnVisible(type, key) {
-  if (PINNED_COLUMNS.has(key)) return true
-  return !hiddenColumnsByType[type]?.has(key)
-}
-
-function toggleColumn(type, key) {
-  if (PINNED_COLUMNS.has(key)) return
-  if (!hiddenColumnsByType[type]) hiddenColumnsByType[type] = new Set()
-  const set = hiddenColumnsByType[type]
-  if (set.has(key)) set.delete(key)
-  else set.add(key)
-  // Replace with a fresh Set so the reactive proxy notices.
-  hiddenColumnsByType[type] = new Set(set)
-  persistHiddenColumns()
-}
-
-/** Column entries the user can toggle (everything except the pinned ones). */
-function togglableHeaders(type) {
-  return (headersByType.value[type] || []).filter((h) => !PINNED_COLUMNS.has(h.key))
-}
-
-/** Headers filtered by the visibility map — drives the data table. */
-const visibleHeadersByType = computed(() => {
-  const out = {}
-  for (const tab of TAB_TYPES) {
-    const all = headersByType.value[tab.key] || []
-    out[tab.key] = all.filter((h) => isColumnVisible(tab.key, h.key))
-  }
-  return out
-})
+/* ----- Column visibility -----
+ * Column show/hide is now a standard LigojDataTable feature: the table
+ * owns the selector (in its header tools cog) and persists the hidden set
+ * per tab under `ligoj-prov-quote-cols-<tab>`. `name` and `actions` stay
+ * pinned so the user can always identify a row and act on it. */
+const PINNED_COLUMNS = ['name', 'actions']
 
 // --- Per-type create/edit dialog state ---
 // Compute types (instance/container/function/database) share
@@ -733,14 +652,12 @@ const headersByType = computed(() => {
   const type = { title: t('prov.quote.cols.type'), key: 'type', sortable: true }
   const loc = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
   const cost = { title: t('prov.quote.cols.cost'), key: 'cost', sortable: true, width: '140px', align: 'end' }
-  // Every tab shows edit + duplicate + delete icons (3 × ~36 px + gaps).
-  // `minWidth` keeps Vuetify from collapsing the column when other
-  // columns try to claim the space — `width` alone is just a hint.
-  // `cellProps` adds the no-wrap class on the cell itself so the
-  // buttons stay on one line even if the table compresses.
+  // Single per-row cog (RowActionsMenu) + the header tools cog live in
+  // this column, so it only needs room for one icon button. `minWidth`
+  // keeps Vuetify from collapsing it when other columns claim the space.
   const actions = {
-    title: '', key: 'actions', sortable: false, align: 'center',
-    width: '160px', minWidth: '160px',
+    title: '', key: 'actions', sortable: false, align: 'end',
+    width: '72px', minWidth: '72px',
     cellProps: { class: 'actions-cell' },
   }
   const compute = [
@@ -1008,6 +925,33 @@ function openResourceDuplicate(type, row) {
   if (type === 'storage') storageDialog.value = true
   else if (type === 'support') supportDialog.value = true
   else if (COMPUTE_TYPES.has(type)) computeDialog.value = true
+}
+
+/* ----- Row actions (grouped in the per-row cog) ----- *
+ * Same three actions on every row; the labels are reactive to the locale
+ * so this is a computed rather than a module constant. */
+const rowActions = computed(() => [
+  { key: 'edit',      title: t('common.edit'),          icon: 'mdi-pencil' },
+  { key: 'duplicate', title: t('prov.quote.duplicate'), icon: 'mdi-content-duplicate' },
+  { key: 'delete',    title: t('common.delete'),        icon: 'mdi-delete', color: 'error' },
+])
+
+function onRowAction(type, row, key) {
+  if (key === 'edit') openResourceEdit(type, row)
+  else if (key === 'duplicate') openResourceDuplicate(type, row)
+  else if (key === 'delete') askDeleteRow(type, row)
+}
+
+/**
+ * Row-click opens the editor (replacing the old pencil icon). Clicks that
+ * land on an interactive control — the selection checkbox, the row-action
+ * cog, links, inputs — are ignored so those keep their own behaviour.
+ * `item` is Vuetify 4's raw row (guard the `.raw` shape just in case).
+ */
+function onRowClick(type, event, item) {
+  if (event?.target?.closest?.('button, a, input, .v-selection-control, .no-row-edit')) return
+  const row = item?.raw ?? item
+  if (row) openResourceEdit(type, row)
 }
 
 async function onResourceSaved() {
@@ -1390,16 +1334,21 @@ onMounted(async () => {
   color: var(--ink-3);
 }
 
-/* Row actions stay quiet until the row is hovered or focused. Pointer
- * devices only — touch users keep the always-visible buttons. */
+/* Row-click opens the editor, so make the whole row read as clickable. */
+.q-table :deep(tbody tr) {
+  cursor: pointer;
+}
+
+/* The per-row actions cog stays quiet until the row is hovered or
+ * focused. Pointer devices only — touch users keep it always visible. */
 @media (hover: hover) {
-  .q-table :deep(.q-row-actions .v-btn) {
-    opacity: 0.25;
+  .q-table :deep(.actions-cell .v-btn) {
+    opacity: 0.35;
     transition: opacity 120ms ease;
   }
 
-  .q-table :deep(tbody tr:hover .q-row-actions .v-btn),
-  .q-table :deep(tbody tr:focus-within .q-row-actions .v-btn) {
+  .q-table :deep(tbody tr:hover .actions-cell .v-btn),
+  .q-table :deep(tbody tr:focus-within .actions-cell .v-btn) {
     opacity: 1;
   }
 }

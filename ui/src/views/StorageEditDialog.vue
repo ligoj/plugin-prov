@@ -89,6 +89,9 @@
         </v-form>
       </v-card-text>
       <v-card-actions>
+        <!-- Create mode only: keep the dialog open after saving. -->
+        <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')"
+          density="compact" hide-details color="primary" class="ml-2 create-another" />
         <v-spacer />
         <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="elevated" :loading="saving" :disabled="!suggest?.price" @click="save">
@@ -135,6 +138,8 @@ const saving = ref(false)
 const lookingUp = ref(false)
 const lookupError = ref(null)
 const suggest = ref(null)
+// Create-mode only: keep the dialog open and reset for the next resource.
+const createAnother = ref(false)
 
 const form = reactive({
   id: null,
@@ -215,14 +220,19 @@ watch(() => props.modelValue, (open) => {
     form.latency = it.latency || null
     form.optimized = it.optimized || null
   } else {
-    Object.assign(form, {
-      id: null, name: '', description: '', sizeGb: 10, location: null, attached: null,
-      latency: null, optimized: null,
-    })
+    blankForm()
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
   lookupError.value = null
 })
+
+/** Resets the form to its create-mode defaults (shared by open + "create another"). */
+function blankForm() {
+  Object.assign(form, {
+    id: null, name: '', description: '', sizeGb: 10, location: null, attached: null,
+    latency: null, optimized: null,
+  })
+}
 
 /* ---------- Auto-lookup ---------- */
 
@@ -319,11 +329,19 @@ async function save() {
     if (form.latency) payload.latency = form.latency
     if (form.optimized) payload.optimized = form.optimized
     const url = 'rest/service/prov/storage'
-    const result = form.id ? await api.put(url, payload) : await api.post(url, payload)
+    const created = !form.id
+    const result = created ? await api.post(url, payload) : await api.put(url, payload)
     if (result === null) return
-    errorStore.success(t(form.id ? 'prov.quote.storage.updated' : 'prov.quote.storage.created', { name: payload.name }))
+    errorStore.success(t(created ? 'prov.quote.storage.created' : 'prov.quote.storage.updated', { name: payload.name }))
     emit('saved')
-    emit('update:modelValue', false)
+    if (created && createAnother.value) {
+      blankForm()
+      suggest.value = null
+      lookupError.value = null
+      scheduleLookup()
+    } else {
+      emit('update:modelValue', false)
+    }
   } finally {
     saving.value = false
   }

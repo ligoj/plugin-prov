@@ -186,6 +186,10 @@
         </v-form>
       </v-card-text>
       <v-card-actions>
+        <!-- Create mode only: keep the dialog open after saving so several
+             resources can be added in one sitting. -->
+        <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')"
+          density="compact" hide-details color="primary" class="ml-2 create-another" />
         <v-spacer />
         <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="elevated" :loading="saving" :disabled="!suggest?.price" @click="save">
@@ -273,6 +277,9 @@ const saving = ref(false)
 const lookingUp = ref(false)
 const lookupError = ref(null)
 const suggest = ref(null)
+// Create-mode only: when checked, saving keeps the dialog open and resets
+// the form for the next resource instead of closing.
+const createAnother = ref(false)
 
 const form = reactive({
   id: null,
@@ -399,19 +406,24 @@ watch(() => props.modelValue, (open) => {
     form.storageRate   = it.storageRate ?? null
     form.workload      = it.workload ?? ''
   } else {
-    Object.assign(form, {
-      id: null, name: '', description: '', os: 'LINUX', engine: 'MYSQL', edition: '',
-      cpu: 1, ramGb: 1, minQuantity: 1, maxQuantity: null,
-      location: null, usage: null,
-      nbRequests: 1, duration: 100, concurrency: 0,
-      processor: null, architecture: null, physical: null, license: null, software: null,
-      gpu: 0, ephemeral: false, maxVariableCost: null,
-      cpuRate: null, ramRate: null, networkRate: null, storageRate: null, workload: '',
-    })
+    blankForm()
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
   lookupError.value = null
 })
+
+/** Resets the form to its create-mode defaults (shared by open + "create another"). */
+function blankForm() {
+  Object.assign(form, {
+    id: null, name: '', description: '', os: 'LINUX', engine: 'MYSQL', edition: '',
+    cpu: 1, ramGb: 1, minQuantity: 1, maxQuantity: null,
+    location: null, usage: null,
+    nbRequests: 1, duration: 100, concurrency: 0,
+    processor: null, architecture: null, physical: null, license: null, software: null,
+    gpu: 0, ephemeral: false, maxVariableCost: null,
+    cpuRate: null, ramRate: null, networkRate: null, storageRate: null, workload: '',
+  })
+}
 
 /* ---------- Auto-lookup ---------- */
 
@@ -562,12 +574,21 @@ async function save() {
       }
     }
     const url = `rest/service/prov/${props.type}`
-    const result = form.id ? await api.put(url, payload) : await api.post(url, payload)
+    const created = !form.id
+    const result = created ? await api.post(url, payload) : await api.put(url, payload)
     if (result === null) return // useApi surfaced the error
-    const i18nKey = form.id ? `prov.quote.${props.type}.updated` : `prov.quote.${props.type}.created`
+    const i18nKey = created ? `prov.quote.${props.type}.created` : `prov.quote.${props.type}.updated`
     errorStore.success(t(i18nKey, { name: payload.name }))
     emit('saved')
-    emit('update:modelValue', false)
+    if (created && createAnother.value) {
+      // Keep the dialog open for the next resource; re-lookup the reset form.
+      blankForm()
+      suggest.value = null
+      lookupError.value = null
+      scheduleLookup()
+    } else {
+      emit('update:modelValue', false)
+    }
   } finally {
     saving.value = false
   }

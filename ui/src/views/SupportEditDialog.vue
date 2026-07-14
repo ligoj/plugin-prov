@@ -90,6 +90,9 @@
         </v-form>
       </v-card-text>
       <v-card-actions>
+        <!-- Create mode only: keep the dialog open after saving. -->
+        <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')"
+          density="compact" hide-details color="primary" class="ml-2 create-another" />
         <v-spacer />
         <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="elevated" :loading="saving" :disabled="!suggest?.price" @click="save">
@@ -136,6 +139,8 @@ const saving = ref(false)
 const lookingUp = ref(false)
 const lookupError = ref(null)
 const suggest = ref(null)
+// Create-mode only: keep the dialog open and reset for the next resource.
+const createAnother = ref(false)
 
 const form = reactive({
   id: null,
@@ -186,15 +191,20 @@ watch(() => props.modelValue, (open) => {
     form.accessPhone = it.accessPhone || null
     form.accessChat  = it.accessChat || null
   } else {
-    Object.assign(form, {
-      id: null, name: '', description: '', level: '', seats: null,
-      accessApi: null, accessEmail: null, accessPhone: null, accessChat: null,
-    })
+    blankForm()
   }
   suggest.value = it?.price ? { price: it.price, cost: it.cost } : null
   lookupError.value = null
   scheduleLookup()
 })
+
+/** Resets the form to its create-mode defaults (shared by open + "create another"). */
+function blankForm() {
+  Object.assign(form, {
+    id: null, name: '', description: '', level: '', seats: null,
+    accessApi: null, accessEmail: null, accessPhone: null, accessChat: null,
+  })
+}
 
 /* ---------- Auto-lookup ---------- */
 
@@ -281,11 +291,19 @@ async function save() {
       accessChat: form.accessChat || null,
     }
     const url = 'rest/service/prov/support'
-    const result = form.id ? await api.put(url, payload) : await api.post(url, payload)
+    const created = !form.id
+    const result = created ? await api.post(url, payload) : await api.put(url, payload)
     if (result === null) return
-    errorStore.success(t(form.id ? 'prov.quote.support.updated' : 'prov.quote.support.created', { name: payload.name }))
+    errorStore.success(t(created ? 'prov.quote.support.created' : 'prov.quote.support.updated', { name: payload.name }))
     emit('saved')
-    emit('update:modelValue', false)
+    if (created && createAnother.value) {
+      blankForm()
+      suggest.value = null
+      lookupError.value = null
+      scheduleLookup()
+    } else {
+      emit('update:modelValue', false)
+    }
   } finally {
     saving.value = false
   }
