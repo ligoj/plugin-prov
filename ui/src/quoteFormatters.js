@@ -211,6 +211,24 @@ export function rowMatches(row, query) {
 }
 
 /**
+ * Sums the cost range over a list of costed resources — each contributes
+ * its `cost` to the minimum and its `maxCost` (falling back to `cost`) to
+ * the maximum; missing/non-numeric values count as 0. Used to apply the
+ * filtered-out delta to the quote's authoritative total.
+ */
+export function sumCostRange(rows) {
+  let min = 0
+  let max = 0
+  if (!Array.isArray(rows)) return { min, max }
+  for (const r of rows) {
+    if (!r) continue
+    min += Number(r.cost) || 0
+    max += Number(r.maxCost ?? r.cost) || 0
+  }
+  return { min, max }
+}
+
+/**
  * Highest value of a numeric field across a list of rows. Used to
  * normalise the efficiency micro-bars in the quote table — each row's
  * CPU/RAM cell shows `value / max(column)`. Missing rows contribute 0;

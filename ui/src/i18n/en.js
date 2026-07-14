@@ -97,6 +97,7 @@ export default {
   // ---- Quote view (iteration 1: header + read-only tables) ----
   'prov.quote.refresh': 'Refresh cost',
   'prov.quote.totalCost': 'Total monthly cost',
+  'prov.quote.totalFiltered': 'Filtered — reflects the active search',
   'prov.quote.empty': 'No resources of this kind in the quote yet.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Databases',

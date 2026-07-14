@@ -96,6 +96,7 @@ export default {
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',
+  'prov.quote.totalFiltered': 'Filtré — reflète la recherche active',
   'prov.quote.empty': 'Aucune ressource de ce type dans le devis pour le moment.',
   'prov.quote.tabs.instance': 'Instances',
   'prov.quote.tabs.database': 'Bases de données',

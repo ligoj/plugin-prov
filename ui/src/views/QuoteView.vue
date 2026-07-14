@@ -25,10 +25,13 @@
           </div>
         </div>
         <v-spacer />
-        <div class="q-cost">
-          <span class="q-cost-label">{{ t('prov.quote.totalCost') }}</span>
+        <div class="q-cost" :class="{ 'q-cost--filtered': anyFilterActive }">
+          <span class="q-cost-label">
+            {{ t('prov.quote.totalCost') }}
+            <v-icon v-if="anyFilterActive" size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
+          </span>
           <span class="q-cost-value">
-            {{ formatCostRange(scaledCost(config.cost), config.currency) }}
+            {{ formatCostRange(scaledCost(displayedQuoteCost), config.currency) }}
             <span class="q-cost-suffix">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
           </span>
         </div>
@@ -100,7 +103,7 @@
             </v-btn-toggle>
           </div>
           <div class="q-costcard-body">
-            <QuoteBreakdown :config="config" :mode="viewMode" />
+            <QuoteBreakdown :config="filteredConfig" :mode="viewMode" />
             <div class="q-stats">
               <div v-for="s in statTiles" :key="s.key" class="q-stat">
                 <span class="q-stat-ic"><v-icon size="18">{{ s.icon }}</v-icon></span>
@@ -121,7 +124,8 @@
         <v-tab v-for="t in TAB_TYPES" :key="t.key" :value="t.key">
           <v-icon :icon="t.icon" start size="small" />
           {{ tabLabel(t.key) }}
-          <v-chip v-if="counts[t.key]" size="x-small" class="ml-2 q-count" variant="tonal">{{ tabCountLabel(t.key) }}</v-chip>
+          <v-chip v-if="counts[t.key]" size="x-small" variant="tonal" :color="isTabFiltered(t.key) ? 'primary' : undefined"
+            class="ml-2 q-count" :class="{ 'q-count-filtered': isTabFiltered(t.key) }">{{ tabCountLabel(t.key) }}</v-chip>
         </v-tab>
       </v-tabs>
 
@@ -336,6 +340,7 @@ import {
   COST_PERIODS,
   rowMatches,
   maxOfField,
+  sumCostRange,
   TAB_TYPES,
 } from '../quoteFormatters.js'
 import QuoteBreakdown from './QuoteBreakdown.vue'
@@ -572,20 +577,21 @@ const counts = computed(() => {
 })
 
 /* ---------- Stat tiles (cost card) ----------
- * Pure presentation aggregates over the rows already loaded: instance
+ * Presentation aggregates over the currently VISIBLE rows (so they track
+ * the active search alongside the total cost and the donut): instance
  * count plus total vCPU / RAM across the compute types. Same fallback
  * chain as the table cells (own value, else the price type's). */
 const statTiles = computed(() => {
   let cpu = 0
   let ram = 0
   for (const key of COMPUTE_KEYS) {
-    for (const row of rowsByType.value[key]) {
+    for (const row of filteredRowsByType.value[key]) {
       cpu += Number(row.cpu ?? row.price?.type?.cpu) || 0
       ram += Number(row.ram ?? row.price?.type?.ram) || 0
     }
   }
   return [
-    { key: 'instances', icon: 'mdi-server', label: t('prov.quote.tabs.instance'), value: counts.value.instance },
+    { key: 'instances', icon: 'mdi-server', label: t('prov.quote.tabs.instance'), value: filteredRowsByType.value.instance.length },
     { key: 'cpu', icon: 'mdi-chip', label: t('prov.quote.cols.cpu'), value: formatCpu(cpu) || '0' },
     { key: 'ram', icon: 'mdi-memory', label: t('prov.quote.cols.ram'), value: formatRam(ram) || '0' },
   ]
@@ -602,6 +608,62 @@ const filteredRowsByType = computed(() => {
     out[tab.key] = q ? rows.filter((r) => rowMatches(r, q)) : rows
   }
   return out
+})
+
+/* ---------- Filtered totals ----------
+ * A search hides rows on one or more tabs. So the header total and the
+ * breakdown reflect what the user is actually looking at, we apply the
+ * DELTA of the hidden resources' costs to the authoritative aggregate
+ * (`config.cost`) rather than recomputing from scratch — support/initial
+ * coupling in the backend total is preserved, only the removed rows'
+ * direct cost/maxCost is subtracted. */
+const anyFilterActive = computed(() => TAB_TYPES.some((tab) => isTabFiltered(tab.key)))
+
+/** Sum of the hidden rows' costs across every tab: `{ min, max }`. */
+const filteredDeltaCost = computed(() => {
+  let min = 0
+  let max = 0
+  if (!anyFilterActive.value) return { min, max }
+  for (const tab of TAB_TYPES) {
+    if (!isTabFiltered(tab.key)) continue
+    const visible = new Set(filteredRowsByType.value[tab.key])
+    const hidden = rowsByType.value[tab.key].filter((r) => !visible.has(r))
+    const d = sumCostRange(hidden)
+    min += d.min
+    max += d.max
+  }
+  return { min, max }
+})
+
+/**
+ * Header total, adjusted for the active filter. Passes `config.cost`
+ * through untouched when nothing is filtered; otherwise subtracts the
+ * hidden-rows delta from `min`/`max` (leaving a null bound null).
+ */
+const displayedQuoteCost = computed(() => {
+  const base = config.value?.cost
+  if (!base || !anyFilterActive.value) return base
+  const { min: dMin, max: dMax } = filteredDeltaCost.value
+  return {
+    ...base,
+    // clamp: float drift / support coupling must never yield a negative total.
+    min: base.min != null ? Math.max(0, base.min - dMin) : base.min,
+    max: base.max != null ? Math.max(0, base.max - dMax) : base.max,
+  }
+})
+
+/**
+ * Config clone whose resource lists hold only the filtered rows, so the
+ * cost-breakdown donut/legend recompute over the visible set. Returns the
+ * original config (same identity) when no filter is active.
+ */
+const filteredConfig = computed(() => {
+  if (!config.value || !anyFilterActive.value) return config.value
+  const clone = { ...config.value }
+  for (const tab of TAB_TYPES) {
+    clone[tab.listField] = filteredRowsByType.value[tab.key]
+  }
+  return clone
 })
 
 /* ---------- Tags ---------- *
@@ -686,6 +748,11 @@ function tabLabel(key) {
   return t(`prov.quote.tabs.${key}`)
 }
 
+/** True when the search is actively hiding rows in this tab. */
+function isTabFiltered(key) {
+  return filteredRowsByType.value[key].length !== rowsByType.value[key].length
+}
+
 /**
  * Count shown in a tab's chip. Renders the filtered count alone when no
  * search is hiding rows (`12`), and only appends the total when a filter
@@ -695,7 +762,7 @@ function tabLabel(key) {
 function tabCountLabel(key) {
   const total = rowsByType.value[key].length
   const filtered = filteredRowsByType.value[key].length
-  return filtered === total ? String(total) : `${filtered}/${total}`
+  return isTabFiltered(key) ? `${filtered}/${total}` : String(total)
 }
 
 /**
@@ -1126,6 +1193,23 @@ onMounted(async () => {
   color: var(--ink-3);
 }
 
+/* A search narrows the total: tint the label + value with the accent
+ * colour and surface a small filter glyph so the figure reads as a
+ * filtered subtotal, not the whole quote. */
+.q-cost--filtered .q-cost-label,
+.q-cost-filter-ic {
+  color: rgb(var(--v-theme-primary));
+}
+
+.q-cost-filter-ic {
+  margin-left: 3px;
+  vertical-align: text-top;
+}
+
+.q-cost--filtered .q-cost-value {
+  color: rgb(var(--v-theme-primary));
+}
+
 .q-cost-value {
   font-size: 25px;
   font-weight: 700;
@@ -1244,6 +1328,14 @@ onMounted(async () => {
 .q-count {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+/* When a search narrows the tab, the chip switches to the accent colour
+ * (via the `primary` chip color) and gains a subtle ring so the filtered
+ * "3/12" reads as an active-filter state rather than a plain total. */
+.q-count-filtered {
+  font-weight: 800;
+  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.45);
 }
 
 /* ---------- Per-tab toolbar ---------- */

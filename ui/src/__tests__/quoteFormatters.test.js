@@ -15,6 +15,7 @@ import {
   COST_PERIOD_FACTORS,
   rowMatches,
   maxOfField,
+  sumCostRange,
   TAB_TYPES,
 } from '../quoteFormatters.js'
 
@@ -355,6 +356,29 @@ describe('quoteFormatters', () => {
 
     it('returns 0 when every row contributes 0', () => {
       expect(maxOfField([{ cpu: 0 }, {}, { cpu: null }], (r) => r.cpu)).toBe(0)
+    })
+  })
+
+  describe('sumCostRange', () => {
+    it('returns a zero range for an empty / non-array input', () => {
+      expect(sumCostRange([])).toEqual({ min: 0, max: 0 })
+      expect(sumCostRange(null)).toEqual({ min: 0, max: 0 })
+      expect(sumCostRange(undefined)).toEqual({ min: 0, max: 0 })
+    })
+
+    it('sums cost into min and maxCost into max', () => {
+      const rows = [{ cost: 10, maxCost: 15 }, { cost: 5, maxCost: 8 }]
+      expect(sumCostRange(rows)).toEqual({ min: 15, max: 23 })
+    })
+
+    it('falls back to cost when maxCost is missing', () => {
+      const rows = [{ cost: 10 }, { cost: 5, maxCost: 20 }]
+      expect(sumCostRange(rows)).toEqual({ min: 15, max: 30 })
+    })
+
+    it('skips null rows and coerces non-numeric costs to 0', () => {
+      const rows = [{ cost: 10, maxCost: 12 }, null, { cost: 'abc' }, { cost: 4 }]
+      expect(sumCostRange(rows)).toEqual({ min: 14, max: 16 })
     })
   })
 
