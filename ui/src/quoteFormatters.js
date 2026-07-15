@@ -253,3 +253,87 @@ export function donutFullPath(cx, cy, r, ri) {
     + ` M ${cx - ri} ${cy} A ${ri} ${ri} 0 1 0 ${cx + ri} ${cy} A ${ri} ${ri} 0 1 0 ${cx - ri} ${cy} Z`
   )
 }
+
+/**
+ * Number of months projected by the cost timeline — a fixed horizon
+ * (matching the legacy 3-year `BARCHART_DURATION`).
+ */
+export const MONTH_HORIZON = 36
+
+/**
+ * Active `[start, end)` month window of a resource within the timeline
+ * horizon. The window starts at the effective usage start (the resource's
+ * own usage, else the quote default; past/negative starts clamp to 0 =
+ * "now") and lasts for the usage duration — a duration of 0 or 1 means
+ * "unbounded" and fills the horizon (the enum default is 1).
+ */
+export function resourceMonthRange(row, config, horizon = MONTH_HORIZON) {
+  const usage = row?.usage || config?.usage || null
+  const start = Math.min(horizon, Math.max(0, Math.round(Number(usage?.start) || 0)))
+  const durRaw = Math.round(Number(usage?.duration) || 0)
+  const dur = durRaw > 1 ? durRaw : horizon
+  return { start, end: Math.min(horizon, start + dur) }
+}
+
+/** True when a resource is billed in the given (0-based) month of the horizon. */
+export function rowInMonth(row, config, month, horizon = MONTH_HORIZON) {
+  const { start, end } = resourceMonthRange(row, config, horizon)
+  return month >= start && month < end
+}
+
+/**
+ * Projects the quote's recurring cost over a fixed month horizon, stacked
+ * by resource type — the data behind the cost-timeline bar chart.
+ *
+ * Each resource contributes both its minimal and maximal monthly value
+ * (`cost`/`maxCost`, or `co2`/`maxCo2` in CO₂ mode) to every month of its
+ * active window (see `resourceMonthRange`). Per month/type the chart shows
+ * the minimum as a solid segment and the min→max gap as a faded segment.
+ *
+ * @param {object} config quote configuration block.
+ * @param {object} [opts]
+ * @param {'cost'|'co2'} [opts.field='cost'] metric to accumulate.
+ * @param {number} [opts.horizon=MONTH_HORIZON] number of months.
+ * @returns {{ horizon:number, series:Array<{key,color,values:Array<{min,max}>}>, totals:Array<{min,max}>, max:number }}
+ */
+export function costTimeline(config, { field = 'cost', horizon = MONTH_HORIZON } = {}) {
+  const empty = { horizon: 0, series: [], totals: [], max: 0 }
+  if (!config) return empty
+  const maxField = field === 'co2' ? 'maxCo2' : 'maxCost'
+
+  const perType = TAB_TYPES.map(() =>
+    Array.from({ length: horizon }, () => ({ min: 0, max: 0 })),
+  )
+  let any = false
+  TAB_TYPES.forEach((tab, ti) => {
+    const rows = Array.isArray(config[tab.listField]) ? config[tab.listField] : []
+    for (const row of rows) {
+      const min = Number(row?.[field]) || 0
+      const max = Math.max(min, Number(row?.[maxField] ?? row?.[field]) || 0)
+      if (min <= 0 && max <= 0) continue
+      any = true
+      const { start, end } = resourceMonthRange(row, config, horizon)
+      for (let m = start; m < end; m++) {
+        perType[ti][m].min += min
+        perType[ti][m].max += max
+      }
+    }
+  })
+  if (!any) return empty
+
+  const totals = Array.from({ length: horizon }, () => ({ min: 0, max: 0 }))
+  const series = []
+  TAB_TYPES.forEach((tab, i) => {
+    const values = perType[i]
+    if (values.some((v) => v.max > 0)) {
+      series.push({ key: tab.key, color: tab.color, values })
+      for (let m = 0; m < horizon; m++) {
+        totals[m].min += values[m].min
+        totals[m].max += values[m].max
+      }
+    }
+  })
+  if (series.length === 0) return empty
+
+  return { horizon, series, totals, max: Math.max(0, ...totals.map((t) => t.max)) }
+}

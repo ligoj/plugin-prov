@@ -88,9 +88,16 @@
       <v-card variant="flat" class="q-costcard mb-4">
         <v-card-text class="py-3">
           <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
-            <span class="q-card-title">
-              {{ viewMode === 'co2' ? t('prov.quote.breakdown.titleCo2') : t('prov.quote.breakdown.title') }}
-            </span>
+            <div class="d-flex align-center ga-2">
+              <span class="q-card-title">
+                {{ viewMode === 'co2' ? t('prov.quote.breakdown.titleCo2') : t('prov.quote.breakdown.title') }}
+              </span>
+              <v-chip v-if="selectedMonth != null" size="small" color="primary" variant="tonal" closable
+                @click:close="selectedMonth = null">
+                <v-icon start size="small">mdi-calendar-filter</v-icon>
+                {{ t('prov.quote.timeline.month', { n: selectedMonth + 1 }) }}
+              </v-chip>
+            </div>
             <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" divided class="q-mode">
               <v-btn size="small" value="cost" :title="t('prov.quote.viewMode.cost')">
                 <v-icon size="small" start>mdi-currency-usd</v-icon>
@@ -113,6 +120,12 @@
                 </div>
               </div>
             </div>
+            <!-- Monthly cost projection — resources ramp in at their usage
+                 start month and drop off at the end of their usage duration.
+                 Clicking a month filters every table + the donut + the totals
+                 to the resources billed that month. -->
+            <CostTimeline :config="timelineConfig" :mode="viewMode" :selected-month="selectedMonth"
+              @month-click="onMonthClick" />
           </div>
         </v-card-text>
       </v-card>
@@ -351,10 +364,12 @@ import {
   scaleCost,
   COST_PERIODS,
   rowMatches,
+  rowInMonth,
   sumCostRange,
   TAB_TYPES,
 } from '../quoteFormatters.js'
 import QuoteBreakdown from './QuoteBreakdown.vue'
+import CostTimeline from './CostTimeline.vue'
 import ComputeEditDialog from './ComputeEditDialog.vue'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
@@ -618,7 +633,10 @@ const statTiles = computed(() => {
 /* `rowMatches` lives in quoteFormatters.js so the predicate is covered
  * by unit tests (and reusable if another view needs a similar filter). */
 
-const filteredRowsByType = computed(() => {
+/* Search-only view of the rows. Feeds the cost timeline, which must keep
+ * showing the full month projection (the month selection only highlights a
+ * column there — it doesn't collapse the chart onto itself). */
+const searchRowsByType = computed(() => {
   const out = {}
   for (const tab of TAB_TYPES) {
     const q = searchByType[tab.key] || ''
@@ -627,6 +645,35 @@ const filteredRowsByType = computed(() => {
   }
   return out
 })
+
+/* Selected timeline month (0-based) or null. Clicking a bar filters every
+ * table, the donut and the totals down to the resources billed that month —
+ * on top of the per-tab search. */
+const selectedMonth = ref(null)
+
+/* The effective per-tab filter: search first, then the month selection. */
+const filteredRowsByType = computed(() => {
+  const month = selectedMonth.value
+  if (month == null) return searchRowsByType.value
+  const out = {}
+  for (const tab of TAB_TYPES) {
+    out[tab.key] = searchRowsByType.value[tab.key].filter((r) => rowInMonth(r, config.value, month))
+  }
+  return out
+})
+
+/* Config for the timeline: search-filtered only, so a month click highlights
+ * rather than shrinks the chart. */
+const timelineConfig = computed(() => {
+  if (!config.value) return config.value
+  const clone = { ...config.value }
+  for (const tab of TAB_TYPES) clone[tab.listField] = searchRowsByType.value[tab.key]
+  return clone
+})
+
+function onMonthClick(month) {
+  selectedMonth.value = selectedMonth.value === month ? null : month
+}
 
 /* ---------- Filtered totals ----------
  * A search hides rows on one or more tabs. So the header total and the
