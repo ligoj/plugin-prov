@@ -290,8 +290,8 @@
                   :currency="config?.currency" :label="t('prov.quote.fields.budget')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
-                <LigojAutocomplete v-model="editForm.optimizer" :items="config?.optimizers || []" item-title="name" item-value="name" :label="t('prov.quote.fields.optimizer')" variant="outlined"
-                  density="compact" clearable />
+                <OptimizerField v-model="editForm.optimizer" :optimizers="config?.optimizers || []" :subscription-id="subscriptionId"
+                  :label="t('prov.quote.fields.optimizer')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-select v-model="editForm.reservationMode" :items="reservationOptions" :label="t('prov.quote.fields.reservationMode')" variant="outlined" density="compact" />
@@ -327,7 +327,7 @@
          storage and support have their own modals because their lookup
          and save shapes are too different to share a form. -->
     <ComputeEditDialog v-model="computeDialog" :type="editType && COMPUTE_TYPES.has(editType) ? editType : 'instance'" :subscription-id="subscriptionId" :config="config" :resource="editTarget"
-      @saved="onResourceSaved" @tags-changed="onResourceSaved" @usage-changed="reload" @budget-changed="reload" />
+      @saved="onResourceSaved" @tags-changed="onResourceSaved" @usage-changed="reload" @budget-changed="reload" @optimizer-changed="reload" />
     <StorageEditDialog v-model="storageDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
@@ -354,7 +354,6 @@ import {
   useI18nStore,
   LigojConfirmDialog,
   LigojDataTable,
-  LigojAutocomplete,
   RowActionsMenu,
   NodeIcon,
   APP_BASE,
@@ -387,6 +386,7 @@ import LocationField from './LocationField.vue'
 import LocationLabel from './LocationLabel.vue'
 import UsageField from './UsageField.vue'
 import BudgetField from './BudgetField.vue'
+import OptimizerField from './OptimizerField.vue'
 import { osTooltip } from '../osCatalog.js'
 import { engineTooltip } from '../engineCatalog.js'
 
