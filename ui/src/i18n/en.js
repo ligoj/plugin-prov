@@ -268,7 +268,16 @@ export default {
   // `@` is reserved by vue-i18n for linked messages — escape every
   // literal `@` with `{'@'}` so the message compiler treats it as
   // plain text instead of trying to parse a link reference.
-  'prov.quote.compute.workloadHint': "Comma-separated peak% then \"duration{'@'}cpu\" pairs (e.g. 100,40{'@'}20,80{'@'}30)",
+  'prov.quote.compute.workloadHint': "Baseline CPU %, then optional \"duration{'@'}cpu\" periods (e.g. 80,20{'@'}55,10{'@'}23). Period durations should total 100%.",
+  'prov.quote.workload.title': 'Workload profile',
+  'prov.quote.workload.baseline': 'Baseline',
+  'prov.quote.workload.duration': 'Duration',
+  'prov.quote.workload.cpu': 'CPU',
+  'prov.quote.workload.addPeriod': 'Add period',
+  'prov.quote.workload.removePeriod': 'Remove period',
+  'prov.quote.workload.total': 'Total duration',
+  'prov.quote.workload.totalWarn': 'Durations should total 100% (a pro rata is applied otherwise).',
+  'prov.quote.workload.clear': 'Clear',
   'prov.quote.fields.processor': 'Processor',
   'prov.quote.fields.architecture': 'Architecture',
   'prov.quote.storage.advanced': 'Advanced requirements',

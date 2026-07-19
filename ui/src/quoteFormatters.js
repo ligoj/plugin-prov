@@ -269,6 +269,72 @@ export function nextName(name) {
   return `${s}-1`
 }
 
+/* ---------- Workload profile ----------
+ * The `workload` field follows `Workload#from(String)`:
+ *   $baseline(,$duration@$cpu)*   e.g. "80,20@55,10@23,65@10"
+ * The first CSV token is the baseline CPU %, each following `duration@cpu`
+ * token a detail period. Empty means "no profile". */
+
+/** Parse a workload string into `{ baseline, periods:[{duration,cpu}] }`. */
+export function parseWorkload(str) {
+  const s = String(str ?? '').trim()
+  if (!s) return { baseline: null, periods: [] }
+  const parts = s.split(',').map((p) => p.trim()).filter(Boolean)
+  const baseline = Number(parts[0])
+  const periods = []
+  for (let i = 1; i < parts.length; i++) {
+    const [d, c] = parts[i].split('@')
+    periods.push({ duration: Number(d), cpu: Number(c) })
+  }
+  return { baseline: Number.isFinite(baseline) ? baseline : null, periods }
+}
+
+/** Serialize `{ baseline, periods }` back to the workload string (''=none). */
+export function serializeWorkload({ baseline, periods } = {}) {
+  const b = Number(baseline)
+  if (baseline == null || baseline === '' || !Number.isFinite(b)) return ''
+  const out = [String(b)]
+  for (const p of periods || []) {
+    const d = Number(p?.duration)
+    const c = Number(p?.cpu)
+    if (!Number.isFinite(d) || !Number.isFinite(c)) continue
+    out.push(`${d}@${c}`)
+  }
+  return out.join(',')
+}
+
+/** True when a workload profile (a baseline) is configured. */
+export function hasWorkload(str) {
+  return parseWorkload(str).baseline != null
+}
+
+/**
+ * Sample a workload into `n` bars (0–100) for a sparkline: each bar is the CPU
+ * of the period covering its time slot; with no detail periods every bar is the
+ * baseline. Returns `{ baseline, bars }` (baseline null when unconfigured).
+ */
+export function workloadBars(str, n = 20) {
+  const clamp = (v) => Math.min(100, Math.max(0, v))
+  const { baseline, periods } = parseWorkload(str)
+  if (baseline == null) return { baseline: null, bars: [] }
+  const base = clamp(baseline)
+  if (!periods.length) return { baseline: base, bars: new Array(n).fill(base) }
+  const total = periods.reduce((s, p) => s + (Number(p.duration) || 0), 0) || 1
+  const bounds = []
+  let acc = 0
+  for (const p of periods) {
+    acc += Number(p.duration) || 0
+    bounds.push({ end: acc / total, cpu: clamp(Number(p.cpu) || 0) })
+  }
+  const bars = []
+  for (let i = 0; i < n; i++) {
+    const pos = (i + 0.5) / n
+    const seg = bounds.find((b) => pos <= b.end) || bounds[bounds.length - 1]
+    bars.push(seg.cpu)
+  }
+  return { baseline: base, bars }
+}
+
 /**
  * Number of months projected by the cost timeline — a fixed horizon
  * (matching the legacy 3-year `BARCHART_DURATION`).

@@ -50,9 +50,12 @@
             </v-col>
 
             <v-col cols="6" md="3">
-              <CapacityField v-model="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
-                min="0" step="0.25" kind="cpu" :unit="t('prov.quote.cols.cpu')" :provided="suggest?.price?.type?.cpu || 0"
-                :explanation="t('prov.quote.microbar.cpu')" />
+              <CpuField v-model="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
+                min="0" step="0.25" :unit="t('prov.quote.cols.cpu')" :provided="suggest?.price?.type?.cpu || 0"
+                :explanation="t('prov.quote.microbar.cpu')"
+                :workload="form.workload" :workload-explanation="t('prov.quote.compute.workloadHint')"
+                @edit-workload="workloadDialog = true" />
+              <WorkloadDialog v-model="workloadDialog" :workload="form.workload" @save="(w) => (form.workload = w)" />
             </v-col>
             <v-col cols="6" md="3">
               <CapacityField v-model="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES"
@@ -145,10 +148,6 @@
                   <v-col cols="12" md="4">
                     <RateField v-model="form.storageRate" :label="t('prov.quote.compute.storageRate')" />
                   </v-col>
-                  <v-col cols="12">
-                    <v-text-field v-model="form.workload" :label="t('prov.quote.compute.workload')" :rules="WORKLOAD_RULES"
-                      :hint="t('prov.quote.compute.workloadHint')" persistent-hint variant="outlined" density="compact" clearable />
-                  </v-col>
                   <v-col v-if="hasEphemeral" cols="12" md="6">
                     <v-switch v-model="form.ephemeral" :label="t('prov.quote.compute.ephemeral')" color="primary"
                       density="compact" hide-details />
@@ -221,10 +220,12 @@ import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from
 import { formatCost, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
+import CpuField from './CpuField.vue'
 import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'
 import RateField from './RateField.vue'
 import LocationField from './LocationField.vue'
+import WorkloadDialog from './WorkloadDialog.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources
@@ -338,20 +339,9 @@ const form = reactive({
   workload: '',
 })
 
-/**
- * Loose validator for the workload string. Empty is allowed; otherwise
- * each segment must be either a single percent (0–100) or `dur@cpu`
- * with both fractions in 0..100. Doesn't try to be exhaustive — the
- * backend re-validates and reports per-token errors.
- */
-function workloadRule(v) {
-  if (!v) return true
-  const parts = String(v).split(',').map((s) => s.trim()).filter(Boolean)
-  for (const p of parts) {
-    if (!/^\d{1,3}(@\d{1,3})?$/.test(p)) return t('prov.quote.compute.workloadHint')
-  }
-  return true
-}
+/* Workload editing lives in its own dialog (WorkloadDialog), opened from the
+ * workload icon bundled into the CPU field (CpuField). */
+const workloadDialog = ref(false)
 
 const advancedOpen = ref(null)
 
@@ -418,7 +408,6 @@ const positive = (v) => (typeof v === 'number' && v > 0) || (t('common.positive'
  * to stable refs sidesteps the cycle. */
 const REQUIRED_RULES = [required]
 const REQUIRED_POSITIVE_RULES = [required, positive]
-const WORKLOAD_RULES = [workloadRule]
 
 const canLookup = computed(() => {
   if (typeof form.cpu !== 'number' || form.cpu <= 0) return false

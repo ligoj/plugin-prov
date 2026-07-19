@@ -66,7 +66,7 @@ public class Workload {
 	 * <li>Min value's duration is <code>0</code></li>
 	 * <li>Max value's duration should be <code>100</code>, however adjustment is applied to be aligned to
 	 * <code>100</code></li>
-	 * <li>Min value's COU is <code>0</code></li>
+	 * <li>Min value's CPU is <code>0</code></li>
 	 * <li>Max value's CPU is <code>100</code></li>
 	 * <ul>
 	 * 

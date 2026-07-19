@@ -265,7 +265,16 @@ export default {
   // `@` est réservé par vue-i18n pour les messages liés — chaque `@`
   // littéral doit être encapsulé dans `{'@'}` pour que le compilateur
   // le traite comme du texte brut.
-  'prov.quote.compute.workloadHint': "Pic% puis paires « durée{'@'}cpu » séparées par des virgules (ex. 100,40{'@'}20,80{'@'}30)",
+  'prov.quote.compute.workloadHint': "Charge CPU de référence (%), puis périodes « durée{'@'}cpu » optionnelles (ex. 80,20{'@'}55,10{'@'}23). La somme des durées devrait faire 100 %.",
+  'prov.quote.workload.title': 'Profil de charge',
+  'prov.quote.workload.baseline': 'Référence',
+  'prov.quote.workload.duration': 'Durée',
+  'prov.quote.workload.cpu': 'CPU',
+  'prov.quote.workload.addPeriod': 'Ajouter une période',
+  'prov.quote.workload.removePeriod': 'Supprimer la période',
+  'prov.quote.workload.total': 'Durée totale',
+  'prov.quote.workload.totalWarn': 'La somme des durées devrait faire 100 % (un prorata est appliqué sinon).',
+  'prov.quote.workload.clear': 'Effacer',
   'prov.quote.fields.processor': 'Processeur',
   'prov.quote.fields.architecture': 'Architecture',
   'prov.quote.storage.advanced': 'Exigences avancées',
