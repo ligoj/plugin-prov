@@ -242,8 +242,14 @@
             <template #item.type="{ item }">
               <span v-if="item.price?.type?.name" class="q-type">{{ item.price.type.name }}</span>
             </template>
+            <template #header.location>
+              <span class="q-loc-header">
+                <v-icon size="16">mdi-map-marker-outline</v-icon>
+                <v-tooltip activator="parent" location="top">{{ t('prov.quote.cols.location') }}</v-tooltip>
+              </span>
+            </template>
             <template #item.location="{ item }">
-              <LocationLabel v-if="locationOf(item)" :location="locationOf(item)" class="q-loc-cell" />
+              <LocationLabel v-if="locationOf(item)" :location="locationOf(item)" flag-only class="q-loc-cell" />
             </template>
             <template #item.level="{ item }">{{ item.level || item.price?.level || '' }}</template>
             <template #item.seats="{ item }">{{ item.seats ?? item.price?.seats ?? '' }}</template>
@@ -702,6 +708,25 @@ function locationOf(item) {
   return locationsByName.value[name] || (typeof ref === 'object' ? ref : null)
 }
 
+/* Resource-level usage/optimizer serialize to their id (ToIdSerializer), so a
+ * row carries a number, not an object. Resolve it to the profile name via the
+ * quote's `usages` / `optimizers` lists (tolerating an inline object too). */
+const usagesById = computed(() => {
+  const out = {}
+  for (const u of config.value?.usages || []) if (u?.id != null) out[u.id] = u
+  return out
+})
+const optimizersById = computed(() => {
+  const out = {}
+  for (const o of config.value?.optimizers || []) if (o?.id != null) out[o.id] = o
+  return out
+})
+function scopedName(ref, byId) {
+  if (ref == null) return ''
+  if (typeof ref === 'object') return ref.name || ''
+  return byId.value[ref]?.name || ''
+}
+
 /* ---------- Filtered totals ----------
  * A search hides rows on one or more tabs. So the header total and the
  * breakdown reflect what the user is actually looking at, we apply the
@@ -791,7 +816,11 @@ const headersByType = computed(() => {
   const cpu = { title: t('prov.quote.cols.cpu'), key: 'cpu', sortable: true, width: '90px', align: 'end' }
   const ram = { title: t('prov.quote.cols.ram'), key: 'ram', sortable: true, width: '110px', align: 'end' }
   const type = { title: t('prov.quote.cols.type'), key: 'type', sortable: true }
-  const loc = { title: t('prov.quote.cols.location'), key: 'location', sortable: true }
+  const term = { title: t('prov.quote.cols.term'), key: 'term', value: (item) => item.price?.term?.name || '', sortable: true }
+  const usage = { title: t('prov.quote.cols.usage'), key: 'usage', value: (item) => scopedName(item.usage, usagesById), sortable: true }
+  const optimizer = { title: t('prov.quote.cols.optimizer'), key: 'optimizer', value: (item) => scopedName(item.optimizer, optimizersById), sortable: true }
+  // Flag-only cell + pin-icon header (see the #item.location / #header.location slots).
+  const loc = { title: t('prov.quote.cols.location'), key: 'location', sortable: true, width: '64px', align: 'center' }
   const cost = { title: t('prov.quote.cols.cost'), key: 'cost', sortable: true, width: '140px', align: 'end' }
   // Single per-row cog (RowActionsMenu) + the header tools cog live in
   // this column, so it only needs room for one icon button. `minWidth`
@@ -804,7 +833,7 @@ const headersByType = computed(() => {
   const compute = [
     name,
     { title: t('prov.quote.cols.quantity'), key: 'minQuantity', sortable: true, width: '70px', align: 'end' },
-    cpu, ram, type, loc, cost,
+    cpu, ram, type, loc, term, usage, optimizer, cost,
   ]
 
   return {
@@ -813,16 +842,16 @@ const headersByType = computed(() => {
     function: [...compute, actions],
     database: [name, cpu, ram,
       { title: t('prov.quote.cols.engine'), key: 'engine', sortable: true },
-      type, loc, cost, actions],
+      type, loc, term, usage, optimizer, cost, actions],
     storage: [name,
       { title: t('prov.quote.cols.size'), key: 'size', sortable: true, width: '110px', align: 'end' },
       type, loc,
       { title: t('prov.quote.cols.attachedTo'), key: 'attachedTo', sortable: false },
-      cost, actions],
+      term, cost, actions],
     support: [name,
       { title: t('prov.quote.cols.level'), key: 'level', sortable: true },
       { title: t('prov.quote.cols.seats'), key: 'seats', sortable: true, width: '90px', align: 'end' },
-      type, cost, actions],
+      type, term, cost, actions],
   }
 })
 
@@ -1517,6 +1546,18 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+}
+
+/* Location column: only a flag in the body and a pin in the header, so
+ * both stay centred in the narrow column. */
+.q-loc-header {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+.q-loc-cell {
+  justify-content: center;
 }
 
 /* Row-click opens the editor, so make the whole row read as clickable. */

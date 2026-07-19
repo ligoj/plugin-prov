@@ -249,6 +249,16 @@ const { t } = useI18nStore()
 
 const isEdit = computed(() => !!props.resource?.id)
 
+/* A resource's usage/budget/optimizer come back as an id (ToIdSerializer).
+ * Resolve it to the profile name the autocomplete binds to, tolerating an
+ * inline object or a plain name too. */
+function scopedName(ref, list) {
+  if (ref == null) return null
+  if (typeof ref === 'object') return ref.name ?? null
+  if (typeof ref === 'string') return ref
+  return (list || []).find((x) => x?.id === ref)?.name ?? null
+}
+
 const resourceTags = computed(() => {
   const tagsByType = props.config?.tags
   if (!tagsByType || !props.resource?.id) return []
@@ -445,9 +455,11 @@ watch(() => props.modelValue, (open) => {
     form.minQuantity = it.minQuantity ?? 1
     form.maxQuantity = it.maxQuantity ?? null
     form.location = it.location?.name ?? null
-    form.usage = it.usage?.name ?? null
-    form.budget = it.budget?.name ?? null
-    form.optimizer = it.optimizer?.name ?? null
+    // usage/budget/optimizer serialize to their id (ToIdSerializer) on a
+    // resource, so resolve the id back to the profile name via the quote lists.
+    form.usage = scopedName(it.usage, props.config?.usages)
+    form.budget = scopedName(it.budget, props.config?.budgets)
+    form.optimizer = scopedName(it.optimizer, props.config?.optimizers)
     form.nbRequests = it.nbRequests ?? 1
     form.duration = it.duration ?? 100
     form.concurrency = it.concurrency ?? 0

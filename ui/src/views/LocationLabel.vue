@@ -1,8 +1,8 @@
 <template>
   <span class="loc-label">
     <span v-if="glyph" class="loc-flag">{{ glyph }}</span>
-    <span class="loc-name">{{ name }}</span>
-    <span v-if="showCode && code && code !== name" class="loc-code">{{ code }}</span>
+    <span v-if="!flagOnly" class="loc-name">{{ name }}</span>
+    <span v-if="!flagOnly && showCode && code && code !== name" class="loc-code">{{ code }}</span>
 
     <!-- Detail tooltip: glyph, country/continent name + code, continent. -->
     <v-tooltip v-if="tooltip" activator="parent" location="top" open-delay="150" content-class="loc-tip">
@@ -53,6 +53,8 @@ const props = defineProps({
   location: { type: Object, default: null },
   /** Append the location code name (e.g. "us-east-1") in a muted style. */
   showCode: { type: Boolean, default: false },
+  /** Render only the flag glyph (name/code hidden) — used in dense table cells. */
+  flagOnly: { type: Boolean, default: false },
   /** Show the detail tooltip on hover. */
   tooltip: { type: Boolean, default: true },
 })
