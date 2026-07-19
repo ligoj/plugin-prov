@@ -28,9 +28,8 @@
                 :label="t('prov.quote.cols.attachedTo')" variant="outlined" density="compact" clearable />
             </v-col>
             <v-col cols="12" md="4">
-              <LigojAutocomplete v-model="form.location" :items="config?.locations || []" item-title="name" item-value="name"
-                :label="t('prov.quote.cols.location')" variant="outlined" density="compact" clearable
-                :disabled="!!form.attached" />
+              <LocationField v-model="form.location" :items="config?.locations || []"
+                :label="t('prov.quote.cols.location')" :disabled="!!form.attached" />
             </v-col>
           </v-row>
 
@@ -110,6 +109,7 @@ import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import RateField from './RateField.vue'
+import LocationField from './LocationField.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

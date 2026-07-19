@@ -74,8 +74,7 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <LigojAutocomplete v-model="form.location" :items="config?.locations || []" item-title="name"
-                item-value="name" :label="t('prov.quote.cols.location')" variant="outlined" density="compact" clearable />
+              <LocationField v-model="form.location" :items="config?.locations || []" :label="t('prov.quote.cols.location')" />
             </v-col>
             <v-col cols="12" md="6">
               <LigojAutocomplete v-model="form.usage" :items="config?.usages || []" item-title="name" item-value="name"
@@ -215,6 +214,7 @@ import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import OsIcon from './OsIcon.vue'
 import RateField from './RateField.vue'
+import LocationField from './LocationField.vue'
 
 /**
  * Generic create/edit dialog for the four compute-style resources

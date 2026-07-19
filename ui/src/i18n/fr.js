@@ -116,6 +116,8 @@ export default {
   'prov.quote.cols.engine': 'Moteur',
   'prov.quote.cols.type': 'Type',
   'prov.quote.cols.location': 'Localisation',
+  'prov.quote.location.code': 'Code',
+  'prov.quote.location.continent': 'Continent',
   'prov.quote.cols.cost': 'Coût / mois',
   'prov.quote.cols.size': 'Taille',
   'prov.quote.cols.level': 'Niveau',

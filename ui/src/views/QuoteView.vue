@@ -235,9 +235,7 @@
               <span v-if="item.price?.type?.name" class="q-type">{{ item.price.type.name }}</span>
             </template>
             <template #item.location="{ item }">
-              <span v-if="item.location?.name || item.price?.location?.name" class="q-loc">
-                <v-icon size="12">mdi-map-marker-outline</v-icon>{{ item.location?.name || item.price?.location?.name }}
-              </span>
+              <LocationLabel v-if="locationOf(item)" :location="locationOf(item)" class="q-loc-cell" />
             </template>
             <template #item.level="{ item }">{{ item.level || item.price?.level || '' }}</template>
             <template #item.seats="{ item }">{{ item.seats ?? item.price?.seats ?? '' }}</template>
@@ -270,8 +268,7 @@
                 <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
               </v-col>
               <v-col cols="12" md="6">
-                <LigojAutocomplete v-model="editForm.location" :items="config?.locations || []" item-title="name" item-value="name" :label="t('prov.quote.cols.location')" variant="outlined"
-                  density="compact" clearable />
+                <LocationField v-model="editForm.location" :items="config?.locations || []" :label="t('prov.quote.cols.location')" />
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
@@ -376,6 +373,8 @@ import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import OsIcon from './OsIcon.vue'
+import LocationField from './LocationField.vue'
+import LocationLabel from './LocationLabel.vue'
 import { osTooltip } from '../osCatalog.js'
 
 const route = useRoute()
@@ -673,6 +672,21 @@ const timelineConfig = computed(() => {
 
 function onMonthClick(month) {
   selectedMonth.value = selectedMonth.value === month ? null : month
+}
+
+/* Resolve a row's location to the full ProvLocation object (with flag/country
+ * data) — the row may carry it inline or only reference it by code name via
+ * its price, so we look it up in the quote's `locations` list. */
+const locationsByName = computed(() => {
+  const out = {}
+  for (const l of config.value?.locations || []) if (l?.name) out[l.name] = l
+  return out
+})
+function locationOf(item) {
+  const ref = item?.location || item?.price?.location
+  if (!ref) return null
+  const name = typeof ref === 'string' ? ref : ref.name
+  return locationsByName.value[name] || (typeof ref === 'object' ? ref : null)
 }
 
 /* ---------- Filtered totals ----------
