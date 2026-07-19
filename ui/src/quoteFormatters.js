@@ -255,6 +255,21 @@ export function donutFullPath(cx, cy, r, ri) {
 }
 
 /**
+ * Next name for a "create another" clone: increments a trailing `-<number>`
+ * suffix, or appends `-1` when there is none.
+ *   "web"     → "web-1"
+ *   "web-1"   → "web-2"
+ *   "db-9"    → "db-10"
+ *   "a-b-3"   → "a-b-4"
+ */
+export function nextName(name) {
+  const s = String(name ?? '')
+  const m = s.match(/-(\d+)$/)
+  if (m) return `${s.slice(0, m.index)}-${parseInt(m[1], 10) + 1}`
+  return `${s}-1`
+}
+
+/**
  * Number of months projected by the cost timeline — a fixed horizon
  * (matching the legacy 3-year `BARCHART_DURATION`).
  */

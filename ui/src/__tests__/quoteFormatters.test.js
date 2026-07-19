@@ -16,6 +16,7 @@ import {
   rowMatches,
   maxOfField,
   sumCostRange,
+  nextName,
   TAB_TYPES,
 } from '../quoteFormatters.js'
 
@@ -397,5 +398,20 @@ describe('quoteFormatters', () => {
         expect(t.color).toMatch(/^rgb\(var\(--v-theme-[a-z-]+\)\)$/)
       }
     })
+  })
+})
+
+describe('nextName', () => {
+  it('appends -1 when there is no trailing number', () => {
+    expect(nextName('web')).toBe('web-1')
+    expect(nextName('db-node')).toBe('db-node-1')
+    expect(nextName('')).toBe('-1')
+  })
+
+  it('increments an existing trailing -<number>', () => {
+    expect(nextName('web-1')).toBe('web-2')
+    expect(nextName('db-9')).toBe('db-10')
+    expect(nextName('a-b-3')).toBe('a-b-4')
+    expect(nextName('web-007')).toBe('web-8')
   })
 })

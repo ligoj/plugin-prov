@@ -105,7 +105,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
-import { formatCost, TAB_TYPES } from '../quoteFormatters.js'
+import { formatCost, TAB_TYPES, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import RateField from './RateField.vue'
@@ -336,7 +336,9 @@ async function save() {
     errorStore.success(t(created ? 'prov.quote.storage.created' : 'prov.quote.storage.updated', { name: payload.name }))
     emit('saved')
     if (created && createAnother.value) {
-      blankForm()
+      // Keep every value; only bump the name for the next resource.
+      form.id = null
+      form.name = nextName(form.name)
       suggest.value = null
       lookupError.value = null
       scheduleLookup()

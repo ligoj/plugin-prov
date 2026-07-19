@@ -218,7 +218,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
 import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
-import { formatCost } from '../quoteFormatters.js'
+import { formatCost, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import OsIcon from './OsIcon.vue'
@@ -644,8 +644,10 @@ async function save() {
     errorStore.success(t(i18nKey, { name: payload.name }))
     emit('saved')
     if (created && createAnother.value) {
-      // Keep the dialog open for the next resource; re-lookup the reset form.
-      blankForm()
+      // Keep the dialog open with every value; only bump the name (append or
+      // increment a trailing "-<number>") and re-lookup for the next resource.
+      form.id = null
+      form.name = nextName(form.name)
       suggest.value = null
       lookupError.value = null
       scheduleLookup()
