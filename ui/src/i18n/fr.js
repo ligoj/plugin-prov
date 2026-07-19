@@ -97,6 +97,8 @@ export default {
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',
   'prov.quote.totalFiltered': 'Filtré — reflète la recherche active',
+  'prov.quote.efficiency.label': 'Efficacité',
+  'prov.quote.efficiency.explain': 'Part de la capacité facturée réellement utilisée : le CPU / RAM / stockage demandé par rapport à l\'offre la plus adaptée. Une valeur plus faible signifie que vous payez une marge inutilisée.',
   // Micro-barre d'utilisation (réservé vs capacité du type sélectionné).
   'prov.quote.microbar.cpu': 'vCPU réservé par rapport au vCPU fourni par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',
   'prov.quote.microbar.ram': 'RAM réservée par rapport à la RAM fournie par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',

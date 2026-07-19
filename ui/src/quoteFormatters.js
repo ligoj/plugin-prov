@@ -337,3 +337,67 @@ export function costTimeline(config, { field = 'cost', horizon = MONTH_HORIZON }
 
   return { horizon, series, totals, max: Math.max(0, ...totals.map((t) => t.max)) }
 }
+
+/**
+ * Provisioning efficiency — the cost-weighted share of the paid-for capacity
+ * that the requested resources actually use, mirroring the legacy `updateGauge`.
+ *
+ * Per compute type: `0.8·(cpu reserved / cpu available) + 0.2·(ram reserved /
+ * ram available)`, where "available" is the best-matching offer's capacity.
+ * Storage: `size / max(size, type.minimal)` (the minimum billable block).
+ * Overall: `Σ(cost · utilisation) / Σ(cost)` across compute + storage (support
+ * excluded). 1 means a perfect fit; lower means paying for unused headroom.
+ *
+ * @returns {{ overall: number, byType: Array<{key,efficiency,cost}>, costNoSupport: number }}
+ */
+export function computeEfficiency(config) {
+  if (!config) return { overall: 1, byType: [], costNoSupport: 0 }
+  const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
+  const ramAdj = (Number(config.ramAdjustedRate) || 100) / 100
+  let weightCost = 0
+  let costNoSupport = 0
+  const byType = []
+
+  for (const t of TAB_TYPES) {
+    if (t.key === 'storage' || t.key === 'support') continue
+    const rows = Array.isArray(config[t.listField]) ? config[t.listField] : []
+    let cpuR = 0, cpuA = 0, ramR = 0, ramA = 0, cost = 0
+    for (const r of rows) {
+      if (!r) continue
+      const nb = Number(r.minQuantity) || 1
+      cpuR += (Number(r.cpu) || 0) * nb
+      cpuA += (Number(r.price?.type?.cpu) || 0) * nb
+      ramR += (Number(r.ram) || 0) * ramAdj * nb
+      ramA += (Number(r.price?.type?.ram) || 0) * nb
+      cost += Number(r.cost) || 0
+    }
+    costNoSupport += cost
+    if (cpuA > 0) weightCost += cost * 0.8 * (cpuR / cpuA)
+    if (ramA > 0) weightCost += cost * 0.2 * (ramR / ramA)
+    const wCpu = cpuA > 0 ? 0.8 : 0
+    const wRam = ramA > 0 ? 0.2 : 0
+    const wTot = wCpu + wRam
+    if (cost > 0 && wTot > 0) {
+      const eff = (wCpu * (cpuR / cpuA) + wRam * (ramR / ramA)) / wTot
+      byType.push({ key: t.key, efficiency: clamp01(eff), cost })
+    }
+  }
+
+  // Storage: requested size vs the type's minimum billable size.
+  const storages = Array.isArray(config.storages) ? config.storages : []
+  let sR = 0, sA = 0, sCost = 0
+  for (const s of storages) {
+    if (!s) continue
+    const size = Number(s.size) || 0
+    const minimal = Number(s.price?.type?.minimal) || 0
+    sR += size
+    sA += Math.max(size, minimal)
+    sCost += Number(s.cost) || 0
+  }
+  costNoSupport += sCost
+  if (sA > 0) weightCost += sCost * (sR / sA)
+  if (sCost > 0 && sA > 0) byType.push({ key: 'storage', efficiency: clamp01(sR / sA), cost: sCost })
+
+  const overall = costNoSupport > 0 ? clamp01(weightCost / costNoSupport) : 1
+  return { overall, byType, costNoSupport }
+}

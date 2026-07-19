@@ -26,14 +26,15 @@
         </div>
         <v-spacer />
         <div class="q-cost" :class="{ 'q-cost--filtered': anyFilterActive }">
-          <span class="q-cost-label">
-            {{ t('prov.quote.totalCost') }}
-            <v-icon v-if="anyFilterActive" size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
+          <!-- No "monthly" caption: the active period is shown in the period
+               selector, and its suffix would just duplicate it here. -->
+          <span v-if="anyFilterActive" class="q-cost-label">
+            <v-icon size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
           </span>
           <span class="q-cost-value">
             {{ formatCostRange(scaledCost(displayedQuoteCost), config.currency) }}
-            <span class="q-cost-suffix">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
           </span>
+          <EfficiencyBar :config="filteredConfig" class="q-cost-eff" />
         </div>
         <div class="q-tools">
           <!-- Cost-period selector. Pure display — the backend stores
@@ -372,6 +373,7 @@ import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
+import EfficiencyBar from './EfficiencyBar.vue'
 import OsIcon from './OsIcon.vue'
 import LocationField from './LocationField.vue'
 import LocationLabel from './LocationLabel.vue'
@@ -1252,6 +1254,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+}
+
+.q-cost-eff {
+  margin-top: 8px;
 }
 
 .q-cost-label {
