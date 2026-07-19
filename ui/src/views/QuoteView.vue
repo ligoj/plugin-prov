@@ -231,7 +231,14 @@
                 </v-tooltip>
               </span>
             </template>
-            <template #item.engine="{ item }">{{ item.engine || item.price?.engine || '' }}</template>
+            <template #item.engine="{ item }">
+              <span v-if="item.engine || item.price?.engine" class="q-engine">
+                <EngineIcon :engine="item.engine || item.price?.engine" />
+                <v-tooltip activator="parent" location="top">
+                  {{ engineTooltip(item.engine || item.price?.engine) }}
+                </v-tooltip>
+              </span>
+            </template>
             <template #item.type="{ item }">
               <span v-if="item.price?.type?.name" class="q-type">{{ item.price.type.name }}</span>
             </template>
@@ -375,9 +382,11 @@ import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import EfficiencyBar from './EfficiencyBar.vue'
 import OsIcon from './OsIcon.vue'
+import EngineIcon from './EngineIcon.vue'
 import LocationField from './LocationField.vue'
 import LocationLabel from './LocationLabel.vue'
 import { osTooltip } from '../osCatalog.js'
+import { engineTooltip } from '../engineCatalog.js'
 
 const route = useRoute()
 const api = useApi()
@@ -1500,7 +1509,8 @@ onMounted(async () => {
   color: var(--ink-3);
 }
 
-.q-os {
+.q-os,
+.q-engine {
   display: inline-flex;
   align-items: center;
   gap: 6px;

@@ -28,7 +28,16 @@
 
             <v-col v-if="type === 'database'" cols="12" md="6">
               <LigojAutocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')"
-                :rules="REQUIRED_RULES" variant="outlined" density="compact" />
+                :rules="REQUIRED_RULES" variant="outlined" density="compact">
+                <template #item="{ props: itemProps, item }">
+                  <v-list-item v-bind="itemProps">
+                    <template #prepend><EngineIcon :engine="item" /></template>
+                  </v-list-item>
+                </template>
+                <template #selection="{ item }">
+                  <EngineIcon :engine="item" class="me-2" />{{ item }}
+                </template>
+              </LigojAutocomplete>
             </v-col>
             <v-col v-if="type === 'database'" cols="12" md="6">
               <v-text-field v-model="form.edition" :label="t('prov.quote.compute.edition')" variant="outlined"
@@ -213,6 +222,7 @@ import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'
 import OsIcon from './OsIcon.vue'
+import EngineIcon from './EngineIcon.vue'
 import RateField from './RateField.vue'
 import LocationField from './LocationField.vue'
 
