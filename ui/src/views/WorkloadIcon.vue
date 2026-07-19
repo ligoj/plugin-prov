@@ -114,19 +114,25 @@ const spark = computed(() => workloadBars(props.workload, 24))
   border-radius: 999px;
   background: rgba(var(--v-theme-on-surface), 0.14);
 }
+/* The tooltip background is `surface-variant` (dark grey in both themes), so
+ * the sparkline sits on its own opaque `surface` panel to keep the bars and
+ * baseline readable — white in light mode, dark in dark mode. */
 .wl-tip .wl-tip-spark {
   width: 100%;
-  height: 44px;
-  margin-top: 4px;
+  height: 46px;
+  margin-top: 6px;
   display: block;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
+  border-radius: 4px;
 }
 .wl-tip .wl-bar {
   fill: rgb(var(--v-theme-primary));
-  opacity: 0.7;
+  opacity: 0.85;
 }
 .wl-tip .wl-baseline {
   stroke: rgb(var(--v-theme-error));
-  stroke-width: 1;
+  stroke-width: 1.5;
   stroke-dasharray: 2 2;
   vector-effect: non-scaling-stroke;
 }
