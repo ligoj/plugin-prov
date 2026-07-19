@@ -9,6 +9,8 @@
       variant="outlined"
       density="compact"
       clearable
+      :placeholder="placeholderNote"
+      persistent-placeholder
       v-bind="$attrs"
       hide-details="auto"
       @update:model-value="(v) => emit('update:modelValue', v)"
@@ -32,6 +34,7 @@
     <v-btn icon size="small" variant="text" :title="t('prov.quote.usage.new')" @click="newUsage">
       <v-icon>mdi-plus</v-icon>
     </v-btn>
+    <HelpTip :text="t('prov.quote.usage.about')" />
 
     <UsageDialog
       v-model="dialog"
@@ -51,6 +54,7 @@
 import { ref, computed } from 'vue'
 import { useI18nStore, LigojAutocomplete } from '@ligoj/host'
 import UsageDialog from './UsageDialog.vue'
+import HelpTip from './HelpTip.vue'
 import { usageSummary } from '../usageCatalog.js'
 
 defineOptions({ inheritAttrs: false })
@@ -60,10 +64,21 @@ const props = defineProps({
   /** ProvUsage objects (e.g. config.usages). */
   usages: { type: Array, default: () => [] },
   subscriptionId: { type: [Number, String], default: null },
+  /** 'config' (quote-wide default) or 'resource' (inherits the quote default). */
+  scope: { type: String, default: 'resource' },
+  /** The quote's default usage, shown in the placeholder at resource scope. */
+  quoteDefault: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'changed'])
 
 const { t } = useI18nStore()
+
+// Placeholder describing what applies when nothing is selected.
+const placeholderNote = computed(() => {
+  if (props.scope === 'config') return t('prov.quote.usage.defaultNote')
+  const name = props.quoteDefault?.name
+  return name ? t('prov.quote.usage.inherit', { name }) : t('prov.quote.usage.defaultNote')
+})
 
 const dialog = ref(false)
 const editing = ref(null)

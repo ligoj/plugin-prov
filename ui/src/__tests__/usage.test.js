@@ -121,4 +121,14 @@ describe('<UsageField>', () => {
     w.findComponent(UsageDialog).vm.$emit('changed')
     expect(w.emitted('changed')).toBeTruthy()
   })
+
+  it('placeholder describes the default by scope', () => {
+    const cfg = mount(UsageField, { props: { usages: [], scope: 'config' }, ...withApp })
+    expect(cfg.find('input').attributes('placeholder')).toContain('Always up')
+    const res = mount(UsageField, { props: { usages: [], scope: 'resource', quoteDefault: { name: 'biz' } }, ...withApp })
+    expect(res.find('input').attributes('placeholder')).toContain('biz')
+    // resource scope with no quote default falls back to the hard default
+    const bare = mount(UsageField, { props: { usages: [], scope: 'resource' }, ...withApp })
+    expect(bare.find('input').attributes('placeholder')).toContain('Always up')
+  })
 })

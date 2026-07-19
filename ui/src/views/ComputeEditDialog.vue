@@ -83,14 +83,14 @@
               <LocationField v-model="form.location" :items="config?.locations || []" :label="t('prov.quote.cols.location')" />
             </v-col>
             <v-col cols="12" md="6">
-              <UsageField v-model="form.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" :label="t('prov.quote.fields.usage')" @changed="emit('usage-changed')" />
+              <UsageField v-model="form.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" :quote-default="config?.usage" :label="t('prov.quote.fields.usage')" @changed="emit('usage-changed')" />
             </v-col>
             <v-col cols="12" md="6">
-              <BudgetField v-model="form.budget" :budgets="config?.budgets || []" :subscription-id="subscriptionId" :currency="config?.currency"
+              <BudgetField v-model="form.budget" :budgets="config?.budgets || []" :subscription-id="subscriptionId" :currency="config?.currency" :quote-default="config?.budget"
                 :label="t('prov.quote.fields.budget')" @changed="emit('budget-changed')" />
             </v-col>
             <v-col cols="12" md="6">
-              <OptimizerField v-model="form.optimizer" :optimizers="config?.optimizers || []" :subscription-id="subscriptionId"
+              <OptimizerField v-model="form.optimizer" :optimizers="config?.optimizers || []" :subscription-id="subscriptionId" :quote-default="config?.optimizer"
                 :label="t('prov.quote.fields.optimizer')" @changed="emit('optimizer-changed')" />
             </v-col>
           </v-row>

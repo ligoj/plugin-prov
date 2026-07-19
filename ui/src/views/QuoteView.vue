@@ -282,15 +282,15 @@
                 <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <UsageField v-model="editForm.usage" :usages="config?.usages || []" :subscription-id="subscriptionId"
+                <UsageField v-model="editForm.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" scope="config"
                   :label="t('prov.quote.fields.usage')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
-                <BudgetField v-model="editForm.budget" :budgets="config?.budgets || []" :subscription-id="subscriptionId"
+                <BudgetField v-model="editForm.budget" :budgets="config?.budgets || []" :subscription-id="subscriptionId" scope="config"
                   :currency="config?.currency" :label="t('prov.quote.fields.budget')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
-                <OptimizerField v-model="editForm.optimizer" :optimizers="config?.optimizers || []" :subscription-id="subscriptionId"
+                <OptimizerField v-model="editForm.optimizer" :optimizers="config?.optimizers || []" :subscription-id="subscriptionId" scope="config"
                   :label="t('prov.quote.fields.optimizer')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">

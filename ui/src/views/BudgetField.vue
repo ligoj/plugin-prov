@@ -9,6 +9,8 @@
       variant="outlined"
       density="compact"
       clearable
+      :placeholder="placeholderNote"
+      persistent-placeholder
       v-bind="$attrs"
       hide-details="auto"
       @update:model-value="(v) => emit('update:modelValue', v)"
@@ -36,6 +38,7 @@
     <v-btn icon size="small" variant="text" :title="t('prov.quote.budget.new')" @click="newBudget">
       <v-icon>mdi-plus</v-icon>
     </v-btn>
+    <HelpTip :text="t('prov.quote.budget.about')" />
 
     <BudgetDialog
       v-model="dialog"
@@ -55,6 +58,7 @@
 import { ref, computed } from 'vue'
 import { useI18nStore, LigojAutocomplete } from '@ligoj/host'
 import BudgetDialog from './BudgetDialog.vue'
+import HelpTip from './HelpTip.vue'
 import { budgetSummary } from '../budgetCatalog.js'
 
 defineOptions({ inheritAttrs: false })
@@ -65,10 +69,20 @@ const props = defineProps({
   budgets: { type: Array, default: () => [] },
   subscriptionId: { type: [Number, String], default: null },
   currency: { type: Object, default: null },
+  /** 'config' (quote-wide default) or 'resource' (inherits the quote default). */
+  scope: { type: String, default: 'resource' },
+  /** The quote's default budget, shown in the placeholder at resource scope. */
+  quoteDefault: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'changed'])
 
 const { t } = useI18nStore()
+
+const placeholderNote = computed(() => {
+  if (props.scope === 'config') return t('prov.quote.budget.defaultNote')
+  const name = props.quoteDefault?.name
+  return name ? t('prov.quote.budget.inherit', { name }) : t('prov.quote.budget.defaultNote')
+})
 
 const dialog = ref(false)
 const editing = ref(null)

@@ -9,6 +9,8 @@
       variant="outlined"
       density="compact"
       clearable
+      :placeholder="placeholderNote"
+      persistent-placeholder
       v-bind="$attrs"
       hide-details="auto"
       @update:model-value="(v) => emit('update:modelValue', v)"
@@ -37,6 +39,7 @@
     <v-btn icon size="small" variant="text" :title="t('prov.quote.optimizer.new')" @click="newOptimizer">
       <v-icon>mdi-plus</v-icon>
     </v-btn>
+    <HelpTip :text="t('prov.quote.optimizer.about')" />
 
     <OptimizerDialog
       v-model="dialog"
@@ -55,6 +58,7 @@
 import { ref, computed } from 'vue'
 import { useI18nStore, LigojAutocomplete } from '@ligoj/host'
 import OptimizerDialog from './OptimizerDialog.vue'
+import HelpTip from './HelpTip.vue'
 import { optimizerSummary, optimizerModeIcon } from '../optimizerCatalog.js'
 
 defineOptions({ inheritAttrs: false })
@@ -64,10 +68,20 @@ const props = defineProps({
   /** ProvOptimizer objects (e.g. config.optimizers). */
   optimizers: { type: Array, default: () => [] },
   subscriptionId: { type: [Number, String], default: null },
+  /** 'config' (quote-wide default) or 'resource' (inherits the quote default). */
+  scope: { type: String, default: 'resource' },
+  /** The quote's default optimizer, shown in the placeholder at resource scope. */
+  quoteDefault: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'changed'])
 
 const { t } = useI18nStore()
+
+const placeholderNote = computed(() => {
+  if (props.scope === 'config') return t('prov.quote.optimizer.defaultNote')
+  const name = props.quoteDefault?.name
+  return name ? t('prov.quote.optimizer.inherit', { name }) : t('prov.quote.optimizer.defaultNote')
+})
 
 const dialog = ref(false)
 const editing = ref(null)
