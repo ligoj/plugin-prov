@@ -84,6 +84,10 @@
             <v-col cols="12" md="6">
               <UsageField v-model="form.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" :label="t('prov.quote.fields.usage')" @changed="emit('usage-changed')" />
             </v-col>
+            <v-col cols="12" md="6">
+              <BudgetField v-model="form.budget" :budgets="config?.budgets || []" :subscription-id="subscriptionId" :currency="config?.currency"
+                :label="t('prov.quote.fields.budget')" @changed="emit('budget-changed')" />
+            </v-col>
           </v-row>
 
           <!-- Advanced fields, collapsed by default. They all feed the
@@ -208,6 +212,7 @@ import EngineIcon from './EngineIcon.vue'
 import RateField from './RateField.vue'
 import LocationField from './LocationField.vue'
 import UsageField from './UsageField.vue'
+import BudgetField from './BudgetField.vue'
 import WorkloadDialog from './WorkloadDialog.vue'
 
 /**
@@ -230,7 +235,7 @@ const props = defineProps({
   /** Existing resource row when editing; `null` switches to create. */
   resource: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed', 'usage-changed'])
+const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed', 'usage-changed', 'budget-changed'])
 
 const api = useApi()
 const errorStore = useErrorStore()
@@ -301,6 +306,7 @@ const form = reactive({
   maxQuantity: null,
   location: null,
   usage: null,
+  budget: null,
   nbRequests: 1,
   duration: 100,
   concurrency: 0,
@@ -424,6 +430,7 @@ watch(() => props.modelValue, (open) => {
     form.maxQuantity = it.maxQuantity ?? null
     form.location = it.location?.name ?? null
     form.usage = it.usage?.name ?? null
+    form.budget = it.budget?.name ?? null
     form.nbRequests = it.nbRequests ?? 1
     form.duration = it.duration ?? 100
     form.concurrency = it.concurrency ?? 0
@@ -452,7 +459,7 @@ function blankForm() {
   Object.assign(form, {
     id: null, name: '', description: '', os: 'LINUX', engine: 'MYSQL', edition: '',
     cpu: 1, ramGb: 1, minQuantity: 1, maxQuantity: null,
-    location: null, usage: null,
+    location: null, usage: null, budget: null,
     nbRequests: 1, duration: 100, concurrency: 0,
     processor: null, architecture: null, physical: null, license: null, software: null,
     gpu: 0, ephemeral: false, maxVariableCost: null,
@@ -491,7 +498,7 @@ watch(
     form.os, form.engine, form.edition,
     form.cpu, form.ramGb,
     form.nbRequests, form.duration, form.concurrency,
-    form.location, form.usage,
+    form.location, form.usage, form.budget,
     form.processor, form.architecture, form.physical, form.license, form.software, form.gpu,
     form.cpuRate, form.ramRate, form.networkRate, form.storageRate,
   ],
@@ -521,6 +528,7 @@ async function runLookup() {
     }
     if (form.location) qs.set('location', form.location)
     if (form.usage) qs.set('usage', form.usage)
+    if (form.budget) qs.set('budget', form.budget)
     if (form.processor) qs.set('processor', String(form.processor).toLowerCase())
     if (form.architecture) qs.set('architecture', String(form.architecture).toLowerCase())
     if (form.physical === true || form.physical === false) qs.set('physical', String(form.physical))
@@ -574,6 +582,7 @@ async function save() {
       ram: Math.round(form.ramGb * 1024),
       location: form.location,
       usage: form.usage,
+      budget: form.budget,
     }
     if (hasOs.value) payload.os = form.os
     if (props.type === 'database') {
