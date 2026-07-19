@@ -40,8 +40,9 @@
                 </template>
               </LigojAutocomplete>
             </v-col>
-            <v-col v-if="type === 'database'" cols="12" md="6">
-              <v-text-field v-model="form.edition" :label="t('prov.quote.compute.edition')" variant="outlined" density="compact" :hint="t('prov.quote.compute.editionHint')" />
+            <v-col v-if="type === 'database' && editionItems.length" cols="12" md="6">
+              <LigojAutocomplete v-model="form.edition" :items="editionItems" :label="t('prov.quote.compute.edition')"
+                variant="outlined" density="compact" clearable />
             </v-col>
 
             <v-col cols="12">
@@ -357,11 +358,13 @@ function withCurrent(list, current) {
 
 const licenseList = ref([])
 const softwareList = ref([])
+const editionList = ref([])
 
 const processorItems = computed(() => withCurrent(props.config?.processors?.[props.type], form.processor))
 const architectureItems = computed(() => withCurrent(props.config?.architectures?.[props.type], form.architecture))
 const licenseItems = computed(() => withCurrent(licenseList.value, form.license))
 const softwareItems = computed(() => withCurrent(softwareList.value, form.software))
+const editionItems = computed(() => withCurrent(editionList.value, form.edition))
 
 async function fetchLicenses() {
   // instance/container filter by OS; database by engine; function has none.
@@ -379,10 +382,17 @@ async function fetchSoftware() {
   softwareList.value = Array.isArray(data) ? data : []
 }
 
-// Refresh the per-OS lists when the dialog opens or its OS/engine changes.
+async function fetchEditions() {
+  if (props.type !== 'database' || !form.engine || props.subscriptionId == null) { editionList.value = []; return }
+  const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/database-edition/${encodeURIComponent(form.engine)}`
+  const data = await api.get(url, { silent: true })
+  editionList.value = Array.isArray(data) ? data : []
+}
+
+// Refresh the per-OS/engine lists when the dialog opens or its OS/engine changes.
 watch(
   () => [props.modelValue, props.subscriptionId, props.type, form.os, form.engine],
-  () => { if (props.modelValue) { fetchLicenses(); fetchSoftware() } },
+  () => { if (props.modelValue) { fetchLicenses(); fetchSoftware(); fetchEditions() } },
   { immediate: true },
 )
 
