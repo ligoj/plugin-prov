@@ -288,9 +288,12 @@ async function runLookup() {
       suggest.value = null
       return
     }
-    const data = await resp.json()
+    // A 204 (or otherwise empty body) means "no matching price" — read as text
+    // and only parse when non-empty, so json() never throws on an empty input.
+    const text = await resp.text()
     if (seq !== lookupSeq) return
-    const hit = Array.isArray(data) ? data[0] : data
+    const data = text ? JSON.parse(text) : null
+    const hit = data && (Array.isArray(data) ? data[0] : data)
     if (!hit?.price) {
       lookupError.value = t('prov.quote.storage.noMatch')
       suggest.value = null
