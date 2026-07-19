@@ -8,16 +8,16 @@
         <v-form ref="formRef" @submit.prevent="save">
           <v-row density="comfortable">
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
-                variant="outlined" density="compact" autofocus />
+              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
             </v-col>
 
             <v-col v-if="hasOs" cols="12" md="6">
-              <LigojAutocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES"
-                variant="outlined" density="compact">
+              <LigojAutocomplete v-model="form.os" :items="OS_OPTIONS" :label="t('prov.quote.cols.os')" :rules="REQUIRED_RULES" variant="outlined" density="compact">
                 <template #item="{ props: itemProps, item }">
                   <v-list-item v-bind="itemProps">
-                    <template #prepend><OsIcon :os="item" /></template>
+                    <template #prepend>
+                      <OsIcon :os="item" />
+                    </template>
                   </v-list-item>
                 </template>
                 <template #selection="{ item }">
@@ -27,11 +27,12 @@
             </v-col>
 
             <v-col v-if="type === 'database'" cols="12" md="6">
-              <LigojAutocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')"
-                :rules="REQUIRED_RULES" variant="outlined" density="compact">
+              <LigojAutocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')" :rules="REQUIRED_RULES" variant="outlined" density="compact">
                 <template #item="{ props: itemProps, item }">
                   <v-list-item v-bind="itemProps">
-                    <template #prepend><EngineIcon :engine="item" /></template>
+                    <template #prepend>
+                      <EngineIcon :engine="item" />
+                    </template>
                   </v-list-item>
                 </template>
                 <template #selection="{ item }">
@@ -40,57 +41,48 @@
               </LigojAutocomplete>
             </v-col>
             <v-col v-if="type === 'database'" cols="12" md="6">
-              <v-text-field v-model="form.edition" :label="t('prov.quote.compute.edition')" variant="outlined"
-                density="compact" :hint="t('prov.quote.compute.editionHint')" />
+              <v-text-field v-model="form.edition" :label="t('prov.quote.compute.edition')" variant="outlined" density="compact" :hint="t('prov.quote.compute.editionHint')" />
             </v-col>
 
             <v-col cols="12">
-              <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
-                variant="outlined" density="compact" />
+              <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
             </v-col>
 
             <v-col cols="6" md="3">
-              <CpuField v-model="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES"
-                min="0" step="0.25" :unit="t('prov.quote.cols.cpu')" :provided="suggest?.price?.type?.cpu || 0"
-                :explanation="t('prov.quote.microbar.cpu')"
-                :workload="form.workload" :workload-explanation="t('prov.quote.compute.workloadHint')"
+              <CpuField v-model="form.cpu" :label="t('prov.quote.cols.cpu')" :rules="REQUIRED_POSITIVE_RULES" min="0" step="0.25" :unit="t('prov.quote.cols.cpu')"
+                :provided="suggest?.price?.type?.cpu || 0" :explanation="t('prov.quote.microbar.cpu')" :workload="form.workload" :workload-explanation="t('prov.quote.compute.workloadHint')"
                 @edit-workload="workloadDialog = true" />
               <WorkloadDialog v-model="workloadDialog" :workload="form.workload" @save="(w) => (form.workload = w)" />
             </v-col>
             <v-col cols="6" md="3">
-              <CapacityField v-model="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES"
-                min="0" step="0.5" kind="ram" :provided="suggest?.price?.type?.ram || 0"
+              <CapacityField v-model="form.ramGb" :label="ramLabel" :rules="REQUIRED_POSITIVE_RULES" min="0" step="0.5" kind="ram" :provided="suggest?.price?.type?.ram || 0"
                 :explanation="t('prov.quote.microbar.ram')" />
             </v-col>
 
             <v-col v-if="hasQuantity" cols="6" md="3">
-              <v-text-field v-model.number="form.minQuantity" :label="t('prov.quote.compute.minQty')" type="number"
-                min="0" variant="outlined" density="compact" />
+              <v-text-field v-model.number="form.minQuantity" :label="t('prov.quote.compute.minQty')" type="number" min="0" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="hasQuantity" cols="6" md="3">
-              <v-text-field v-model.number="form.maxQuantity" :label="t('prov.quote.compute.maxQty')" type="number"
-                min="0" variant="outlined" density="compact" />
+              <v-text-field v-model.number="form.maxQuantity" :label="t('prov.quote.compute.maxQty')" type="number" min="0" variant="outlined" density="compact" />
             </v-col>
 
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.nbRequests" :label="t('prov.quote.function.nbRequests')"
-                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="10000" variant="outlined" density="compact" />
+              <v-text-field v-model.number="form.nbRequests" :label="t('prov.quote.function.nbRequests')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="10000" variant="outlined"
+                density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.duration" :label="t('prov.quote.function.duration')"
-                :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="7200000" variant="outlined" density="compact" />
+              <v-text-field v-model.number="form.duration" :label="t('prov.quote.function.duration')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="7200000" variant="outlined"
+                density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.concurrency" :label="t('prov.quote.function.concurrency')"
-                type="number" min="0" max="10000" variant="outlined" density="compact" />
+              <v-text-field v-model.number="form.concurrency" :label="t('prov.quote.function.concurrency')" type="number" min="0" max="10000" variant="outlined" density="compact" />
             </v-col>
 
             <v-col cols="12" md="6">
               <LocationField v-model="form.location" :items="config?.locations || []" :label="t('prov.quote.cols.location')" />
             </v-col>
             <v-col cols="12" md="6">
-              <LigojAutocomplete v-model="form.usage" :items="config?.usages || []" item-title="name" item-value="name"
-                :label="t('prov.quote.fields.usage')" variant="outlined" density="compact" clearable />
+              <UsageField v-model="form.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" :label="t('prov.quote.fields.usage')" @changed="emit('usage-changed')" />
             </v-col>
           </v-row>
 
@@ -111,30 +103,24 @@
                          OS (or engine) from the provider catalog. v-autocomplete
                          (not v-combobox) — the latter triggers "Maximum recursive
                          updates" in Vuetify 4 inside an expansion panel. -->
-                    <LigojAutocomplete v-model="form.processor" :items="processorItems"
-                      :label="t('prov.quote.fields.processor')" variant="outlined" density="compact" clearable
+                    <LigojAutocomplete v-model="form.processor" :items="processorItems" :label="t('prov.quote.fields.processor')" variant="outlined" density="compact" clearable
                       :hint="t('prov.quote.compute.processorHint')" persistent-hint />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <LigojAutocomplete v-model="form.architecture" :items="architectureItems"
-                      :label="t('prov.quote.fields.architecture')" variant="outlined" density="compact" clearable />
+                    <LigojAutocomplete v-model="form.architecture" :items="architectureItems" :label="t('prov.quote.fields.architecture')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')"
-                      variant="outlined" density="compact" clearable />
+                    <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <LigojAutocomplete v-model="form.license" :items="licenseItems" :label="t('prov.quote.compute.license')"
-                      variant="outlined" density="compact" clearable />
+                    <LigojAutocomplete v-model="form.license" :items="licenseItems" :label="t('prov.quote.compute.license')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col v-if="props.type === 'instance'" cols="12" md="6">
-                    <LigojAutocomplete v-model="form.software" :items="softwareItems" :label="t('prov.quote.compute.software')"
-                      variant="outlined" density="compact" clearable
+                    <LigojAutocomplete v-model="form.software" :items="softwareItems" :label="t('prov.quote.compute.software')" variant="outlined" density="compact" clearable
                       :hint="t('prov.quote.compute.softwareHint')" persistent-hint />
                   </v-col>
                   <v-col v-if="hasGpu" cols="12" md="6">
-                    <v-text-field v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8"
-                      variant="outlined" density="compact" />
+                    <v-text-field v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8" variant="outlined" density="compact" />
                   </v-col>
                   <v-col cols="12" md="4">
                     <RateField v-model="form.cpuRate" :label="t('prov.quote.compute.cpuRate')" />
@@ -149,12 +135,10 @@
                     <RateField v-model="form.storageRate" :label="t('prov.quote.compute.storageRate')" />
                   </v-col>
                   <v-col v-if="hasEphemeral" cols="12" md="6">
-                    <v-switch v-model="form.ephemeral" :label="t('prov.quote.compute.ephemeral')" color="primary"
-                      density="compact" hide-details />
+                    <v-switch v-model="form.ephemeral" :label="t('prov.quote.compute.ephemeral')" color="primary" density="compact" hide-details />
                   </v-col>
                   <v-col v-if="hasEphemeral" cols="12" md="6">
-                    <v-text-field v-model.number="form.maxVariableCost" :label="t('prov.quote.compute.maxVariableCost')"
-                      type="number" min="0" variant="outlined" density="compact" clearable />
+                    <v-text-field v-model.number="form.maxVariableCost" :label="t('prov.quote.compute.maxVariableCost')" type="number" min="0" variant="outlined" density="compact" clearable />
                   </v-col>
                 </v-row>
               </template>
@@ -164,9 +148,8 @@
           <!-- Tag editor — edit mode only. Tags ride their own REST
                endpoint, so the editor mutates the model immediately
                without waiting for Save. -->
-          <QuoteTagsEditor v-if="isEdit && props.resource?.id" :subscription-id="props.subscriptionId" :type="props.type"
-            :resource-id="props.resource.id" :model-value="resourceTags" :all-tags-by-type="props.config?.tags || {}"
-            @update:model-value="(v) => emit('tags-changed', v)" />
+          <QuoteTagsEditor v-if="isEdit && props.resource?.id" :subscription-id="props.subscriptionId" :type="props.type" :resource-id="props.resource.id" :model-value="resourceTags"
+            :all-tags-by-type="props.config?.tags || {}" @update:model-value="(v) => emit('tags-changed', v)" />
 
           <!-- Lookup result — auto-debounced. Save commits only on the explicit button.
                The status hint lives in the action bar; here we surface only the
@@ -193,15 +176,14 @@
       <v-card-actions>
         <!-- Create mode only: keep the dialog open after saving so several
              resources can be added in one sitting. -->
-        <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')"
-          density="compact" hide-details color="primary" class="ml-2 create-another" />
+        <v-checkbox v-if="!isEdit" v-model="createAnother" :label="t('prov.quote.createAnother')" density="compact" hide-details color="primary" class="ml-2 create-another" />
         <v-spacer />
         <span class="lookup-notice text-caption text-medium-emphasis font-weight-light mr-3">
           <v-progress-circular v-if="lookingUp" indeterminate size="12" width="2" color="primary" class="mr-1" />
           {{
             lookingUp ? t('prov.quote.instance.lookingUp')
-            : !canLookup ? lookupRequirementsHint
-            : t('prov.quote.instance.lookupAuto')
+              : !canLookup ? lookupRequirementsHint
+                : t('prov.quote.instance.lookupAuto')
           }}
         </span>
         <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('common.cancel') }}</v-btn>
@@ -225,6 +207,7 @@ import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'
 import RateField from './RateField.vue'
 import LocationField from './LocationField.vue'
+import UsageField from './UsageField.vue'
 import WorkloadDialog from './WorkloadDialog.vue'
 
 /**
@@ -247,7 +230,7 @@ const props = defineProps({
   /** Existing resource row when editing; `null` switches to create. */
   resource: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed'])
+const emit = defineEmits(['update:modelValue', 'saved', 'tags-changed', 'usage-changed'])
 
 const api = useApi()
 const errorStore = useErrorStore()
@@ -273,13 +256,13 @@ const hasOs = computed(() => props.type === 'instance' || props.type === 'contai
 const hasQuantity = computed(() => props.type !== 'function')
 
 const OS_OPTIONS = ['LINUX', 'WINDOWS', 'RHEL', 'SUSE', 'CENTOS', 'DEBIAN', 'FEDORA', 'UBUNTU', 'ORACLE']
-const ENGINE_OPTIONS = ['MYSQL', 'POSTGRESQL', 'ORACLE', 'MARIADB', 'SQL_SERVER', 'AURORA']
+const ENGINE_OPTIONS = ['MYSQL', 'POSTGRESQL', 'ORACLE', 'MARIADB', 'SQL SERVER', 'AURORA']
 
 const ICONS = {
-  instance:  'mdi-server',
+  instance: 'mdi-server',
   container: 'mdi-docker',
-  function:  'mdi-lambda',
-  database:  'mdi-database',
+  function: 'mdi-lambda',
+  database: 'mdi-database',
 }
 const icon = computed(() => ICONS[props.type] || 'mdi-server')
 
@@ -349,7 +332,7 @@ const hasGpu = computed(() => props.type === 'instance' || props.type === 'conta
 const hasEphemeral = computed(() => props.type === 'instance' || props.type === 'container')
 
 const physicalOptions = computed(() => [
-  { value: true,  title: t('prov.quote.fields.physical.true') },
+  { value: true, title: t('prov.quote.fields.physical.true') },
   { value: false, title: t('prov.quote.fields.physical.false') },
 ])
 
@@ -429,34 +412,34 @@ watch(() => props.modelValue, (open) => {
   }
   const it = props.resource
   if (it) {
-    form.id            = it.id
-    form.name          = it.name || ''
-    form.description   = it.description || ''
-    form.os            = (it.os || it.price?.os || 'LINUX').toUpperCase()
-    form.engine        = (it.engine || it.price?.engine || 'MYSQL').toUpperCase()
-    form.edition       = it.edition || it.price?.edition || ''
-    form.cpu           = it.cpu ?? it.price?.type?.cpu ?? 1
-    form.ramGb         = ((it.ram ?? it.price?.type?.ram ?? 1024) / 1024)
-    form.minQuantity   = it.minQuantity ?? 1
-    form.maxQuantity   = it.maxQuantity ?? null
-    form.location      = it.location?.name ?? null
-    form.usage         = it.usage?.name ?? null
-    form.nbRequests    = it.nbRequests ?? 1
-    form.duration      = it.duration ?? 100
-    form.concurrency   = it.concurrency ?? 0
-    form.processor     = it.processor ?? it.price?.type?.processor ?? null
-    form.architecture  = it.architecture ?? it.price?.type?.architecture ?? null
-    form.physical      = it.physical ?? null
-    form.license       = it.license ?? it.price?.license ?? null
-    form.software      = it.software ?? it.price?.software ?? null
-    form.gpu           = it.gpu ?? 0
-    form.ephemeral     = it.ephemeral === true
+    form.id = it.id
+    form.name = it.name || ''
+    form.description = it.description || ''
+    form.os = (it.os || it.price?.os || 'LINUX').toUpperCase()
+    form.engine = (it.engine || it.price?.engine || 'MYSQL').toUpperCase()
+    form.edition = it.edition || it.price?.edition || ''
+    form.cpu = it.cpu ?? it.price?.type?.cpu ?? 1
+    form.ramGb = ((it.ram ?? it.price?.type?.ram ?? 1024) / 1024)
+    form.minQuantity = it.minQuantity ?? 1
+    form.maxQuantity = it.maxQuantity ?? null
+    form.location = it.location?.name ?? null
+    form.usage = it.usage?.name ?? null
+    form.nbRequests = it.nbRequests ?? 1
+    form.duration = it.duration ?? 100
+    form.concurrency = it.concurrency ?? 0
+    form.processor = it.processor ?? it.price?.type?.processor ?? null
+    form.architecture = it.architecture ?? it.price?.type?.architecture ?? null
+    form.physical = it.physical ?? null
+    form.license = it.license ?? it.price?.license ?? null
+    form.software = it.software ?? it.price?.software ?? null
+    form.gpu = it.gpu ?? 0
+    form.ephemeral = it.ephemeral === true
     form.maxVariableCost = it.maxVariableCost ?? null
-    form.cpuRate       = it.cpuRate ?? null
-    form.ramRate       = it.ramRate ?? null
-    form.networkRate   = it.networkRate ?? null
-    form.storageRate   = it.storageRate ?? null
-    form.workload      = it.workload ?? ''
+    form.cpuRate = it.cpuRate ?? null
+    form.ramRate = it.ramRate ?? null
+    form.networkRate = it.networkRate ?? null
+    form.storageRate = it.storageRate ?? null
+    form.workload = it.workload ?? ''
   } else {
     blankForm()
   }

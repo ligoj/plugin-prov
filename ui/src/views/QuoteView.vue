@@ -282,8 +282,8 @@
                 <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <LigojAutocomplete v-model="editForm.usage" :items="config?.usages || []" item-title="name" item-value="name" :label="t('prov.quote.fields.usage')" variant="outlined" density="compact"
-                  clearable />
+                <UsageField v-model="editForm.usage" :usages="config?.usages || []" :subscription-id="subscriptionId"
+                  :label="t('prov.quote.fields.usage')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
                 <LigojAutocomplete v-model="editForm.budget" :items="config?.budgets || []" item-title="name" item-value="name" :label="t('prov.quote.fields.budget')" variant="outlined" density="compact"
@@ -327,7 +327,7 @@
          storage and support have their own modals because their lookup
          and save shapes are too different to share a form. -->
     <ComputeEditDialog v-model="computeDialog" :type="editType && COMPUTE_TYPES.has(editType) ? editType : 'instance'" :subscription-id="subscriptionId" :config="config" :resource="editTarget"
-      @saved="onResourceSaved" @tags-changed="onResourceSaved" />
+      @saved="onResourceSaved" @tags-changed="onResourceSaved" @usage-changed="reload" />
     <StorageEditDialog v-model="storageDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
@@ -385,6 +385,7 @@ import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'
 import LocationField from './LocationField.vue'
 import LocationLabel from './LocationLabel.vue'
+import UsageField from './UsageField.vue'
 import { osTooltip } from '../osCatalog.js'
 import { engineTooltip } from '../engineCatalog.js'
 
