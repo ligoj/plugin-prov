@@ -3,6 +3,7 @@ import {
   formatCost,
   formatCostRange,
   formatCo2,
+  formatCo2Range,
   formatCpu,
   formatRam,
   formatStorage,
@@ -129,6 +130,24 @@ describe('quoteFormatters', () => {
     })
     it('switches to tonnes and reduces precision (8248.6 kg → 8.25 t)', () => {
       expect(formatCo2(8248600, EN)).toBe('8.25 t')
+    })
+  })
+
+  describe('formatCo2Range', () => {
+    it('returns dash for null / empty', () => {
+      expect(formatCo2Range(null)).toBe('-')
+      expect(formatCo2Range({})).toBe('-')
+    })
+    it('renders a plain number', () => {
+      expect(formatCo2Range(1500, EN)).toBe('1.5 kg')
+    })
+    it('collapses equal / single bounds to one value', () => {
+      expect(formatCo2Range({ min: 1500, max: 1500 }, EN)).toBe('1.5 kg')
+      expect(formatCo2Range({ min: null, max: 1500 }, EN)).toBe('1.5 kg')
+      expect(formatCo2Range({ min: 1500, max: null }, EN)).toBe('1.5 kg')
+    })
+    it('renders a min – max span', () => {
+      expect(formatCo2Range({ min: 1500, max: 3000 }, EN)).toBe('1.5 kg – 3 kg')
     })
   })
 

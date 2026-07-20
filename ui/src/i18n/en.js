@@ -100,6 +100,8 @@ export default {
   'prov.quote.totalFiltered': 'Filtered — reflects the active search',
   'prov.quote.efficiency.label': 'Efficiency',
   'prov.quote.efficiency.explain': 'Share of the paid-for capacity actually used: the requested CPU / RAM / storage against the best-matching offer. A lower value means you pay for headroom you don\'t use.',
+  'prov.quote.carbon.label': 'Carbon efficiency',
+  'prov.quote.carbon.explain': 'Share of the provisioned capacity\'s emissions that actually does work: the requested CPU / RAM / storage against the best-matching offer, weighted by each resource\'s CO₂. A lower value means emissions spent on idle headroom.',
   // Utilisation micro-bar (reserved vs. the selected type's capacity).
   'prov.quote.microbar.cpu': 'Reserved vCPU vs. the vCPU the selected instance type provides. A fuller, greener bar means a better-sized type; it disappears once the fit is optimal.',
   'prov.quote.microbar.ram': 'Reserved RAM vs. the RAM the selected instance type provides. A fuller, greener bar means a better-sized type; it disappears once the fit is optimal.',

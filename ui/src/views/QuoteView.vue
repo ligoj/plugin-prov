@@ -32,9 +32,12 @@
             <v-icon size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
           </span>
           <span class="q-cost-value">
-            {{ formatCostRange(scaledCost(displayedQuoteCost), config.currency) }}
+            {{ viewMode === 'co2'
+              ? formatCo2Range(scaleCost(displayedQuoteCo2, costPeriod))
+              : formatCostRange(scaledCost(displayedQuoteCost), config.currency) }}
           </span>
-          <EfficiencyBar :config="filteredConfig" class="q-cost-eff" />
+          <CarbonBar v-if="viewMode === 'co2'" :config="filteredConfig" class="q-cost-eff" />
+          <EfficiencyBar v-else :config="filteredConfig" class="q-cost-eff" />
         </div>
         <div class="q-tools">
           <!-- Cost-period selector. Pure display — the backend stores
@@ -366,6 +369,7 @@ import {
 } from '@ligoj/host'
 import {
   formatCo2,
+  formatCo2Range,
   formatCost,
   formatCostRange,
   formatCpu,
@@ -386,6 +390,7 @@ import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import EfficiencyBar from './EfficiencyBar.vue'
+import CarbonBar from './CarbonBar.vue'
 import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'
 import LocationField from './LocationField.vue'
@@ -767,6 +772,30 @@ const displayedQuoteCost = computed(() => {
     min: base.min != null ? Math.max(0, base.min - dMin) : base.min,
     max: base.max != null ? Math.max(0, base.max - dMax) : base.max,
   }
+})
+
+/**
+ * Carbon counterpart of `displayedQuoteCost`. Unlike cost, the quote's
+ * `co2`/`maxCo2` aggregates aren't populated in the configuration payload,
+ * so we sum the per-resource emissions directly over `filteredConfig` — the
+ * exact same rows the breakdown donut sums, so the headline total always
+ * matches the pie (and follows the search + month filters for free).
+ */
+const displayedQuoteCo2 = computed(() => {
+  const cfg = filteredConfig.value
+  let min = 0
+  let max = 0
+  if (cfg) {
+    for (const tab of TAB_TYPES) {
+      const rows = Array.isArray(cfg[tab.listField]) ? cfg[tab.listField] : []
+      for (const r of rows) {
+        if (!r) continue
+        min += Number(r.co2) || 0
+        max += Number(r.maxCo2 ?? r.co2) || 0
+      }
+    }
+  }
+  return { min, max }
 })
 
 /**

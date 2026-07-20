@@ -115,6 +115,21 @@ export function formatCo2(grams, locale) {
 }
 
 /**
+ * CO₂ range — same `{ min, max }` shape the quote exposes as its
+ * `co2` / `maxCo2` pair. Shows a single value when min === max (or one
+ * bound is missing), mirroring `formatCostRange`.
+ */
+export function formatCo2Range(co2, locale) {
+  if (co2 == null) return '-'
+  if (typeof co2 === 'number') return formatCo2(co2, locale)
+  const { min, max } = co2
+  if (min == null && max == null) return '-'
+  if (min == null || min === max) return formatCo2(max, locale)
+  if (max == null) return formatCo2(min, locale)
+  return `${formatCo2(min, locale)} – ${formatCo2(max, locale)}`
+}
+
+/**
  * Cost-period factors. The backend stores everything in monthly units;
  * the view scales at render time. The hourly ratio of 730 h/month and
  * the daily ratio of 30 d/month match the legacy conventions.
@@ -420,29 +435,40 @@ export function costTimeline(config, { field = 'cost', horizon = MONTH_HORIZON }
 }
 
 /**
- * Provisioning efficiency — the cost-weighted share of the paid-for capacity
+ * Provisioning efficiency — the metric-weighted share of the paid-for capacity
  * that the requested resources actually use, mirroring the legacy `updateGauge`.
  *
  * Per compute type: `0.8·(cpu reserved / cpu available) + 0.2·(ram reserved /
  * ram available)`, where "available" is the best-matching offer's capacity.
  * Storage: `size / max(size, type.minimal)` (the minimum billable block).
- * Overall: `Σ(cost · utilisation) / Σ(cost)` across compute + storage (support
- * excluded). 1 means a perfect fit; lower means paying for unused headroom.
+ * Overall: `Σ(weight · utilisation) / Σ(weight)` across compute + storage
+ * (support excluded). 1 means a perfect fit; lower means paying for unused
+ * headroom.
  *
- * @returns {{ overall: number, byType: Array<{key,efficiency,cost}>, costNoSupport: number }}
+ * The weighting metric defaults to `cost` (money efficiency). Passing
+ * `{ weight: 'co2' }` produces the carbon efficiency — the same utilisation
+ * ratios blended by each resource's emissions instead of its cost — so the
+ * types that emit the most dominate the overall figure. The public return
+ * shape is unchanged: each type's `cost` field and the top-level
+ * `costNoSupport` simply carry whichever metric did the weighting.
+ *
+ * @param {object} config quote configuration block.
+ * @param {object} [opts]
+ * @param {'cost'|'co2'} [opts.weight='cost'] metric used to blend the types.
+ * @returns {{ overall:number, byType:Array<{key,efficiency,cost}>, costNoSupport:number }}
  */
-export function computeEfficiency(config) {
+export function computeEfficiency(config, { weight = 'cost' } = {}) {
   if (!config) return { overall: 1, byType: [], costNoSupport: 0 }
   const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
   const ramAdj = (Number(config.ramAdjustedRate) || 100) / 100
-  let weightCost = 0
-  let costNoSupport = 0
+  let weighted = 0
+  let weightTotal = 0
   const byType = []
 
   for (const t of TAB_TYPES) {
     if (t.key === 'storage' || t.key === 'support') continue
     const rows = Array.isArray(config[t.listField]) ? config[t.listField] : []
-    let cpuR = 0, cpuA = 0, ramR = 0, ramA = 0, cost = 0
+    let cpuR = 0, cpuA = 0, ramR = 0, ramA = 0, w = 0
     for (const r of rows) {
       if (!r) continue
       const nb = Number(r.minQuantity) || 1
@@ -450,35 +476,35 @@ export function computeEfficiency(config) {
       cpuA += (Number(r.price?.type?.cpu) || 0) * nb
       ramR += (Number(r.ram) || 0) * ramAdj * nb
       ramA += (Number(r.price?.type?.ram) || 0) * nb
-      cost += Number(r.cost) || 0
+      w += Number(r[weight]) || 0
     }
-    costNoSupport += cost
-    if (cpuA > 0) weightCost += cost * 0.8 * (cpuR / cpuA)
-    if (ramA > 0) weightCost += cost * 0.2 * (ramR / ramA)
+    weightTotal += w
+    if (cpuA > 0) weighted += w * 0.8 * (cpuR / cpuA)
+    if (ramA > 0) weighted += w * 0.2 * (ramR / ramA)
     const wCpu = cpuA > 0 ? 0.8 : 0
     const wRam = ramA > 0 ? 0.2 : 0
     const wTot = wCpu + wRam
-    if (cost > 0 && wTot > 0) {
+    if (w > 0 && wTot > 0) {
       const eff = (wCpu * (cpuR / cpuA) + wRam * (ramR / ramA)) / wTot
-      byType.push({ key: t.key, efficiency: clamp01(eff), cost })
+      byType.push({ key: t.key, efficiency: clamp01(eff), cost: w })
     }
   }
 
   // Storage: requested size vs the type's minimum billable size.
   const storages = Array.isArray(config.storages) ? config.storages : []
-  let sR = 0, sA = 0, sCost = 0
+  let sR = 0, sA = 0, sW = 0
   for (const s of storages) {
     if (!s) continue
     const size = Number(s.size) || 0
     const minimal = Number(s.price?.type?.minimal) || 0
     sR += size
     sA += Math.max(size, minimal)
-    sCost += Number(s.cost) || 0
+    sW += Number(s[weight]) || 0
   }
-  costNoSupport += sCost
-  if (sA > 0) weightCost += sCost * (sR / sA)
-  if (sCost > 0 && sA > 0) byType.push({ key: 'storage', efficiency: clamp01(sR / sA), cost: sCost })
+  weightTotal += sW
+  if (sA > 0) weighted += sW * (sR / sA)
+  if (sW > 0 && sA > 0) byType.push({ key: 'storage', efficiency: clamp01(sR / sA), cost: sW })
 
-  const overall = costNoSupport > 0 ? clamp01(weightCost / costNoSupport) : 1
-  return { overall, byType, costNoSupport }
+  const overall = weightTotal > 0 ? clamp01(weighted / weightTotal) : 1
+  return { overall, byType, costNoSupport: weightTotal }
 }

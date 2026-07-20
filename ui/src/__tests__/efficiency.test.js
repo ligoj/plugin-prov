@@ -43,6 +43,24 @@ describe('computeEfficiency()', () => {
     expect(r.overall).toBeCloseTo(10 / 15, 5)
     expect(r.byType.find((b) => b.key === 'storage').efficiency).toBeCloseTo(0.6, 5)
   })
+
+  it('weights by emissions instead of cost with { weight: "co2" }', () => {
+    // A (instance): eff .25, co2 90.  B (database): eff 1, co2 10.
+    // co2-weighted:  (90*.25 + 10*1) / 100 = 0.325
+    // cost-weighted: (10*.25 + 10*1) / 20  = 0.625  (same rows, different metric)
+    const A = { cpu: 1, ram: 1024, co2: 90, cost: 10, minQuantity: 1, price: { type: { cpu: 4, ram: 4096 } } }
+    const B = { cpu: 4, ram: 4096, co2: 10, cost: 10, minQuantity: 1, price: { type: { cpu: 4, ram: 4096 } } }
+    const cfg = { instances: [A], databases: [B] }
+    expect(computeEfficiency(cfg, { weight: 'co2' }).overall).toBeCloseTo(0.325, 5)
+    expect(computeEfficiency(cfg).overall).toBeCloseTo(0.625, 5)
+    expect(computeEfficiency(cfg, { weight: 'co2' }).costNoSupport).toBe(100) // total CO₂
+  })
+
+  it('is 100% when no emissions are reported (nothing to weight)', () => {
+    const r = computeEfficiency({ instances: [inst(1, 4, 1024, 4096, 10)] }, { weight: 'co2' })
+    expect(r.overall).toBe(1)
+    expect(r.costNoSupport).toBe(0)
+  })
 })
 
 describe('<EfficiencyBar>', () => {

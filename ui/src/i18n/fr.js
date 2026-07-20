@@ -99,6 +99,8 @@ export default {
   'prov.quote.totalFiltered': 'Filtré — reflète la recherche active',
   'prov.quote.efficiency.label': 'Efficacité',
   'prov.quote.efficiency.explain': 'Part de la capacité facturée réellement utilisée : le CPU / RAM / stockage demandé par rapport à l\'offre la plus adaptée. Une valeur plus faible signifie que vous payez une marge inutilisée.',
+  'prov.quote.carbon.label': 'Efficacité carbone',
+  'prov.quote.carbon.explain': 'Part des émissions de la capacité provisionnée qui produit réellement du travail : le CPU / RAM / stockage demandé par rapport à l\'offre la plus adaptée, pondérée par le CO₂ de chaque ressource. Une valeur plus faible signifie des émissions dépensées pour une marge inutilisée.',
   // Micro-barre d'utilisation (réservé vs capacité du type sélectionné).
   'prov.quote.microbar.cpu': 'vCPU réservé par rapport au vCPU fourni par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',
   'prov.quote.microbar.ram': 'RAM réservée par rapport à la RAM fournie par le type d’instance sélectionné. Une barre plus pleine et plus verte indique un type mieux dimensionné ; elle disparaît lorsque l’ajustement est optimal.',
