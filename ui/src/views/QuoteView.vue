@@ -66,6 +66,11 @@
           <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
             <v-icon>mdi-cash-sync</v-icon>
           </v-btn>
+          <!-- Cross-provider comparison: re-prices the quote's compute +
+               database resources against every selected provider's catalog. -->
+          <v-btn icon size="small" variant="text" :title="t('prov.quote.compare.action')" :disabled="!subscriptionId" @click="comparisonDialog = true">
+            <v-icon>mdi-scale-balance</v-icon>
+          </v-btn>
           <!-- Exports — three pre-built backend endpoints. The path
                segment itself is the suggested filename so the backend
                can mirror it as Content-Disposition. -->
@@ -340,6 +345,7 @@
     <StorageEditDialog v-model="storageDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
+    <ComparisonDialog v-model="comparisonDialog" :config="config" :subscription-id="subscriptionId" />
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -388,6 +394,7 @@ import ComputeEditDialog from './ComputeEditDialog.vue'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
+import ComparisonDialog from './ComparisonDialog.vue'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import EfficiencyBar from './EfficiencyBar.vue'
 import CarbonBar from './CarbonBar.vue'
@@ -575,6 +582,7 @@ const PINNED_COLUMNS = ['name', 'actions']
 const computeDialog = ref(false)
 const storageDialog = ref(false)
 const supportDialog = ref(false)
+const comparisonDialog = ref(false)
 const editType = ref(null)
 const editTarget = ref(null)
 

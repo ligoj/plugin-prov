@@ -93,6 +93,27 @@ export default {
   'quote.title': 'Devis',
   'quote.notMigrated': 'L\'éditeur de devis n\'est pas encore porté vers Vue. Utilisez l\'interface héritée pour le moment.',
 
+  // ---- Comparaison multi-fournisseurs ----
+  'prov.quote.compare.action': 'Comparer les fournisseurs',
+  'prov.quote.compare.title': 'Comparer les fournisseurs',
+  'prov.quote.compare.note': 'Chaque ressource est tarifée à la demande chez chaque fournisseur sélectionné selon ses besoins essentiels (CPU / RAM / OS / moteur). La région, l\'usage et l\'engagement ne sont pas appliqués : chaque fournisseur renvoie donc son offre à la demande la moins chère — une base de comparaison équitable. Tous les montants utilisent la devise de ce devis.',
+  'prov.quote.compare.selectNodes': 'Fournisseurs',
+  'prov.quote.compare.run': 'Lancer la comparaison',
+  'prov.quote.compare.baseline': 'Actuel',
+  'prov.quote.compare.resource': 'Ressource',
+  'prov.quote.compare.total': 'Total',
+  'prov.quote.compare.bestOfBreed': 'Meilleur par ressource',
+  'prov.quote.compare.bestOfBreedHelp': 'Le total si chaque ressource était placée chez son fournisseur le moins cher (multi-cloud).',
+  'prov.quote.compare.cheapest': 'Le moins cher globalement',
+  'prov.quote.compare.noMatch': '—',
+  'prov.quote.compare.unmatched': 'sans offre',
+  'prov.quote.compare.incomplete': 'Certaines ressources n\'ont pas d\'offre correspondante chez ce fournisseur',
+  'prov.quote.compare.progress': 'Tarification {done} / {total}…',
+  'prov.quote.compare.empty': 'Aucune ressource de calcul ou base de données à comparer.',
+  'prov.quote.compare.noProviders': 'Aucun autre fournisseur de provisioning disponible pour la comparaison.',
+  'prov.quote.compare.save': 'économie {amount}',
+  'prov.quote.compare.same': 'identique',
+
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',

@@ -94,6 +94,27 @@ export default {
   'quote.title': 'Quote',
   'quote.notMigrated': 'The quote editor is not yet ported to Vue. Use the legacy interface in the meantime.',
 
+  // ---- Cross-provider comparison ----
+  'prov.quote.compare.action': 'Compare providers',
+  'prov.quote.compare.title': 'Compare providers',
+  'prov.quote.compare.note': 'Prices each resource on-demand against every selected provider using its core requirements (CPU / RAM / OS / engine). Region, usage and commitment are not applied, so each provider returns its cheapest matching on-demand offer — a fair like-for-like baseline. All amounts use this quote\'s currency.',
+  'prov.quote.compare.selectNodes': 'Providers',
+  'prov.quote.compare.run': 'Run comparison',
+  'prov.quote.compare.baseline': 'Current',
+  'prov.quote.compare.resource': 'Resource',
+  'prov.quote.compare.total': 'Total',
+  'prov.quote.compare.bestOfBreed': 'Best of breed',
+  'prov.quote.compare.bestOfBreedHelp': 'The total if each resource were placed on its own cheapest provider (multi-cloud).',
+  'prov.quote.compare.cheapest': 'Cheapest overall',
+  'prov.quote.compare.noMatch': '—',
+  'prov.quote.compare.unmatched': 'unmatched',
+  'prov.quote.compare.incomplete': 'Some resources have no matching offer on this provider',
+  'prov.quote.compare.progress': 'Pricing {done} / {total}…',
+  'prov.quote.compare.empty': 'No compute or database resources to compare.',
+  'prov.quote.compare.noProviders': 'No other provisioning providers are available to compare against.',
+  'prov.quote.compare.save': 'save {amount}',
+  'prov.quote.compare.same': 'same',
+
   // ---- Quote view (iteration 1: header + read-only tables) ----
   'prov.quote.refresh': 'Refresh cost',
   'prov.quote.totalCost': 'Total monthly cost',
