@@ -113,6 +113,10 @@
           <v-btn icon size="small" variant="text" :title="t('prov.quote.tagAlloc.action')" @click="tagAllocDialog = true">
             <v-icon>mdi-tag-multiple-outline</v-icon>
           </v-btn>
+          <!-- Quote snapshots: named versions, diff and restore. -->
+          <v-btn icon size="small" variant="text" :title="t('prov.quote.snap.action')" :disabled="!subscriptionId" @click="snapshotDialog = true">
+            <v-icon>mdi-history</v-icon>
+          </v-btn>
           <!-- Cross-provider comparison: pick a compared subscription (CS) to
                diff against, or manage the synchronized CS set. -->
           <v-menu>
@@ -431,6 +435,8 @@
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
     <CompareSetupDialog v-model="compareSetup" :subscription-id="subscriptionId" :currency="config?.currency" @changed="loadCompared" />
     <TagAllocationDialog v-model="tagAllocDialog" :config="config" :currency="config?.currency" :view-mode="viewMode" />
+    <SnapshotDialog v-model="snapshotDialog" :subscription-id="subscriptionId" :config="config" :currency="config?.currency"
+      :view-mode="viewMode" @restored="onSnapshotRestored" />
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -482,6 +488,7 @@ import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import CompareSetupDialog from './CompareSetupDialog.vue'
 import TagAllocationDialog from './TagAllocationDialog.vue'
+import SnapshotDialog from './SnapshotDialog.vue'
 import CompareDiff from './CompareDiff.vue'
 import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
 import { tagKeys, tagGrouping, TAG_OTHER_KEY, TAG_UNTAGGED_KEY } from '../tagAllocation.js'
@@ -734,6 +741,13 @@ const supportDialog = ref(false)
  * each MS row can show its price/CO₂ delta vs the CS. */
 const compareSetup = ref(false)
 const tagAllocDialog = ref(false)
+const snapshotDialog = ref(false)
+
+/** After a snapshot restore the whole quote changed: reload + re-sync compared. */
+async function onSnapshotRestored() {
+  await reload()
+  await syncCompared()
+}
 const comparedList = ref([])
 const activeCs = ref(null)
 const csConfig = ref(null)

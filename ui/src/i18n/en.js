@@ -123,6 +123,25 @@ export default {
   'prov.quote.compare.resync': 'Re-sync all',
 
   // ---- Quote view (iteration 1: header + read-only tables) ----
+  // ---- Quote snapshots ----
+  'prov.quote.snap.action': 'Snapshots',
+  'prov.quote.snap.title': 'Quote snapshots',
+  'prov.quote.snap.label': 'Snapshot label',
+  'prov.quote.snap.create': 'Snapshot now',
+  'prov.quote.snap.colName': 'Label',
+  'prov.quote.snap.colCreated': 'Created',
+  'prov.quote.snap.colResources': 'Res.',
+  'prov.quote.snap.empty': 'No snapshots yet — capture the current quote to diff or restore it later.',
+  'prov.quote.snap.diff': 'Compare',
+  'prov.quote.snap.diffTitle': 'Diff {name}',
+  'prov.quote.snap.current': 'Current quote',
+  'prov.quote.snap.identical': 'No difference — {n} identical resource(s).',
+  'prov.quote.snap.unchanged': '{n} unchanged resource(s) not shown.',
+  'prov.quote.snap.restore': 'Restore',
+  'prov.quote.snap.restoreTitle': 'Restore this snapshot?',
+  'prov.quote.snap.restoreBody': 'The current quote will be replaced by "{name}": resources, profiles and defaults. Prices are re-resolved against the current catalog. This cannot be undone (take a snapshot first if needed).',
+  'prov.quote.snap.restoreFailed': 'Not restored (no matching offer any more): {names}',
+
   // ---- Tag cost allocation ----
   'prov.quote.tagAlloc.action': 'Cost by tag',
   'prov.quote.tagAlloc.title': 'Cost allocation by tag',

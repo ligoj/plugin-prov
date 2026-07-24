@@ -122,6 +122,25 @@ export default {
   'prov.quote.compare.resync': 'Resynchroniser',
 
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
+  // ---- Instantanés du devis ----
+  'prov.quote.snap.action': 'Instantanés',
+  'prov.quote.snap.title': 'Instantanés du devis',
+  'prov.quote.snap.label': 'Libellé de l\'instantané',
+  'prov.quote.snap.create': 'Capturer',
+  'prov.quote.snap.colName': 'Libellé',
+  'prov.quote.snap.colCreated': 'Créé',
+  'prov.quote.snap.colResources': 'Ress.',
+  'prov.quote.snap.empty': 'Aucun instantané — capturez le devis actuel pour le comparer ou le restaurer plus tard.',
+  'prov.quote.snap.diff': 'Comparer',
+  'prov.quote.snap.diffTitle': 'Diff {name}',
+  'prov.quote.snap.current': 'Devis actuel',
+  'prov.quote.snap.identical': 'Aucune différence — {n} ressource(s) identique(s).',
+  'prov.quote.snap.unchanged': '{n} ressource(s) inchangée(s) non affichée(s).',
+  'prov.quote.snap.restore': 'Restaurer',
+  'prov.quote.snap.restoreTitle': 'Restaurer cet instantané ?',
+  'prov.quote.snap.restoreBody': 'Le devis actuel sera remplacé par « {name} » : ressources, profils et valeurs par défaut. Les prix sont recalculés sur le catalogue actuel. Irréversible (capturez d\'abord un instantané si besoin).',
+  'prov.quote.snap.restoreFailed': 'Non restauré (plus d\'offre correspondante) : {names}',
+
   // ---- Répartition des coûts par tag ----
   'prov.quote.tagAlloc.action': 'Coût par tag',
   'prov.quote.tagAlloc.title': 'Répartition des coûts par tag',
