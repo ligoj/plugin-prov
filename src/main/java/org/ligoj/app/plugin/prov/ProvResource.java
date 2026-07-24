@@ -631,24 +631,6 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 				.map(currencyRepository::findByName).orElse(null));
 	}
 
-	public void duplicate(int source, final int destination) {
-		var quote = getQuoteFromSubscription(destination);
-		// Copy quote usage
-		var usages = usageRepository.findAll(quote);
-
-		// Copy quote optimizer
-
-		// Copy quote instances
-		// Copy quote databases
-		// Copy quote functions
-		// Copy quote containers
-		// Copy quote storages
-		// Copy quote support
-		// Copy quote tags
-		// Copy quote network
-
-	}
-
 	@Override
 	public void create(final int subscription) {
 		// Add an empty quote

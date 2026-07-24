@@ -10,10 +10,10 @@ public interface QuoteInstance extends QuoteVmOs {
 
 	/**
 	 * Return Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint is
-	 * added. WHen <code>null</code>, installed software is also accepted.
+	 * added. When <code>null</code>, installed software is also accepted.
 	 *
 	 * @return Optional built-in software. May be <code>null</code>. When not <code>null</code> a software constraint is
-	 *         added. WHen <code>null</code>, installed software is also accepted.
+	 *         added. When <code>null</code>, installed software is also accepted.
 	 */
 	String getSoftware();
 

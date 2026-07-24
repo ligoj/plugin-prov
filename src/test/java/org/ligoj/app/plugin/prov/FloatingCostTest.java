@@ -67,4 +67,15 @@ class FloatingTest {
 		Assertions.assertEquals(1110, cost1.getMinCo2(), DELTA);
 		Assertions.assertEquals(2220, cost1.getMaxCo2(), DELTA);
 	}
+
+	@Test
+	void addPrimitives() {
+		final var cost = new Floating(1.1, 2.2, 0.1, 0.2, false, 10, 20);
+		final var result = cost.add(3.0, 5.0);
+		Assertions.assertSame(cost, result);
+		Assertions.assertEquals(4.1, cost.getMin(), DELTA);
+		Assertions.assertEquals(5.2, cost.getMax(), DELTA);
+		Assertions.assertEquals(15, cost.getMinCo2(), DELTA);
+		Assertions.assertEquals(25, cost.getMaxCo2(), DELTA);
+	}
 }

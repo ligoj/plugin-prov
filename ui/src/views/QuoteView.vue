@@ -36,6 +36,45 @@
               ? formatCo2Range(scaleCost(displayedQuoteCo2, costPeriod))
               : formatCostRange(scaledCost(displayedQuoteCost), config.currency) }}
           </span>
+          <span v-if="csTotalDiff != null" class="q-cost-diff" :class="`text-${diffMeta(csTotalDiff).color}`">
+            <v-icon size="14">{{ diffMeta(csTotalDiff).icon }}</v-icon>{{ formatDiffPct(csTotalDiff) }}
+            <!-- Rich summary: per-type resource count + cost for MS and CS. -->
+            <v-tooltip activator="parent" location="bottom" open-delay="120" content-class="cmp-tip">
+              <div class="cmp-sum">
+                <div class="cmp-tip-head">
+                  <strong>{{ t('prov.quote.compare.summaryTitle') }}</strong>
+                  <span class="cmp-tip-vs">{{ t('prov.quote.compare.vs', { name: activeCsName }) }}</span>
+                </div>
+                <table class="cmp-sum-tbl">
+                  <thead>
+                    <tr><th></th><th>#</th><th>{{ t('prov.quote.compare.msCol') }}</th><th class="cmp-cs">{{ activeCsName }}</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in summaryRows" :key="row.type">
+                      <td><v-icon size="12" class="me-1">{{ typeIcon(row.type) }}</v-icon>{{ tabLabel(row.type) }}</td>
+                      <td>{{ row.count }}<span v-if="row.unmatched" class="cmp-sum-unm"> (−{{ row.unmatched }})</span></td>
+                      <td>{{ fmtMetric(row.ms) }}</td>
+                      <td>{{ fmtMetric(row.cs) }}</td>
+                    </tr>
+                    <tr class="cmp-sum-total">
+                      <td>{{ t('prov.quote.compare.total') }}</td>
+                      <td></td>
+                      <td>{{ fmtMetric(compareSummary.msTotal) }}</td>
+                      <td>{{ fmtMetric(compareSummary.csTotal) }} <span :class="`text-${diffMeta(csTotalDiff).color}`">{{ formatDiffPct(csTotalDiff) }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-if="compareSummary.unmatched" class="cmp-sum-note">
+                  <v-icon size="13" color="warning" class="me-1">mdi-close-octagon-outline</v-icon>
+                  {{ t('prov.quote.compare.unmatchedNote', { n: compareSummary.unmatched, cost: fmtMetric(compareSummary.unmatchedCost) }) }}
+                </div>
+              </div>
+            </v-tooltip>
+          </span>
+          <v-chip v-if="compareSummary?.unmatched" size="x-small" color="warning" variant="tonal" class="ms-1 q-cost-unmatched">
+            <v-icon start size="12">mdi-close-octagon-outline</v-icon>{{ t('prov.quote.compare.unmatchedN', { n: compareSummary.unmatched }) }}
+            <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.compare.unmatchedNote', { n: compareSummary.unmatched, cost: fmtMetric(compareSummary.unmatchedCost) }) }}</v-tooltip>
+          </v-chip>
           <CarbonBar v-if="viewMode === 'co2'" :config="filteredConfig" class="q-cost-eff" />
           <EfficiencyBar v-else :config="filteredConfig" class="q-cost-eff" />
         </div>
@@ -66,11 +105,31 @@
           <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
             <v-icon>mdi-cash-sync</v-icon>
           </v-btn>
-          <!-- Cross-provider comparison: re-prices the quote's compute +
-               database resources against every selected provider's catalog. -->
-          <v-btn icon size="small" variant="text" :title="t('prov.quote.compare.action')" :disabled="!subscriptionId" @click="comparisonDialog = true">
-            <v-icon>mdi-scale-balance</v-icon>
-          </v-btn>
+          <!-- Cross-provider comparison: pick a compared subscription (CS) to
+               diff against, or manage the synchronized CS set. -->
+          <v-menu>
+            <template #activator="{ props: cmpProps }">
+              <v-btn v-bind="cmpProps" size="small" variant="text" :title="t('prov.quote.compare.action')" :disabled="!subscriptionId"
+                :color="activeCs != null ? 'primary' : undefined">
+                <v-icon size="small">mdi-scale-balance</v-icon>
+                <span v-if="activeCsName" class="text-caption ml-1">{{ activeCsName }}</span>
+              </v-btn>
+            </template>
+            <v-list density="compact" min-width="220">
+              <v-list-subheader>{{ t('prov.quote.compare.against') }}</v-list-subheader>
+              <v-list-item :active="activeCs == null" @click="activeCs = null" prepend-icon="mdi-close-circle-outline">
+                <v-list-item-title>{{ t('prov.quote.compare.off') }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-for="cs in comparedList" :key="cs.subscription"
+                :active="String(activeCs) === String(cs.subscription)" @click="activeCs = cs.subscription">
+                <v-list-item-title>{{ cs.name || cs.subscription }}</v-list-item-title>
+              </v-list-item>
+              <v-divider />
+              <v-list-item prepend-icon="mdi-cog-outline" @click="compareSetup = true">
+                <v-list-item-title>{{ t('prov.quote.compare.manage') }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
           <!-- Exports — three pre-built backend endpoints. The path
                segment itself is the suggested filename so the backend
                can mirror it as Content-Disposition. -->
@@ -228,8 +287,12 @@
             </template>
             <template #item.size="{ item }">{{ formatStorage(item.size) }}</template>
             <template #item.cost="{ item }">
-              <span v-if="viewMode === 'co2'" class="q-cell-cost">{{ formatCo2(item.co2 ?? item.maxCo2) }}</span>
-              <span v-else class="q-cell-cost">{{ formatCost(item.cost, config.currency) }}</span>
+              <span class="q-cell-cost-wrap">
+                <span v-if="viewMode === 'co2'" class="q-cell-cost">{{ formatCo2(item.co2 ?? item.maxCo2) }}</span>
+                <span v-else class="q-cell-cost">{{ formatCost(item.cost, config.currency) }}</span>
+                <CompareDiff v-if="activeCs != null" :row="item" :cs="csResourceOf(tab.key, item.name)"
+                  :errored="rowErrored(tab.key, item)" :metric="viewMode" :currency="config.currency" :cs-name="activeCsName" />
+              </span>
             </template>
             <template #item.os="{ item }">
               <span v-if="item.os || item.price?.os" class="q-os">
@@ -345,7 +408,7 @@
     <StorageEditDialog v-model="storageDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
-    <ComparisonDialog v-model="comparisonDialog" :config="config" :subscription-id="subscriptionId" />
+    <CompareSetupDialog v-model="compareSetup" :subscription-id="subscriptionId" :currency="config?.currency" @changed="loadCompared" />
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -394,7 +457,9 @@ import ComputeEditDialog from './ComputeEditDialog.vue'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
-import ComparisonDialog from './ComparisonDialog.vue'
+import CompareSetupDialog from './CompareSetupDialog.vue'
+import CompareDiff from './CompareDiff.vue'
+import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import EfficiencyBar from './EfficiencyBar.vue'
 import CarbonBar from './CarbonBar.vue'
@@ -582,7 +647,126 @@ const PINNED_COLUMNS = ['name', 'actions']
 const computeDialog = ref(false)
 const storageDialog = ref(false)
 const supportDialog = ref(false)
-const comparisonDialog = ref(false)
+/* ---------- Cross-provider comparison ----------
+ * `comparedList` is the MS's set of compared subscriptions (CS) from the
+ * backend. `activeCs` is the one the table/summary currently diff against;
+ * its full config is fetched into `csConfig` and indexed by resource name so
+ * each MS row can show its price/CO₂ delta vs the CS. */
+const compareSetup = ref(false)
+const comparedList = ref([])
+const activeCs = ref(null)
+const csConfig = ref(null)
+
+const activeCsName = computed(() => {
+  const cs = comparedList.value.find((c) => String(c.subscription) === String(activeCs.value))
+  return cs ? (cs.name || `#${cs.subscription}`) : ''
+})
+
+/* The active compared subscription is persisted per MS so the chosen comparison
+ * survives reloads. */
+const activeCsStorageKey = () => `ligoj-prov-quote-active-cs-${subscriptionId.value}`
+function inCompared(id) {
+  return comparedList.value.some((c) => String(c.subscription) === String(id))
+}
+
+async function loadCompared() {
+  if (!subscriptionId.value) return
+  try {
+    comparedList.value = (await api.get(`rest/service/prov/${subscriptionId.value}/compare`)) || []
+  } catch {
+    comparedList.value = []
+  }
+  // Restore the persisted selection, or drop it if that CS is gone.
+  if (activeCs.value == null && typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem(activeCsStorageKey())
+    if (saved != null && inCompared(saved)) activeCs.value = saved
+  } else if (activeCs.value != null && !inCompared(activeCs.value)) {
+    activeCs.value = null
+  }
+}
+
+/**
+ * Keep the compared subscriptions in step with an MS change. Re-clones every CS
+ * from the current MS state (reusing the backend's tested clone path), then
+ * refreshes the CS list and the active diff config. No-op when no comparison is
+ * set up, so ordinary edits are unaffected.
+ */
+async function syncCompared() {
+  if (!comparedList.value.length || !subscriptionId.value) return
+  try {
+    await api.post(`rest/service/prov/${subscriptionId.value}/compare/resync`)
+  } finally {
+    await loadCompared()
+    if (activeCs.value != null) {
+      const data = await api.get(`rest/subscription/${activeCs.value}/configuration`)
+      csConfig.value = data?.configuration || data || null
+    }
+  }
+}
+
+// Fetch the active CS configuration (for the per-resource diff) when it changes,
+// and persist the choice.
+watch(activeCs, async (id) => {
+  if (typeof localStorage !== 'undefined') {
+    if (id == null) localStorage.removeItem(activeCsStorageKey())
+    else localStorage.setItem(activeCsStorageKey(), String(id))
+  }
+  if (id == null) { csConfig.value = null; return }
+  const data = await api.get(`rest/subscription/${id}/configuration`, { silent: true }).catch(() => null)
+  csConfig.value = data?.configuration || data || null
+})
+
+// CS resources indexed by "type:name" for the active metric (cost or CO₂).
+const csIndex = computed(() =>
+  activeCs.value == null ? null : valueIndex(csConfig.value, viewMode.value === 'co2' ? 'co2' : 'cost'),
+)
+
+/* MS resources the active CS could NOT reproduce (recorded as ProvLookupError),
+ * keyed "type:name" — so those rows are flagged "not available on the CS" rather
+ * than silently showing no delta (which would read as "same cost"). */
+const csErrorKeys = computed(() => {
+  const set = new Set()
+  const cs = comparedList.value.find((c) => String(c.subscription) === String(activeCs.value))
+  for (const e of cs?.errors || []) {
+    if (e?.name != null && e?.resourceType != null) set.add(`${String(e.resourceType).toLowerCase()}:${e.name}`)
+  }
+  return set
+})
+
+/** True when a row could not be reproduced on the active CS (errored / no match). */
+function rowErrored(tabKey, item) {
+  return activeCs.value != null && csErrorKeys.value.has(`${tabKey}:${item.name}`)
+}
+
+/** The matching CS resource for an MS row (by name within its type), or null. */
+function csResourceOf(tabKey, name) {
+  const cfg = csConfig.value
+  if (activeCs.value == null || !cfg || name == null) return null
+  const listField = TAB_TYPES.find((t) => t.key === tabKey)?.listField
+  const rows = listField ? cfg[listField] : null
+  return Array.isArray(rows) ? rows.find((r) => r?.name === name) || null : null
+}
+
+/* Whole-quote MS→CS summary over the compared compute types. Unmatched
+ * resources count as their MS value (see comparisonSummary), so an unavailable
+ * price reads as "no change", and the unmatched count is surfaced separately. */
+const compareSummary = computed(() =>
+  activeCs.value == null || !config.value
+    ? null
+    : comparisonSummary(config.value, csIndex.value, viewMode.value === 'co2' ? 'co2' : 'cost'),
+)
+const csTotalDiff = computed(() => compareSummary.value?.pct ?? null)
+
+/** Per-type rows for the summary tooltip (only types that have resources). */
+const summaryRows = computed(() =>
+  Object.entries(compareSummary.value?.byType || {}).map(([type, v]) => ({ type, ...v })),
+)
+const COMPARE_TYPE_ICON = Object.fromEntries(TAB_TYPES.map((t) => [t.key, t.icon]))
+const typeIcon = (type) => COMPARE_TYPE_ICON[type] || 'mdi-cube-outline'
+/** Format a raw value in the active metric (cost or CO₂). */
+function fmtMetric(v) {
+  return viewMode.value === 'co2' ? formatCo2(v) : formatCost(v, config.value?.currency)
+}
 const editType = ref(null)
 const editTarget = ref(null)
 
@@ -1069,6 +1253,7 @@ async function confirmDeleteRow() {
     deleteRowDialog.value = false
     deleteRowTarget.value = null
     await reload()
+    await syncCompared()
   } finally {
     deleting.value = false
   }
@@ -1110,6 +1295,7 @@ async function confirmDeleteBulk() {
     deleteBulkType.value = null
     selectedByType[type] = []
     await reload()
+    await syncCompared()
   } finally {
     deleting.value = false
   }
@@ -1190,6 +1376,7 @@ function onRowClick(type, event, item) {
 
 async function onResourceSaved() {
   await reload()
+  await syncCompared()
 }
 
 async function confirmDeleteAll() {
@@ -1204,6 +1391,7 @@ async function confirmDeleteAll() {
     deleteAllDialog.value = false
     deleteAllType.value = null
     await reload()
+    await syncCompared()
   } finally {
     deleting.value = false
   }
@@ -1246,6 +1434,7 @@ onMounted(async () => {
   setBreadcrumbs()
   await loadConfig()
   setBreadcrumbs()
+  loadCompared()
 })
 </script>
 
@@ -1538,6 +1727,27 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--ink);
   font-size: 12.5px;
+}
+
+/* MS↔CS comparison delta shown beside a cell cost and the header total. */
+.q-cell-cost-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.q-cost-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: help;
+}
+.q-cost-unmatched {
+  cursor: help;
 }
 
 /* Tag key ("env" in "env:TST") — de-emphasised prefix before the value.
