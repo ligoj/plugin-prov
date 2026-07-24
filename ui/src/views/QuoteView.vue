@@ -27,7 +27,10 @@
         <v-spacer />
         <div class="q-cost" :class="{ 'q-cost--filtered': anyFilterActive }">
           <!-- No "monthly" caption: the active period is shown in the period
-               selector, and its suffix would just duplicate it here. -->
+               selector, and its suffix would just duplicate it here. The value,
+               the compare delta and the "unmatched" flag share one line so the
+               summary stays compact. -->
+          <div class="q-cost-line">
           <span v-if="anyFilterActive" class="q-cost-label">
             <v-icon size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
           </span>
@@ -71,10 +74,11 @@
               </div>
             </v-tooltip>
           </span>
-          <v-chip v-if="compareSummary?.unmatched" size="x-small" color="warning" variant="tonal" class="ms-1 q-cost-unmatched">
+          <v-chip v-if="compareSummary?.unmatched" size="x-small" color="warning" variant="tonal" class="q-cost-unmatched">
             <v-icon start size="12">mdi-close-octagon-outline</v-icon>{{ t('prov.quote.compare.unmatchedN', { n: compareSummary.unmatched }) }}
             <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.compare.unmatchedNote', { n: compareSummary.unmatched, cost: fmtMetric(compareSummary.unmatchedCost) }) }}</v-tooltip>
           </v-chip>
+          </div>
           <CarbonBar v-if="viewMode === 'co2'" :config="filteredConfig" class="q-cost-eff" />
           <EfficiencyBar v-else :config="filteredConfig" class="q-cost-eff" />
         </div>
@@ -1522,6 +1526,16 @@ onMounted(async () => {
   align-items: flex-end;
 }
 
+/* Total value + compare delta + "unmatched" flag on a single row (the delta and
+ * the flag sit to the right of the amount), keeping the header compact. */
+.q-cost-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .q-cost-eff {
   margin-top: 8px;
 }
@@ -1740,7 +1754,6 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  margin-left: 8px;
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
