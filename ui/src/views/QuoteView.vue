@@ -79,8 +79,8 @@
             <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.compare.unmatchedNote', { n: compareSummary.unmatched, cost: fmtMetric(compareSummary.unmatchedCost) }) }}</v-tooltip>
           </v-chip>
           </div>
-          <CarbonBar v-if="viewMode === 'co2'" :config="filteredConfig" class="q-cost-eff" />
-          <EfficiencyBar v-else :config="filteredConfig" class="q-cost-eff" />
+          <CarbonBar v-if="viewMode === 'co2'" :config="filteredConfig" :compare="csConfig" :cs-name="activeCsName" class="q-cost-eff" />
+          <EfficiencyBar v-else :config="filteredConfig" :compare="csConfig" :cs-name="activeCsName" class="q-cost-eff" />
         </div>
         <div class="q-tools">
           <!-- Cost-period selector. Pure display — the backend stores

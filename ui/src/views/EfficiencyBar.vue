@@ -2,27 +2,33 @@
   <div v-if="show" class="eff-bar">
     <div class="eff-bar-row">
       <span class="eff-bar-label">{{ t('prov.quote.efficiency.label') }}</span>
-      <span class="eff-bar-pct">{{ pct(eff.overall) }}</span>
+      <span class="eff-bar-pct">
+        {{ pct(eff.overall) }}
+        <span v-if="csEff" class="eff-cmp" :class="deltaClass">
+          <v-icon size="10">mdi-arrow-right-thin</v-icon>{{ pct(csEff.overall) }}
+        </span>
+      </span>
     </div>
-    <v-progress-linear
-      :model-value="eff.overall * 100"
-      :color="color"
-      height="6"
-      rounded
-      bg-opacity="0.15"
-    />
+    <v-progress-linear :model-value="eff.overall * 100" :color="color" height="6" rounded bg-opacity="0.15" />
+    <!-- Compared subscription's efficiency, a thinner bar beneath. -->
+    <v-progress-linear v-if="csEff" :model-value="csEff.overall * 100" :color="colorOf(csEff.overall)" height="4"
+      rounded bg-opacity="0.2" class="eff-cs-bar" />
 
-    <!-- Lazy tooltip: explanation + per-type efficiency. -->
+    <!-- Lazy tooltip: explanation + per-type efficiency (MS vs CS). -->
     <v-tooltip activator="parent" location="bottom" open-delay="150" content-class="eff-tip">
       <div class="eff-tip-body">
         <div class="eff-tip-explain">{{ t('prov.quote.efficiency.explain') }}</div>
         <table class="eff-tip-table">
+          <thead v-if="csEff">
+            <tr><th></th><th>{{ t('prov.quote.compare.msCol') }}</th><th class="eff-cs-col">{{ csName }}</th></tr>
+          </thead>
           <tbody>
             <tr v-for="row in eff.byType" :key="row.key">
               <td class="eff-tip-type">
                 <v-icon size="12" :icon="iconFor(row.key)" />{{ t(`prov.quote.tabs.${row.key}`) }}
               </td>
               <td class="eff-tip-val">{{ pct(row.efficiency) }}</td>
+              <td v-if="csEff" class="eff-tip-val eff-cs-col">{{ csByKey[row.key] != null ? pct(csByKey[row.key]) : '—' }}</td>
             </tr>
           </tbody>
         </table>
@@ -34,7 +40,8 @@
 <script setup>
 // Provisioning efficiency gauge (successor to the legacy liquid-fill gauge):
 // how much of the paid-for capacity the requested resources actually use.
-// Hidden at a perfect 100% fit.
+// Hidden at a perfect 100% fit — unless a compared subscription is set, so its
+// (possibly different) efficiency can be contrasted.
 import { computed } from 'vue'
 import { useI18nStore } from '@ligoj/host'
 import { computeEfficiency, TAB_TYPES } from '../quoteFormatters.js'
@@ -42,23 +49,34 @@ import { computeEfficiency, TAB_TYPES } from '../quoteFormatters.js'
 const props = defineProps({
   /** Quote configuration block (typically the filtered one). */
   config: { type: Object, default: null },
+  /** Optional compared-subscription config to contrast the efficiency against. */
+  compare: { type: Object, default: null },
+  /** Display name of the compared subscription. */
+  csName: { type: String, default: '' },
 })
 
 const { t } = useI18nStore()
 
 const eff = computed(() => computeEfficiency(props.config))
-
-// Show only when there is cost and the fit is below 100% (rounded).
-const show = computed(
-  () => eff.value.costNoSupport > 0 && Math.round(eff.value.overall * 100) < 100,
+const csEff = computed(() => (props.compare ? computeEfficiency(props.compare) : null))
+const csByKey = computed(() =>
+  csEff.value ? Object.fromEntries(csEff.value.byType.map((r) => [r.key, r.efficiency])) : {},
 )
 
-const color = computed(() => {
-  const v = eff.value.overall
-  if (v >= 0.9) return 'success'
-  if (v >= 0.7) return 'info'
-  if (v >= 0.5) return 'warning'
-  return 'error'
+// Show below 100% (there is headroom to report), or whenever comparing.
+const show = computed(
+  () => eff.value.costNoSupport > 0 && (props.compare != null || Math.round(eff.value.overall * 100) < 100),
+)
+
+const colorOf = (v) => (v >= 0.9 ? 'success' : v >= 0.7 ? 'info' : v >= 0.5 ? 'warning' : 'error')
+const color = computed(() => colorOf(eff.value.overall))
+
+// Higher efficiency is better, so a CS above the MS reads green.
+const delta = computed(() => (csEff.value ? csEff.value.overall - eff.value.overall : null))
+const deltaClass = computed(() => {
+  const d = delta.value
+  if (d == null || Math.abs(d) < 0.005) return 'text-medium-emphasis'
+  return d > 0 ? 'text-success' : 'text-error'
 })
 
 const ICONS = Object.fromEntries(TAB_TYPES.map((x) => [x.key, x.icon]))
@@ -91,12 +109,20 @@ const pct = (v) => `${Math.round((v || 0) * 100)}%`
   font-variant-numeric: tabular-nums;
   color: rgb(var(--v-theme-on-surface));
 }
+.eff-cmp {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+}
+.eff-cs-bar {
+  margin-top: 2px;
+}
 </style>
 
 <style>
 /* Tooltip content — unscoped (teleported outside the component). */
 .eff-tip .eff-tip-body {
-  max-width: 240px;
+  max-width: 260px;
 }
 .eff-tip .eff-tip-explain {
   font-size: 0.82em;
@@ -109,6 +135,12 @@ const pct = (v) => `${Math.round((v || 0) * 100)}%`
   border-collapse: collapse;
   font-size: 0.85em;
 }
+.eff-tip .eff-tip-table th {
+  text-align: right;
+  font-weight: 600;
+  opacity: 0.75;
+  padding: 0 0 2px 0.8rem;
+}
 .eff-tip .eff-tip-type {
   display: flex;
   align-items: center;
@@ -120,5 +152,8 @@ const pct = (v) => `${Math.round((v || 0) * 100)}%`
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   padding-left: 0.8rem;
+}
+.eff-tip .eff-cs-col {
+  color: rgb(var(--v-theme-primary));
 }
 </style>

@@ -84,6 +84,31 @@ describe('<EfficiencyBar>', () => {
     expect(w.find('.eff-bar').exists()).toBe(false)
   })
 
+  it('adds a second bar + CS delta when comparing', () => {
+    const w = mount(EfficiencyBar, {
+      props: {
+        config: { instances: [inst(3, 4, 2048, 4096, 10)] }, // 70%
+        compare: { instances: [inst(4, 4, 4096, 4096, 10)] }, // 100%
+        csName: 'Azure',
+      },
+      ...withApp,
+    })
+    expect(w.findAll('.v-progress-linear').length).toBe(2) // MS + CS bars
+    expect(w.find('.eff-cmp').text()).toContain('100%')    // CS efficiency
+  })
+
+  it('shows even at a perfect MS fit when comparing (to surface the delta)', () => {
+    const w = mount(EfficiencyBar, {
+      props: {
+        config: { instances: [inst(4, 4, 4096, 4096, 10)] }, // 100% → normally hidden
+        compare: { instances: [inst(3, 4, 2048, 4096, 10)] }, // 70%
+      },
+      ...withApp,
+    })
+    expect(w.find('.eff-bar').exists()).toBe(true)
+    expect(w.find('.eff-cmp').text()).toContain('70%')
+  })
+
   it('shows explanation + per-type efficiency in the lazy tooltip', async () => {
     const w = mount(EfficiencyBar, {
       props: { config: { instances: [inst(3, 4, 2048, 4096, 10)], storages: [store(30, 50, 5)] } },
