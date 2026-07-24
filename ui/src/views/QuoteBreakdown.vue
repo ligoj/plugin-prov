@@ -70,6 +70,14 @@ const props = defineProps({
   /** 'cost' (default) or 'co2'. Switches the metric used for the slice
    *  sizes, the legend values, and the centre label. */
   mode: { type: String, default: 'cost' },
+  /** Optional slice grouping (e.g. by tag value): `[{ key, label, color }]`.
+   *  Defaults to one slice per resource type. */
+  groups: { type: Array, default: null },
+  /** `(type, resource) => groupKey` mapping a resource to its slice. */
+  groupOf: { type: Function, default: null },
+  /** Whether slices can drill into a sub-dimension. Defaults to true only in the
+   *  built-in per-type mode (tag grouping has no sub-dimension). */
+  drillable: { type: Boolean, default: null },
 })
 
 const { t } = useI18nStore()
@@ -116,8 +124,16 @@ const SUB_PALETTE = [100, 70, 45].flatMap((mix) =>
     : `color-mix(in srgb, rgb(var(--v-theme-${base})) ${mix}%, rgb(var(--v-theme-surface)))`),
 )
 
+/* Effective grouping: the caller's `groups`/`groupOf`, else one slice per
+ * resource type. Drill-down is available only in the built-in per-type mode. */
+const effGroups = computed(() =>
+  props.groups || TAB_TYPES.map((tab) => ({ key: tab.key, color: tab.color, label: t(`prov.quote.tabs.${tab.key}`) })),
+)
+const effGroupOf = computed(() => props.groupOf || ((type) => type))
+const canDrill = computed(() => (props.drillable != null ? props.drillable : props.groups == null))
+
 function isDrillable(key) {
-  return !!DRILL_DIMENSIONS[key]
+  return canDrill.value && !!DRILL_DIMENSIONS[key]
 }
 
 function onSliceClick(seg) {
@@ -160,12 +176,17 @@ const metricField = computed(() => (props.mode === 'co2' ? 'co2' : 'cost'))
 const breakdown = computed(() => {
   if (!props.config) return []
   const field = metricField.value
-  return TAB_TYPES
-    .map((tab) => {
-      const rows = Array.isArray(props.config[tab.listField]) ? props.config[tab.listField] : []
-      const cost = rows.reduce((s, r) => s + (Number(r[field]) || 0), 0)
-      return { key: tab.key, label: t(`prov.quote.tabs.${tab.key}`), color: tab.color, cost }
-    })
+  const sums = new Map(effGroups.value.map((g) => [g.key, 0]))
+  for (const tab of TAB_TYPES) {
+    const rows = Array.isArray(props.config[tab.listField]) ? props.config[tab.listField] : []
+    for (const r of rows) {
+      const gk = effGroupOf.value(tab.key, r)
+      if (gk == null || !sums.has(gk)) continue
+      sums.set(gk, sums.get(gk) + (Number(r[field]) || 0))
+    }
+  }
+  return effGroups.value
+    .map((g) => ({ key: g.key, label: g.label, color: g.color, cost: sums.get(g.key) || 0 }))
     .filter((s) => s.cost > 0)
 })
 

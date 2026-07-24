@@ -80,6 +80,23 @@ describe('<QuoteBreakdown>', () => {
     expect(wrapper.text()).toMatch(/\$/)
   })
 
+  it('groups by a custom grouping (e.g. tag) instead of by type, with no drill', async () => {
+    const groups = [
+      { key: 'alpha', color: 'rgb(1,1,1)', label: 'Alpha' },
+      { key: 'beta', color: 'rgb(2,2,2)', label: 'Beta' },
+    ]
+    const groupOf = (type) => (type === 'instance' ? 'alpha' : 'beta')
+    const wrapper = mountWithApp({ config: SAMPLE_CONFIG, groups, groupOf, drillable: false })
+    const legend = wrapper.find('.quote-breakdown-legend').text()
+    expect(legend).toContain('Alpha')
+    expect(legend).toContain('Beta')
+    expect(wrapper.findAll('.quote-breakdown-legend tr').length).toBe(2)
+    // Slices are not drillable in this mode.
+    expect(wrapper.vm.isDrillable('alpha')).toBe(false)
+    await wrapper.find('path').trigger('click')
+    expect(wrapper.vm.drill).toBe(null)
+  })
+
   it('drill-down: instance slice click rebuilds segments grouped by OS', async () => {
     const cfg = {
       currency: { unit: '$', rate: 1 },

@@ -123,6 +123,17 @@ export default {
   'prov.quote.compare.resync': 'Re-sync all',
 
   // ---- Quote view (iteration 1: header + read-only tables) ----
+  // ---- Tag cost allocation ----
+  'prov.quote.tagAlloc.action': 'Cost by tag',
+  'prov.quote.tagAlloc.title': 'Cost allocation by tag',
+  'prov.quote.tagAlloc.key': 'Group by tag',
+  'prov.quote.tagAlloc.coverage': 'Coverage',
+  'prov.quote.tagAlloc.coverageHelp': 'Share of the total cost carrying the selected tag key.',
+  'prov.quote.tagAlloc.untagged': 'Untagged',
+  'prov.quote.tagAlloc.noValue': '(no value)',
+  'prov.quote.tagAlloc.nRes': '{n} res.',
+  'prov.quote.tagAlloc.empty': 'No tags on this quote yet — tag resources to break the cost down by team, environment, cost-center…',
+
   'prov.quote.refresh': 'Refresh cost',
   'prov.quote.totalCost': 'Total monthly cost',
   'prov.quote.totalFiltered': 'Filtered — reflects the active search',
@@ -179,6 +190,9 @@ export default {
 
   // Iteration 3: header cost-breakdown donut.
   'prov.quote.breakdown.title': 'Cost breakdown',
+  'prov.quote.breakdown.byType': 'Group by resource type',
+  'prov.quote.breakdown.byTag': 'Group by tag',
+  'prov.quote.tagAlloc.other': 'Other',
   'prov.quote.breakdown.titleCo2': 'CO₂ breakdown',
   'prov.quote.breakdown.total': 'total / mo',
   'prov.quote.breakdown.totalCo2': 'CO₂ / mo',

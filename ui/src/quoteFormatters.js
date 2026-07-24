@@ -392,43 +392,48 @@ export function rowInMonth(row, config, month, horizon = MONTH_HORIZON) {
  * @param {number} [opts.horizon=MONTH_HORIZON] number of months.
  * @returns {{ horizon:number, series:Array<{key,color,values:Array<{min,max}>}>, totals:Array<{min,max}>, max:number }}
  */
-export function costTimeline(config, { field = 'cost', horizon = MONTH_HORIZON } = {}) {
+export function costTimeline(config, { field = 'cost', horizon = MONTH_HORIZON, groups, groupOf } = {}) {
   const empty = { horizon: 0, series: [], totals: [], max: 0 }
   if (!config) return empty
   const maxField = field === 'co2' ? 'maxCo2' : 'maxCost'
 
-  const perType = TAB_TYPES.map(() =>
-    Array.from({ length: horizon }, () => ({ min: 0, max: 0 })),
-  )
+  // Grouping defaults to one series per resource type (its listField sits under
+  // TAB_TYPES). A caller can pass an arbitrary grouping (e.g. by tag value).
+  const groupDefs = groups || TAB_TYPES.map((t) => ({ key: t.key, color: t.color }))
+  const mapGroup = groupOf || ((type) => type)
+  const perGroup = new Map(groupDefs.map((g) => [g.key, Array.from({ length: horizon }, () => ({ min: 0, max: 0 }))]))
+
   let any = false
-  TAB_TYPES.forEach((tab, ti) => {
+  for (const tab of TAB_TYPES) {
     const rows = Array.isArray(config[tab.listField]) ? config[tab.listField] : []
     for (const row of rows) {
       const min = Number(row?.[field]) || 0
       const max = Math.max(min, Number(row?.[maxField] ?? row?.[field]) || 0)
       if (min <= 0 && max <= 0) continue
+      const bucket = perGroup.get(mapGroup(tab.key, row))
+      if (!bucket) continue
       any = true
       const { start, end } = resourceMonthRange(row, config, horizon)
       for (let m = start; m < end; m++) {
-        perType[ti][m].min += min
-        perType[ti][m].max += max
+        bucket[m].min += min
+        bucket[m].max += max
       }
     }
-  })
+  }
   if (!any) return empty
 
   const totals = Array.from({ length: horizon }, () => ({ min: 0, max: 0 }))
   const series = []
-  TAB_TYPES.forEach((tab, i) => {
-    const values = perType[i]
+  for (const g of groupDefs) {
+    const values = perGroup.get(g.key)
     if (values.some((v) => v.max > 0)) {
-      series.push({ key: tab.key, color: tab.color, values })
+      series.push({ key: g.key, color: g.color, label: g.label, values })
       for (let m = 0; m < horizon; m++) {
         totals[m].min += values[m].min
         totals[m].max += values[m].max
       }
     }
-  })
+  }
   if (series.length === 0) return empty
 
   return { horizon, series, totals, max: Math.max(0, ...totals.map((t) => t.max)) }

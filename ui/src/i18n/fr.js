@@ -122,6 +122,17 @@ export default {
   'prov.quote.compare.resync': 'Resynchroniser',
 
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
+  // ---- Répartition des coûts par tag ----
+  'prov.quote.tagAlloc.action': 'Coût par tag',
+  'prov.quote.tagAlloc.title': 'Répartition des coûts par tag',
+  'prov.quote.tagAlloc.key': 'Regrouper par tag',
+  'prov.quote.tagAlloc.coverage': 'Couverture',
+  'prov.quote.tagAlloc.coverageHelp': 'Part du coût total portant le tag sélectionné.',
+  'prov.quote.tagAlloc.untagged': 'Sans tag',
+  'prov.quote.tagAlloc.noValue': '(sans valeur)',
+  'prov.quote.tagAlloc.nRes': '{n} ress.',
+  'prov.quote.tagAlloc.empty': 'Aucun tag sur ce devis — taguez les ressources pour ventiler le coût par équipe, environnement, centre de coût…',
+
   'prov.quote.refresh': 'Actualiser le coût',
   'prov.quote.totalCost': 'Coût mensuel total',
   'prov.quote.totalFiltered': 'Filtré — reflète la recherche active',
@@ -178,6 +189,9 @@ export default {
 
   // Itération 3 : donut de répartition des coûts.
   'prov.quote.breakdown.title': 'Répartition des coûts',
+  'prov.quote.breakdown.byType': 'Grouper par type de ressource',
+  'prov.quote.breakdown.byTag': 'Grouper par tag',
+  'prov.quote.tagAlloc.other': 'Autres',
   'prov.quote.breakdown.titleCo2': 'Répartition CO₂',
   'prov.quote.breakdown.total': 'total / mois',
   'prov.quote.breakdown.totalCo2': 'CO₂ / mois',

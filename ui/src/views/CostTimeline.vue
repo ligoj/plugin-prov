@@ -120,6 +120,9 @@ const props = defineProps({
   mode: { type: String, default: 'cost' },
   /** Currently filtered month (0-based) or null. Highlights that column. */
   selectedMonth: { type: Number, default: null },
+  /** Optional series grouping (e.g. by tag value); defaults to per resource type. */
+  groups: { type: Array, default: null },
+  groupOf: { type: Function, default: null },
 })
 const emit = defineEmits(['month-click'])
 
@@ -138,7 +141,11 @@ const currency = computed(() => props.config?.currency || { unit: '$', rate: 1 }
 const fmt = (v) => (props.mode === 'co2' ? formatCo2(v) : formatCost(v, currency.value))
 
 const timeline = computed(() =>
-  costTimeline(props.config, { field: props.mode === 'co2' ? 'co2' : 'cost' }),
+  costTimeline(props.config, {
+    field: props.mode === 'co2' ? 'co2' : 'cost',
+    groups: props.groups,
+    groupOf: props.groupOf,
+  }),
 )
 
 const barSlot = computed(() => (W - padL - padR) / Math.max(1, timeline.value.horizon))
@@ -163,7 +170,7 @@ const bars = computed(() => {
       segments.push({
         key: s.key,
         color: s.color,
-        label: t(`prov.quote.tabs.${s.key}`),
+        label: s.label || t(`prov.quote.tabs.${s.key}`),
         min: v.min,
         max: v.max,
         share: totals[m].max ? v.max / totals[m].max : 0,

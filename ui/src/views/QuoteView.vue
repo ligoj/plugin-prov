@@ -109,6 +109,10 @@
           <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
             <v-icon>mdi-cash-sync</v-icon>
           </v-btn>
+          <!-- Tag-based cost allocation (client-side report in a dialog). -->
+          <v-btn icon size="small" variant="text" :title="t('prov.quote.tagAlloc.action')" @click="tagAllocDialog = true">
+            <v-icon>mdi-tag-multiple-outline</v-icon>
+          </v-btn>
           <!-- Cross-provider comparison: pick a compared subscription (CS) to
                diff against, or manage the synchronized CS set. -->
           <v-menu>
@@ -160,10 +164,22 @@
       <v-card variant="flat" class="q-costcard mb-4">
         <v-card-text class="py-3">
           <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
-            <div class="d-flex align-center ga-2">
+            <div class="d-flex align-center ga-2 flex-wrap">
               <span class="q-card-title">
                 {{ viewMode === 'co2' ? t('prov.quote.breakdown.titleCo2') : t('prov.quote.breakdown.title') }}
               </span>
+              <!-- Group the donut + timeline by resource type or by a tag key. -->
+              <v-btn-toggle v-model="groupBy" mandatory density="compact" variant="outlined" divided class="q-groupby">
+                <v-btn size="small" value="type" :title="t('prov.quote.breakdown.byType')">
+                  <v-icon size="small">mdi-shape-outline</v-icon>
+                </v-btn>
+                <v-btn size="small" value="tag" :disabled="!breakdownTagKeys.length" :title="t('prov.quote.breakdown.byTag')">
+                  <v-icon size="small">mdi-tag-outline</v-icon>
+                </v-btn>
+              </v-btn-toggle>
+              <LigojAutocomplete v-if="groupBy === 'tag' && breakdownTagKeys.length" v-model="breakdownTagKey"
+                :items="breakdownTagKeys" :label="t('prov.quote.tagAlloc.key')" variant="outlined" density="compact"
+                hide-details class="q-groupby-key" />
               <v-chip v-if="selectedMonth != null" size="small" color="primary" variant="tonal" closable
                 @click:close="selectedMonth = null">
                 <v-icon start size="small">mdi-calendar-filter</v-icon>
@@ -182,7 +198,8 @@
             </v-btn-toggle>
           </div>
           <div class="q-costcard-body">
-            <QuoteBreakdown :config="filteredConfig" :mode="viewMode" />
+            <QuoteBreakdown :config="filteredConfig" :mode="viewMode" :groups="chartGroups.groups"
+              :group-of="chartGroups.groupOf" :drillable="chartGroups.drillable" />
             <div class="q-stats">
               <div v-for="s in statTiles" :key="s.key" class="q-stat">
                 <span class="q-stat-ic"><v-icon size="18">{{ s.icon }}</v-icon></span>
@@ -197,7 +214,7 @@
                  Clicking a month filters every table + the donut + the totals
                  to the resources billed that month. -->
             <CostTimeline :config="timelineConfig" :mode="viewMode" :selected-month="selectedMonth"
-              @month-click="onMonthClick" />
+              :groups="chartGroups.groups" :group-of="chartGroups.groupOf" @month-click="onMonthClick" />
           </div>
         </v-card-text>
       </v-card>
@@ -413,6 +430,7 @@
     <SupportEditDialog v-model="supportDialog" :subscription-id="subscriptionId" :config="config" :resource="editTarget" @saved="onResourceSaved" @tags-changed="onResourceSaved" />
     <InstanceImportDialog v-model="importDialog" :subscription-id="subscriptionId" @saved="onResourceSaved" />
     <CompareSetupDialog v-model="compareSetup" :subscription-id="subscriptionId" :currency="config?.currency" @changed="loadCompared" />
+    <TagAllocationDialog v-model="tagAllocDialog" :config="config" :currency="config?.currency" :view-mode="viewMode" />
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -436,6 +454,7 @@ import {
   useI18nStore,
   LigojConfirmDialog,
   LigojDataTable,
+  LigojAutocomplete,
   RowActionsMenu,
   NodeIcon,
   APP_BASE,
@@ -462,8 +481,10 @@ import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
 import CompareSetupDialog from './CompareSetupDialog.vue'
+import TagAllocationDialog from './TagAllocationDialog.vue'
 import CompareDiff from './CompareDiff.vue'
 import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
+import { tagKeys, tagGrouping, TAG_OTHER_KEY, TAG_UNTAGGED_KEY } from '../tagAllocation.js'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import EfficiencyBar from './EfficiencyBar.vue'
 import CarbonBar from './CarbonBar.vue'
@@ -573,6 +594,61 @@ watch(viewMode, (v) => {
   if (typeof localStorage !== 'undefined') localStorage.setItem(VIEW_MODE_STORAGE_KEY, v)
 })
 
+/* ---------- Breakdown grouping (resource type ↔ tag) ----------
+ * The donut + timeline group by resource type by default, or by the values of a
+ * chosen tag key. Both the mode and the key are persisted. */
+const GROUP_BY_KEY = 'ligoj-prov-quote-breakdown-groupby'
+const GROUP_TAG_KEY = 'ligoj-prov-quote-breakdown-tagkey'
+const groupBy = ref((typeof localStorage !== 'undefined' && localStorage.getItem(GROUP_BY_KEY)) || 'type')
+const breakdownTagKey = ref((typeof localStorage !== 'undefined' && localStorage.getItem(GROUP_TAG_KEY)) || null)
+watch(groupBy, (v) => {
+  if (typeof localStorage !== 'undefined') localStorage.setItem(GROUP_BY_KEY, v)
+})
+watch(breakdownTagKey, (v) => {
+  if (typeof localStorage === 'undefined') return
+  if (v == null) localStorage.removeItem(GROUP_TAG_KEY)
+  else localStorage.setItem(GROUP_TAG_KEY, v)
+})
+
+/** Tag keys available in the quote (for the breakdown grouping selector). */
+const breakdownTagKeys = computed(() => tagKeys(config.value))
+/* Default / repair the selected tag key when the quote's tags change. */
+watch([breakdownTagKeys, groupBy], () => {
+  if (groupBy.value !== 'tag') return
+  if (breakdownTagKey.value == null || !breakdownTagKeys.value.includes(breakdownTagKey.value)) {
+    breakdownTagKey.value = breakdownTagKeys.value[0] ?? null
+  }
+})
+
+/**
+ * Grouping descriptor passed to the donut + timeline. Per resource type by
+ * default; per tag value (top-N + "Other" + "Untagged") when tag mode is on and
+ * a key with values exists — otherwise it falls back to per-type.
+ */
+const chartGroups = computed(() => {
+  const field = viewMode.value === 'co2' ? 'co2' : 'cost'
+  if (groupBy.value === 'tag' && breakdownTagKey.value) {
+    const { groups, groupOf } = tagGrouping(filteredConfig.value, breakdownTagKey.value, field)
+    if (groups.length) {
+      return {
+        groupOf,
+        drillable: false,
+        groups: groups.map((g) => ({ ...g, label: chartGroupLabel(g.key) })),
+      }
+    }
+  }
+  return {
+    groupOf: (type) => type,
+    drillable: true,
+    groups: TAB_TYPES.map((tt) => ({ key: tt.key, color: tt.color, label: tabLabel(tt.key) })),
+  }
+})
+function chartGroupLabel(key) {
+  if (key === TAG_OTHER_KEY) return t('prov.quote.tagAlloc.other')
+  if (key === TAG_UNTAGGED_KEY) return t('prov.quote.tagAlloc.untagged')
+  return key || t('prov.quote.tagAlloc.noValue')
+}
+
 /* ---------- Per-tab search ----------
  * One debounced query per resource type. Keeping the rendered map
  * shape stable (`{ instance: '', database: '', … }`) means the
@@ -657,6 +733,7 @@ const supportDialog = ref(false)
  * its full config is fetched into `csConfig` and indexed by resource name so
  * each MS row can show its price/CO₂ delta vs the CS. */
 const compareSetup = ref(false)
+const tagAllocDialog = ref(false)
 const comparedList = ref([])
 const activeCs = ref(null)
 const csConfig = ref(null)
@@ -1617,6 +1694,12 @@ onMounted(async () => {
   align-items: center;
   gap: 28px;
   flex-wrap: wrap;
+}
+
+/* Breakdown grouping controls, next to the title. */
+.q-groupby-key {
+  min-width: 130px;
+  max-width: 190px;
 }
 
 .q-stats {

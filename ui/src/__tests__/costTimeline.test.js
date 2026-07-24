@@ -50,6 +50,21 @@ describe('costTimeline()', () => {
     expect(costTimeline({ instances: [{ cost: 0 }] }).horizon).toBe(0)
   })
 
+  it('honours a custom grouping (e.g. by tag) across resource types', () => {
+    const cfg = {
+      instances: [{ id: 1, cost: 10, maxCost: 10 }, { id: 2, cost: 5, maxCost: 5 }],
+      databases: [{ id: 3, cost: 20, maxCost: 20 }],
+    }
+    const groups = [{ key: 'alpha', color: 'a', label: 'Alpha' }, { key: 'beta', color: 'b', label: 'Beta' }]
+    const groupOf = (type, r) => (r.id === 2 ? 'beta' : 'alpha') // ids 1,3 → alpha; id 2 → beta
+    const r = costTimeline(cfg, { field: 'cost', groups, groupOf })
+    expect(r.series.map((s) => s.key)).toEqual(['alpha', 'beta'])
+    expect(r.series.find((s) => s.key === 'alpha').label).toBe('Alpha')
+    expect(r.series.find((s) => s.key === 'alpha').values[0]).toEqual({ min: 30, max: 30 }) // 10 + 20
+    expect(r.series.find((s) => s.key === 'beta').values[0]).toEqual({ min: 5, max: 5 })
+    expect(r.max).toBe(35)
+  })
+
   it('projects an on-demand resource flat across the full 36-month horizon', () => {
     const r = costTimeline({ instances: [res(10, 10)] })
     expect(r.horizon).toBe(36)
