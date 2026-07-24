@@ -271,6 +271,14 @@
                 {{ selectedByType[tab.key].length }} {{ t('common.selected') }}
               </v-toolbar-title>
               <v-spacer />
+              <!-- Server-side bulk edit — compute types only (profiles + location).
+                   Explicit surface color: inside the primary toolbar an elevated
+                   button would otherwise inherit the on-primary (white) text and
+                   vanish on its own white background in light mode. -->
+              <v-btn v-if="COMPUTE_TYPES.has(tab.key)" variant="elevated" color="surface"
+                prepend-icon="mdi-pencil-box-multiple-outline" class="me-2" @click="openBulkEdit(tab.key)">
+                {{ t('prov.quote.bulk.action') }}
+              </v-btn>
               <v-btn variant="elevated" color="error" prepend-icon="mdi-delete" @click="askDeleteBulk(tab.key)">
                 {{ t('common.delete') }}
               </v-btn>
@@ -437,6 +445,8 @@
     <TagAllocationDialog v-model="tagAllocDialog" :config="config" :currency="config?.currency" :view-mode="viewMode" />
     <SnapshotDialog v-model="snapshotDialog" :subscription-id="subscriptionId" :config="config" :currency="config?.currency"
       :view-mode="viewMode" @restored="onSnapshotRestored" />
+    <BulkEditDialog v-model="bulkEditDialog" :type="bulkEditType" :ids="bulkEditIds" :config="config"
+      :subscription-id="subscriptionId" @saved="onBulkEdited" />
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -489,6 +499,7 @@ import InstanceImportDialog from './InstanceImportDialog.vue'
 import CompareSetupDialog from './CompareSetupDialog.vue'
 import TagAllocationDialog from './TagAllocationDialog.vue'
 import SnapshotDialog from './SnapshotDialog.vue'
+import BulkEditDialog from './BulkEditDialog.vue'
 import CompareDiff from './CompareDiff.vue'
 import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
 import { tagKeys, tagGrouping, TAG_OTHER_KEY, TAG_UNTAGGED_KEY } from '../tagAllocation.js'
@@ -742,6 +753,22 @@ const supportDialog = ref(false)
 const compareSetup = ref(false)
 const tagAllocDialog = ref(false)
 const snapshotDialog = ref(false)
+
+/* ---------- Server-side bulk edit ---------- */
+const bulkEditDialog = ref(false)
+const bulkEditType = ref('instance')
+const bulkEditIds = ref([])
+function openBulkEdit(type) {
+  bulkEditType.value = type
+  bulkEditIds.value = [...(selectedByType[type] || [])]
+  bulkEditDialog.value = true
+}
+async function onBulkEdited() {
+  errorStore.success(t('prov.quote.bulk.done', { count: bulkEditIds.value.length, type: tabLabel(bulkEditType.value) }))
+  selectedByType[bulkEditType.value] = []
+  await reload()
+  await syncCompared()
+}
 
 /** After a snapshot restore the whole quote changed: reload + re-sync compared. */
 async function onSnapshotRestored() {
@@ -1366,10 +1393,9 @@ function askDeleteBulk(type) {
 }
 
 /**
- * Fans out per-id DELETEs. The backend has no bulk endpoint for
- * partial subsets, so we serialise the calls one at a time — keeps
- * the error surface clean and lets the host's error store toast any
- * individual failure without aborting the rest.
+ * Deletes the selection. Compute types go through the server-side bulk
+ * endpoint (one transaction, one recompute); storage/support keep the
+ * per-id fan-out (no bulk endpoint for them yet).
  */
 async function confirmDeleteBulk() {
   const type = deleteBulkType.value
@@ -1382,8 +1408,12 @@ async function confirmDeleteBulk() {
   }
   deleting.value = true
   try {
-    for (const id of ids) {
-      await api.del(`rest/service/prov/${type}/${id}`)
+    if (COMPUTE_TYPES.has(type)) {
+      await api.post(`rest/service/prov/${subscriptionId.value}/bulk/${type}/delete`, ids)
+    } else {
+      for (const id of ids) {
+        await api.del(`rest/service/prov/${type}/${id}`)
+      }
     }
     errorStore.success(t('prov.quote.delete.bulk.done', { type: tabLabel(type), count: ids.length }))
     deleteBulkDialog.value = false

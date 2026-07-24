@@ -123,6 +123,15 @@ export default {
   'prov.quote.compare.resync': 'Re-sync all',
 
   // ---- Quote view (iteration 1: header + read-only tables) ----
+  // ---- Bulk edit ----
+  'prov.quote.bulk.action': 'Bulk edit',
+  'prov.quote.bulk.title': 'Bulk edit — {n} resource(s)',
+  'prov.quote.bulk.note': 'Applied to every selected resource in one operation; each price is re-resolved under the new constraints. "Keep" leaves a field untouched; "Clear" reverts to the quote-level inheritance.',
+  'prov.quote.bulk.keep': '— Keep —',
+  'prov.quote.bulk.clear': '— Clear —',
+  'prov.quote.bulk.apply': 'Apply',
+  'prov.quote.bulk.done': '{count} {type} resource(s) updated',
+
   // ---- Quote snapshots ----
   'prov.quote.snap.action': 'Snapshots',
   'prov.quote.snap.title': 'Quote snapshots',

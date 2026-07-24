@@ -122,6 +122,15 @@ export default {
   'prov.quote.compare.resync': 'Resynchroniser',
 
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
+  // ---- Édition en masse ----
+  'prov.quote.bulk.action': 'Éditer en masse',
+  'prov.quote.bulk.title': 'Édition en masse — {n} ressource(s)',
+  'prov.quote.bulk.note': 'Appliqué à toutes les ressources sélectionnées en une seule opération ; chaque prix est recalculé selon les nouvelles contraintes. « Conserver » ne modifie pas le champ ; « Effacer » rétablit l\'héritage du devis.',
+  'prov.quote.bulk.keep': '— Conserver —',
+  'prov.quote.bulk.clear': '— Effacer —',
+  'prov.quote.bulk.apply': 'Appliquer',
+  'prov.quote.bulk.done': '{count} ressource(s) {type} mise(s) à jour',
+
   // ---- Instantanés du devis ----
   'prov.quote.snap.action': 'Instantanés',
   'prov.quote.snap.title': 'Instantanés du devis',
