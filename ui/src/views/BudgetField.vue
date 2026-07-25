@@ -32,12 +32,12 @@
       </template>
     </LigojAutocomplete>
 
-    <v-btn v-if="selectedBudget" icon size="small" variant="text" :title="t('prov.quote.budget.edit')" @click="editBudget">
+    <v-btn v-if="selectedBudget" icon size="small" variant="text" @click="editBudget">
       <v-icon>mdi-pencil</v-icon>
-    </v-btn>
-    <v-btn icon size="small" variant="text" :title="t('prov.quote.budget.new')" @click="newBudget">
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.budget.edit') }}</v-tooltip></v-btn>
+    <v-btn icon size="small" variant="text" @click="newBudget">
       <v-icon>mdi-plus</v-icon>
-    </v-btn>
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.budget.new') }}</v-tooltip></v-btn>
     <HelpTip :text="t('prov.quote.budget.about')" />
 
     <BudgetDialog

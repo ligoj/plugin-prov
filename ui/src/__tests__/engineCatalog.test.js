@@ -31,7 +31,7 @@ describe('<EngineIcon>', () => {
     expect(mountIcon('MYSQL').find('svg').exists()).toBe(true)
     expect(mountIcon('postgresql').find('svg').exists()).toBe(true) // case-insensitive
     expect(mountIcon('SQL_SERVER').find('svg').exists()).toBe(true)
-    expect(mountIcon('MYSQL').attributes('title')).toBe('MYSQL')
+    expect(mountIcon('MYSQL').attributes('aria-label')).toBe('MYSQL')
   })
 
   it('resolves an Aurora variant to its compatible glyph', () => {

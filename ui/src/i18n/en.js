@@ -240,6 +240,17 @@ export default {
 
   // Iteration 2: simple edit + delete.
   'prov.quote.edit': 'Edit quote',
+  'prov.quote.edit.tip': 'Name, description and the quote-level defaults (location, usage, budget, optimizer) every resource inherits.',
+  'prov.quote.period.tip': 'Display only — costs are stored monthly and scaled to the selected period.',
+  'prov.quote.refresh.tip': 'Reload the quote from the server without touching the prices.',
+  'prov.quote.refreshPrices.tip': 'Re-run the price lookup of every resource against the latest provider catalog.',
+  'prov.quote.tagAlloc.tip': 'Break the cost (or CO₂) down by a tag key: team, environment, cost-center…',
+  'prov.quote.snap.tip': 'Capture, diff and restore named versions of this quote.',
+  'prov.quote.compare.tip': 'Keep other subscriptions as synchronized clones and see the price difference per resource.',
+  'prov.quote.exports.tip': 'Download the quote as CSV (inline or split storages) or full JSON.',
+  'prov.quote.import.tip': 'Bulk-create instances from a CSV file, with per-row price lookup.',
+  'prov.quote.views.tip': 'Save and restore the exact screen state — search, filters, columns, sort, periods — personally or shared with all users.',
+  'prov.quote.filter.tip': 'Structured criteria on top of the search: dimensions, tags, numeric cost/CO₂ compare, regex, AND/OR.',
   'prov.quote.name': 'Name',
   'prov.quote.description': 'Description',
   'prov.quote.saved': 'Quote "{name}" updated',

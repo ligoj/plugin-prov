@@ -4,9 +4,10 @@
          show the parent label + a back button. Otherwise the row is
          empty so layout doesn't shift. -->
     <div v-if="drill" class="d-flex align-center mb-1 ga-1 quote-breakdown-back">
-      <button type="button" class="back-btn" @click="drill = null" :title="t('prov.quote.breakdown.back')">
+      <button type="button" class="back-btn" @click="drill = null">
         <span class="dot" :style="{ backgroundColor: parentColor }" />
         ← {{ drillTitle }}
+        <v-tooltip activator="parent" location="top">{{ t('prov.quote.breakdown.back') }}</v-tooltip>
       </button>
     </div>
     <div class="d-flex align-center flex-wrap ga-3">

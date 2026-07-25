@@ -8,7 +8,7 @@ describe('<OsIcon>', () => {
   it('renders an inline SVG for a known OS', () => {
     const w = mountIcon('RHEL')
     expect(w.find('svg').exists()).toBe(true)
-    expect(w.attributes('title')).toBe('RHEL')
+    expect(w.attributes('aria-label')).toBe('RHEL')
   })
 
   it('matches the OS case-insensitively', () => {

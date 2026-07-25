@@ -5,7 +5,7 @@
         <v-icon color="primary">mdi-history</v-icon>
         {{ t('prov.quote.snap.title') }}
         <v-spacer />
-        <v-btn icon size="small" variant="text" :title="t('common.close')" @click="close"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon size="small" variant="text" @click="close"><v-icon>mdi-close</v-icon><v-tooltip activator="parent" location="bottom">{{ t('common.close') }}</v-tooltip></v-btn>
       </v-card-title>
 
       <v-card-text>
@@ -56,17 +56,16 @@
               <td class="text-right">{{ formatCost(s.cost, currency) }}</td>
               <td class="text-right">{{ formatCo2(s.co2) }}</td>
               <td class="text-right snap-actions">
-                <v-btn icon size="x-small" variant="text" :color="diffId === s.id ? 'primary' : undefined"
-                  :title="t('prov.quote.snap.diff')" @click="toggleDiff(s)">
+                <v-btn icon size="x-small" variant="text" :color="diffId === s.id ? 'primary' : undefined" @click="toggleDiff(s)">
                   <v-icon>mdi-vector-difference</v-icon>
-                </v-btn>
-                <v-btn icon size="x-small" variant="text" :loading="busy === s.id" :title="t('prov.quote.snap.restore')"
+                <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.snap.diff') }}</v-tooltip></v-btn>
+                <v-btn icon size="x-small" variant="text" :loading="busy === s.id"
                   @click="askRestore(s)">
                   <v-icon>mdi-backup-restore</v-icon>
-                </v-btn>
-                <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click="remove(s)">
+                <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.snap.restore') }}</v-tooltip></v-btn>
+                <v-btn icon size="x-small" variant="text" @click="remove(s)">
                   <v-icon>mdi-delete-outline</v-icon>
-                </v-btn>
+                <v-tooltip activator="parent" location="bottom">{{ t('common.delete') }}</v-tooltip></v-btn>
               </td>
             </tr>
           </tbody>
@@ -81,10 +80,10 @@
             <v-icon size="14">mdi-arrow-right-thin</v-icon>
             <v-select v-model="diffTarget" :items="diffTargets" item-title="label" item-value="id" density="compact"
               variant="outlined" hide-details class="snap-diff-target" />
-            <v-btn-toggle v-model="metric" mandatory density="compact" variant="outlined" divided>
-              <v-btn size="small" value="cost"><v-icon size="small" start>mdi-currency-usd</v-icon>{{ t('prov.quote.viewMode.cost') }}</v-btn>
-              <v-btn size="small" value="co2"><v-icon size="small" start>mdi-leaf</v-icon>{{ t('prov.quote.viewMode.co2') }}</v-btn>
-            </v-btn-toggle>
+            <LjSegmented v-model="metric" :options="[
+              { value: 'cost', icon: 'mdi-currency-usd', label: t('prov.quote.viewMode.cost') },
+              { value: 'co2', icon: 'mdi-leaf', label: t('prov.quote.viewMode.co2') },
+            ]" />
             <v-spacer />
             <span v-if="diff" class="snap-diff-total" :class="`text-${diffMeta(diff.totals.pct).color}`">
               {{ fmt(diff.totals.from) }} → {{ fmt(diff.totals.to) }}
@@ -154,7 +153,7 @@
 // client-side by quoteDiff.js) and restored. Restore is destructive and
 // confirmed; rows the current catalog cannot price any more are reported.
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore } from '@ligoj/host'
+import { useApi, useI18nStore, LjSegmented } from '@ligoj/host'
 import { formatCost, formatCo2, TAB_TYPES } from '../quoteFormatters.js'
 import { diffMeta, formatDiffPct } from '../compareApi.js'
 import { normalizeConfig, snapshotRows, quoteDiff } from '../quoteDiff.js'

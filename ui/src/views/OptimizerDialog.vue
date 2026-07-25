@@ -15,11 +15,8 @@
             <span class="text-caption text-medium-emphasis">{{ t('prov.quote.optimizer.mode') }}</span>
             <HelpTip :text="t('prov.quote.optimizer.modeHelp')" />
           </div>
-          <v-btn-toggle v-model="form.mode" mandatory density="comfortable" variant="outlined" divided class="mb-2">
-            <v-btn v-for="m in OPTIMIZER_MODES" :key="m.value" :value="m.value" size="small">
-              <v-icon start>{{ m.icon }}</v-icon>{{ t(m.labelKey) }}
-            </v-btn>
-          </v-btn-toggle>
+          <LjSegmented v-model="form.mode" class="mb-2"
+            :options="OPTIMIZER_MODES.map((m) => ({ value: m.value, icon: m.icon, label: t(m.labelKey) }))" />
 
           <div class="d-flex align-center">
             <v-checkbox v-model="form.p1TypeOnly" :label="t('prov.quote.optimizer.p1TypeOnly')"
@@ -44,7 +41,7 @@
 <script setup>
 // Create / edit / delete an optimizer profile (ProvOptimizer) via ProvOptimizerResource.
 import { ref, reactive, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useI18nStore, APP_BASE, LjSegmented } from '@ligoj/host'
 import { OPTIMIZER_MODES, optimizerPayload } from '../optimizerCatalog.js'
 import HelpTip from './HelpTip.vue'
 

@@ -5,7 +5,7 @@
         <v-icon color="primary">mdi-tag-multiple-outline</v-icon>
         {{ t('prov.quote.tagAlloc.title') }}
         <v-spacer />
-        <v-btn icon size="small" variant="text" :title="t('common.close')" @click="close"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon size="small" variant="text" @click="close"><v-icon>mdi-close</v-icon><v-tooltip activator="parent" location="bottom">{{ t('common.close') }}</v-tooltip></v-btn>
       </v-card-title>
 
       <v-card-text>
@@ -25,14 +25,15 @@
               hide-details
               class="ta-key"
             />
-            <v-btn-toggle v-model="metric" mandatory density="compact" variant="outlined" divided>
-              <v-btn size="small" value="cost"><v-icon size="small" start>mdi-currency-usd</v-icon>{{ t('prov.quote.viewMode.cost') }}</v-btn>
-              <v-btn size="small" value="co2"><v-icon size="small" start>mdi-leaf</v-icon>{{ t('prov.quote.viewMode.co2') }}</v-btn>
-            </v-btn-toggle>
+            <LjSegmented v-model="metric" :options="[
+              { value: 'cost', icon: 'mdi-currency-usd', label: t('prov.quote.viewMode.cost') },
+              { value: 'co2', icon: 'mdi-leaf', label: t('prov.quote.viewMode.co2') },
+            ]" />
             <v-spacer />
-            <div class="ta-coverage" :title="t('prov.quote.tagAlloc.coverageHelp')">
+            <div class="ta-coverage">
               <span class="ta-coverage-label">{{ t('prov.quote.tagAlloc.coverage') }}</span>
               <span class="ta-coverage-pct" :class="`text-${coverageColor}`">{{ pct(allocation.coverage) }}</span>
+              <v-tooltip activator="parent" location="bottom" max-width="280">{{ t('prov.quote.tagAlloc.coverageHelp') }}</v-tooltip>
             </div>
           </div>
 
@@ -68,7 +69,7 @@
 // cost / CO₂ down by the values of a chosen tag key, with an untagged bucket and
 // a coverage indicator. Aggregation lives in tagAllocation.js (unit-tested).
 import { ref, computed, watch } from 'vue'
-import { useI18nStore, LigojAutocomplete } from '@ligoj/host'
+import { useI18nStore, LigojAutocomplete, LjSegmented } from '@ligoj/host'
 import { formatCost, formatCo2 } from '../quoteFormatters.js'
 import { tagKeys, tagAllocation } from '../tagAllocation.js'
 

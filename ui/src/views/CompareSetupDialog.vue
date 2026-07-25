@@ -5,7 +5,7 @@
         <v-icon color="primary">mdi-scale-balance</v-icon>
         {{ t('prov.quote.compare.title') }}
         <v-spacer />
-        <v-btn icon size="small" variant="text" :title="t('common.close')" @click="close"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon size="small" variant="text" @click="close"><v-icon>mdi-close</v-icon><v-tooltip activator="parent" location="bottom">{{ t('common.close') }}</v-tooltip></v-btn>
       </v-card-title>
 
       <v-card-text>
@@ -68,9 +68,9 @@
                 <span v-else class="text-medium-emphasis">0</span>
               </td>
               <td class="text-right">
-                <v-btn icon size="x-small" variant="text" :title="t('prov.quote.compare.remove')" :loading="busy === cs.subscription" @click="remove(cs)">
+                <v-btn icon size="x-small" variant="text" :loading="busy === cs.subscription" @click="remove(cs)">
                   <v-icon>mdi-delete-outline</v-icon>
-                </v-btn>
+                <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.compare.remove') }}</v-tooltip></v-btn>
               </td>
             </tr>
           </tbody>

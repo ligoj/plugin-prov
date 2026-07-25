@@ -28,9 +28,9 @@
             <span class="wl-at">@</span>
             <v-text-field v-model.number="p.cpu" type="number" min="0" max="100"
               :label="t('prov.quote.workload.cpu')" suffix="%" variant="outlined" density="compact" hide-details />
-            <v-btn icon size="small" variant="text" :title="t('prov.quote.workload.removePeriod')" @click="removePeriod(i)">
+            <v-btn icon size="small" variant="text" @click="removePeriod(i)">
               <v-icon>mdi-close</v-icon>
-            </v-btn>
+            <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.workload.removePeriod') }}</v-tooltip></v-btn>
           </div>
         </div>
 

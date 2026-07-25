@@ -4,7 +4,6 @@
     class="os-icon"
     role="img"
     :aria-label="os"
-    :title="os"
     v-html="markup"
   />
 </template>

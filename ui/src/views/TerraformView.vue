@@ -7,9 +7,9 @@
     <div class="d-flex align-center mb-4 ga-2">
       <h1 class="text-h5 mb-0">{{ t('terraform.title') }}</h1>
       <v-spacer />
-      <v-btn icon size="small" variant="text" :loading="loading" :title="t('nav.refresh')" @click="reload">
+      <v-btn icon size="small" variant="text" :loading="loading" @click="reload">
         <v-icon>mdi-refresh</v-icon>
-      </v-btn>
+      <v-tooltip activator="parent" location="bottom">{{ t('nav.refresh') }}</v-tooltip></v-btn>
     </div>
 
     <v-skeleton-loader v-if="loading && !info" type="article" />

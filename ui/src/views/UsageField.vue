@@ -28,12 +28,12 @@
       </template>
     </LigojAutocomplete>
 
-    <v-btn v-if="selectedUsage" icon size="small" variant="text" :title="t('prov.quote.usage.edit')" @click="editUsage">
+    <v-btn v-if="selectedUsage" icon size="small" variant="text" @click="editUsage">
       <v-icon>mdi-pencil</v-icon>
-    </v-btn>
-    <v-btn icon size="small" variant="text" :title="t('prov.quote.usage.new')" @click="newUsage">
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.usage.edit') }}</v-tooltip></v-btn>
+    <v-btn icon size="small" variant="text" @click="newUsage">
       <v-icon>mdi-plus</v-icon>
-    </v-btn>
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.usage.new') }}</v-tooltip></v-btn>
     <HelpTip :text="t('prov.quote.usage.about')" />
 
     <UsageDialog

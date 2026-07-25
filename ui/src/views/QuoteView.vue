@@ -10,20 +10,7 @@
            actions as before (edit / period / refresh / refresh-prices /
            exports), only regrouped. -->
       <header class="q-head mb-4">
-        <div class="q-head-id">
-          <span v-if="providerNode" class="q-provider">
-            <NodeIcon :node="providerNode" />
-          </span>
-          <div class="q-head-txt">
-            <div class="d-flex align-center ga-1">
-              <h1 class="q-name">{{ config.name || subscriptionId }}</h1>
-              <v-btn icon size="small" variant="text" class="q-edit" :title="t('prov.quote.edit')" @click="openEdit">
-                <v-icon size="small">mdi-pencil</v-icon>
-              </v-btn>
-            </div>
-            <span v-if="config.description" class="q-desc" :title="config.description">{{ config.description }}</span>
-          </div>
-        </div>
+        <QuoteIdentity :config="config" :provider-node="providerNode" :fallback-name="subscriptionId" @edit="openEdit" />
         <v-spacer />
         <div class="q-cost" :class="{ 'q-cost--filtered': anyFilterActive }">
           <!-- No "monthly" caption: the active period is shown in the period
@@ -32,7 +19,8 @@
                summary stays compact. -->
           <div class="q-cost-line">
           <span v-if="anyFilterActive" class="q-cost-label">
-            <v-icon size="12" class="q-cost-filter-ic" :title="t('prov.quote.totalFiltered')">mdi-filter-variant</v-icon>
+            <v-icon size="12" class="q-cost-filter-ic">mdi-filter-variant</v-icon>
+            <v-tooltip activator="parent" location="bottom" max-width="280">{{ t('prov.quote.totalFiltered') }}</v-tooltip>
           </span>
           <span class="q-cost-value">
             {{ viewMode === 'co2'
@@ -87,10 +75,10 @@
                monthly numbers; we just scale at render time. -->
           <v-menu>
             <template #activator="{ props: actProps }">
-              <v-btn v-bind="actProps" size="small" variant="text" :title="t('prov.quote.period.title')">
+              <v-btn v-bind="actProps" size="small" variant="text">
                 <v-icon size="small">mdi-clock-outline</v-icon>
                 <span class="text-caption ml-1">/{{ t(`prov.quote.period.${costPeriod}Suffix`) }}</span>
-              </v-btn>
+              <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.period.title') }}</div>{{ t('prov.quote.period.tip') }}</v-tooltip></v-btn>
             </template>
             <v-list density="compact" min-width="160">
               <v-list-item v-for="p in COST_PERIODS" :key="p" :title="t(`prov.quote.period.${p}`)" @click="costPeriod = p">
@@ -100,32 +88,32 @@
               </v-list-item>
             </v-list>
           </v-menu>
-          <v-btn icon size="small" variant="text" :loading="refreshing" :title="t('prov.quote.refresh')" @click="reload">
+          <v-btn icon size="small" variant="text" :loading="refreshing" @click="reload">
             <v-icon>mdi-refresh</v-icon>
-          </v-btn>
+          <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.refresh') }}</div>{{ t('prov.quote.refresh.tip') }}</v-tooltip></v-btn>
           <!-- Recomputes prices against the latest provider catalog —
                the legacy `refreshCost` action. Distinct from "reload",
                which only re-fetches the configuration as-is. -->
-          <v-btn icon size="small" variant="text" :loading="refreshingPrices" :title="t('prov.quote.refreshPrices')" @click="refreshPrices">
+          <v-btn icon size="small" variant="text" :loading="refreshingPrices" @click="refreshPrices">
             <v-icon>mdi-cash-sync</v-icon>
-          </v-btn>
+          <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.refreshPrices') }}</div>{{ t('prov.quote.refreshPrices.tip') }}</v-tooltip></v-btn>
           <!-- Tag-based cost allocation (client-side report in a dialog). -->
-          <v-btn icon size="small" variant="text" :title="t('prov.quote.tagAlloc.action')" @click="tagAllocDialog = true">
+          <v-btn icon size="small" variant="text" @click="tagAllocDialog = true">
             <v-icon>mdi-tag-multiple-outline</v-icon>
-          </v-btn>
+          <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.tagAlloc.action') }}</div>{{ t('prov.quote.tagAlloc.tip') }}</v-tooltip></v-btn>
           <!-- Quote snapshots: named versions, diff and restore. -->
-          <v-btn icon size="small" variant="text" :title="t('prov.quote.snap.action')" :disabled="!subscriptionId" @click="snapshotDialog = true">
+          <v-btn icon size="small" variant="text" :disabled="!subscriptionId" @click="snapshotDialog = true">
             <v-icon>mdi-history</v-icon>
-          </v-btn>
+          <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.snap.action') }}</div>{{ t('prov.quote.snap.tip') }}</v-tooltip></v-btn>
           <!-- Cross-provider comparison: pick a compared subscription (CS) to
                diff against, or manage the synchronized CS set. -->
           <v-menu>
             <template #activator="{ props: cmpProps }">
-              <v-btn v-bind="cmpProps" size="small" variant="text" :title="t('prov.quote.compare.action')" :disabled="!subscriptionId"
+              <v-btn v-bind="cmpProps" size="small" variant="text" :disabled="!subscriptionId"
                 :color="activeCs != null ? 'primary' : undefined">
                 <v-icon size="small">mdi-scale-balance</v-icon>
                 <span v-if="activeCsName" class="text-caption ml-1">{{ activeCsName }}</span>
-              </v-btn>
+              <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.compare.action') }}</div>{{ t('prov.quote.compare.tip') }}</v-tooltip></v-btn>
             </template>
             <v-list density="compact" min-width="220">
               <v-list-subheader>{{ t('prov.quote.compare.against') }}</v-list-subheader>
@@ -147,9 +135,9 @@
                can mirror it as Content-Disposition. -->
           <v-menu>
             <template #activator="{ props: actProps }">
-              <v-btn v-bind="actProps" icon size="small" variant="text" :title="t('prov.quote.exports')" :disabled="!subscriptionId">
+              <v-btn v-bind="actProps" icon size="small" variant="text" :disabled="!subscriptionId">
                 <v-icon>mdi-download</v-icon>
-              </v-btn>
+              <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.exports') }}</div>{{ t('prov.quote.exports.tip') }}</v-tooltip></v-btn>
             </template>
             <v-list density="compact" min-width="260">
               <v-list-item :href="exportUrl.inline" prepend-icon="mdi-file-table" :title="t('prov.quote.exports.inline')" />
@@ -160,7 +148,7 @@
           <!-- CSV bulk import (instances) — kept beside its export sibling. -->
           <v-btn icon size="small" variant="text" :disabled="!subscriptionId" @click="importDialog = true">
             <v-icon>mdi-file-upload</v-icon>
-            <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.import.title') }}</v-tooltip>
+            <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.import.title') }}</div>{{ t('prov.quote.import.tip') }}</v-tooltip>
           </v-btn>
           <!-- Saved views: personal (browser) + shared (server, all users). A
                view restores the exact screen: search, filters, columns, sort,
@@ -169,7 +157,7 @@
             <template #activator="{ props: viewProps }">
               <v-btn v-bind="viewProps" icon size="small" variant="text" :color="hasViews ? 'primary' : undefined">
                 <v-icon>mdi-bookmark-multiple-outline</v-icon>
-                <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.action') }}</v-tooltip>
+                <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.views.action') }}</div>{{ t('prov.quote.views.tip') }}</v-tooltip>
               </v-btn>
             </template>
             <v-list density="compact" min-width="280">
@@ -182,16 +170,15 @@
                 <v-list-item-title>{{ v.name }}</v-list-item-title>
                 <template #append>
                   <!-- Only the last-loaded view offers the one-click "update with current state". -->
-                  <v-btn v-if="isLastApplied('local', v)" icon size="x-small" variant="text" color="primary"
-                    :title="t('prov.quote.views.update')" @click.stop="updateViewWithCurrent('local', v)">
+                  <v-btn v-if="isLastApplied('local', v)" icon size="x-small" variant="text" color="primary" @click.stop="updateViewWithCurrent('local', v)">
                     <v-icon size="14">mdi-content-save-outline</v-icon>
-                  </v-btn>
-                  <v-btn icon size="x-small" variant="text" :title="t('prov.quote.views.edit')" @click.stop="openEditView('local', v)">
+                  <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.update') }}</v-tooltip></v-btn>
+                  <v-btn icon size="x-small" variant="text" @click.stop="openEditView('local', v)">
                     <v-icon size="14">mdi-pencil</v-icon>
-                  </v-btn>
-                  <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteView(v.name)">
+                  <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.edit') }}</v-tooltip></v-btn>
+                  <v-btn icon size="x-small" variant="text" @click.stop="deleteView(v.name)">
                     <v-icon size="14">mdi-delete-outline</v-icon>
-                  </v-btn>
+                  <v-tooltip activator="parent" location="bottom">{{ t('common.delete') }}</v-tooltip></v-btn>
                 </template>
               </v-list-item>
               <v-list-subheader>{{ t('prov.quote.views.shared') }}</v-list-subheader>
@@ -202,16 +189,15 @@
                 :subtitle="v.description || undefined" @click="applySharedView(v)">
                 <v-list-item-title>{{ v.name }}</v-list-item-title>
                 <template #append>
-                  <v-btn v-if="isLastApplied('shared', v)" icon size="x-small" variant="text" color="primary"
-                    :title="t('prov.quote.views.update')" @click.stop="updateViewWithCurrent('shared', v)">
+                  <v-btn v-if="isLastApplied('shared', v)" icon size="x-small" variant="text" color="primary" @click.stop="updateViewWithCurrent('shared', v)">
                     <v-icon size="14">mdi-content-save-outline</v-icon>
-                  </v-btn>
-                  <v-btn icon size="x-small" variant="text" :title="t('prov.quote.views.edit')" @click.stop="openEditView('shared', v)">
+                  <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.update') }}</v-tooltip></v-btn>
+                  <v-btn icon size="x-small" variant="text" @click.stop="openEditView('shared', v)">
                     <v-icon size="14">mdi-pencil</v-icon>
-                  </v-btn>
-                  <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteSharedView(v)">
+                  <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.edit') }}</v-tooltip></v-btn>
+                  <v-btn icon size="x-small" variant="text" @click.stop="deleteSharedView(v)">
                     <v-icon size="14">mdi-delete-outline</v-icon>
-                  </v-btn>
+                  <v-tooltip activator="parent" location="bottom">{{ t('common.delete') }}</v-tooltip></v-btn>
                 </template>
               </v-list-item>
               <v-divider />
@@ -235,15 +221,12 @@
               <span class="q-card-title">
                 {{ viewMode === 'co2' ? t('prov.quote.breakdown.titleCo2') : t('prov.quote.breakdown.title') }}
               </span>
-              <!-- Group the donut + timeline by resource type or by a tag key. -->
-              <v-btn-toggle v-model="groupBy" mandatory density="compact" variant="outlined" divided class="q-groupby">
-                <v-btn size="small" value="type" :title="t('prov.quote.breakdown.byType')">
-                  <v-icon size="small">mdi-shape-outline</v-icon>
-                </v-btn>
-                <v-btn size="small" value="tag" :disabled="!breakdownTagKeys.length" :title="t('prov.quote.breakdown.byTag')">
-                  <v-icon size="small">mdi-tag-outline</v-icon>
-                </v-btn>
-              </v-btn-toggle>
+              <!-- Group the donut + timeline by resource type or by a tag key
+                   (hidden when the quote carries no tag to group by). -->
+              <LjSegmented v-if="breakdownTagKeys.length" v-model="groupBy" class="q-groupby" :options="[
+                { value: 'type', icon: 'mdi-shape-outline', label: t('prov.quote.cols.type') },
+                { value: 'tag', icon: 'mdi-tag-outline', label: t('prov.quote.filter.tag') },
+              ]" />
               <LigojAutocomplete v-if="groupBy === 'tag' && breakdownTagKeys.length" v-model="breakdownTagKey"
                 :items="breakdownTagKeys" :label="t('prov.quote.tagAlloc.key')" variant="outlined" density="compact"
                 hide-details class="q-groupby-key" />
@@ -253,16 +236,10 @@
                 {{ t('prov.quote.timeline.month', { n: selectedMonth + 1 }) }}
               </v-chip>
             </div>
-            <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" divided class="q-mode">
-              <v-btn size="small" value="cost" :title="t('prov.quote.viewMode.cost')">
-                <v-icon size="small" start>mdi-currency-usd</v-icon>
-                {{ t('prov.quote.viewMode.cost') }}
-              </v-btn>
-              <v-btn size="small" value="co2" :title="t('prov.quote.viewMode.co2')">
-                <v-icon size="small" start>mdi-leaf</v-icon>
-                {{ t('prov.quote.viewMode.co2') }}
-              </v-btn>
-            </v-btn-toggle>
+            <LjSegmented v-model="viewMode" class="q-mode" :options="[
+              { value: 'cost', icon: 'mdi-currency-usd', label: t('prov.quote.viewMode.cost') },
+              { value: 'co2', icon: 'mdi-leaf', label: t('prov.quote.viewMode.co2') },
+            ]" />
           </div>
           <div class="q-costcard-body">
             <QuoteBreakdown :config="filteredConfig" :mode="viewMode" :groups="chartGroups.groups"
@@ -323,7 +300,7 @@
             <v-icon>mdi-filter-variant</v-icon>
           </v-badge>
           <v-icon v-else>mdi-filter-variant</v-icon>
-          <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.filter.action') }}</v-tooltip>
+          <v-tooltip activator="parent" location="bottom" max-width="300"><div class="font-weight-bold">{{ t('prov.quote.filter.action') }}</div>{{ t('prov.quote.filter.tip') }}</v-tooltip>
         </v-btn>
         <!-- Compact per-type create (targets the active tab). -->
         <v-btn icon size="small" color="primary" variant="elevated" @click="openResourceCreate(activeTab)">
@@ -592,8 +569,8 @@ import {
   LigojConfirmDialog,
   LigojDataTable,
   LigojAutocomplete,
+  LjSegmented,
   RowActionsMenu,
-  NodeIcon,
   APP_BASE,
 } from '@ligoj/host'
 import {
@@ -624,6 +601,7 @@ import FilterDialog from './FilterDialog.vue'
 import { textMatcher, quickMatch, rowPasses } from '../searchFilters.js'
 import { viewsStorageKey, readViews, writeViews, upsertView, removeView } from '../viewPresets.js'
 import CompareDiff from './CompareDiff.vue'
+import QuoteIdentity from './QuoteIdentity.vue'
 import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
 import { tagKeys, tagGrouping, TAG_OTHER_KEY, TAG_UNTAGGED_KEY } from '../tagAllocation.js'
 import ResourceMicroBar from './ResourceMicroBar.vue'
@@ -2050,67 +2028,6 @@ onMounted(async () => {
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-}
-
-.q-head-id {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.q-provider {
-  width: 46px;
-  height: 46px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  background: var(--pill);
-  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
-}
-
-.q-provider :deep(img),
-.q-provider :deep(.v-icon) {
-  max-width: 26px;
-  max-height: 26px;
-}
-
-.q-name {
-  font-size: 22px;
-  font-weight: var(--bold);
-  color: var(--ink);
-  line-height: 1.2;
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.q-edit {
-  color: var(--ink-3);
-}
-
-.q-desc {
-  display: inline-block;
-  align-self: flex-start;
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-3);
-  background: var(--pill);
-  border-radius: 999px;
-  padding: 2px 10px;
-  max-width: 420px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.q-head-txt {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
 }
 
 .q-cost {

@@ -33,12 +33,12 @@
       </template>
     </LigojAutocomplete>
 
-    <v-btn v-if="selectedOptimizer" icon size="small" variant="text" :title="t('prov.quote.optimizer.edit')" @click="editOptimizer">
+    <v-btn v-if="selectedOptimizer" icon size="small" variant="text" @click="editOptimizer">
       <v-icon>mdi-pencil</v-icon>
-    </v-btn>
-    <v-btn icon size="small" variant="text" :title="t('prov.quote.optimizer.new')" @click="newOptimizer">
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.optimizer.edit') }}</v-tooltip></v-btn>
+    <v-btn icon size="small" variant="text" @click="newOptimizer">
       <v-icon>mdi-plus</v-icon>
-    </v-btn>
+    <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.optimizer.new') }}</v-tooltip></v-btn>
     <HelpTip :text="t('prov.quote.optimizer.about')" />
 
     <OptimizerDialog

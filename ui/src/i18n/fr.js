@@ -239,6 +239,17 @@ export default {
 
   // Itération 2 : édition simple + suppression.
   'prov.quote.edit': 'Modifier le devis',
+  'prov.quote.edit.tip': 'Nom, description et valeurs par défaut du devis (localisation, usage, budget, optimiseur) héritées par chaque ressource.',
+  'prov.quote.period.tip': 'Affichage uniquement — les coûts sont stockés au mois et convertis vers la période choisie.',
+  'prov.quote.refresh.tip': 'Recharge le devis depuis le serveur sans toucher aux prix.',
+  'prov.quote.refreshPrices.tip': 'Relance la recherche de prix de chaque ressource sur le dernier catalogue du fournisseur.',
+  'prov.quote.tagAlloc.tip': 'Ventile le coût (ou le CO₂) par clé de tag : équipe, environnement, centre de coût…',
+  'prov.quote.snap.tip': 'Capture, compare et restaure des versions nommées de ce devis.',
+  'prov.quote.compare.tip': 'Maintient d\'autres souscriptions comme clones synchronisés et montre l\'écart de prix par ressource.',
+  'prov.quote.exports.tip': 'Télécharge le devis en CSV (stockages en ligne ou séparés) ou JSON complet.',
+  'prov.quote.import.tip': 'Crée des instances en masse depuis un fichier CSV, avec recherche de prix par ligne.',
+  'prov.quote.views.tip': 'Enregistre et restaure l\'état exact de l\'écran — recherche, filtres, colonnes, tris, périodes — personnellement ou partagé.',
+  'prov.quote.filter.tip': 'Critères structurés en plus de la recherche : dimensions, tags, comparaison numérique coût/CO₂, regex, ET/OU.',
   'prov.quote.name': 'Nom',
   'prov.quote.description': 'Description',
   'prov.quote.saved': 'Devis « {name} » mis à jour',

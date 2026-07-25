@@ -5,17 +5,17 @@
         <v-icon color="primary">mdi-filter-variant</v-icon>
         {{ t('prov.quote.filter.title') }}
         <v-spacer />
-        <v-btn icon size="small" variant="text" :title="t('common.close')" @click="close"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon size="small" variant="text" @click="close"><v-icon>mdi-close</v-icon><v-tooltip activator="parent" location="bottom">{{ t('common.close') }}</v-tooltip></v-btn>
       </v-card-title>
 
       <v-card-text>
         <div class="d-flex align-center ga-3 mb-4 flex-wrap">
           <p class="text-body-2 text-medium-emphasis mb-0 flex-grow-1">{{ t('prov.quote.filter.note') }}</p>
           <!-- Combination mode: every filter (AND) or at least one (OR). -->
-          <v-btn-toggle v-model="localMode" mandatory density="compact" variant="outlined" divided>
-            <v-btn size="small" value="AND">{{ t('prov.quote.filter.and') }}</v-btn>
-            <v-btn size="small" value="OR">{{ t('prov.quote.filter.or') }}</v-btn>
-          </v-btn-toggle>
+          <LjSegmented v-model="localMode" :options="[
+            { value: 'AND', label: t('prov.quote.filter.and') },
+            { value: 'OR', label: t('prov.quote.filter.or') },
+          ]" />
         </div>
 
         <div v-for="(f, i) in localFilters" :key="f.id" class="flt-row">
@@ -75,9 +75,9 @@
             :placeholder="t('prov.quote.filter.textHint')" variant="outlined" density="compact" hide-details
             class="flt-value" />
 
-          <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click="localFilters.splice(i, 1)">
+          <v-btn icon size="x-small" variant="text" @click="localFilters.splice(i, 1)">
             <v-icon>mdi-close</v-icon>
-          </v-btn>
+          <v-tooltip activator="parent" location="bottom">{{ t('common.delete') }}</v-tooltip></v-btn>
         </div>
 
         <v-btn size="small" variant="tonal" prepend-icon="mdi-plus" class="mt-1" @click="addFilter">
@@ -103,7 +103,7 @@
 // regex-aware. Filters combine with AND / OR; the evaluation engine lives in
 // searchFilters.js (pure, tested) — this dialog only edits the state.
 import { ref, computed, watch } from 'vue'
-import { useI18nStore, LigojAutocomplete } from '@ligoj/host'
+import { useI18nStore, LigojAutocomplete, LjSegmented } from '@ligoj/host'
 import LocationField from './LocationField.vue'
 import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'

@@ -4,7 +4,6 @@
     class="engine-icon"
     role="img"
     :aria-label="engine"
-    :title="engine"
     v-html="markup"
   />
 </template>

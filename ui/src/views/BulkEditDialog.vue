@@ -5,7 +5,7 @@
         <v-icon color="primary">mdi-pencil-box-multiple-outline</v-icon>
         {{ t('prov.quote.bulk.title', { n: ids.length }) }}
         <v-spacer />
-        <v-btn icon size="small" variant="text" :title="t('common.close')" @click="close"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon size="small" variant="text" @click="close"><v-icon>mdi-close</v-icon><v-tooltip activator="parent" location="bottom">{{ t('common.close') }}</v-tooltip></v-btn>
       </v-card-title>
 
       <v-card-text>
