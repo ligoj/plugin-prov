@@ -251,7 +251,45 @@
              resource type; each tab's chip turns into its per-type match count. -->
         <v-text-field :model-value="searchInput" :label="t('common.search')" prepend-inner-icon="mdi-magnify"
           density="compact" hide-details variant="outlined" clearable class="quote-search"
-          @update:model-value="onSearch" />
+          :placeholder="t('prov.quote.filter.textHint')" @update:model-value="onSearch" />
+        <!-- Advanced filters (dimension / numeric / tag / regex, AND-OR) —
+             managed in their own dialog; the badge counts the active ones. -->
+        <v-btn icon size="small" :variant="advFilters.length ? 'elevated' : 'outlined'"
+          :color="advFilters.length ? 'primary' : undefined" @click="filterDialog = true">
+          <v-badge v-if="advFilters.length" :content="advFilters.length" color="warning" offset-x="-2" offset-y="-2">
+            <v-icon>mdi-filter-variant</v-icon>
+          </v-badge>
+          <v-icon v-else>mdi-filter-variant</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.filter.action') }}</v-tooltip>
+        </v-btn>
+        <!-- Saved views: named captures of search + filters + columns + display
+             state, persisted per subscription (feature 13 phase 3). -->
+        <v-menu>
+          <template #activator="{ props: viewProps }">
+            <v-btn v-bind="viewProps" icon size="small" variant="outlined">
+              <v-icon>mdi-bookmark-multiple-outline</v-icon>
+              <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.action') }}</v-tooltip>
+            </v-btn>
+          </template>
+          <v-list density="compact" min-width="230">
+            <v-list-subheader>{{ t('prov.quote.views.action') }}</v-list-subheader>
+            <v-list-item v-if="!savedViews.length" disabled>
+              <v-list-item-title class="text-medium-emphasis">{{ t('prov.quote.views.empty') }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item v-for="v in savedViews" :key="v.name" prepend-icon="mdi-bookmark-outline" @click="applyView(v)">
+              <v-list-item-title>{{ v.name }}</v-list-item-title>
+              <template #append>
+                <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteView(v.name)">
+                  <v-icon size="14">mdi-delete-outline</v-icon>
+                </v-btn>
+              </template>
+            </v-list-item>
+            <v-divider />
+            <v-list-item prepend-icon="mdi-content-save-outline" @click="saveViewDialog = true">
+              <v-list-item-title>{{ t('prov.quote.views.save') }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
         <!-- Compact per-type create (targets the active tab) + instance CSV import. -->
         <v-btn icon size="small" color="primary" variant="elevated" @click="openResourceCreate(activeTab)">
           <v-icon>mdi-plus</v-icon>
@@ -290,7 +328,9 @@
             </v-toolbar>
           </v-slide-y-transition>
 
-          <LigojDataTable v-if="rowsByType[tab.key].length" v-model="selectedByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
+          <!-- `tablesEpoch` remounts the tables after a saved view rewrites the
+               persisted column sets, so they re-read their visibility state. -->
+          <LigojDataTable v-if="rowsByType[tab.key].length" :key="`${tab.key}-v${tablesEpoch}`" v-model="selectedByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
             :pinned-columns="PINNED_COLUMNS" :columns-storage-key="`ligoj-prov-quote-cols-${tab.key}`" :columns-label="t('prov.quote.columns')"
             :tool-actions="tableToolActions" :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS"
             density="comfortable" item-value="id" class="q-table"
@@ -452,6 +492,24 @@
       :view-mode="viewMode" @restored="onSnapshotRestored" />
     <BulkEditDialog v-model="bulkEditDialog" :type="bulkEditType" :ids="bulkEditIds" :config="config"
       :subscription-id="subscriptionId" @saved="onBulkEdited" />
+    <FilterDialog v-model="filterDialog" v-model:filters="advFilters" v-model:mode="advMode" :config="config" />
+    <!-- Name prompt for "save current view". -->
+    <v-dialog v-model="saveViewDialog" max-width="380">
+      <v-card>
+        <v-card-title>{{ t('prov.quote.views.saveTitle') }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="viewName" :label="t('prov.quote.views.name')" variant="outlined" density="compact"
+            hide-details autofocus @keyup.enter="saveCurrentView" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="saveViewDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="elevated" :disabled="!viewName?.trim()" @click="saveCurrentView">
+            {{ t('common.save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <LigojConfirmDialog v-model="deleteAllDialog" :title="t('prov.quote.delete.all.title', { type: deleteAllType ? tabLabel(deleteAllType) : '' })" :confirm-label="t('prov.quote.delete.all.label')"
       confirm-color="error" :loading="deleting" @confirm="confirmDeleteAll">
@@ -490,7 +548,6 @@ import {
   formatStorage,
   scaleCost,
   COST_PERIODS,
-  rowMatches,
   rowInMonth,
   sumCostRange,
   TAB_TYPES,
@@ -505,6 +562,9 @@ import CompareSetupDialog from './CompareSetupDialog.vue'
 import TagAllocationDialog from './TagAllocationDialog.vue'
 import SnapshotDialog from './SnapshotDialog.vue'
 import BulkEditDialog from './BulkEditDialog.vue'
+import FilterDialog from './FilterDialog.vue'
+import { textMatcher, quickMatch, rowPasses } from '../searchFilters.js'
+import { viewsStorageKey, readViews, writeViews, upsertView, removeView } from '../viewPresets.js'
 import CompareDiff from './CompareDiff.vue'
 import { valueIndex, diffMeta, formatDiffPct, comparisonSummary } from '../compareApi.js'
 import { tagKeys, tagGrouping, TAG_OTHER_KEY, TAG_UNTAGGED_KEY } from '../tagAllocation.js'
@@ -686,6 +746,89 @@ function onSearch(value) {
   searchTimer = setTimeout(() => {
     searchQuery.value = searchInput.value
   }, SEARCH_DEBOUNCE_MS)
+}
+
+/* Advanced filters (feature 13 phase 2): dimension / numeric / tag / regex
+ * criteria combined with AND-OR, edited in FilterDialog and evaluated by the
+ * pure searchFilters engine on top of the quick query. */
+const filterDialog = ref(false)
+const advFilters = ref([])
+const advMode = ref('AND')
+
+/* ---------- Saved views (feature 13 phase 3) ----------
+ * Named captures of the screen state — search, filters, active tab, cost/CO₂
+ * mode, breakdown grouping and each table's column set — persisted per
+ * subscription in localStorage. */
+const savedViews = ref([])
+const saveViewDialog = ref(false)
+const viewName = ref('')
+const tablesEpoch = ref(0)
+const COLUMNS_KEY = (tabKey) => `ligoj-prov-quote-cols-${tabKey}`
+const localViewStore = () => (typeof localStorage !== 'undefined' ? localStorage : null)
+
+function loadSavedViews() {
+  savedViews.value = readViews(localViewStore(), viewsStorageKey(subscriptionId.value))
+}
+
+function persistViews() {
+  writeViews(localViewStore(), viewsStorageKey(subscriptionId.value), savedViews.value)
+}
+
+/** Snapshot the current screen state under a name. */
+function captureView(name) {
+  const columns = {}
+  const store = localViewStore()
+  if (store) {
+    for (const tab of TAB_TYPES) {
+      const payload = store.getItem(COLUMNS_KEY(tab.key))
+      if (payload != null) columns[tab.key] = payload
+    }
+  }
+  return {
+    name,
+    search: searchInput.value || '',
+    filters: advFilters.value.map((f) => ({ ...f })),
+    filterMode: advMode.value,
+    tab: activeTab.value,
+    viewMode: viewMode.value,
+    groupBy: groupBy.value,
+    tagKey: breakdownTagKey.value,
+    columns,
+  }
+}
+
+function saveCurrentView() {
+  const name = viewName.value?.trim()
+  if (!name) return
+  savedViews.value = upsertView(savedViews.value, captureView(name))
+  persistViews()
+  saveViewDialog.value = false
+  viewName.value = ''
+}
+
+function deleteView(name) {
+  savedViews.value = removeView(savedViews.value, name)
+  persistViews()
+}
+
+/** Restore a saved view onto the screen (columns included, tables remounted). */
+function applyView(v) {
+  onSearch(v.search || '')
+  advFilters.value = (v.filters || []).map((f) => ({ ...f }))
+  advMode.value = v.filterMode === 'OR' ? 'OR' : 'AND'
+  if (v.viewMode === 'cost' || v.viewMode === 'co2') viewMode.value = v.viewMode
+  if (v.groupBy === 'type' || v.groupBy === 'tag') groupBy.value = v.groupBy
+  if (v.tagKey !== undefined) breakdownTagKey.value = v.tagKey
+  if (v.tab && VALID_TAB_KEYS.has(v.tab)) activeTab.value = v.tab
+  const store = localViewStore()
+  if (store && v.columns) {
+    for (const tab of TAB_TYPES) {
+      const payload = v.columns[tab.key]
+      if (payload == null) store.removeItem(COLUMNS_KEY(tab.key))
+      else store.setItem(COLUMNS_KEY(tab.key), payload)
+    }
+    tablesEpoch.value++
+  }
 }
 
 // --- Edit-quote dialog state ---
@@ -983,12 +1126,26 @@ const statTiles = computed(() => {
 const searchRowsByType = computed(() => {
   const out = {}
   const q = searchQuery.value || ''
+  const matcher = q ? textMatcher(q) : null
+  const state = { mode: advMode.value, filters: advFilters.value }
+  const hasAdv = state.filters.some((f) => f?.field && f.value != null && f.value !== '')
   for (const tab of TAB_TYPES) {
     const rows = rowsByType.value[tab.key]
-    out[tab.key] = q ? rows.filter((r) => rowMatches(r, q)) : rows
+    out[tab.key] = (matcher || hasAdv)
+      ? rows.filter((r) => (!matcher || quickMatch(r, matcher)) && (!hasAdv || rowPasses(r, tab.key, state, filterCtx)))
+      : rows
   }
   return out
 })
+
+/* Resolution context for the filter engine: how a row links to its profile
+ * names (ids → names via the quote lists), its location and its tags. */
+const filterCtx = {
+  profileName: (field, row) => scopedName(row?.[field],
+    field === 'usage' ? usagesById : field === 'budget' ? budgetsById : optimizersById),
+  locationName: (row) => locationOf(row)?.name ?? null,
+  tagsFor: (tabKey, id) => tagsFor(tabKey, id),
+}
 
 /* Selected timeline month (0-based) or null. Clicking a bar filters every
  * table, the donut and the totals down to the resources billed that month —
@@ -1057,6 +1214,11 @@ function locationOf(item) {
 const usagesById = computed(() => {
   const out = {}
   for (const u of config.value?.usages || []) if (u?.id != null) out[u.id] = u
+  return out
+})
+const budgetsById = computed(() => {
+  const out = {}
+  for (const b of config.value?.budgets || []) if (b?.id != null) out[b.id] = b
   return out
 })
 const optimizersById = computed(() => {
@@ -1581,6 +1743,7 @@ watch(
 
 onMounted(async () => {
   setBreadcrumbs()
+  loadSavedViews()
   await loadConfig()
   setBreadcrumbs()
   loadCompared()

@@ -123,6 +123,30 @@ export default {
   'prov.quote.compare.resync': 'Re-sync all',
 
   // ---- Quote view (iteration 1: header + read-only tables) ----
+  // ---- Saved views ----
+  'prov.quote.views.action': 'Views',
+  'prov.quote.views.empty': 'No saved view yet.',
+  'prov.quote.views.save': 'Save current view…',
+  'prov.quote.views.saveTitle': 'Save the current view',
+  'prov.quote.views.name': 'View name',
+
+  // ---- Advanced search filters ----
+  'prov.quote.filter.action': 'Advanced filters',
+  'prov.quote.filter.title': 'Advanced filters',
+  'prov.quote.filter.note': 'Filters apply on top of the search box, across every resource type. Text values accept regular expressions (e.g. ^web-\\d+ or /srv|db/).',
+  'prov.quote.filter.and': 'All (AND)',
+  'prov.quote.filter.or': 'Any (OR)',
+  'prov.quote.filter.field': 'Field',
+  'prov.quote.filter.value': 'Value',
+  'prov.quote.filter.anyField': 'Any field',
+  'prov.quote.filter.tag': 'Tag',
+  'prov.quote.filter.tagKey': 'Tag key',
+  'prov.quote.filter.tagValue': 'Tag value (optional)',
+  'prov.quote.filter.textHint': 'text or regex…',
+  'prov.quote.filter.add': 'Add filter',
+  'prov.quote.filter.clear': 'Clear all',
+  'prov.quote.filter.apply': 'Apply',
+
   // ---- Bulk edit ----
   'prov.quote.bulk.action': 'Bulk edit',
   'prov.quote.bulk.title': 'Bulk edit — {n} resource(s)',

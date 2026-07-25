@@ -122,6 +122,30 @@ export default {
   'prov.quote.compare.resync': 'Resynchroniser',
 
   // ---- Vue du devis (itération 1 : entête + tables en lecture seule) ----
+  // ---- Vues enregistrées ----
+  'prov.quote.views.action': 'Vues',
+  'prov.quote.views.empty': 'Aucune vue enregistrée.',
+  'prov.quote.views.save': 'Enregistrer la vue actuelle…',
+  'prov.quote.views.saveTitle': 'Enregistrer la vue actuelle',
+  'prov.quote.views.name': 'Nom de la vue',
+
+  // ---- Filtres de recherche avancés ----
+  'prov.quote.filter.action': 'Filtres avancés',
+  'prov.quote.filter.title': 'Filtres avancés',
+  'prov.quote.filter.note': 'Les filtres s\'ajoutent à la zone de recherche, sur tous les types de ressources. Les valeurs texte acceptent les expressions régulières (ex. ^web-\\d+ ou /srv|db/).',
+  'prov.quote.filter.and': 'Tous (ET)',
+  'prov.quote.filter.or': 'Au moins un (OU)',
+  'prov.quote.filter.field': 'Champ',
+  'prov.quote.filter.value': 'Valeur',
+  'prov.quote.filter.anyField': 'Tout champ',
+  'prov.quote.filter.tag': 'Tag',
+  'prov.quote.filter.tagKey': 'Clé de tag',
+  'prov.quote.filter.tagValue': 'Valeur de tag (optionnelle)',
+  'prov.quote.filter.textHint': 'texte ou regex…',
+  'prov.quote.filter.add': 'Ajouter un filtre',
+  'prov.quote.filter.clear': 'Tout effacer',
+  'prov.quote.filter.apply': 'Appliquer',
+
   // ---- Édition en masse ----
   'prov.quote.bulk.action': 'Éditer en masse',
   'prov.quote.bulk.title': 'Édition en masse — {n} ressource(s)',

@@ -200,6 +200,26 @@ export function donutPath(cx, cy, r, ri, start, end) {
 }
 
 /**
+ * The values a free-text search looks at for a quote row — shared by the
+ * legacy substring match below and the regex-aware global search.
+ */
+export function rowSearchValues(row) {
+  if (!row) return []
+  return [
+    row.name,
+    row.description,
+    row.os || row.price?.os,
+    row.engine || row.price?.engine,
+    row.level || row.price?.level,
+    row.price?.type?.name,
+    row.price?.type?.code,
+    row.price?.term?.name,
+    row.location?.name || row.price?.location?.name,
+    row.id != null ? String(row.id) : '',
+  ]
+}
+
+/**
  * Case-insensitive substring match across the fields a user typically
  * searches by in the quote tables. Returns true when the query is
  * empty so callers don't need to short-circuit themselves.
@@ -208,18 +228,7 @@ export function rowMatches(row, query) {
   if (!query) return true
   if (!row) return false
   const q = String(query).toLowerCase()
-  const haystack = [
-    row.name,
-    row.description,
-    row.os || row.price?.os,
-    row.engine || row.price?.engine,
-    row.level || row.price?.level,
-    row.price?.type?.name,
-    row.price?.type?.code,
-    row.location?.name || row.price?.location?.name,
-    row.id != null ? String(row.id) : '',
-  ]
-  for (const v of haystack) {
+  for (const v of rowSearchValues(row)) {
     if (v && String(v).toLowerCase().includes(q)) return true
   }
   return false

@@ -26,13 +26,14 @@
                 <HelpTip :text="t('prov.quote.usage.rateHelp')" />
               </div>
               <v-slider v-model="form.rate" :min="1" :max="100" :step="1" hide-details thumb-label />
-              <div class="d-flex flex-wrap ga-1 mt-1">
-                <v-chip v-for="tpl in USAGE_RATE_TEMPLATES" :key="tpl.rate" size="x-small"
-                  :variant="form.rate === tpl.rate ? 'flat' : 'tonal'"
-                  :color="form.rate === tpl.rate ? 'primary' : undefined" @click="form.rate = tpl.rate">
+              <!-- Preset rates as a proper toggle group (single-select radio
+                   semantics); no mandatory — a custom slider value deselects. -->
+              <v-btn-toggle :model-value="form.rate" density="compact" variant="outlined" divided class="mt-1 usage-presets"
+                @update:model-value="(v) => { if (v != null) form.rate = v }">
+                <v-btn v-for="tpl in USAGE_RATE_TEMPLATES" :key="tpl.rate" :value="tpl.rate" size="x-small">
                   {{ t(tpl.key) }}
-                </v-chip>
-              </div>
+                </v-btn>
+              </v-btn-toggle>
 
               <!-- Equivalent durations — edit any of them to set the rate; they
                    all follow the slider live. -->
@@ -225,6 +226,12 @@ defineExpose({
 </script>
 
 <style scoped>
+/* Preset group can hold several presets: let it wrap instead of overflowing. */
+.usage-presets {
+  flex-wrap: wrap;
+  height: auto;
+}
+
 .usage-donut {
   width: 120px;
   height: 120px;
