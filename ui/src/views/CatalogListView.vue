@@ -70,21 +70,32 @@
       <template #item.nbPrices="{ item }">{{ item.status?.nbPrices ?? '-' }}</template>
       <template #item.status="{ item }">
         <!-- Live progress while an update runs: determinate once the server
-             reports a `workload`, indeterminate during initialization. The
-             tooltip carries the step detail (phase@location, done/workload,
-             author), mirroring the legacy status text. -->
-        <div v-if="isRunning(item)" class="run-progress">
-          <v-progress-linear :model-value="progressPct(item) ?? 0" :indeterminate="progressPct(item) == null" color="primary" height="6" rounded />
-          <div class="run-caption">
-            <span class="run-pct">{{ progressPct(item) != null ? progressPct(item) + '%' : t('catalog.status.running') }}</span>
-            <span v-if="stepLabel(item)" class="run-phase">{{ stepLabel(item) }}</span>
+             reports a `workload`, indeterminate during initialization. Both
+             states share a rich tooltip: the legacy `toStatusText` narrative
+             (started/by/step/last success, or updated/duration, or failure
+             details) plus the catalog statistics. -->
+        <div class="cat-status-cell">
+          <div v-if="isRunning(item)" class="run-progress">
+            <v-progress-linear :model-value="progressPct(item) ?? 0" :indeterminate="progressPct(item) == null" color="primary" height="6" rounded />
+            <div class="run-caption">
+              <span class="run-pct">{{ progressPct(item) != null ? progressPct(item) + '%' : t('catalog.status.running') }}</span>
+              <span v-if="stepLabel(item)" class="run-phase">{{ stepLabel(item) }}</span>
+            </div>
           </div>
-          <v-tooltip activator="parent" location="top" :text="progressTooltip(item)" />
+          <v-chip v-else :color="statusColor(item)" size="x-small" variant="tonal">
+            <v-icon size="x-small" start>{{ statusIcon(item) }}</v-icon>
+            {{ statusLabel(item) }}
+          </v-chip>
+          <v-tooltip activator="parent" location="top" max-width="360" content-class="cat-tip">
+            <div v-for="(line, i) in statusLines(item)" :key="i" :class="{ 'font-weight-bold': i === 0 }">{{ line }}</div>
+            <div class="cat-tip-stats">
+              <span><v-icon size="12">mdi-map-marker-outline</v-icon>{{ compact(item.status?.nbLocations) }} {{ t('catalog.tip.locations') }}</span>
+              <span><v-icon size="12">mdi-shape-outline</v-icon>{{ compact(item.status?.nbTypes) }} {{ t('catalog.tip.types') }}</span>
+              <span><v-icon size="12">mdi-currency-usd</v-icon>{{ compact(item.status?.nbPrices) }} {{ t('catalog.tip.prices') }}</span>
+              <span><v-icon size="12">mdi-leaf</v-icon>{{ compact(item.status?.nbCo2Prices) }} {{ t('catalog.tip.co2Prices') }}</span>
+            </div>
+          </v-tooltip>
         </div>
-        <v-chip v-else :color="statusColor(item)" size="x-small" variant="tonal">
-          <v-icon size="x-small" start>{{ statusIcon(item) }}</v-icon>
-          {{ statusLabel(item) }}
-        </v-chip>
       </template>
       <template #item.actions="{ item }">
         <template v-if="isRunning(item)">
@@ -206,14 +217,55 @@ function stepLabel(c) {
   return s.location ? '@' + s.location : ''
 }
 
-function progressTooltip(c) {
+/** Compact large counters (1905486 → "1.9M") for the statistics line. */
+function compact(v) {
+  if (v == null) return '—'
+  return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(v)
+}
+
+/** "1h 20m" style duration between two epoch millis. */
+function humanDuration(start, end) {
+  const min = Math.max(1, Math.round((end - start) / 60000))
+  const h = Math.floor(min / 60)
+  return h ? `${h}h ${min % 60}m` : `${min}m`
+}
+
+const progressLabel = (c) => {
   const s = c?.status || {}
   const pct = progressPct(c)
-  const parts = [pct != null ? `${pct}% (${s.done}/${s.workload})` : t('catalog.status.running')]
-  const step = stepLabel(c)
-  if (step) parts.push(step)
-  if (s.author) parts.push(s.author)
-  return parts.join(' — ')
+  return pct != null ? `${pct}% (${s.done}/${s.workload})` : t('catalog.status.running')
+}
+
+/**
+ * The legacy `toStatusText` narrative, one line per fact: running (progress,
+ * step, started/by, last success), failure (when, last step, last success) or
+ * success (updated/by, duration). First line is the headline.
+ */
+function statusLines(c) {
+  const s = c?.status || {}
+  const lines = []
+  if (isRunning(c)) {
+    lines.push(progressLabel(c))
+    const step = stepLabel(c)
+    if (step) lines.push(t('catalog.tip.step', { step }))
+    if (s.start) lines.push(t('catalog.tip.started', { date: formatDate(s.start), author: s.author || '?' }))
+    lines.push(s.lastSuccess
+      ? t('catalog.tip.lastSuccess', { date: formatDate(s.lastSuccess) })
+      : t('catalog.tip.firstImport'))
+  } else if (s.end && s.start && s.failed) {
+    lines.push(t('catalog.tip.failed', { date: formatDate(s.end) }))
+    lines.push(t('catalog.tip.started', { date: formatDate(s.start), author: s.author || '?' }))
+    lines.push(t('catalog.tip.lastStep', { step: stepLabel(c) || '?', progress: progressLabel(c) }))
+    if (s.lastSuccess) lines.push(t('catalog.tip.lastSuccess', { date: formatDate(s.lastSuccess) }))
+  } else if (s.end && s.start) {
+    lines.push(t('catalog.tip.updated', { date: formatDate(s.end), author: s.author || '?' }))
+    lines.push(t('catalog.tip.took', { duration: humanDuration(s.start, s.end) }))
+  } else if (s.lastSuccess) {
+    lines.push(t('catalog.tip.lastSuccess', { date: formatDate(s.lastSuccess) }))
+  } else {
+    lines.push(t('catalog.status.never'))
+  }
+  return lines
 }
 
 function formatDate(ms) {
@@ -221,6 +273,8 @@ function formatDate(ms) {
   const d = new Date(ms)
   return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16).replace('T', ' ')
 }
+
+defineExpose({ statusLines, compact, humanDuration })
 
 /* ---------- Import / cancel ---------- */
 
@@ -290,6 +344,24 @@ onMounted(async () => {
 
 onBeforeUnmount(stopAllPolling)
 </script>
+
+<style>
+/* Status tooltip content — unscoped (teleported outside the component). */
+.cat-tip .cat-tip-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(var(--v-theme-surface), 0.35);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+}
+.cat-tip .cat-tip-stats .v-icon {
+  margin-right: 3px;
+  vertical-align: -1px;
+}
+</style>
 
 <style scoped>
 .catalog-view {

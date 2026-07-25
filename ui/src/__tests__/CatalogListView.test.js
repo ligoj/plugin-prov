@@ -67,3 +67,47 @@ describe('<CatalogListView>', () => {
     expect(wrapper.text()).toMatch(/No catalogs registered\.|Aucun catalogue/)
   })
 })
+
+describe('status tooltip lines (legacy toStatusText parity)', () => {
+  const mountBare = () => {
+    globalThis.fetch = vi.fn(() => jsonResponse([]))
+    return mountView()
+  }
+
+  it('failure: when + started/by + last step with progress + last success + stats', async () => {
+    const w = mountBare()
+    await flushPromises()
+    // The AWS sample from the API: failed run with a scoring phase.
+    const aws = {
+      canImport: true,
+      status: {
+        start: 1780769918498, failed: true, end: 1780771800621, author: 'ligoj-admin',
+        lastSuccess: 1780765260276, nbLocations: 55, nbTypes: 1507, nbPrices: 1905486,
+        nbCo2Prices: 1283742, location: 'eu-central-1', phase: 'ec2 (scoring 2/2)', done: 63, workload: 559,
+      },
+    }
+    const lines = w.vm.statusLines(aws)
+    expect(lines[0]).toContain('Failed')
+    expect(lines[1]).toContain('ligoj-admin')
+    expect(lines[2]).toContain('ec2 (scoring 2/2)@eu-central-1')
+    expect(lines[2]).toContain('11% (63/559)') // round(63/559*100)
+    expect(lines[3]).toContain('Last success')
+    expect(w.vm.compact(1905486)).toBe('1.9M')
+    expect(w.vm.compact(null)).toBe('—')
+  })
+
+  it('success: updated/by + duration; running: progress + step + first import', async () => {
+    const w = mountBare()
+    await flushPromises()
+    const ok = { canImport: true, status: { start: 1784572674613, end: 1784584704275, failed: false, author: 'ligoj-admin' } }
+    const okLines = w.vm.statusLines(ok)
+    expect(okLines[0]).toContain('ligoj-admin')
+    expect(okLines[1]).toContain('3h 20m') // 12029662 ms ≈ 200 min
+
+    const running = { canImport: true, status: { start: 1, end: 0, author: 'me', phase: 'support', done: 25, workload: 44 } }
+    const runLines = w.vm.statusLines(running)
+    expect(runLines[0]).toBe('57% (25/44)')
+    expect(runLines[1]).toContain('support')
+    expect(runLines.at(-1)).toContain('First import')
+  })
+})

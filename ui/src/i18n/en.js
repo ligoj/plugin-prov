@@ -73,6 +73,18 @@ export default {
   'catalog.status.failed': 'Failed',
   'catalog.status.ok': 'Up to date',
   'catalog.status.never': 'Never updated',
+  'catalog.tip.step': 'Step: {step}',
+  'catalog.tip.lastStep': 'Last step: {step} — {progress}',
+  'catalog.tip.started': 'Started {date} by {author}',
+  'catalog.tip.updated': 'Updated {date} by {author}',
+  'catalog.tip.failed': 'Failed {date}',
+  'catalog.tip.took': 'Took {duration}',
+  'catalog.tip.lastSuccess': 'Last success: {date}',
+  'catalog.tip.firstImport': 'First import — no previous success',
+  'catalog.tip.locations': 'locations',
+  'catalog.tip.types': 'types',
+  'catalog.tip.prices': 'prices',
+  'catalog.tip.co2Prices': 'CO₂ prices',
 
   // ---- Terraform (administration: server-side binary version) ----
   'terraform.title': 'Terraform',
