@@ -157,6 +157,69 @@
               <v-list-item :href="exportUrl.json" :download="jsonDownloadName" prepend-icon="mdi-code-json" :title="t('prov.quote.exports.json')" />
             </v-list>
           </v-menu>
+          <!-- CSV bulk import (instances) — kept beside its export sibling. -->
+          <v-btn icon size="small" variant="text" :disabled="!subscriptionId" @click="importDialog = true">
+            <v-icon>mdi-file-upload</v-icon>
+            <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.import.title') }}</v-tooltip>
+          </v-btn>
+          <!-- Saved views: personal (browser) + shared (server, all users). A
+               view restores the exact screen: search, filters, columns, sort,
+               active tab, cost/CO₂ mode, grouping and cost period. -->
+          <v-menu>
+            <template #activator="{ props: viewProps }">
+              <v-btn v-bind="viewProps" icon size="small" variant="text" :color="hasViews ? 'primary' : undefined">
+                <v-icon>mdi-bookmark-multiple-outline</v-icon>
+                <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.action') }}</v-tooltip>
+              </v-btn>
+            </template>
+            <v-list density="compact" min-width="280">
+              <v-list-subheader>{{ t('prov.quote.views.personal') }}</v-list-subheader>
+              <v-list-item v-if="!savedViews.length" disabled>
+                <v-list-item-title class="text-medium-emphasis">{{ t('prov.quote.views.empty') }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-for="v in savedViews" :key="`l-${v.name}`" prepend-icon="mdi-bookmark-outline"
+                :subtitle="v.description || undefined" @click="applyLocalView(v)">
+                <v-list-item-title>{{ v.name }}</v-list-item-title>
+                <template #append>
+                  <!-- Only the last-loaded view offers the one-click "update with current state". -->
+                  <v-btn v-if="isLastApplied('local', v)" icon size="x-small" variant="text" color="primary"
+                    :title="t('prov.quote.views.update')" @click.stop="updateViewWithCurrent('local', v)">
+                    <v-icon size="14">mdi-content-save-outline</v-icon>
+                  </v-btn>
+                  <v-btn icon size="x-small" variant="text" :title="t('prov.quote.views.edit')" @click.stop="openEditView('local', v)">
+                    <v-icon size="14">mdi-pencil</v-icon>
+                  </v-btn>
+                  <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteView(v.name)">
+                    <v-icon size="14">mdi-delete-outline</v-icon>
+                  </v-btn>
+                </template>
+              </v-list-item>
+              <v-list-subheader>{{ t('prov.quote.views.shared') }}</v-list-subheader>
+              <v-list-item v-if="!sharedViews.length" disabled>
+                <v-list-item-title class="text-medium-emphasis">{{ t('prov.quote.views.empty') }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-for="v in sharedViews" :key="`s-${v.id}`" prepend-icon="mdi-account-group-outline"
+                :subtitle="v.description || undefined" @click="applySharedView(v)">
+                <v-list-item-title>{{ v.name }}</v-list-item-title>
+                <template #append>
+                  <v-btn v-if="isLastApplied('shared', v)" icon size="x-small" variant="text" color="primary"
+                    :title="t('prov.quote.views.update')" @click.stop="updateViewWithCurrent('shared', v)">
+                    <v-icon size="14">mdi-content-save-outline</v-icon>
+                  </v-btn>
+                  <v-btn icon size="x-small" variant="text" :title="t('prov.quote.views.edit')" @click.stop="openEditView('shared', v)">
+                    <v-icon size="14">mdi-pencil</v-icon>
+                  </v-btn>
+                  <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteSharedView(v)">
+                    <v-icon size="14">mdi-delete-outline</v-icon>
+                  </v-btn>
+                </template>
+              </v-list-item>
+              <v-divider />
+              <v-list-item prepend-icon="mdi-content-save-outline" @click="openSaveView">
+                <v-list-item-title>{{ t('prov.quote.views.save') }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
       </header>
 
@@ -262,42 +325,10 @@
           <v-icon v-else>mdi-filter-variant</v-icon>
           <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.filter.action') }}</v-tooltip>
         </v-btn>
-        <!-- Saved views: named captures of search + filters + columns + display
-             state, persisted per subscription (feature 13 phase 3). -->
-        <v-menu>
-          <template #activator="{ props: viewProps }">
-            <v-btn v-bind="viewProps" icon size="small" variant="outlined">
-              <v-icon>mdi-bookmark-multiple-outline</v-icon>
-              <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.views.action') }}</v-tooltip>
-            </v-btn>
-          </template>
-          <v-list density="compact" min-width="230">
-            <v-list-subheader>{{ t('prov.quote.views.action') }}</v-list-subheader>
-            <v-list-item v-if="!savedViews.length" disabled>
-              <v-list-item-title class="text-medium-emphasis">{{ t('prov.quote.views.empty') }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item v-for="v in savedViews" :key="v.name" prepend-icon="mdi-bookmark-outline" @click="applyView(v)">
-              <v-list-item-title>{{ v.name }}</v-list-item-title>
-              <template #append>
-                <v-btn icon size="x-small" variant="text" :title="t('common.delete')" @click.stop="deleteView(v.name)">
-                  <v-icon size="14">mdi-delete-outline</v-icon>
-                </v-btn>
-              </template>
-            </v-list-item>
-            <v-divider />
-            <v-list-item prepend-icon="mdi-content-save-outline" @click="saveViewDialog = true">
-              <v-list-item-title>{{ t('prov.quote.views.save') }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <!-- Compact per-type create (targets the active tab) + instance CSV import. -->
+        <!-- Compact per-type create (targets the active tab). -->
         <v-btn icon size="small" color="primary" variant="elevated" @click="openResourceCreate(activeTab)">
           <v-icon>mdi-plus</v-icon>
           <v-tooltip activator="parent" location="bottom">{{ t(`prov.quote.${activeTab}.new`) }}</v-tooltip>
-        </v-btn>
-        <v-btn v-if="activeTab === 'instance'" icon size="small" variant="outlined" @click="importDialog = true">
-          <v-icon>mdi-file-upload</v-icon>
-          <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.import.title') }}</v-tooltip>
         </v-btn>
       </div>
 
@@ -330,7 +361,7 @@
 
           <!-- `tablesEpoch` remounts the tables after a saved view rewrites the
                persisted column sets, so they re-read their visibility state. -->
-          <LigojDataTable v-if="rowsByType[tab.key].length" :key="`${tab.key}-v${tablesEpoch}`" v-model="selectedByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
+          <LigojDataTable v-if="rowsByType[tab.key].length" :key="`${tab.key}-v${tablesEpoch}`" v-model="selectedByType[tab.key]" v-model:sort-by="sortByType[tab.key]" show-select hover :filename="`prov-${tab.key}.csv`" :headers="headersByType[tab.key]"
             :pinned-columns="PINNED_COLUMNS" :columns-storage-key="`ligoj-prov-quote-cols-${tab.key}`" :columns-label="t('prov.quote.columns')"
             :tool-actions="tableToolActions" :items="filteredRowsByType[tab.key]" v-model:items-per-page="itemsPerPage" :items-per-page-options="ITEMS_PER_PAGE_OPTIONS"
             density="comfortable" item-value="id" class="q-table"
@@ -493,18 +524,45 @@
     <BulkEditDialog v-model="bulkEditDialog" :type="bulkEditType" :ids="bulkEditIds" :config="config"
       :subscription-id="subscriptionId" @saved="onBulkEdited" />
     <FilterDialog v-model="filterDialog" v-model:filters="advFilters" v-model:mode="advMode" :config="config" />
-    <!-- Name prompt for "save current view". -->
-    <v-dialog v-model="saveViewDialog" max-width="380">
+    <!-- Save-current / edit-view dialog. The name is a combobox over the
+         existing views so an existing one can be overridden on purpose — with
+         an explicit warning. Editing changes name / description / sharing
+         without recapturing the state (unsharing deletes the server copy). -->
+    <v-dialog v-model="saveViewDialog" max-width="440">
       <v-card>
-        <v-card-title>{{ t('prov.quote.views.saveTitle') }}</v-card-title>
+        <v-card-title>
+          {{ viewDialogMode === 'edit' ? t('prov.quote.views.editTitle') : t('prov.quote.views.saveTitle') }}
+        </v-card-title>
         <v-card-text>
-          <v-text-field v-model="viewName" :label="t('prov.quote.views.name')" variant="outlined" density="compact"
-            hide-details autofocus @keyup.enter="saveCurrentView" />
+          <v-combobox v-model="viewName" :items="viewNameItems" item-title="title" item-value="title"
+            :return-object="false" :label="t('prov.quote.views.name')"
+            variant="outlined" density="compact" hide-details autofocus autocomplete="off"
+            data-1p-ignore data-lpignore="true" @keyup.enter="submitViewDialog">
+            <template #item="{ props: itemProps, item }">
+              <v-list-item v-bind="itemProps">
+                <template #prepend>
+                  <v-icon size="16">{{ (item.raw || item).shared ? 'mdi-account-group-outline' : 'mdi-bookmark-outline' }}</v-icon>
+                </template>
+              </v-list-item>
+            </template>
+          </v-combobox>
+          <v-textarea v-model="viewDescription" :label="t('prov.quote.views.description')" variant="outlined"
+            density="compact" rows="2" auto-grow hide-details class="mt-3" />
+          <v-checkbox v-model="shareView" :label="t('prov.quote.views.share')" density="compact" hide-details
+            color="primary" class="mt-2" />
+          <p v-if="shareView" class="text-caption text-medium-emphasis mb-0">{{ t('prov.quote.views.shareHelp') }}</p>
+          <v-alert v-if="unshareWarning" type="warning" variant="tonal" density="compact" class="mt-2">
+            {{ t('prov.quote.views.unshareWarn') }}
+          </v-alert>
+          <v-alert v-if="overrideWarning" type="warning" variant="tonal" density="compact" class="mt-2">
+            {{ t('prov.quote.views.overrideWarn', { name: viewName?.trim(), scope: shareView ? t('prov.quote.views.shared') : t('prov.quote.views.personal') }) }}
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="saveViewDialog = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" variant="elevated" :disabled="!viewName?.trim()" @click="saveCurrentView">
+          <v-btn color="primary" variant="elevated" :disabled="!viewName?.trim() || savingView" :loading="savingView"
+            @click="submitViewDialog">
             {{ t('common.save') }}
           </v-btn>
         </v-card-actions>
@@ -760,21 +818,135 @@ const advMode = ref('AND')
  * mode, breakdown grouping and each table's column set — persisted per
  * subscription in localStorage. */
 const savedViews = ref([])
+const sharedViews = ref([]) // server-side, visible to every user of the subscription
 const saveViewDialog = ref(false)
+const viewDialogMode = ref('save') // 'save' (capture current) | 'edit' (metadata only)
+const editingView = ref(null) // { kind: 'local'|'shared', id?, name, description, body }
 const viewName = ref('')
+const viewDescription = ref('')
+const shareView = ref(false)
+const savingView = ref(false)
+/* The view loaded last — `{ kind, name, id? }`. Persisted per subscription so
+ * the one-click "update" shortcut survives a browser refresh. */
+const LAST_VIEW_KEY = () => `ligoj-prov-quote-lastview-${subscriptionId.value}`
+const lastApplied = ref(null)
+watch(lastApplied, (v) => {
+  const store = localViewStore()
+  if (!store || !subscriptionId.value) return
+  if (v == null) store.removeItem(LAST_VIEW_KEY())
+  else store.setItem(LAST_VIEW_KEY(), JSON.stringify(v))
+})
+function restoreLastApplied() {
+  try {
+    const raw = localViewStore()?.getItem(LAST_VIEW_KEY())
+    if (raw) lastApplied.value = JSON.parse(raw)
+  } catch {
+    lastApplied.value = null
+  }
+}
 const tablesEpoch = ref(0)
 const COLUMNS_KEY = (tabKey) => `ligoj-prov-quote-cols-${tabKey}`
 const localViewStore = () => (typeof localStorage !== 'undefined' ? localStorage : null)
 
+/* Sort state lifted out of the tables so views capture it AND so it survives a
+ * reload on its own (persisted per tab, like the column sets). */
+const SORT_KEY = (tabKey) => `ligoj-prov-quote-sort-${tabKey}`
+function readSort(tabKey) {
+  try {
+    const raw = localViewStore()?.getItem(SORT_KEY(tabKey))
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+const sortByType = reactive(Object.fromEntries(TAB_TYPES.map((tt) => [tt.key, readSort(tt.key)])))
+watch(sortByType, () => {
+  const store = localViewStore()
+  if (!store) return
+  for (const tab of TAB_TYPES) {
+    if (sortByType[tab.key]?.length) store.setItem(SORT_KEY(tab.key), JSON.stringify(sortByType[tab.key]))
+    else store.removeItem(SORT_KEY(tab.key))
+  }
+}, { deep: true })
+
+/* The whole search state (quick query + advanced filters + mode) also persists
+ * per subscription, so a refreshed browser lands on the exact same rows. */
+const SEARCH_STATE_KEY = () => `ligoj-prov-quote-search-${subscriptionId.value}`
+function restoreSearchState() {
+  try {
+    const raw = localViewStore()?.getItem(SEARCH_STATE_KEY())
+    const s = raw ? JSON.parse(raw) : null
+    if (!s) return
+    advFilters.value = Array.isArray(s.filters) ? s.filters : []
+    advMode.value = s.mode === 'OR' ? 'OR' : 'AND'
+    if (s.search) onSearch(s.search)
+  } catch {
+    // Broken payload: start clean.
+  }
+}
+watch([advFilters, advMode, searchQuery], () => {
+  const store = localViewStore()
+  if (!store || !subscriptionId.value) return
+  if (!advFilters.value.length && advMode.value === 'AND' && !searchInput.value) {
+    store.removeItem(SEARCH_STATE_KEY())
+  } else {
+    store.setItem(SEARCH_STATE_KEY(), JSON.stringify({
+      search: searchInput.value || '',
+      mode: advMode.value,
+      filters: advFilters.value,
+    }))
+  }
+}, { deep: true })
+
+const hasViews = computed(() => savedViews.value.length > 0 || sharedViews.value.length > 0)
+
+/* Existing views offered in the save dialog (override on purpose, warned),
+ * each flagged so shared and personal entries are distinguishable. */
+const viewNameItems = computed(() => [
+  ...savedViews.value.map((v) => ({ title: v.name, shared: false })),
+  ...sharedViews.value.map((v) => ({ title: v.name, shared: true })),
+].sort((a, b) => a.title.localeCompare(b.title) || (a.shared === b.shared ? 0 : a.shared ? 1 : -1)))
+
+/** Overriding an existing view in the TARGET scope (other than the one being edited). */
+const overrideWarning = computed(() => {
+  const name = viewName.value?.trim()
+  if (!name) return false
+  const target = shareView.value ? sharedViews.value : savedViews.value
+  const hit = target.find((v) => v.name === name)
+  if (!hit) return false
+  const src = editingView.value
+  return !(viewDialogMode.value === 'edit' && src
+    && src.kind === (shareView.value ? 'shared' : 'local') && src.name === name)
+})
+
+/** Unsharing an edited shared view deletes its server copy. */
+const unshareWarning = computed(() =>
+  viewDialogMode.value === 'edit' && editingView.value?.kind === 'shared' && !shareView.value)
+
 function loadSavedViews() {
   savedViews.value = readViews(localViewStore(), viewsStorageKey(subscriptionId.value))
+}
+
+async function loadSharedViews() {
+  if (!subscriptionId.value) return
+  try {
+    sharedViews.value = (await api.get(`rest/service/prov/${subscriptionId.value}/view`, { silent: true })) || []
+  } catch {
+    sharedViews.value = []
+  }
 }
 
 function persistViews() {
   writeViews(localViewStore(), viewsStorageKey(subscriptionId.value), savedViews.value)
 }
 
-/** Snapshot the current screen state under a name. */
+/**
+ * Snapshot the current screen state under a name: search, filters, active tab,
+ * cost/CO₂ mode, breakdown grouping, cost period, per-table sort orders and
+ * column-visibility sets — everything needed to restore the exact view after a
+ * browser restart, or for another user when shared.
+ */
 function captureView(name) {
   const columns = {}
   const store = localViewStore()
@@ -783,6 +955,10 @@ function captureView(name) {
       const payload = store.getItem(COLUMNS_KEY(tab.key))
       if (payload != null) columns[tab.key] = payload
     }
+  }
+  const sort = {}
+  for (const tab of TAB_TYPES) {
+    if (sortByType[tab.key]?.length) sort[tab.key] = sortByType[tab.key].map((s) => ({ ...s }))
   }
   return {
     name,
@@ -793,25 +969,115 @@ function captureView(name) {
     viewMode: viewMode.value,
     groupBy: groupBy.value,
     tagKey: breakdownTagKey.value,
+    costPeriod: costPeriod.value,
+    sort,
     columns,
   }
 }
 
-function saveCurrentView() {
+function openSaveView() {
+  viewDialogMode.value = 'save'
+  editingView.value = null
+  viewName.value = ''
+  viewDescription.value = ''
+  shareView.value = false
+  saveViewDialog.value = true
+}
+
+/** Edit a view's metadata (name / description / sharing) without recapturing its state. */
+function openEditView(kind, v) {
+  viewDialogMode.value = 'edit'
+  editingView.value = {
+    kind,
+    id: v.id,
+    name: v.name,
+    description: v.description || '',
+    body: kind === 'shared' ? safeParse(v.data) : { ...v },
+  }
+  viewName.value = v.name
+  viewDescription.value = v.description || ''
+  shareView.value = kind === 'shared'
+  saveViewDialog.value = true
+}
+
+function safeParse(json) {
+  try {
+    return JSON.parse(json || '{}')
+  } catch {
+    return {}
+  }
+}
+
+/** Persist a view body under a scope, replacing by name (server upsert / local upsert). */
+async function storeViewAs(body, name, description, shared) {
+  const view = { ...body, name, description: description || '' }
+  if (shared) {
+    await api.post(`rest/service/prov/${subscriptionId.value}/view`,
+      { name, description: description || '', data: JSON.stringify(view) })
+    await loadSharedViews()
+  } else {
+    savedViews.value = upsertView(savedViews.value, view)
+    persistViews()
+  }
+  return view
+}
+
+async function submitViewDialog() {
   const name = viewName.value?.trim()
   if (!name) return
-  savedViews.value = upsertView(savedViews.value, captureView(name))
-  persistViews()
-  saveViewDialog.value = false
-  viewName.value = ''
+  savingView.value = true
+  try {
+    if (viewDialogMode.value === 'save') {
+      await storeViewAs(captureView(name), name, viewDescription.value, shareView.value)
+    } else {
+      const src = editingView.value
+      await storeViewAs(src.body, name, viewDescription.value, shareView.value)
+      // Drop the previous copy when the name or the scope changed —
+      // unsharing (shared → personal) deletes the server copy.
+      if (src.kind === 'shared' && (!shareView.value || src.name !== name)) {
+        await api.del(`rest/service/prov/${subscriptionId.value}/view/${src.id}`, { silent: true })
+        await loadSharedViews()
+      } else if (src.kind === 'local' && (shareView.value || src.name !== name)) {
+        savedViews.value = removeView(savedViews.value, src.name)
+        persistViews()
+      }
+    }
+    saveViewDialog.value = false
+    errorStore.success(t(viewDialogMode.value === 'edit' ? 'prov.quote.views.updated' : 'prov.quote.views.saved',
+      { name }))
+    viewName.value = ''
+    viewDescription.value = ''
+  } finally {
+    savingView.value = false
+  }
+}
+
+/** One-click "update the last-loaded view with the current screen state". */
+async function updateViewWithCurrent(kind, v) {
+  await storeViewAs(captureView(v.name), v.name, v.description, kind === 'shared')
+  errorStore.success(t('prov.quote.views.updated', { name: v.name }))
+}
+
+function isLastApplied(kind, v) {
+  const last = lastApplied.value
+  return !!last && last.kind === kind && (kind === 'shared' ? last.id === v.id : last.name === v.name)
 }
 
 function deleteView(name) {
   savedViews.value = removeView(savedViews.value, name)
   persistViews()
+  if (isLastApplied('local', { name })) lastApplied.value = null
+  errorStore.success(t('prov.quote.views.deleted', { name }))
 }
 
-/** Restore a saved view onto the screen (columns included, tables remounted). */
+async function deleteSharedView(v) {
+  await api.del(`rest/service/prov/${subscriptionId.value}/view/${v.id}`)
+  await loadSharedViews()
+  if (isLastApplied('shared', v)) lastApplied.value = null
+  errorStore.success(t('prov.quote.views.deleted', { name: v.name }))
+}
+
+/** Restore a saved view onto the screen (sort + columns included). */
 function applyView(v) {
   onSearch(v.search || '')
   advFilters.value = (v.filters || []).map((f) => ({ ...f }))
@@ -820,6 +1086,10 @@ function applyView(v) {
   if (v.groupBy === 'type' || v.groupBy === 'tag') groupBy.value = v.groupBy
   if (v.tagKey !== undefined) breakdownTagKey.value = v.tagKey
   if (v.tab && VALID_TAB_KEYS.has(v.tab)) activeTab.value = v.tab
+  if (COST_PERIODS.includes(v.costPeriod)) costPeriod.value = v.costPeriod
+  for (const tab of TAB_TYPES) {
+    sortByType[tab.key] = (v.sort?.[tab.key] || []).map((s) => ({ ...s }))
+  }
   const store = localViewStore()
   if (store && v.columns) {
     for (const tab of TAB_TYPES) {
@@ -829,6 +1099,18 @@ function applyView(v) {
     }
     tablesEpoch.value++
   }
+}
+
+/** Apply a personal view, remembering it as the last-loaded one. */
+function applyLocalView(v) {
+  applyView(v)
+  lastApplied.value = { kind: 'local', name: v.name }
+}
+
+/** Apply a server-side shared view (its state is an opaque JSON document). */
+function applySharedView(v) {
+  applyView(safeParse(v.data))
+  lastApplied.value = { kind: 'shared', id: v.id, name: v.name }
 }
 
 // --- Edit-quote dialog state ---
@@ -1744,6 +2026,9 @@ watch(
 onMounted(async () => {
   setBreadcrumbs()
   loadSavedViews()
+  loadSharedViews()
+  restoreLastApplied()
+  restoreSearchState()
   await loadConfig()
   setBreadcrumbs()
   loadCompared()
