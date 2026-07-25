@@ -16,6 +16,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.hibernate.Session;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.Floating;
@@ -30,6 +31,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,6 +60,17 @@ public abstract class AbstractImportCatalogResource {
 	};
 
 	protected static final String BY_NODE = "node";
+
+	/**
+	 * Amount of persisted prices after which the persistence context is flushed then cleared when the import is
+	 * executed inside a transaction. Keeps the persistence context, and therefore the dirty-checking cost, bounded.
+	 */
+	protected static final int FLUSH_CHUNK_SIZE = 1000;
+
+	/**
+	 * Hibernate JDBC batch size applied to the import session when the import is executed inside a transaction.
+	 */
+	protected static final int JDBC_BATCH_SIZE = 100;
 
 	/**
 	 * Configuration key used for hours per month. When value is <code>null</code>, use
@@ -485,8 +498,47 @@ public abstract class AbstractImportCatalogResource {
 		if (context.isForce() || (price.isNew() && !em.contains(price)) || oldCost != newCostR) {
 			updateCost.accept(newCostR, newCost);
 			persister.accept(price);
+			flushChunk(context);
 		}
 		return price;
+	}
+
+	/**
+	 * Flush then clear the persistence context every {@link #FLUSH_CHUNK_SIZE} persisted prices, only when a
+	 * transaction is active. Without an active transaction, each repository operation runs in its own transaction and
+	 * the persistence context is already empty: nothing to do.
+	 *
+	 * @param context The current import context, holding the shared save counter.
+	 */
+	protected void flushChunk(final AbstractUpdateContext context) {
+		if (context.getSaveCounter().incrementAndGet() % FLUSH_CHUNK_SIZE == 0) {
+			flushAndClear();
+		}
+	}
+
+	/**
+	 * Flush the pending changes then clear the persistence context. All entities kept in the update context (types,
+	 * terms, locations, previous prices, ...) become detached: they remain fully readable and usable as association
+	 * targets of new prices since their identifiers are set, and any later explicit save of such a detached entity is
+	 * performed by Hibernate as a merge. No-op without an active transaction: in that case each repository operation
+	 * runs in its own transaction and the shared persistence context is already empty.
+	 */
+	protected void flushAndClear() {
+		if (TransactionSynchronizationManager.isActualTransactionActive()) {
+			em.flush();
+			em.clear();
+		}
+	}
+
+	/**
+	 * Set the Hibernate JDBC batch size of the current transactional session, so the statements flushed by this import
+	 * are grouped in batches. Only affects the current transaction-bound session: no other session, and no global
+	 * configuration is involved. No-op without an active transaction.
+	 */
+	protected void initJdbcBatch() {
+		if (TransactionSynchronizationManager.isActualTransactionActive()) {
+			em.unwrap(Session.class).setJdbcBatchSize(JDBC_BATCH_SIZE);
+		}
 	}
 
 	/**
@@ -504,10 +556,16 @@ public abstract class AbstractImportCatalogResource {
 	protected <T extends AbstractInstanceType, P extends AbstractTermPrice<T>> P saveAsNeeded(
 			final AbstractUpdateContext context, final P price, final double newCost,
 			final BaseProvTermPriceRepository<T, P> repository) {
-		return saveAsNeeded(context, price, price.getCost(), newCost, (cR, c) -> {
-			price.setCost(cR);
-			price.setCostPeriod(round3Decimals(c * Math.max(1, price.getTerm().getPeriod())));
-			setCo2(context, price);
+		// Resolve a lightweight previous price (only id/code/cost loaded, no type) to its full entity, fetched only
+		// when an update must actually be persisted
+		final var entity = !price.isNew() && price.getType() == null
+				&& (context.isForce() || price.getCost() != round3Decimals(newCost))
+						? repository.findOneExpected(price.getId())
+						: price;
+		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
+			entity.setCost(cR);
+			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
+			setCo2(context, entity);
 		}, repository::save);
 	}
 
@@ -845,7 +903,10 @@ public abstract class AbstractImportCatalogResource {
 			final var nbRetiredCodes = retiredCodes.size();
 			retiredCodes.removeAll(qRepository.findUsedPrices(context.getNode().getId()));
 			log.info("Purging {} unused of {} retired catalog prices ...", retiredCodes.size(), nbRetiredCodes);
-			retiredCodes.stream().map(storedPrices::get).forEach(pRepository::delete);
+			retiredCodes.stream().map(storedPrices::get).forEach(price -> {
+				pRepository.delete(price);
+				flushChunk(context);
+			});
 			log.info("Code purged");
 			storedPrices.keySet().removeAll(retiredCodes);
 		}

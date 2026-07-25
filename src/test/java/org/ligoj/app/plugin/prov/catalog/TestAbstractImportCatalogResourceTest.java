@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import jakarta.persistence.EntityManager;
 
+import org.hibernate.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -830,6 +832,60 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertEquals(0.268d, toConversion(context, "ap-west"), DELTA);
 		Assertions.assertEquals(0d, toConversion(context, "cn-west-1"));
 
+	}
+
+	@Test
+	void flushChunkNoTransaction() {
+		em = Mockito.mock(EntityManager.class);
+		final var newContext = newContext();
+		for (var i = 0; i < FLUSH_CHUNK_SIZE * 2; i++) {
+			flushChunk(newContext);
+		}
+
+		// No active transaction: the persistence context is never flushed nor cleared
+		Mockito.verify(em, Mockito.never()).flush();
+		Mockito.verify(em, Mockito.never()).clear();
+	}
+
+	@Test
+	void flushChunkTransaction() {
+		em = Mockito.mock(EntityManager.class);
+		final var newContext = newContext();
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		try {
+			for (var i = 0; i < FLUSH_CHUNK_SIZE * 2; i++) {
+				flushChunk(newContext);
+			}
+		} finally {
+			TransactionSynchronizationManager.setActualTransactionActive(false);
+		}
+
+		// Active transaction: flushed then cleared exactly once every FLUSH_CHUNK_SIZE saves
+		Mockito.verify(em, Mockito.times(2)).flush();
+		Mockito.verify(em, Mockito.times(2)).clear();
+	}
+
+	@Test
+	void initJdbcBatchNoTransaction() {
+		em = Mockito.mock(EntityManager.class);
+		initJdbcBatch();
+
+		// No active transaction: no session available, nothing to configure
+		Mockito.verify(em, Mockito.never()).unwrap(ArgumentMatchers.<Class<Session>>any());
+	}
+
+	@Test
+	void initJdbcBatchTransaction() {
+		em = Mockito.mock(EntityManager.class);
+		final var session = Mockito.mock(Session.class);
+		Mockito.doReturn(session).when(em).unwrap(Session.class);
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		try {
+			initJdbcBatch();
+		} finally {
+			TransactionSynchronizationManager.setActualTransactionActive(false);
+		}
+		Mockito.verify(session).setJdbcBatchSize(JDBC_BATCH_SIZE);
 	}
 
 }

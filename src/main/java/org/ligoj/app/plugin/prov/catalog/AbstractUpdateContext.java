@@ -14,6 +14,7 @@ import org.ligoj.app.plugin.prov.model.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
@@ -188,6 +189,12 @@ public abstract class AbstractUpdateContext {
 	private double hoursMonth = ProvResource.DEFAULT_HOURS_MONTH;
 
 	/**
+	 * Amount of persisted price entities since the beginning of the import. Used to periodically flush and clear the
+	 * persistence context when the import is executed inside a single transaction.
+	 */
+	private AtomicInteger saveCounter = new AtomicInteger();
+
+	/**
 	 * Instance CO2 data set.
 	 */
 	private Map<String, Co2Data> co2DataSet = new ConcurrentHashMap<>();
@@ -218,6 +225,7 @@ public abstract class AbstractUpdateContext {
 		this.mapRegionById = parent.getMapRegionById();
 		this.co2DataSet = parent.getCo2DataSet();
 		this.co2RegionDataSet = parent.getCo2RegionDataSet();
+		this.saveCounter = parent.saveCounter;
 	}
 
 	/**

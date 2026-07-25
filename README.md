@@ -65,3 +65,21 @@ Related plugins:
 
 Custom configuration:
 service:prov:use-parallel = 0/1
+
+## Catalog import and the database
+
+Provider catalog imports that opt in (currently `plugin-prov-azure`) run inside a single database
+transaction: prices are accumulated in the JPA persistence context, flushed and cleared by chunks of
+`1000` prices, and written with a session-scoped JDBC batch size of `100` (`AbstractImportCatalogResource`:
+`initJdbcBatch()`, `flushChunk()`, `flushAndClear()`). No global Hibernate configuration is required. On
+failure, the whole import rolls back and the previous catalog is preserved.
+
+Database recommendations for large imports (millions of prices):
+
+- `idle_in_transaction_session_timeout` (PostgreSQL) must be `0` (no limit, the default) or
+  comfortably above a few minutes: the import transaction sits idle while the provider catalog files
+  (tens of MB) are downloaded and parsed. The `ligoj-cli` managed `ligoj-db` pod pins
+  `-c idle_in_transaction_session_timeout=0` explicitly since 2026-07, so a base-image or
+  `ALTER SYSTEM` change cannot silently kill a running import.
+- Add `reWriteBatchedInserts=true` to the PostgreSQL JDBC URL (`jdbc.url`) so the JDBC batches are
+  rewritten as multi-row `INSERT` statements.

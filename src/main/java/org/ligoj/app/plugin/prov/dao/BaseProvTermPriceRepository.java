@@ -57,6 +57,18 @@ public interface BaseProvTermPriceRepository<T extends AbstractInstanceType, P e
 	List<P> findAll(String node, String location);
 
 	/**
+	 * Return the lightweight form, <code>[id, code, cost]</code>, of all prices related to the given node. Loading
+	 * only these fields instead of full entities keeps the memory usage bounded during a catalog update over a
+	 * catalog holding millions of prices: this is all the update needs to detect unchanged, updated and retired
+	 * prices. The full entity is fetched individually only when an update must actually be persisted.
+	 *
+	 * @param node The node (provider) to match.
+	 * @return Rows of <code>[id, code, cost]</code>, one per price of this node.
+	 */
+	@Query("SELECT p.id, p.code, p.cost FROM #{#entityName} p WHERE p.type.node.id = :node")
+	List<Object[]> findAllLightByNode(String node);
+
+	/**
 	 * Return all {@link ProvInstancePrice} related to given node, and term names, and within a specific location.
 	 *
 	 * @param node     The node (provider) to match.
