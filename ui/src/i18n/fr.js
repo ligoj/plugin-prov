@@ -180,6 +180,7 @@ export default {
   'prov.quote.tabs.storage': 'Stockage',
   'prov.quote.tabs.support': 'Support',
   'prov.quote.cols.name': 'Nom',
+  'prov.quote.tabs.filteredTip': 'Filtré : {n} ress. · {cost}',
   'prov.quote.cols.quantity': 'Qté',
   'prov.quote.cols.cpu': 'vCPU',
   'prov.quote.cols.ram': 'RAM',

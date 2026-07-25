@@ -226,40 +226,45 @@
       <!-- Tabs — one per resource type. The chip shows the (filtered)
            resource count; the total is only appended when a search is
            actively hiding rows (e.g. "3/12"), never as a redundant "12/12". -->
-      <v-tabs v-model="activeTab" density="compact" show-arrows class="q-tabs mb-3" color="primary">
-        <v-tab v-for="t in TAB_TYPES" :key="t.key" :value="t.key">
-          <v-icon :icon="t.icon" start size="small" />
-          {{ tabLabel(t.key) }}
-          <v-chip v-if="counts[t.key]" size="x-small" variant="tonal" :color="isTabFiltered(t.key) ? 'primary' : undefined"
-            class="ml-2 q-count" :class="{ 'q-count-filtered': isTabFiltered(t.key) }">{{ tabCountLabel(t.key) }}</v-chip>
-        </v-tab>
-      </v-tabs>
+      <div class="q-tabs-row d-flex align-center ga-2 mb-3">
+        <!-- Icon-only tabs: the label moved into a rich tooltip (type, count,
+             cost, and the filtered subset when a search narrows the tab). -->
+        <v-tabs v-model="activeTab" density="compact" show-arrows class="q-tabs" color="primary">
+          <v-tab v-for="tb in TAB_TYPES" :key="tb.key" :value="tb.key" :aria-label="tabLabel(tb.key)">
+            <v-icon :icon="tb.icon" size="small" />
+            <v-chip v-if="counts[tb.key]" size="x-small" variant="tonal" :color="isTabFiltered(tb.key) ? 'primary' : undefined"
+              class="ml-1 q-count" :class="{ 'q-count-filtered': isTabFiltered(tb.key) }">{{ tabCountLabel(tb.key) }}</v-chip>
+            <v-tooltip activator="parent" location="bottom" content-class="q-tab-tip">
+              <div class="q-tab-tip-head">
+                <strong>{{ tabLabel(tb.key) }}</strong>
+                <template v-if="counts[tb.key]"> — {{ t('prov.quote.tagAlloc.nRes', { n: counts[tb.key] }) }} · {{ fmtMetric(costByType[tb.key]) }}</template>
+                <template v-else> — {{ t('prov.quote.empty') }}</template>
+              </div>
+              <div v-if="isTabFiltered(tb.key)" class="q-tab-tip-filtered">
+                {{ t('prov.quote.tabs.filteredTip', { n: filteredRowsByType[tb.key].length, cost: fmtMetric(filteredCostByType[tb.key]) }) }}
+              </div>
+            </v-tooltip>
+          </v-tab>
+        </v-tabs>
+        <v-spacer />
+        <!-- Global search (feature 13 phase 1): ONE debounced query across every
+             resource type; each tab's chip turns into its per-type match count. -->
+        <v-text-field :model-value="searchInput" :label="t('common.search')" prepend-inner-icon="mdi-magnify"
+          density="compact" hide-details variant="outlined" clearable class="quote-search"
+          @update:model-value="onSearch" />
+        <!-- Compact per-type create (targets the active tab) + instance CSV import. -->
+        <v-btn icon size="small" color="primary" variant="elevated" @click="openResourceCreate(activeTab)">
+          <v-icon>mdi-plus</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ t(`prov.quote.${activeTab}.new`) }}</v-tooltip>
+        </v-btn>
+        <v-btn v-if="activeTab === 'instance'" icon size="small" variant="outlined" @click="importDialog = true">
+          <v-icon>mdi-file-upload</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ t('prov.quote.import.title') }}</v-tooltip>
+        </v-btn>
+      </div>
 
       <v-window v-model="activeTab">
         <v-window-item v-for="tab in TAB_TYPES" :key="tab.key" :value="tab.key">
-          <div class="q-toolbar d-flex align-center mb-3 ga-2 flex-wrap">
-            <v-spacer />
-            <!-- Debounced text filter. Matches the legacy
-                 `.subscribe-configuration-prov-search` input; one
-                 query per tab so a search on Instances doesn't bleed
-                 into Storage. -->
-            <v-text-field v-if="rowsByType[tab.key].length" :model-value="searchByType[tab.key]" :label="t('common.search')" prepend-inner-icon="mdi-magnify" density="compact" hide-details
-              variant="outlined" clearable class="quote-search" @update:model-value="(v) => onSearch(tab.key, v)" />
-            <!-- Per-type create button. ComputeEditDialog covers all 4
-                 compute types; storage + support each have their own. -->
-            <v-btn size="small" color="primary" variant="elevated" prepend-icon="mdi-plus" @click="openResourceCreate(tab.key)">
-              {{ t(`prov.quote.${tab.key}.new`) }}
-            </v-btn>
-            <!-- Instance-only: CSV bulk import. Stays out of the other
-                 tabs since the import endpoint is instance-specific
-                 (per the legacy `popup-prov-instance-import`). -->
-            <v-btn v-if="tab.key === 'instance'" size="small" variant="outlined" prepend-icon="mdi-file-upload" @click="importDialog = true">
-              {{ t('prov.quote.import.title') }}
-            </v-btn>
-            <!-- "Delete all" and the column-visibility selector now live in
-                 the table's header tools cog (standard LigojDataTable
-                 features), keeping this toolbar to create/import/search. -->
-          </div>
           <v-alert v-if="!rowsByType[tab.key].length" type="info" variant="tonal" density="compact">
             {{ t('prov.quote.empty') }}
           </v-alert>
@@ -667,17 +672,19 @@ function chartGroupLabel(key) {
   return key || t('prov.quote.tagAlloc.noValue')
 }
 
-/* ---------- Per-tab search ----------
- * One debounced query per resource type. Keeping the rendered map
- * shape stable (`{ instance: '', database: '', … }`) means the
- * `<v-text-field>` model never wanders into `undefined`. */
-const searchByType = reactive(Object.fromEntries(TAB_TYPES.map((t) => [t.key, ''])))
+/* ---------- Global search (feature 13 phase 1) ----------
+ * ONE debounced query applied to every resource type at once. The tabs' count
+ * chips become per-type match counts ("3/12"), and the tab tooltips surface the
+ * filtered subset's count + cost. */
+const searchInput = ref('')
+const searchQuery = ref('')
 const SEARCH_DEBOUNCE_MS = 200
-const searchTimers = {}
-function onSearch(type, value) {
-  if (searchTimers[type]) clearTimeout(searchTimers[type])
-  searchTimers[type] = setTimeout(() => {
-    searchByType[type] = value || ''
+let searchTimer = null
+function onSearch(value) {
+  searchInput.value = value || ''
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    searchQuery.value = searchInput.value
   }, SEARCH_DEBOUNCE_MS)
 }
 
@@ -975,8 +982,8 @@ const statTiles = computed(() => {
  * column there — it doesn't collapse the chart onto itself). */
 const searchRowsByType = computed(() => {
   const out = {}
+  const q = searchQuery.value || ''
   for (const tab of TAB_TYPES) {
-    const q = searchByType[tab.key] || ''
     const rows = rowsByType.value[tab.key]
     out[tab.key] = q ? rows.filter((r) => rowMatches(r, q)) : rows
   }
@@ -996,6 +1003,23 @@ const filteredRowsByType = computed(() => {
   for (const tab of TAB_TYPES) {
     out[tab.key] = searchRowsByType.value[tab.key].filter((r) => rowInMonth(r, config.value, month))
   }
+  return out
+})
+
+/* Per-type totals in the active metric (cost or CO₂) for the tab tooltips —
+ * the full tab, and the filtered subset when a search / month narrows it. */
+function sumMetric(rows) {
+  const field = viewMode.value === 'co2' ? 'co2' : 'cost'
+  return (rows || []).reduce((s, r) => s + (Number(r?.[field]) || 0), 0)
+}
+const costByType = computed(() => {
+  const out = {}
+  for (const tab of TAB_TYPES) out[tab.key] = sumMetric(rowsByType.value[tab.key])
+  return out
+})
+const filteredCostByType = computed(() => {
+  const out = {}
+  for (const tab of TAB_TYPES) out[tab.key] = sumMetric(filteredRowsByType.value[tab.key])
   return out
 })
 
@@ -1792,19 +1816,38 @@ onMounted(async () => {
 }
 
 /* ---------- Tabs ---------- */
+/* Tabs + global search + compact actions on one row. The tabs shrink first
+ * (icon-only, so they compress well); the search keeps a usable width. */
+.q-tabs-row {
+  flex-wrap: wrap;
+}
+
 .q-tabs {
   border-bottom: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .q-tabs :deep(.v-tab) {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 600;
+  min-width: 56px;
 }
 
 .q-tabs :deep(.v-tab__slider) {
   height: 3px;
   border-radius: 3px 3px 0 0;
+}
+
+/* Tab tooltip: type recall + count/cost, and the filtered subset. */
+:global(.q-tab-tip .q-tab-tip-head) {
+  font-size: 0.85em;
+}
+:global(.q-tab-tip .q-tab-tip-filtered) {
+  font-size: 0.8em;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 600;
 }
 
 .q-count {
@@ -1820,9 +1863,11 @@ onMounted(async () => {
   box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.45);
 }
 
-/* ---------- Per-tab toolbar ---------- */
+/* ---------- Global search (tabs row) ---------- */
 .quote-search {
-  max-width: 300px;
+  max-width: 280px;
+  min-width: 170px;
+  flex: 1 1 auto;
 }
 
 .quote-search :deep(.v-field) {

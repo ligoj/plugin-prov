@@ -181,6 +181,7 @@ export default {
   'prov.quote.tabs.storage': 'Storage',
   'prov.quote.tabs.support': 'Support',
   'prov.quote.cols.name': 'Name',
+  'prov.quote.tabs.filteredTip': 'Filtered: {n} res. · {cost}',
   'prov.quote.cols.quantity': 'Qty',
   'prov.quote.cols.cpu': 'vCPU',
   'prov.quote.cols.ram': 'RAM',
