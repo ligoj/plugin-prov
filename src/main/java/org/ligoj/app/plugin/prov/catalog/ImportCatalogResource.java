@@ -25,10 +25,14 @@ import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -74,6 +78,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	@Autowired
 	private ProvQuoteRepository repository;
+
+	@Autowired
+	private CacheManager cacheManager;
 
 	/**
 	 * Update the catalog prices of the related provider. Asynchronous operation.
@@ -145,6 +152,9 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			// Catalog update failed
 			log.error("Catalog update failed for {}", node, e);
 		} finally {
+			// Evict the catalog-derived caches: even a failed import may have committed new entries
+			Arrays.stream(ImportCatalogService.EVICTED_CACHES).map(cacheManager::getCache).filter(Objects::nonNull)
+					.forEach(Cache::clear);
 			endTask(node, failed, t -> {
 				if (!t.isFailed()) {
 					t.setLastSuccess(t.getEnd());
