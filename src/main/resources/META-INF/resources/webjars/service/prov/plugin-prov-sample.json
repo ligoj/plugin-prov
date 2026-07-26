@@ -2,16 +2,16 @@
     "subscription": 205,
     "project": {
         "id": 2,
-        "name": "Enedis - M2C",
+        "name": "Sample - M2C",
         "description": ""
     },
     "parameters": {
-        "service:prov:aws:access-key-id": "AKIAQR7IZ7V553VXKQ4J",
-        "service:prov:aws:account": "038606077307"
+        "service:prov:aws:access-key-id": "AK000000000000000000",
+        "service:prov:aws:account": "000000000000"
     },
     "node": {
-        "id": "service:prov:aws:enedis",
-        "name": "Enedis M2C",
+        "id": "service:prov:aws:sample",
+        "name": "Sample M2C",
         "refined": {
             "id": "service:prov:aws",
             "name": "Provisioning AWS",
@@ -61,8 +61,8 @@
             ],
             "name": "ligoj-admin"
         },
-        "name": "Enedis - M2C - Dataops",
-        "description": "enedis-m2c-> Provisioning AWS",
+        "name": "Sample - M2C - Dataops",
+        "description": "sample-m2c-> Provisioning AWS",
         "cost": {
             "min": 17928.369,
             "max": 17928.369,

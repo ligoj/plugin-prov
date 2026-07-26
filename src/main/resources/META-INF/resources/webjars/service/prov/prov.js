@@ -56,6 +56,7 @@ define(['sparkline', 'd3'], function () {
 		'MYSQL': ['MySQL', 'icon-mysql'],
 		'ORACLE': ['Oracle', 'icon-oracle'],
 		'MARIADB': ['MariaDB', 'icon-mariadb'],
+		'DB2': ['DB2', 'icon-db2'],
 		'AURORA MYSQL': ['Aurora MySQL', 'icon-aws'],
 		'AURORA POSTGRESQL': ['Aurora PostgreSQL', 'icon-aws'],
 		'POSTGRESQL': ['PostgreSQL', 'icon-postgres'],
