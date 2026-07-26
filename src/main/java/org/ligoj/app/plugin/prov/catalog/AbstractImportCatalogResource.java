@@ -65,12 +65,12 @@ public abstract class AbstractImportCatalogResource {
 	 * Amount of persisted prices after which the persistence context is flushed then cleared when the import is
 	 * executed inside a transaction. Keeps the persistence context, and therefore the dirty-checking cost, bounded.
 	 */
-	protected static final int FLUSH_CHUNK_SIZE = 1000;
+	protected static final int FLUSH_CHUNK_SIZE = 100000;
 
 	/**
 	 * Hibernate JDBC batch size applied to the import session when the import is executed inside a transaction.
 	 */
-	protected static final int JDBC_BATCH_SIZE = 100;
+	protected static final int JDBC_BATCH_SIZE = 10000;
 
 	/**
 	 * Configuration key used for hours per month. When value is <code>null</code>, use
@@ -190,14 +190,14 @@ public abstract class AbstractImportCatalogResource {
 	 * @param type The rating mapping name.
 	 * @param name The name to map.
 	 * @return The direct [class, generation, size] rate association, or the [class, generation] rate association, or
-	 *         the [class] association, of the explicit default association or {@link Rate#MEDIUM} value.
+	 * the [class] association, of the explicit default association or {@link Rate#MEDIUM} value.
 	 */
 	protected Rate getRate(final String type, final String name) {
 		final var map = mapRate.get(type);
 		final var fragments = StringUtils.split(Objects.toString(name, "__"), ".-");
 		final var size = fragments[0];
 		final var model = StringUtils.rightPad(size, 2, '_').substring(0, 2);
-		return Arrays.stream(new String[] { name, size, model, model.substring(0, 1), "default" }).map(map::get)
+		return Arrays.stream(new String[]{name, size, model, model.substring(0, 1), "default"}).map(map::get)
 				.filter(Objects::nonNull).findFirst().orElse(Rate.MEDIUM);
 	}
 
@@ -205,14 +205,13 @@ public abstract class AbstractImportCatalogResource {
 	 * Read a rate mapping file.
 	 *
 	 * @param type The target mapping table name to fill.
-	 *
 	 * @throws IOException When the JSON mapping file cannot be read.
 	 */
 	protected void initRate(final String type) throws IOException {
 		final var mapping = new HashMap<String, Rate>();
 		mapRate.put(type, mapping);
 		mapping.putAll(objectMapper.readValue(IOUtils
-				.toString(new ClassPathResource("rate-" + type + ".json").getInputStream(), StandardCharsets.UTF_8),
+						.toString(new ClassPathResource("rate-" + type + ".json").getInputStream(), StandardCharsets.UTF_8),
 				new TypeReference<Map<String, Rate>>() {
 					// Nothing to extend
 				}));
@@ -230,7 +229,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Read a JSON file and convert it to map.
-	 * 
+	 *
 	 * @param <T>  Target reference type.
 	 * @param path JSON file location.
 	 * @param type Target type class.
@@ -259,7 +258,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @return <code>true</code> when the configuration enables the given instance type.
 	 */
 	protected boolean isEnabledType(final AbstractUpdateContext context, final String type) {
-		return type!= null && context.getValidInstanceType().matcher(type).matches();
+		return type != null && context.getValidInstanceType().matcher(type).matches();
 	}
 
 	/**
@@ -560,8 +559,8 @@ public abstract class AbstractImportCatalogResource {
 		// when an update must actually be persisted
 		final var entity = !price.isNew() && price.getType() == null
 				&& (context.isForce() || price.getCost() != round3Decimals(newCost))
-						? repository.findOneExpected(price.getId())
-						: price;
+				? repository.findOneExpected(price.getId())
+				: price;
 		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> {
 			entity.setCost(cR);
 			entity.setCostPeriod(round3Decimals(c * Math.max(1, entity.getTerm().getPeriod())));
@@ -576,7 +575,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Set the CO2 value in the price entity based on the CO2 data set.
-	 * 
+	 *
 	 * @param <P>     The target price type.
 	 * @param context The current context holding the CO2 data set
 	 * @param price   The target price to update.
@@ -590,7 +589,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Set the CO2 value in the price entity based on the CO2 data set.
-	 * 
+	 *
 	 * @param <P>     The target price type.
 	 * @param context The current context holding the CO2 data set
 	 * @param price   The target price to update.
@@ -604,7 +603,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Set the CO2 value in the price entity based on the CO2 data set.
-	 * 
+	 *
 	 * @param <P>     The target price type.
 	 * @param context The current context holding the CO2 data set
 	 * @param p       The target price to update.
@@ -623,7 +622,7 @@ public abstract class AbstractImportCatalogResource {
 
 		// 16.959236111
 		// 18,6 = 1,6(base) +0(GPU) +9,15(RAM) +7,81(CPU)
-		
+
 		// Set rounded CO2
 		p.setCo2Period(round3Decimals(co2 * Math.max(1, p.getTerm().getPeriod())));
 	}
@@ -647,7 +646,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Return the kW.h to equivalent CO2g/W.h depending on the location.
-	 * 
+	 *
 	 * @param context  The current context holding the CO2 data set
 	 * @param location Te target location.
 	 * @return the kW.h to equivalent CO2g/W.h depending on the location.
@@ -656,8 +655,8 @@ public abstract class AbstractImportCatalogResource {
 		final var mapping = context.getCo2RegionDataSet();
 		final var data = mapping.computeIfAbsent(location, l -> {
 			final var fragments = StringUtils.split(l + "._", ".-");
-			final var rawMatch = new String[] { l, fragments[0] + "-" + fragments[1], fragments[0] + "." + fragments[1],
-					fragments[0] };
+			final var rawMatch = new String[]{l, fragments[0] + "-" + fragments[1], fragments[0] + "." + fragments[1],
+					fragments[0]};
 			var match = Arrays.stream(rawMatch).filter(mapping::containsKey).findFirst().orElse(null);
 			if (match == null) {
 				match = Arrays.stream(rawMatch).map(this::toPattern)
@@ -682,9 +681,9 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Get the CO2 value from the type name used as key. When not found, no value is set.
-	 * 
+	 *
 	 * @param context The current context holding the CO2 data set
-	 * @param type   The data type to get.
+	 * @param type    The data type to get.
 	 */
 	protected Co2Data getCo2(final AbstractUpdateContext context, String type) {
 		return context.getCo2DataSet().computeIfAbsent(type, t -> {
@@ -695,7 +694,7 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Set the Watt value in the type entity based on the CO2 data set.
-	 * 
+	 *
 	 * @param context The current context holding the CO2/Watt data set
 	 * @param type    The target type to update.
 	 */
@@ -748,6 +747,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param updater The consumer used to persist the replacement. Usually a repository operation.
 	 * @return The given entity.
 	 */
+	@Deprecated
 	protected <K extends Serializable, P extends Persistable<K>> P copyAsNeeded(final AbstractUpdateContext context,
 			final P entity, final Consumer<P> updater) {
 		return copyAsNeeded(context, entity, updater, null);
@@ -770,63 +770,25 @@ public abstract class AbstractImportCatalogResource {
 
 	/**
 	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
-	 * 
+	 *
 	 * @param <Y>        Collection item type.
 	 * @param <I>        Persistable entity type.
 	 * @param collection Target collection of synchronized item.
-	 * @param item       Item to add.
+	 * @param key       Entity's key to add.
 	 * @param whenAbsent The callback to notify when the item was not present into the collection.
 	 * @param entity     The entity to persist when the item was not present.
 	 * @param repository The repository managing the entity.
 	 * @return The given entity after it's possible persist.
 	 */
-	protected <Y, I> I syncAdd(final Set<Y> collection, final Y item, Consumer<I> whenAbsent, I entity,
+	protected <Y, I> I syncAdd(final Set<Y> collection, final Y key, Consumer<I> whenAbsent, I entity,
 			final JpaRepository<I, ?> repository) {
-		syncAdd(collection, item, i -> {
+		if (collection.add(key)) {
 			whenAbsent.accept(entity);
 			if (repository != null) {
 				repository.saveAndFlush(entity);
 			}
-		});
-		return entity;
-	}
-
-	/**
-	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
-	 * 
-	 * @param <Y>        Collection item type.
-	 * @param collection Target collection of synchronized item.
-	 * @param item       Item to add.
-	 * @param whenAbsent The callback to notify when the item was not present into the collection.
-	 * @return The given entity after the callback call.
-	 */
-	protected <Y> Y syncAdd(final Set<Y> collection, final Y item, final Consumer<Y> whenAbsent) {
-		if (!collection.contains(item)) {
-			synchronized (collection) {
-				if (collection.add(item)) {
-					whenAbsent.accept(item);
-				}
-			}
 		}
-		return item;
-	}
-
-	/**
-	 * Add to a collection an item, and when newly added, notify a callback and save the given entity
-	 * 
-	 * @param <K>        Map key type.
-	 * @param <V>        Map value type.
-	 * @param map        Target map of synchronized item.
-	 * @param key        Item's ley to add.
-	 * @param whenAbsent The callback to notify when the item was not present into the collection, adn return the value
-	 *                   to put in the map.
-	 * @param onCompute  The callback called whatever the item base present or not.
-	 * @return The value previously stored in the map, or the new one returned by the <code>whenAbsent</code> callback.
-	 */
-	protected <K, V> V syncAdd(final Map<K, V> map, final K key, final Function<K, V> whenAbsent,
-			final Function<V, V> onCompute) {
-		return map.compute(key,
-				(code, previous) -> onCompute.apply(previous == null ? whenAbsent.apply(key) : previous));
+		return entity;
 	}
 
 	/**
@@ -877,7 +839,7 @@ public abstract class AbstractImportCatalogResource {
 		return entity;
 	}
 
-	private <K extends Serializable, P extends Persistable<K>> boolean isNeedUpdate(final AbstractUpdateContext context,
+	protected <K extends Serializable, P extends Persistable<K>> boolean isNeedUpdate(final AbstractUpdateContext context,
 			final P entity) {
 		return context.isForce() || (entity.isNew() && !em.contains(entity));
 	}

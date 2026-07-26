@@ -117,22 +117,22 @@ public abstract class AbstractUpdateContext {
 	 * The available regions. Key is the name.
 	 */
 	@Setter
-	private Map<String, ProvLocation> regions = Collections.synchronizedMap(new HashMap<>());
+	private Map<String, ProvLocation> regions = new ConcurrentHashMap<>();
 
 	/**
 	 * The merged type's codes.
 	 */
-	private Set<String> mergedTypes = Collections.synchronizedSet(new HashSet<>());
+	private Set<String> mergedTypes = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The merged term's codes.
 	 */
-	private Set<String> mergedTerms = Collections.synchronizedSet(new HashSet<>());
+	private Set<String> mergedTerms = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The merged location's codes.
 	 */
-	private Set<String> mergedLocations = Collections.synchronizedSet(new HashSet<>());
+	private Set<String> mergedLocations = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The accepted and existing storage type. Key is the code.

@@ -3,19 +3,8 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-
 import org.hibernate.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,28 +12,19 @@ import org.junit.jupiter.api.Test;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.prov.ProvResource;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceTermRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstanceTypeRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvSupportPriceRepository;
-import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvSupportPrice;
-import org.ligoj.app.plugin.prov.model.Rate;
-import org.ligoj.app.plugin.prov.model.VmOs;
+import org.ligoj.app.plugin.prov.dao.*;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * Test class of {@link AbstractImportCatalogResource}
@@ -122,50 +102,6 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Assertions.assertEquals(def, resource.getRate(file, "x1.micro"));
 	}
 
-	@Test
-	void copyAsNeededForce() {
-		final var entity = newPrice();
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		final var newContext = newContext();
-		newContext.setForce(true);
-
-		// Force mode for same cost
-		copyAsNeeded(newContext, entity, consumer);
-		Assertions.assertEquals("-updated-", entity.getCode());
-	}
-
-	@Test
-	void copyAsNeededNewNotInContext() {
-		final var entity = newPrice();
-		entity.setId(null);
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		final var newContext = newContext();
-
-		// Force mode for same cost + repository
-		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
-		em = Mockito.mock(EntityManager.class);
-		Mockito.when(em.contains(entity)).thenReturn(false);
-		copyAsNeeded(newContext, entity, consumer, repository);
-		Assertions.assertEquals("-updated-", entity.getCode());
-		Mockito.verify(repository, Mockito.atLeastOnce()).save(entity);
-	}
-
-	@Test
-	void copyAsNeededNewInContext() {
-		final var entity = newPrice();
-		entity.setId(null);
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		final var newContext = newContext();
-
-		// Force mode for same cost + repository
-		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
-		em = Mockito.mock(EntityManager.class);
-		Mockito.when(em.contains(entity)).thenReturn(true);
-		copyAsNeeded(newContext, entity, consumer, repository);
-		Assertions.assertEquals("old", entity.getCode());
-		Mockito.verify(repository, Mockito.never()).save(entity);
-	}
-
 	private ProvInstancePrice newPrice() {
 		final var term = new ProvInstancePriceTerm();
 		term.setPeriod(2d);
@@ -175,29 +111,6 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setId(1);
 		entity.setTerm(term);
 		return entity;
-	}
-
-	@Test
-	void copyAsNeededNew() {
-		final var entity = newPrice();
-		entity.setId(null);
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		final var newContext = newContext();
-
-		// Force mode for same cost
-		copyAsNeeded(newContext, entity, consumer);
-		Assertions.assertEquals("-updated-", entity.getCode());
-	}
-
-	@Test
-	void copyAsNeededNo() {
-		final var entity = newPrice();
-		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		final var newContext = newContext();
-
-		// Force mode for same cost
-		copyAsNeeded(newContext, entity, consumer);
-		Assertions.assertEquals("old", entity.getCode());
 	}
 
 	@Test
@@ -666,7 +579,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var collection = new HashSet<>(Set.of("entry"));
 		super.syncAdd(collection, "entry", c -> {
 			throw new AssertionError("Should not be called");
-		});
+		}, null, null);
 		Assertions.assertTrue(collection.contains("entry"));
 	}
 
@@ -674,42 +587,9 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void syncAdd() {
 		final var collection = new HashSet<>(Set.of("entry1"));
 		final var flag = new AtomicBoolean();
-		super.syncAdd(collection, "entry2", c -> flag.set(true));
+		super.syncAdd(collection, "entry2", c -> flag.set(true), null, null);
 		Assertions.assertTrue(collection.contains("entry2"));
 		Assertions.assertTrue(flag.get());
-	}
-
-	@Test
-	void syncAddMapExists() {
-		final var map = new HashMap<>(Map.of("entry", "value"));
-		final var onCompute = new AtomicBoolean();
-		Assertions.assertEquals("value3", super.syncAdd(map, "entry", c -> {
-			throw new AssertionError("Should not be called");
-		}, c -> {
-			onCompute.set(true);
-			return "value3";
-		}));
-		Assertions.assertTrue(onCompute.get());
-		Assertions.assertEquals("value3", map.get("entry"));
-	}
-
-	@Test
-	void syncAddMap() {
-		final var map = new HashMap<>(Map.of("entry", "value"));
-		final var whenAbsent = new AtomicBoolean();
-		final var onCompute = new AtomicBoolean();
-		Assertions.assertEquals("value3", super.syncAdd(map, "entry2", c -> {
-			whenAbsent.set(true);
-			return "value2";
-		}, c -> {
-			Assertions.assertEquals("value2", c);
-			onCompute.set(true);
-			return "value3";
-		}));
-		Assertions.assertEquals("value", map.get("entry"));
-		Assertions.assertEquals("value3", map.get("entry2"));
-		Assertions.assertTrue(whenAbsent.get());
-		Assertions.assertTrue(onCompute.get());
 	}
 
 	@Test
@@ -719,7 +599,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		Mockito.when(collection.add("entry2")).thenReturn(false);
 		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {
 			throw new AssertionError("Should not be called");
-		}));
+		}, null, null));
 	}
 
 	@Test
