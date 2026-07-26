@@ -40,6 +40,7 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.BaseProvQuoteRepository;
 import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
+import org.ligoj.app.plugin.prov.dao.ProvConfigurationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvContainerTypeRepository;
 import org.ligoj.app.plugin.prov.dao.ProvCurrencyRepository;
 import org.ligoj.app.plugin.prov.dao.ProvDatabaseTypeRepository;
@@ -57,6 +58,7 @@ import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
 import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
 import org.ligoj.app.plugin.prov.model.AbstractQuote;
 import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.ProvConfiguration;
 import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ProvQuote;
 import org.ligoj.app.plugin.prov.model.ReservationMode;
@@ -149,6 +151,9 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 
 	@Autowired
 	private ProvLocationRepository locationRepository;
+
+	@Autowired
+	private ProvConfigurationRepository configurationRepository;
 
 	@Autowired
 	private ProvTagResource tagResource;
@@ -645,7 +650,10 @@ public class ProvResource extends AbstractConfiguredServicePlugin<ProvQuote> imp
 			// No available location, need a catalog to continue
 			throw new BusinessException(SERVICE_KEY + "-no-catalog", provider.getId(), provider.getName());
 		}
-		final var location = locationRepository.findBy("node.id", provider.getId(), new String[] { "preferred" }, true);
+		final var location = configurationRepository.findById(provider.getId())
+				.map(ProvConfiguration::getDefaultLocation)
+				.map(name -> locationRepository.findBy("node.id", provider.getId(), new String[] { "name" }, name))
+				.orElse(null);
 		if (location == null) {
 			quote.setLocation(locations.getFirst());
 		} else {

@@ -83,10 +83,5 @@ public class ProvLocation extends AbstractDescribedEntity<Integer> {
 	 * M49 continent code: 142 (Asia), 150 (Europe), 019 (Americas),...
 	 */
 	private Integer continentM49;
-	
-	/**
-	 * When true, this location is the default one for new quotes
-	 */
-	private  boolean preferred;
 
 }

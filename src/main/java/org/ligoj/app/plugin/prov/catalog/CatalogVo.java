@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.prov.catalog;
 
 import org.ligoj.app.api.NodeVo;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -38,8 +37,8 @@ public class CatalogVo {
 	private int nbQuotes;
 
 	/**
-	 * The preferred location, may be <code>null</code>.
+	 * The default location name for the new quotes, may be <code>null</code>.
 	 */
-	private ProvLocation preferredLocation;
+	private String defaultLocation;
 
 }

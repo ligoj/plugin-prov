@@ -8,14 +8,18 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.plugin.prov.AbstractProvQuoteResource;
 import org.ligoj.app.plugin.prov.ProvResource;
 import org.ligoj.app.plugin.prov.dao.Co2Price;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
+import org.ligoj.app.plugin.prov.dao.ProvConfigurationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteRepository;
 import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
+import org.ligoj.app.plugin.prov.model.ProvConfiguration;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
 import org.ligoj.app.plugin.prov.model.ResourceType;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.node.LongTaskRunnerNode;
@@ -24,6 +28,7 @@ import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.bootstrap.core.resource.OnNullReturn404;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
+import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -32,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -81,6 +87,12 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 
 	@Autowired
 	private CacheManager cacheManager;
+
+	@Autowired
+	private ProvConfigurationRepository configurationRepository;
+
+	@Autowired
+	private ConfigurationResource configuration;
 
 	/**
 	 * Update the catalog prices of the related provider. Asynchronous operation.
@@ -155,6 +167,8 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			// Evict the catalog-derived caches: even a failed import may have committed new entries
 			Arrays.stream(ImportCatalogService.EVICTED_CACHES).map(cacheManager::getCache).filter(Objects::nonNull)
 					.forEach(Cache::clear);
+			// Assign the default location as needed: the first available location
+			ensureDefaultLocation(node);
 			endTask(node, failed, t -> {
 				if (!t.isFailed()) {
 					t.setLastSuccess(t.getEnd());
@@ -163,6 +177,27 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 					updateStats(t);
 				}
 			});
+		}
+	}
+
+	/**
+	 * Assign the default location of the given node when it is undefined: the first available location, whatever the
+	 * import outcome.
+	 *
+	 * @param node The provider node identifier.
+	 */
+	protected void ensureDefaultLocation(final String node) {
+		final var entity = configurationRepository.findById(node).orElseGet(() -> {
+			final var newConfiguration = new ProvConfiguration();
+			newConfiguration.setId(node);
+			return newConfiguration;
+		});
+		if (entity.getDefaultLocation() == null) {
+			locationRepository.findAllBy(BY_NODE, node).stream().map(ProvLocation::getName).sorted().findFirst()
+					.ifPresent(location -> {
+						entity.setDefaultLocation(location);
+						configurationRepository.saveAndFlush(entity);
+					});
 		}
 	}
 
@@ -244,24 +279,82 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			vo.setNode(NodeHelper.toVo(n));
 			vo.setCanImport(locator.getResource(n.getId(), ImportCatalogService.class) != null);
 			vo.setNbQuotes((int) repository.countByNode(n.getId()));
-			vo.setPreferredLocation(locationRepository.findBy("node", n, new String[]{"preferred"}, true));
+			vo.setDefaultLocation(configurationRepository.findById(n.getId())
+					.map(ProvConfiguration::getDefaultLocation).orElse(null));
 			return vo;
 		}).toList();
 	}
 
 	/**
-	 * Update catalog .
+	 * Return the provider configuration: default location, available locations and the requested provider scoped
+	 * configuration values.
 	 *
-	 * @param vo New catalog settings.
+	 * @param node  The provider node identifier.
+	 * @param names The requested configuration names. Only the names prefixed by the provider node's identifier are
+	 *              accepted.
+	 * @return The provider configuration.
+	 */
+	@GET
+	@Path("{node:service:prov:[^/]+}/configuration")
+	public CatalogConfigurationVo getConfiguration(@PathParam("node") final String node,
+			@QueryParam("names") final List<String> names) {
+		final var nodeId = nodeResource.checkWritableNode(node).getTool().getId();
+		final var vo = new CatalogConfigurationVo();
+		vo.setDefaultLocation(configurationRepository.findById(nodeId).map(ProvConfiguration::getDefaultLocation)
+				.orElse(null));
+		vo.setLocations(locationRepository.findAllBy(BY_NODE, nodeId).stream().map(ProvLocation::getName).sorted()
+				.toList());
+		vo.setProperties(Optional.ofNullable(names).orElse(List.of()).stream()
+				.filter(name -> checkOwnedProperty(nodeId, name))
+				.map(name -> Map.entry(name, Optional.ofNullable(configuration.get(name)).orElse("")))
+				.filter(entry -> !entry.getValue().isEmpty())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+		return vo;
+	}
+
+	/**
+	 * Update the provider configuration: default location and provider scoped configuration properties.
+	 *
+	 * @param vo New provider configuration.
 	 */
 	@PUT
-	public void update(CatalogEditionVo vo) {
+	public void update(final CatalogEditionVo vo) {
 		final var nodeId = nodeResource.checkWritableNode(vo.getNode()).getTool().getId();
-		if (!locationRepository.findBy("id", vo.getPreferredLocation()).getNode().getId().equals(nodeId)) {
-			throw new ValidationJsonException(nodeId, "node-not-same");
+
+		// Update the default location, validated against the available locations of this provider
+		if (StringUtils.isNotBlank(vo.getDefaultLocation())
+				&& locationRepository.findAllBy(BY_NODE, nodeId).stream().map(ProvLocation::getName)
+						.noneMatch(vo.getDefaultLocation()::equals)) {
+			throw new ValidationJsonException("defaultLocation", "unknown-id", vo.getDefaultLocation());
 		}
-		locationRepository.unsetPreferredLocation(nodeId);
-		locationRepository.setPreferredLocation(nodeId, vo.getPreferredLocation());
+		final var entity = configurationRepository.findById(nodeId).orElseGet(() -> {
+			final var newConfiguration = new ProvConfiguration();
+			newConfiguration.setId(nodeId);
+			return newConfiguration;
+		});
+		entity.setDefaultLocation(StringUtils.trimToNull(vo.getDefaultLocation()));
+		configurationRepository.saveAndFlush(entity);
+
+		// Update the provider scoped configuration properties
+		Optional.ofNullable(vo.getProperties()).orElse(Map.of()).forEach((name, value) -> {
+			checkOwnedProperty(nodeId, name);
+			if (StringUtils.isBlank(value)) {
+				configuration.delete(name);
+			} else {
+				configuration.put(name, value);
+			}
+		});
+	}
+
+	/**
+	 * Check the given configuration name belongs to the given provider node's namespace. Prevents reading or writing
+	 * configuration entries outside the provider scope through this endpoint.
+	 */
+	private boolean checkOwnedProperty(final String nodeId, final String name) {
+		if (!name.startsWith(nodeId + ":")) {
+			throw new ValidationJsonException("properties", "unknown-id", name);
+		}
+		return true;
 	}
 
 	@Override

@@ -838,8 +838,7 @@ class ProvResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("region-1", configuration.getLocation().getName());
 
 		final var node = configuration.getLocation().getNode().getId();
-		final var location = locationRepository.findByName(node, "region-2").getId();
-		final var catalogsVo = new CatalogEditionVo(location, node);
+		final var catalogsVo = new CatalogEditionVo(node, "region-2", null);
 		icResource.update(catalogsVo);
 
 		final var subscriptionPreferred = new Subscription();

@@ -104,24 +104,31 @@
             <v-tooltip activator="parent" location="top" :text="t('catalog.cancel')" />
           </v-btn>
         </template>
-        <template v-else>
-          <v-btn icon size="small" variant="text" @click="runImport(item, false)">
-            <v-icon size="small">mdi-download</v-icon>
-            <v-tooltip activator="parent" location="top" :text="t('catalog.updateStandard')" />
-          </v-btn>
-          <v-btn icon size="small" variant="text" @click="runImport(item, true)">
-            <v-icon size="small">mdi-download-multiple</v-icon>
-            <v-tooltip activator="parent" location="top" :text="t('catalog.updateForce')" />
-          </v-btn>
-        </template>
+        <v-menu v-else>
+          <template #activator="{ props: menuProps }">
+            <v-btn icon size="small" variant="text" v-bind="menuProps">
+              <v-icon size="small">mdi-dots-vertical</v-icon>
+              <v-tooltip activator="parent" location="top" :text="t('catalog.actions')" />
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item :disabled="!item.canImport" prepend-icon="mdi-download" :title="t('catalog.updateStandard')" @click="runImport(item, false)" />
+            <v-list-item :disabled="!item.canImport" prepend-icon="mdi-download-multiple" :title="t('catalog.updateForce')" @click="runImport(item, true)" />
+            <v-divider />
+            <v-list-item prepend-icon="mdi-cog-outline" :title="t('catalog.config.action')" @click="openConfiguration(item)" />
+          </v-list>
+        </v-menu>
       </template>
     </LigojDataTable>
+
+    <CatalogConfigDialog v-model="configDialog" :catalog="configCatalog" @saved="reload" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useErrorStore, useI18nStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+import CatalogConfigDialog from './CatalogConfigDialog.vue'
 
 const api = useApi()
 const app = useAppStore()
@@ -132,6 +139,15 @@ const t = i18n.t
 const loading = ref(false)
 const error = ref(null)
 const catalogs = ref([])
+
+/* Provider configuration dialog (default location + provider scoped properties). */
+const configDialog = ref(false)
+const configCatalog = ref(null)
+
+function openConfiguration(catalog) {
+  configCatalog.value = catalog
+  configDialog.value = true
+}
 
 /* Per-node polling timers. Catalog updates run server-side; we poll
  * the catalog list endpoint while any node has `status.start` without

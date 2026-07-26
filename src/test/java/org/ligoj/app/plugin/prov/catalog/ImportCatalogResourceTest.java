@@ -59,6 +59,8 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	private NodeRepository nodeRepository;
 	@Autowired
 	private ProvLocationRepository locationRepository;
+	@Autowired
+	private org.ligoj.app.plugin.prov.dao.ProvConfigurationRepository provConfigurationRepository;
 
 	@BeforeEach
 	void prepareData() throws IOException {
@@ -243,6 +245,68 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		return resource;
 	}
 
+	@Test
+	void getConfiguration() {
+		final var resource = newResource();
+		resource.update(new CatalogEditionVo("service:prov:x", "region-1",
+				java.util.Map.of("service:prov:x:regions", "region-.*")));
+
+		final var vo = resource.getConfiguration("service:prov:x",
+				java.util.List.of("service:prov:x:regions", "service:prov:x:os"));
+		Assertions.assertEquals("region-1", vo.getDefaultLocation());
+		Assertions.assertEquals(java.util.List.of("region-1", "region-3"), vo.getLocations());
+		Assertions.assertEquals(java.util.Map.of("service:prov:x:regions", "region-.*"), vo.getProperties());
+	}
+
+	@Test
+	void getConfigurationNotOwnedProperty() {
+		final var resource = newResource();
+		final var names = java.util.List.of("service:prov:other:regions");
+		Assertions.assertThrows(ValidationJsonException.class,
+				() -> resource.getConfiguration("service:prov:x", names));
+	}
+
+	@Test
+	void updateNotOwnedProperty() {
+		final var resource = newResource();
+		final var vo = new CatalogEditionVo("service:prov:x", null,
+				java.util.Map.of("service:prov:other:secret", "value"));
+		Assertions.assertThrows(ValidationJsonException.class, () -> resource.update(vo));
+	}
+
+	@Test
+	void updateDeleteProperty() {
+		final var resource = newResource();
+		resource.update(new CatalogEditionVo("service:prov:x", null,
+				java.util.Map.of("service:prov:x:regions", "region-.*")));
+		resource.update(new CatalogEditionVo("service:prov:x", null, java.util.Map.of("service:prov:x:regions", "")));
+		Assertions.assertTrue(resource
+				.getConfiguration("service:prov:x", java.util.List.of("service:prov:x:regions")).getProperties()
+				.isEmpty());
+	}
+
+	@Test
+	void ensureDefaultLocation() {
+		final var resource = newResource();
+		resource.ensureDefaultLocation("service:prov:x");
+		Assertions.assertEquals("region-1",
+				resource.getConfiguration("service:prov:x", null).getDefaultLocation());
+
+		// A defined default location is not overridden
+		resource.update(new CatalogEditionVo("service:prov:x", "region-3", null));
+		resource.ensureDefaultLocation("service:prov:x");
+		Assertions.assertEquals("region-3",
+				resource.getConfiguration("service:prov:x", null).getDefaultLocation());
+	}
+
+	@Test
+	void ensureDefaultLocationNoLocation() {
+		final var resource = newResource();
+		// No available location for this node: no default location assigned, no configuration created
+		resource.ensureDefaultLocation("service:prov:test2");
+		Assertions.assertTrue(provConfigurationRepository.findById("service:prov:test2").isEmpty());
+	}
+
 	private ImportCatalogStatus newStatus() {
 		final var status = new ImportCatalogStatus();
 		status.setLastSuccess(new Date(0));
@@ -300,7 +364,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		var catalogs = resource.findAll();
 		var location = locationRepository.findByName(catalogs.get(2).getNode().getId(), "region-1").getId();
 		var catalogsVoError = new CatalogEditionVo();
-		catalogsVoError.setPreferredLocation(location);
+		catalogsVoError.setDefaultLocation("region-1");
 		catalogsVoError.setNode(node.getId());
 		Assertions.assertThrows(ValidationJsonException.class, () -> resource.update(catalogsVoError));
 	}
@@ -324,15 +388,14 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		// Initialize and update catalog
 		var catalogs = resource.findAll();
 		Assertions.assertEquals(3, catalogs.size());
-		Assertions.assertNull(catalogs.getFirst().getPreferredLocation());
-		Assertions.assertNull(catalogs.get(1).getPreferredLocation());
-		Assertions.assertNull(catalogs.get(2).getPreferredLocation());
+		Assertions.assertNull(catalogs.getFirst().getDefaultLocation());
+		Assertions.assertNull(catalogs.get(1).getDefaultLocation());
+		Assertions.assertNull(catalogs.get(2).getDefaultLocation());
 		var node = catalogs.get(2).getNode().getId();
-		var location = locationRepository.findByName(node, "region-1").getId();
-		var catalogsVo = new CatalogEditionVo(location, node);
+		var catalogsVo = new CatalogEditionVo(node, "region-1", null);
 		resource.update(catalogsVo);
 		catalogs = resource.findAll();
-		Assertions.assertEquals(location, catalogs.get(2).getPreferredLocation().getId());
+		Assertions.assertEquals("region-1", catalogs.get(2).getDefaultLocation());
 
 		// This provider does not support catalog update
 		Assertions.assertEquals(0, catalogs.getFirst().getStatus().getNbPrices().intValue());
@@ -341,14 +404,14 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("service:prov:any", catalogs.getFirst().getNode().getId());
 		Assertions.assertFalse(catalogs.getFirst().isCanImport());
 		Assertions.assertEquals(0, catalogs.getFirst().getNbQuotes());
-		Assertions.assertNull(catalogs.getFirst().getPreferredLocation());
+		Assertions.assertNull(catalogs.getFirst().getDefaultLocation());
 
 		// This provider supports catalog update
 		Assertions.assertNotNull(catalogs.get(1).getStatus());
 		Assertions.assertEquals("service:prov:test", catalogs.get(1).getNode().getId());
 		Assertions.assertTrue(catalogs.get(1).isCanImport());
 		Assertions.assertEquals(2, catalogs.get(1).getNbQuotes());
-		Assertions.assertNull(catalogs.get(1).getPreferredLocation());
+		Assertions.assertNull(catalogs.get(1).getDefaultLocation());
 
 		// This provider does not support catalog update
 		Assertions.assertEquals("service:prov:x", catalogs.get(2).getNode().getId());
@@ -356,7 +419,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		Assertions.assertNull(catalogs.get(2).getStatus().getEnd());
 		Assertions.assertNull(catalogs.get(2).getStatus().getStart());
 		Assertions.assertEquals(1, catalogs.get(2).getNbQuotes());
-		Assertions.assertEquals("region-1", catalogs.get(2).getPreferredLocation().getName());
+		Assertions.assertEquals("region-1", catalogs.get(2).getDefaultLocation());
 
 		final var status = catalogs.get(1).getStatus();
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
