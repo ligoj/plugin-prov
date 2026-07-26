@@ -1737,7 +1737,8 @@ async function refreshPrices() {
       errorStore.success(t('prov.quote.refreshPrices.changed'))
       await loadConfig()
     } else {
-      errorStore.push({ message: t('prov.quote.refreshPrices.noChange'), status: 0 })
+      // Not an error: informative notice only
+      errorStore.info(t('prov.quote.refreshPrices.noChange'))
     }
   } finally {
     refreshingPrices.value = false
