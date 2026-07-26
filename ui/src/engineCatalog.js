@@ -7,6 +7,7 @@ export const ENGINE_LABELS = {
   MARIADB: 'MariaDB',
   SQL_SERVER: 'Microsoft SQL Server',
   AURORA: 'Amazon Aurora',
+  DB2: 'IBM Db2',
 }
 
 /**

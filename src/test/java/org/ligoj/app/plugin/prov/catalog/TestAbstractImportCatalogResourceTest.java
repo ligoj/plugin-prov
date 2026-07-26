@@ -594,10 +594,10 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void syncAddSynchronized() {
+		// Another thread already added the key: the callback is not called and the entity is returned as-is
 		@SuppressWarnings("unchecked") final Set<String> collection = Mockito.mock(Set.class);
-		Mockito.when(collection.contains("entry2")).thenReturn(false);
-		Mockito.when(collection.add("entry2")).thenReturn(false);
-		Assertions.assertEquals("entry", super.syncAdd(collection, "entry", c -> {
+		Mockito.when(collection.add("entry")).thenReturn(false);
+		Assertions.assertNull(super.syncAdd(collection, "entry", c -> {
 			throw new AssertionError("Should not be called");
 		}, null, null));
 	}

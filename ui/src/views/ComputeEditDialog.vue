@@ -27,7 +27,7 @@
             </v-col>
 
             <v-col v-if="type === 'database'" cols="12" md="6">
-              <LigojAutocomplete v-model="form.engine" :items="ENGINE_OPTIONS" :label="t('prov.quote.cols.engine')" :rules="REQUIRED_RULES" variant="outlined" density="compact">
+              <LigojAutocomplete v-model="form.engine" :items="engineItems" :label="t('prov.quote.cols.engine')" :rules="REQUIRED_RULES" variant="outlined" density="compact">
                 <template #item="{ props: itemProps, item }">
                   <v-list-item v-bind="itemProps">
                     <template #prepend>
@@ -42,6 +42,12 @@
             </v-col>
             <v-col v-if="type === 'database' && editionItems.length" cols="12" md="6">
               <LigojAutocomplete v-model="form.edition" :items="editionItems" :label="t('prov.quote.compute.edition')"
+                variant="outlined" density="compact" clearable />
+            </v-col>
+            <!-- Engines like DB2 are only priced with a license (BYOL): surface the license
+                 select beside the engine as soon as the catalog has licensed prices for it -->
+            <v-col v-if="type === 'database' && licenseItems.length" cols="12" md="6">
+              <LigojAutocomplete v-model="form.license" :items="licenseItems" :label="t('prov.quote.compute.license')"
                 variant="outlined" density="compact" clearable />
             </v-col>
 
@@ -121,7 +127,8 @@
                   <v-col cols="12" md="6">
                     <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
                   </v-col>
-                  <v-col cols="12" md="6">
+                  <!-- For databases, the license select is surfaced in the basic section beside the engine -->
+                  <v-col v-if="props.type !== 'database'" cols="12" md="6">
                     <LigojAutocomplete v-model="form.license" :items="licenseItems" :label="t('prov.quote.compute.license')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col v-if="props.type === 'instance'" cols="12" md="6">
@@ -277,6 +284,7 @@ const hasOs = computed(() => props.type === 'instance' || props.type === 'contai
 const hasQuantity = computed(() => props.type !== 'function')
 
 const OS_OPTIONS = ['LINUX', 'WINDOWS', 'RHEL', 'SUSE', 'CENTOS', 'DEBIAN', 'FEDORA', 'UBUNTU', 'ORACLE']
+// Fallback engines only: the real list is fetched from the provider catalog (findEngines API)
 const ENGINE_OPTIONS = ['MYSQL', 'POSTGRESQL', 'ORACLE', 'MARIADB', 'SQL SERVER', 'AURORA']
 
 const ICONS = {
@@ -375,12 +383,15 @@ function withCurrent(list, current) {
 const licenseList = ref([])
 const softwareList = ref([])
 const editionList = ref([])
+const engineList = ref([])
 
 const processorItems = computed(() => withCurrent(props.config?.processors?.[props.type], form.processor))
 const architectureItems = computed(() => withCurrent(props.config?.architectures?.[props.type], form.architecture))
 const licenseItems = computed(() => withCurrent(licenseList.value, form.license))
 const softwareItems = computed(() => withCurrent(softwareList.value, form.software))
 const editionItems = computed(() => withCurrent(editionList.value, form.edition))
+const engineItems = computed(() =>
+  withCurrent(engineList.value.length ? engineList.value : ENGINE_OPTIONS, form.engine))
 
 async function fetchLicenses() {
   // instance/container filter by OS; database by engine; function has none.
@@ -388,7 +399,8 @@ async function fetchLicenses() {
   if (!key || props.subscriptionId == null) { licenseList.value = []; return }
   const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/${props.type}-license/${encodeURIComponent(key)}`
   const data = await api.get(url, { silent: true })
-  licenseList.value = Array.isArray(data) ? data : []
+  // The catalog may report the license-included prices as a null license entry
+  licenseList.value = (Array.isArray(data) ? data : []).filter(Boolean)
 }
 
 async function fetchSoftware() {
@@ -405,10 +417,24 @@ async function fetchEditions() {
   editionList.value = Array.isArray(data) ? data : []
 }
 
+async function fetchEngines() {
+  if (props.type !== 'database' || props.subscriptionId == null) { engineList.value = []; return }
+  const url = `${APP_BASE}rest/service/prov/${props.subscriptionId}/database-engine`
+  const data = await api.get(url, { silent: true })
+  engineList.value = Array.isArray(data) ? data : []
+}
+
 // Refresh the per-OS/engine lists when the dialog opens or its OS/engine changes.
 watch(
   () => [props.modelValue, props.subscriptionId, props.type, form.os, form.engine],
   () => { if (props.modelValue) { fetchLicenses(); fetchSoftware(); fetchEditions() } },
+  { immediate: true },
+)
+
+// The engine list of the provider catalog only depends on the subscription.
+watch(
+  () => [props.modelValue, props.subscriptionId, props.type],
+  () => { if (props.modelValue) { fetchEngines() } },
   { immediate: true },
 )
 
