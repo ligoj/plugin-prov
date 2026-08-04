@@ -9,3 +9,4 @@
 *.log
 .apt_generated*
 src/main/resources/META-INF/resources/webjars/prov/vue/*
+/docs/features
