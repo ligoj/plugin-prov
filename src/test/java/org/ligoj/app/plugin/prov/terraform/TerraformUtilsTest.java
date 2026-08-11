@@ -3,23 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.util.zip.ZipOutputStream;
-
 import jakarta.transaction.Transactional;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +27,17 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.zip.ZipOutputStream;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class of {@link TerraformUtils}
@@ -126,8 +121,8 @@ class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	void newBuilderNotInstalled() {
-		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
-		Mockito.when(classLoader.getHomeDirectory()).thenReturn(EMPTY_PATH.toPath());
+		final var classLoader = mock(LigojPluginsClassLoader.class);
+		when(classLoader.getHomeDirectory()).thenReturn(EMPTY_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
 			protected LigojPluginsClassLoader getClassLoader() {
@@ -141,8 +136,8 @@ class TerraformUtilsTest extends AbstractServerTest {
 	}
 
 	private void checkNewBuilder(final String os, final String[] args, final String command) {
-		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
-		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
+		final var classLoader = mock(LigojPluginsClassLoader.class);
+		when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 		final TerraformUtils utils = new TerraformUtils() {
 			@Override
 			protected LigojPluginsClassLoader getClassLoader() {
@@ -191,8 +186,8 @@ class TerraformUtilsTest extends AbstractServerTest {
 		// Prepare the download
 		final var pathDownload = new File("target/test-classes/terraform-download").getAbsoluteFile();
 		pathDownload.mkdirs();
-		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
-		Mockito.when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
+		final var classLoader = mock(LigojPluginsClassLoader.class);
+		when(classLoader.getHomeDirectory()).thenReturn(pathDownload.toPath());
 		configuration.put("service:prov:terraform:repository", "http://localhost:" + MOCK_PORT);
 		// Index
 		try (var inputStream = new ClassPathResource("mock-server/prov/terraform/terraform-index.html")
@@ -255,12 +250,12 @@ class TerraformUtilsTest extends AbstractServerTest {
 
 	@Test
 	void toFile() throws IOException {
-		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
+		final var classLoader = mock(LigojPluginsClassLoader.class);
 		try (var scope = new ThreadClassLoaderScope(new URLClassLoader(new URL[0], classLoader))) {
 			final var file = Paths.get("");
 			final var entity = new Subscription();
 			entity.setId(15);
-			Mockito.when(classLoader.toPath(entity, "some")).thenReturn(file);
+			when(classLoader.toPath(entity, "some")).thenReturn(file);
 			Assertions.assertEquals(file.toFile(), resource.toFile(entity, "some"));
 			Assertions.assertNotNull(LigojPluginsClassLoader.getInstance());
 		}
@@ -292,7 +287,7 @@ class TerraformUtilsTest extends AbstractServerTest {
 	@Test
 	void addEntryFailed() throws IOException {
 		final var from = new File("target/test-classes/terraform-logs", "init.log").toPath();
-		final var zs = Mockito.mock(ZipOutputStream.class);
+		final var zs = mock(ZipOutputStream.class);
 		Mockito.doThrow(new IOException()).when(zs).putNextEntry(ArgumentMatchers.any());
 		resource.addEntry(new File("target/test-classes/terraform-logs").toPath(), from, zs);
 	}

@@ -3,13 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.function.BiFunction;
-
+import jakarta.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,12 +12,19 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.model.TerraformStatus;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import jakarta.transaction.Transactional;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.function.BiFunction;
+
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test class of {@link TerraformBaseCommand}
@@ -170,8 +171,8 @@ class TerraformBaseCommandTest extends AbstractTerraformTest {
 	@Test
 	void computeWorkloadError() throws IOException {
 		final var resource = newResource();
-		resource.utils = Mockito.mock(TerraformUtils.class);
-		Mockito.doThrow(new IOException()).when(resource.utils).toFile(ArgumentMatchers.any(), ArgumentMatchers.any());
+		resource.utils = mock(TerraformUtils.class);
+		doThrow(new IOException()).when(resource.utils).toFile(ArgumentMatchers.any(), ArgumentMatchers.any());
 		final var status = new TerraformStatus();
 		status.setToAdd(1);
 		resource.computeWorkload(getSubscription(), status);

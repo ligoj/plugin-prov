@@ -71,7 +71,7 @@ class BinPackerTest {
 
 	@Test
 	void packEmpty() {
-		final var result = BinPacker.pack(List.<Piece>of(), Piece::getWeight, 10d);
+		final var result = BinPacker.pack(List.of(), Piece::getWeight, 10d);
 		Assertions.assertTrue(result.fitted().isEmpty());
 		Assertions.assertEquals(0d, result.total());
 		Assertions.assertTrue(result.overflow().isEmpty());

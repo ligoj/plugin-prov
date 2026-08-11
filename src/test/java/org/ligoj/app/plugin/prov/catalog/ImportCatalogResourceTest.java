@@ -3,13 +3,7 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.function.Consumer;
-
 import jakarta.transaction.Transactional;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,20 +15,7 @@ import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ImportCatalogStatusRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.model.ImportCatalogStatus;
-import org.ligoj.app.plugin.prov.model.ProvCurrency;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvInstancePrice;
-import org.ligoj.app.plugin.prov.model.ProvInstancePriceTerm;
-import org.ligoj.app.plugin.prov.model.ProvInstanceType;
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ProvStoragePrice;
-import org.ligoj.app.plugin.prov.model.ProvStorageType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
@@ -43,6 +24,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.function.Consumer;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class of {@link ImportCatalogResource}
@@ -119,9 +108,9 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
 		// Replace the locator for the custom provider
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final var service = Mockito.mock(ImportCatalogService.class);
-		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
+		resource.locator = mock(ServicePluginLocator.class);
+		final var service = mock(ImportCatalogService.class);
+		when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
 		final var status = resource.updateCatalog("service:prov:test:account", false);
 		Assertions.assertEquals(DEFAULT_USER, status.getAuthor());
@@ -173,7 +162,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	void updateCatalogSynchronous() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
-		final var service = Mockito.mock(ImportCatalogService.class);
+		final var service = mock(ImportCatalogService.class);
 		resource.updateCatalog(service, "service:prov:test");
 
 		final var status = repository.findBy("locked.id", "service:prov:test");
@@ -200,7 +189,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	void updateCatalogSynchronousFailed() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
-		final var service = Mockito.mock(ImportCatalogService.class);
+		final var service = mock(ImportCatalogService.class);
 		Mockito.doThrow(new IllegalStateException()).when(service).updateCatalog("service:prov:test", false);
 
 		resource.updateCatalog(service, "service:prov:test");
@@ -211,7 +200,7 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	void updateCatalogSynchronousFailedWithError() throws Exception {
 		initSpringSecurityContext(DEFAULT_USER);
 		final var resource = newResource();
-		final var service = Mockito.mock(ImportCatalogService.class);
+		final var service = mock(ImportCatalogService.class);
 		Mockito.doThrow(new AssertionError("my-assert")).when(service).updateCatalog("service:prov:test", false);
 
 		Assertions.assertThrows(AssertionError.class, () -> resource.updateCatalog(service, "service:prov:test"));
@@ -327,9 +316,9 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 
 		// Replace the locator for the custom provider
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final var service = Mockito.mock(ImportCatalogService.class);
-		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
+		resource.locator = mock(ServicePluginLocator.class);
+		final var service = mock(ImportCatalogService.class);
+		when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 		Mockito.doThrow(new IOException()).when(service).updateCatalog("service:prov:test", false);
 
 		final var status = resource.updateCatalog("service:prov:test:account", false);
@@ -374,9 +363,9 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		final var resource = newResource();
 
 		// Add importable provider
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		final var service = Mockito.mock(ImportCatalogService.class);
-		Mockito.when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
+		resource.locator = mock(ServicePluginLocator.class);
+		final var service = mock(ImportCatalogService.class);
+		when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
 
 		// Add not updatable provider node
 		final var notImportNode = new Node();

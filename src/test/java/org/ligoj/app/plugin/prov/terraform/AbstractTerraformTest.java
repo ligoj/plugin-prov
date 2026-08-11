@@ -3,12 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.terraform;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -22,8 +16,16 @@ import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.resource.plugin.LigojPluginsClassLoader;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Base Terraform test class.
@@ -71,8 +73,8 @@ public abstract class AbstractTerraformTest extends AbstractAppTest {
 
 	protected TerraformUtils newTerraformUtils(final BiFunction<Subscription, String[], File> toFile,
 			final String... customArgs) {
-		final var classLoader = Mockito.mock(LigojPluginsClassLoader.class);
-		Mockito.when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
+		final var classLoader = mock(LigojPluginsClassLoader.class);
+		when(classLoader.getHomeDirectory()).thenReturn(MOCK_PATH.toPath());
 
 		// Replace the CLI runner
 		TerraformUtils utils = new TerraformUtils() {

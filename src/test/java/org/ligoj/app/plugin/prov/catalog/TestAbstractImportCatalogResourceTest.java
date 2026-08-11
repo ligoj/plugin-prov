@@ -17,7 +17,6 @@ import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
@@ -25,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Test class of {@link AbstractImportCatalogResource}
@@ -120,14 +121,14 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setName("old");
 		final Consumer<ProvInstancePriceTerm> consumer = t -> t.setName("-updated-");
 		final var newContext = newContext();
-		final var repository = Mockito.mock(ProvInstancePriceTermRepository.class);
+		final var repository = mock(ProvInstancePriceTermRepository.class);
 		this.iptRepository = repository;
 
 		// Force mode for same cost
 		copyAsNeeded(newContext, entity, consumer);
 		Assertions.assertEquals("-updated-", entity.getName());
 		newContext.getMergedTerms().contains("code");
-		Mockito.verify(repository).saveAndFlush(entity);
+		verify(repository).saveAndFlush(entity);
 
 		// No repository
 		newContext.getMergedTerms().clear();
@@ -148,13 +149,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setName("old");
 		final Consumer<ProvInstanceType> consumer = t -> t.setName("-updated-");
 		final var newContext = newContext();
-		final var repository = Mockito.mock(ProvInstanceTypeRepository.class);
+		final var repository = mock(ProvInstanceTypeRepository.class);
 
 		// Force mode for same cost
 		copyAsNeeded(newContext, entity, consumer, repository);
 		Assertions.assertEquals("-updated-", entity.getName());
 		newContext.getMergedTypes().contains("code");
-		Mockito.verify(repository).saveAndFlush(entity);
+		verify(repository).saveAndFlush(entity);
 
 		// No repository
 		newContext.getMergedTypes().clear();
@@ -172,10 +173,10 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void purgeSkuEmpty() {
 		final var newContext = newContext();
 		final var previous = new HashMap<String, ProvInstancePrice>();
-		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
-		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
+		final var pRepository = mock(ProvInstancePriceRepository.class);
+		final var qRepository = mock(ProvQuoteInstanceRepository.class);
 		purgePrices(newContext, previous, pRepository, qRepository);
-		Mockito.verify(pRepository, Mockito.never()).delete(ArgumentMatchers.any());
+		verify(pRepository, never()).delete(ArgumentMatchers.any());
 	}
 
 	@Test
@@ -194,22 +195,22 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		previous.put(price2.getCode(), price2);
 		previous.put(price3.getCode(), price3);
 		newContext.getPrices().add("-updated-");
-		final var pRepository = Mockito.mock(ProvInstancePriceRepository.class);
-		final var qRepository = Mockito.mock(ProvQuoteInstanceRepository.class);
+		final var pRepository = mock(ProvInstancePriceRepository.class);
+		final var qRepository = mock(ProvQuoteInstanceRepository.class);
 
-		Mockito.doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository)
+		doReturn(List.of(price1.getCode(), price4.getCode())).when(qRepository)
 				.findUsedPrices("service:prov:some");
 
 		purgePrices(newContext, previous, pRepository, qRepository);
 
 		// Unused price but referenced is not deleted
-		Mockito.verify(pRepository, Mockito.never()).delete(price2);
+		verify(pRepository, never()).delete(price2);
 
 		// Unused and not updated price is deleted
-		Mockito.verify(pRepository, Mockito.never()).delete(price1);
+		verify(pRepository, never()).delete(price1);
 
 		// Unused and not updated price is deleted
-		Mockito.verify(pRepository, Mockito.times(1)).delete(price3);
+		verify(pRepository, times(1)).delete(price3);
 	}
 
 	@Test
@@ -276,16 +277,16 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		// Coverage only, required for inheriting provisioning plug-in
 		Assertions.assertNull(resource.getImportCatalogResource());
 		resource.setImportCatalogResource(null);
-		importCatalogResource = Mockito.mock(ImportCatalogResource.class);
+		importCatalogResource = mock(ImportCatalogResource.class);
 		objectMapper = new ObjectMapper();
 	}
 
 	@Test
 	void initContext() {
-		nodeRepository = Mockito.mock(NodeRepository.class);
-		configuration = Mockito.mock(ConfigurationResource.class);
-		Mockito.when(nodeRepository.findOneExpected("service:prov:test")).thenReturn(new Node());
-		Mockito.when(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH)).thenReturn(1);
+		nodeRepository = mock(NodeRepository.class);
+		configuration = mock(ConfigurationResource.class);
+		when(nodeRepository.findOneExpected("service:prov:test")).thenReturn(new Node());
+		when(configuration.get(CONF_HOURS_MONTH, ProvResource.DEFAULT_HOURS_MONTH)).thenReturn(1);
 		final AbstractUpdateContext context = new AbstractUpdateContext() {
 			// Nothing
 		};
@@ -297,7 +298,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@BeforeEach
 	void setupEm() {
-		this.em = Mockito.mock(EntityManager.class);
+		this.em = mock(EntityManager.class);
 	}
 
 	@Test
@@ -308,7 +309,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var oldRegion = new ProvLocation();
 		oldRegion.setContinentM49(250);
 		context.getMapRegionById().put("newRegion", oldRegion);
-		locationRepository = Mockito.mock(ProvLocationRepository.class);
+		locationRepository = mock(ProvLocationRepository.class);
 		final var installRegion = installRegion(context, "newRegion");
 		Assertions.assertEquals("newRegion", installRegion.getName());
 		Assertions.assertEquals(250, installRegion.getContinentM49().intValue());
@@ -394,7 +395,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var context = newContext();
 		final var status = new ImportCatalogStatus();
 
-		Mockito.doAnswer(invocation -> {
+		doAnswer(invocation -> {
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
@@ -408,7 +409,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var context = newContext();
 		final var status = new ImportCatalogStatus();
 
-		Mockito.doAnswer(invocation -> {
+		doAnswer(invocation -> {
 			((Consumer<ImportCatalogStatus>) invocation.getArguments()[1]).accept(status);
 			return null;
 		}).when(importCatalogResource).nextStep(ArgumentMatchers.any(), ArgumentMatchers.any());
@@ -437,10 +438,10 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvStoragePrice();
 		entity.setId(1);
 		entity.setCostGb(2d);
-		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = mock(RestRepository.class);
 		saveAsNeeded(newContext(), entity, 1, repository);
 		Assertions.assertEquals(1, entity.getCostGb());
-		Mockito.verify(repository).save(entity);
+		verify(repository).save(entity);
 	}
 
 	@Test
@@ -448,10 +449,10 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvStoragePrice();
 		entity.setId(1);
 		entity.setCostGb(1d);
-		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = Mockito.mock(RestRepository.class);
+		@SuppressWarnings("unchecked") final RestRepository<ProvStoragePrice, Integer> repository = mock(RestRepository.class);
 		saveAsNeeded(newContext(), entity, 1, repository);
 		Assertions.assertEquals(1, entity.getCostGb());
-		Mockito.verify(repository, Mockito.never()).save(entity);
+		verify(repository, never()).save(entity);
 	}
 
 	@Test
@@ -473,12 +474,12 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setCost(2d);
 		entity.setId(1);
 		entity.setCode("code");
-		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
+		final var repository = mock(ProvSupportPriceRepository.class);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 3, repository);
 		Assertions.assertEquals(3, entity.getCost());
 		context.getMergedTypes().contains("code");
-		Mockito.verify(repository).save(entity);
+		verify(repository).save(entity);
 	}
 
 	@Test
@@ -486,12 +487,12 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvSupportPrice();
 		entity.setCost(2d);
 		entity.setCode("code");
-		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
+		final var repository = mock(ProvSupportPriceRepository.class);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 2d, repository);
 		Assertions.assertEquals(2d, entity.getCost());
 		context.getMergedTypes().contains("code");
-		Mockito.verify(repository).save(entity);
+		verify(repository).save(entity);
 	}
 
 	/**
@@ -502,13 +503,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvSupportPrice();
 		entity.setCost(2d);
 		entity.setCode("code");
-		final var repository = Mockito.mock(ProvSupportPriceRepository.class);
-		Mockito.doReturn(true).when(this.em).contains(entity);
+		final var repository = mock(ProvSupportPriceRepository.class);
+		doReturn(true).when(this.em).contains(entity);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 2d, repository);
 		Assertions.assertEquals(2d, entity.getCost());
 		context.getMergedTypes().contains("code");
-		Mockito.verify(repository, Mockito.never()).save(entity);
+		verify(repository, never()).save(entity);
 	}
 
 	@Test
@@ -527,13 +528,13 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		entity.setCode("code");
 		entity.setType(type);
 		entity.setLocation(location);
-		final var repository = Mockito.mock(ProvInstancePriceRepository.class);
+		final var repository = mock(ProvInstancePriceRepository.class);
 		final var context = newContext();
 		saveAsNeeded(context, entity, 3, repository);
 		Assertions.assertEquals(3, entity.getCost());
 		Assertions.assertEquals(36, entity.getCostPeriod());
 		Assertions.assertTrue(context.getPrices().contains("code"));
-		Mockito.verify(repository).save(entity);
+		verify(repository).save(entity);
 	}
 
 	@Test
@@ -595,8 +596,8 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	@Test
 	void syncAddSynchronized() {
 		// Another thread already added the key: the callback is not called and the entity is returned as-is
-		@SuppressWarnings("unchecked") final Set<String> collection = Mockito.mock(Set.class);
-		Mockito.when(collection.add("entry")).thenReturn(false);
+		@SuppressWarnings("unchecked") final Set<String> collection = mock(Set.class);
+		when(collection.add("entry")).thenReturn(false);
 		Assertions.assertNull(super.syncAdd(collection, "entry", c -> {
 			throw new AssertionError("Should not be called");
 		}, null, null));
@@ -716,20 +717,20 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 
 	@Test
 	void flushChunkNoTransaction() {
-		em = Mockito.mock(EntityManager.class);
+		em = mock(EntityManager.class);
 		final var newContext = newContext();
 		for (var i = 0; i < FLUSH_CHUNK_SIZE * 2; i++) {
 			flushChunk(newContext);
 		}
 
 		// No active transaction: the persistence context is never flushed nor cleared
-		Mockito.verify(em, Mockito.never()).flush();
-		Mockito.verify(em, Mockito.never()).clear();
+		verify(em, never()).flush();
+		verify(em, never()).clear();
 	}
 
 	@Test
 	void flushChunkTransaction() {
-		em = Mockito.mock(EntityManager.class);
+		em = mock(EntityManager.class);
 		final var newContext = newContext();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		try {
@@ -741,31 +742,31 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		}
 
 		// Active transaction: flushed then cleared exactly once every FLUSH_CHUNK_SIZE saves
-		Mockito.verify(em, Mockito.times(2)).flush();
-		Mockito.verify(em, Mockito.times(2)).clear();
+		verify(em, times(2)).flush();
+		verify(em, times(2)).clear();
 	}
 
 	@Test
 	void initJdbcBatchNoTransaction() {
-		em = Mockito.mock(EntityManager.class);
+		em = mock(EntityManager.class);
 		initJdbcBatch();
 
 		// No active transaction: no session available, nothing to configure
-		Mockito.verify(em, Mockito.never()).unwrap(ArgumentMatchers.<Class<Session>>any());
+		verify(em, never()).unwrap(ArgumentMatchers.<Class<Session>>any());
 	}
 
 	@Test
 	void initJdbcBatchTransaction() {
-		em = Mockito.mock(EntityManager.class);
-		final var session = Mockito.mock(Session.class);
-		Mockito.doReturn(session).when(em).unwrap(Session.class);
+		em = mock(EntityManager.class);
+		final var session = mock(Session.class);
+		doReturn(session).when(em).unwrap(Session.class);
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		try {
 			initJdbcBatch();
 		} finally {
 			TransactionSynchronizationManager.setActualTransactionActive(false);
 		}
-		Mockito.verify(session).setJdbcBatchSize(JDBC_BATCH_SIZE);
+		verify(session).setJdbcBatchSize(JDBC_BATCH_SIZE);
 	}
 
 }
