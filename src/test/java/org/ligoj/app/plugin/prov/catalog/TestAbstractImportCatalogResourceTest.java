@@ -3,7 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.junit.jupiter.api.Assertions;
@@ -18,6 +17,7 @@ import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.*;
@@ -427,7 +427,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = new ProvInstancePrice();
 		entity.setCost(1d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-updated-");
-		saveAsNeeded(newContext(), entity, 2.013d, 2.01234d, (cRound, c) -> entity.setCost(cRound)
+		saveAsNeeded(newContext(), entity, 2.013d, 2.01234d, (cRound, _) -> entity.setCost(cRound)
 				, consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
 		Assertions.assertEquals(2.012d, entity.getCost());
@@ -463,7 +463,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		newContext.setForce(true);
 
 		// Force mode for same cost
-		saveAsNeeded(newContext, entity, 1, 1, (cRound, c) -> entity.setCost(cRound), consumer);
+		saveAsNeeded(newContext, entity, 1, 1, (cRound, _) -> entity.setCost(cRound), consumer);
 		Assertions.assertEquals("-updated-", entity.getCode());
 		Assertions.assertEquals(1, entity.getCost());
 	}
@@ -550,7 +550,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		final var entity = newPrice();
 		entity.setCost(1d);
 		final Consumer<ProvInstancePrice> consumer = p -> p.setCode("-never-called-");
-		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, c) -> entity.setCost(cRound), consumer);
+		saveAsNeeded(newContext(), entity, 2.012d, 2.01234d, (cRound, _) -> entity.setCost(cRound), consumer);
 		Assertions.assertEquals("old", entity.getCode());
 		Assertions.assertEquals(1d, entity.getCost());
 	}
@@ -578,7 +578,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	@Test
 	void syncAddExists() {
 		final var collection = new HashSet<>(Set.of("entry"));
-		super.syncAdd(collection, "entry", c -> {
+		super.syncAdd(collection, "entry", _ -> {
 			throw new AssertionError("Should not be called");
 		}, null, null);
 		Assertions.assertTrue(collection.contains("entry"));
@@ -588,7 +588,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 	void syncAdd() {
 		final var collection = new HashSet<>(Set.of("entry1"));
 		final var flag = new AtomicBoolean();
-		super.syncAdd(collection, "entry2", c -> flag.set(true), null, null);
+		super.syncAdd(collection, "entry2", _ -> flag.set(true), null, null);
 		Assertions.assertTrue(collection.contains("entry2"));
 		Assertions.assertTrue(flag.get());
 	}
@@ -598,7 +598,7 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		// Another thread already added the key: the callback is not called and the entity is returned as-is
 		@SuppressWarnings("unchecked") final Set<String> collection = mock(Set.class);
 		when(collection.add("entry")).thenReturn(false);
-		Assertions.assertNull(super.syncAdd(collection, "entry", c -> {
+		Assertions.assertNull(super.syncAdd(collection, "entry", _ -> {
 			throw new AssertionError("Should not be called");
 		}, null, null));
 	}

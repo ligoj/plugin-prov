@@ -18,12 +18,12 @@ import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A resource related to an instance and with floating cost.

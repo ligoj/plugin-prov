@@ -3,15 +3,12 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.Getter;
 import lombok.Setter;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Test class of {@link RoundSerializer}
@@ -29,7 +26,7 @@ class RoundSerializerTest {
 	}
 
 	@Test
-	void serializeNotNull() throws JsonProcessingException {
+	void serializeNotNull() {
 		final var bean = new Bean();
 		bean.setNullable(1d);
 		bean.setPrimary(2d);
@@ -37,7 +34,7 @@ class RoundSerializerTest {
 	}
 
 	@Test
-	void serializeNull() throws JsonProcessingException {
+	void serializeNull() {
 		final var bean = new Bean();
 		bean.setPrimary(2d);
 		Assertions.assertEquals("{\"nullable\":null,\"primary\":2.0}", new ObjectMapper().writeValueAsString(bean));

@@ -15,10 +15,10 @@ import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * An immutable, named snapshot of a quote configuration. The full configuration is stored as an opaque JSON document

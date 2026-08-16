@@ -3,49 +3,15 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
-import org.ligoj.app.plugin.prov.dao.ProvBudgetRepository;
-import org.ligoj.app.plugin.prov.dao.ProvContainerPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvDatabasePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvFunctionPriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvInstancePriceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvLocationRepository;
-import org.ligoj.app.plugin.prov.dao.ProvOptimizerRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteContainerRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteDatabaseRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteFunctionRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteInstanceRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteSnapshotRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteStorageRepository;
-import org.ligoj.app.plugin.prov.dao.ProvQuoteSupportRepository;
-import org.ligoj.app.plugin.prov.dao.ProvUsageRepository;
-import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.AbstractQuoteVm;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
-import org.ligoj.app.plugin.prov.model.ProvQuoteInstance;
-import org.ligoj.app.plugin.prov.model.ProvQuoteSnapshot;
-import org.ligoj.app.plugin.prov.model.ProvQuoteStorage;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import lombok.extern.slf4j.Slf4j;
+import org.ligoj.app.plugin.prov.dao.*;
+import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.app.plugin.prov.quote.container.ProvQuoteContainerResource;
 import org.ligoj.app.plugin.prov.quote.container.QuoteContainerEditionVo;
 import org.ligoj.app.plugin.prov.quote.database.ProvQuoteDatabaseResource;
@@ -58,14 +24,14 @@ import org.ligoj.app.plugin.prov.quote.storage.ProvQuoteStorageResource;
 import org.ligoj.app.plugin.prov.quote.storage.QuoteStorageEditionVo;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
 import org.ligoj.bootstrap.core.DescribedBean;
+import org.ligoj.bootstrap.core.model.AbstractNamedEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
 
 /**
  * Quote snapshots — immutable, named copies of a quote configuration that can be listed, diffed (client-side, from the
@@ -93,8 +59,8 @@ public class ProvQuoteSnapshotResource {
 	/**
 	 * Lenient mapper: display-only row fields (cost, term, typeName…) are simply ignored when binding an edition VO.
 	 */
-	private static final ObjectMapper MAPPER = new ObjectMapper()
-			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	private static final JsonMapper MAPPER = new JsonMapper(JsonMapper.builderWithJackson2Defaults()
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES));
 
 	@PersistenceContext
 	private EntityManager em;
@@ -177,10 +143,10 @@ public class ProvQuoteSnapshotResource {
 		entity.setCo2(quote.getCo2());
 		entity.setMaxCo2(quote.getMaxCo2());
 		final var document = buildDocument(quote);
-		entity.setNbResources(((List<?>) document.get("resources")).size());
+		entity.setNbResources(((Collection<?>) document.get("resources")).size());
 		try {
 			entity.setData(MAPPER.writeValueAsString(document));
-		} catch (final com.fasterxml.jackson.core.JsonProcessingException e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException("snapshot-serialize", e);
 		}
 		repository.saveAndFlush(entity);
@@ -216,7 +182,7 @@ public class ProvQuoteSnapshotResource {
 	public JsonNode getDocument(@PathParam("subscription") final int subscription, @PathParam("id") final int id) {
 		try {
 			return MAPPER.readTree(findOwned(subscription, id).getData());
-		} catch (final java.io.IOException e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException("snapshot-parse", e);
 		}
 	}
@@ -299,7 +265,7 @@ public class ProvQuoteSnapshotResource {
 		final var idByName = new LinkedHashMap<String, Integer>();
 		final var storageRows = new ArrayList<JsonNode>();
 		for (final var row : document.withArray("resources")) {
-			final var type = row.path("resourceType").asText();
+			final var type = row.path("resourceType").asString();
 			if ("storage".equals(type)) {
 				storageRows.add(row);
 			} else if (!"support".equals(type)) {
@@ -313,7 +279,7 @@ public class ProvQuoteSnapshotResource {
 	}
 
 	private void applyText(final JsonNode document, final String field, final java.util.function.Consumer<String> apply) {
-		final var value = document.path(field).asText(null);
+		final var value = document.path(field).asString(null);
 		if (value != null && !value.isEmpty()) {
 			apply.accept(value);
 		}
@@ -326,43 +292,43 @@ public class ProvQuoteSnapshotResource {
 	 */
 	private void restoreCompute(final ProvQuote quote, final String type, final JsonNode row,
 			final Map<String, Integer> idByName, final List<String> failed) {
-		final var name = row.path("name").asText();
-		final var code = row.path("priceCode").asText(null);
+		final var name = row.path("name").asString();
+		final var code = row.path("priceCode").asString(null);
 		final var provider = quote.getSubscription().getNode().getRefined().getId();
 		try {
 			final int newId = switch (type) {
-			case "instance" -> {
-				final var vo = MAPPER.convertValue(row, QuoteInstanceEditionVo.class);
-				vo.setSubscription(quote.getSubscription().getId());
-				final var price = byCode(ipRepository.findAllBy("code", code), provider);
-				vo.setPrice(price != null ? price.getId()
-						: qiResource.validateLookup(ResourceType.INSTANCE, qiResource.lookup(quote, vo), name).getId());
-				yield qiResource.saveOrUpdate(quote, new ProvQuoteInstance(), vo).getId();
-			}
-			case "database" -> {
-				final var vo = MAPPER.convertValue(row, QuoteDatabaseEditionVo.class);
-				vo.setSubscription(quote.getSubscription().getId());
-				final var price = byCode(bpRepository.findAllBy("code", code), provider);
-				vo.setPrice(price != null ? price.getId()
-						: qbResource.validateLookup(ResourceType.DATABASE, qbResource.lookup(quote, vo), name).getId());
-				yield qbResource.saveOrUpdate(quote, new ProvQuoteDatabase(), vo).getId();
-			}
-			case "container" -> {
-				final var vo = MAPPER.convertValue(row, QuoteContainerEditionVo.class);
-				vo.setSubscription(quote.getSubscription().getId());
-				final var price = byCode(cpRepository.findAllBy("code", code), provider);
-				vo.setPrice(price != null ? price.getId()
-						: qcResource.validateLookup(ResourceType.CONTAINER, qcResource.lookup(quote, vo), name).getId());
-				yield qcResource.saveOrUpdate(quote, new ProvQuoteContainer(), vo).getId();
-			}
-			default -> {
-				final var vo = MAPPER.convertValue(row, QuoteFunctionEditionVo.class);
-				vo.setSubscription(quote.getSubscription().getId());
-				final var price = byCode(fpRepository.findAllBy("code", code), provider);
-				vo.setPrice(price != null ? price.getId()
-						: qfResource.validateLookup(ResourceType.FUNCTION, qfResource.lookup(quote, vo), name).getId());
-				yield qfResource.saveOrUpdate(quote, new ProvQuoteFunction(), vo).getId();
-			}
+				case "instance" -> {
+					final var vo = MAPPER.convertValue(row, QuoteInstanceEditionVo.class);
+					vo.setSubscription(quote.getSubscription().getId());
+					final var price = byCode(ipRepository.findAllBy("code", code), provider);
+					vo.setPrice(price != null ? price.getId()
+							: qiResource.validateLookup(ResourceType.INSTANCE, qiResource.lookup(quote, vo), name).getId());
+					yield qiResource.saveOrUpdate(quote, new ProvQuoteInstance(), vo).getId();
+				}
+				case "database" -> {
+					final var vo = MAPPER.convertValue(row, QuoteDatabaseEditionVo.class);
+					vo.setSubscription(quote.getSubscription().getId());
+					final var price = byCode(bpRepository.findAllBy("code", code), provider);
+					vo.setPrice(price != null ? price.getId()
+							: qbResource.validateLookup(ResourceType.DATABASE, qbResource.lookup(quote, vo), name).getId());
+					yield qbResource.saveOrUpdate(quote, new ProvQuoteDatabase(), vo).getId();
+				}
+				case "container" -> {
+					final var vo = MAPPER.convertValue(row, QuoteContainerEditionVo.class);
+					vo.setSubscription(quote.getSubscription().getId());
+					final var price = byCode(cpRepository.findAllBy("code", code), provider);
+					vo.setPrice(price != null ? price.getId()
+							: qcResource.validateLookup(ResourceType.CONTAINER, qcResource.lookup(quote, vo), name).getId());
+					yield qcResource.saveOrUpdate(quote, new ProvQuoteContainer(), vo).getId();
+				}
+				default -> {
+					final var vo = MAPPER.convertValue(row, QuoteFunctionEditionVo.class);
+					vo.setSubscription(quote.getSubscription().getId());
+					final var price = byCode(fpRepository.findAllBy("code", code), provider);
+					vo.setPrice(price != null ? price.getId()
+							: qfResource.validateLookup(ResourceType.FUNCTION, qfResource.lookup(quote, vo), name).getId());
+					yield qfResource.saveOrUpdate(quote, new ProvQuoteFunction(), vo).getId();
+				}
 			};
 			idByName.put(type + ":" + name, newId);
 		} catch (final RuntimeException e) {
@@ -371,20 +337,24 @@ public class ProvQuoteSnapshotResource {
 		}
 	}
 
-	/** The catalog price carrying the snapshotted code on the right provider node, or <code>null</code>. */
+	/**
+	 * The catalog price carrying the snapshotted code on the right provider node, or <code>null</code>.
+	 */
 	private <P extends AbstractPrice<?>> P byCode(final List<P> candidates, final String provider) {
 		return candidates.stream().filter(p -> p.getType().getNode().getId().equals(provider)).findFirst().orElse(null);
 	}
 
-	/** Replay one storage row, re-linked to its (freshly recreated) parent VM by name. */
+	/**
+	 * Replay one storage row, re-linked to its (freshly recreated) parent VM by name.
+	 */
 	private void restoreStorage(final int subscription, final JsonNode row, final Map<String, Integer> idByName,
 			final List<String> failed) {
-		final var name = row.path("name").asText();
+		final var name = row.path("name").asString();
 		try {
 			final var vo = MAPPER.convertValue(row, QuoteStorageEditionVo.class);
 			vo.setSubscription(subscription);
-			final var parent = row.path("parent").asText(null);
-			final var parentType = row.path("parentType").asText(null);
+			final var parent = row.path("parent").asString(null);
+			final var parentType = row.path("parentType").asString(null);
 			if (parent != null && parentType != null) {
 				final var parentId = idByName.get(parentType + ":" + parent);
 				if (parentId == null) {
@@ -392,10 +362,10 @@ public class ProvQuoteSnapshotResource {
 					throw new EntityNotFoundException(parent);
 				}
 				switch (parentType) {
-				case "instance" -> vo.setInstance(parentId);
-				case "database" -> vo.setDatabase(parentId);
-				case "container" -> vo.setContainer(parentId);
-				default -> vo.setFunction(parentId);
+					case "instance" -> vo.setInstance(parentId);
+					case "database" -> vo.setDatabase(parentId);
+					case "container" -> vo.setContainer(parentId);
+					default -> vo.setFunction(parentId);
 				}
 			}
 			qsResource.create(vo);
@@ -405,7 +375,9 @@ public class ProvQuoteSnapshotResource {
 		}
 	}
 
-	/** Load a snapshot and check it belongs to the (visible) subscription. */
+	/**
+	 * Load a snapshot and check it belongs to the (visible) subscription.
+	 */
 	private ProvQuoteSnapshot findOwned(final int subscription, final int id) {
 		subscriptionResource.checkVisible(subscription);
 		final var entity = repository.findOneExpected(id);
@@ -422,10 +394,10 @@ public class ProvQuoteSnapshotResource {
 	private Map<String, Object> buildDocument(final ProvQuote quote) {
 		final var document = new LinkedHashMap<String, Object>();
 		document.put("version", 1);
-		document.put("location", Optional.ofNullable(quote.getLocation()).map(l -> l.getName()).orElse(null));
-		document.put("usage", Optional.ofNullable(quote.getUsage()).map(u -> u.getName()).orElse(null));
-		document.put("budget", Optional.ofNullable(quote.getBudget()).map(b -> b.getName()).orElse(null));
-		document.put("optimizer", Optional.ofNullable(quote.getOptimizer()).map(o -> o.getName()).orElse(null));
+		document.put("location", Optional.ofNullable(quote.getLocation()).map(AbstractNamedEntity::getName).orElse(null));
+		document.put("usage", Optional.ofNullable(quote.getUsage()).map(AbstractNamedEntity::getName).orElse(null));
+		document.put("budget", Optional.ofNullable(quote.getBudget()).map(AbstractNamedEntity::getName).orElse(null));
+		document.put("optimizer", Optional.ofNullable(quote.getOptimizer()).map(AbstractNamedEntity::getName).orElse(null));
 
 		document.put("usages", usageRepository.findAll(quote).stream().map(u -> {
 			final var m = new LinkedHashMap<String, Object>();
@@ -471,7 +443,7 @@ public class ProvQuoteSnapshotResource {
 			// fall back to the price's (raw fixture data may miss it) — the replay's
 			// checkAttribute would otherwise reject the restored price.
 			m.put("edition", Optional.ofNullable(e.getEdition())
-					.orElseGet(() -> Optional.ofNullable(e.getPrice()).map(p -> p.getEdition()).orElse(null)));
+					.orElseGet(() -> Optional.ofNullable(e.getPrice()).map(ProvDatabasePrice::getEdition).orElse(null)));
 			resources.add(m);
 		});
 		qcRepository.findAll(quote).forEach(e -> {
@@ -512,7 +484,9 @@ public class ProvQuoteSnapshotResource {
 		return m;
 	}
 
-	/** Common row of a VM-like resource: restore fields (edition-VO names) + display-only resolved price facts. */
+	/**
+	 * Common row of a VM-like resource: restore fields (edition-VO names) + display-only resolved price facts.
+	 */
 	private LinkedHashMap<String, Object> vmRow(final String resourceType, final AbstractQuoteVm<?> e) {
 		final var m = baseRow(resourceType, e.getName(), e.getDescription(), e.getCost(), e.getMaxCost(), e.getCo2(),
 				e.getMaxCo2());
@@ -538,10 +512,10 @@ public class ProvQuoteSnapshotResource {
 		m.put("ramRate", e.getRamRate());
 		m.put("networkRate", e.getNetworkRate());
 		m.put("storageRate", e.getStorageRate());
-		m.put("usage", Optional.ofNullable(e.getUsage()).map(u -> u.getName()).orElse(null));
-		m.put("budget", Optional.ofNullable(e.getBudget()).map(b -> b.getName()).orElse(null));
-		m.put("optimizer", Optional.ofNullable(e.getOptimizer()).map(o -> o.getName()).orElse(null));
-		m.put("location", Optional.ofNullable(e.getLocation()).map(l -> l.getName()).orElse(null));
+		m.put("usage", Optional.ofNullable(e.getUsage()).map(AbstractNamedEntity::getName).orElse(null));
+		m.put("budget", Optional.ofNullable(e.getBudget()).map(AbstractNamedEntity::getName).orElse(null));
+		m.put("optimizer", Optional.ofNullable(e.getOptimizer()).map(AbstractNamedEntity::getName).orElse(null));
+		m.put("location", Optional.ofNullable(e.getLocation()).map(AbstractNamedEntity::getName).orElse(null));
 		// Exact price for the fidelity restore + display-only resolved facts for the diff
 		// (all ignored by the restore VO bind).
 		m.put("priceCode", Optional.ofNullable(e.getPrice()).map(AbstractPrice::getCode).orElse(null));
@@ -557,7 +531,7 @@ public class ProvQuoteSnapshotResource {
 		m.put("latency", e.getLatency());
 		m.put("optimized", e.getOptimized());
 		m.put("quantity", e.getQuantity());
-		m.put("location", Optional.ofNullable(e.getLocation()).map(l -> l.getName()).orElse(null));
+		m.put("location", Optional.ofNullable(e.getLocation()).map(AbstractNamedEntity::getName).orElse(null));
 		// The storage price is strictly resolved by type code — keep it for the restore.
 		final var typeCode = Optional.ofNullable(e.getPrice()).map(p -> p.getType().getCode()).orElse(null);
 		m.put("type", typeCode);

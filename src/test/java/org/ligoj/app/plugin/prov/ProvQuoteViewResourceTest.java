@@ -3,13 +3,11 @@
  */
 package org.ligoj.app.plugin.prov;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.persistence.EntityNotFoundException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Test class of {@link ProvQuoteViewResource}.
@@ -27,7 +25,7 @@ class ProvQuoteViewResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void saveListUpsertAndDelete() throws Exception {
+	void saveListUpsertAndDelete() {
 		final var id = save("prod-eu", "{\"search\":\"web\"}");
 		Assertions.assertEquals(1, viewResource.findAll(subscription).size());
 
@@ -42,7 +40,7 @@ class ProvQuoteViewResourceTest extends AbstractProvResourceTest {
 		save("alpha", "{}");
 		final var all = viewResource.findAll(subscription);
 		Assertions.assertEquals("alpha", all.getFirst().getName());
-		final var json = new ObjectMapper().findAndRegisterModules().writeValueAsString(all);
+		final var json = new ObjectMapper().writeValueAsString(all);
 		Assertions.assertFalse(json.contains("\"refined\""));
 		Assertions.assertTrue(json.contains("\"subscription\":" + subscription));
 

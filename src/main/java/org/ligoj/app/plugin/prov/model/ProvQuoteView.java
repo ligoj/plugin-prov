@@ -15,10 +15,9 @@ import org.ligoj.app.model.Subscription;
 import org.ligoj.bootstrap.core.model.AbstractDescribedAuditedEntity;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A shared, named view of the quote screen: search + filters + columns + sort + display state, serialized as an opaque

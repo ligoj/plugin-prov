@@ -3,11 +3,6 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,18 +10,12 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.prov.dao.ProvComparisonRepository;
 import org.ligoj.app.plugin.prov.dao.ProvLookupErrorRepository;
-import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
-import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvQuote;
-import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
-import org.ligoj.app.plugin.prov.model.ResourceType;
+import org.ligoj.app.plugin.prov.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test class of {@link ProvComparisonResource} — the cross-provider "compared subscriptions" feature. A comparison
@@ -52,19 +41,21 @@ class ProvComparisonResourceTest extends AbstractProvResourceTest {
 	void prepareCompute() throws IOException {
 		// Add database / container / function resources (and their catalogs) to the MS quote (quote1).
 		persistEntities("csv/database",
-				new Class<?>[] { ProvDatabaseType.class, ProvDatabasePrice.class, ProvQuoteDatabase.class },
+				new Class<?>[]{ProvDatabaseType.class, ProvDatabasePrice.class, ProvQuoteDatabase.class},
 				StandardCharsets.UTF_8);
 		persistEntities("csv/container",
-				new Class<?>[] { ProvContainerType.class, ProvContainerPrice.class, ProvQuoteContainer.class },
+				new Class<?>[]{ProvContainerType.class, ProvContainerPrice.class, ProvQuoteContainer.class},
 				StandardCharsets.UTF_8);
 		persistEntities("csv/function",
-				new Class<?>[] { ProvFunctionType.class, ProvFunctionPrice.class, ProvQuoteFunction.class },
+				new Class<?>[]{ProvFunctionType.class, ProvFunctionPrice.class, ProvQuoteFunction.class},
 				StandardCharsets.UTF_8);
 		em.flush();
 		em.clear();
 	}
 
-	/** Create a fresh empty compared subscription (CS) on the given provider node, in the MS project. */
+	/**
+	 * Create a fresh empty compared subscription (CS) on the given provider node, in the MS project.
+	 */
 	private int newCs(final String nodeId) {
 		final var sub = new Subscription();
 		sub.setNode(em.find(Node.class, nodeId));
@@ -85,7 +76,9 @@ class ProvComparisonResourceTest extends AbstractProvResourceTest {
 		return qiRepository.findAll(getQuote()).size();
 	}
 
-	/** Total number of compute resources on the MS quote (all four types). */
+	/**
+	 * Total number of compute resources on the MS quote (all four types).
+	 */
 	private int nbCompute() {
 		final var q = getQuote();
 		return qiRepository.findAll(q).size() + qbRepository.findAll(q).size() + qcRepository.findAll(q).size()
@@ -186,8 +179,8 @@ class ProvComparisonResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(expected, errors.size());
 		Assertions.assertTrue(errors.stream().allMatch(e -> e.getSubscription().getId() == cs
 				&& e.getMainSubscription().getId() == subscription && e.getMainResourceId() != null));
-		for (final var type : new ResourceType[] { ResourceType.INSTANCE, ResourceType.DATABASE, ResourceType.CONTAINER,
-				ResourceType.FUNCTION }) {
+		for (final var type : new ResourceType[]{ResourceType.INSTANCE, ResourceType.DATABASE, ResourceType.CONTAINER,
+				ResourceType.FUNCTION}) {
 			Assertions.assertTrue(errors.stream().anyMatch(e -> e.getResourceType() == type), "missing " + type);
 		}
 		Assertions.assertTrue(errors.stream().anyMatch(e -> "server1".equals(e.getName())));
@@ -217,7 +210,7 @@ class ProvComparisonResourceTest extends AbstractProvResourceTest {
 	}
 
 	@Test
-	void findAllSerializesErrorsWithoutSubscriptionGraph() throws Exception {
+	void findAllSerializesErrorsWithoutSubscriptionGraph() {
 		final var cs = newCs(CS_OTHER);
 		cmpResource.addCompared(subscription, cs);
 		final var json = new ObjectMapper().writeValueAsString(cmpResource.findAll(subscription));

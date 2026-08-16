@@ -3,28 +3,19 @@
  */
 package org.ligoj.app.plugin.prov.model;
 
-import java.util.Optional;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.bootstrap.core.INamableBean;
 import org.ligoj.bootstrap.core.model.ToIdSerializer;
 import org.springframework.data.domain.Persistable;
+import tools.jackson.databind.annotation.JsonSerialize;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Optional;
 
 /**
  * A storage configuration inside a quote and optionally linked to an instance or database. Name is unique inside a
@@ -33,8 +24,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = { "name",
-		"configuration" }))
+@Table(name = "LIGOJ_PROV_QUOTE_STORAGE", uniqueConstraints = @UniqueConstraint(columnNames = {"name",
+		"configuration"}))
 public class ProvQuoteStorage extends AbstractQuote<ProvStoragePrice> implements QuoteStorage {
 
 	/**

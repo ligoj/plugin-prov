@@ -3,15 +3,13 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import org.ligoj.app.plugin.prov.model.AbstractPrice;
-import org.ligoj.app.plugin.prov.model.ProvType;
-import org.ligoj.app.plugin.prov.model.RoundSerializer;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.ligoj.app.plugin.prov.model.AbstractPrice;
+import org.ligoj.app.plugin.prov.model.ProvType;
+import org.ligoj.app.plugin.prov.model.RoundSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * The computed price for the requested resources.

@@ -3,8 +3,6 @@
  */
 package org.ligoj.app.plugin.prov.catalog;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceContextType;
@@ -32,12 +30,17 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.ObjDoubleConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -685,7 +688,7 @@ public abstract class AbstractImportCatalogResource {
 	 * @param type    The data type to get.
 	 */
 	protected Co2Data getCo2(final AbstractUpdateContext context, String type) {
-		return context.getCo2DataSet().computeIfAbsent(type, t -> {
+		return context.getCo2DataSet().computeIfAbsent(type, _ -> {
 			log.warn("No CO2 for type {}", type);
 			return new Co2Data();
 		});
@@ -717,7 +720,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected <T extends AbstractCodedEntity, P extends AbstractPrice<T>> P saveAsNeeded(final AbstractUpdateContext context,
 			final P entity, final double newCost, final RestRepository<P, Integer> repository) {
-		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, c) -> entity.setCost(cR),
+		return saveAsNeeded(context, entity, entity.getCost(), newCost, (cR, _) -> entity.setCost(cR),
 				repository::save);
 	}
 
@@ -732,7 +735,7 @@ public abstract class AbstractImportCatalogResource {
 	 */
 	protected ProvStoragePrice saveAsNeeded(final AbstractUpdateContext context, final ProvStoragePrice entity,
 			final double newCostGb, final RestRepository<ProvStoragePrice, Integer> repository) {
-		return saveAsNeededInternal(context, entity, entity.getCostGb(), newCostGb, (cR, c) -> entity.setCostGb(cR),
+		return saveAsNeededInternal(context, entity, entity.getCostGb(), newCostGb, (cR, _) -> entity.setCostGb(cR),
 				repository::save);
 	}
 

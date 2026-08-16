@@ -3,27 +3,17 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ligoj.app.plugin.prov.dao.ProvQuoteSnapshotRepository;
-import org.ligoj.app.plugin.prov.model.ProvContainerPrice;
-import org.ligoj.app.plugin.prov.model.ProvContainerType;
-import org.ligoj.app.plugin.prov.model.ProvDatabasePrice;
-import org.ligoj.app.plugin.prov.model.ProvDatabaseType;
-import org.ligoj.app.plugin.prov.model.ProvFunctionPrice;
-import org.ligoj.app.plugin.prov.model.ProvFunctionType;
-import org.ligoj.app.plugin.prov.model.ProvQuoteContainer;
-import org.ligoj.app.plugin.prov.model.ProvQuoteDatabase;
-import org.ligoj.app.plugin.prov.model.ProvQuoteFunction;
+import org.ligoj.app.plugin.prov.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test class of {@link ProvQuoteSnapshotResource}.
@@ -40,13 +30,13 @@ class ProvQuoteSnapshotResourceTest extends AbstractProvResourceTest {
 	void prepareCompute() throws IOException {
 		// Extend the base fixture (instances + storages) with the other compute types.
 		persistEntities("csv/database",
-				new Class<?>[] { ProvDatabaseType.class, ProvDatabasePrice.class, ProvQuoteDatabase.class },
+				new Class<?>[]{ProvDatabaseType.class, ProvDatabasePrice.class, ProvQuoteDatabase.class},
 				StandardCharsets.UTF_8);
 		persistEntities("csv/container",
-				new Class<?>[] { ProvContainerType.class, ProvContainerPrice.class, ProvQuoteContainer.class },
+				new Class<?>[]{ProvContainerType.class, ProvContainerPrice.class, ProvQuoteContainer.class},
 				StandardCharsets.UTF_8);
 		persistEntities("csv/function",
-				new Class<?>[] { ProvFunctionType.class, ProvFunctionPrice.class, ProvQuoteFunction.class },
+				new Class<?>[]{ProvFunctionType.class, ProvFunctionPrice.class, ProvQuoteFunction.class},
 				StandardCharsets.UTF_8);
 		em.flush();
 		em.clear();
@@ -61,12 +51,12 @@ class ProvQuoteSnapshotResourceTest extends AbstractProvResourceTest {
 
 	private int[] counts() {
 		final var q = getQuote();
-		return new int[] { qiRepository.findAll(q).size(), qbRepository.findAll(q).size(),
-				qcRepository.findAll(q).size(), qfRepository.findAll(q).size(), qsRepository.findAll(q).size() };
+		return new int[]{qiRepository.findAll(q).size(), qbRepository.findAll(q).size(),
+				qcRepository.findAll(q).size(), qfRepository.findAll(q).size(), qsRepository.findAll(q).size()};
 	}
 
 	@Test
-	void createListAndDocument() throws Exception {
+	void createListAndDocument() {
 		final var id = snapshot("before-optim");
 		final var list = snapResource.findAll(subscription);
 		Assertions.assertEquals(1, list.size());
@@ -77,7 +67,7 @@ class ProvQuoteSnapshotResourceTest extends AbstractProvResourceTest {
 		Assertions.assertTrue(snap.getNbResources() > 0);
 
 		// The listing serialization stays light: no blob, no entity graph.
-		final var json = new ObjectMapper().findAndRegisterModules().writeValueAsString(list);
+		final var json = new ObjectMapper().writeValueAsString(list);
 		Assertions.assertFalse(json.contains("\"data\""));
 		Assertions.assertFalse(json.contains("\"refined\""));
 		Assertions.assertTrue(json.contains("\"subscription\":" + subscription));
@@ -87,14 +77,14 @@ class ProvQuoteSnapshotResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals(1, document.path("version").asInt());
 		Assertions.assertEquals(snap.getNbResources(), document.withArray("resources").size());
 		Assertions.assertFalse(document.withArray("usages").isEmpty());
-		Assertions.assertEquals("Dept1", document.path("budget").asText());
+		Assertions.assertEquals("Dept1", document.path("budget").asString());
 		var foundInstance = false;
 		for (final var row : document.withArray("resources")) {
-			if ("instance".equals(row.path("resourceType").asText()) && "server1".equals(row.path("name").asText())) {
+			if ("instance".equals(row.path("resourceType").asString()) && "server1".equals(row.path("name").asString())) {
 				foundInstance = true;
 				Assertions.assertTrue(row.path("cost").asDouble() > 0);
-				Assertions.assertFalse(row.path("typeName").asText().isEmpty());
-				Assertions.assertFalse(row.path("term").asText().isEmpty());
+				Assertions.assertFalse(row.path("typeName").asString().isEmpty());
+				Assertions.assertFalse(row.path("term").asString().isEmpty());
 			}
 		}
 		Assertions.assertTrue(foundInstance);
@@ -113,7 +103,7 @@ class ProvQuoteSnapshotResourceTest extends AbstractProvResourceTest {
 		qfResource.deleteAll(subscription);
 		em.flush();
 		em.clear();
-		Assertions.assertArrayEquals(new int[] { 0, 0, 0, 0, 0 }, counts());
+		Assertions.assertArrayEquals(new int[]{0, 0, 0, 0, 0}, counts());
 
 		final var failed = snapResource.restore(subscription, id);
 		Assertions.assertTrue(failed.isEmpty(), failed.toString());

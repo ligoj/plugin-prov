@@ -3,13 +3,11 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
-import org.ligoj.app.plugin.prov.model.RoundSerializer;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.ligoj.app.plugin.prov.model.AbstractTermPrice;
+import org.ligoj.app.plugin.prov.model.RoundSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Floating cost configuration.

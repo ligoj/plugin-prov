@@ -3,15 +3,13 @@
  */
 package org.ligoj.app.plugin.prov;
 
-import java.io.Serializable;
-
-import org.ligoj.app.plugin.prov.model.RoundSerializer;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.ligoj.app.plugin.prov.model.RoundSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
+
+import java.io.Serializable;
 
 /**
  * Floating cost configuration.
@@ -77,13 +75,13 @@ public class Floating implements Serializable {
 	 */
 	public Floating() {
 		// No value
-		this(0,0);
+		this(0, 0);
 	}
 
 	/**
 	 * Constructor to define a fixed float.
 	 *
-	 * @param base The minimal and maximal value.
+	 * @param base    The minimal and maximal value.
 	 * @param baseCo2 The minimal and maximal CO2 value.
 	 */
 	public Floating(final double base, final double baseCo2) {
@@ -115,7 +113,7 @@ public class Floating implements Serializable {
 	 * Add another detailed cost. This operation updates the current object.
 	 *
 	 * @param cost Another cost.
-	 * @param co2 Another co2.
+	 * @param co2  Another co2.
 	 * @return This object.
 	 */
 	public Floating add(final double cost, final double co2) {
