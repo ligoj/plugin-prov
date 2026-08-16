@@ -19,13 +19,13 @@
         </div>
 
         <div v-for="(f, i) in localFilters" :key="f.id" class="flt-row">
-          <v-select :model-value="f.field" :items="fieldItems" item-title="label" item-value="key"
+          <LigojSelect :model-value="f.field" :items="fieldItems" item-title="label" item-value="key"
             :label="t('prov.quote.filter.field')" variant="outlined" density="compact" hide-details class="flt-field"
             @update:model-value="(v) => onFieldChange(f, v)" />
 
           <!-- Numeric: operator + value with the metric unit. -->
           <template v-if="kindOf(f.field) === 'number'">
-            <v-select v-model="f.op" :items="NUMBER_OPS" variant="outlined" density="compact" hide-details class="flt-op" />
+            <LigojSelect v-model="f.op" :items="NUMBER_OPS" variant="outlined" density="compact" hide-details class="flt-op" />
             <v-text-field v-model="f.value" type="number" :suffix="f.field === 'co2' ? 'g' : currency.unit"
               :label="t('prov.quote.filter.value')" variant="outlined" density="compact" hide-details class="flt-value" />
           </template>
@@ -50,7 +50,7 @@
           </LigojAutocomplete>
 
           <!-- OS / engine: distinct values present in the quote, with their icon. -->
-          <v-select v-else-if="kindOf(f.field) === 'enum'" v-model="f.value" :items="f.field === 'os' ? osItems : engineItems"
+          <LigojSelect v-else-if="kindOf(f.field) === 'enum'" v-model="f.value" :items="f.field === 'os' ? osItems : engineItems"
             :label="labelOf(f.field)" variant="outlined" density="compact" hide-details class="flt-value">
             <template #item="{ props: itemProps, item }">
               <v-list-item v-bind="itemProps">
@@ -60,7 +60,7 @@
                 </template>
               </v-list-item>
             </template>
-          </v-select>
+          </LigojSelect>
 
           <!-- Tag: key + optional value. -->
           <template v-else-if="f.field === 'tag'">
@@ -103,7 +103,7 @@
 // regex-aware. Filters combine with AND / OR; the evaluation engine lives in
 // searchFilters.js (pure, tested) — this dialog only edits the state.
 import { ref, computed, watch } from 'vue'
-import { useI18nStore, LigojAutocomplete, LjSegmented } from '@ligoj/host'
+import { useI18nStore, LigojAutocomplete, LjSegmented, LigojSelect } from '@ligoj/host'
 import LocationField from './LocationField.vue'
 import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'
