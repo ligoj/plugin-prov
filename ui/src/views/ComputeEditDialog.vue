@@ -125,7 +125,7 @@
                     <LigojAutocomplete v-model="form.architecture" :items="architectureItems" :label="t('prov.quote.fields.architecture')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-select v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
+                    <LigojSelect v-model="form.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
                   </v-col>
                   <!-- For databases, the license select is surfaced in the basic section beside the engine -->
                   <v-col v-if="props.type !== 'database'" cols="12" md="6">
@@ -214,7 +214,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
 import { formatCost, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'

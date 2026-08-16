@@ -4,13 +4,13 @@
       <v-row density="comfortable" class="mt-1">
         <v-col cols="12">
           <!-- Default location: a name, resolved against the provider catalog locations -->
-          <v-autocomplete v-model="form.defaultLocation" :items="locations" :label="t('catalog.config.defaultLocation')"
+          <LigojAutocomplete v-model="form.defaultLocation" :items="locations" :label="t('catalog.config.defaultLocation')"
             variant="outlined" density="compact" clearable>
             <template #append-inner>
               <v-icon size="small">mdi-help-circle-outline</v-icon>
               <v-tooltip activator="parent" location="top" max-width="360" :text="t('catalog.config.defaultLocationHelp')" />
             </template>
-          </v-autocomplete>
+          </LigojAutocomplete>
         </v-col>
 
         <v-col v-for="property in properties" :key="property.name" cols="12" md="6">
@@ -43,7 +43,7 @@
  * `[{ name, key, type: 'regExp'|'string', default }]`.
  */
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE, LjDialog, pluginRegistry } from '@ligoj/host'
+import { useApi, useI18nStore, APP_BASE, LjDialog, pluginRegistry, LigojAutocomplete } from '@ligoj/host'
 
 const api = useApi()
 const i18n = useI18nStore()

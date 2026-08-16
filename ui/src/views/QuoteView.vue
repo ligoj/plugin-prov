@@ -457,10 +457,10 @@
                   :label="t('prov.quote.fields.optimizer')" @changed="reload" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-model="editForm.reservationMode" :items="reservationOptions" :label="t('prov.quote.fields.reservationMode')" variant="outlined" density="compact" />
+                <LigojSelect v-model="editForm.reservationMode" :items="reservationOptions" :label="t('prov.quote.fields.reservationMode')" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-model="editForm.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
+                <LigojSelect v-model="editForm.physical" :items="physicalOptions" :label="t('prov.quote.fields.physical')" variant="outlined" density="compact" clearable />
               </v-col>
               <v-col cols="12" md="6">
                 <div class="text-caption text-medium-emphasis mb-1">
@@ -569,6 +569,7 @@ import {
   LigojConfirmDialog,
   LigojDataTable,
   LigojAutocomplete,
+  LigojSelect,
   LjSegmented,
   RowActionsMenu,
   APP_BASE,

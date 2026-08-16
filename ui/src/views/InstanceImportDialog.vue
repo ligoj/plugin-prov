@@ -31,11 +31,11 @@
                 variant="outlined" density="compact" clearable />
             </v-col>
             <v-col cols="12" md="6">
-              <v-select v-model="form.mergeUpload" :items="MERGE_OPTIONS" :label="t('prov.quote.import.merge')"
+              <LigojSelect v-model="form.mergeUpload" :items="MERGE_OPTIONS" :label="t('prov.quote.import.merge')"
                 variant="outlined" density="compact" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-select v-model="form.memoryUnit" :items="MEMORY_UNIT_OPTIONS" :label="t('prov.quote.import.memoryUnit')"
+              <LigojSelect v-model="form.memoryUnit" :items="MEMORY_UNIT_OPTIONS" :label="t('prov.quote.import.memoryUnit')"
                 variant="outlined" density="compact" />
             </v-col>
             <v-col cols="12" md="6">
@@ -70,7 +70,7 @@
 
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
-import { useApi, useI18nStore } from '@ligoj/host'
+import { useApi, useI18nStore, LigojSelect } from '@ligoj/host'
 import { buildInstanceUploadFormData } from '../uploadFormData.js'
 
 /**

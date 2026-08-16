@@ -44,7 +44,7 @@
                     <RateField v-model="form.latency" :label="t('prov.quote.storage.latency')" />
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-select v-model="form.optimized" :items="OPTIMIZED_OPTIONS" :label="t('prov.quote.storage.optimized')"
+                    <LigojSelect v-model="form.optimized" :items="OPTIMIZED_OPTIONS" :label="t('prov.quote.storage.optimized')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                 </v-row>
@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
 import { formatCost, TAB_TYPES, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'

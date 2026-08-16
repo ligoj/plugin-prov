@@ -78,7 +78,7 @@
               {{ t('prov.quote.snap.diffTitle', { name: diffSnapshot?.name || diffId }) }}
             </strong>
             <v-icon size="14">mdi-arrow-right-thin</v-icon>
-            <v-select v-model="diffTarget" :items="diffTargets" item-title="label" item-value="id" density="compact"
+            <LigojSelect v-model="diffTarget" :items="diffTargets" item-title="label" item-value="id" density="compact"
               variant="outlined" hide-details class="snap-diff-target" />
             <LjSegmented v-model="metric" :options="[
               { value: 'cost', icon: 'mdi-currency-usd', label: t('prov.quote.viewMode.cost') },
@@ -153,7 +153,7 @@
 // client-side by quoteDiff.js) and restored. Restore is destructive and
 // confirmed; rows the current catalog cannot price any more are reported.
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore, LjSegmented } from '@ligoj/host'
+import { useApi, useI18nStore, LjSegmented, LigojSelect } from '@ligoj/host'
 import { formatCost, formatCo2, TAB_TYPES } from '../quoteFormatters.js'
 import { diffMeta, formatDiffPct } from '../compareApi.js'
 import { normalizeConfig, snapshotRows, quoteDiff } from '../quoteDiff.js'

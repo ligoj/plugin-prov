@@ -1,9 +1,9 @@
 <template>
   <!-- Rate/latency selector (Rate.java enum). Same behaviour as the plain
-       <v-select> it replaces, plus a star icon (glyph + colour) beside the
+       <LigojSelect> it replaces, plus a star icon (glyph + colour) beside the
        selected value and every option. Pass-through attrs cover label, rules,
        cols, etc. -->
-  <v-select
+  <LigojSelect
     v-bind="$attrs"
     :model-value="modelValue"
     :items="RATE_OPTIONS"
@@ -22,12 +22,12 @@
         <template #prepend><RateIcon :rate="item" /></template>
       </v-list-item>
     </template>
-  </v-select>
+  </LigojSelect>
 </template>
 
 <script setup>
 import RateIcon from './RateIcon.vue'
-import { useI18nStore } from '@ligoj/host'
+import { useI18nStore, LigojSelect } from '@ligoj/host'
 import { RATE_OPTIONS, rateLabelKey } from '../rateCatalog.js'
 
 defineOptions({ inheritAttrs: false })

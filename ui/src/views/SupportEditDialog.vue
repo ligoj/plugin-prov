@@ -34,19 +34,19 @@
               <template #text>
                 <v-row density="comfortable">
                   <v-col cols="6" md="3">
-                    <v-select v-model="form.accessApi" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessApi')"
+                    <LigojSelect v-model="form.accessApi" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessApi')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="6" md="3">
-                    <v-select v-model="form.accessEmail" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessEmail')"
+                    <LigojSelect v-model="form.accessEmail" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessEmail')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="6" md="3">
-                    <v-select v-model="form.accessPhone" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessPhone')"
+                    <LigojSelect v-model="form.accessPhone" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessPhone')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                   <v-col cols="6" md="3">
-                    <v-select v-model="form.accessChat" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessChat')"
+                    <LigojSelect v-model="form.accessChat" :items="ACCESS_OPTIONS" :label="t('prov.quote.support.accessChat')"
                       variant="outlined" density="compact" clearable />
                   </v-col>
                 </v-row>
@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojSelect } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
