@@ -243,7 +243,9 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 		final var vo = resource.getConfiguration("service:prov:x",
 				java.util.List.of("service:prov:x:regions", "service:prov:x:os"));
 		Assertions.assertEquals("region-1", vo.getDefaultLocation());
-		Assertions.assertEquals(java.util.List.of("region-1", "region-3"), vo.getLocations());
+		// Full location objects (country, coordinates, ...) so the UI can render the flag, ordered by name
+		Assertions.assertEquals(java.util.List.of("region-1", "region-3"),
+				vo.getLocations().stream().map(ProvLocation::getName).toList());
 		Assertions.assertEquals(java.util.Map.of("service:prov:x:regions", "region-.*"), vo.getProperties());
 	}
 

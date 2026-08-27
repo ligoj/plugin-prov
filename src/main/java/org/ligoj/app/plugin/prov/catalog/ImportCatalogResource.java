@@ -36,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -302,8 +303,8 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 		final var vo = new CatalogConfigurationVo();
 		vo.setDefaultLocation(configurationRepository.findById(nodeId).map(ProvConfiguration::getDefaultLocation)
 				.orElse(null));
-		vo.setLocations(locationRepository.findAllBy(BY_NODE, nodeId).stream().map(ProvLocation::getName).sorted()
-				.toList());
+		vo.setLocations(locationRepository.findAllBy(BY_NODE, nodeId).stream()
+				.sorted(Comparator.comparing(ProvLocation::getName)).toList());
 		vo.setProperties(Optional.ofNullable(names).orElse(List.of()).stream()
 				.filter(name -> checkOwnedProperty(nodeId, name))
 				.map(name -> Map.entry(name, Optional.ofNullable(configuration.get(name)).orElse("")))

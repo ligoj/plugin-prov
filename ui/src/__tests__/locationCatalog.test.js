@@ -152,6 +152,17 @@ describe('<LocationField>', () => {
     expect(label.text()).toContain('USA')
   })
 
+  it('forwards the caller slots (e.g. append-inner help icon) to the autocomplete', () => {
+    const w = mount(LocationField, {
+      props: { modelValue: 'us-east-1', items: [usEast] },
+      slots: { 'append-inner': '<span class="my-help">?</span>' },
+      ...withApp,
+    })
+    expect(w.find('.v-field__append-inner .my-help').exists()).toBe(true)
+    // Own slots are kept: the selection still renders flag + name
+    expect(w.find('.loc-label .loc-flag').text()).toBe('🇺🇸')
+  })
+
   it('filters by name, code, country, M49 and continent', () => {
     const w = mount(LocationField, { props: { items: [usEast, ukLon] }, ...withApp })
     const f = w.vm.filter
