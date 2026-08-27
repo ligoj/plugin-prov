@@ -3,14 +3,13 @@
     <v-form ref="formRef" @submit.prevent="save">
       <v-row density="comfortable" class="mt-1">
         <v-col cols="12">
-          <!-- Default location: a name, resolved against the provider catalog locations -->
-          <LigojAutocomplete v-model="form.defaultLocation" :items="locations" :label="t('catalog.config.defaultLocation')"
-            variant="outlined" density="compact" clearable>
+          <!-- Default location: the location name, picked among the provider catalog locations (flag + country) -->
+          <LocationField v-model="form.defaultLocation" :items="locations" :label="t('catalog.config.defaultLocation')">
             <template #append-inner>
               <v-icon size="small">mdi-help-circle-outline</v-icon>
               <v-tooltip activator="parent" location="top" max-width="360" :text="t('catalog.config.defaultLocationHelp')" />
             </template>
-          </LigojAutocomplete>
+          </LocationField>
         </v-col>
 
         <v-col v-for="property in properties" :key="property.name" cols="12" md="6">
@@ -26,24 +25,25 @@
       </v-row>
     </v-form>
 
-    <template #actions>
-      <v-spacer />
-      <v-btn variant="text" @click="open = false">{{ t('common.cancel') || 'Cancel' }}</v-btn>
-      <v-btn color="primary" variant="elevated" :loading="saving" @click="save">{{ t('common.save') || 'Save' }}</v-btn>
+    <template #footer>
+      <LjButton variant="ghost" @click="open = false">{{ t('common.cancel') }}</LjButton>
+      <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
     </template>
   </LjDialog>
 </template>
 
 <script setup>
 /*
- * Provider configuration dialog: default location (plain name, no foreign key) plus the provider scoped
+ * Provider configuration dialog: default location (plain name, no foreign key, picked among the provider
+ * `ProvLocation` objects returned by the configuration endpoint) plus the provider scoped
  * SystemConfiguration properties. The five common filter patterns (regions, instance type, OS, database
  * type/engine — case-insensitive regular expressions, empty means "all") are declared here; the provider's Vue
  * plugin contributes its own extra properties through its `catalogConfiguration` feature:
  * `[{ name, key, type: 'regExp'|'string', default }]`.
  */
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE, LjDialog, pluginRegistry, LigojAutocomplete } from '@ligoj/host'
+import { useApi, useI18nStore, APP_BASE, LjDialog, LjButton, pluginRegistry } from '@ligoj/host'
+import LocationField from './LocationField.vue'
 
 const api = useApi()
 const i18n = useI18nStore()

@@ -21,13 +21,19 @@ function jsonResponse(body) {
 }
 
 const CATALOG = { node: { id: 'service:prov:aws', name: 'AWS' } }
+// ProvLocation objects, as returned by the configuration endpoint
+const IRELAND = { name: 'eu-west-1', countryA2: 'IE', countryM49: 372, continentM49: 150 }
+const PARIS = { name: 'eu-west-3', countryA2: 'FR', countryM49: 250, continentM49: 150 }
 
+// Mounted on <body> (the dialog content is teleported), unmounted after each test so overlays don't stack
+let wrapper = null
 function mountDialog() {
-  return mount(CatalogConfigDialog, {
+  wrapper = mount(CatalogConfigDialog, {
     props: { modelValue: true, catalog: CATALOG },
     global: { plugins: [vuetify, i18nPlugin] },
     attachTo: document.body,
   })
+  return wrapper
 }
 
 describe('<CatalogConfigDialog>', () => {
@@ -35,12 +41,16 @@ describe('<CatalogConfigDialog>', () => {
     setActivePinia(createPinia())
     mergeMessages(enMessages, 'en')
   })
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    wrapper?.unmount()
+    wrapper = null
+    vi.restoreAllMocks()
+  })
 
   it('loads the configuration and renders the common patterns and provider properties', async () => {
     globalThis.fetch = vi.fn(() => jsonResponse({
       defaultLocation: 'eu-west-1',
-      locations: ['eu-west-1', 'eu-west-3'],
+      locations: [IRELAND, PARIS],
       properties: { 'service:prov:aws:regions': 'eu-.*' },
     }))
     // Provider plugin contribution
@@ -69,6 +79,62 @@ describe('<CatalogConfigDialog>', () => {
     expect(overlay).toContain('service:prov:aws:aws-prices-url')
   })
 
+  it('renders the default location with its country flag and localized name', async () => {
+    globalThis.fetch = vi.fn(() => jsonResponse({ defaultLocation: 'eu-west-1', locations: [IRELAND, PARIS], properties: {} }))
+    vi.spyOn(pluginRegistry, 'get').mockReturnValue(null)
+
+    mountDialog()
+    await flushPromises()
+
+    const selected = document.querySelector('.vmodal-body .loc-label')
+    expect(selected).not.toBeNull()
+    expect(selected.querySelector('.loc-flag').textContent).toBe('🇮🇪')
+    expect(selected.textContent).toContain('Ireland')
+    // The help tooltip icon of the location field is kept
+    expect(document.querySelector('.vmodal-body .mdi-help-circle-outline')).not.toBeNull()
+  })
+
+  it('renders Cancel and Save buttons in the dialog footer', async () => {
+    globalThis.fetch = vi.fn(() => jsonResponse({ defaultLocation: null, locations: [IRELAND], properties: {} }))
+    vi.spyOn(pluginRegistry, 'get').mockReturnValue(null)
+
+    mountDialog()
+    await flushPromises()
+
+    const buttons = [...document.querySelectorAll('.vmodal-foot button')]
+    const labels = buttons.map((b) => b.textContent.trim())
+    expect(labels).toEqual(['Cancel', 'Save'])
+
+    // Cancel closes the dialog without saving
+    buttons[0].click()
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect(globalThis.fetch.mock.calls.some(([, o]) => o?.method === 'PUT')).toBe(false)
+  })
+
+  it('saves from the footer Save button', async () => {
+    const calls = []
+    globalThis.fetch = vi.fn((url, options = {}) => {
+      calls.push({ url, options })
+      if ((options.method || 'GET') === 'PUT') {
+        return Promise.resolve({ ok: true, status: 204, headers: { get: () => null }, text: () => Promise.resolve('') })
+      }
+      return jsonResponse({ defaultLocation: 'eu-west-1', locations: [IRELAND], properties: {} })
+    })
+    vi.spyOn(pluginRegistry, 'get').mockReturnValue(null)
+
+    mountDialog()
+    await flushPromises()
+    document.querySelectorAll('.vmodal-foot button')[1].click()
+    await flushPromises()
+
+    const put = calls.find((c) => (c.options.method || 'GET') === 'PUT')
+    expect(put).toBeTruthy()
+    expect(JSON.parse(put.options.body).defaultLocation).toBe('eu-west-1')
+    expect(wrapper.emitted('saved')).toHaveLength(1)
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
   it('saves the default location and all rendered properties', async () => {
     const calls = []
     globalThis.fetch = vi.fn((url, options = {}) => {
@@ -76,11 +142,11 @@ describe('<CatalogConfigDialog>', () => {
       if ((options.method || 'GET') === 'PUT') {
         return Promise.resolve({ ok: true, status: 204, headers: { get: () => null }, text: () => Promise.resolve('') })
       }
-      return jsonResponse({ defaultLocation: null, locations: ['eu-west-1'], properties: {} })
+      return jsonResponse({ defaultLocation: null, locations: [IRELAND], properties: {} })
     })
     vi.spyOn(pluginRegistry, 'get').mockReturnValue(null)
 
-    const wrapper = mountDialog()
+    mountDialog()
     await flushPromises()
     wrapper.vm.form.defaultLocation = 'eu-west-1'
     wrapper.vm.form.properties['service:prov:aws:regions'] = 'eu-.*'

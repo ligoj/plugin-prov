@@ -6,6 +6,8 @@ package org.ligoj.app.plugin.prov.catalog;
 import java.util.List;
 import java.util.Map;
 
+import org.ligoj.app.plugin.prov.model.ProvLocation;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,9 +25,10 @@ public class CatalogConfigurationVo {
 	private String defaultLocation;
 
 	/**
-	 * All available location names of this provider, ordered by name.
+	 * All available locations of this provider, ordered by name. Full objects (country, coordinates, ...) so the UI
+	 * can render the flag and the localized country name.
 	 */
-	private List<String> locations;
+	private List<ProvLocation> locations;
 
 	/**
 	 * The requested provider scoped configuration values. Key is the full configuration name. Only the defined
