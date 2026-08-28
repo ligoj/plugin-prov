@@ -206,6 +206,8 @@
               </v-list-item>
             </v-list>
           </v-menu>
+          <!-- Plugin toolbar contributions (`actionExtension.action`, e.g. plugin-cartography's network map). -->
+          <component :is="a" v-for="(a, ai) in toolbarActions" :key="'xa' + ai" :context="toolbarContext" />
         </div>
       </header>
 
@@ -419,7 +421,7 @@
                  header tools menu (standard RowActionsMenu). Edit is also
                  reachable by clicking anywhere on the row. -->
             <template #item.actions="{ item }">
-              <RowActionsMenu :actions="rowActions" :label="t('common.actions')" @select="(key) => onRowAction(tab.key, item, key)" />
+              <RowActionsMenu :actions="rowActionsByType[tab.key]" :label="t('common.actions')" @select="(key) => onRowAction(tab.key, item, key)" />
             </template>
           </LigojDataTable>
         </v-window-item>
@@ -481,6 +483,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Per-resource network links (row cog → Network). -->
+    <NetworkDialog v-model="networkDialog" :config="config" :subscription-id="subscriptionId"
+      :resource-type="networkTarget?.type || ''" :resource="networkTarget?.row || null" @saved="onResourceSaved" />
 
     <LigojConfirmDialog v-model="deleteRowDialog" :title="t('prov.quote.delete.row.title')" :confirm-label="t('common.delete')" confirm-color="error" :loading="deleting" @confirm="confirmDeleteRow">
       {{ t('prov.quote.delete.row.body', { name: deleteRowTarget?.row?.name || `#${deleteRowTarget?.row?.id}` }) }}
@@ -564,6 +570,7 @@ import { useRoute } from 'vue-router'
 import {
   useApi,
   useAppStore,
+  useActionExtensions,
   useErrorStore,
   useI18nStore,
   LigojConfirmDialog,
@@ -587,10 +594,12 @@ import {
   rowInMonth,
   sumCostRange,
   TAB_TYPES,
+  NETWORK_TYPES,
 } from '../quoteFormatters.js'
 import QuoteBreakdown from './QuoteBreakdown.vue'
 import CostTimeline from './CostTimeline.vue'
 import ComputeEditDialog from './ComputeEditDialog.vue'
+import NetworkDialog from './NetworkDialog.vue'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
@@ -1305,6 +1314,19 @@ const editTarget = ref(null)
 
 const subscriptionId = computed(() => route.params.subscription)
 
+// Plugin extension point (`actionExtension` feature, target 'prov-quote'):
+// lets add-on plugins (e.g. plugin-cartography's network map) contribute a
+// button to the quote tools strip. The context hands over the live quote
+// configuration so contributions need no extra REST call, plus `reload` to
+// refresh it after a change.
+const { actions: toolbarActions, context: toolbarContext } = useActionExtensions('prov-quote', () => ({
+  subscriptionId: subscriptionId.value,
+  config: config.value,
+  meta: meta.value,
+  providerNode: providerNode.value,
+  reload,
+}))
+
 /**
  * URLs for the three exports the legacy view exposed. The backend uses
  * the trailing path segment as the suggested filename for the CSVs,
@@ -1911,17 +1933,27 @@ function openResourceDuplicate(type, row) {
 }
 
 /* ----- Row actions (grouped in the per-row cog) ----- *
- * Same three actions on every row; the labels are reactive to the locale
- * so this is a computed rather than a module constant. */
-const rowActions = computed(() => [
+ * Edit / duplicate / delete on every row, plus "Network" on the resources
+ * that can carry network links; the labels are reactive to the locale so
+ * this is a computed rather than a module constant. */
+const rowActionsByType = computed(() => Object.fromEntries(TAB_TYPES.map((tt) => [tt.key, [
   { key: 'edit',      title: t('common.edit'),          icon: 'mdi-pencil' },
   { key: 'duplicate', title: t('prov.quote.duplicate'), icon: 'mdi-content-duplicate' },
+  ...(NETWORK_TYPES.has(tt.key) ? [{ key: 'network', title: t('prov.quote.network.action'), icon: 'mdi-lan' }] : []),
   { key: 'delete',    title: t('common.delete'),        icon: 'mdi-delete', color: 'error' },
-])
+]])))
+
+const networkDialog = ref(false)
+const networkTarget = ref(null)
+function openNetwork(type, row) {
+  networkTarget.value = { type, row }
+  networkDialog.value = true
+}
 
 function onRowAction(type, row, key) {
   if (key === 'edit') openResourceEdit(type, row)
   else if (key === 'duplicate') openResourceDuplicate(type, row)
+  else if (key === 'network') openNetwork(type, row)
   else if (key === 'delete') askDeleteRow(type, row)
 }
 
