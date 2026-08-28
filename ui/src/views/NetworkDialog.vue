@@ -1,52 +1,21 @@
 <template>
   <LjDialog v-model="open" :title="t('prov.quote.network.title', { name: resource?.name || '' })" icon="mdi-lan" max-width="960">
-    <p class="text-caption text-medium-emphasis mb-3">{{ t('prov.quote.network.help', { name: resource?.name || '' }) }}</p>
+    <p class="text-caption text-medium-emphasis mb-2">{{ t('prov.quote.network.help', { name: resource?.name || '' }) }}</p>
     <v-alert v-if="invalid" type="warning" variant="tonal" density="compact" class="mb-3">{{ t('prov.quote.network.invalid') }}</v-alert>
 
-    <section v-for="kind in KINDS" :key="kind" class="net-section">
-      <h4 class="net-title">
-        <v-icon size="18" class="mr-1">{{ kind === 'inbound' ? 'mdi-arrow-down-bold-box-outline' : 'mdi-arrow-up-bold-box-outline' }}</v-icon>
+    <!-- One tab per direction; the badge counts the links of the direction. -->
+    <v-tabs v-model="tab" density="compact" color="primary" class="net-tabs">
+      <v-tab v-for="kind in KINDS" :key="kind" :value="kind" class="net-tab-btn">
+        <v-icon start size="18">{{ kind === 'inbound' ? 'mdi-arrow-down-bold-box-outline' : 'mdi-arrow-up-bold-box-outline' }}</v-icon>
         {{ t(`prov.quote.network.${kind}`) }}
-      </h4>
-      <v-table density="compact" class="net-table">
-        <thead>
-          <tr>
-            <th class="net-col-name">{{ t('prov.quote.network.name') }}</th>
-            <th class="net-col-peer">{{ t(kind === 'inbound' ? 'prov.quote.network.source' : 'prov.quote.network.target') }}</th>
-            <th class="net-col-num">{{ t('prov.quote.network.port') }}</th>
-            <th class="net-col-num">{{ t('prov.quote.network.rate') }}</th>
-            <th class="net-col-num">{{ t('prov.quote.network.throughput') }}</th>
-            <th class="net-col-icon" />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, i) in rows[kind]" :key="i">
-            <td><v-text-field v-model="row.name" variant="outlined" density="compact" hide-details maxlength="100" /></td>
-            <td>
-              <LigojAutocomplete v-model="row.peer" :items="peers" item-title="name" item-value="key" variant="outlined" density="compact" hide-details
-                :placeholder="t('prov.quote.network.noPeer')">
-                <template #item="{ props: itemProps, item }">
-                  <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
-                </template>
-                <template #selection="{ item }">
-                  <v-icon size="16" class="mr-1">{{ item.raw.icon }}</v-icon>{{ item.raw.name }}
-                </template>
-              </LigojAutocomplete>
-            </td>
-            <td><v-text-field v-model.number="row.port" type="number" min="1" max="65535" variant="outlined" density="compact" hide-details /></td>
-            <td><v-text-field v-model.number="row.rate" type="number" min="0" variant="outlined" density="compact" hide-details /></td>
-            <td><v-text-field v-model.number="row.throughput" type="number" min="0" variant="outlined" density="compact" hide-details /></td>
-            <td>
-              <v-btn icon size="x-small" variant="text" :aria-label="t('common.delete')" @click="removeRow(kind, i)"><v-icon size="16">mdi-delete-outline</v-icon></v-btn>
-            </td>
-          </tr>
-          <tr v-if="!rows[kind].length">
-            <td colspan="6" class="text-caption text-medium-emphasis">{{ t('prov.quote.network.empty') }}</td>
-          </tr>
-        </tbody>
-      </v-table>
-      <LjButton variant="ghost" icon="mdi-plus" :icon-size="16" class="mt-1" @click="addRow(kind)">{{ t('prov.quote.network.add') }}</LjButton>
-    </section>
+        <v-chip size="x-small" variant="tonal" class="ml-2">{{ rows[kind].length }}</v-chip>
+      </v-tab>
+    </v-tabs>
+    <v-window v-model="tab" class="mt-3">
+      <v-window-item v-for="kind in KINDS" :key="kind" :value="kind">
+        <NetworkLinksTab v-model="rows[kind]" :kind="kind" :peers="peers" />
+      </v-window-item>
+    </v-window>
 
     <template #footer>
       <LjButton variant="ghost" @click="open = false">{{ t('common.cancel') }}</LjButton>
@@ -60,17 +29,19 @@
  * Network links of one quote resource (Vue port of the legacy
  * `network.js` popup): the inbound links (a source resource of the quote →
  * this resource) and the outbound ones (this resource → a target resource),
- * each with an optional name, a required port, and optional rate /
- * throughput figures. Peers are the network-capable resources of the quote
+ * each with an optional name, an optional port, an optional workload
+ * frequency (seconds, continuous by default) and an optional throughput. Peers are the network-capable resources of the quote
  * (instances, databases, containers, functions, and the storages whose type
  * supports network). Saving replaces every link of the resource through
  * `PUT rest/service/prov/{subscription}/network/{TYPE}/{id}` and the caller
  * reloads the configuration.
  */
-import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
+import { ref, reactive, computed, watch, toRef } from 'vue'
+import { useApi, useI18nStore, APP_BASE, LjDialog, LjButton } from '@ligoj/host'
 import { TAB_TYPES, NETWORK_TYPES } from '../quoteFormatters.js'
 import { resourceTypeName } from '../compareApi.js'
+import NetworkLinksTab from './NetworkLinksTab.vue'
+import { emptyRow, peerKey, parsePeerKey, normalizeRate, resourceTags } from '../networkLinks.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -87,7 +58,8 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const api = useApi()
 const t = useI18nStore().t
 
-const KINDS = ['inbound', 'outbound']
+// Outgoing links first: it is the usual editing direction
+const KINDS = ['outbound', 'inbound']
 const open = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
@@ -95,15 +67,17 @@ const open = computed({
 
 const saving = ref(false)
 const invalid = ref(false)
-const inbound = ref([])
-const outbound = ref([])
-const rows = { inbound, outbound }
+const tab = ref('outbound')
+// Rows per direction (reactive object, so the template and the tabs' v-model see the arrays)
+const rows = reactive({ inbound: [], outbound: [] })
 
 /** Backend `ResourceType` name of the edited resource. */
 const TYPE = computed(() => resourceTypeName(props.resourceType))
-const peerKey = (type, id) => `${type}#${id}`
 
-/** Network-capable resources of the quote, but the edited one. */
+/**
+ * Network-capable resources of the quote, with their tags. The edited
+ * resource is kept and flagged `current` so it stands out in the picker.
+ */
 const peers = computed(() => {
   const out = []
   for (const tab of TAB_TYPES) {
@@ -111,8 +85,15 @@ const peers = computed(() => {
     const type = resourceTypeName(tab.key)
     for (const r of props.config?.[tab.listField] || []) {
       if (tab.key === 'storage' && !r.price?.type?.network) continue
-      if (type === TYPE.value && r.id === props.resource?.id) continue
-      out.push({ key: peerKey(type, r.id), id: r.id, type, name: r.name, icon: tab.icon })
+      out.push({
+        key: peerKey(type, r.id),
+        id: r.id,
+        type,
+        name: r.name,
+        icon: tab.icon,
+        tags: resourceTags(props.config, type, r.id),
+        current: type === TYPE.value && r.id === props.resource?.id,
+      })
     }
   }
   return out
@@ -123,49 +104,67 @@ const toRow = (link, peerType, peerId) => ({
   name: link.name || null,
   peer: peerKey(peerType, peerId),
   port: numOrNull(link.port),
-  rate: numOrNull(link.rate),
+  rate: normalizeRate(link.rate) ?? 0,
   throughput: numOrNull(link.throughput),
 })
+
+/** Backend `ResourceType` name whatever the JSON casing (the REST JSON serializes enums in lower case). */
+const typeName = (v) => String(v || '').toUpperCase()
 
 /** Split the quote links related to the edited resource into the two tables. */
 function load() {
   const id = props.resource?.id
   const type = TYPE.value
   const links = props.config?.networks || []
-  inbound.value = links.filter((l) => l.targetType === type && l.target === id).map((l) => toRow(l, l.sourceType, l.source))
-  outbound.value = links.filter((l) => l.sourceType === type && l.source === id).map((l) => toRow(l, l.targetType, l.target))
+  rows.inbound = links.filter((l) => typeName(l.targetType) === type && l.target === id).map((l) => toRow(l, typeName(l.sourceType), l.source))
+  rows.outbound = links.filter((l) => typeName(l.sourceType) === type && l.source === id).map((l) => toRow(l, typeName(l.targetType), l.target))
   invalid.value = false
+  tab.value = 'outbound'
 }
 
 watch(() => [props.modelValue, props.resource, props.resourceType], () => { if (props.modelValue) load() }, { immediate: true })
 
 function addRow(kind) {
-  rows[kind].value.push({ name: null, peer: null, port: null, rate: null, throughput: null })
+  rows[kind].push(emptyRow())
 }
 function removeRow(kind, index) {
-  rows[kind].value.splice(index, 1)
+  rows[kind].splice(index, 1)
 }
 
-const validPort = (p) => Number.isInteger(p) && p >= 1 && p <= 65535
+// The port is optional (links imported by name have none); when set it must be a TCP/UDP port
+const validPort = (p) => p == null || (Number.isInteger(p) && p >= 1 && p <= 65535)
 
-/** Rows → `NetworkVo` payload (`inbound`, `peer` + `peerType`), or null when a row is invalid. */
+/**
+ * Rows → `NetworkVo` payload (`inbound`, `peer` + `peerType`), or null when a
+ * row is invalid — the invalid rows are flagged (`row.invalid`) and the tab
+ * holding the first one is shown so the user sees what blocks the save.
+ */
 function payload() {
   const out = []
+  let firstInvalid = null
   for (const kind of KINDS) {
-    for (const row of rows[kind].value) {
-      const [peerType, peerId] = String(row.peer || '').split('#')
+    for (const row of rows[kind]) {
+      const peer = parsePeerKey(row.peer)
       const port = numOrNull(row.port)
-      if (!peerType || !peerId || !validPort(port)) return null
+      row.invalid = !peer || !validPort(port)
+      if (row.invalid) {
+        firstInvalid ??= kind
+        continue
+      }
       out.push({
         inbound: kind === 'inbound',
         name: row.name || null,
         port,
-        rate: numOrNull(row.rate),
+        rate: normalizeRate(row.rate),
         throughput: numOrNull(row.throughput),
-        peer: Number(peerId),
-        peerType,
+        peer: peer.id,
+        peerType: peer.type,
       })
     }
+  }
+  if (firstInvalid) {
+    tab.value = firstInvalid
+    return null
   }
   return out
 }
@@ -187,22 +186,9 @@ async function save() {
   }
 }
 
-defineExpose({ inbound, outbound, peers, addRow, removeRow, save })
+defineExpose({ inbound: toRef(rows, 'inbound'), outbound: toRef(rows, 'outbound'), peers, tab, addRow, removeRow, save })
 </script>
 
 <style scoped>
-.net-section + .net-section { margin-top: 18px; }
-.net-title {
-  display: flex;
-  align-items: center;
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 700;
-}
-.net-table :deep(td) { padding: 4px 6px; vertical-align: middle; }
-.net-table :deep(th) { white-space: nowrap; }
-.net-col-name { width: 22%; }
-.net-col-peer { width: 34%; }
-.net-col-num { width: 12%; }
-.net-col-icon { width: 40px; }
+.net-tab-btn { text-transform: none; letter-spacing: 0; }
 </style>

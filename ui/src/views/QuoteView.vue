@@ -421,7 +421,7 @@
                  header tools menu (standard RowActionsMenu). Edit is also
                  reachable by clicking anywhere on the row. -->
             <template #item.actions="{ item }">
-              <RowActionsMenu :actions="rowActionsByType[tab.key]" :label="t('common.actions')" @select="(key) => onRowAction(tab.key, item, key)" />
+              <RowActionsMenu :actions="rowActionsFor(tab.key, item)" :label="t('common.actions')" @select="(key) => onRowAction(tab.key, item, key)" />
             </template>
           </LigojDataTable>
         </v-window-item>
@@ -600,6 +600,7 @@ import QuoteBreakdown from './QuoteBreakdown.vue'
 import CostTimeline from './CostTimeline.vue'
 import ComputeEditDialog from './ComputeEditDialog.vue'
 import NetworkDialog from './NetworkDialog.vue'
+import { networkChip, linkCounts } from '../networkLinks.js'
 import StorageEditDialog from './StorageEditDialog.vue'
 import SupportEditDialog from './SupportEditDialog.vue'
 import InstanceImportDialog from './InstanceImportDialog.vue'
@@ -1934,14 +1935,24 @@ function openResourceDuplicate(type, row) {
 
 /* ----- Row actions (grouped in the per-row cog) ----- *
  * Edit / duplicate / delete on every row, plus "Network" on the resources
- * that can carry network links; the labels are reactive to the locale so
- * this is a computed rather than a module constant. */
-const rowActionsByType = computed(() => Object.fromEntries(TAB_TYPES.map((tt) => [tt.key, [
-  { key: 'edit',      title: t('common.edit'),          icon: 'mdi-pencil' },
-  { key: 'duplicate', title: t('prov.quote.duplicate'), icon: 'mdi-content-duplicate' },
-  ...(NETWORK_TYPES.has(tt.key) ? [{ key: 'network', title: t('prov.quote.network.action'), icon: 'mdi-lan' }] : []),
-  { key: 'delete',    title: t('common.delete'),        icon: 'mdi-delete', color: 'error' },
-]])))
+ * that can carry network links — with an in/out link-count chip when the
+ * row has links. Per row (the counts are), and the labels follow the locale. */
+function rowActionsFor(type, row) {
+  return [
+    { key: 'edit',      title: t('common.edit'),          icon: 'mdi-pencil' },
+    { key: 'duplicate', title: t('prov.quote.duplicate'), icon: 'mdi-content-duplicate' },
+    ...(NETWORK_TYPES.has(type)
+      ? [{
+          key: 'network',
+          title: t('prov.quote.network.action'),
+          icon: 'mdi-lan',
+          chip: networkChip(config.value, type, row.id),
+          chipTooltip: t('prov.quote.network.chipTip', linkCounts(config.value, type, row.id)),
+        }]
+      : []),
+    { key: 'delete',    title: t('common.delete'),        icon: 'mdi-delete', color: 'error' },
+  ]
+}
 
 const networkDialog = ref(false)
 const networkTarget = ref(null)

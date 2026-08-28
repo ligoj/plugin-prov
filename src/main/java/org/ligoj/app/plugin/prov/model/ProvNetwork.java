@@ -80,8 +80,8 @@ public class ProvNetwork extends AbstractPersistable<Integer>
 	private Integer port;
 
 	/**
-	 * Optional frequency. The period is not yet specified. Might be second, or month... Whatever, it should be fixed
-	 * for all work among the related subscription.
+	 * Optional workload frequency, in seconds: <code>3600</code> for an hourly workload, <code>86400</code> for a
+	 * daily one, ... <code>null</code> or <code>0</code> for a continuous workload (the default).
 	 */
 	@PositiveOrZero
 	private Integer rate;
