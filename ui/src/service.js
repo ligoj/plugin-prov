@@ -1,19 +1,9 @@
 import { h } from 'vue'
 import { VBtn, VChip, VIcon, useI18nStore } from '@ligoj/host'
+import { formatCpuTotal, formatRam, formatStorage } from './quoteFormatters.js'
+import LocationLabel from './views/LocationLabel.vue'
 
 const REST = '/rest/'
-
-/* Small format helpers — kept inside the plugin so its details column
- * has no dependency on private host modules. Mirrors legacy
- * `formatRam`/`formatStorage` from service/prov/prov.js. */
-function formatRam(mb) {
-  if (mb == null) return ''
-  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`
-}
-function formatStorage(gb) {
-  if (gb == null) return ''
-  return gb >= 1024 ? `${(gb / 1024).toFixed(1)} TB` : `${Math.round(gb)} GB`
-}
 
 /**
  * Service surface for the "prov" plugin. Exposes the small set of
@@ -63,7 +53,8 @@ const service = {
    * empty rather than showing a noisy "—".
    */
   renderDetailsKey(subscription) {
-    const { t } = useI18nStore()
+    const i18n = useI18nStore()
+    const { t, locale } = i18n
     const quote = subscription?.data?.quote
     if (!quote) return null
 
@@ -83,14 +74,17 @@ const service = {
     // Aggregated CPU/RAM are only meaningful when at least one
     // compute resource is in the quote — matches the legacy guard.
     if (quote.nbInstances || quote.nbDatabases || quote.nbContainers || quote.nbFunctions) {
-      if (quote.totalCpu) chips.push(chip('mdi-flash', `${quote.totalCpu} ${t('prov.renderDetailsKey.cpuUnit')}`, 'prov.renderDetailsKey.cpu'))
-      if (quote.totalRam) chips.push(chip('mdi-memory', formatRam(quote.totalRam), 'prov.renderDetailsKey.ram'))
+      if (quote.totalCpu) chips.push(chip('mdi-flash', `${formatCpuTotal(quote.totalCpu, locale)} ${t('prov.renderDetailsKey.cpuUnit')}`, 'prov.renderDetailsKey.cpu'))
+      if (quote.totalRam) chips.push(chip('mdi-memory', formatRam(quote.totalRam, locale), 'prov.renderDetailsKey.ram'))
     }
     if (quote.nbPublicAccess) chips.push(chip('mdi-earth', quote.nbPublicAccess, 'prov.renderDetailsKey.publicAccess'))
-    if (quote.totalStorage) chips.push(chip('mdi-harddisk', formatStorage(quote.totalStorage), 'prov.renderDetailsKey.storage'))
+    if (quote.totalStorage) chips.push(chip('mdi-harddisk', formatStorage(quote.totalStorage, locale), 'prov.renderDetailsKey.storage'))
 
+    // Preferred location: flag + localized country + code, with the location
+    // detail tooltip (same component as the quote tables).
     if (quote.location?.name) {
-      chips.push(chip('mdi-map-marker', quote.location.name, 'prov.renderDetailsKey.location'))
+      chips.push(h(VChip, { size: 'x-small', variant: 'tonal', class: 'mr-1' },
+        () => h(LocationLabel, { location: quote.location, showCode: true })))
     }
 
     if (chips.length === 0) return null

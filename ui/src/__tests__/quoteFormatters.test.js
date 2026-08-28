@@ -5,6 +5,8 @@ import {
   formatCo2,
   formatCo2Range,
   formatCpu,
+  formatCpuTotal,
+  NETWORK_TYPES,
   formatRam,
   formatStorage,
   formatReduced,
@@ -175,6 +177,27 @@ describe('quoteFormatters', () => {
     it('shows SI TB above 1000 GB (163573 GB → 163.6 TB)', () => {
       expect(formatStorage(2048, EN)).toBe('2.05 TB')
       expect(formatStorage(163573, EN)).toBe('163.6 TB')
+    })
+  })
+
+  describe('formatCpuTotal (aggregated vCPU, compact above 1000)', () => {
+    it('is empty for null', () => {
+      expect(formatCpuTotal(null)).toBe('')
+    })
+    it('keeps the row precision below 1000', () => {
+      expect(formatCpuTotal(4, EN)).toBe('4')
+      expect(formatCpuTotal(2.5, EN)).toBe('2.5')
+    })
+    it('compacts large totals (21037.49 → 21K, 1500 → 1.5K)', () => {
+      expect(formatCpuTotal(21037.489999999998, EN)).toBe('21K')
+      expect(formatCpuTotal(1500, EN)).toBe('1.5K')
+    })
+  })
+
+  describe('NETWORK_TYPES', () => {
+    it('lists the tab keys of the resources that can carry network links', () => {
+      expect([...NETWORK_TYPES]).toEqual(['instance', 'database', 'container', 'function', 'storage'])
+      expect(NETWORK_TYPES.has('support')).toBe(false)
     })
   })
 

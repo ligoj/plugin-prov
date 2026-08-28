@@ -108,6 +108,16 @@ export function formatCpu(value) {
   return value % 1 === 0 ? `${value}` : value.toFixed(1)
 }
 
+/**
+ * Aggregated vCPU count (quote totals, subscription summaries): the row
+ * precision below 1000, a compact magnitude above (`21037.49` → `21K`).
+ */
+export function formatCpuTotal(value, locale) {
+  if (value == null) return ''
+  if (Math.abs(value) < 1000) return formatCpu(value)
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+}
+
 /** CO₂-equivalent emissions in grams → g / kg / t (`8248600` → `8.25 t`). */
 export function formatCo2(grams, locale) {
   if (grams == null) return '-'
@@ -176,6 +186,9 @@ export const TAB_TYPES = [
   { key: 'storage',   icon: 'mdi-harddisk', listField: 'storages',   color: 'rgb(var(--v-theme-warning))' },
   { key: 'support',   icon: 'mdi-lifebuoy', listField: 'supports',   color: 'rgb(var(--v-theme-error))' },
 ]
+
+/** Tab keys of the resources that can carry network links (backend `ResourceType.network`). */
+export const NETWORK_TYPES = new Set(['instance', 'database', 'container', 'function', 'storage'])
 
 /**
  * Builds an SVG path for one donut slice.
