@@ -517,7 +517,7 @@
           {{ viewDialogMode === 'edit' ? t('prov.quote.views.editTitle') : t('prov.quote.views.saveTitle') }}
         </v-card-title>
         <v-card-text>
-          <v-combobox v-model="viewName" :items="viewNameItems" item-title="title" item-value="title"
+          <LigojCombobox v-model="viewName" :items="viewNameItems" item-title="title" item-value="title"
             :return-object="false" :label="t('prov.quote.views.name')"
             variant="outlined" density="compact" hide-details autofocus autocomplete="off"
             data-1p-ignore data-lpignore="true" @keyup.enter="submitViewDialog">
@@ -528,7 +528,7 @@
                 </template>
               </v-list-item>
             </template>
-          </v-combobox>
+          </LigojCombobox>
           <v-textarea v-model="viewDescription" :label="t('prov.quote.views.description')" variant="outlined"
             density="compact" rows="2" auto-grow hide-details class="mt-3" />
           <v-checkbox v-model="shareView" :label="t('prov.quote.views.share')" density="compact" hide-details
@@ -567,7 +567,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import {
+import { LigojCombobox,
   useApi,
   useAppStore,
   useActionExtensions,

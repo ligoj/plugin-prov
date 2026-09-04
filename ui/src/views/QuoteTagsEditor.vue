@@ -5,7 +5,7 @@
          entry, and suggestions drawn from every tag already used in the
          quote. A combobox (autocomplete + free input) backs it so brand
          new keys/values can be typed, not only picked from the list. -->
-    <v-combobox
+    <LigojCombobox
       :model-value="selected"
       :items="suggestions"
       :label="t('prov.quote.tags.addHint')"
@@ -28,13 +28,13 @@
           <span v-if="splitTag(item).value" class="q-tag-key">{{ splitTag(item).name }}</span>{{ splitTag(item).value || splitTag(item).name }}
         </v-chip>
       </template>
-    </v-combobox>
+    </LigojCombobox>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useApi, useErrorStore, useI18nStore } from '@ligoj/host'
+import { LigojCombobox, useApi, useErrorStore, useI18nStore } from '@ligoj/host'
 
 /**
  * Inline tag editor used by the resource dialogs in edit mode. Tags have
