@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <v-spacer />
-      <v-text-field v-model="dt.search.value" prepend-inner-icon="mdi-magnify" :label="t('common.search')" variant="outlined" density="compact" hide-details class="search-field"
+      <LigojTextField v-model="dt.search.value" prepend-inner-icon="mdi-magnify" :label="t('common.search')" variant="outlined" density="compact" hide-details class="search-field"
         @update:model-value="onSearch" />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
         {{ t('currency.new') }}
@@ -59,10 +59,10 @@
             {{ t('currency.editingUsed') }}
           </v-alert>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="form.name" prepend-inner-icon="mdi-cash-multiple" :label="t('currency.name')" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
-            <v-textarea v-model="form.description" prepend-inner-icon="mdi-text-long" :label="t('currency.description')" variant="outlined" rows="3" class="mb-2" />
-            <v-text-field v-model="form.unit" prepend-inner-icon="mdi-tag-outline" :label="t('currency.unit')" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-text-field v-model.number="form.rate" prepend-inner-icon="mdi-currency-usd" :label="t('currency.rate')" :rules="[rules.required, rules.positive]" type="number" step="0.01" variant="outlined" />
+            <LigojTextField v-model="form.name" prepend-inner-icon="mdi-cash-multiple" :label="t('currency.name')" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
+            <LigojTextarea v-model="form.description" prepend-inner-icon="mdi-text-long" :label="t('currency.description')" variant="outlined" rows="3" class="mb-2" />
+            <LigojTextField v-model="form.unit" prepend-inner-icon="mdi-tag-outline" :label="t('currency.unit')" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <LigojTextField v-model.number="form.rate" prepend-inner-icon="mdi-currency-usd" :label="t('currency.rate')" :rules="[rules.required, rules.positive]" type="number" step="0.01" variant="outlined" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import {
+import { LigojTextField, LigojTextarea,
   useApi,
   useAppStore,
   useDataTable,

@@ -291,7 +291,7 @@
         <v-spacer />
         <!-- Global search (feature 13 phase 1): ONE debounced query across every
              resource type; each tab's chip turns into its per-type match count. -->
-        <v-text-field :model-value="searchInput" :label="t('common.search')" prepend-inner-icon="mdi-magnify"
+        <LigojTextField :model-value="searchInput" :label="t('common.search')" prepend-inner-icon="mdi-magnify"
           density="compact" hide-details variant="outlined" clearable class="quote-search"
           :placeholder="t('prov.quote.filter.textHint')" @update:model-value="onSearch" />
         <!-- Advanced filters (dimension / numeric / tag / regex, AND-OR) —
@@ -438,13 +438,13 @@
           <v-form ref="formRef" @submit.prevent="saveEdit">
             <v-row density="comfortable">
               <v-col cols="12" md="6">
-                <v-text-field v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
+                <LigojTextField v-model="editForm.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
               </v-col>
               <v-col cols="12" md="6">
                 <LocationField v-model="editForm.location" :items="config?.locations || []" :label="t('prov.quote.cols.location')" />
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
+                <LigojTextField v-model="editForm.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
               </v-col>
               <v-col cols="12" md="6">
                 <UsageField v-model="editForm.usage" :usages="config?.usages || []" :subscription-id="subscriptionId" scope="config"
@@ -529,7 +529,7 @@
               </v-list-item>
             </template>
           </LigojCombobox>
-          <v-textarea v-model="viewDescription" :label="t('prov.quote.views.description')" variant="outlined"
+          <LigojTextarea v-model="viewDescription" :label="t('prov.quote.views.description')" variant="outlined"
             density="compact" rows="2" auto-grow hide-details class="mt-3" />
           <v-checkbox v-model="shareView" :label="t('prov.quote.views.share')" density="compact" hide-details
             color="primary" class="mt-2" />
@@ -567,7 +567,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { LigojCombobox,
+import { LigojTextField, LigojTextarea, LigojCombobox,
   useApi,
   useAppStore,
   useActionExtensions,

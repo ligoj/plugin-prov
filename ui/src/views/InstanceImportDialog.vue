@@ -23,11 +23,11 @@
                 variant="outlined" density="compact" prepend-icon="" prepend-inner-icon="mdi-file-delimited" show-size />
             </v-col>
             <v-col cols="6" md="3">
-              <v-text-field v-model="form.separator" :label="t('prov.quote.import.separator')" :rules="REQUIRED_RULES"
+              <LigojTextField v-model="form.separator" :label="t('prov.quote.import.separator')" :rules="REQUIRED_RULES"
                 variant="outlined" density="compact" maxlength="1" />
             </v-col>
             <v-col cols="6" md="3">
-              <v-text-field v-model="form.encoding" :label="t('prov.quote.import.encoding')" :placeholder="t('prov.quote.import.encodingHint')"
+              <LigojTextField v-model="form.encoding" :label="t('prov.quote.import.encoding')" :placeholder="t('prov.quote.import.encodingHint')"
                 variant="outlined" density="compact" clearable />
             </v-col>
             <v-col cols="12" md="6">
@@ -70,7 +70,7 @@
 
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
-import { useApi, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, LigojSelect } from '@ligoj/host'
 import { buildInstanceUploadFormData } from '../uploadFormData.js'
 
 /**

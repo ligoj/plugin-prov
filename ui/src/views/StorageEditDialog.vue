@@ -8,7 +8,7 @@
         <v-form ref="formRef" @submit.prevent="save">
           <v-row density="comfortable">
             <v-col cols="12" md="8">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
+              <LigojTextField v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                 variant="outlined" density="compact" autofocus />
             </v-col>
             <v-col cols="12" md="4">
@@ -17,7 +17,7 @@
                 :explanation="t('prov.quote.microbar.storage')" />
             </v-col>
             <v-col cols="12">
-              <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
+              <LigojTextField v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
                 variant="outlined" density="compact" />
             </v-col>
             <!-- Attached resource — single dropdown combining every compute
@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
 import { formatCost, TAB_TYPES, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'

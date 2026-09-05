@@ -23,10 +23,10 @@
         <!-- Periods -->
         <div class="wl-periods">
           <div v-for="(p, i) in periods" :key="i" class="wl-period">
-            <v-text-field v-model.number="p.duration" type="number" min="1" max="100"
+            <LigojTextField v-model.number="p.duration" type="number" min="1" max="100"
               :label="t('prov.quote.workload.duration')" suffix="%" variant="outlined" density="compact" hide-details />
             <span class="wl-at">@</span>
-            <v-text-field v-model.number="p.cpu" type="number" min="0" max="100"
+            <LigojTextField v-model.number="p.cpu" type="number" min="0" max="100"
               :label="t('prov.quote.workload.cpu')" suffix="%" variant="outlined" density="compact" hide-details />
             <v-btn icon size="small" variant="text" @click="removePeriod(i)">
               <v-icon>mdi-close</v-icon>
@@ -63,7 +63,7 @@
 // `duration@cpu` periods and the baseline. Reads/writes the `Workload#from`
 // string (`$baseline(,$duration@$cpu)*`) via the shared parse/serialize.
 import { ref, computed, watch } from 'vue'
-import { useI18nStore } from '@ligoj/host'
+import { LigojTextField, useI18nStore } from '@ligoj/host'
 import { parseWorkload, serializeWorkload } from '../quoteFormatters.js'
 
 const props = defineProps({

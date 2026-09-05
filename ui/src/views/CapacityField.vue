@@ -2,10 +2,10 @@
   <!-- A numeric resource input with its utilisation micro-bar bundled
        directly beneath it (tight vertical gap). The bar appears once a
        type capacity is known and its tooltip shows requested / provided
-       formatted for the metric. Extra <v-text-field> attributes (label,
+       formatted for the metric. Extra <LigojTextField> attributes (label,
        rules, min, step, …) pass straight through. -->
   <div class="capacity-field">
-    <v-text-field
+    <LigojTextField
       v-bind="$attrs"
       :model-value="modelValue"
       type="number"
@@ -28,6 +28,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 import ResourceMicroBar from './ResourceMicroBar.vue'
 import { formatCpu, formatRam, formatStorage } from '../quoteFormatters.js'
 

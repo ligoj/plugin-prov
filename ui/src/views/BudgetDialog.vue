@@ -8,15 +8,15 @@
 
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-text-field v-model="form.name" :label="t('prov.quote.budget.name')" :rules="REQUIRED_RULES"
+          <LigojTextField v-model="form.name" :label="t('prov.quote.budget.name')" :rules="REQUIRED_RULES"
             maxlength="50" variant="outlined" density="compact" autofocus />
 
-          <v-text-field v-model.number="form.initialCost" type="number" min="0" step="1"
+          <LigojTextField v-model.number="form.initialCost" type="number" min="0" step="1"
             :label="t('prov.quote.budget.initialCost')" :suffix="currencyUnit" variant="outlined" density="compact">
             <template #append-inner>
               <HelpTip :text="t('prov.quote.budget.initialCostHelp')" />
             </template>
-          </v-text-field>
+          </LigojTextField>
 
           <div v-if="Number(budget?.requiredInitialCost) > 0" class="text-caption text-medium-emphasis">
             {{ t('prov.quote.budget.requiredInitialCost') }}: {{ formatCost(budget.requiredInitialCost, currency) }}
@@ -39,7 +39,7 @@
 <script setup>
 // Create / edit / delete a budget profile (ProvBudget) via ProvBudgetResource.
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, APP_BASE } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
 import { budgetPayload } from '../budgetCatalog.js'
 import HelpTip from './HelpTip.vue'

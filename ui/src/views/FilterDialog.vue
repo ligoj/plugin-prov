@@ -26,7 +26,7 @@
           <!-- Numeric: operator + value with the metric unit. -->
           <template v-if="kindOf(f.field) === 'number'">
             <LigojSelect v-model="f.op" :items="NUMBER_OPS" variant="outlined" density="compact" hide-details class="flt-op" />
-            <v-text-field v-model="f.value" type="number" :suffix="f.field === 'co2' ? 'g' : currency.unit"
+            <LigojTextField v-model="f.value" type="number" :suffix="f.field === 'co2' ? 'g' : currency.unit"
               :label="t('prov.quote.filter.value')" variant="outlined" density="compact" hide-details class="flt-value" />
           </template>
 
@@ -71,7 +71,7 @@
           </template>
 
           <!-- Free text (name / type / term / any field) — regex supported. -->
-          <v-text-field v-else v-model="f.value" :label="labelOf(f.field)"
+          <LigojTextField v-else v-model="f.value" :label="labelOf(f.field)"
             :placeholder="t('prov.quote.filter.textHint')" variant="outlined" density="compact" hide-details
             class="flt-value" />
 
@@ -103,7 +103,7 @@
 // regex-aware. Filters combine with AND / OR; the evaluation engine lives in
 // searchFilters.js (pure, tested) — this dialog only edits the state.
 import { ref, computed, watch } from 'vue'
-import { useI18nStore, LigojAutocomplete, LjSegmented, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useI18nStore, LigojAutocomplete, LjSegmented, LigojSelect } from '@ligoj/host'
 import LocationField from './LocationField.vue'
 import OsIcon from './OsIcon.vue'
 import EngineIcon from './EngineIcon.vue'

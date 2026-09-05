@@ -13,14 +13,14 @@
         </v-col>
 
         <v-col v-for="property in properties" :key="property.name" cols="12" md="6">
-          <v-text-field v-model="form.properties[property.name]" :label="propertyLabel(property)"
+          <LigojTextField v-model="form.properties[property.name]" :label="propertyLabel(property)"
             :placeholder="property.default || ''" :rules="property.type === 'regExp' ? REGEXP_RULES : []"
             variant="outlined" density="compact" clearable persistent-placeholder>
             <template #append-inner>
               <v-icon size="small">mdi-help-circle-outline</v-icon>
               <v-tooltip activator="parent" location="top" max-width="360" :text="propertyTooltip(property)" />
             </template>
-          </v-text-field>
+          </LigojTextField>
         </v-col>
       </v-row>
     </v-form>
@@ -42,7 +42,7 @@
  * `[{ name, key, type: 'regExp'|'string', default }]`.
  */
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE, LjDialog, LjButton, pluginRegistry } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, APP_BASE, LjDialog, LjButton, pluginRegistry } from '@ligoj/host'
 import LocationField from './LocationField.vue'
 
 const api = useApi()

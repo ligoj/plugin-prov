@@ -8,7 +8,7 @@
         <v-form ref="formRef" @submit.prevent="save">
           <v-row density="comfortable">
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
+              <LigojTextField v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50" variant="outlined" density="compact" autofocus />
             </v-col>
 
             <v-col v-if="hasOs" cols="12" md="6">
@@ -52,7 +52,7 @@
             </v-col>
 
             <v-col cols="12">
-              <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
+              <LigojTextField v-model="form.description" :label="t('prov.quote.description')" maxlength="250" variant="outlined" density="compact" />
             </v-col>
 
             <v-col cols="6" md="3">
@@ -67,22 +67,22 @@
             </v-col>
 
             <v-col v-if="hasQuantity" cols="6" md="3">
-              <v-text-field v-model.number="form.minQuantity" :label="t('prov.quote.compute.minQty')" type="number" min="0" variant="outlined" density="compact" />
+              <LigojTextField v-model.number="form.minQuantity" :label="t('prov.quote.compute.minQty')" type="number" min="0" variant="outlined" density="compact" />
             </v-col>
             <v-col v-if="hasQuantity" cols="6" md="3">
-              <v-text-field v-model.number="form.maxQuantity" :label="t('prov.quote.compute.maxQty')" type="number" min="0" variant="outlined" density="compact" />
+              <LigojTextField v-model.number="form.maxQuantity" :label="t('prov.quote.compute.maxQty')" type="number" min="0" variant="outlined" density="compact" />
             </v-col>
 
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.nbRequests" :label="t('prov.quote.function.nbRequests')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="10000" variant="outlined"
+              <LigojTextField v-model.number="form.nbRequests" :label="t('prov.quote.function.nbRequests')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="10000" variant="outlined"
                 density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.duration" :label="t('prov.quote.function.duration')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="7200000" variant="outlined"
+              <LigojTextField v-model.number="form.duration" :label="t('prov.quote.function.duration')" :rules="REQUIRED_POSITIVE_RULES" type="number" min="1" max="7200000" variant="outlined"
                 density="compact" />
             </v-col>
             <v-col v-if="type === 'function'" cols="12" md="4">
-              <v-text-field v-model.number="form.concurrency" :label="t('prov.quote.function.concurrency')" type="number" min="0" max="10000" variant="outlined" density="compact" />
+              <LigojTextField v-model.number="form.concurrency" :label="t('prov.quote.function.concurrency')" type="number" min="0" max="10000" variant="outlined" density="compact" />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -136,7 +136,7 @@
                       :hint="t('prov.quote.compute.softwareHint')" persistent-hint />
                   </v-col>
                   <v-col v-if="hasGpu" cols="12" md="6">
-                    <v-text-field v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8" variant="outlined" density="compact" />
+                    <LigojTextField v-model.number="form.gpu" :label="t('prov.quote.compute.gpu')" type="number" min="0" max="8" variant="outlined" density="compact" />
                   </v-col>
                   <v-col cols="12" md="4">
                     <RateField v-model="form.cpuRate" :label="t('prov.quote.compute.cpuRate')" />
@@ -154,7 +154,7 @@
                     <v-switch v-model="form.ephemeral" :label="t('prov.quote.compute.ephemeral')" color="primary" density="compact" hide-details />
                   </v-col>
                   <v-col v-if="hasEphemeral" cols="12" md="6">
-                    <v-text-field v-model.number="form.maxVariableCost" :label="t('prov.quote.compute.maxVariableCost')" type="number" min="0" variant="outlined" density="compact" clearable />
+                    <LigojTextField v-model.number="form.maxVariableCost" :label="t('prov.quote.compute.maxVariableCost')" type="number" min="0" variant="outlined" density="compact" clearable />
                   </v-col>
                 </v-row>
               </template>
@@ -214,7 +214,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useApi, useErrorStore, useI18nStore, APP_BASE, LigojAutocomplete, LigojSelect } from '@ligoj/host'
 import { formatCost, nextName } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 import CapacityField from './CapacityField.vue'

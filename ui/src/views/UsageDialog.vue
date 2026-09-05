@@ -8,7 +8,7 @@
 
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-text-field v-model="form.name" :label="t('prov.quote.usage.name')" :rules="REQUIRED_RULES"
+          <LigojTextField v-model="form.name" :label="t('prov.quote.usage.name')" :rules="REQUIRED_RULES"
             maxlength="50" variant="outlined" density="compact" autofocus />
 
           <div class="usage-rate d-flex align-center ga-4 my-2">
@@ -38,13 +38,13 @@
               <!-- Equivalent durations — edit any of them to set the rate; they
                    all follow the slider live. -->
               <div class="usage-units d-flex ga-2 mt-3">
-                <v-text-field v-model.number="hoursMonth" type="number" min="0" :max="HOURS_PER_MONTH"
+                <LigojTextField v-model.number="hoursMonth" type="number" min="0" :max="HOURS_PER_MONTH"
                   :label="t('prov.quote.usage.hoursPerMonth')" variant="outlined" density="compact" hide-details
                   @blur="commitHoursMonth" @keyup.enter="commitHoursMonth" />
-                <v-text-field v-model.number="daysMonth" type="number" min="0" max="31" step="0.1"
+                <LigojTextField v-model.number="daysMonth" type="number" min="0" max="31" step="0.1"
                   :label="t('prov.quote.usage.daysPerMonth')" variant="outlined" density="compact" hide-details
                   @blur="commitDaysMonth" @keyup.enter="commitDaysMonth" />
-                <v-text-field v-model.number="daysYear" type="number" min="0" max="365"
+                <LigojTextField v-model.number="daysYear" type="number" min="0" max="365"
                   :label="t('prov.quote.usage.daysPerYear')" variant="outlined" density="compact" hide-details
                   @blur="commitDaysYear" @keyup.enter="commitDaysYear" />
               </div>
@@ -53,20 +53,20 @@
 
           <v-row density="compact">
             <v-col cols="6">
-              <v-text-field v-model.number="form.duration" type="number" min="1"
+              <LigojTextField v-model.number="form.duration" type="number" min="1"
                 :label="t('prov.quote.usage.duration')" suffix="mo" variant="outlined" density="compact" hide-details>
                 <template #append-inner>
                   <HelpTip :text="t('prov.quote.usage.durationHelp')" />
                 </template>
-              </v-text-field>
+              </LigojTextField>
             </v-col>
             <v-col cols="6">
-              <v-text-field v-model.number="form.start" type="number"
+              <LigojTextField v-model.number="form.start" type="number"
                 :label="t('prov.quote.usage.start')" suffix="mo" variant="outlined" density="compact" hide-details>
                 <template #append-inner>
                   <HelpTip :text="t('prov.quote.usage.startHelp')" />
                 </template>
-              </v-text-field>
+              </LigojTextField>
             </v-col>
           </v-row>
 
@@ -95,7 +95,7 @@
 <script setup>
 // Create / edit / delete a usage profile (ProvUsage) via ProvUsageResource.
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, APP_BASE } from '@ligoj/host'
 import { donutPath, donutFullPath } from '../quoteFormatters.js'
 import { USAGE_RATE_TEMPLATES, USAGE_FLAGS, usagePayload } from '../usageCatalog.js'
 import HelpTip from './HelpTip.vue'

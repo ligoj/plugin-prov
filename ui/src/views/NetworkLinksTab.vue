@@ -21,7 +21,7 @@
       </thead>
       <tbody>
         <tr v-for="(row, i) in modelValue" :key="i" class="net-row" :class="{ 'net-row-invalid': row.invalid }">
-          <td><v-text-field v-model="row.name" variant="outlined" density="compact" hide-details maxlength="100" v-bind="fieldAttrs('name', i)" /></td>
+          <td><LigojTextField v-model="row.name" variant="outlined" density="compact" hide-details maxlength="100" v-bind="fieldAttrs('name', i)" /></td>
           <td>
             <!-- Peer: one of the network-capable resources of the quote (icon + name) -->
             <LigojAutocomplete v-model="row.peer" :items="peers" item-title="name" item-value="key" variant="outlined" density="compact" hide-details
@@ -47,7 +47,7 @@
             </LigojAutocomplete>
           </td>
           <td>
-            <v-text-field v-model.number="row.port" type="number" min="1" max="65535" variant="outlined" density="compact" hide-details
+            <LigojTextField v-model.number="row.port" type="number" min="1" max="65535" variant="outlined" density="compact" hide-details
               :error="!!row.invalid && row.port != null && row.port !== '' && !(row.port >= 1 && row.port <= 65535)" v-bind="fieldAttrs('port', i)" />
           </td>
           <td>
@@ -56,7 +56,7 @@
               variant="outlined" density="compact" hide-details class="net-rate" />
           </td>
           <td>
-            <v-text-field v-model.number="row.throughput" type="number" min="0" variant="outlined" density="compact" hide-details
+            <LigojTextField v-model.number="row.throughput" type="number" min="0" variant="outlined" density="compact" hide-details
               suffix="KB/s" class="net-throughput" v-bind="fieldAttrs('throughput', i)" />
           </td>
           <td>
@@ -86,7 +86,7 @@ let tabSeq = 0
  * add button and a remove button per row. `v-model` is the row list; the rows themselves are
  * edited in place.
  */
-import { useI18nStore, LjButton, LigojAutocomplete, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useI18nStore, LjButton, LigojAutocomplete, LigojSelect } from '@ligoj/host'
 import { emptyRow, frequencyItems } from '../networkLinks.js'
 
 const props = defineProps({

@@ -11,7 +11,7 @@
       <v-card-text>
         <!-- Create bar. -->
         <div class="d-flex align-center ga-2 mb-4">
-          <v-text-field
+          <LigojTextField
             v-model="label"
             :label="t('prov.quote.snap.label')"
             variant="outlined"
@@ -153,7 +153,7 @@
 // client-side by quoteDiff.js) and restored. Restore is destructive and
 // confirmed; rows the current catalog cannot price any more are reported.
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore, LjSegmented, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, LjSegmented, LigojSelect } from '@ligoj/host'
 import { formatCost, formatCo2, TAB_TYPES } from '../quoteFormatters.js'
 import { diffMeta, formatDiffPct } from '../compareApi.js'
 import { normalizeConfig, snapshotRows, quoteDiff } from '../quoteDiff.js'

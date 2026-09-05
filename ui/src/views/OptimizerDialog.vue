@@ -8,7 +8,7 @@
 
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="save">
-          <v-text-field v-model="form.name" :label="t('prov.quote.optimizer.name')" :rules="REQUIRED_RULES"
+          <LigojTextField v-model="form.name" :label="t('prov.quote.optimizer.name')" :rules="REQUIRED_RULES"
             maxlength="50" variant="outlined" density="compact" autofocus />
 
           <div class="d-flex align-center ga-1 mb-1 mt-1">
@@ -41,7 +41,7 @@
 <script setup>
 // Create / edit / delete an optimizer profile (ProvOptimizer) via ProvOptimizerResource.
 import { ref, reactive, watch } from 'vue'
-import { useApi, useI18nStore, APP_BASE, LjSegmented } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, APP_BASE, LjSegmented } from '@ligoj/host'
 import { OPTIMIZER_MODES, optimizerPayload } from '../optimizerCatalog.js'
 import HelpTip from './HelpTip.vue'
 

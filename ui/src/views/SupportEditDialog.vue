@@ -8,19 +8,19 @@
         <v-form ref="formRef" @submit.prevent="save">
           <v-row density="comfortable">
             <v-col cols="12" md="8">
-              <v-text-field v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
+              <LigojTextField v-model="form.name" :label="t('prov.quote.name')" :rules="REQUIRED_RULES" maxlength="50"
                 variant="outlined" density="compact" autofocus />
             </v-col>
             <v-col cols="12" md="4">
-              <v-text-field v-model.number="form.seats" :label="t('prov.quote.cols.seats')" type="number" min="0"
+              <LigojTextField v-model.number="form.seats" :label="t('prov.quote.cols.seats')" type="number" min="0"
                 variant="outlined" density="compact" />
             </v-col>
             <v-col cols="12">
-              <v-text-field v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
+              <LigojTextField v-model="form.description" :label="t('prov.quote.description')" maxlength="250"
                 variant="outlined" density="compact" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.level" :label="t('prov.quote.cols.level')" variant="outlined" density="compact"
+              <LigojTextField v-model="form.level" :label="t('prov.quote.cols.level')" variant="outlined" density="compact"
                 :hint="t('prov.quote.support.levelHint')" />
             </v-col>
           </v-row>
@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
-import { useApi, useErrorStore, useI18nStore, APP_BASE, LigojSelect } from '@ligoj/host'
+import { LigojTextField, useApi, useErrorStore, useI18nStore, APP_BASE, LigojSelect } from '@ligoj/host'
 import { formatCost } from '../quoteFormatters.js'
 import QuoteTagsEditor from './QuoteTagsEditor.vue'
 
