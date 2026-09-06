@@ -2062,7 +2062,7 @@ onMounted(async () => {
 /* All colours below come from theme tokens only: Vuetify semantic
  * variables (rgb/rgba(var(--v-theme-…))) and the shared `.lj-surface`
  * design variables (--ink / --card / --border / --pill / --accent /
- * --radius / --mono …) set by the host for the 2026 views. */
+ * --radius / --mono …) set by the host for the views. */
 .quote-view {
   padding: 0.5rem;
 }
