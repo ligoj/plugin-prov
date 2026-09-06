@@ -11,7 +11,7 @@
 /**
  * Reduced-precision number formatting.
  *
- * The 2026 redesign asks every unit-bearing figure to drop useless
+ * The redesign asks every unit-bearing figure to drop useless
  * precision: never more than THREE digits before the decimal separator
  * and never more than TWO after it. In practice that means ~4 significant
  * figures, so `8248.6` becomes `8.25` (once scaled to tonnes) and
