@@ -163,7 +163,9 @@ const headers = computed(() => [
   { title: t('catalog.cols.locations'), key: 'nbLocations', sortable: false, width: '80px', align: 'end' },
   { title: t('catalog.cols.types'), key: 'nbTypes', sortable: false, width: '80px', align: 'end' },
   { title: t('catalog.cols.prices'), key: 'nbPrices', sortable: false, width: '90px', align: 'end' },
-  { title: t('catalog.status'), key: 'status', sortable: false, width: '160px' },
+  // Pinned (min = max): the live progress updates change the cell content
+  // every few seconds — a floating width made the whole table shift
+  { title: t('catalog.status'), key: 'status', sortable: false, width: '170px', minWidth: '170px', maxWidth: '170px' },
   { title: '', key: 'actions', sortable: false, width: '120px', align: 'center' },
 ])
 
@@ -403,6 +405,9 @@ onBeforeUnmount(stopAllPolling)
   font-weight: 700;
   color: rgb(var(--v-theme-primary));
   flex: none;
+  /* Stable digit widths: the percentage ticks without wiggling the cell */
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
 }
 
 .run-phase {

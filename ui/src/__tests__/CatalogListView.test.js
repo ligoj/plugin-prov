@@ -93,6 +93,14 @@ describe('status tooltip lines (legacy toStatusText parity)', () => {
     expect(lines[2]).toContain('11% (63/559)') // round(63/559*100)
     expect(lines[3]).toContain('Last success')
     expect(w.vm.compact(1905486)).toBe('1.9M')
+  })
+
+  it('pins the status column width so live progress updates cannot shift the table', () => {
+    const w = mountBare()
+    const status = w.vm.headers.find((h) => h.key === 'status')
+    expect(status.width).toBeTruthy()
+    expect(status.minWidth).toBe(status.width)
+    expect(status.maxWidth).toBe(status.width)
     expect(w.vm.compact(null)).toBe('—')
   })
 
