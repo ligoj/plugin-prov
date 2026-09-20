@@ -29,7 +29,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -83,6 +86,16 @@ public abstract class AbstractImportCatalogResource {
 
 	@PersistenceContext(type = PersistenceContextType.TRANSACTION, unitName = "pu")
 	protected EntityManager em;
+
+	@Autowired
+	protected PlatformTransactionManager txManager;
+
+	/**
+	 * Whether the current thread runs inside a region transaction opened by {@link #inRegionTransaction(Runnable)}.
+	 * Shared entities (types, terms, locations) must then be committed in their own transaction so the concurrent
+	 * region transactions can reference them before this region commits. See {@link #persistShared(Runnable)}.
+	 */
+	private static final ThreadLocal<Boolean> REGION_TX = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
 	@Autowired
 	protected ObjectMapper objectMapper;
@@ -543,6 +556,48 @@ public abstract class AbstractImportCatalogResource {
 	}
 
 	/**
+	 * Execute a regional import inside a single dedicated transaction with JDBC batching when no transaction is
+	 * already active: the prices accumulate in the persistence context and are flushed as batched statements with a
+	 * single commit per region, instead of one transaction per price. When a transaction is already active (serial
+	 * import mode, or a test transaction), the work simply joins it and the behavior is unchanged.
+	 *
+	 * @param work The regional import to execute.
+	 */
+	protected void inRegionTransaction(final Runnable work) {
+		if (TransactionSynchronizationManager.isActualTransactionActive()) {
+			work.run();
+		} else {
+			try {
+				REGION_TX.set(Boolean.TRUE);
+				new TransactionTemplate(txManager).executeWithoutResult(_ -> {
+					initJdbcBatch();
+					work.run();
+				});
+			} finally {
+				REGION_TX.remove();
+			}
+		}
+	}
+
+	/**
+	 * Persist a shared entity: type, term or location. When running inside a region transaction, the entity is
+	 * committed immediately in its own transaction, so the concurrent region transactions can reference it from
+	 * their prices without a foreign key violation. Otherwise the operation is executed in place: in the current
+	 * transaction if any, either in the repository's own transaction.
+	 *
+	 * @param save The persist operation.
+	 */
+	protected void persistShared(final Runnable save) {
+		if (REGION_TX.get()) {
+			final var template = new TransactionTemplate(txManager);
+			template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+			template.executeWithoutResult(_ -> save.run());
+		} else {
+			save.run();
+		}
+	}
+
+	/**
 	 * Save a price when the attached cost is different from the old one. The price's code is added to the update codes
 	 * set. The cost of the period is also updated accordingly to the attached term.
 	 *
@@ -787,7 +842,7 @@ public abstract class AbstractImportCatalogResource {
 		if (collection.add(key)) {
 			whenAbsent.accept(entity);
 			if (repository != null) {
-				repository.saveAndFlush(entity);
+				persistShared(() -> repository.saveAndFlush(entity));
 			}
 		}
 		return entity;
@@ -835,7 +890,7 @@ public abstract class AbstractImportCatalogResource {
 		if (isNeedUpdate(context, entity)) {
 			updater.accept(entity);
 			if (repository != null) {
-				repository.save(entity);
+				persistShared(() -> repository.save(entity));
 			}
 		}
 		return entity;

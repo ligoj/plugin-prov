@@ -16,6 +16,9 @@ import org.ligoj.app.plugin.prov.model.*;
 import org.ligoj.bootstrap.core.dao.RestRepository;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.mockito.ArgumentMatchers;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
 
@@ -591,6 +594,60 @@ class TestAbstractImportCatalogResourceTest extends AbstractImportCatalogResourc
 		super.syncAdd(collection, "entry2", _ -> flag.set(true), null, null);
 		Assertions.assertTrue(collection.contains("entry2"));
 		Assertions.assertTrue(flag.get());
+	}
+
+	@Test
+	void inRegionTransactionJoined() {
+		txManager = mock(PlatformTransactionManager.class);
+		final var saved = new AtomicBoolean();
+		try {
+			TransactionSynchronizationManager.setActualTransactionActive(true);
+			inRegionTransaction(() -> persistShared(() -> saved.set(true)));
+		} finally {
+			TransactionSynchronizationManager.setActualTransactionActive(false);
+		}
+		Assertions.assertTrue(saved.get());
+		verifyNoInteractions(txManager);
+	}
+
+	@Test
+	void inRegionTransactionNew() {
+		txManager = mock(PlatformTransactionManager.class);
+		final var propagations = new ArrayList<Integer>();
+		when(txManager.getTransaction(ArgumentMatchers.any())).thenAnswer(invocation -> {
+			propagations.add(((TransactionDefinition) invocation.getArgument(0)).getPropagationBehavior());
+			return new SimpleTransactionStatus();
+		});
+		final var saved = new AtomicBoolean();
+		inRegionTransaction(() -> persistShared(() -> saved.set(true)));
+		Assertions.assertTrue(saved.get());
+
+		// One region transaction, then one REQUIRES_NEW transaction for the shared entity
+		Assertions.assertEquals(List.of(TransactionDefinition.PROPAGATION_REQUIRED,
+				TransactionDefinition.PROPAGATION_REQUIRES_NEW), propagations);
+		verify(txManager, times(2)).commit(ArgumentMatchers.any());
+
+		// Out of the region transaction, the shared save is executed in place, without a new transaction
+		persistShared(() -> saved.set(false));
+		Assertions.assertFalse(saved.get());
+		Assertions.assertEquals(2, propagations.size());
+	}
+
+	@Test
+	void inRegionTransactionRollback() {
+		txManager = mock(PlatformTransactionManager.class);
+		when(txManager.getTransaction(ArgumentMatchers.any())).thenReturn(new SimpleTransactionStatus());
+		Assertions.assertThrows(IllegalStateException.class, () -> inRegionTransaction(() -> {
+			throw new IllegalStateException();
+		}));
+		verify(txManager).rollback(ArgumentMatchers.any());
+		verify(txManager, never()).commit(ArgumentMatchers.any());
+
+		// The region transaction flag is cleared even on failure
+		final var saved = new AtomicBoolean();
+		persistShared(() -> saved.set(true));
+		Assertions.assertTrue(saved.get());
+		verify(txManager).getTransaction(ArgumentMatchers.any());
 	}
 
 	@Test
