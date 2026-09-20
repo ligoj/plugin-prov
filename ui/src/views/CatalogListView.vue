@@ -165,8 +165,8 @@ const headers = computed(() => [
   { title: t('catalog.cols.prices'), key: 'nbPrices', sortable: false, width: '90px', align: 'end' },
   // Pinned (min = max): the live progress updates change the cell content
   // every few seconds — a floating width made the whole table shift
-  { title: t('catalog.status'), key: 'status', sortable: false, width: '170px', minWidth: '170px', maxWidth: '170px' },
-  { title: '', key: 'actions', sortable: false, width: '120px', align: 'center' },
+  { title: t('catalog.status'), key: 'status', sortable: false, width: '255px', minWidth: '255px', maxWidth: '255px' },
+  { title: '', key: 'actions', sortable: false, width: '70px', align: 'center' },
 ])
 
 async function reload() {
