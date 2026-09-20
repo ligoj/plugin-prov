@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -117,15 +119,15 @@ public class ImportCatalogResource implements LongTaskRunnerNode<ImportCatalogSt
 			t.setDone(0);
 			t.setPhase(null);
 		});
-		final var user = securityHelper.getLogin();
-		// The import execution will be done into another thread.
+		// The import execution will be done into another thread, carrying the FULL security context of the caller:
+		// `NodeRepository` write checks evaluate `IS_ADMIN` from the thread AUTHORITIES (SpEL bind), so a rebuilt
+		// name-only context would turn every node "read-only" inside the import.
 		// NOT try-with-resources: ExecutorService#close() (Java 19+) awaits task termination, which would hold this
 		// request open for the whole import duration (504 upstream) instead of answering with the just-started task.
-		final var executor = Executors.newSingleThreadExecutor();
+		final var executor = new DelegatingSecurityContextExecutorService(Executors.newSingleThreadExecutor());
 		try {
 			executor.submit(() -> {
 				Thread.sleep(50);
-				securityHelper.setUserName(user);
 				updateCatalog(catalogService, entity.getId(), force);
 				return null;
 			});

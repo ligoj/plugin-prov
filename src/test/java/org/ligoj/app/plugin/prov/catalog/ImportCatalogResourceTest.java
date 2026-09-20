@@ -127,6 +127,31 @@ class ImportCatalogResourceTest extends AbstractAppTest {
 	}
 
 	@Test
+	void updateCatalogPropagatesAuthorities() throws Exception {
+		final ImportCatalogResource resource = new TestImportCatalogResource();
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		resource.locator = mock(ServicePluginLocator.class);
+		final var service = mock(ImportCatalogService.class);
+		when(resource.locator.getResource("service:prov:test", ImportCatalogService.class)).thenReturn(service);
+
+		// The import thread must keep the FULL authentication of the caller:
+		// `IS_ADMIN` is a SpEL bind over the thread AUTHORITIES, so a name-only
+		// context makes every node "read-only" inside the import
+		final var seen = new java.util.concurrent.atomic.AtomicReference<org.springframework.security.core.Authentication>();
+		Mockito.doAnswer(invocation -> {
+			seen.set(org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication());
+			return null;
+		}).when(service).updateCatalog("service:prov:test", false);
+
+		final var expected = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		Assertions.assertFalse(expected.getAuthorities().isEmpty());
+		resource.updateCatalog("service:prov:test:account", false);
+		org.awaitility.Awaitility.await().atMost(java.time.Duration.ofSeconds(5)).until(() -> seen.get() != null);
+		Assertions.assertEquals(expected.getName(), seen.get().getName());
+		Assertions.assertEquals(java.util.List.copyOf(expected.getAuthorities()), java.util.List.copyOf(seen.get().getAuthorities()));
+	}
+
+	@Test
 	void cancelNotExistNode() {
 		final var resource = newResource();
 		Assertions.assertEquals("read-only-node", Assertions
