@@ -60,7 +60,7 @@ public class Workload {
 	 * <ul>
 	 * <li>Weighted average of values corresponds to the baseline</li>
 	 * <li>When there is no details (only the baseline), no computation has to be done. Min is <code>0</code> and max is
-	 * <code>100</code></li>.
+	 * <code>100</code>.</li>
 	 * <li>Sum of durations should be <code>100</code>. When different than <code>100</code> a pro rata is applied to
 	 * each value according to their weight.</li>
 	 * <li>Min value's duration is <code>0</code></li>
@@ -68,7 +68,7 @@ public class Workload {
 	 * <code>100</code></li>
 	 * <li>Min value's CPU is <code>0</code></li>
 	 * <li>Max value's CPU is <code>100</code></li>
-	 * <ul>
+	 * </ul>
 	 * 
 	 * @param rawData The raw data containing baseline and optional details.
 	 * @return The Workload entity built from this raw value.
