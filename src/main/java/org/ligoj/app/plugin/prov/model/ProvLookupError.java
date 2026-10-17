@@ -25,7 +25,7 @@ import tools.jackson.databind.annotation.JsonSerialize;
  * lookup failed (no matching offer in the CS catalog) while cloning or mirroring. The resource is ignored on the CS but
  * tracked here so the comparison UI can surface the gap.
  * <p>
- * {@link #getName()} and {@link #getDescription()} } are copied from the source request. {@link #subscription} points to the CS that
+ * {@link #getName()} and {@link #getDescription()} are copied from the source request. {@link #subscription} points to the CS that
  * failed. {@link #mainSubscription} is the optional MS the resource came from. {@link #mainResourceId} is the id of the
  * source resource on the MS — intentionally NOT a foreign key (the MS resource may be edited or deleted independently);
  * it is only a soft link used to line the error up with its MS resource in the UI.

@@ -201,7 +201,7 @@ public class ProvQuoteSnapshotResource {
 
 	/**
 	 * Restore the quote from a snapshot: wipe the compute resources + storages + profiles, then replay the document.
-	 * Prices are re-resolved against the current catalog; rows without a matching offer any more are skipped and
+	 * Prices are re-resolved against the current catalog; rows without a matching offer anymore are skipped and
 	 * reported. Support resources are left untouched.
 	 *
 	 * @param subscription The subscription identifier.

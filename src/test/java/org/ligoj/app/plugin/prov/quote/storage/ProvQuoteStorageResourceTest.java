@@ -497,7 +497,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 		Assertions.assertEquals("server1-root-bis", qs.getName());
 		Assertions.assertFalse(qs.isUnboundCost());
 
-		// Attach back this storage to "server1
+		// Attach back this storage to "server1"
 		vo.setInstance(server1());
 		cost = qsResource.update(vo);
 		checkCost(cost.getTotal(), 7105.198, 7251.498, true);

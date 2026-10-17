@@ -218,7 +218,7 @@ public class ProvComparisonResource {
 			return;
 		}
 		final var src = findComputeById(type, id);
-		if (src == null || src.getConfiguration().getSubscription().getId().intValue() != subscription) {
+		if (src == null || src.getConfiguration().getSubscription().getId() != subscription) {
 			return;
 		}
 		for (final var link : links) {
@@ -304,7 +304,7 @@ public class ProvComparisonResource {
 		em.clear();
 		// Clone the quote-level usage / budget / optimizer profiles first — resources
 		// reference them by name, and the quote defaults drive pricing. cloneScoped clears
-		// the persistence context, so re-fetch both quotes as managed entities afterwards.
+		// the persistence context, so re-fetch both quotes as managed entities afterward.
 		final var csQuote = cloneScoped(resource.getQuoteFromSubscription(ms.getId()), csId,
 				resource.getQuoteFromSubscription(csId));
 		final var msQuote = resource.getQuoteFromSubscription(ms.getId());

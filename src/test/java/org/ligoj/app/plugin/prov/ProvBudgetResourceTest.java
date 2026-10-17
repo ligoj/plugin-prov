@@ -331,7 +331,7 @@ class ProvBudgetResourceTest extends AbstractProvResourceTest {
 		em.flush();
 		em.clear();
 		checkCost(resource.refresh(subscription), 3070.24, 5519.84, false);
-		assertTermCount("1y", 2); // 2 less servers
+		assertTermCount("1y", 2); // 2 fewer servers
 
 		final var budget = getBudget();
 		Assertions.assertNotNull(budget);

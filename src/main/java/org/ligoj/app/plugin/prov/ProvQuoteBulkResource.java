@@ -104,7 +104,7 @@ public class ProvQuoteBulkResource {
 			final var oldLocation = entity.getResolvedLocation();
 			patch(entity, vo, subscription, provider);
 			// Re-resolve the price under the new constraints — throws (with the resource
-			// name) when nothing matches any more, rolling back the whole bulk.
+			// name) when nothing matches anymore, rolling back the whole bulk.
 			refresh(type, entity);
 			if (!oldLocation.equals(entity.getResolvedLocation())) {
 				// The attached storages' prices depend on the location: refresh them too.
@@ -191,7 +191,7 @@ public class ProvQuoteBulkResource {
 		case FUNCTION -> qfRepository.findById(id).orElse(null);
 		default -> null;
 		};
-		if (entity == null || entity.getConfiguration().getSubscription().getId().intValue() != subscription) {
+		if (entity == null || entity.getConfiguration().getSubscription().getId() != subscription) {
 			throw new EntityNotFoundException(String.valueOf(id));
 		}
 		return entity;

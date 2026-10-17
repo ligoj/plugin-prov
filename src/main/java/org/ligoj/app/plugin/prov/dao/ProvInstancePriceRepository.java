@@ -66,7 +66,7 @@ public interface ProvInstancePriceRepository
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
@@ -96,7 +96,7 @@ public interface ProvInstancePriceRepository
 	 * @param globalRate  Usage rate multiplied by the duration. Should be <code>rate * duration</code>.
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
@@ -122,7 +122,7 @@ public interface ProvInstancePriceRepository
 	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.
@@ -148,7 +148,7 @@ public interface ProvInstancePriceRepository
 	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param software    Optional software notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param initialCost The maximal initial cost.
 	 * @param tenancy     The requested tenancy.

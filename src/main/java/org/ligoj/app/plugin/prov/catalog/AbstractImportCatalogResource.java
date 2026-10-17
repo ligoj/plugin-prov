@@ -582,7 +582,7 @@ public abstract class AbstractImportCatalogResource {
 	/**
 	 * Persist a shared entity: type, term or location. When running inside a region transaction, the entity is
 	 * committed immediately in its own transaction, so the concurrent region transactions can reference it from
-	 * their prices without a foreign key violation. Otherwise the operation is executed in place: in the current
+	 * their prices without a foreign key violation. Otherwise, the operation is executed in place: in the current
 	 * transaction if any, either in the repository's own transaction.
 	 *
 	 * @param save The persist operation.

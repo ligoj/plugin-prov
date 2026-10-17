@@ -72,7 +72,7 @@ public interface ProvDatabasePriceRepository
 	 * @param cpu         The minimum CPU.
 	 * @param gpu         The minimum GPU.
 	 * @param ram         The minimum RAM in GiB.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param location    The requested location identifier.
@@ -101,7 +101,7 @@ public interface ProvDatabasePriceRepository
 	 * @param cpu         The minimum CPU.
 	 * @param gpu         The minimum GPU.
 	 * @param ram         The minimum RAM in GiB.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param location    The requested location identifier.
@@ -132,7 +132,7 @@ public interface ProvDatabasePriceRepository
 	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param initialCost The maximal initial cost.
@@ -156,7 +156,7 @@ public interface ProvDatabasePriceRepository
 	 *                    <code>1</code>, (full time).
 	 * @param duration    The duration in month. Minimum is 1.
 	 * @param license     Optional license notice. When not <code>null</code> a license constraint is added.
-	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. WHen
+	 * @param engine      Database engine notice. When not <code>null</code> a software constraint is added. When
 	 *                    <code>null</code>, installed software is also accepted.
 	 * @param edition     Optional database edition.
 	 * @param initialCost The maximal initial cost.
