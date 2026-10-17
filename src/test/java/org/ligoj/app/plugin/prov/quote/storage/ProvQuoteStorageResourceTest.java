@@ -720,7 +720,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	void queryJson() throws IOException {
+	void queryJson() {
 		new ObjectMapperTrim().readValue("{\"size\":1,\"latency\":\"GOOD\","
 				+ "\"instance\":2,\"database\":2,\"optimized\":\"IOPS\"," + "\"location\":\"L\"}",
 				QuoteStorageQuery.class);
@@ -782,7 +782,7 @@ class ProvQuoteStorageResourceTest extends AbstractProvResourceTest {
 	 * Advanced case, all requirements.
 	 */
 	@Test
-	void lookupStorageHighConstraints() throws IOException {
+	void lookupStorageHighConstraints() {
 		final var lookup = qsResource
 				.lookup(subscription, QuoteStorageQuery.builder().size(1024).latency(Rate.GOOD).build()).getFirst();
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);

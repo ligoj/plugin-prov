@@ -35,7 +35,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	void queryJson() throws IOException {
+	void queryJson() {
 		new ObjectMapperTrim().readValue("{\"software\":\"S\",\"ephemeral\":true,"
 				+ "\"cpu\":2,\"gpu\":3,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\",\"os\":\"LINUX\","
 				+ "\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteInstanceQuery.class);
@@ -269,7 +269,7 @@ class ProvQuoteInstanceResourceTest extends AbstractProvResourceTest {
 	 * Lookup constant and low RAM.
 	 */
 	@Test
-	void lookupHighConstraints() throws IOException {
+	void lookupHighConstraints() {
 		final var build = QuoteInstanceQuery.builder().cpu(3).ram(9).workload("100").tenancy(ProvTenancy.SHARED).os(VmOs.WINDOWS)
 				.usage(FULL).build();
 		build.setTenancy(ProvTenancy.SHARED); // Coverage only

@@ -143,7 +143,7 @@ class ProvQuoteContainerResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	void queryJson() throws IOException {
+	void queryJson() {
 		new ObjectMapperTrim()
 				.readValue("{\"os\":\"LINUX\"," + "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteContainerQuery.class);

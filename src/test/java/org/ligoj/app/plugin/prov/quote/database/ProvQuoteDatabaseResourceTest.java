@@ -170,7 +170,7 @@ class ProvQuoteDatabaseResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	void queryJson() throws IOException {
+	void queryJson() {
 		new ObjectMapperTrim().readValue("{\"engine\":\"MYSQL\",\"edition\":\"EDITION\","
 				+ "\"cpu\":2,\"ram\":3000,\"workload\":\"100\",\"license\":\"LI\""
 				+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\"}", QuoteDatabaseQuery.class);

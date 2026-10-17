@@ -371,7 +371,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Lookup zero seat.
 	 */
 	@Test
-	void lookupNoSeat() throws IOException {
+	void lookupNoSeat() {
 		final var lookup = qs2Resource.lookup(subscription, 0, null, SupportType.TECHNICAL, null, null, null).get(1);
 		final var asJson = new ObjectMapperTrim().writeValueAsString(lookup);
 		Assertions.assertTrue(asJson.startsWith("{\"cost\":376.54,\"co2\":0.0,\"price\":{\"id\":"));
@@ -395,7 +395,7 @@ class ProvQuoteSupportResourceTest extends AbstractProvResourceTest {
 	 * Lookup unlimited seat.
 	 */
 	@Test
-	void lookupUnlimitedSeat() throws IOException {
+	void lookupUnlimitedSeat() {
 		// Support1 is now unlimited seats
 		sp2Repository.findBy("type.name", "support1").getType().setSeats(null);
 

@@ -3,15 +3,13 @@
  */
 package org.ligoj.app.plugin.prov.dao;
 
-import java.util.List;
+import org.ligoj.app.plugin.prov.model.ProvLocation;
+import org.ligoj.bootstrap.core.dao.RestRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import javax.cache.annotation.CacheKey;
 import javax.cache.annotation.CacheResult;
-
-import org.ligoj.app.plugin.prov.model.ProvLocation;
-import org.ligoj.bootstrap.core.dao.RestRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import java.util.List;
 
 /**
  * {@link ProvLocation} repository.

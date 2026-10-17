@@ -24,7 +24,7 @@ public class RoundSerializer extends StdSerializer<Double> {
 	public static final RoundSerializer INSTANCE = new RoundSerializer();
 
 	protected RoundSerializer() {
-		super(Double.class, false);
+		super(Double.class);
 	}
 
 	@Override

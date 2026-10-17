@@ -256,7 +256,7 @@ class ProvQuoteFunctionResourceTest extends AbstractProvResourceTest {
 	 * Builder coverage
 	 */
 	@Test
-	void queryJson() throws IOException {
+	void queryJson() {
 		new ObjectMapperTrim().readValue(
 				"{\"cpu\":2,\"ram\":3000,\"nbRequests\":20,\"runtime\":\"Java\""
 						+ ",\"location\":\"L\",\"usage\":\"U\",\"type\":\"T\",\"concurrency\":10,\"duration\":200}",
