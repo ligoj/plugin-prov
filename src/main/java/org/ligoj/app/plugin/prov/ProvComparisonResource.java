@@ -154,7 +154,7 @@ public class ProvComparisonResource {
 		subscriptionResource.checkVisible(subscription);
 		final var out = new ArrayList<ComparedSubscriptionVo>();
 		for (final var link : comparisonRepository.findAllByMainSubscriptionId(subscription)) {
-			final var csId = link.getSubscription().getId();
+			final int csId = link.getSubscription().getId();
 			final var vo = new ComparedSubscriptionVo();
 			vo.setSubscription(csId);
 			final var config = resource.getConfiguration(link.getSubscription());
@@ -295,7 +295,7 @@ public class ProvComparisonResource {
 	 * compute resource. Unmatched resources are recorded as {@link ProvLookupError}.
 	 */
 	private void clone(final Subscription ms, final Subscription cs) {
-		final var csId = cs.getId();
+		final int csId = cs.getId();
 		lookupErrorRepository.deleteAllBySubscription(csId);
 		wipe(csId);
 		// Flush + clear so the wiped resources leave the context before the re-clone (a
