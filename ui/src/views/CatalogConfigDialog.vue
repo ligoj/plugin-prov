@@ -1,5 +1,5 @@
 <template>
-  <LjDialog v-model="open" :title="t('catalog.config.title', { name: catalog?.node?.name || catalog?.node?.id })" max-width="720">
+  <LjDialog v-model="open" :guard="form" :guard-ready="!loading" :title="t('catalog.config.title', { name: catalog?.node?.name || catalog?.node?.id })" max-width="720">
     <v-form ref="formRef" @submit.prevent="save">
       <v-row density="comfortable" class="mt-1">
         <v-col cols="12">
@@ -25,8 +25,8 @@
       </v-row>
     </v-form>
 
-    <template #footer>
-      <LjButton variant="ghost" @click="open = false">{{ t('common.cancel') }}</LjButton>
+    <template #footer="{ close }">
+      <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
       <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
     </template>
   </LjDialog>
@@ -63,6 +63,8 @@ const open = computed({
 
 const formRef = ref(null)
 const saving = ref(false)
+// The configuration is read after the opening: its loaded values are no change
+const loading = ref(false)
 const locations = ref([])
 const form = reactive({ defaultLocation: null, properties: {} })
 
@@ -128,10 +130,15 @@ async function load() {
   if (!nodeId) return
   const names = properties.value.map((p) => `names=${encodeURIComponent(p.name)}`).join('&')
   const url = `${APP_BASE}rest/service/prov/catalog/${encodeURIComponent(nodeId)}/configuration${names ? '?' + names : ''}`
-  const data = await api.get(url, { silent: true })
-  locations.value = Array.isArray(data?.locations) ? data.locations : []
-  form.defaultLocation = data?.defaultLocation ?? null
-  form.properties = { ...(data?.properties || {}) }
+  loading.value = true
+  try {
+    const data = await api.get(url, { silent: true })
+    locations.value = Array.isArray(data?.locations) ? data.locations : []
+    form.defaultLocation = data?.defaultLocation ?? null
+    form.properties = { ...(data?.properties || {}) }
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(

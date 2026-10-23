@@ -213,4 +213,21 @@ describe('<NetworkDialog>', () => {
     wrapper.vm.removeRow('inbound', 0)
     expect(wrapper.vm.inbound).toEqual([])
   })
+
+  it('closes at once without change, and asks before discarding the changed links', async () => {
+    mountDialog()
+    await flushPromises()
+    const cancel = () => [...document.querySelectorAll('.vmodal-foot button')].find((b) => b.textContent.includes('Cancel'))
+    cancel().click()
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect(document.querySelector('.vconfirm')).toBeNull()
+
+    wrapper.vm.outbound[0].port = 8080
+    await flushPromises()
+    cancel().click()
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect(document.querySelector('.vconfirm')).not.toBeNull()
+  })
 })

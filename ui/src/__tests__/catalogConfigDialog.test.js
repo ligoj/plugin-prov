@@ -161,4 +161,18 @@ describe('<CatalogConfigDialog>', () => {
     // Untouched properties are sent blank so the backend deletes them
     expect(body.properties['service:prov:aws:os']).toBe('')
   })
+
+  it('asks before discarding a changed configuration, the loaded one being no change', async () => {
+    globalThis.fetch = vi.fn(() => jsonResponse({ defaultLocation: 'eu-west-1', locations: [IRELAND, PARIS], properties: {} }))
+    vi.spyOn(pluginRegistry, 'get').mockReturnValue(null)
+    mountDialog()
+    await flushPromises()
+
+    wrapper.vm.form.defaultLocation = 'eu-west-3'
+    await flushPromises()
+    ;[...document.querySelectorAll('.vmodal-foot button')].find((b) => b.textContent.includes('Cancel')).click()
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(document.querySelector('.vconfirm')).not.toBeNull()
+  })
 })

@@ -1,5 +1,5 @@
 <template>
-  <LjDialog v-model="open" :title="t('prov.quote.network.title', { name: resource?.name || '' })" icon="mdi-lan" max-width="960">
+  <LjDialog v-model="open" :guard="rows" :title="t('prov.quote.network.title', { name: resource?.name || '' })" icon="mdi-lan" max-width="960">
     <p class="text-caption text-medium-emphasis mb-2">{{ t('prov.quote.network.help', { name: resource?.name || '' }) }}</p>
     <v-alert v-if="invalid" type="warning" variant="tonal" density="compact" class="mb-3">{{ t('prov.quote.network.invalid') }}</v-alert>
 
@@ -17,8 +17,8 @@
       </v-window-item>
     </v-window>
 
-    <template #footer>
-      <LjButton variant="ghost" @click="open = false">{{ t('common.cancel') }}</LjButton>
+    <template #footer="{ close }">
+      <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
       <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
     </template>
   </LjDialog>
